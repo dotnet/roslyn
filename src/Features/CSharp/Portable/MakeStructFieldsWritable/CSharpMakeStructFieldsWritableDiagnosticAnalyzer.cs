@@ -37,7 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
         private sealed class SymbolAnalyzer
         {
             private bool _hasTypeInstanceAssigment = false;
-            private SyntaxNode _typeInstanceAssigmentNode;
+            private INamedTypeSymbol _namedTypeSymbol;
+            private SymbolAnalyzer(INamedTypeSymbol namedTypeSymbol)
+            {
+                _namedTypeSymbol = namedTypeSymbol;
+            }
 
             public static void CreateAndRegisterActions(CompilationStartAnalysisContext compilationStartContext)
             {
@@ -52,17 +56,17 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
                     // We are only interested in struct declarations
                     if (namedTypeSymbol.TypeKind != TypeKind.Struct) return;
                     //We check if struct contains any 'readonly' fields
-                    if (!HasReadonlyField(symbolStartContext)) return;
+                    if (!HasReadonlyField(namedTypeSymbol)) return;
 
-                    var symbolAnalyzer = new SymbolAnalyzer();
+                    var symbolAnalyzer = new SymbolAnalyzer(namedTypeSymbol);
                     symbolAnalyzer.RegisterActions(symbolStartContext);
 
                 }, SymbolKind.NamedType);
             }
 
-            private static bool HasReadonlyField(SymbolStartAnalysisContext symbolStartContext)
+            private static bool HasReadonlyField(INamedTypeSymbol namedTypeSymbol)
             {
-                return ((INamedTypeSymbol)symbolStartContext.Symbol)
+                return namedTypeSymbol
                 .GetMembers()
                 .OfType<IFieldSymbol>()
                 .Where(field => field.AssociatedSymbol == null)
@@ -81,11 +85,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
                 var operationAssigmnent = (IAssignmentOperation)operationContext.Operation;
                 _hasTypeInstanceAssigment = operationAssigmnent.Target is IInstanceReferenceOperation instance &&
                                             instance.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance;
-
-                if (_hasTypeInstanceAssigment)
-                {
-                    _typeInstanceAssigmentNode = operationAssigmnent.Syntax;
-                }
             }
 
             private void SymbolEndAction(SymbolAnalysisContext symbolEndContext)
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
                 {
                     var diagnostic = Diagnostic.Create(
                                     s_diagnosticDescriptor,
-                                    _typeInstanceAssigmentNode.GetLocation());
+                                    _namedTypeSymbol.Locations[0]);
                     symbolEndContext.ReportDiagnostic(diagnostic);
                 }
             }

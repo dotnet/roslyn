@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
         public async Task SingleReadonlyField_ThisAssigmentInMethod()
         {
             await TestInRegularAndScriptAsync(
-@"struct MyStruct
+@"struct [|MyStruct|]
 {
     public readonly int Value;
 
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
 
     public void Test()
     {
-        [|this = new MyStruct(5)|];
+        this = new MyStruct(5);
     }
 }",
 @"struct MyStruct
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
         public async Task SingleNonReadonlyField_ThisAssigmentInMethod()
         {
             await TestDiagnosticMissingAsync(
-@"struct MyStruct
+@"struct [|MyStruct|]
 {
     public int Value;
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
 
     public void Test()
     {
-        [|this = new MyStruct(5)|];
+        this = new MyStruct(5);
     }
 }");
         }
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
         public async Task MultipleMixedFields_ThisAssigmentInMethod()
         {
             await TestInRegularAndScriptAsync(
-@"struct MyStruct
+@"struct [|MyStruct|]
 {
     public readonly int First;
     public readonly int Second;
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
 
     public void Test()
     {
-        [|this = new MyStruct(5, 3, 1)|];
+        this = new MyStruct(5, 3, 1);
     }
 }",
 @"struct MyStruct
@@ -114,13 +114,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
         public async Task SingleReadonlyField_ThisAssigmentInCtor()
         {
             await TestDiagnosticMissingAsync(
-@"struct MyStruct
+@"struct [|MyStruct|]
 {
     public readonly int Value;
 
     public MyStruct(int value)
     {
-        [|this = new MyStruct(value, 0)|];
+        this = new MyStruct(value, 0);
     }
 
     public MyStruct(int first, int second)
@@ -134,13 +134,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
         public async Task SingleReadonlyField_NoThisAssigment()
         {
             await TestDiagnosticMissingAsync(
-@"struct MyStruct
+@"struct [|MyStruct|]
 {
     public readonly int Value;
 
     public MyStruct(int value)
     {
-        [|Value = value|];
+        Value = value;
     }
 }");
         }
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
         public async Task SingleReadonlyField_ThisAssigmentInMethod_ReportDiagnostic()
         {
             await TestDiagnosticsAsync(
-@"struct MyStruct
+@"struct [|MyStruct|]
 {
     public readonly int Value;
 
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
 
     public void Test()
     {
-        [|this = new MyStruct(5)|];
+        this = new MyStruct(5);
     }
 }",
     expected: Diagnostic(IDEDiagnosticIds.MakeStructFieldsWritable));
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
         public async Task SingleReadonlyField_InClass()
         {
             await TestDiagnosticMissingAsync(
-@"class MyClass
+@"class [|MyClass|]
 {
     public readonly int Value;
 
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
 
     public void Test()
     {
-        [|this = new MyClass(5)|];
+        this = new MyClass(5);
     }
 }");
         }
@@ -190,11 +190,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
         public async Task StructWithoutField()
         {
             await TestDiagnosticMissingAsync(
-@"struct MyStruct
+@"struct [|MyStruct|]
 {
     public void Test()
     {
-        [|this = new MyStruct()|];
+        this = new MyStruct();
     }
 }");
         }
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
         public async Task SingleProperty_ThisAssigmentInMethod()
         {
             await TestDiagnosticMissingAsync(
-@"struct MyStruct
+@"struct [|MyStruct|]
 {
     public int Value { get; set; }
 
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
 
     public void Test()
     {
-        [|this = new MyStruct(5)|];
+        this = new MyStruct(5);
     }
 }");
         }
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
         public async Task SingleGetterProperty_ThisAssigmentInMethod()
         {
             await TestDiagnosticMissingAsync(
-@"struct MyStruct
+@"struct [|MyStruct|]
 {
     public int Value { get; }
 
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
 
     public void Test()
     {
-        [|this = new MyStruct(5)|];
+        this = new MyStruct(5);
     }
 }");
         }
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
     }
 }
 
-struct MyStruct2
+struct [|MyStruct2|]
 {
     public readonly int Value;
 
@@ -269,7 +269,7 @@ struct MyStruct2
 
     public void Test()
     {
-        [|this = new MyStruct2(5)|];
+        this = new MyStruct2(5);
     }
 }",
 @"struct MyStruct
@@ -307,7 +307,7 @@ struct MyStruct2
         public async Task MultipleStructDeclaration_SingleReadonlyField_ThisAssigmentInMethod_ShouldNotReprotDiagnostic()
         {
             await TestDiagnosticMissingAsync(
-@"struct MyStruct
+@"struct [|MyStruct|]
 {
     public int Value;
 
@@ -318,7 +318,7 @@ struct MyStruct2
 
     public void Test()
     {
-        [|this = new MyStruct(5)|];
+        this = new MyStruct(5);
     }
 }
 

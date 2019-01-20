@@ -37,11 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             foreach (var diagnostic in diagnostics)
             {
                 var diagnosticNode = diagnostic.Location.FindNode(cancellationToken);
-                var structDeclaration = diagnosticNode.GetAncestors()
-                    .OfType<StructDeclarationSyntax>()
-                    .FirstOrDefault();
 
-                var fieldDeclarations = structDeclaration.ChildNodes()
+                var fieldDeclarations = diagnosticNode.ChildNodes()
                     .OfType<FieldDeclarationSyntax>();
 
                 foreach (var fieldDeclaration in fieldDeclarations)
