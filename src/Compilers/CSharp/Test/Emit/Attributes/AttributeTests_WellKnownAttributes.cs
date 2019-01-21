@@ -6391,6 +6391,8 @@ public class Test
 
     public static string someProp2 { [Obsolete] get => new SomeType().ToString(); }
 
+    public static SomeType someProp3 { [Obsolete] get => new SomeType(); }
+
     [Obsolete]
     SomeType this[int x] { get { SomeType y = new SomeType(); return y; } }
 
@@ -6413,9 +6415,12 @@ public class Base<T> {}
 public class Derived : Base<Base<int>> {}
 ";
             CreateCompilation(source).VerifyDiagnostics(
+                // (27,19): warning CS0612: 'SomeType' is obsolete
+                //     public static SomeType someProp3 { [Obsolete] get => new SomeType(); }
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "SomeType").WithArguments("SomeType").WithLocation(27, 19),
                 // (20,28): warning CS0067: The event 'Test.someEvent' is never used
                 //     event Action<SomeType> someEvent;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "someEvent").WithArguments("Test.someEvent"));
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "someEvent").WithArguments("Test.someEvent").WithLocation(20, 28)
         }
 
         [Fact]
