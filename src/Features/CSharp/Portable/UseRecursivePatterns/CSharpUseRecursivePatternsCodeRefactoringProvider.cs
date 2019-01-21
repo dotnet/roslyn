@@ -48,14 +48,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 return;
             }
 
-            var reducedNode = Reducer.Reduce(analyzedNode);
+            //if (!analyzedNode.CanReduce)
+            //{
+            //    return;
+            //}
+
+            var reducedNode = analyzedNode.Reduce();
             if (reducedNode == null)
             {
                 return;
             }
 
             context.RegisterRefactoring(new MyCodeAction(
-                c => document.ReplaceNodeAsync(node, Rewriter.Rewrite(reducedNode), c)));
+                c => document.ReplaceNodeAsync(node, reducedNode.Rewrite(asPattern: false), c)));
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
