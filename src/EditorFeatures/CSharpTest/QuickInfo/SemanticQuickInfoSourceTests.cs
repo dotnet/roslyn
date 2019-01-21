@@ -112,8 +112,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
         protected override async Task TestAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
         {
-            await TestWithOptionsAsync(Options.Regular, markup, expectedResults);
-            await TestWithOptionsAsync(Options.Script, markup, expectedResults);
+            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersion.Latest), markup, expectedResults);
+            await TestWithOptionsAsync(Options.Script.WithLanguageVersion(LanguageVersion.Latest), markup, expectedResults);
         }
 
         private async Task TestWithUsingsAsync(string markup, params Action<QuickInfoItem>[] expectedResults)

@@ -311,58 +311,62 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             ISymbolDisplayService displayService,
             CancellationToken cancellationToken)
         {
-            if (!syntaxFacts.IsBinaryExpression(token.Parent))
-            {
-                return default;
-            }
-
-            syntaxFacts.GetPartsOfBinaryExpression(token.Parent, out var leftExpression, out var operatorToken, out var rightExpression);
-
-            if (token != operatorToken)
-            {
-                return default;
-            }
-
             var constant = semanticModel.GetConstantValue(token.Parent, cancellationToken);
             if (!constant.HasValue)
-            {
                 return default;
-            }
-
-            var leftConstant = semanticModel.GetConstantValue(leftExpression, cancellationToken);
-            if (!leftConstant.HasValue)
-            {
-                return default;
-            }
-
-            var rightConstant = semanticModel.GetConstantValue(rightExpression, cancellationToken);
-            if (!rightConstant.HasValue)
-            {
-                return default;
-            }
 
             var textBuilder = ImmutableArray.CreateBuilder<TaggedText>();
             textBuilder.AddLineBreak();
             textBuilder.AddText(FeaturesResources.Constant_value_colon);
             textBuilder.AddSpace();
-            textBuilder.AddRange(FormatValue(leftConstant.Value));
-            textBuilder.AddSpace();
-            textBuilder.Add(
-                new TaggedText(
-                    syntaxFacts.IsReservedKeyword(operatorToken) ? TextTags.Keyword : TextTags.Operator,
-                    operatorToken.Text));
-            textBuilder.AddSpace();
-            textBuilder.AddRange(FormatValue(rightConstant.Value));
-            textBuilder.AddSpace();
-            textBuilder.AddOperator("=");
-            textBuilder.AddSpace();
+
+            if (IsBinaryExpression(syntaxFacts, token.Parent, out var left, out var operatorToken, out var right) &&
+                token == operatorToken &&
+                semanticModel.GetConstantValue(left, cancellationToken) is var leftConstant && leftConstant.HasValue &&
+                semanticModel.GetConstantValue(right, cancellationToken) is var rightConstant && rightConstant.HasValue)
+            {
+                textBuilder.AddRange(FormatValue(leftConstant.Value));
+                textBuilder.AddSpace();
+                textBuilder.Add(
+                    new TaggedText(
+                        syntaxFacts.IsReservedKeyword(operatorToken) ? TextTags.Keyword : TextTags.Operator,
+                        operatorToken.Text));
+                textBuilder.AddSpace();
+                textBuilder.AddRange(FormatValue(rightConstant.Value));
+                textBuilder.AddSpace();
+                textBuilder.AddOperator("=");
+                textBuilder.AddSpace();
+            }
+
             textBuilder.AddRange(FormatValue(constant.Value));
+
             return textBuilder.ToImmutable();
 
             ImmutableArray<TaggedText> FormatValue(object value)
             {
                 var taggedText = displayService.FormatPrimitiveToDisplayParts(value, options: default).ToTaggedText();
                 return TrimTaggedTextRun(taggedText, 42);
+            }
+        }
+
+        private static bool IsBinaryExpression(
+            ISyntaxFactsService syntaxFacts,
+            SyntaxNode node,
+            out SyntaxNode left,
+            out SyntaxToken operatorToken,
+            out SyntaxNode right)
+        {
+            if (syntaxFacts.IsBinaryExpression(node))
+            {
+                syntaxFacts.GetPartsOfBinaryExpression(node, out left, out operatorToken, out right);
+                return true;
+            }
+            else
+            {
+                left = default;
+                operatorToken = default;
+                right = default;
+                return false;
             }
         }
 

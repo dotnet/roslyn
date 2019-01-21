@@ -4,6 +4,78 @@ Imports Microsoft.CodeAnalysis.TextTags
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
     Partial Public Class SemanticQuickInfoSourceTests
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestConstantVariable() As Task
+            Await TestInClassAsync($"
+const a as integer = 1
+const b as integer = 2
+const c as integer = a + b
+const f as integer = $$c",
+                ConstantValueContent(
+                    ("3", NumericLiteral)
+                ))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestNumericLiteralConstantValue() As Task
+            Await TestInMethodAsync($"
+dim v = $$1",
+                ConstantValueContent(
+                    ("1", NumericLiteral)
+                ))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestTrueLiteralConstantValue() As Task
+            Await TestInMethodAsync($"
+dim v = $$true",
+                ConstantValueContent(
+                    ("True", Keyword)
+                ))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestCharLiteralConstantValue() As Task
+            Await TestInMethodAsync($"
+dim v = $$""a""c",
+                ConstantValueContent(
+                    ("""a""c", StringLiteral)
+                ))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestStringLiteralConstantValue() As Task
+            Await TestInMethodAsync($"
+dim v = $$""Hello World""",
+                ConstantValueContent(
+                    ("""Hello World""", StringLiteral)
+                ))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestNotOnParenthesizedExpression() As Task
+            Await TestInMethodAsync($"
+dim v = $$(0)", Nothing)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestUnaryPlusExpression_Int() As Task
+            Await TestInMethodAsync($"
+dim v = $$+1",
+                ConstantValueContent(
+                    ("1", NumericLiteral)
+                ))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestUnaryMinusExpression_Int() As Task
+            Await TestInMethodAsync($"
+dim v = $$-1",
+                ConstantValueContent(
+                    ("-1", NumericLiteral)
+                ))
+        End Function
+
         <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <InlineData("integer")>
         <InlineData("uinteger")>

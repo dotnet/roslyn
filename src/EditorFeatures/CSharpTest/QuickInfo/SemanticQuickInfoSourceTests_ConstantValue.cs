@@ -9,6 +9,196 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {
     public partial class SemanticQuickInfoSourceTests
     {
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestConstantVariable()
+        {
+            await TestInClassAsync($@"
+const int a = 1;
+const int b = 2;
+const int c = a + b;
+const int f = $$c;",
+                ConstantValueContent(
+                    ("3", NumericLiteral)
+                ));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestNumericLiteralConstantValue()
+        {
+            await TestInMethodAsync($@"
+var v = $$1;",
+                ConstantValueContent(
+                    ("1", NumericLiteral)
+                ));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestTrueLiteralConstantValue()
+        {
+            await TestInMethodAsync($@"
+var v = $$true;",
+                ConstantValueContent(
+                    ("true", Keyword)
+                ));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestCharLiteralConstantValue()
+        {
+            await TestInMethodAsync($@"
+var v = $$'a';",
+                ConstantValueContent(
+                    ("'a'", StringLiteral)
+                ));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStringLiteralConstantValue()
+        {
+            await TestInMethodAsync($@"
+var v = $$""Hello World"";",
+                ConstantValueContent(
+                    ("\"Hello World\"", StringLiteral)
+                ));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestDefaultLiteral_Int()
+        {
+            await TestInMethodAsync($@"
+int v = $$default;",
+                ConstantValueContent(
+                    ("0", NumericLiteral)
+                ));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestDefaultLiteral_Bool()
+        {
+            await TestInMethodAsync($@"
+bool v = $$default;",
+                ConstantValueContent(
+                    ("false", Keyword)
+                ));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestDefaultLiteral_Char()
+        {
+            await TestInMethodAsync($@"
+char v = $$default;",
+                ConstantValueContent(
+                    ("'\\0'", StringLiteral)
+                ));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestDefaultLiteral_String()
+        {
+            await TestInMethodAsync($@"
+string v = $$default;",
+                ConstantValueContent(
+                    ("null", Keyword)
+                ));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestDefaultExpression_String()
+        {
+            await TestInMethodAsync($@"
+var v = $$default(string);",
+                ConstantValueContent(
+                    ("null", Keyword)
+                ));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestDefaultExpression_String2()
+        {
+            await TestInMethodAsync($@"
+var v = default$$(string);",
+                ConstantValueContent(
+                    ("null", Keyword)
+                ));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestDefaultExpression_String_NotOnType()
+        {
+            await TestInMethodAsync($@"
+var v = default($$string);",
+                ConstantValue());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestDefaultExpression_String_NotOnParenthesisToken1()
+        {
+            await TestInMethodAsync($@"
+var v = default(string$$);",
+                ConstantValue());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestDefaultExpression_String_NotOnParenthesisToken2()
+        {
+            await TestInMethodAsync($@"
+var v = default(string)$$;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestCheckedExpression_Bool()
+        {
+            await TestInMethodAsync($@"
+var v = $$checked(true);",
+                ConstantValueContent(
+                    ("true", Keyword)
+                ));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestUncheckedExpression_UInt()
+        {
+            await TestInMethodAsync($@"
+var v = $$unchecked((uint)0 - 1);",
+                ConstantValueContent(
+                    ("4294967295", NumericLiteral)
+                ));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestNotOnCastExpression()
+        {
+            await TestInMethodAsync($@"
+var v = $$(int)0;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestNotOnParenthesizedExpression()
+        {
+            await TestInMethodAsync($@"
+var v = $$(0);");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestUnaryPlusExpression_Int()
+        {
+            await TestInMethodAsync($@"
+var v = $$+1",
+                ConstantValueContent(
+                    ("1", NumericLiteral)
+                ));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestUnaryMinusExpression_Int()
+        {
+            await TestInMethodAsync($@"
+var v = $$-1",
+                ConstantValueContent(
+                    ("-1", NumericLiteral)
+                ));
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [InlineData("int")]
         [InlineData("uint")]
