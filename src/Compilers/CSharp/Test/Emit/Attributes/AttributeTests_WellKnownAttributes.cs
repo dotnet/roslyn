@@ -6420,7 +6420,7 @@ public class Derived : Base<Base<int>> {}
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "SomeType").WithArguments("SomeType").WithLocation(27, 19),
                 // (20,28): warning CS0067: The event 'Test.someEvent' is never used
                 //     event Action<SomeType> someEvent;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "someEvent").WithArguments("Test.someEvent").WithLocation(20, 28)
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "someEvent").WithArguments("Test.someEvent").WithLocation(20, 28));
         }
 
         [Fact]
