@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         {
             var (model, symbols, supportedPlatforms) = await ComputeQuickInfoDataAsync(document, token, cancellationToken).ConfigureAwait(false);
 
-            if (symbols.IsDefaultOrEmpty)
+            if (symbols.IsDefault)
             {
                 return null;
             }
@@ -174,6 +174,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             var descriptionService = languageServices.GetService<ISymbolDisplayService>();
             var formatter = languageServices.GetService<IDocumentationCommentFormattingService>();
             var syntaxFactsService = languageServices.GetService<ISyntaxFactsService>();
+            var syntaxKindsService = languageServices.GetService<ISyntaxKindsService>();
             var showWarningGlyph = supportedPlatforms != null && supportedPlatforms.HasValidAndInvalidProjects();
             var showSymbolGlyph = true;
 
@@ -185,7 +186,12 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             var sections = ImmutableArray.CreateBuilder<QuickInfoSection>(initialCapacity: groups.Count);
 
             void AddSection(string kind, ImmutableArray<TaggedText> taggedParts)
-                => sections.Add(QuickInfoSection.Create(kind, taggedParts));
+            {
+                if (sections.Count == 0 && taggedParts.FirstOrDefault().Tag == TextTags.LineBreak)
+                    taggedParts = taggedParts.RemoveAt(0);
+
+                sections.Add(QuickInfoSection.Create(kind, taggedParts));
+            }
 
             if (TryGetGroupText(SymbolDescriptionGroups.MainDescription, out var mainDescriptionTaggedParts))
             {
@@ -194,7 +200,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             var documentationContent = GetDocumentationContent(symbols, groups, semanticModel, token, formatter, syntaxFactsService, cancellationToken);
             if (syntaxFactsService.IsAwaitKeyword(token) &&
-                (symbols.First() as INamedTypeSymbol)?.SpecialType == SpecialType.System_Void)
+                (symbols.FirstOrDefault() as INamedTypeSymbol)?.SpecialType == SpecialType.System_Void)
             {
                 documentationContent = default;
                 showSymbolGlyph = false;
@@ -205,7 +211,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 AddSection(QuickInfoSectionKinds.DocumentationComments, documentationContent);
             }
 
-            var constantValueContent = GetConstantValueContent(token, semanticModel, syntaxFactsService, descriptionService, cancellationToken);
+            var constantValueContent = GetConstantValueContent(token, semanticModel, syntaxFactsService, syntaxKindsService, descriptionService, cancellationToken);
             if (!constantValueContent.IsDefaultOrEmpty)
             {
                 AddSection(QuickInfoSectionKinds.ConstantValue, constantValueContent);
@@ -254,7 +260,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             }
 
             var tags = ImmutableArray<string>.Empty;
-            if (showSymbolGlyph)
+            if (showSymbolGlyph && symbols.Any())
             {
                 tags = tags.AddRange(GlyphTags.GetTags(symbols.First().GetGlyph()));
             }
@@ -264,7 +270,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 tags = tags.Add(WellKnownTags.Warning);
             }
 
-            return QuickInfoItem.Create(token.Span, tags, sections.ToImmutable());
+            return sections.Count > 0 ? QuickInfoItem.Create(token.Span, tags, sections.ToImmutable()) : null;
         }
 
         private ImmutableArray<TaggedText> GetDocumentationContent(
@@ -308,9 +314,13 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             SyntaxToken token,
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
+            ISyntaxKindsService syntaxKinds,
             ISymbolDisplayService displayService,
             CancellationToken cancellationToken)
         {
+            if (token.RawKind == syntaxKinds.OpenParenToken || token.RawKind == syntaxKinds.CloseParenToken)
+                return default;
+
             var constant = semanticModel.GetConstantValue(token.Parent, cancellationToken);
             if (!constant.HasValue)
                 return default;

@@ -117,9 +117,9 @@ var v = $$default(string);",
         {
             await TestInMethodAsync($@"
 var v = default$$(string);",
-                ConstantValueContent(
-                    ("null", Keyword)
-                ));
+            ConstantValueContent(
+                ("null", Keyword)
+            ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -442,6 +442,16 @@ var f = true $${op} !true",
                     ("=", Operator),
                     (" ", Space),
                     (result, Keyword)
+                ));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestConditionalExpression_Int()
+        {
+            await TestInMethodAsync($@"
+var f = false $$? 0 : 1",
+                ConstantValueContentNoLineBreak(
+                    ("1", NumericLiteral)
                 ));
         }
 

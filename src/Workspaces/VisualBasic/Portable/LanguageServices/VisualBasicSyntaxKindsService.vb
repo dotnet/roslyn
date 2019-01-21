@@ -12,5 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property IfKeyword As Integer = SyntaxKind.IfKeyword Implements ISyntaxKindsService.IfKeyword
         Public ReadOnly Property LogicalAndExpression As Integer = SyntaxKind.AndAlsoExpression Implements ISyntaxKindsService.LogicalAndExpression
         Public ReadOnly Property LogicalOrExpression As Integer = SyntaxKind.OrElseExpression Implements ISyntaxKindsService.LogicalOrExpression
+        Public ReadOnly Property OpenParenToken As Integer = SyntaxKind.OpenParenToken Implements ISyntaxKindsService.OpenParenToken
+        Public ReadOnly Property CloseParenToken As Integer = SyntaxKind.CloseParenToken Implements ISyntaxKindsService.CloseParenToken
     End Class
 End Namespace

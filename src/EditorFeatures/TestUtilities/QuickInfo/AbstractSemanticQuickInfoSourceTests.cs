@@ -148,6 +148,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             return item => AssertSection(expectedTextWithTags, item.Sections, QuickInfoSectionKinds.ConstantValue);
         }
 
+        protected Action<QuickInfoItem> ConstantValueContentNoLineBreak(params (string text, string tag)[] expectedContentWithTags)
+        {
+            var expectedTextWithTags = expectedContentWithTags.ToImmutableArray().InsertRange(0, new[]
+            {
+                (FeaturesResources.Constant_value_colon, TextTags.Text),
+                (" ", TextTags.Space),
+            });
+
+            return item => AssertSection(expectedTextWithTags, item.Sections, QuickInfoSectionKinds.ConstantValue);
+        }
+
         protected static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
         {
             var service = document.GetLanguageService<ISyntaxFactsService>();

@@ -12,5 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int IfKeyword => (int)SyntaxKind.IfKeyword;
         public int LogicalAndExpression => (int)SyntaxKind.LogicalAndExpression;
         public int LogicalOrExpression => (int)SyntaxKind.LogicalOrExpression;
+        public int OpenParenToken => (int)SyntaxKind.OpenParenToken;
+        public int CloseParenToken => (int)SyntaxKind.CloseParenToken;
     }
 }
