@@ -23,7 +23,7 @@ const int f = $$c;",
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestNumericLiteralConstantValue()
+        public async Task TestNumericLiteral()
         {
             await TestInMethodAsync($@"
 var v = $$1;",
@@ -33,7 +33,7 @@ var v = $$1;",
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestTrueLiteralConstantValue()
+        public async Task TestTrueLiteral()
         {
             await TestInMethodAsync($@"
 var v = $$true;",
@@ -43,7 +43,7 @@ var v = $$true;",
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestCharLiteralConstantValue()
+        public async Task TestCharLiteral()
         {
             await TestInMethodAsync($@"
 var v = $$'a';",
@@ -53,7 +53,7 @@ var v = $$'a';",
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestStringLiteralConstantValue()
+        public async Task TestStringLiteral()
         {
             await TestInMethodAsync($@"
 var v = $$""Hello World"";",

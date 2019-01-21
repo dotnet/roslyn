@@ -19,7 +19,7 @@ const f as integer = $$c",
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestNumericLiteralConstantValue() As Task
+        Public Async Function TestNumericLiteral() As Task
             Await TestInMethodAsync($"
 dim v = $$1",
                 ConstantValueContent(
@@ -28,7 +28,7 @@ dim v = $$1",
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestTrueLiteralConstantValue() As Task
+        Public Async Function TestTrueLiteral() As Task
             Await TestInMethodAsync($"
 dim v = $$true",
                 ConstantValueContent(
@@ -37,7 +37,7 @@ dim v = $$true",
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestCharLiteralConstantValue() As Task
+        Public Async Function TestCharLiteral() As Task
             Await TestInMethodAsync($"
 dim v = $$""a""c",
                 ConstantValueContent(
@@ -46,7 +46,7 @@ dim v = $$""a""c",
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestStringLiteralConstantValue() As Task
+        Public Async Function TestStringLiteral() As Task
             Await TestInMethodAsync($"
 dim v = $$""Hello World""",
                 ConstantValueContent(
