@@ -7,7 +7,7 @@ using static Microsoft.CodeAnalysis.TextTags;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {
-    public partial class SemanticQuickInfoSourceTests
+    public sealed class SemanticQuickInfoSourceConstantValueTests : SemanticQuickInfoSourceTestsBase
     {
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestConstantVariable()

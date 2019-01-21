@@ -3,7 +3,9 @@
 Imports Microsoft.CodeAnalysis.TextTags
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
-    Partial Public Class SemanticQuickInfoSourceTests
+    Public NotInheritable Class SemanticQuickInfoSourceConstantValueTests
+        Inherits SemanticQuickInfoSourceTestsBase
+
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestConstantVariable() As Task
             Await TestInClassAsync($"
