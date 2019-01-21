@@ -3800,6 +3800,8 @@ public struct MyStruct<T>
                     //         var ptr = &ms;
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "&ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(9, 19)
                 );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3831,6 +3833,8 @@ public class MyClass
                     //         fixed (MyStruct<int>* ptr = &c.ms)
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "&c.ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(12, 37)
                 );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3853,6 +3857,8 @@ public struct MyStruct<T>
                     //         var size = sizeof(MyStruct<int>);
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "sizeof(MyStruct<int>)").WithArguments("unmanaged constructed types", "8.0").WithLocation(8, 20)
                 );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3875,6 +3881,8 @@ public struct MyStruct<T>
                     //         var arr = stackalloc[] { new MyStruct<int>() };
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc[] { new MyStruct<int>() }").WithArguments("unmanaged constructed types", "8.0").WithLocation(8, 19)
                 );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3897,6 +3905,8 @@ public struct MyStruct<T>
                     //         var arr = stackalloc MyStruct<int>[4];
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct<int>").WithArguments("unmanaged constructed types", "8.0").WithLocation(8, 30)
                 );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3919,6 +3929,8 @@ public unsafe struct OtherStruct
                     //     public MyStruct<int>* ms;
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct<int>*").WithArguments("unmanaged constructed types", "8.0").WithLocation(9, 12)
                 );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(32103, "https://github.com/dotnet/roslyn/issues/32103")]
