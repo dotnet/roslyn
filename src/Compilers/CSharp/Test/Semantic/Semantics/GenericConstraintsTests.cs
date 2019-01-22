@@ -3269,6 +3269,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "UnmanagedWithInterface").WithArguments("C.UnmanagedWithInterface<T>(T*)", "System.IDisposable", "T", "int").WithLocation(20, 9));
         }
 
+<<<<<<< HEAD
         [Fact]
         public void UnmanagedGenericStructPointer()
         {
@@ -3769,6 +3770,10 @@ public unsafe struct MyStruct<T> where T : unmanaged
 
         [Fact]
         public void CircularGenericUnmanagedInstantation()
+=======
+        [Fact, WorkItem(31439, "https://github.com/dotnet/roslyn/issues/31439")]
+        public void CircularTypeArgumentUnmanagedConstraint()
+>>>>>>> upstream/dev16.1-preview1
         {
             var code = @"
 public struct X<T>
@@ -3779,6 +3784,7 @@ public struct X<T>
 public struct Z
 {
     public X<Z> field;
+<<<<<<< HEAD
 }";
             var compilation = CreateCompilation(code);
             compilation.VerifyDiagnostics();
@@ -4125,5 +4131,15 @@ public class MyClass
                     Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&ms.field").WithLocation(12, 27)
                 );
         }
+=======
+}
+";
+            CreateCompilation(code).VerifyDiagnostics(
+                // (9,17): error CS8377: The type 'Z' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'X<T>'
+                //     public X<Z> field;
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("X<T>", "T", "Z").WithLocation(9, 17)
+            );
+        }
+>>>>>>> upstream/dev16.1-preview1
     }
 }

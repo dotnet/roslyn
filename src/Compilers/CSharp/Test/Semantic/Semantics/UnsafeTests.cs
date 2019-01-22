@@ -361,6 +361,7 @@ unsafe class C<T>
 ";
 
             var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
+<<<<<<< HEAD
             compilation.GetDiagnostics()
                 .Where(d => d.Severity == DiagnosticSeverity.Error)
                 .Verify(
@@ -370,6 +371,32 @@ unsafe class C<T>
                     // (9,14): error CS0306: The type 'int**' may not be used as a type argument
                     //     C<int**> f5;
                     Diagnostic(ErrorCode.ERR_BadTypeArgument, "f5").WithArguments("int**").WithLocation(9, 14));
+=======
+            compilation.VerifyDiagnostics(
+                // (8,13): error CS0306: The type 'int*' may not be used as a type argument
+                //     C<int*> f4;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "f4").WithArguments("int*").WithLocation(8, 13),
+                // (9,14): error CS0306: The type 'int**' may not be used as a type argument
+                //     C<int**> f5;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "f5").WithArguments("int**").WithLocation(9, 14),
+
+                // (4,10): warning CS0169: The field 'C<T>.f0' is never used
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "f0").WithArguments("C<T>.f0"),
+                // (5,11): warning CS0169: The field 'C<T>.f1' is never used
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "f1").WithArguments("C<T>.f1"),
+                // (6,12): warning CS0169: The field 'C<T>.f2' is never used
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "f2").WithArguments("C<T>.f2"),
+                // (7,14): warning CS0169: The field 'C<T>.f3' is never used
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "f3").WithArguments("C<T>.f3"),
+                // (8,13): warning CS0169: The field 'C<T>.f4' is never used
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "f4").WithArguments("C<T>.f4"),
+                // (9,14): warning CS0169: The field 'C<T>.f5' is never used
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "f5").WithArguments("C<T>.f5"),
+                // (10,15): warning CS0169: The field 'C<T>.f6' is never used
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "f6").WithArguments("C<T>.f6"),
+                // (11,17): warning CS0169: The field 'C<T>.f7' is never used
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "f7").WithArguments("C<T>.f7"));
+>>>>>>> upstream/dev16.1-preview1
 
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 

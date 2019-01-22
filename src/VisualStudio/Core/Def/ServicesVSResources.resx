@@ -507,6 +507,9 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="This_workspace_only_supports_opening_documents_on_the_UI_thread" xml:space="preserve">
     <value>This workspace only supports opening documents on the UI thread.</value>
   </data>
+  <data name="This_workspace_does_not_support_updating_Visual_Basic_compilation_options" xml:space="preserve">
+    <value>This workspace does not support updating Visual Basic compilation options.</value>
+  </data>
   <data name="This_workspace_does_not_support_updating_Visual_Basic_parse_options" xml:space="preserve">
     <value>This workspace does not support updating Visual Basic parse options.</value>
   </data>

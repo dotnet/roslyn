@@ -2,8 +2,14 @@ resources:
 - repo: self
   clean: true
 
+variables:
+  SignType: real
+  SkipTests: false
+  SkipApplyOptimizationData: false
+
 jobs:
-- job:
+- job: OfficialBuild
+  displayName: Official Build
   pool:
     name: VSEng-MicroBuildVS2017
     demands: 
@@ -13,7 +19,6 @@ jobs:
   timeoutInMinutes: 360
 
   variables:
-    BuildPlatform: 'Any CPU'
     VisualStudio.MajorVersion: 16
     VisualStudio.BranchName: 'lab/d16.0stg'
     VisualStudio.ChannelName: 'int.d16.0stg'
@@ -41,8 +46,8 @@ jobs:
 
   - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@1
     inputs:
-      signType: real
-    condition: and(succeeded(), in(variables['PB_SignType'], 'test', 'real'))
+      signType: $(SignType)
+    condition: and(succeeded(), in(variables['SignType'], 'test', 'real'))
 
   - task: ms-vseng.MicroBuildTasks.965C8DC6-1483-45C9-B384-5AC75DA1F1A4.MicroBuildOptProfPlugin@1
     inputs:
@@ -58,12 +63,16 @@ jobs:
   - script: eng\cibuild.cmd
               -configuration $(BuildConfiguration)
               -officialBuildId $(Build.BuildNumber)
+              -officialSkipTests $(SkipTests)
+              -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
               -vsDropName $(VisualStudio.DropName) 
               -vsBranch $(VisualStudio.BranchName)
               -vsDropAccessToken $(System.AccessToken)
-              -testDesktop 
-              -procdump
-              /p:DotNetSignType=$(PB_SignType)
+              /p:DotNetSignType=$(SignType)
+              /p:DotNetPublishToBlobFeed=true
+              /p:DotNetPublishBlobFeedKey=$(dotnetfeed-storage-access-key-1)
+              /p:DotNetPublishBlobFeedUrl=https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json
+              /p:PublishToSymbolServer=true
               /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
               /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
     displayName: Build
@@ -80,7 +89,7 @@ jobs:
   - task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
     inputs:
       dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
-      buildNumber: 'ProfilingInputs/DevDiv/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildId)'
+      buildNumber: 'ProfilingInputs/DevDiv/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)'
       sourcePath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
       toLowerCase: false
       usePat: false
@@ -143,7 +152,7 @@ jobs:
       testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(BuildConfiguration)\*.xml'
       mergeTestResults: true
       testRunTitle: 'Unit Tests'
-    condition: succeededOrFailed()
+    condition: and(succeededOrFailed(), ne(variables['SkipTests'], 'true'))
 
   # Publishes setup VSIXes to a drop.
   # Note: The insertion tool looks for the display name of this task in the logs.
@@ -181,6 +190,22 @@ jobs:
       ArtifactName: 'Packages'
     condition: succeeded()
 
+  # Publish Asset Manifests for Build Asset Registry job
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Asset Manifests
+    inputs:
+      PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/$(BuildConfiguration)/AssetManifest'
+      ArtifactName: AssetManifests
+    condition: succeeded()
+
   - task: ms-vseng.MicroBuildTasks.521a94ea-9e68-468a-8167-6dcf361ea776.MicroBuildCleanup@1
     displayName: Perform Cleanup Tasks
     condition: succeededOrFailed()
+
+# Publish to Build Asset Registry
+- template: /eng/common/templates/job/publish-build-assets.yml
+  parameters:
+    dependsOn:
+      - OfficialBuild
+    queue:
+      name: Hosted VS2017
