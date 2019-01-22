@@ -361,17 +361,6 @@ unsafe class C<T>
 ";
 
             var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
-<<<<<<< HEAD
-            compilation.GetDiagnostics()
-                .Where(d => d.Severity == DiagnosticSeverity.Error)
-                .Verify(
-                    // (8,13): error CS0306: The type 'int*' may not be used as a type argument
-                    //     C<int*> f4;
-                    Diagnostic(ErrorCode.ERR_BadTypeArgument, "f4").WithArguments("int*").WithLocation(8, 13),
-                    // (9,14): error CS0306: The type 'int**' may not be used as a type argument
-                    //     C<int**> f5;
-                    Diagnostic(ErrorCode.ERR_BadTypeArgument, "f5").WithArguments("int**").WithLocation(9, 14));
-=======
             compilation.VerifyDiagnostics(
                 // (8,13): error CS0306: The type 'int*' may not be used as a type argument
                 //     C<int*> f4;
@@ -396,7 +385,6 @@ unsafe class C<T>
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "f6").WithArguments("C<T>.f6"),
                 // (11,17): warning CS0169: The field 'C<T>.f7' is never used
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "f7").WithArguments("C<T>.f7"));
->>>>>>> upstream/dev16.1-preview1
 
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
