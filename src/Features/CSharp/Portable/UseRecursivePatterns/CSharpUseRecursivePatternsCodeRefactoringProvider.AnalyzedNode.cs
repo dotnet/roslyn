@@ -136,14 +136,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 return new Conjuction(leftMatch, rightMatch);
             }
 
-            private static AnalyzedNode UnionCore(VarPattern left, PatternMatch right)
+            private static AnalyzedNode UnionCore(VarPattern var, PatternMatch match)
             {
-                if (left.Contains(right.Expression))
+                if (var.Contains(match.Expression))
                 {
-                    return new Conjuction(left, right.Pattern);
+                    return new Conjuction(var, match.Pattern);
                 }
 
-                return new Conjuction(left, right);
+                return new Conjuction(var, match);
             }
 
             private static AnalyzedNode Union(AnalyzedNode left, AnalyzedNode right)
