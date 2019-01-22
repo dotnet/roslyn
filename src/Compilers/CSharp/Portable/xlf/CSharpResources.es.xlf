@@ -927,6 +927,16 @@
         <target state="new">Interface is already listed in the interface list with different nullability of reference types.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_FeatureInPreview">
+        <source>The feature '{0}' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.</source>
+        <target state="new">The feature '{0}' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_FeatureInPreview_Title">
+        <source>The language feature is in preview and use in production is unsupported.</source>
+        <target state="new">The language feature is in preview and use in production is unsupported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
         <source>The given expression always matches the provided constant.</source>
         <target state="new">The given expression always matches the provided constant.</target>

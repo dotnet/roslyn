@@ -438,7 +438,7 @@ class C
     </Project>
     <Project Language=""C#"" LanguageVersion=""7"">
     </Project>
-    <Project Language=""C#"" LanguageVersion=""Default"">
+    <Project Language=""C#"" LanguageVersion=""6"">
     </Project>
 </Workspace>",
                 new[] {
@@ -466,7 +466,7 @@ class C
     </Project>
     <Project Language=""C#"" LanguageVersion=""7"">
     </Project>
-    <Project Language=""C#"" LanguageVersion=""Default"">
+    <Project Language=""C#"" LanguageVersion=""800"">
     </Project>
 </Workspace>",
                 new[] {
@@ -552,7 +552,6 @@ class C
 </Workspace>",
                 new[] {
                     string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0"),
-                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "7.0")
                     });
         }
 
@@ -604,8 +603,8 @@ class C
     </Project>
 </Workspace>",
                 new[] {
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, defaultEffectiveVersion),
-                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, defaultEffectiveVersion)
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0 *beta*"),
+                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "8.0 *beta*")
                     });
         }
 

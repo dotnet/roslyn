@@ -383,6 +383,14 @@ public class Point
                 //         var r = 1 switch { _ => 0, };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { _ => 0, }").WithArguments("recursive patterns", "8.0").WithLocation(5, 17)
                 );
+
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularDefault).VerifyDiagnostics(
+                // (5,17): warning CS8650: The feature 'recursive patterns' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
+                //         var r = 1 switch { _ => 0, };
+                Diagnostic(ErrorCode.WRN_FeatureInPreview, "1 switch { _ => 0, }").WithArguments("recursive patterns", "8.0").WithLocation(5, 17)
+                );
+
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1100,6 +1108,32 @@ class Program1
                 // (12,26): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     bool M4(object o) => o switch { 1 => true, _ => false };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "o switch { 1 => true, _ => false }").WithArguments("recursive patterns", "8.0").WithLocation(12, 26)
+                );
+
+            compilation = CreateCompilation(source, parseOptions: TestOptions.RegularDefault);
+            compilation.VerifyDiagnostics(
+                // (5,31): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                //     bool M1(object o) => o is _;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(5, 31),
+                // (6,26): warning CS8650: The feature 'recursive patterns' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
+                //     bool M2(object o) => o switch { 1 => true, _ => false };
+                Diagnostic(ErrorCode.WRN_FeatureInPreview, "o switch { 1 => true, _ => false }").WithArguments("recursive patterns", "8.0").WithLocation(6, 26),
+                // (11,31): warning CS8513: The name '_' refers to the type 'Program1._', not the discard pattern. Use '@_' for the type, or 'var _' to discard.
+                //     bool M3(object o) => o is _;
+                Diagnostic(ErrorCode.WRN_IsTypeNamedUnderscore, "_").WithArguments("Program1._").WithLocation(11, 31),
+                // (12,26): warning CS8650: The feature 'recursive patterns' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
+                //     bool M4(object o) => o switch { 1 => true, _ => false };
+                Diagnostic(ErrorCode.WRN_FeatureInPreview, "o switch { 1 => true, _ => false }").WithArguments("recursive patterns", "8.0").WithLocation(12, 26)
+                );
+
+            compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics(
+                // (5,31): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                //     bool M1(object o) => o is _;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(5, 31),
+                // (11,31): warning CS8513: The name '_' refers to the type 'Program1._', not the discard pattern. Use '@_' for the type, or 'var _' to discard.
+                //     bool M3(object o) => o is _;
+                Diagnostic(ErrorCode.WRN_IsTypeNamedUnderscore, "_").WithArguments("Program1._").WithLocation(11, 31)
                 );
         }
 

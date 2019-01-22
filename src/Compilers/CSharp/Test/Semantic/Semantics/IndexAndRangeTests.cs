@@ -2,6 +2,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -315,10 +316,26 @@ class Test
     {
         var x = ^1;
     }
-}", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
+}", parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (6,17): error CS8370: Feature 'index operator' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var x = ^1;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "^1").WithArguments("index operator", "8.0").WithLocation(6, 17));
+        }
+
+        [Fact]
+        public void IndexExpression_PreviewDefault()
+        {
+            var compilation = CreateCompilationWithIndex(@"
+class Test
+{
+    void M()
+    {
+        var x = ^1;
+    }
+}", parseOptions: TestOptions.RegularDefault).VerifyDiagnostics(
+                // (6,17): error CS8650: The feature 'index operator' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
+                //         var x = ^1;
+                Diagnostic(ErrorCode.WRN_FeatureInPreview, "^1").WithArguments("index operator", "8.0").WithLocation(6, 17));
         }
 
         [Fact]

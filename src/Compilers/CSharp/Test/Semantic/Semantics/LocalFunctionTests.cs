@@ -2509,6 +2509,33 @@ class Program
                 // (15,9): error CS0106: The modifier 'volatile' is not valid for this item
                 //         volatile void LocalVolatile()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "volatile").WithArguments("volatile").WithLocation(15, 9));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0106: The modifier 'const' is not valid for this item
+                //         const void LocalConst()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "const").WithArguments("const").WithLocation(6, 9),
+                // (9,9): warning CS8650: The feature 'static local functions' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
+                //         static void LocalStatic()
+                Diagnostic(ErrorCode.WRN_FeatureInPreview, "static").WithArguments("static local functions", "8.0").WithLocation(9, 9),
+                // (12,9): error CS0106: The modifier 'readonly' is not valid for this item
+                //         readonly void LocalReadonly()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(12, 9),
+                // (15,9): error CS0106: The modifier 'volatile' is not valid for this item
+                //         volatile void LocalVolatile()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "volatile").WithArguments("volatile").WithLocation(15, 9));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0106: The modifier 'const' is not valid for this item
+                //         const void LocalConst()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "const").WithArguments("const").WithLocation(6, 9),
+                // (12,9): error CS0106: The modifier 'readonly' is not valid for this item
+                //         readonly void LocalReadonly()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(12, 9),
+                // (15,9): error CS0106: The modifier 'volatile' is not valid for this item
+                //         volatile void LocalVolatile()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "volatile").WithArguments("volatile").WithLocation(15, 9));
         }
 
         [Fact]

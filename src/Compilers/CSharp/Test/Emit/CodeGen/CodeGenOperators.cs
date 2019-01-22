@@ -5835,6 +5835,15 @@ class C
                 // (6,14): error CS8370: Feature 'unconstrained type parameters in null coalescing operator' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         t1 = t1 ?? t2;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "t1 ?? t2").WithArguments("unconstrained type parameters in null coalescing operator", "8.0").WithLocation(6, 14));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault);
+            comp.VerifyDiagnostics(
+                // (6,14): warning CS8650: The feature 'unconstrained type parameters in null coalescing operator' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
+                //         t1 = t1 ?? t2;
+                Diagnostic(ErrorCode.WRN_FeatureInPreview, "t1 ?? t2").WithArguments("unconstrained type parameters in null coalescing operator", "8.0").WithLocation(6, 14));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
         }
     }
 }

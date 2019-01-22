@@ -665,6 +665,14 @@ class C
                 //         using IDisposable x = null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "using").WithArguments("using declarations", "8.0").WithLocation(7, 9)
                 );
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularDefault).VerifyDiagnostics(
+                // (7,9): warning CS8650: The feature 'using declarations' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
+                //         using IDisposable x = null;
+                Diagnostic(ErrorCode.WRN_FeatureInPreview, "using").WithArguments("using declarations", "8.0").WithLocation(7, 9)
+                );
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact]
@@ -696,6 +704,17 @@ namespace System
                 //         await using IAsyncDisposable x = null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "using").WithArguments("using declarations", "8.0").WithLocation(8, 15)
                 );
+
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularDefault).VerifyDiagnostics(
+                // (8,9): warning CS8650: The feature 'async streams' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
+                //         await using IAsyncDisposable x = null;
+                Diagnostic(ErrorCode.WRN_FeatureInPreview, "await").WithArguments("async streams", "8.0").WithLocation(8, 9),
+                // (8,15): warning CS8650: The feature 'using declarations' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
+                //         await using IAsyncDisposable x = null;
+                Diagnostic(ErrorCode.WRN_FeatureInPreview, "using").WithArguments("using declarations", "8.0").WithLocation(8, 15)
+                );
+
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact]

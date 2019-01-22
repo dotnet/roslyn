@@ -3747,6 +3747,27 @@ class C2
                 // #nullable enable
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(10, 2)
                 );
+
+            var c3 = CreateCompilation(source, parseOptions: TestOptions.RegularDefault);
+            c3.VerifyDiagnostics(
+                // (10,2): warning CS8650: The feature 'nullable reference types' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
+                // #nullable enable
+                Diagnostic(ErrorCode.WRN_FeatureInPreview, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(10, 2),
+                // (15,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         z = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(15, 13),
+                // (16,9): warning CS8602: Possible dereference of a null reference.
+                //         z.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(16, 9));
+
+            var c4 = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            c4.VerifyDiagnostics(
+                // (15,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         z = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(15, 13),
+                // (16,9): warning CS8602: Possible dereference of a null reference.
+                //         z.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(16, 9));
         }
 
         [Fact]
@@ -49082,6 +49103,22 @@ class B<T1> where T1 : class?
                 Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enable", "7.3", "8.0").WithLocation(1, 1),
                 }).ToArray()
                 );
+
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.RegularDefault, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(
+                // (4,29): warning CS8650: The feature 'nullable reference types' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
+                // class B<T1> where T1 : class?
+                Diagnostic(ErrorCode.WRN_FeatureInPreview, "?").WithArguments("nullable reference types", "8.0").WithLocation(4, 29),
+                // (6,54): warning CS8650: The feature 'nullable reference types' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
+                //     public static void F2<T2>(T2 t2) where T2 : class?
+                Diagnostic(ErrorCode.WRN_FeatureInPreview, "?").WithArguments("nullable reference types", "8.0").WithLocation(6, 54),
+                // (8,44): warning CS8650: The feature 'nullable reference types' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
+                //         void F3<T3>(T3 t3) where T3 : class?
+                Diagnostic(ErrorCode.WRN_FeatureInPreview, "?").WithArguments("nullable reference types", "8.0").WithLocation(8, 44)
+                );
+
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

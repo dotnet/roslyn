@@ -10,11 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     public enum LanguageVersion
     {
         /// <summary>
-        /// The default language version, which is the latest major supported version.
-        /// </summary>
-        Default = 0,
-
-        /// <summary>
         /// C# language version 1
         /// </summary>
         CSharp1 = 1,
@@ -130,9 +125,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         CSharp8 = 800,
 
         /// <summary>
-        /// The latest version of the language supported.
+        /// The latest major supported version.
         /// </summary>
-        Latest = int.MaxValue,
+        LatestMajor = int.MaxValue - 2,
+
+        /// <summary>
+        /// The latest supported version of the language.
+        /// </summary>
+        Latest = int.MaxValue - 1,
+
+        /// <summary>
+        /// Preview of the next language version.
+        /// </summary>
+        Preview = int.MaxValue,
+
+        /// <summary>
+        /// The default language version, which is the preview version, but produces
+        /// a warning when using a preview-only feature.
+        /// </summary>
+        Default = 0,
     }
 
     internal static class LanguageVersionExtensionsInternal
@@ -238,6 +249,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "default";
                 case LanguageVersion.Latest:
                     return "latest";
+                case LanguageVersion.LatestMajor:
+                    return "latestmajor";
+                case LanguageVersion.Preview:
+                    return "preview";
                 default:
                     throw ExceptionUtilities.UnexpectedValue(version);
             }
@@ -262,6 +277,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case "latest":
                     result = LanguageVersion.Latest;
+                    return true;
+
+                case "latestmajor":
+                    result = LanguageVersion.LatestMajor;
+                    return true;
+
+                case "preview":
+                    result = LanguageVersion.Preview;
                     return true;
 
                 case "1":
@@ -333,8 +356,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case LanguageVersion.Latest:
                     return LanguageVersion.CSharp7_3;
-                case LanguageVersion.Default:
+                case LanguageVersion.LatestMajor:
                     return LanguageVersion.CSharp7;
+                case LanguageVersion.Preview:
+                case LanguageVersion.Default:
+                    return LanguageVersion.CSharp8;
                 default:
                     return version;
             }

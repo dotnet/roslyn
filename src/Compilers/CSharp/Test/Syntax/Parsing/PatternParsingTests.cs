@@ -1843,67 +1843,82 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 // switch (e) { case (x: ((3))): ; }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(x: ((3)))").WithArguments("recursive patterns", "8.0").WithLocation(1, 19)
                 );
-            N(SyntaxKind.SwitchStatement);
+            checkNodes();
+
+            UsingStatement(@"switch (e) { case (x: ((3))): ; }", TestOptions.RegularDefault,
+                // (1,19): warning CS8650: The feature 'recursive patterns' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
+                // switch (e) { case (x: ((3))): ; }
+                Diagnostic(ErrorCode.WRN_FeatureInPreview, "(x: ((3)))").WithArguments("recursive patterns", "8.0").WithLocation(1, 19)
+                );
+            checkNodes();
+
+            UsingStatement(@"switch (e) { case (x: ((3))): ; }", TestOptions.RegularPreview);
+            checkNodes();
+
+            void checkNodes()
             {
-                N(SyntaxKind.SwitchKeyword);
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.SwitchStatement);
                 {
-                    N(SyntaxKind.IdentifierToken, "e");
-                }
-                N(SyntaxKind.CloseParenToken);
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.SwitchSection);
-                {
-                    N(SyntaxKind.CasePatternSwitchLabel);
+                    N(SyntaxKind.SwitchKeyword);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.RecursivePattern);
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SwitchSection);
+                    {
+                        N(SyntaxKind.CasePatternSwitchLabel);
                         {
-                            N(SyntaxKind.PositionalPatternClause);
+                            N(SyntaxKind.CaseKeyword);
+                            N(SyntaxKind.RecursivePattern);
                             {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.Subpattern);
+                                N(SyntaxKind.PositionalPatternClause);
                                 {
-                                    N(SyntaxKind.NameColon);
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Subpattern);
                                     {
-                                        N(SyntaxKind.IdentifierName);
+                                        N(SyntaxKind.NameColon);
                                         {
-                                            N(SyntaxKind.IdentifierToken, "x");
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "x");
+                                            }
+                                            N(SyntaxKind.ColonToken);
                                         }
-                                        N(SyntaxKind.ColonToken);
-                                    }
-                                    N(SyntaxKind.ConstantPattern);
-                                    {
-                                        N(SyntaxKind.ParenthesizedExpression);
+                                        N(SyntaxKind.ConstantPattern);
                                         {
-                                            N(SyntaxKind.OpenParenToken);
                                             N(SyntaxKind.ParenthesizedExpression);
                                             {
                                                 N(SyntaxKind.OpenParenToken);
-                                                N(SyntaxKind.NumericLiteralExpression);
+                                                N(SyntaxKind.ParenthesizedExpression);
                                                 {
-                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.NumericLiteralExpression);
+                                                    {
+                                                        N(SyntaxKind.NumericLiteralToken, "3");
+                                                    }
+                                                    N(SyntaxKind.CloseParenToken);
                                                 }
                                                 N(SyntaxKind.CloseParenToken);
                                             }
-                                            N(SyntaxKind.CloseParenToken);
                                         }
                                     }
+                                    N(SyntaxKind.CloseParenToken);
                                 }
-                                N(SyntaxKind.CloseParenToken);
                             }
+                            N(SyntaxKind.ColonToken);
                         }
-                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
                     }
-                    N(SyntaxKind.EmptyStatement);
-                    {
-                        N(SyntaxKind.SemicolonToken);
-                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.CloseBraceToken);
+                EOF();
             }
-            EOF();
         }
 
         [Fact]

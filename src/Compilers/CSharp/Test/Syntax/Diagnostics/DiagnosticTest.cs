@@ -294,6 +294,7 @@ class X
                         case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
                         case ErrorCode.WRN_CaseConstantNamedUnderscore:
+                        case ErrorCode.WRN_FeatureInPreview:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

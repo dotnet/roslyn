@@ -37,6 +37,50 @@ class C : IAsyncEnumerable<int>
         }
 
         [Fact]
+        public void TestWithLangVersionDefault()
+        {
+            string source = @"
+using System.Collections.Generic;
+class C : IAsyncEnumerable<int>
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        await foreach (int i in new C())
+        {
+        }
+    }
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
+        => throw null;
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.RegularDefault);
+            comp.VerifyDiagnostics(
+                // (7,9): warning CS8650: The feature 'async streams' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
+                //         await foreach (int i in new C())
+                Diagnostic(ErrorCode.WRN_FeatureInPreview, "await").WithArguments("async streams", "8.0").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void TestWithLangVersionPreview()
+        {
+            string source = @"
+using System.Collections.Generic;
+class C : IAsyncEnumerable<int>
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        await foreach (int i in new C())
+        {
+        }
+    }
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
+        => throw null;
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void TestWithMissingValueTask()
         {
             string lib_cs = @"

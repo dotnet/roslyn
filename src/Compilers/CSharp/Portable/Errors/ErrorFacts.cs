@@ -395,6 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_GivenExpressionNeverMatchesPattern:
                 case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
                 case ErrorCode.WRN_CaseConstantNamedUnderscore:
+                case ErrorCode.WRN_FeatureInPreview:
                     return 1;
                 default:
                     return 0;

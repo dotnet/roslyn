@@ -14057,6 +14057,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The feature &apos;{0}&apos; is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview..
+        /// </summary>
+        internal static string WRN_FeatureInPreview {
+            get {
+                return ResourceManager.GetString("WRN_FeatureInPreview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The language feature is in preview and use in production is unsupported..
+        /// </summary>
+        internal static string WRN_FeatureInPreview_Title {
+            get {
+                return ResourceManager.GetString("WRN_FeatureInPreview_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Source file &apos;{0}&apos; specified multiple times.
         /// </summary>
         internal static string WRN_FileAlreadyIncluded {

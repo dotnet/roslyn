@@ -266,6 +266,32 @@ class C
         }
 
         [Fact]
+        public void AsyncIteratorInPreview()
+        {
+            string source = @"
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 4;
+        yield break;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source }, parseOptions: TestOptions.RegularDefault);
+            comp.VerifyDiagnostics(
+                // (4,45): error CS0234: The type or namespace name 'IAsyncEnumerable<>' does not exist in the namespace 'System.Collections.Generic' (are you missing an assembly reference?)
+                //     static async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IAsyncEnumerable<int>").WithArguments("IAsyncEnumerable<>", "System.Collections.Generic").WithLocation(4, 45),
+                // (4,67): error CS8650: The feature 'async streams' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
+                //     static async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.WRN_FeatureInPreview, "M").WithArguments("async streams", "8.0").WithLocation(4, 67),
+                // (4,67): error CS8650: The feature 'async streams' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
+                //     static async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.WRN_FeatureInPreview, "M").WithArguments("async streams", "8.0").WithLocation(4, 67));
+        }
+
+        [Fact]
         public void RefStructElementType()
         {
             string source = @"
@@ -1100,6 +1126,46 @@ class C
                 // #nullable disable
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(34, 2)
                 );
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
+        public void AsyncIteratorReturningEnumerator_Default()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerator<int> M()
+    {
+        yield return 1;
+        await System.Threading.Tasks.Task.CompletedTask;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, parseOptions: TestOptions.RegularDefault);
+            comp.VerifyDiagnostics(
+                // (4,60): warning CS8650: The feature 'async streams' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
+                //     async System.Collections.Generic.IAsyncEnumerator<int> M()
+                Diagnostic(ErrorCode.WRN_FeatureInPreview, "M").WithArguments("async streams", "8.0").WithLocation(4, 60),
+                // (34,2): warning CS8650: The feature 'nullable reference types' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
+                // #nullable disable
+                Diagnostic(ErrorCode.WRN_FeatureInPreview, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(34, 2));
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
+        public void AsyncIteratorReturningEnumerator_Preview()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerator<int> M()
+    {
+        yield return 1;
+        await System.Threading.Tasks.Task.CompletedTask;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]

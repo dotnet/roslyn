@@ -5772,4 +5772,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureUsingDeclarations" xml:space="preserve">
     <value>using declarations</value>
   </data>
+  <data name="WRN_FeatureInPreview" xml:space="preserve">
+    <value>The feature '{0}' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.</value>
+  </data>
+  <data name="WRN_FeatureInPreview_Title" xml:space="preserve">
+    <value>The language feature is in preview and use in production is unsupported.</value>
+  </data>
 </root>

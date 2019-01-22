@@ -2293,6 +2293,54 @@ class C
 
         [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
         [Fact]
+        public void NullableLangVersion_Default()
+        {
+            var text = @"
+namespace System
+{
+    public class Object { }
+
+    public class ValueType {}
+    public struct Void { }
+    public struct Nullable<T> { }
+    public struct Boolean { }
+}
+
+namespace System.Collections.Generic
+{
+    public interface IEnumerable<T>
+    {
+        IEnumerator<T> GetEnumerator();
+    }
+
+    public interface IEnumerator<T>
+    {
+        T Current { get; }
+        bool MoveNext();
+    }
+}
+
+class C
+{
+    void Goo(System.Collections.Generic.IEnumerable<C>? e)
+    {
+        foreach (var c in e) { }
+    }
+}
+";
+            var comp = CreateEmptyCompilation(text, parseOptions: TestOptions.RegularDefault, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(
+                // (28,55): warning CS8650: The feature 'nullable reference types' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
+                //     void Goo(System.Collections.Generic.IEnumerable<C>? e)
+                Diagnostic(ErrorCode.WRN_FeatureInPreview, "?").WithArguments("nullable reference types", "8.0").WithLocation(28, 55),
+                // (28,55): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     void Goo(System.Collections.Generic.IEnumerable<C>? e)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(28, 55)
+                );
+        }
+
+        [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
+        [Fact]
         public void MissingIEnumerableTGetEnumerator()
         {
             var text = @"
