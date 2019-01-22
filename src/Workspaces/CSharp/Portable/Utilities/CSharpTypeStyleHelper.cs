@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     break;
             }
 
-            return !deconstructionInfoOpt.HasValue || deconstructionInfoOpt.Value.Method != null;
+            return !deconstructionInfoOpt.HasValue || !deconstructionInfoOpt.Value.Nested.IsEmpty || deconstructionInfoOpt.Value.Method != null;
         }
     }
 }
