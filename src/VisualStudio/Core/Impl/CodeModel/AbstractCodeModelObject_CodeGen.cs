@@ -146,9 +146,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 typeParameters: default,
                 parameters: default);
 
+            var codeGenerationOptions = GetCodeGenerationOptions(access, containerNode.SyntaxTree.Options);
+            if (destination == CodeGenerationDestination.InterfaceType)
+            {
+                // Generating method with body is allowed when targeting an interface,
+                // so we have to explicitly disable it here.
+                codeGenerationOptions = codeGenerationOptions.With(generateMethodBodies: false);
+            }
+
             return CodeGenerationService.CreateMethodDeclaration(
                 newMethodSymbol, destination,
-                options: GetCodeGenerationOptions(access, containerNode.SyntaxTree.Options));
+                options: codeGenerationOptions);
         }
 
         protected SyntaxNode CreatePropertyDeclaration(SyntaxNode containerNode, string name, bool generateGetter, bool generateSetter, EnvDTE.vsCMAccess access, ITypeSymbol type)
