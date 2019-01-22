@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -128,21 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 case "Form":
 
                     // We must create the WinForms designer here
-                    var loaderName = "Microsoft.VisualStudio.Design.Serialization.CodeDom.VSCodeDomDesignerLoader";
-
-                    // If this is a netcoreapp3.0 (or newer), we must create the newer WinForms designer.
-                    // TODO: This check will eventually move into the WinForms designer itself.
-                    const string NetCoreAppPreamble = ".NETCoreApp,Version=v";
-                    if (vsHierarchy.TryGetTargetFrameworkMoniker((uint)VSConstants.VSITEMID.Root, out var targetFrameworkMoniker) &&
-                        targetFrameworkMoniker.StartsWith(NetCoreAppPreamble))
-                    {
-                        var versionText = targetFrameworkMoniker.Substring(NetCoreAppPreamble.Length);
-                        if (Version.TryParse(versionText, out var version) &&
-                            version.Major >= 3)
-                        {
-                            loaderName = "Microsoft.VisualStudio.Design.Core.Serialization.CodeDom.VSCodeDomDesignerLoader";
-                        }
-                    }
+                    var loaderName = GetWinFormsLoaderName(vsHierarchy);
 
                     var designerService = (IVSMDDesignerService)_oleServiceProvider.QueryService<SVSMDDesignerService>();
                     var designerLoader = (IVSMDDesignerLoader)designerService.CreateDesignerLoader(loaderName);
@@ -184,6 +171,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             ppunkDocData = Marshal.GetIUnknownForObject(textBuffer);
 
             return VSConstants.S_OK;
+        }
+
+        private static string GetWinFormsLoaderName(IVsHierarchy vsHierarchy)
+        {
+            const string LoaderName = "Microsoft.VisualStudio.Design.Serialization.CodeDom.VSCodeDomDesignerLoader";
+            const string NewLoaderName = "Microsoft.VisualStudio.Design.Core.Serialization.CodeDom.VSCodeDomDesignerLoader";
+
+            // If this is a netcoreapp3.0 (or newer), we must create the newer WinForms designer.
+            // TODO: This check will eventually move into the WinForms designer itself.
+            if (!vsHierarchy.TryGetTargetFrameworkMoniker((uint)VSConstants.VSITEMID.Root, out var targetFrameworkMoniker) ||
+                string.IsNullOrWhiteSpace(targetFrameworkMoniker))
+            {
+                return LoaderName;
+            }
+
+            try
+            {
+                var frameworkName = new FrameworkName(targetFrameworkMoniker);
+
+                if (frameworkName.Identifier == ".NETCoreApp" &&
+                    frameworkName.Version?.Major >= 3)
+                {
+                    return NewLoaderName;
+                }
+            }
+            catch
+            {
+                // Fall back to the old loader name if there are any failures 
+                // while parsing the TFM.
+            }
+
+            return LoaderName;
         }
 
         public int MapLogicalView(ref Guid rguidLogicalView, out string pbstrPhysicalView)
