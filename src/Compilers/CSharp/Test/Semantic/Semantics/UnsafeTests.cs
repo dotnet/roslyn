@@ -86,6 +86,91 @@ class C
         }
 
         [Fact]
+        public void FixedSizeBuffer_GenericStruct_01()
+        {
+            var code = @"
+unsafe struct MyStruct<T>
+{
+    public fixed char buf[16];
+    public static void M()
+    {
+        var ms = new MyStruct<int>();
+        var ptr = &ms;
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void FixedSizeBuffer_GenericStruct_02()
+        {
+            var code = @"
+unsafe struct MyStruct<T>
+{
+    public fixed T buf[16];
+    public static void M()
+    {
+        var ms = new MyStruct<int>();
+        var ptr = &ms;
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (4,18): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+                //     public fixed T buf[16];
+                Diagnostic(ErrorCode.ERR_IllegalFixedType, "T").WithLocation(4, 18)
+            );
+        }
+
+        [Fact]
+        public void FixedSizeBuffer_GenericStruct_03()
+        {
+            var code = @"
+unsafe struct MyStruct<T> where T : unmanaged
+{
+    public fixed T buf[16];
+    public static void M()
+    {
+        var ms = new MyStruct<int>();
+        var ptr = &ms;
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (4,18): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+                //     public fixed T buf[16];
+                Diagnostic(ErrorCode.ERR_IllegalFixedType, "T").WithLocation(4, 18)
+            );
+        }
+
+        [Fact]
+        public void FixedSizeBuffer_GenericStruct_04()
+        {
+            var code = @"
+public unsafe struct MyStruct<T>
+{
+    public T field;
+}
+
+unsafe struct OuterStruct
+{
+    public fixed MyStruct<int> buf[16];
+    public static void M()
+    {
+        var os = new OuterStruct();
+        var ptr = &os;
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (9,18): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+                //     public fixed MyStruct<int> buf[16];
+                Diagnostic(ErrorCode.ERR_IllegalFixedType, "MyStruct<int>").WithLocation(9, 18)
+            );
+        }
+
+        [Fact]
         public void CompilationNotUnsafe1()
         {
             var text = @"
@@ -3115,6 +3200,65 @@ class C<T>
             Assert.False(getLocalType("a1").IsUnmanagedType);
             Assert.False(getLocalType("a2").IsUnmanagedType);
             Assert.True(getLocalType("t2").IsUnmanagedType);
+
+            ITypeSymbol getLocalType(string name)
+            {
+                var decl = root.DescendantNodes()
+                    .OfType<VariableDeclaratorSyntax>()
+                    .Single(n => n.Identifier.ValueText == name);
+                return ((ILocalSymbol)model.GetDeclaredSymbol(decl)).Type;
+            }
+        }
+
+        [Fact]
+        public void GenericStructPrivateFieldInMetadata()
+        {
+            var externalCode = @"
+public struct External<T>
+{
+    private T field;
+}
+";
+            var metadata = CreateCompilation(externalCode).EmitToImageReference();
+
+            var code = @"
+public class C
+{
+    public unsafe void M<T, U>() where T : unmanaged
+    {
+        var good = new External<int>();
+        var goodPtr = &good;
+
+        var good2 = new External<T>();
+        var goodPtr2 = &good2;
+
+        var bad = new External<object>();
+        var badPtr = &bad;
+
+        var bad2 = new External<U>();
+        var badPtr2 = &bad2;
+    }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(code, TestOptions.Regular);
+            var compilation = CreateCompilation(tree, new[] { metadata }, TestOptions.UnsafeReleaseDll);
+
+            compilation.VerifyDiagnostics(
+                // (13,22): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('External<object>')
+                //         var badPtr = &bad;
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "&bad").WithArguments("External<object>").WithLocation(13, 22),
+                // (16,23): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('External<U>')
+                //         var badPtr2 = &bad2;
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "&bad2").WithArguments("External<U>").WithLocation(16, 23)
+            );
+
+            var model = compilation.GetSemanticModel(tree);
+            var root = tree.GetRoot();
+
+            Assert.True(getLocalType("good").IsUnmanagedType);
+            Assert.True(getLocalType("good2").IsUnmanagedType);
+            Assert.False(getLocalType("bad").IsUnmanagedType);
+            Assert.False(getLocalType("bad2").IsUnmanagedType);
 
             ITypeSymbol getLocalType(string name)
             {

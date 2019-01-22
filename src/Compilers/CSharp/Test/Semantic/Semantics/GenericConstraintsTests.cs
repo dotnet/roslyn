@@ -3542,8 +3542,10 @@ public unsafe struct YourStruct<T> where T : unmanaged
     public MyStruct<T>* field;
 }
 ";
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
-                .VerifyDiagnostics();
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics();
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
         }
 
         [Fact]
@@ -3560,8 +3562,11 @@ public unsafe struct YourStruct
     public MyStruct* field;
 }
 ";
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
-                .VerifyDiagnostics();
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics();
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+
         }
 
         [Fact]
@@ -3578,11 +3583,14 @@ public struct YourStruct<T> where T : unmanaged
     public T field;
 }
 ";
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
-                .VerifyDiagnostics(
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics(
                     // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
                     Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46));
+
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
         }
 
         [Fact]
@@ -3599,8 +3607,8 @@ public struct YourStruct<T> where T : unmanaged
     public MyStruct<T> field;
 }
 ";
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
-                .VerifyDiagnostics(
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics(
                     // (4,26): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<T>' causes a cycle in the struct layout
                     //     public YourStruct<T> field;
                     Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<T>").WithLocation(4, 26),
@@ -3610,6 +3618,9 @@ public struct YourStruct<T> where T : unmanaged
                     // (9,24): error CS0523: Struct member 'YourStruct<T>.field' of type 'MyStruct<T>' causes a cycle in the struct layout
                     //     public MyStruct<T> field;
                     Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("YourStruct<T>.field", "MyStruct<T>").WithLocation(9, 24));
+
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
         }
 
         [Fact]
@@ -3627,11 +3638,14 @@ public struct YourStruct<T> where T : unmanaged
     public T field;
 }
 ";
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
-                .VerifyDiagnostics(
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics(
                     // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
                     Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46));
+
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
         }
 
         [Fact]
@@ -3649,14 +3663,17 @@ public struct YourStruct<T> where T : unmanaged
     public T field;
 }
 ";
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
-                .VerifyDiagnostics(
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics(
                     // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
                     Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46),
                     // (4,46): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
                     Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 46));
+
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
         }
 
         [Fact]
@@ -3674,14 +3691,17 @@ public struct YourStruct<T> where T : unmanaged
     public string s;
 }
 ";
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
-                .VerifyDiagnostics(
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics(
                     // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
                     Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46),
                     // (4,46): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
                     Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 46));
+
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
         }
 
         [Fact]
@@ -3760,7 +3780,11 @@ public struct Z
 {
     public X<Z> field;
 }";
-            CreateCompilation(code).VerifyDiagnostics();
+            var compilation = CreateCompilation(code);
+            compilation.VerifyDiagnostics();
+
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("X").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("Z").IsManagedType);
         }
 
         [Fact]
@@ -3784,6 +3808,8 @@ public struct MyStruct<T>
                     //         var ptr = &ms;
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "&ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(9, 19)
                 );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3815,6 +3841,8 @@ public class MyClass
                     //         fixed (MyStruct<int>* ptr = &c.ms)
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "&c.ms").WithArguments("unmanaged constructed types", "8.0").WithLocation(12, 37)
                 );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3837,6 +3865,8 @@ public struct MyStruct<T>
                     //         var size = sizeof(MyStruct<int>);
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "sizeof(MyStruct<int>)").WithArguments("unmanaged constructed types", "8.0").WithLocation(8, 20)
                 );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3859,6 +3889,8 @@ public struct MyStruct<T>
                     //         var arr = stackalloc[] { new MyStruct<int>() };
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc[] { new MyStruct<int>() }").WithArguments("unmanaged constructed types", "8.0").WithLocation(8, 19)
                 );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3881,6 +3913,8 @@ public struct MyStruct<T>
                     //         var arr = stackalloc MyStruct<int>[4];
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct<int>").WithArguments("unmanaged constructed types", "8.0").WithLocation(8, 30)
                 );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3903,9 +3937,11 @@ public unsafe struct OtherStruct
                     //     public MyStruct<int>* ms;
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "MyStruct<int>*").WithArguments("unmanaged constructed types", "8.0").WithLocation(9, 12)
                 );
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem(32103, "https://github.com/dotnet/roslyn/issues/32103")]
         public void StructContainingTuple_Unmanaged_RequiresCSharp8()
         {
             var code = @"
@@ -3934,11 +3970,11 @@ public class C
                     //         M<(int, int)>();
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M<(int, int)>").WithArguments("unmanaged constructed types", "8.0").WithLocation(14, 9)
                 );
-            
+
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem(32103, "https://github.com/dotnet/roslyn/issues/32103")]
         public void StructContainingGenericTuple_Unmanaged()
         {
             var code = @"
@@ -3981,7 +4017,7 @@ public class C
         }
 
         [Fact]
-        public void GenericRefStructAddressOf()
+        public void GenericRefStructAddressOf_01()
         {
             var code = @"
 public ref struct MyStruct<T>
@@ -4004,6 +4040,32 @@ public class MyClass
                 options: TestOptions.UnsafeReleaseExe,
                 verify: Verification.Skipped,
                 expectedOutput: "42");
+        }
+
+        [Fact]
+        public void GenericRefStructAddressOf_02()
+        {
+            var code = @"
+public ref struct MyStruct<T>
+{
+    public T field;
+}
+
+public class MyClass
+{
+    public unsafe void M()
+    {
+        var ms = new MyStruct<object>();
+        var ptr = &ms;
+    }
+}
+";
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (12,19): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<object>')
+                //         var ptr = &ms;
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "&ms").WithArguments("MyStruct<object>").WithLocation(12, 19)
+            );
         }
 
         [Fact]
