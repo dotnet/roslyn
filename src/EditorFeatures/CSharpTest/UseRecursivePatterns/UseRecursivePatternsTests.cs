@@ -235,5 +235,114 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
     }
 }");
         }
+
+        [Fact]
+        public async Task Test9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        switch (node)
+        {
+            case String s [||]when s.Length == 0:
+                break;
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch (node)
+        {
+            case String
+            {
+                Length: 0
+            }
+
+            s:
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task Test10()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        switch (node)
+        {
+            case String s [||]when s.Length == 0 && b:
+                break;
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch (node)
+        {
+            case String
+            {
+                Length: 0
+            }
+
+            s when b:
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task Test11()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    bool M()
+    {
+        return b.P1 == 1 && b.P2 == 2 [||]&& x;
+    }
+}",
+@"class C
+{
+    bool M()
+    {
+        return b is { P1: 1, P2: 2 } && x;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task Test12()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    bool M()
+    {
+        return x && b.P1 == 1 [||]&& b.P2 == 2;
+    }
+}",
+@"class C
+{
+    bool M()
+    {
+        return x && b is
+        {
+            P1: 1, P2: 2
+        };
+    }
+}");
+        }
     }
 }

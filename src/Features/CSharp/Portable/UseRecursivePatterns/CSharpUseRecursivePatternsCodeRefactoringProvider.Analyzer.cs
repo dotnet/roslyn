@@ -15,9 +15,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             private Analyzer() { }
 
-            public static AnalyzedNode Analyze(BinaryExpressionSyntax node)
+            public static AnalyzedNode Analyze(SyntaxNode node)
             {
-                return s_instance.VisitBinaryExpression(node);
+                return s_instance.Visit(node);
+            }
+
+            public override AnalyzedNode VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node)
+            {
+                if (node.WhenClause != null)
+                {
+                    return new Conjuction(Visit(node.Pattern), Visit(node.WhenClause.Condition));
+                }
+
+                return null;
             }
 
             public override AnalyzedNode VisitBinaryExpression(BinaryExpressionSyntax node)
@@ -133,6 +143,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 {
                     return new PatternMatch(node.Operand,
                         new ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)));
+                }
+
+                return null;
+            }
+
+            public override AnalyzedNode DefaultVisit(SyntaxNode node)
+            {
+                if (node is ExpressionSyntax expression)
+                {
+                    return new Evaluation(expression);
                 }
 
                 return null;

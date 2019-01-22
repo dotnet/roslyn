@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
@@ -27,19 +26,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             var cancellationToken = context.CancellationToken;
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (!(root.FindToken(textSpan.Start).Parent is BinaryExpressionSyntax node))
-            {
-                return;
-            }
 
-            if (!node.IsKind(SyntaxKind.LogicalAndExpression, SyntaxKind.EqualsExpression))
+            SyntaxNode node;
+            var token = root.FindToken(textSpan.Start);
+            if (token.IsKind(SyntaxKind.EqualsEqualsToken, SyntaxKind.AmpersandAmpersandToken))
+            {
+                node = token.Parent;
+            }
+            else if (token.IsKind(SyntaxKind.WhenKeyword))
+            {
+                node = token.Parent.Parent;
+            }
+            else
             {
                 return;
             }
 
             // TODO find outermost AND operator
-            // TODO when clause
-            // TODO stop on evaluation node
 
             //var semanticModel = await context.Document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var analyzedNode = Analyzer.Analyze(node);
@@ -47,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             {
                 return;
             }
+
+            // TODO bail on trivial cases
 
             //if (!analyzedNode.CanReduce)
             //{
@@ -60,7 +65,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             }
 
             context.RegisterRefactoring(new MyCodeAction(
-                c => document.ReplaceNodeAsync(node, reducedNode.Rewrite(asPattern: false), c)));
+                c => document.ReplaceNodeAsync(node, reducedNode.Rewrite(
+                    node.IsKind(SyntaxKind.CasePatternSwitchLabel)
+                        ? RewriteMode.SwitchPatternLabel
+                        : RewriteMode.Expression), c)));
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction

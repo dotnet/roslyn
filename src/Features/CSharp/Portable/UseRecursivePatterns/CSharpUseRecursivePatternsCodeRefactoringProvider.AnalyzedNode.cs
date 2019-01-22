@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.PooledObjects;
-
 
 namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 {
-    using Microsoft.CodeAnalysis.CSharp.Extensions;
     using static SyntaxFactory;
 
     internal sealed partial class CSharpUseRecursivePatternsCodeRefactoringProvider
@@ -23,6 +23,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             NotNullPattern = 1 << 3,
             ConstantPattern = 1 << 4,
             PatternMatch = 1 << 5,
+            Evaluation = 1 << 6,
+        }
+
+        private enum RewriteMode
+        {
+            Pattern,
+            Expression,
+            SwitchPatternLabel,
         }
 
         private abstract class AnalyzedNode
@@ -32,8 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             public virtual bool Contains(ExpressionSyntax e) => false;
             public virtual bool CanReduce => false;
             public virtual AnalyzedNode Reduce() => this;
+            public virtual void GetChildren(List<AnalyzedNode> nodes) => nodes.Add(this);
 
-            public abstract SyntaxNode Rewrite(bool asPattern);
+            public abstract SyntaxNode Rewrite(RewriteMode mode);
             public abstract override string ToString();
         }
 
@@ -41,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
         {
             public readonly AnalyzedNode Left;
             public readonly AnalyzedNode Right;
+
+            public override NodeKind Kind => NodeKind.Conjunction;
 
             public Conjuction(AnalyzedNode left, AnalyzedNode right)
             {
@@ -50,112 +61,101 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 Right = right;
             }
 
-            public override NodeKind Kind => NodeKind.Conjunction;
             public override string ToString() => $"{Left} AND {Right}";
 
             public override bool Contains(ExpressionSyntax e) => Left.Contains(e) || Right.Contains(e);
 
-            public override bool CanReduce => throw new NotImplementedException();
-
             public override AnalyzedNode Reduce() => Union(Left.Reduce(), Right.Reduce());
 
-            private static void CollectChildren(Conjuction node, ArrayBuilder<SubpatternSyntax> nodes, ref TypeSyntax type, ref SyntaxToken identifier)
+            public override void GetChildren(List<AnalyzedNode> nodes)
             {
-                CollectChildren(node.Left, nodes, ref type, ref identifier);
-                CollectChildren(node.Right, nodes, ref type, ref identifier);
+                Left.GetChildren(nodes);
+                Right.GetChildren(nodes);
             }
 
-            private static void CollectChildren(AnalyzedNode node, ArrayBuilder<SubpatternSyntax> nodes, ref TypeSyntax type, ref SyntaxToken identifier)
+            public override SyntaxNode Rewrite(RewriteMode mode)
             {
-                switch (node)
-                {
-                    case Conjuction n:
-                        CollectChildren(n, nodes, ref type, ref identifier);
-                        break;
-                    case TypePattern n:
-                        type = n.Type;
-                        break;
-                    case VarPattern n:
-                        identifier = n.Identifier;
-                        break;
-                    default:
-                        nodes.Add((SubpatternSyntax)node.Rewrite(true));
-                        break;
-                }
-            }
-
-            public override SyntaxNode Rewrite(bool asPattern)
-            {
-                if (asPattern)
-                {
-                    var nodes = ArrayBuilder<SubpatternSyntax>.GetInstance();
-                    TypeSyntax type = null;
-                    SyntaxToken identifier = default;
-                    CollectChildren(this, nodes, ref type, ref identifier);
-
-                    return RecursivePattern(
-                        type, null,
-                        PropertyPatternClause(SeparatedList(nodes.ToArrayAndFree())),
-                        identifier.IsKind(SyntaxKind.None) ? null : SingleVariableDesignation(identifier));
-                }
-                else
+                if (mode == RewriteMode.Expression)
                 {
                     return BinaryExpression(SyntaxKind.LogicalAndExpression,
-                        (ExpressionSyntax)Left.Rewrite(asPattern: false),
-                        (ExpressionSyntax)Right.Rewrite(asPattern: false));
+                        (ExpressionSyntax)Left.Rewrite(RewriteMode.Expression),
+                        (ExpressionSyntax)Right.Rewrite(RewriteMode.Expression));
                 }
+
+                var nodes = new List<AnalyzedNode>();
+                GetChildren(nodes);
+
+                var pattern = RecursivePattern(
+                    nodes.OfType<TypePattern>().SingleOrDefault()?.Type,
+                    null,
+                    PropertyPatternClause(SeparatedList(nodes.OfType<PatternMatch>().Select(match => match.Rewrite(RewriteMode.Pattern)))),
+                    nodes.OfType<VarPattern>().SingleOrDefault() is VarPattern v ? SingleVariableDesignation(v.Identifier) : null);
+
+                if (mode == RewriteMode.Pattern)
+                {
+                    return pattern;
+                }
+
+                return CasePatternSwitchLabel(pattern,
+                    nodes.OfType<Evaluation>().SingleOrDefault()?.Expression is ExpressionSyntax e ? WhenClause(e) : null,
+                    Token(SyntaxKind.ColonToken));
             }
 
-            private static AnalyzedNode UnionCore(Conjuction left, PatternMatch right)
+            private static AnalyzedNode UnionCore(Conjuction conjuction, PatternMatch match)
             {
-                if (left.Left.Contains(right.Expression))
+                if (conjuction.Left.Contains(match.Expression))
                 {
-                    return new Conjuction(Union(left.Left, right), left.Right);
+                    return new Conjuction(Union(conjuction.Left, match), conjuction.Right);
                 }
 
-                if (left.Right.Contains(right.Expression))
+                if (conjuction.Right.Contains(match.Expression))
                 {
-                    return new Conjuction(left.Left, Union(left.Right, right));
+                    return new Conjuction(conjuction.Left, Union(conjuction.Right, match));
                 }
 
-                return new Conjuction(left, right);
+                return new Conjuction(conjuction, match);
             }
 
-            private static AnalyzedNode UnionCore(PatternMatch left, PatternMatch right)
+            private static AnalyzedNode UnionCore(PatternMatch leftMatch, PatternMatch rightMatch)
             {
-                if (AreEquivalent(left.Expression, right.Expression))
+                if (AreEquivalent(leftMatch.Expression, rightMatch.Expression))
                 {
-                    return new PatternMatch(left.Expression, Union(left.Pattern, right.Pattern));
+                    return new PatternMatch(leftMatch.Expression, Union(leftMatch.Pattern, rightMatch.Pattern));
                 }
 
-                if (left.Pattern.Contains(right.Expression))
+                if (leftMatch.Pattern.Contains(rightMatch.Expression))
                 {
-                    return new PatternMatch(left.Expression, Union(left.Pattern, right));
+                    return new PatternMatch(leftMatch.Expression, Union(leftMatch.Pattern, rightMatch));
                 }
 
-                if (right.Pattern.Contains(left.Expression))
+                if (rightMatch.Pattern.Contains(leftMatch.Expression))
                 {
-                    return new PatternMatch(right.Expression, Union(right.Pattern, left));
+                    return new PatternMatch(rightMatch.Expression, Union(rightMatch.Pattern, leftMatch));
                 }
 
-                return new Conjuction(left, right);
+                return new Conjuction(leftMatch, rightMatch);
             }
 
             private static AnalyzedNode UnionCore(VarPattern left, PatternMatch right)
             {
                 if (left.Contains(right.Expression))
+                {
                     return new Conjuction(left, right.Pattern);
+                }
 
                 return new Conjuction(left, right);
             }
 
             private static AnalyzedNode Union(AnalyzedNode left, AnalyzedNode right)
             {
+                // Since the bitwise-OR operator is symmetrical, each case covers both orderings for each pair.
+                // We always have C(N+1, 2) cases where N is the number of kinds. So the following switch is
+                // exhaustive at the moment. The +1 addition accounts for union logic of each node with itself.
                 switch (left.Kind | right.Kind)
                 {
                     case NodeKind.Conjunction | NodeKind.Conjunction:
-                        var rightConjuction = (Conjuction)right;
-                        return Union(new Conjuction(left, rightConjuction.Left), rightConjuction.Right);
+                        var conjuction = (Conjuction)right;
+                        return Union(Union(left, conjuction.Left), conjuction.Right);
 
                     case NodeKind.PatternMatch | NodeKind.PatternMatch:
                         return UnionCore((PatternMatch)left, (PatternMatch)right);
@@ -175,6 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                     case NodeKind.NotNullPattern | NodeKind.VarPattern:
                     case NodeKind.Conjunction | NodeKind.TypePattern:
                     case NodeKind.Conjunction | NodeKind.VarPattern:
+                    case NodeKind.Evaluation | NodeKind.Conjunction:
+                    case NodeKind.Evaluation | NodeKind.PatternMatch:
                         return new Conjuction(left, right);
 
                     case NodeKind.NotNullPattern | NodeKind.Conjunction:
@@ -189,6 +191,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                     case NodeKind.ConstantPattern | NodeKind.ConstantPattern:
                     case NodeKind.ConstantPattern | NodeKind.VarPattern:
                     case NodeKind.ConstantPattern | NodeKind.NotNullPattern:
+                    case NodeKind.Evaluation | NodeKind.Evaluation:
+                    case NodeKind.Evaluation | NodeKind.ConstantPattern:
+                    case NodeKind.Evaluation | NodeKind.NotNullPattern:
+                    case NodeKind.Evaluation | NodeKind.TypePattern:
+                    case NodeKind.Evaluation | NodeKind.VarPattern:
                     case NodeKind.TypePattern | NodeKind.TypePattern:
                     case NodeKind.VarPattern | NodeKind.VarPattern:
                         return null;
@@ -249,33 +256,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 }
             }
 
-            public override AnalyzedNode Reduce()
-            {
-                return MakePatternMatch(Expression, Pattern.Reduce());
-            }
+            public override AnalyzedNode Reduce() => MakePatternMatch(Expression, Pattern.Reduce());
 
             private static PatternSyntax AsPattern(SyntaxNode node)
             {
                 switch (node)
                 {
-                    case PatternSyntax n:
-                        return n;
-                    case SubpatternSyntax n:
-                        return RecursivePattern(null, null, PropertyPatternClause(SingletonSeparatedList(n)), null);
+                    case PatternSyntax pattern:
+                        return pattern;
+                    case SubpatternSyntax subpattern:
+                        return RecursivePattern(null, null, PropertyPatternClause(SingletonSeparatedList(subpattern)), null);
                     case var value:
                         throw ExceptionUtilities.UnexpectedValue(value.Kind());
                 }
             }
 
-            public override SyntaxNode Rewrite(bool asPattern)
+            public override SyntaxNode Rewrite(RewriteMode mode)
             {
-                if (asPattern)
+                switch (mode)
                 {
-                    return Subpattern(NameColon((IdentifierNameSyntax)Expression), AsPattern(Pattern.Rewrite(true)));
-                }
-                else
-                {
-                    return IsPatternExpression(Expression, AsPattern(Pattern.Rewrite(asPattern: true)));
+                    case RewriteMode.Pattern:
+                        return Subpattern(NameColon((IdentifierNameSyntax)Expression), AsPattern(Pattern.Rewrite(RewriteMode.Pattern)));
+                    case RewriteMode.Expression:
+                        return IsPatternExpression(Expression, AsPattern(Pattern.Rewrite(RewriteMode.Pattern)));
+                    case var value:
+                        throw ExceptionUtilities.UnexpectedValue(value);
                 }
             }
         }
@@ -294,26 +299,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             public override string ToString() => Expression.ToString();
 
-            public override SyntaxNode Rewrite(bool asPattern)
+            public override SyntaxNode Rewrite(RewriteMode mode)
             {
-                Debug.Assert(asPattern);
+                Debug.Assert(mode == RewriteMode.Pattern);
                 return ConstantPattern(Expression);
             }
         }
 
         private sealed class NotNullPattern : AnalyzedNode
         {
-            public override string ToString() => "{}";
-
-            private NotNullPattern() { }
-
             public readonly static NotNullPattern Instance = new NotNullPattern();
 
             public override NodeKind Kind => NodeKind.NotNullPattern;
 
-            public override SyntaxNode Rewrite(bool asPattern)
+            private NotNullPattern() { }
+
+            public override string ToString() => "{}";
+
+            public override SyntaxNode Rewrite(RewriteMode mode)
             {
-                Debug.Assert(asPattern);
+                Debug.Assert(mode == RewriteMode.Pattern);
                 return RecursivePattern(null, null, PropertyPatternClause(SeparatedList<SubpatternSyntax>()), null);
             }
         }
@@ -332,9 +337,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             public override string ToString() => Type.ToString();
 
-            public override SyntaxNode Rewrite(bool asPattern)
+            public override SyntaxNode Rewrite(RewriteMode mode)
             {
-                Debug.Assert(asPattern);
+                Debug.Assert(mode == RewriteMode.Pattern);
                 return DeclarationPattern(Type, DiscardDesignation());
             }
         }
@@ -359,9 +364,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                     SyntaxFactory.AreEquivalent(id.Identifier, this.Identifier);
             }
 
-            public override SyntaxNode Rewrite(bool asPattern)
+            public override SyntaxNode Rewrite(RewriteMode mode)
             {
-                throw new NotImplementedException();
+                Debug.Assert(mode == RewriteMode.Pattern);
+                return SingleVariableDesignation(Identifier);
+            }
+        }
+
+        private sealed class Evaluation : AnalyzedNode
+        {
+            public readonly ExpressionSyntax Expression;
+
+            public override NodeKind Kind => NodeKind.Evaluation;
+
+            public Evaluation(ExpressionSyntax expression)
+            {
+                Debug.Assert(expression != null);
+                Expression = expression;
+            }
+
+            public override string ToString() => $"{Expression}";
+
+            public override SyntaxNode Rewrite(RewriteMode mode)
+            {
+                Debug.Assert(mode == RewriteMode.Expression);
+                return Expression;
             }
         }
     }
