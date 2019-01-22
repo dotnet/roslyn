@@ -3775,8 +3775,7 @@ public static class Program
         [Fact]
         public void ParentFrame05()
         {
-            // IMPORTANT: this code should not initialize any fields in Program.c1.<>c__DisplayClass0 except "a"
-            //            Program.c1.<>c__DisplayClass0 should not capture any frame pointers.
+            // IMPORTANT: Program.c1.<>c__DisplayClass1_0 should not capture any frame pointers.
 
             string source = @"
 using System;
