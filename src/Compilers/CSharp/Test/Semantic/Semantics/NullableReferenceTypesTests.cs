@@ -39221,9 +39221,9 @@ class Program
                 // (20,22): warning CS8619: Nullability of reference types in value of type '(A?, A)' doesn't match target type '(A, A?)'.
                 //         (A, A?) t2 = (null, new B() { F = 2 }); // 3
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(null, new B() { F = 2 })").WithArguments("(A?, A)", "(A, A?)").WithLocation(20, 22),
-                // (23,9): warning CS8602: Possible dereference of a null reference.
-                //         u2.y.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u2.y").WithLocation(23, 9),
+                // (22,9): warning CS8602: Possible dereference of a null reference.
+                //         u2.x.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u2.x").WithLocation(22, 9),
                 // (24,9): warning CS8602: Possible dereference of a null reference.
                 //         u2.y.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u2.y.F").WithLocation(24, 9));
@@ -39983,14 +39983,16 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/32531: Track nullability within Nullable<T>.Value.
             comp.VerifyDiagnostics(
                 // (5,32): warning CS8619: Nullability of reference types in value of type '(object?, object s)' doesn't match target type '(object, object?)?'.
                 //         (object, object?)? t = (null, s); // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(null, s)").WithArguments("(object?, object s)", "(object, object?)?").WithLocation(5, 32),
-                // (8,9): warning CS8602: Possible dereference of a null reference.
-                //         t.Value.Item2.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Value.Item2").WithLocation(8, 9));
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         t.Value.Item1.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Value.Item1").WithLocation(7, 9),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         u.Item1.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u.Item1").WithLocation(9, 9));
         }
 
         [Fact]
@@ -40147,6 +40149,393 @@ class Program
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         y.Item1.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.Item1").WithLocation(6, 9));
+        }
+
+        [Fact]
+        public void CopyClassFields()
+        {
+            var source =
+@"#pragma warning disable 0649
+#pragma warning disable 8618
+class C
+{
+    internal object? F;
+    internal object G;
+}
+class Program
+{
+    static void F(C x)
+    {
+        if (x.F == null) return;
+        if (x.G != null) return;
+        C y = x;
+        x.F.ToString();
+        x.G.ToString(); // 1
+        y.F.ToString();
+        y.G.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/32703: Not inferring nullability of non-nullable value compared to null.
+            // https://github.com/dotnet/roslyn/issues/31395: Nullability of class members should be copied on assignment.
+            comp.VerifyDiagnostics(
+                // (13,13): hidden CS8605: Result of the comparison is possibly always true.
+                //         if (x.G != null) return;
+                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "x.G != null").WithLocation(13, 13),
+                // (17,9): warning CS8602: Possible dereference of a null reference.
+                //         y.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.F").WithLocation(17, 9));
+        }
+
+        [Fact]
+        public void CopyStructFields()
+        {
+            var source =
+@"#pragma warning disable 0649
+struct S
+{
+    internal object? F;
+    internal object G;
+}
+class Program
+{
+    static void F(S x)
+    {
+        if (x.F == null) return;
+        if (x.G != null) return;
+        S y = x;
+        x.F.ToString();
+        x.G.ToString(); // 1
+        y.F.ToString();
+        y.G.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/32703: Not inferring nullability of non-nullable value compared to null.
+            comp.VerifyDiagnostics(
+                // (12,13): hidden CS8605: Result of the comparison is possibly always true.
+                //         if (x.G != null) return;
+                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "x.G != null").WithLocation(12, 13));
+        }
+
+        [Fact]
+        public void CopyNullableStructFields()
+        {
+            var source =
+@"#pragma warning disable 0649
+struct S
+{
+    internal object? F;
+    internal object G;
+}
+class Program
+{
+    static void F(S? x)
+    {
+        if (x == null) return;
+        if (x.Value.F == null) return;
+        if (x.Value.G != null) return;
+        S? y = x;
+        x.Value.F.ToString();
+        x.Value.G.ToString(); // 1
+        y.Value.F.ToString();
+        y.Value.G.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/32703: Not inferring nullability of non-nullable value compared to null.
+            comp.VerifyDiagnostics(
+                // (13,13): hidden CS8605: Result of the comparison is possibly always true.
+                //         if (x.Value.G != null) return;
+                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "x.Value.G != null").WithLocation(13, 13));
+        }
+
+        [Fact]
+        public void Conversions_ImplicitNullable_01()
+        {
+            var source =
+@"struct S
+{
+    internal object? F;
+    internal object G;
+}
+class Program
+{
+    static void F()
+    {
+        S? x = new S() { F = 1, G = null }; // 1
+        S? y = x;
+        x.Value.F.ToString();
+        x.Value.G.ToString(); // 2
+        y.Value.F.ToString();
+        y.Value.G.ToString(); // 3
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,37): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         S? x = new S() { F = 1, G = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 37),
+                // (13,9): warning CS8602: Possible dereference of a null reference.
+                //         x.Value.G.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.Value.G").WithLocation(13, 9),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         y.Value.G.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.Value.G").WithLocation(15, 9));
+        }
+
+        [Fact]
+        public void Conversions_ImplicitNullable_02()
+        {
+            var source =
+@"class Program
+{
+    static void F(int? x)
+    {
+        long? y = x;
+        if (x == null) return;
+        long? z = x;
+        x.Value.ToString();
+        y.Value.ToString(); // 1
+        z.Value.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,9): warning CS8629: Nullable value type may be null.
+                //         y.Value.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y.Value").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void Conversions_ImplicitNullable_03()
+        {
+            var source =
+@"class Program
+{
+    static void F(int x)
+    {
+        int? y = x;
+        long? z = x;
+        y.Value.ToString();
+        z.Value.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Conversions_ExplicitNullable_01()
+        {
+            var source =
+@"struct S
+{
+    internal object? F;
+    internal object G;
+}
+class Program
+{
+    static void F()
+    {
+        S x = new S() { F = 1, G = null }; // 1
+        var y = (S?)x;
+        y.Value.F.ToString();
+        y.Value.G.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,36): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         S x = new S() { F = 1, G = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 36),
+                // (13,9): warning CS8602: Possible dereference of a null reference.
+                //         y.Value.G.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.Value.G").WithLocation(13, 9));
+        }
+
+        [Fact]
+        public void Conversions_ExplicitNullable_02()
+        {
+            var source =
+@"struct S
+{
+    internal object? F;
+    internal object G;
+}
+class Program
+{
+    static void F()
+    {
+        S? x = new S() { F = 1, G = null }; // 1
+        S y = (S)x;
+        y.F.ToString();
+        y.G.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,37): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         S? x = new S() { F = 1, G = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 37),
+                // (13,9): warning CS8602: Possible dereference of a null reference.
+                //         y.G.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.G").WithLocation(13, 9));
+        }
+
+        [Fact]
+        public void Conversions_ExplicitNullable_03()
+        {
+            var source =
+@"class Program
+{
+    static void F(int? x)
+    {
+        long? y = (long?)x;
+        if (x == null) return;
+        long? z = (long?)x;
+        x.Value.ToString();
+        y.Value.ToString(); // 1
+        z.Value.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,9): warning CS8629: Nullable value type may be null.
+                //         y.Value.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y.Value").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void Conversions_ExplicitNullable_04()
+        {
+            var source =
+@"class Program
+{
+    static void F(long? x)
+    {
+        int? y = (int?)x;
+        if (x == null) return;
+        int? z = (int?)x;
+        x.Value.ToString();
+        y.Value.ToString(); // 1
+        z.Value.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,9): warning CS8629: Nullable value type may be null.
+                //         y.Value.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y.Value").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void Conversions_ExplicitNullable_05()
+        {
+            var source =
+@"class Program
+{
+    static void F(int? x)
+    {
+        int y = (int)x; // 1
+        long z = (long)x; // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // PROTOTYPE: Missing warning.
+            comp.VerifyDiagnostics(
+                // (5,17): warning CS8629: Nullable value type may be null.
+                //         int y = (int)x; // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(int)x").WithLocation(5, 17));
+        }
+
+        [Fact]
+        [WorkItem(32599, "https://github.com/dotnet/roslyn/issues/32599")]
+        public void Tuple_Conversions_ImplicitNullable()
+        {
+            var source =
+@"struct S
+{
+    internal object? F;
+}
+class Program
+{
+    static void F()
+    {
+        S x = new S();
+        S y = new S() { F = 1 };
+        (S?, S) t = (x, y);
+        (S? a, S? b) u = t;
+        S t1 = t.Item1.Value;
+        S t2 = t.Item2;
+        t1.F.ToString(); // 1
+        t2.F.ToString();
+        S u1 = u.a.Value;
+        S u2 = u.b.Value;
+        u1.F.ToString(); // 2
+        u2.F.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/32599: Support implicit tuple conversions. See // 1, 2.
+            comp.VerifyDiagnostics(
+                // (18,16): warning CS8629: Nullable value type may be null.
+                //         S u2 = u.b.Value;
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "u.b.Value").WithLocation(18, 16));
+        }
+
+        [Fact]
+        [WorkItem(32599, "https://github.com/dotnet/roslyn/issues/32599")]
+        public void Tuple_Conversions_ImplicitReference()
+        {
+            var source =
+@"class Program
+{
+    static void F(string x, string? y)
+    {
+        (object?, string?) t = (x, y);
+        (object? a, object? b) u = t;
+        t.Item1.ToString();
+        t.Item2.ToString(); // 1
+        u.a.ToString();
+        u.b.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         t.Item2.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item2").WithLocation(8, 9),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         u.b.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u.b").WithLocation(10, 9));
+        }
+
+        [Fact]
+        [WorkItem(32599, "https://github.com/dotnet/roslyn/issues/32599")]
+        public void Tuple_Conversions_ImplicitDynamic()
+        {
+            var source =
+@"class Program
+{
+    static void F(object x, object? y)
+    {
+        (object?, dynamic?) t = (x, y);
+        (dynamic? a, object? b) u = t;
+        t.Item1.ToString();
+        t.Item2.ToString(); // 1
+        u.a.ToString();
+        u.b.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         t.Item2.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item2").WithLocation(8, 9),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         u.b.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u.b").WithLocation(10, 9));
         }
 
         [Fact]
@@ -40554,6 +40943,33 @@ class Program
                 // (11,9): warning CS8602: Possible dereference of a null reference.
                 //         y.F/*T:T?*/.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.F").WithLocation(11, 9));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        [WorkItem(30731, "https://github.com/dotnet/roslyn/issues/30731")]
+        public void StructField_ParameterDefaultValue_04()
+        {
+            var source =
+@"#pragma warning disable 649
+struct S<T>
+{
+    internal T F;
+}
+class Program
+{
+    static void F<T>(S<T>? x = default(S<T>)) where T : class
+    {
+        if (x == null) return;
+        var y = x.Value;
+        y.F/*T:T*/.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,28): error CS1770: A value of type 'S<T>' cannot be used as default parameter for nullable parameter 'x' because 'S<T>' is not a simple type
+                //     static void F<T>(S<T>? x = default(S<T>)) where T : class
+                Diagnostic(ErrorCode.ERR_NoConversionForNubDefaultParam, "x").WithArguments("S<T>", "x").WithLocation(8, 28));
             comp.VerifyTypes();
         }
 
