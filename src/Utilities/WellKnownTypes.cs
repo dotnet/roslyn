@@ -149,6 +149,7 @@ namespace Analyzer.Utilities
         public const string SystemDiagnosticsProcess = "System.Diagnostics.Process";
         public const string SystemDiagnosticsProcessStartInfo = "System.Diagnostics.ProcessStartInfo";
         public const string SystemTextRegularExpressionsRegex = "System.Text.RegularExpressions.Regex";
+        public const string SystemRuntimeSerializationNetDataContractSerializer = "System.Runtime.Serialization.NetDataContractSerializer";
 
         public static INamedTypeSymbol ICollection(Compilation compilation)
         {
