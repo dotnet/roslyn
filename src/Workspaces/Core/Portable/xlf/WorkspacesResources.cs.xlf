@@ -719,27 +719,27 @@
       </trans-unit>
       <trans-unit id="Class">
         <source>Class</source>
-	<target state="new">Class</target>
+        <target state="new">Class</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Delegate">
         <source>Delegate</source>
-	<target state="new">Delegate</target>
+        <target state="new">Delegate</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Enum">
         <source>Enum</source>
-	<target state="new">Enum</target>
+        <target state="new">Enum</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Event">
         <source>Event</source>
-	<target state="new">Event</target>
+        <target state="new">Event</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Interface">
         <source>Interface</source>
-	<target state="new">Interface</target>
+        <target state="new">Interface</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Non_Field_Members">
@@ -764,7 +764,7 @@
       </trans-unit>
       <trans-unit id="Property">
         <source>Property</source>
-	<target state="new">Property</target>
+        <target state="new">Property</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Public_or_Protected_Field">
@@ -784,7 +784,7 @@
       </trans-unit>
       <trans-unit id="Struct">
         <source>Struct</source>
-	<target state="new">Struct</target>
+        <target state="new">Struct</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Types">
@@ -1041,6 +1041,31 @@
         <source>Regex issue: {0}</source>
         <target state="translated">Problém s regulárním výrazem: {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. {0} will be the actual text of one of the above Regular Expression errors.</note>
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_NameOnly">
+        <source>NameOnly</source>
+        <target state="new">NameOnly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Read">
+        <source>Read</source>
+        <target state="new">Read</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Reference">
+        <source>Reference</source>
+        <target state="new">Reference</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Write">
+        <source>Write</source>
+        <target state="new">Write</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_preferences">
+        <source>Parameter preferences</source>
+        <target state="new">Parameter preferences</target>
+        <note />
       </trans-unit>
     </body>
   </file>

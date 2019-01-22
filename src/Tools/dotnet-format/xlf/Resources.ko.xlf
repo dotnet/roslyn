@@ -52,6 +52,11 @@
         <target state="translated">작업 영역을 로드하는 중입니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Maximum_number_of_workspace_warnings_to_log_has_been_reached_Set_the_verbosity_option_to_the_diagnostic_level_to_see_all_warnings">
+        <source>Maximum number of workspace warnings to log has been reached. Set the --verbosity option to the 'diagnostic' level to see all warnings.</source>
+        <target state="new">Maximum number of workspace warnings to log has been reached. Set the --verbosity option to the 'diagnostic' level to see all warnings.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Multiple_MSBuild_project_files_found_in_0_Specify_which_to_use_with_the_workspace_option">
         <source>Multiple MSBuild project files found in '{0}'. Specify which to use with the --workspace option.</source>
         <target state="translated">'{0}'에서 여러 MSBuild 프로젝트 파일을 찾았습니다. --workspace 옵션에 사용할 파일을 지정하세요.</target>

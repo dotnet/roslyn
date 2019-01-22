@@ -32,6 +32,11 @@
         <target state="translated">_Inserção automática de membros Interface e MustOverride</target>
         <note />
       </trans-unit>
+      <trans-unit id="Never">
+        <source>Never</source>
+        <target state="new">Never</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
         <source>Prefer 'Is Nothing' for reference equality checks</source>
         <target state="translated">Prefira 'Is Nothing' para as verificações de igualdade de referência</target>
@@ -255,6 +260,11 @@
       <trans-unit id="Show_completion_list_after_a_character_is_typed">
         <source>_Show completion list after a character is typed</source>
         <target state="translated">_Mostrar lista de conclusão depois que um caractere é digitado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="new">Unused local</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_Coding_Conventions">

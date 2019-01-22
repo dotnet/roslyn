@@ -22,9 +22,19 @@
         <target state="translated">C# 書式ルール</target>
         <note />
       </trans-unit>
+      <trans-unit id="Discard">
+        <source>Discard</source>
+        <target state="new">Discard</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
         <target state="translated">ドキュメントのフォーマットの設定 (実験)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Event_Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="new">Generate Event Subscription</target>
         <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
@@ -367,6 +377,11 @@
         <target state="translated">キーワードの改行オプション</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="new">Unused local</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_var_when_generating_locals">
         <source>Use 'var' when generating locals</source>
         <target state="translated">ローカルの生成時に 'var' を使用する</target>
@@ -525,6 +540,11 @@
       <trans-unit id="Elsewhere">
         <source>Elsewhere</source>
         <target state="translated">その他の場所</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_on_multiple_lines">
+        <source>When on multiple lines</source>
+        <target state="new">When on multiple lines</target>
         <note />
       </trans-unit>
       <trans-unit id="When_variable_type_is_apparent">
@@ -730,11 +750,6 @@
       <trans-unit id="Show_name_suggestions">
         <source>Show name s_uggestions</source>
         <target state="translated">名前の提案を表示(_U)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate Event Subscription">
-        <source>Generate Event Subscription</source>
-        <target state="translated">イベント サブスクリプションの生成</target>
         <note />
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">

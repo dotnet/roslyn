@@ -32,6 +32,11 @@
         <target state="translated">Interface 및 MustOverride 멤버 자동 삽입(_I)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Never">
+        <source>Never</source>
+        <target state="new">Never</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
         <source>Prefer 'Is Nothing' for reference equality checks</source>
         <target state="translated">참조 같음 검사에 대해 'Is Nothing' 선호</target>
@@ -255,6 +260,11 @@
       <trans-unit id="Show_completion_list_after_a_character_is_typed">
         <source>_Show completion list after a character is typed</source>
         <target state="translated">문자를 입력하면 완성 목록 표시(_S)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="new">Unused local</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_Coding_Conventions">

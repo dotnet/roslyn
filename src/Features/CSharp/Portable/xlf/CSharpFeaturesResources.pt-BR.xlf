@@ -722,6 +722,21 @@
         <target state="translated">Inverter If</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_Obsolete">
+        <source>Add [Obsolete]</source>
+        <target state="new">Add [Obsolete]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_0">
+        <source>Use '{0}'</source>
+        <target state="new">Use '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_using_statement">
+        <source>Introduce 'using' statement</source>
+        <target state="new">Introduce 'using' statement</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
     </body>
   </file>
 </xliff>
