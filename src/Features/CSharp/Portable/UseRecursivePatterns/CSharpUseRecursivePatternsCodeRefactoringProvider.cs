@@ -65,10 +65,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             }
 
             context.RegisterRefactoring(new MyCodeAction(
-                c => document.ReplaceNodeAsync(node, reducedNode.Rewrite(
+                c => document.ReplaceNodeAsync(node,
                     node.IsKind(SyntaxKind.CasePatternSwitchLabel)
-                        ? RewriteMode.SwitchPatternLabel
-                        : RewriteMode.Expression), c)));
+                        ? ((Conjuction)reducedNode).AsCasePatternSwitchLabelSyntax()
+                        : (SyntaxNode)reducedNode.AsExpressionSyntax(), c)));
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
