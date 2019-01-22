@@ -1411,17 +1411,17 @@ ref struct DisposableEnumerator
     int x;
     public int Current { get { return x; } }
     public bool MoveNext() { return ++x < 4; }
-    public void Dispose(params object[] args) { System.Console.WriteLine(""Done with DisposableEnumerator""); }
+    public void Dispose(params object[] args) { System.Console.WriteLine($""Done with DisposableEnumerator. args was {args}, length {args.Length}""); }
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3
-Done with DisposableEnumerator");
+Done with DisposableEnumerator. args was System.Object[], length 0");
         }
 
         [Fact]
-        public void TestForEachPatternDisposableRefStructWithDefaultParameters()
+        public void TestForEachPatternDisposableRefStructWithDefaultArguments()
         {
             var source = @"
 class C
@@ -1445,8 +1445,50 @@ ref struct DisposableEnumerator
     int x;
     public int Current { get { return x; } }
     public bool MoveNext() { return ++x < 4; }
-    public void Dispose(int arg = 1) { System.Console.WriteLine(""Done with DisposableEnumerator""); }
+    public void Dispose(int arg = 1) { System.Console.WriteLine($""Done with DisposableEnumerator. arg was {arg}""); }
 }";
+            var compilation = CompileAndVerify(source, expectedOutput: @"
+1
+2
+3
+Done with DisposableEnumerator. arg was 1");
+        }
+
+        [Fact]
+        public void TestForEachPatternDisposableRefStructWithExtensionMethod()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var x in new Enumerable1())
+        {
+            System.Console.WriteLine(x);
+        }
+    }
+}
+
+class Enumerable1
+{
+    public DisposableEnumerator GetEnumerator() { return new DisposableEnumerator(); }
+}
+
+ref struct DisposableEnumerator
+{
+    int x;
+    public int Current { get { return x; } }
+    public bool MoveNext() { return ++x < 4; }
+}
+
+static class DisposeExtension
+{
+    public static void Dispose(this DisposableEnumerator de) { System.Console.WriteLine(""Done with DisposableEnumerator""); } 
+}
+
+";
+
+
             var compilation = CompileAndVerify(source, expectedOutput: @"
 1
 2
@@ -1454,6 +1496,155 @@ ref struct DisposableEnumerator
 Done with DisposableEnumerator");
         }
 
+        [Fact]
+        public void TestForEachPatternDisposableRefStructWithExtensionMethodAndDefaultArguments()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var x in new Enumerable1())
+        {
+            System.Console.WriteLine(x);
+        }
+    }
+}
+
+class Enumerable1
+{
+    public DisposableEnumerator GetEnumerator() { return new DisposableEnumerator(); }
+}
+
+ref struct DisposableEnumerator
+{
+    int x;
+    public int Current { get { return x; } }
+    public bool MoveNext() { return ++x < 4; }
+}
+
+static class DisposeExtension
+{
+    public static void Dispose(this DisposableEnumerator de, int arg = 4) { System.Console.WriteLine($""Done with DisposableEnumerator. arg was {arg}""); } 
+}
+
+";
+
+
+            var compilation = CompileAndVerify(source, expectedOutput: @"
+1
+2
+3
+Done with DisposableEnumerator. arg was 4");
+        }
+
+        [Fact]
+        public void TestForEachPatternDisposableRefStructWithExtensionMethodAndParams()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var x in new Enumerable1())
+        {
+            System.Console.WriteLine(x);
+        }
+    }
+}
+
+class Enumerable1
+{
+    public DisposableEnumerator GetEnumerator() { return new DisposableEnumerator(); }
+}
+
+ref struct DisposableEnumerator
+{
+    int x;
+    public int Current { get { return x; } }
+    public bool MoveNext() { return ++x < 4; }
+}
+
+static class DisposeExtension
+{
+    public static void Dispose(this DisposableEnumerator de, params object[] args) { System.Console.WriteLine($""Done with DisposableEnumerator. Args was {args}, length {args.Length}""); } 
+}
+
+";
+
+
+            var compilation = CompileAndVerify(source, expectedOutput: @"
+1
+2
+3
+Done with DisposableEnumerator. Args was System.Object[], length 0");
+        }
+
+        [Fact]
+        public void TestForEachPatternDisposableIgnoredForNonRefStruct()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var x in new Enumerable1())
+        {
+            System.Console.WriteLine(x);
+        }
+    }
+}
+
+class Enumerable1
+{
+    public DisposableEnumerator GetEnumerator() { return new DisposableEnumerator(); }
+}
+
+struct DisposableEnumerator
+{
+    int x;
+    public int Current { get { return x; } }
+    public bool MoveNext() { return ++x < 4; }
+    public void Dispose() { System.Console.WriteLine(""Done with DisposableEnumerator""); }
+}";
+            var compilation = CompileAndVerify(source, expectedOutput: @"
+1
+2
+3");
+        }
+
+        [Fact]
+        public void TestForEachPatternDisposableIgnoredForClass()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var x in new Enumerable1())
+        {
+            System.Console.WriteLine(x);
+        }
+    }
+}
+
+class Enumerable1
+{
+    public DisposableEnumerator GetEnumerator() { return new DisposableEnumerator(); }
+}
+
+class DisposableEnumerator
+{
+    int x;
+    public int Current { get { return x; } }
+    public bool MoveNext() { return ++x < 4; }
+    public void Dispose() { System.Console.WriteLine(""Done with DisposableEnumerator""); }
+}";
+            var compilation = CompileAndVerify(source, expectedOutput: @"
+1
+2
+3");
+        }
 
         [Fact]
         public void TestForEachNested()

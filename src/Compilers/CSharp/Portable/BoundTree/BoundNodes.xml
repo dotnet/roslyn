@@ -105,7 +105,7 @@
   </Node>
 
   <!--
-  This node is used to represent an expression of a certain type, when attempting to bind it's pattern dispose method
+  This node is used to represent an expression of a certain type, when attempting to bind its pattern dispose method
   It does not survive past initial binding.
   -->
   <Node Name="BoundDisposableValuePlaceholder" Base="BoundValuePlaceholderBase">

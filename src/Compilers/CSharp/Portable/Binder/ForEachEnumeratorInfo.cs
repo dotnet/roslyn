@@ -21,14 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly MethodSymbol CurrentPropertyGetter;
         public readonly MethodSymbol MoveNextMethod;
 
-        // Dispose method to be called on the enumerator (may be null).
+        // True if the enumerator needs disposal once used. 
+        // Will be either IDisposable/IAsyncDisposable, or use DisposeMethod below if set
         // Computed during initial binding so that we can expose it in the semantic model.
-        public readonly bool NeedsDisposeMethod;
+        public readonly bool NeedsDisposal;
 
         // When async and needs disposal, this stores the information to await the DisposeAsync() invocation
         public AwaitableInfo DisposeAwaitableInfo;
 
-        // When using pattern based Dispose, this stores the method to invoke to Dispose
+        // When using pattern-based Dispose, this stores the method to invoke to Dispose
         public MethodSymbol DisposeMethod;
 
         // Conversions that will be required when the foreach is lowered.
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.GetEnumeratorMethod = getEnumeratorMethod;
             this.CurrentPropertyGetter = currentPropertyGetter;
             this.MoveNextMethod = moveNextMethod;
-            this.NeedsDisposeMethod = needsDisposeMethod;
+            this.NeedsDisposal = needsDisposeMethod;
             this.DisposeAwaitableInfo = disposeAwaitableInfo;
             this.DisposeMethod = disposeMethod;
             this.CollectionConversion = collectionConversion;

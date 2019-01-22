@@ -847,9 +847,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // if it wasn't directly convertable to IDisposable, see if it is pattern disposable
                 // again, we throw away any binding diagnostics, and assume it's not disposable if we encounter errors
-                DiagnosticBag patternDisposeDiags = new DiagnosticBag();
-                BoundDisposableValuePlaceholder receiver = new BoundDisposableValuePlaceholder(_syntax, enumeratorType);
-                var disposeMethod = TryFindDisposePatternMethod(receiver, _syntax, isAsync, patternDisposeDiags);
+                var patternDisposeDiags = new DiagnosticBag();
+                var receiver = new BoundDisposableValuePlaceholder(_syntax, enumeratorType);
+                MethodSymbol disposeMethod = TryFindDisposePatternMethod(receiver, _syntax, isAsync, patternDisposeDiags);
                 if (!(disposeMethod is null))
                 {
                     builder.NeedsDisposeMethod = true;
