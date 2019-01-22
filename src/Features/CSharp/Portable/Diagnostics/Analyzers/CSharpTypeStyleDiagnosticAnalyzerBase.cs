@@ -57,15 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 return;
             }
 
-            var typeInfo = semanticModel.GetTypeInfo(declaredType, cancellationToken);
-            if (typeInfo.Type == null ||
-                typeInfo.Type.IsErrorType() ||
-                typeInfo.ConvertedType == null ||
-                typeInfo.ConvertedType.IsErrorType())
-            {
-                return;
-            }
-
             var typeStyle = Helper.AnalyzeTypeName(
                 declaredType, semanticModel, optionSet, cancellationToken);
             if (!typeStyle.IsStylePreferred || !typeStyle.CanConvert())
