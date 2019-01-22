@@ -58,12 +58,35 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 }
 
                 this.Parameters = service.DetermineParameters(selectedMembers);
-                this.MatchingConstructor = service.GetMatchingConstructor(this.ContainingType, this.Parameters);
+                this.MatchingConstructor = GetMatchingConstructorBasedOnParameterTypes(this.ContainingType, this.Parameters);
                 // We are going to create a new contructor and pass part of the parameters into DelegatedConstructor,
                 // so parameters should be compared based on types since we don't want get a type mismatch error after the new constructor is genreated.
-                this.DelegatedConstructor = service.GetDelegatedConstructorBasedOnParameterTypes(this.ContainingType, this.Parameters);
+                this.DelegatedConstructor = GetDelegatedConstructorBasedOnParameterTypes(this.ContainingType, this.Parameters);
                 return true;
             }
+
+            public static IMethodSymbol GetDelegatedConstructorBasedOnParameterTypes(
+                INamedTypeSymbol containingType,
+                ImmutableArray<IParameterSymbol> parameters)
+            {
+                var q =
+                    from c in containingType.InstanceConstructors
+                    orderby c.Parameters.Length descending
+                    where c.Parameters.Length > 0 && c.Parameters.Length < parameters.Length
+                    where c.Parameters.All(p => p.RefKind == RefKind.None) && !c.Parameters.Any(p => p.IsParams)
+                    let constructorTypes = c.Parameters.Select(p => p.Type)
+                    let symbolTypes = parameters.Take(c.Parameters.Length).Select(p => p.Type)
+                    where constructorTypes.SequenceEqual(symbolTypes)
+                    select c;
+
+                return q.FirstOrDefault();
+            }
+
+            public static IMethodSymbol GetMatchingConstructorBasedOnParameterTypes(INamedTypeSymbol containingType, ImmutableArray<IParameterSymbol> parameters)
+                => containingType.InstanceConstructors.FirstOrDefault(c => MatchesConstructorBasedOnParameterTypes(c, parameters));
+
+            private static bool MatchesConstructorBasedOnParameterTypes(IMethodSymbol constructor, ImmutableArray<IParameterSymbol> parameters)
+                => parameters.Select(p => p.Type).SequenceEqual(constructor.Parameters.Select(p => p.Type));
         }
     }
 }

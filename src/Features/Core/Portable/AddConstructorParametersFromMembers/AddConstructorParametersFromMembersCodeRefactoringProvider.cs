@@ -54,35 +54,6 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             }
         }
 
-        /// <summary>
-        /// Try to find a constructor in <paramref name="containingType"/> whose parameters is the subset of <paramref name="parameters"/> by comparing name.
-        /// If multiple constructors meet the condition, the one with more parameters will be returned.
-        /// It will not consider those constructors as potential candidates if:
-        /// 1. Constructor with empty parameter list.
-        /// 2. Constructor's parameter list contains 'ref' or 'params'
-        /// </summary>
-        private IMethodSymbol GetDelegatedConstructorBasedOnParameterNames(
-            INamedTypeSymbol containingType,
-            ImmutableArray<IParameterSymbol> parameters)
-        {
-            var parameterNames = parameters.SelectAsArray(p => p.Name);
-            return containingType.InstanceConstructors
-                .Where(constructor => AreParametersContainedInConstructor(constructor, parameterNames))
-                .OrderByDescending(constructor => constructor.Parameters.Length)
-                .FirstOrDefault();
-        }
-
-        private bool AreParametersContainedInConstructor(
-            IMethodSymbol constructor,
-            ImmutableArray<string> parametersName)
-        {
-            var constructorParams = constructor.Parameters;
-            return constructorParams.Length > 0
-                && constructorParams.All(parameter => parameter.RefKind == RefKind.None)
-                && !constructorParams.Any(p => p.IsParams)
-                && parametersName.Except(constructorParams.Select(p => p.Name)).Any();
-        }
-
         private IEnumerable<CodeAction> CreateCodeActions(Document document, State state)
         {
             var lastParameter = state.ConstructorToAddTo.Parameters.Last();

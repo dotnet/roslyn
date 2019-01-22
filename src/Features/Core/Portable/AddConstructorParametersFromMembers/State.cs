@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 // We are trying to add these parameters into an existing constructor's parameter list.
                 // Comparing parameters based on names to make sure parameter list won't contains duplicate parameters after we
                 // append the new parameters
-                this.ConstructorToAddTo = service.GetDelegatedConstructorBasedOnParameterNames(this.ContainingType, parameters);
+                this.ConstructorToAddTo = GetDelegatedConstructorBasedOnParameterNames(this.ContainingType, parameters);
 
                 if (this.ConstructorToAddTo == null)
                 {
@@ -71,6 +71,35 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 this.MissingParameters = missingParametersBuilder.ToImmutableAndFree();
                 this.MissingMembers = missingMembersBuilder.ToImmutableAndFree();
                 return true;
+            }
+
+            /// <summary>
+            /// Try to find a constructor in <paramref name="containingType"/> whose parameters is the subset of <paramref name="parameters"/> by comparing name.
+            /// If multiple constructors meet the condition, the one with more parameters will be returned.
+            /// It will not consider those constructors as potential candidates if:
+            /// 1. Constructor with empty parameter list.
+            /// 2. Constructor's parameter list contains 'ref' or 'params'
+            /// </summary>
+            public static IMethodSymbol GetDelegatedConstructorBasedOnParameterNames(
+                INamedTypeSymbol containingType,
+                ImmutableArray<IParameterSymbol> parameters)
+            {
+                var parameterNames = parameters.SelectAsArray(p => p.Name);
+                return containingType.InstanceConstructors
+                    .Where(constructor => AreParametersContainedInConstructor(constructor, parameterNames))
+                    .OrderByDescending(constructor => constructor.Parameters.Length)
+                    .FirstOrDefault();
+            }
+
+            private static bool AreParametersContainedInConstructor(
+                IMethodSymbol constructor,
+                ImmutableArray<string> parametersName)
+            {
+                var constructorParams = constructor.Parameters;
+                return constructorParams.Length > 0
+                    && constructorParams.All(parameter => parameter.RefKind == RefKind.None)
+                    && !constructorParams.Any(p => p.IsParams)
+                    && parametersName.Except(constructorParams.Select(p => p.Name)).Any();
             }
         }
     }
