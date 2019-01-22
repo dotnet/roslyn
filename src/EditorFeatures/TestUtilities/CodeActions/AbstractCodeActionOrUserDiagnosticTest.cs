@@ -28,15 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     [UseExportProvider]
     public abstract class AbstractCodeActionOrUserDiagnosticTest
     {
-        public enum SpanVerificationKind
-        {
-            Intersect,
-            Match
-        }
-
         public struct TestParameters
         {
-
             internal readonly IDictionary<OptionKey, object> options;
             internal readonly object fixProviderData;
             internal readonly ParseOptions parseOptions;
@@ -44,7 +37,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             internal readonly int index;
             internal readonly CodeActionPriority? priority;
             internal readonly bool retainNonFixableDiagnostics;
-            internal readonly SpanVerificationKind spanVerificationKind;
 
             internal TestParameters(
                 ParseOptions parseOptions = null,
@@ -53,8 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 object fixProviderData = null,
                 int index = 0,
                 CodeActionPriority? priority = null,
-                bool retainNonFixableDiagnostics = false,
-                SpanVerificationKind spanVerificationKind = SpanVerificationKind.Intersect)
+                bool retainNonFixableDiagnostics = false)
             {
                 this.parseOptions = parseOptions;
                 this.compilationOptions = compilationOptions;
@@ -63,17 +54,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 this.index = index;
                 this.priority = priority;
                 this.retainNonFixableDiagnostics = retainNonFixableDiagnostics;
-                this.spanVerificationKind = spanVerificationKind;
             }
 
             public TestParameters WithParseOptions(ParseOptions parseOptions)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, spanVerificationKind: spanVerificationKind);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority);
 
             public TestParameters WithFixProviderData(object fixProviderData)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, spanVerificationKind: spanVerificationKind);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority);
 
             public TestParameters WithIndex(int index)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, spanVerificationKind: spanVerificationKind);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority);
         }
 
         protected abstract string GetLanguage();
@@ -333,12 +323,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CompilationOptions compilationOptions = null,
             IDictionary<OptionKey, object> options = null,
             object fixProviderData = null,
-            ParseOptions parseOptions = null,
-            SpanVerificationKind spanVerificationKind = SpanVerificationKind.Intersect)
+            ParseOptions parseOptions = null)
         {
             return TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup, index, priority,
-                new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, spanVerificationKind: spanVerificationKind));
+                new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index));
         }
 
         internal async Task TestInRegularAndScript1Async(

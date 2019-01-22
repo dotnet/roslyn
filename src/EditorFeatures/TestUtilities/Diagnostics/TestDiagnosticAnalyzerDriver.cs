@@ -11,7 +11,6 @@ using Roslyn.Utilities;
 using System.Collections.Immutable;
 using Xunit;
 using System.Threading.Tasks;
-using static Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.AbstractCodeActionOrUserDiagnosticTest;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             _onAnalyzerException = onAnalyzerException;
         }
 
-        private async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Document document, TextSpan span, Project project, bool getDocumentDiagnostics, bool getProjectDiagnostics, SpanVerificationKind spanVerificationKind)
+        private async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Document document, TextSpan span, Project project, bool getDocumentDiagnostics, bool getProjectDiagnostics)
         {
             var documentDiagnostics = SpecializedCollections.EmptyEnumerable<Diagnostic>();
             var projectDiagnostics = SpecializedCollections.EmptyEnumerable<Diagnostic>();
@@ -53,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             if (getDocumentDiagnostics)
             {
                 var dxs = await _diagnosticAnalyzerService.GetDiagnosticsAsync(project.Solution, project.Id, document.Id, _includeSuppressedDiagnostics);
-                documentDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(dxs.Where(d => d.HasTextSpan && AreSpansCompatible(d.TextSpan, span, spanVerificationKind)), project, CancellationToken.None);
+                documentDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(dxs.Where(d => d.HasTextSpan && d.TextSpan.IntersectsWith(span)), project, CancellationToken.None);
             }
 
             if (getProjectDiagnostics)
@@ -73,26 +72,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             return allDiagnostics;
         }
 
-        private static bool AreSpansCompatible(TextSpan firstSpan, TextSpan secondSpan, SpanVerificationKind spanVerificationKind)
-        {
-            switch (spanVerificationKind)
-            {
-                case SpanVerificationKind.Match:
-                    return firstSpan.Equals(secondSpan);
-                case SpanVerificationKind.Intersect:
-                default:
-                    return firstSpan.IntersectsWith(secondSpan);
-            }
-        }
-
         public Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Document document, TextSpan span)
         {
-            return GetDiagnosticsAsync(workspaceAnalyzerOpt, document, span, document.Project, getDocumentDiagnostics: true, getProjectDiagnostics: true, spanVerificationKind: SpanVerificationKind.Intersect);
-        }
-
-        public Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Document document, TextSpan span, SpanVerificationKind spanVerificationKind)
-        {
-            return GetDiagnosticsAsync(workspaceAnalyzerOpt, document, span, document.Project, getDocumentDiagnostics: true, getProjectDiagnostics: true, spanVerificationKind: spanVerificationKind);
+            return GetDiagnosticsAsync(workspaceAnalyzerOpt, document, span, document.Project, getDocumentDiagnostics: true, getProjectDiagnostics: true);
         }
 
         public async Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Project project)
@@ -124,12 +106,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         public Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Document document, TextSpan span)
         {
-            return GetDiagnosticsAsync(workspaceAnalyzerOpt, document, span, document.Project, getDocumentDiagnostics: true, getProjectDiagnostics: false, spanVerificationKind: SpanVerificationKind.Intersect);
+            return GetDiagnosticsAsync(workspaceAnalyzerOpt, document, span, document.Project, getDocumentDiagnostics: true, getProjectDiagnostics: false);
         }
 
         public Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Project project)
         {
-            return GetDiagnosticsAsync(workspaceAnalyzerOpt, null, default(TextSpan), project, getDocumentDiagnostics: false, getProjectDiagnostics: true, spanVerificationKind: SpanVerificationKind.Intersect);
+            return GetDiagnosticsAsync(workspaceAnalyzerOpt, null, default(TextSpan), project, getDocumentDiagnostics: false, getProjectDiagnostics: true);
         }
     }
 }

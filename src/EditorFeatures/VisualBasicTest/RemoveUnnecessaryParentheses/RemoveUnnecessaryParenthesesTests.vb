@@ -29,11 +29,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryP
 
         Private Shadows Async Function TestAsync(initial As String, expected As String,
                                                  offeredWhenRequireAllParenthesesForClarityIsEnabled As Boolean,
-                                                 Optional ByVal spanVerificationKind As SpanVerificationKind = SpanVerificationKind.Intersect) As Task
-            Await TestInRegularAndScriptAsync(initial, expected, options:=RemoveAllUnnecessaryParentheses, spanVerificationKind:=spanVerificationKind)
+                                                 Optional ByVal index As Integer = 0) As Task
+            Await TestInRegularAndScriptAsync(initial, expected, options:=RemoveAllUnnecessaryParentheses, index:=index)
 
             If (offeredWhenRequireAllParenthesesForClarityIsEnabled) Then
-                Await TestInRegularAndScriptAsync(initial, expected, options:=MyBase.RequireAllParenthesesForClarity, spanVerificationKind:=spanVerificationKind)
+                Await TestInRegularAndScriptAsync(initial, expected, options:=MyBase.RequireAllParenthesesForClarity, index:=index)
             Else
                 Await TestMissingAsync(initial, parameters:=New TestParameters(options:=MyBase.RequireAllParenthesesForClarity))
             End If
@@ -301,14 +301,14 @@ end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
             Await TestAsync(
 "class C
     sub M()
-        dim i = ( [|(|]1 + 2) )
+        dim i = ( $$(1 + 2) )
     end sub
 end class",
 "class C
     sub M()
         dim i = ( 1 + 2 )
     end sub
-end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True, spanVerificationKind:=SpanVerificationKind.Match)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True, index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>

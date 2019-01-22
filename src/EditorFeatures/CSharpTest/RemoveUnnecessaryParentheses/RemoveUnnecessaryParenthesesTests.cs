@@ -19,13 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRemoveUnnecessaryParenthesesDiagnosticAnalyzer(), new CSharpRemoveUnnecessaryParenthesesCodeFixProvider());
 
-        private async Task TestAsync(string initial, string expected, bool offeredWhenRequireForClarityIsEnabled, SpanVerificationKind spanVerificationKind = SpanVerificationKind.Intersect)
+        private async Task TestAsync(string initial, string expected, bool offeredWhenRequireForClarityIsEnabled, int index = 0)
         {
-            await TestInRegularAndScriptAsync(initial, expected, options: RemoveAllUnnecessaryParentheses, spanVerificationKind: spanVerificationKind);
+            await TestInRegularAndScriptAsync(initial, expected, options: RemoveAllUnnecessaryParentheses, index: index);
 
             if (offeredWhenRequireForClarityIsEnabled)
             {
-                await TestInRegularAndScriptAsync(initial, expected, options: RequireAllParenthesesForClarity, spanVerificationKind: spanVerificationKind);
+                await TestInRegularAndScriptAsync(initial, expected, options: RequireAllParenthesesForClarity, index: index);
             }
             else
             {
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 {
     void M()
     {
-        int i = ( [|(|]1 + 2) );
+        int i = ( $$(1 + 2) );
     }
 }",
 @"class C
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         int i = ( 1 + 2 );
     }
-}", offeredWhenRequireForClarityIsEnabled: true, spanVerificationKind: SpanVerificationKind.Match);
+}", offeredWhenRequireForClarityIsEnabled: true, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -2065,7 +2065,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 {
     void M()
     {
-#if( [|(|]A || B) || C)
+#if( $$(A || B) || C)
 #endif
     }
 }",
@@ -2077,7 +2077,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 #endif
     }
 }",
-offeredWhenRequireForClarityIsEnabled: true, spanVerificationKind: SpanVerificationKind.Match);
+offeredWhenRequireForClarityIsEnabled: true, index: 1);
         }
 
         [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
@@ -2289,9 +2289,9 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
     void Test(bool a)
     {
         Func<int, string> lambda =
-            number => (number + $""{ [|(|]a ? ""foo"" : ""bar"") }"");
+            number => number + $""{ ($$a ? ""foo"" : ""bar"") }"";
     }
-}", new TestParameters(options: RemoveAllUnnecessaryParentheses, spanVerificationKind: SpanVerificationKind.Match));
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
 
         [WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")]
