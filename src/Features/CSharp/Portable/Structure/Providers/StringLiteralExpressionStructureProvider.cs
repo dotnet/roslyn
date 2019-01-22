@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
 {
-    internal sealed class StringLiteralExpressoinStructureProvider : AbstractSyntaxNodeStructureProvider<LiteralExpressionSyntax>
+    internal sealed class StringLiteralExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<LiteralExpressionSyntax>
     {
         protected override void CollectBlockSpans(LiteralExpressionSyntax node, ArrayBuilder<BlockSpan> spans, OptionSet options, CancellationToken cancellationToken)
         {

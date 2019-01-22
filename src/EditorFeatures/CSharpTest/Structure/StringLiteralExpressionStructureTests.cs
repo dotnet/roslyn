@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
     public class StringLiteralExpressionStructureTests : AbstractCSharpSyntaxNodeStructureTests<LiteralExpressionSyntax>
     {
         internal override AbstractSyntaxStructureProvider CreateProvider()
-            => new StringLiteralExpressoinStructureProvider();
+            => new StringLiteralExpressionStructureProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestMultiLineStringLiteral()
