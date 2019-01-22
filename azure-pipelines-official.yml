@@ -89,7 +89,7 @@ jobs:
   - task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
     inputs:
       dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
-      buildNumber: 'ProfilingInputs/DevDiv/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildId)'
+      buildNumber: 'ProfilingInputs/DevDiv/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)'
       sourcePath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
       toLowerCase: false
       usePat: false
