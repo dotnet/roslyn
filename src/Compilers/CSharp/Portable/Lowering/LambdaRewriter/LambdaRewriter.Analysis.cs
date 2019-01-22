@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Once either of these conditions fails, we merge into the closure environment furthest up the scope tree we've found so far
                     while (currentScope.Parent != null)
                     {
-                        if (!currentScope.SemanticallySafeToMergeIntoParent)
+                        if (!currentScope.CanMergeWithParent)
                             break;
 
                         var parentScope = currentScope.Parent;
