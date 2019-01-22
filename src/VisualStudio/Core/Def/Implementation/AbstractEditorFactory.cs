@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -127,9 +128,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 case "Form":
 
                     // We must create the WinForms designer here
-                    const string LoaderName = "Microsoft.VisualStudio.Design.Serialization.CodeDom.VSCodeDomDesignerLoader";
+                    var loaderName = "Microsoft.VisualStudio.Design.Serialization.CodeDom.VSCodeDomDesignerLoader";
+
+                    // If this is a netcoreapp3.0 (or newer), we must create the newer WinForms designer.
+                    // TODO: This check will eventually move into the WinForms designer itself.
+                    const string NetCoreAppPreamble = ".NETCoreApp,Version=v";
+                    if (vsHierarchy.TryGetTargetFrameworkMoniker((uint)VSConstants.VSITEMID.Root, out var targetFrameworkMoniker) &&
+                        targetFrameworkMoniker.StartsWith(NetCoreAppPreamble))
+                    {
+                        var versionText = targetFrameworkMoniker.Substring(NetCoreAppPreamble.Length);
+                        if (Version.TryParse(versionText, out var version) &&
+                            version.Major >= 3)
+                        {
+                            loaderName = "Microsoft.VisualStudio.Design.Core.Serialization.CodeDom.VSCodeDomDesignerLoader";
+                        }
+                    }
+
                     var designerService = (IVSMDDesignerService)_oleServiceProvider.QueryService<SVSMDDesignerService>();
-                    var designerLoader = (IVSMDDesignerLoader)designerService.CreateDesignerLoader(LoaderName);
+                    var designerLoader = (IVSMDDesignerLoader)designerService.CreateDesignerLoader(loaderName);
 
                     try
                     {
