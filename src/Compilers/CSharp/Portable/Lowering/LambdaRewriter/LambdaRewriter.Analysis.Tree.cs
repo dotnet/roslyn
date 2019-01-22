@@ -250,7 +250,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <see cref="Scope"/> tree.
             /// 
             /// At the same time it sets <see cref="Scope.SemanticallySafeToMergeIntoParent"/>
-            /// for each Scope
+            /// for each Scope. This is done by looking for <see cref="BoundGotoStatement"/>s 
+            /// and <see cref="BoundConditionalGoto"/>s that jump from a point 
+            /// after the begining of a <see cref="Scope"/>, to a <see cref="BoundLabelStatement"/>
+            /// before the start of the scope, but after the start of <see cref="Scope.Parent"/>.
+            /// 
+            /// All control structures have been converted to gotos and labels by this stage,
+            /// so we do not have to visit them to do so. Similarly all <see cref="BoundLabeledStatement"/>s
+            /// have been converted to <see cref="BoundLabelStatement"/>s, so we do not have to 
+            /// visit them.
             /// </summary>
             private class ScopeTreeBuilder : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
             {
@@ -298,23 +306,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private readonly HashSet<MethodSymbol> _methodsConvertedToDelegates;
                 private readonly DiagnosticBag _diagnostics;
 
-                private static readonly ObjectPool<List<Scope>> s_scopeListObjectPool = new ObjectPool<List<Scope>>(() => new List<Scope>());
-
                 /// <summary>
                 /// For every label visited so far, this dictionary maps to a list of all scopes either visited so far, or currently being visited,
                 /// that are both after the label, and are on the same level of the scope tree as the label.
                 /// </summary>
-                private readonly PooledDictionary<LabelSymbol, List<Scope>> _scopesAfterLabel = PooledDictionary<LabelSymbol, List<Scope>>.GetInstance();
+                private readonly PooledDictionary<LabelSymbol, ArrayBuilder<Scope>> _scopesAfterLabel = PooledDictionary<LabelSymbol, ArrayBuilder<Scope>>.GetInstance();
 
-                private static readonly ObjectPool<List<LabelSymbol>> s_labelListObjectPool = new ObjectPool<List<LabelSymbol>>(() => new List<LabelSymbol>());
-
-                private static readonly ObjectPool<Stack<List<LabelSymbol>>> s_stackObjectPool = new ObjectPool<Stack<List<LabelSymbol>>>(() => new Stack<List<LabelSymbol>>());
+                private static readonly ObjectPool<Stack<ArrayBuilder<LabelSymbol>>> s_stackObjectPool = new ObjectPool<Stack<ArrayBuilder<LabelSymbol>>>(() => new Stack<ArrayBuilder<LabelSymbol>>());
 
                 /// <summary>
                 /// Contains a list of the labels visited so far for each scope. 
-                /// The stack represents the chain of scopes from the root scope to the current scope.
+                /// The stack represents the chain of scopes from the root scope to the current scope,
+                /// and for each item on the stack, the ArrayBuilder is the list of the labels visited so far for the scope.
+                /// 
+                /// Used by the <see cref="CurrentScope"/> setter to determine which labels a new child scope appears after.
                 /// </summary>
-                private readonly Stack<List<LabelSymbol>> _labelsInScope = s_stackObjectPool.Allocate();
+                private readonly Stack<ArrayBuilder<LabelSymbol>> _labelsInScope = s_stackObjectPool.Allocate();
 
                 internal Scope CurrentScope
                 {
@@ -347,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 _scopesAfterLabel[label].Add(childScope);
                             }
 
-                            _labelsInScope.Push(s_labelListObjectPool.Allocate());
+                            _labelsInScope.Push(ArrayBuilder<LabelSymbol>.GetInstance());
 
                             _currentScope = childScope;
                         }
@@ -362,12 +369,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             foreach (var label in labels)
                             {
                                 var scopes = _scopesAfterLabel[label];
-                                scopes.Clear();
-                                s_scopeListObjectPool.Free(scopes);
+                                scopes.Free();
                                 _scopesAfterLabel.Remove(label);
                             }
-                            labels.Clear();
-                            s_labelListObjectPool.Free(labels);
+                            labels.Free();
 
                             _currentScope = _currentScope.Parent;
                         }
@@ -386,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(diagnostics != null);
 
                     _currentScope = rootScope;
-                    _labelsInScope.Push(s_labelListObjectPool.Allocate());
+                    _labelsInScope.Push(ArrayBuilder<LabelSymbol>.GetInstance());
                     _topLevelMethod = topLevelMethod;
                     _methodsConvertedToDelegates = methodsConvertedToDelegates;
                     _diagnostics = diagnostics;
@@ -428,15 +433,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     foreach (var scopes in _scopesAfterLabel.Values)
                     {
-                        scopes.Clear();
-                        s_scopeListObjectPool.Free(scopes);
+                        scopes.Free();
                     }
                     _scopesAfterLabel.Free();
 
                     Debug.Assert(_labelsInScope.Count == 1);
                     var labels = _labelsInScope.Pop();
-                    labels.Clear();
-                    s_labelListObjectPool.Free(labels);
+                    labels.Free();
                     s_stackObjectPool.Free(_labelsInScope);
                 }
 
@@ -551,14 +554,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override BoundNode VisitLabelStatement(BoundLabelStatement node)
                 {
                     _labelsInScope.Peek().Add(node.Label);
-                    _scopesAfterLabel.Add(node.Label, s_scopeListObjectPool.Allocate());
+                    _scopesAfterLabel.Add(node.Label, ArrayBuilder<Scope>.GetInstance());
                     return base.VisitLabelStatement(node);
                 }
 
                 public override BoundNode VisitGotoStatement(BoundGotoStatement node)
                 {
-                    // since forward jumps can never effect Scope.SemanticallySafeToMergeIntoParent
-                    // if we have not yet seen the label this 
                     SetScopesRenderedUnsafeToMergeIntoParentByJump(node.Label);
 
                     return base.VisitGotoStatement(node);
@@ -572,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 /// <summary>
-                /// This is where we calculate <see cref="Scope.SemanticallySafeToMergeIntoParent"/>
+                /// This is where we calculate <see cref="Scope.SemanticallySafeToMergeIntoParent"/>.
                 /// <see cref="Scope.SemanticallySafeToMergeIntoParent"/> is always true unless we jump from after 
                 /// the beginning of a scope, to a point in between the beginning of the parent scope, and the beginning of the scope
                 /// </summary>
@@ -586,8 +587,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         foreach (var scope in scopesAfterLabel)
                         {
                             // this jump goes from a point after the beginning of the scope (as we have already visited or started visiting the scope), 
-                            // to a point in between the beginning of the parent scope, and the beginning of the scope, so it is not safe to merge 
-                            // the scopes closure environments into it's parent's closure environments
+                            // to a point in between the beginning of the parent scope, and the beginning of the scope, so it is not safe to move
+                            // variables in the scope to the parent scope.
                             scope.SemanticallySafeToMergeIntoParent = false;
                         }
 
