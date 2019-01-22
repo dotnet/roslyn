@@ -3542,8 +3542,10 @@ public unsafe struct YourStruct<T> where T : unmanaged
     public MyStruct<T>* field;
 }
 ";
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
-                .VerifyDiagnostics();
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics();
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
         }
 
         [Fact]
@@ -3560,8 +3562,11 @@ public unsafe struct YourStruct
     public MyStruct* field;
 }
 ";
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
-                .VerifyDiagnostics();
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics();
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
+
         }
 
         [Fact]
@@ -3578,11 +3583,14 @@ public struct YourStruct<T> where T : unmanaged
     public T field;
 }
 ";
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
-                .VerifyDiagnostics(
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics(
                     // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
                     //     public YourStruct<MyStruct<MyStruct<T>>> field;
                     Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46));
+
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedType);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedType);
         }
 
         [Fact]
