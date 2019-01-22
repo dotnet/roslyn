@@ -3094,7 +3094,7 @@ public class A
 ";
             var compilation = CreatePatternCompilation(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
-                // (7,18): error CS8650: It is not legal to use nullable type 'A?' in an is-type expression; use the underlying type 'A' instead.
+                // (7,18): error CS8650: It is not legal to use nullable reference type 'A?' in an is-type expression; use the underlying type 'A' instead.
                 //         if (o is A?) { }              // error 1 (can't test for is nullable reference type)
                 Diagnostic(ErrorCode.ERR_IsNullableType, "A?").WithArguments("A").WithLocation(7, 18),
                 // (8,23): error CS1003: Syntax error, ':' expected
@@ -3133,13 +3133,13 @@ public class A
                 // (13,32): error CS1525: Invalid expression term ')'
                 //         if (o is A[][]? b8 && c) { }  // error 7 (missing :)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(13, 32),
-                // (14,18): error CS8650: It is not legal to use nullable type 'A?' in an is-type expression; use the underlying type 'A' instead.
+                // (14,18): error CS8650: It is not legal to use nullable reference type 'A?' in an is-type expression; use the underlying type 'A' instead.
                 //         if (o is A? && c) { }         // error 8 (can't test for is nullable reference type)
                 Diagnostic(ErrorCode.ERR_IsNullableType, "A?").WithArguments("A").WithLocation(14, 18),
-                // (15,18): error CS8650: It is not legal to use nullable type 'A[][]?' in an is-type expression; use the underlying type 'A[][]' instead.
+                // (15,18): error CS8650: It is not legal to use nullable reference type 'A[][]?' in an is-type expression; use the underlying type 'A[][]' instead.
                 //         _ = o is A[][]?;              // error 9 (can't test for is nullable reference type)
                 Diagnostic(ErrorCode.ERR_IsNullableType, "A[][]?").WithArguments("A[][]").WithLocation(15, 18),
-                // (16,18): error CS8651: It is not legal to use nullable type 'A[][]?' in an as expression; use the underlying type 'A[][]' instead.
+                // (16,18): error CS8651: It is not legal to use nullable reference type 'A[][]?' in an as expression; use the underlying type 'A[][]' instead.
                 //         _ = o as A[][]?;              // error 10 (can't 'as' nullable reference type)
                 Diagnostic(ErrorCode.ERR_AsNullableType, "A[][]?").WithArguments("A[][]").WithLocation(16, 18)
                 );

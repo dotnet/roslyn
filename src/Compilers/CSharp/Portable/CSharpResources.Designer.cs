@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to It is not legal to use nullable type &apos;{0}?&apos; in an as expression; use the underlying type &apos;{0}&apos; instead..
+        ///   Looks up a localized string similar to It is not legal to use nullable reference type &apos;{0}?&apos; in an as expression; use the underlying type &apos;{0}&apos; instead..
         /// </summary>
         internal static string ERR_AsNullableType {
             get {
@@ -6298,7 +6298,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to It is not legal to use nullable type &apos;{0}?&apos; in an is-type expression; use the underlying type &apos;{0}&apos; instead..
+        ///   Looks up a localized string similar to It is not legal to use nullable reference type &apos;{0}?&apos; in an is-type expression; use the underlying type &apos;{0}&apos; instead..
         /// </summary>
         internal static string ERR_IsNullableType {
             get {

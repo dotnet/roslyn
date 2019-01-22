@@ -28,8 +28,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AsNullableType">
-        <source>It is not legal to use nullable type '{0}?' in an as expression; use the underlying type '{0}' instead.</source>
-        <target state="new">It is not legal to use nullable type '{0}?' in an as expression; use the underlying type '{0}' instead.</target>
+        <source>It is not legal to use nullable reference type '{0}?' in an as expression; use the underlying type '{0}' instead.</source>
+        <target state="new">It is not legal to use nullable reference type '{0}?' in an as expression; use the underlying type '{0}' instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
@@ -178,8 +178,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IsNullableType">
-        <source>It is not legal to use nullable type '{0}?' in an is-type expression; use the underlying type '{0}' instead.</source>
-        <target state="new">It is not legal to use nullable type '{0}?' in an is-type expression; use the underlying type '{0}' instead.</target>
+        <source>It is not legal to use nullable reference type '{0}?' in an is-type expression; use the underlying type '{0}' instead.</source>
+        <target state="new">It is not legal to use nullable reference type '{0}?' in an is-type expression; use the underlying type '{0}' instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IsPatternImpossible">

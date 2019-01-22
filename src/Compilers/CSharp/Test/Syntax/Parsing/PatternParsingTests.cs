@@ -2763,7 +2763,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
             EOF();
         }
 
-        [Fact/*(Skip = "This is not a reliable test, and its failure modes are hard to capture. But it is helpful to run by hand to find parser issues.")*/]
+        [Fact(Skip = "This is not a reliable test, and its failure modes are hard to capture. But it is helpful to run by hand to find parser issues.")]
         public void ParseFuzz()
         {
             Random random = new Random();
@@ -6125,7 +6125,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void IsNullableArray01()
         {
-            // // OK, this means `(o is A[]) ? b : c` because nullable types are not permitted for a pattern's type
+            // OK, this means `(o is A[]) ? b : c` because nullable types are not permitted for a pattern's type
             UsingExpression("o is A[] ? b : c");
             N(SyntaxKind.ConditionalExpression);
             {

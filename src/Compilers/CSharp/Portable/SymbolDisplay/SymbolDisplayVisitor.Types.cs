@@ -95,16 +95,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
-            else
-            if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
+            else if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
                 !typeOpt.IsNullableType() && !typeOpt.IsValueType &&
                 (typeOpt.NullableAnnotation == NullableAnnotation.Annotated ||
                  (typeOpt.NullableAnnotation == NullableAnnotation.Nullable && !typeOpt.TypeSymbol.IsTypeParameterDisallowingAnnotation())))
             {
                 return true;
             }
-            else
-            if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
+            else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
                 !typeOpt.IsValueType &&
                 typeOpt.NullableAnnotation.IsAnyNotNullable() && !typeOpt.TypeSymbol.IsTypeParameterDisallowingAnnotation())
             {

@@ -484,9 +484,6 @@ class Test
         public void TestNewRefArray()
         {
             UsingStatement("new ref[];",
-                // (1,5): error CS1031: Type expected
-                // new ref[];
-                Diagnostic(ErrorCode.ERR_TypeExpected, "ref").WithLocation(1, 5),
                 // (1,8): error CS1031: Type expected
                 // new ref[];
                 Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(1, 8),

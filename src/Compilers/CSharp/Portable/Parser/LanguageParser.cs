@@ -6156,9 +6156,6 @@ done:;
                 var refKeyword = this.EatToken();
                 refKeyword = this.CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefLocalsReturns);
 
-                if (mode != ParseTypeMode.Normal)
-                    refKeyword = this.AddError(refKeyword, ErrorCode.ERR_TypeExpected);
-
                 SyntaxToken readonlyKeyword = null;
                 if (this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword)
                 {
