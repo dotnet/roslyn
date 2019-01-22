@@ -316,12 +316,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 /// <summary>
                 /// Contains a list of the labels visited so far for each scope. 
-                /// The stack represents the chain of scopes from the root scope to the current scope,
+                /// The outer ArrayBuilder is a stack representing the chain of scopes from the root scope to the current scope,
                 /// and for each item on the stack, the ArrayBuilder is the list of the labels visited so far for the scope.
                 /// 
                 /// Used by the <see cref="CurrentScope"/> setter to determine which labels a new child scope appears after.
                 /// </summary>
-                private readonly Stack<ArrayBuilder<LabelSymbol>> _labelsInScope = s_stackObjectPool.Allocate();
+                private readonly ArrayBuilder<ArrayBuilder<LabelSymbol>> _labelsInScope = ArrayBuilder<ArrayBuilder<LabelSymbol>>.GetInstance();
 
                 internal Scope CurrentScope
                 {
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(_labelsInScope.Count == 1);
                     var labels = _labelsInScope.Pop();
                     labels.Free();
-                    s_stackObjectPool.Free(_labelsInScope);
+                    _labelsInScope.Free();
                 }
 
                 public override BoundNode VisitMethodGroup(BoundMethodGroup node)
