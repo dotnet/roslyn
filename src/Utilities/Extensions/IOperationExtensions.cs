@@ -121,6 +121,34 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
+        /// Filters out operations that are implicit and have no explicit descendant with a constant value or a non-null type.
+        /// </summary>
+        public static ImmutableArray<IOperation> WithoutFullyImplicitOperations(this ImmutableArray<IOperation> operations)
+        {
+            ImmutableArray<IOperation>.Builder builder = null;
+            for (int i = 0; i < operations.Length; i++)
+            {
+                var operation = operations[i];
+
+                // Check if all descendants are either implicit or are explicit with no constant value or type, indicating it is not user written code.
+                if (operation.DescendantsAndSelf().All(o => o.IsImplicit || (!o.ConstantValue.HasValue && o.Type == null)))
+                {
+                    if (builder == null)
+                    {
+                        builder = ImmutableArray.CreateBuilder<IOperation>();
+                        builder.AddRange(operations, i);
+                    }
+                }
+                else if (builder != null)
+                {
+                    builder.Add(operation);
+                }
+            }
+
+            return builder != null ? builder.ToImmutable() : operations;
+        }
+
+        /// <summary>
         /// Gets all valid members of the block operation body, excluding the VB implicit label and return statements.
         /// </summary>
         public static ImmutableArray<IOperation> GetOperations(this ImmutableArray<IOperation> blockOperations)

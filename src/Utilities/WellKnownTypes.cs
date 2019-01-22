@@ -8,6 +8,7 @@ namespace Analyzer.Utilities
     internal static class WellKnownTypes
     {
         public const string SystemSecurityCryptographyCipherMode = "System.Security.Cryptography.CipherMode";
+        public const string SystemNetSecurityRemoteCertificateValidationCallback = "System.Net.Security.RemoteCertificateValidationCallback";
 
         public static INamedTypeSymbol ICollection(Compilation compilation)
         {
@@ -292,6 +293,21 @@ namespace Analyzer.Utilities
         public static INamedTypeSymbol Object(Compilation compilation)
         {
             return compilation.GetSpecialType(SpecialType.System_Object);
+        }
+
+        public static INamedTypeSymbol X509Certificate(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Security.Cryptography.X509Certificates.X509Certificate");
+        }
+
+        public static INamedTypeSymbol X509Chain(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Security.Cryptography.X509Certificates.X509Chain");
+        }
+
+        public static INamedTypeSymbol SslPolicyErrors(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Net.Security.SslPolicyErrors");
         }
 
         public static INamedTypeSymbol Exception(Compilation compilation)
