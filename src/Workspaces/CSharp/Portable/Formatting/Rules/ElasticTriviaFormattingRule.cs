@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 var tokens = basePropertyDeclaration.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
 
-                list.Add(FormattingOperations.CreateSuppressOperation(tokens.Item1, tokens.Item2, SuppressOption.NoWrapping | SuppressOption.IgnoreElastic));
+                list.Add(FormattingOperations.CreateSuppressOperation(tokens.Item1, tokens.Item2, SuppressOption.NoWrapping | SuppressOption.IgnoreElasticWrapping));
             }
         }
 
@@ -50,13 +50,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var lastTokenOfType = GetLastTokenOfType(node);
             if (initializer != null && lastTokenOfType != null)
             {
-                AddSuppressWrappingIfOnSingleLineOperation(list, lastTokenOfType.Value, initializer.CloseBraceToken, SuppressOption.IgnoreElastic);
+                AddSuppressWrappingIfOnSingleLineOperation(list, lastTokenOfType.Value, initializer.CloseBraceToken, SuppressOption.IgnoreElasticWrapping);
                 return;
             }
 
             if (node is AnonymousObjectCreationExpressionSyntax anonymousCreationNode)
             {
-                AddSuppressWrappingIfOnSingleLineOperation(list, anonymousCreationNode.NewKeyword, anonymousCreationNode.CloseBraceToken, SuppressOption.IgnoreElastic);
+                AddSuppressWrappingIfOnSingleLineOperation(list, anonymousCreationNode.NewKeyword, anonymousCreationNode.CloseBraceToken, SuppressOption.IgnoreElasticWrapping);
                 return;
             }
         }
