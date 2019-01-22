@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 return true;
             }
 
-            public static IMethodSymbol GetDelegatedConstructorBasedOnParameterTypes(
+            private IMethodSymbol GetDelegatedConstructorBasedOnParameterTypes(
                 INamedTypeSymbol containingType,
                 ImmutableArray<IParameterSymbol> parameters)
             {
@@ -82,10 +82,10 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 return q.FirstOrDefault();
             }
 
-            public static IMethodSymbol GetMatchingConstructorBasedOnParameterTypes(INamedTypeSymbol containingType, ImmutableArray<IParameterSymbol> parameters)
+            private IMethodSymbol GetMatchingConstructorBasedOnParameterTypes(INamedTypeSymbol containingType, ImmutableArray<IParameterSymbol> parameters)
                 => containingType.InstanceConstructors.FirstOrDefault(c => MatchesConstructorBasedOnParameterTypes(c, parameters));
 
-            private static bool MatchesConstructorBasedOnParameterTypes(IMethodSymbol constructor, ImmutableArray<IParameterSymbol> parameters)
+            private bool MatchesConstructorBasedOnParameterTypes(IMethodSymbol constructor, ImmutableArray<IParameterSymbol> parameters)
                 => parameters.Select(p => p.Type).SequenceEqual(constructor.Parameters.Select(p => p.Type));
         }
     }

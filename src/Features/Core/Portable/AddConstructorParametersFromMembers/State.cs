@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             /// 1. Constructor with empty parameter list.
             /// 2. Constructor's parameter list contains 'ref' or 'params'
             /// </summary>
-            public static IMethodSymbol GetDelegatedConstructorBasedOnParameterNames(
+            private IMethodSymbol GetDelegatedConstructorBasedOnParameterNames(
                 INamedTypeSymbol containingType,
                 ImmutableArray<IParameterSymbol> parameters)
             {
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                     .FirstOrDefault();
             }
 
-            private static bool AreParametersContainedInConstructor(
+            private bool AreParametersContainedInConstructor(
                 IMethodSymbol constructor,
                 ImmutableArray<string> parametersName)
             {
