@@ -193,10 +193,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     CancellationToken.None);
 
                 await fixer.RegisterCodeFixesAsync(context);
-                if (fixes.Count > 0)
-                {
-                    break;
-                }
             }
 
             var actions = fixes.SelectAsArray(f => f.Action);
