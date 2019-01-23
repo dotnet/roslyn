@@ -77,7 +77,7 @@ jobs:
 
     - task: PublishBuildArtifacts@1
       inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(_configuration)'
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\Debug'
         ArtifactName: 'Windows Desktop Spanish' 
         publishLocation: Container
       continueOnError: true
