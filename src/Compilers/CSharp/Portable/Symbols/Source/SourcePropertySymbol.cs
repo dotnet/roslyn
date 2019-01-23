@@ -1415,7 +1415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 {
                                     diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, this.CSharpSyntaxNode.Type.Location, type);
                                 }
-                                else if (this.IsAutoProperty && type.IsByRefLikeType && (this.IsStatic || !this.ContainingType.IsByRefLikeType))
+                                else if (this.IsAutoProperty && type.IsRefLikeType && (this.IsStatic || !this.ContainingType.IsRefLikeType))
                                 {
                                     diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, this.CSharpSyntaxNode.Type.Location, type);
                                 }

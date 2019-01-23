@@ -490,8 +490,8 @@ namespace Microsoft.CodeAnalysis.CSharp
       return this.DefaultVisit(node);
     }
 
-    /// <summary>Called when the visitor visits a DeconstructionPatternClauseSyntax node.</summary>
-    public virtual TResult VisitDeconstructionPatternClause(DeconstructionPatternClauseSyntax node)
+    /// <summary>Called when the visitor visits a PositionalPatternClauseSyntax node.</summary>
+    public virtual TResult VisitPositionalPatternClause(PositionalPatternClauseSyntax node)
     {
       return this.DefaultVisit(node);
     }
@@ -1783,8 +1783,8 @@ namespace Microsoft.CodeAnalysis.CSharp
       this.DefaultVisit(node);
     }
 
-    /// <summary>Called when the visitor visits a DeconstructionPatternClauseSyntax node.</summary>
-    public virtual void VisitDeconstructionPatternClause(DeconstructionPatternClauseSyntax node)
+    /// <summary>Called when the visitor visits a PositionalPatternClauseSyntax node.</summary>
+    public virtual void VisitPositionalPatternClause(PositionalPatternClauseSyntax node)
     {
       this.DefaultVisit(node);
     }
@@ -3216,13 +3216,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode VisitRecursivePattern(RecursivePatternSyntax node)
     {
       var type = (TypeSyntax)this.Visit(node.Type);
-      var deconstructionPatternClause = (DeconstructionPatternClauseSyntax)this.Visit(node.DeconstructionPatternClause);
+      var positionalPatternClause = (PositionalPatternClauseSyntax)this.Visit(node.PositionalPatternClause);
       var propertyPatternClause = (PropertyPatternClauseSyntax)this.Visit(node.PropertyPatternClause);
       var designation = (VariableDesignationSyntax)this.Visit(node.Designation);
-      return node.Update(type, deconstructionPatternClause, propertyPatternClause, designation);
+      return node.Update(type, positionalPatternClause, propertyPatternClause, designation);
     }
 
-    public override SyntaxNode VisitDeconstructionPatternClause(DeconstructionPatternClauseSyntax node)
+    public override SyntaxNode VisitPositionalPatternClause(PositionalPatternClauseSyntax node)
     {
       var openParenToken = this.VisitToken(node.OpenParenToken);
       var subpatterns = this.VisitList(node.Subpatterns);
@@ -6900,20 +6900,20 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new RecursivePatternSyntax instance.</summary>
-    public static RecursivePatternSyntax RecursivePattern(TypeSyntax type, DeconstructionPatternClauseSyntax deconstructionPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation)
+    public static RecursivePatternSyntax RecursivePattern(TypeSyntax type, PositionalPatternClauseSyntax positionalPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation)
     {
-      return (RecursivePatternSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.RecursivePattern(type == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeSyntax)type.Green, deconstructionPatternClause == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.DeconstructionPatternClauseSyntax)deconstructionPatternClause.Green, propertyPatternClause == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PropertyPatternClauseSyntax)propertyPatternClause.Green, designation == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
+      return (RecursivePatternSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.RecursivePattern(type == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeSyntax)type.Green, positionalPatternClause == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PositionalPatternClauseSyntax)positionalPatternClause.Green, propertyPatternClause == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PropertyPatternClauseSyntax)propertyPatternClause.Green, designation == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
     }
 
 
     /// <summary>Creates a new RecursivePatternSyntax instance.</summary>
     public static RecursivePatternSyntax RecursivePattern()
     {
-      return SyntaxFactory.RecursivePattern(default(TypeSyntax), default(DeconstructionPatternClauseSyntax), default(PropertyPatternClauseSyntax), default(VariableDesignationSyntax));
+      return SyntaxFactory.RecursivePattern(default(TypeSyntax), default(PositionalPatternClauseSyntax), default(PropertyPatternClauseSyntax), default(VariableDesignationSyntax));
     }
 
-    /// <summary>Creates a new DeconstructionPatternClauseSyntax instance.</summary>
-    public static DeconstructionPatternClauseSyntax DeconstructionPatternClause(SyntaxToken openParenToken, SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeParenToken)
+    /// <summary>Creates a new PositionalPatternClauseSyntax instance.</summary>
+    public static PositionalPatternClauseSyntax PositionalPatternClause(SyntaxToken openParenToken, SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeParenToken)
     {
       switch (openParenToken.Kind())
       {
@@ -6929,14 +6929,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         default:
           throw new ArgumentException(nameof(closeParenToken));
       }
-      return (DeconstructionPatternClauseSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.DeconstructionPatternClause((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node, subpatterns.Node.ToGreenSeparatedList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SubpatternSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node).CreateRed();
+      return (PositionalPatternClauseSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.PositionalPatternClause((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node, subpatterns.Node.ToGreenSeparatedList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SubpatternSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node).CreateRed();
     }
 
 
-    /// <summary>Creates a new DeconstructionPatternClauseSyntax instance.</summary>
-    public static DeconstructionPatternClauseSyntax DeconstructionPatternClause(SeparatedSyntaxList<SubpatternSyntax> subpatterns = default(SeparatedSyntaxList<SubpatternSyntax>))
+    /// <summary>Creates a new PositionalPatternClauseSyntax instance.</summary>
+    public static PositionalPatternClauseSyntax PositionalPatternClause(SeparatedSyntaxList<SubpatternSyntax> subpatterns = default(SeparatedSyntaxList<SubpatternSyntax>))
     {
-      return SyntaxFactory.DeconstructionPatternClause(SyntaxFactory.Token(SyntaxKind.OpenParenToken), subpatterns, SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+      return SyntaxFactory.PositionalPatternClause(SyntaxFactory.Token(SyntaxKind.OpenParenToken), subpatterns, SyntaxFactory.Token(SyntaxKind.CloseParenToken));
     }
 
     /// <summary>Creates a new PropertyPatternClauseSyntax instance.</summary>

@@ -418,45 +418,66 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Conversion:
                     {
                         var conv = (BoundConversion)node;
-                        if (conv.Conversion.Kind == ConversionKind.ExplicitNullable)
+                        switch (conv.Conversion.Kind)
                         {
-                            var operand = conv.Operand;
-                            var operandType = operand.Type;
-                            var convertedType = conv.Type;
-                            if (operandType?.IsNullableType() == true &&
-                                convertedType?.IsNullableType() == false &&
-                                operandType.GetNullableUnderlyingType().Equals(convertedType, TypeCompareKind.AllIgnoreOptions))
-                            {
-                                // Explicit conversion of Nullable<T> to T is equivalent to Nullable<T>.Value.
-                                // For instance, in the following, when evaluating `((A)a).B` we need to recognize
-                                // the nullability of `(A)a` (not nullable) and the slot (the slot for `a.Value`).
-                                //   struct A { B? B; }
-                                //   struct B { }
-                                //   if (a?.B != null) _ = ((A)a).B.Value; // no warning
-                                int containingSlot = MakeSlot(operand);
-                                return containingSlot < 0 ? -1 : GetNullableOfTValueSlot(operandType, containingSlot);
-                            }
+                            case ConversionKind.ExplicitNullable:
+                                {
+                                    var operand = conv.Operand;
+                                    var operandType = operand.Type;
+                                    var convertedType = conv.Type;
+                                    if (operandType?.IsNullableType() == true &&
+                                        convertedType?.IsNullableType() == false &&
+                                        operandType.GetNullableUnderlyingType().Equals(convertedType, TypeCompareKind.AllIgnoreOptions))
+                                    {
+                                        // Explicit conversion of Nullable<T> to T is equivalent to Nullable<T>.Value.
+                                        // For instance, in the following, when evaluating `((A)a).B` we need to recognize
+                                        // the nullability of `(A)a` (not nullable) and the slot (the slot for `a.Value`).
+                                        //   struct A { B? B; }
+                                        //   struct B { }
+                                        //   if (a?.B != null) _ = ((A)a).B.Value; // no warning
+                                        int containingSlot = MakeSlot(operand);
+                                        return containingSlot < 0 ? -1 : GetNullableOfTValueSlot(operandType, containingSlot);
+                                    }
+                                }
+                                break;
+                            case ConversionKind.Identity:
+                            case ConversionKind.ImplicitTupleLiteral:
+                            case ConversionKind.ImplicitTuple:
+                                if (isSupportedConversion(conv.Conversion, conv.Operand))
+                                {
+                                    return MakeSlot(conv.Operand);
+                                }
+                                break;
                         }
                     }
                     break;
+                case BoundKind.DefaultExpression:
                 case BoundKind.ObjectCreationExpression:
                 case BoundKind.DynamicObjectCreationExpression:
                 case BoundKind.AnonymousObjectCreationExpression:
-                    if (_placeholderLocalsOpt != null && _placeholderLocalsOpt.TryGetValue(node, out ObjectCreationPlaceholderLocal placeholder))
+                case BoundKind.TupleLiteral:
+                case BoundKind.ConvertedTupleLiteral:
                     {
-                        return GetOrCreateSlot(placeholder);
+                        if (_placeholderLocalsOpt != null && _placeholderLocalsOpt.TryGetValue(node, out ObjectCreationPlaceholderLocal placeholder))
+                        {
+                            return GetOrCreateSlot(placeholder);
+                        }
                     }
                     break;
                 case BoundKind.ConditionalReceiver:
-                    if (_lastConditionalAccessSlot != -1)
                     {
                         int slot = _lastConditionalAccessSlot;
                         _lastConditionalAccessSlot = -1;
                         return slot;
                     }
-                    break;
+                default:
+                    // If there was a placeholder local for this node, we should
+                    // use the placeholder for the slot. See other cases above.
+                    Debug.Assert(_placeholderLocalsOpt?.TryGetValue(node, out _) != true);
+                    return base.MakeSlot(node);
             }
-            return base.MakeSlot(node);
+
+            return -1;
 
             MethodSymbol? getTopLevelMethod(MethodSymbol? method)
             {
@@ -470,6 +491,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method = container as MethodSymbol;
                 }
                 return null;
+            }
+
+            // Returns true if the nullable state from the operand of the conversion
+            // can be used as is, and we can create a slot from the conversion.
+            bool isSupportedConversion(Conversion conversion, BoundExpression? operandOpt)
+            {
+                // https://github.com/dotnet/roslyn/issues/32599: Allow implicit and explicit
+                // conversions where the nullable state of the operand remains valid.
+                switch (conversion.Kind)
+                {
+                    case ConversionKind.Identity:
+                    case ConversionKind.DefaultOrNullLiteral:
+                        return true;
+                    case ConversionKind.ImplicitReference:
+                        return operandOpt?.IsLiteralNullOrDefault() == true;
+                    case ConversionKind.ImplicitTupleLiteral:
+                        {
+                            var arguments = ((BoundConvertedTupleLiteral)operandOpt!).Arguments;
+                            var conversions = conversion.UnderlyingConversions;
+                            for (int i = 0; i < arguments.Length; i++)
+                            {
+                                // https://github.com/dotnet/roslyn/issues/32600: Copy nullable
+                                // state of tuple elements independently.
+                                if (!isSupportedConversion(conversions[i], (arguments[i] as BoundConversion)?.Operand))
+                                {
+                                    return false;
+                                }
+                            }
+                            return true;
+                        }
+                    case ConversionKind.ImplicitTuple:
+                        // https://github.com/dotnet/roslyn/issues/32600: Copy nullable
+                        // state of tuple elements independently.
+                        return conversion.UnderlyingConversions.All(c => isSupportedConversion(c, null));
+                    default:
+                        return false;
+                }
             }
         }
 
@@ -590,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // target (e.g.: `object x = null;` or calling `void F(object y)` with `F(null)`).
             bool reportNullLiteralAssignmentIfNecessary(BoundExpression expr)
             {
-                if (expr.ConstantValue?.IsNull != true && !isDefaultOfUnconstrainedTypeParameter(expr))
+                if (expr.ConstantValue?.IsNull != true && !IsDefaultOfUnconstrainedTypeParameter(expr))
                 {
                     return false;
                 }
@@ -605,22 +663,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return true;
             }
+        }
 
-            bool isDefaultOfUnconstrainedTypeParameter(BoundExpression expr)
+        private static bool IsDefaultOfUnconstrainedTypeParameter(BoundExpression expr)
+        {
+            switch (expr.Kind)
             {
-                switch (expr.Kind)
-                {
-                    case BoundKind.Conversion:
-                        {
-                            var conversion = (BoundConversion)expr;
-                            return conversion.Conversion.Kind == ConversionKind.DefaultOrNullLiteral &&
-                                isDefaultOfUnconstrainedTypeParameter(conversion.Operand);
-                        }
-                    case BoundKind.DefaultExpression:
-                        return IsTypeParameterDisallowingAnnotation(expr.Type);
-                    default:
-                        return false;
-                }
+                case BoundKind.Conversion:
+                    {
+                        var conversion = (BoundConversion)expr;
+                        return conversion.Conversion.Kind == ConversionKind.DefaultOrNullLiteral &&
+                            IsDefaultOfUnconstrainedTypeParameter(conversion.Operand);
+                    }
+                case BoundKind.DefaultExpression:
+                    return IsTypeParameterDisallowingAnnotation(expr.Type);
+                default:
+                    return false;
+            }
+        }
+
+        private static bool IsDefaultValue(BoundExpression expr)
+        {
+            switch (expr.Kind)
+            {
+                case BoundKind.Conversion:
+                    {
+                        var conversion = (BoundConversion)expr;
+                        return conversion.Conversion.Kind == ConversionKind.DefaultOrNullLiteral &&
+                            IsDefaultValue(conversion.Operand);
+                    }
+                case BoundKind.DefaultExpression:
+                    return true;
+                default:
+                    return false;
             }
         }
 
@@ -712,9 +787,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
                 else if (EmptyStructTypeCache.IsTrackableStructType(targetType.TypeSymbol) &&
-                        targetType.TypeSymbol.Equals(valueType.TypeSymbol, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+                    targetType.TypeSymbol.Equals(valueType.TypeSymbol, TypeCompareKind.AllIgnoreOptions))
                 {
-                    InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, IsByRefTarget(targetSlot), slotWatermark: GetSlotWatermark());
+                    InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, isDefaultValue: IsDefaultValue(value), isByRefTarget: IsByRefTarget(targetSlot), slotWatermark: GetSlotWatermark());
                 }
             }
         }
@@ -774,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void InheritNullableStateOfTrackableStruct(TypeSymbol targetType, int targetSlot, int valueSlot, bool isByRefTarget, int slotWatermark)
+        private void InheritNullableStateOfTrackableStruct(TypeSymbol targetType, int targetSlot, int valueSlot, bool isDefaultValue, bool isByRefTarget, int slotWatermark)
         {
             Debug.Assert(targetSlot > 0);
             Debug.Assert(EmptyStructTypeCache.IsTrackableStructType(targetType));
@@ -783,13 +858,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // See ModifyMembers_StructPropertyNoBackingField and PropertyCycle_Struct tests.
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(targetType))
             {
-                InheritNullableStateOfMember(targetSlot, valueSlot, field, isByRefTarget, slotWatermark);
+                InheritNullableStateOfMember(targetSlot, valueSlot, field, isDefaultValue: isDefaultValue, isByRefTarget: isByRefTarget, slotWatermark);
             }
         }
 
         // 'slotWatermark' is used to avoid inheriting members from inherited members.
-        private void InheritNullableStateOfMember(int targetContainerSlot, int valueContainerSlot, Symbol member, bool isByRefTarget, int slotWatermark)
+        private void InheritNullableStateOfMember(int targetContainerSlot, int valueContainerSlot, Symbol member, bool isDefaultValue, bool isByRefTarget, int slotWatermark)
         {
+            Debug.Assert(targetContainerSlot > 0);
             Debug.Assert(valueContainerSlot <= slotWatermark);
 
             TypeSymbolWithAnnotations fieldOrPropertyType = member.GetTypeOrReturnType();
@@ -797,10 +873,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Nullable<T> is handled here rather than in InheritNullableStateOfTrackableStruct since that
             // method only clones auto-properties (see https://github.com/dotnet/roslyn/issues/29619).
             // When that issue is fixed, Nullable<T> should be handled there instead.
-            if (fieldOrPropertyType.IsReferenceType || fieldOrPropertyType.IsNullableType())
+            if (fieldOrPropertyType.IsReferenceType || fieldOrPropertyType.IsPossiblyNullableReferenceTypeTypeParameter() || fieldOrPropertyType.IsNullableType())
             {
                 int targetMemberSlot = GetOrCreateSlot(member, targetContainerSlot);
-                NullableAnnotation value = fieldOrPropertyType.NullableAnnotation;
+                NullableAnnotation value = (isDefaultValue && fieldOrPropertyType.IsReferenceType) ?
+                    NullableAnnotation.Nullable :
+                    fieldOrPropertyType.NullableAnnotation;
                 // https://github.com/dotnet/roslyn/issues/29968 Remove isByRefTarget check?
                 if (isByRefTarget)
                 {
@@ -841,7 +919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             valueMemberSlot = slot;
                         }
                     }
-                    InheritNullableStateOfTrackableStruct(fieldOrPropertyType.TypeSymbol, targetMemberSlot, valueMemberSlot, isByRefTarget, slotWatermark);
+                    InheritNullableStateOfTrackableStruct(fieldOrPropertyType.TypeSymbol, targetMemberSlot, valueMemberSlot, isDefaultValue: isDefaultValue, isByRefTarget: isByRefTarget, slotWatermark);
                 }
             }
         }
@@ -878,7 +956,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 var member = variable.Symbol;
                 Debug.Assert(member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Property || member.Kind == SymbolKind.Event);
-                InheritNullableStateOfMember(targetSlot, valueSlot, member, isByRefTarget, slotWatermark);
+                InheritNullableStateOfMember(targetSlot, valueSlot, member, isDefaultValue: false, isByRefTarget, slotWatermark);
             }
         }
 
@@ -931,12 +1009,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (EmptyStructTypeCache.IsTrackableStructType(parameterType.TypeSymbol))
                 {
-                    InheritNullableStateOfTrackableStruct(parameterType.TypeSymbol, slot, valueSlot: -1, isByRefTarget: parameter.RefKind != RefKind.None, slotWatermark: GetSlotWatermark());
+                    InheritNullableStateOfTrackableStruct(
+                        parameterType.TypeSymbol,
+                        slot,
+                        valueSlot: -1,
+                        isDefaultValue: parameter.ExplicitDefaultConstantValue?.IsNull == true,
+                        isByRefTarget: parameter.RefKind != RefKind.None,
+                        slotWatermark: GetSlotWatermark());
                 }
             }
         }
-
-        #region Visitors
 
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
@@ -1179,16 +1261,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
             Debug.Assert(!IsConditionalState);
-            VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, node.Constructor, node.ArgsToParamsOpt, node.Expanded);
-            VisitObjectOrDynamicObjectCreation(node, node.InitializerExpressionOpt);
+            var arguments = node.Arguments;
+            var argumentTypes = VisitArguments(node, arguments, node.ArgumentRefKindsOpt, node.Constructor, node.ArgsToParamsOpt, node.Expanded);
+            VisitObjectOrDynamicObjectCreation(node, arguments, argumentTypes, node.InitializerExpressionOpt);
             return null;
         }
 
-        private void VisitObjectOrDynamicObjectCreation(BoundExpression node, BoundExpression initializerOpt)
+        private void VisitObjectOrDynamicObjectCreation(
+            BoundExpression node,
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<TypeSymbolWithAnnotations> argumentTypes,
+            BoundExpression initializerOpt)
         {
             Debug.Assert(node.Kind == BoundKind.ObjectCreationExpression || node.Kind == BoundKind.DynamicObjectCreationExpression);
 
-            LocalSymbol? receiver = null;
             int slot = -1;
             TypeSymbol type = node.Type;
             if ((object)type != null)
@@ -1196,19 +1282,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isTrackableStructType = EmptyStructTypeCache.IsTrackableStructType(type);
                 if (!type.IsValueType || isTrackableStructType)
                 {
-                    receiver = GetOrCreateObjectCreationPlaceholder(node);
-                    slot = GetOrCreateSlot(receiver);
+                    slot = GetOrCreateObjectCreationPlaceholderSlot(node);
                     if (slot > 0 && isTrackableStructType)
                     {
                         this.State[slot] = NullableAnnotation.NotNullable;
-                        InheritNullableStateOfTrackableStruct(type, slot, valueSlot: -1, isByRefTarget: false, slotWatermark: GetSlotWatermark());
+                        var constructor = (node as BoundObjectCreationExpression)?.Constructor;
+                        bool isDefaultValueTypeConstructor = constructor?.IsDefaultValueTypeConstructor() == true;
+                        var tupleType = constructor?.ContainingType as TupleTypeSymbol;
+                        if ((object)tupleType != null && !isDefaultValueTypeConstructor)
+                        {
+                            // new System.ValueTuple<T1, ..., TN>(e1, ..., eN)
+                            TrackNullableStateOfTupleElements(slot, tupleType, arguments, argumentTypes, useRestField: true);
+                        }
+                        else
+                        {
+                            InheritNullableStateOfTrackableStruct(
+                                type,
+                                slot,
+                                valueSlot: -1,
+                                isDefaultValue: isDefaultValueTypeConstructor,
+                                isByRefTarget: false,
+                                slotWatermark: GetSlotWatermark());
+                        }
                     }
                 }
             }
 
             if (initializerOpt != null)
             {
-                VisitObjectCreationInitializer(receiver, slot, initializerOpt);
+                VisitObjectCreationInitializer(null, slot, initializerOpt);
             }
 
             _resultType = TypeSymbolWithAnnotations.Create(type, NullableAnnotation.NotNullable);
@@ -1224,7 +1326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (initializer.Kind)
                         {
                             case BoundKind.AssignmentOperator:
-                                VisitObjectElementInitializer(containingSymbol, containingSlot, (BoundAssignmentOperator)initializer);
+                                VisitObjectElementInitializer(containingSlot, (BoundAssignmentOperator)initializer);
                                 break;
                             default:
                                 VisitRvalue(initializer);
@@ -1248,6 +1350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 default:
                     TypeSymbolWithAnnotations resultType = VisitRvalueWithResult(node);
+                    Debug.Assert((object)containingSymbol != null);
                     if ((object)containingSymbol != null)
                     {
                         var type = containingSymbol.GetTypeOrReturnType();
@@ -1258,7 +1361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void VisitObjectElementInitializer(Symbol? containingSymbol, int containingSlot, BoundAssignmentOperator node)
+        private void VisitObjectElementInitializer(int containingSlot, BoundAssignmentOperator node)
         {
             var left = node.Left;
             switch (left.Kind)
@@ -1296,7 +1399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _resultType = TypeSymbolWithAnnotations.Create(node.Type);
         }
 
-        private ObjectCreationPlaceholderLocal GetOrCreateObjectCreationPlaceholder(BoundExpression node)
+        private int GetOrCreateObjectCreationPlaceholderSlot(BoundExpression node)
         {
             ObjectCreationPlaceholderLocal placeholder;
             if (_placeholderLocalsOpt == null)
@@ -1315,7 +1418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _placeholderLocalsOpt.Add(node, placeholder);
             }
 
-            return placeholder;
+            return GetOrCreateSlot(placeholder);
         }
 
         public override BoundNode? VisitAnonymousObjectCreationExpression(BoundAnonymousObjectCreationExpression node)
@@ -1343,8 +1446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PropertySymbol property = node.Declarations[i].Property;
                 if (receiverSlot <= 0)
                 {
-                    ObjectCreationPlaceholderLocal implicitReceiver = GetOrCreateObjectCreationPlaceholder(node);
-                    receiverSlot = GetOrCreateSlot(implicitReceiver);
+                    receiverSlot = GetOrCreateObjectCreationPlaceholderSlot(node);
                 }
 
                 TypeSymbolWithAnnotations propertyType = property.Type;
@@ -1836,12 +1938,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             return possiblyConversion;
         }
 
-        // https://github.com/dotnet/roslyn/issues/30140: Track nullable state from ??=.
         public override BoundNode? VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
         {
-            var result = base.VisitNullCoalescingAssignmentOperator(node);
-            SetResult(node);
-            return result;
+
+            BoundExpression leftOperand = node.LeftOperand;
+            BoundExpression rightOperand = node.RightOperand;
+            int leftSlot = MakeSlot(leftOperand);
+
+            // The assignment to the left below needs the declared type from VisitLvalue, but the hidden
+            // unnecessary check diagnostic needs the current adjusted type of the slot
+            VisitLvalue(leftOperand);
+            TypeSymbolWithAnnotations targetType = _resultType;
+            TypeSymbolWithAnnotations currentLeftType = GetAdjustedResult(targetType, leftSlot);
+
+            if (currentLeftType.ValueCanBeNull() == false)
+            {
+                ReportNonSafetyDiagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, leftOperand.Syntax);
+            }
+
+            var leftState = this.State.Clone();
+
+            TypeSymbolWithAnnotations rightResult = VisitOptionalImplicitConversion(rightOperand, targetType, UseLegacyWarnings(leftOperand), AssignmentKind.Assignment);
+            TrackNullableStateForAssignment(rightOperand, targetType, leftSlot, rightResult, MakeSlot(rightOperand));
+            Join(ref this.State, ref leftState);
+
+            TypeSymbolWithAnnotations resultType = GetNullCoalescingResultType(leftOperand, currentLeftType, rightOperand, rightResult, targetType.TypeSymbol);
+            _resultType = resultType;
+
+            if (leftSlot > 0)
+            {
+                this.State[leftSlot] = resultType.NullableAnnotation;
+            }
+
+            return null;
         }
 
         public override BoundNode? VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
@@ -1906,20 +2035,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(node.OperatorResultKind);
             }
 
-            NullableAnnotation resultNullableAnnotation;
-
-            // We want to check if the value can be nullable based on annotations and getValueNullableAnnotation might
-            // adjust the value that it returns to emphasize the fact. However, we want the original annotation to flow through the system.
-            if (getValueNullableAnnotation(leftOperand, leftResult).IsAnyNotNullable())
-            {
-                resultNullableAnnotation = getNullableAnnotation(leftOperand, leftResult);
-            }
-            else
-            {
-                resultNullableAnnotation = getNullableAnnotation(rightOperand, rightResult);
-            }
-
-            _resultType = TypeSymbolWithAnnotations.Create(resultType, resultNullableAnnotation);
+            _resultType = GetNullCoalescingResultType(leftOperand, leftResult, rightOperand, rightResult, resultType);
             return null;
 
             NullableAnnotation getNullableAnnotation(BoundExpression e, TypeSymbolWithAnnotations t)
@@ -1930,16 +2046,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return t.NullableAnnotation;
-            }
-
-            NullableAnnotation getValueNullableAnnotation(BoundExpression e, TypeSymbolWithAnnotations t)
-            {
-                if (t.IsNull)
-                {
-                    return GetNullableAnnotation(e);
-                }
-
-                return t.GetValueNullableAnnotation();
             }
 
             TypeSymbol getLeftResultType(TypeSymbol leftType, TypeSymbol rightType)
@@ -1999,6 +2105,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     Debug.Assert(false); // unexpected value
                     return NullableAnnotation.Unknown;
+            }
+        }
+
+        private static TypeSymbolWithAnnotations GetNullCoalescingResultType(BoundExpression leftOperand, TypeSymbolWithAnnotations leftResult, BoundExpression rightOperand, TypeSymbolWithAnnotations rightResult, TypeSymbol resultType)
+        {
+            NullableAnnotation resultNullableAnnotation;
+            if (getValueNullableAnnotation(leftOperand, leftResult).IsAnyNotNullable())
+            {
+                resultNullableAnnotation = getNullableAnnotation(leftOperand, leftResult);
+            }
+            else
+            {
+                resultNullableAnnotation = getNullableAnnotation(rightOperand, rightResult);
+            }
+
+            return TypeSymbolWithAnnotations.Create(resultType, resultNullableAnnotation);
+
+            NullableAnnotation getNullableAnnotation(BoundExpression e, TypeSymbolWithAnnotations t)
+            {
+                if (t.IsNull)
+                {
+                    return GetNullableAnnotation(e);
+                }
+
+                return t.NullableAnnotation;
+            }
+
+            NullableAnnotation getValueNullableAnnotation(BoundExpression e, TypeSymbolWithAnnotations t)
+            {
+                if (t.IsNull)
+                {
+                    return GetNullableAnnotation(e);
+                }
+
+                return t.GetValueNullableAnnotation();
             }
         }
 
@@ -2171,7 +2312,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 // https://github.com/dotnet/roslyn/issues/30432: InferBestTypeForConditionalOperator should use node.IsRef.
                 resultType = BestTypeInferrer.InferBestTypeForConditionalOperator(consequencePlaceholder, alternativePlaceholder, _conversions, out _, out hadNullabilityMismatch, ref useSiteDiagnostics);
-                Debug.Assert((object)resultType != null);
                 if (hadNullabilityMismatch)
                 {
                     ReportSafetyDiagnostic(
@@ -2337,7 +2477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             method = VisitArguments(node, arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt,
-                node.Expanded, node.InvokedAsExtensionMethod, conversions, method)!;
+                node.Expanded, node.InvokedAsExtensionMethod, conversions, method).method!;
 
             if (method.MethodKind == MethodKind.LocalFunction)
             {
@@ -2467,7 +2607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-        private void VisitArguments(
+        private ImmutableArray<TypeSymbolWithAnnotations> VisitArguments(
             BoundExpression node,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
@@ -2477,10 +2617,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<Conversion> conversions;
             (arguments, conversions) = RemoveArgumentConversions(arguments, refKindsOpt);
-            VisitArguments(node, arguments, refKindsOpt, method is null ? default : method.Parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod: false, conversions);
+            return VisitArguments(node, arguments, refKindsOpt, method is null ? default : method.Parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod: false, conversions).resultTypes;
         }
 
-        private void VisitArguments(
+        private ImmutableArray<TypeSymbolWithAnnotations> VisitArguments(
             BoundExpression node,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
@@ -2490,13 +2630,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<Conversion> conversions;
             (arguments, conversions) = RemoveArgumentConversions(arguments, refKindsOpt);
-            VisitArguments(node, arguments, refKindsOpt, property is null ? default : property.Parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod: false, conversions);
+            return VisitArguments(node, arguments, refKindsOpt, property is null ? default : property.Parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod: false, conversions).resultTypes;
         }
 
         /// <summary>
         /// If you pass in a method symbol, its type arguments will be re-inferred and the re-inferred method will be returned.
         /// </summary>
-        private MethodSymbol? VisitArguments(
+        private (MethodSymbol? method, ImmutableArray<TypeSymbolWithAnnotations> resultTypes) VisitArguments(
             BoundExpression node,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
@@ -2551,7 +2691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _disableDiagnostics = saveDisableDiagnostics;
             }
 
-            return method;
+            return (method, results);
         }
 
         private ImmutableArray<TypeSymbolWithAnnotations> VisitArgumentsEvaluate(
@@ -3087,7 +3227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// (Currently, the only visit method that passes `includeExplicitConversions: true`
         /// is VisitConversion. All other callers are handling implicit conversions only.)
         /// </summary>
-        private static (BoundExpression Expression, Conversion Conversion) RemoveConversion(BoundExpression expr, bool includeExplicitConversions)
+        private static (BoundExpression expression, Conversion conversion) RemoveConversion(BoundExpression expr, bool includeExplicitConversions)
         {
             ConversionGroup group = null;
             while (true)
@@ -3353,9 +3493,61 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arguments = node.Arguments;
             ImmutableArray<TypeSymbolWithAnnotations> elementTypes = arguments.SelectAsArray((a, w) => w.VisitRvalueWithResult(a), this);
             var tupleOpt = (TupleTypeSymbol)node.Type;
-            _resultType = (tupleOpt is null) ?
-                default :
-                TypeSymbolWithAnnotations.Create(tupleOpt.WithElementTypes(elementTypes), NullableAnnotation.NotNullable);
+            if (tupleOpt is null)
+            {
+                _resultType = default;
+            }
+            else
+            {
+                int slot = GetOrCreateObjectCreationPlaceholderSlot(node);
+                if (slot > 0)
+                {
+                    this.State[slot] = NullableAnnotation.NotNullable;
+                    TrackNullableStateOfTupleElements(slot, tupleOpt, arguments, elementTypes, useRestField: false);
+                }
+                _resultType = TypeSymbolWithAnnotations.Create(tupleOpt.WithElementTypes(elementTypes), NullableAnnotation.NotNullable);
+            }
+        }
+
+        /// <summary>
+        /// Set the nullability of tuple elements for tuples at the point of construction.
+        /// If <paramref name="useRestField"/> is true, the tuple was constructed with an explicit
+        /// 'new ValueTuple' call, in which case the 8-th element, if any, represents the 'Rest' field.
+        /// </summary>
+        private void TrackNullableStateOfTupleElements(
+            int slot,
+            TupleTypeSymbol tupleType,
+            ImmutableArray<BoundExpression> values,
+            ImmutableArray<TypeSymbolWithAnnotations> types,
+            bool useRestField)
+        {
+            Debug.Assert(values.Length == types.Length);
+            Debug.Assert(values.Length == (useRestField ? Math.Min(tupleType.TupleElements.Length, TupleTypeSymbol.RestPosition) : tupleType.TupleElements.Length));
+
+            if (slot > 0)
+            {
+                var tupleElements = tupleType.TupleElements;
+                int n = values.Length;
+                if (useRestField)
+                {
+                    n = Math.Min(n, TupleTypeSymbol.RestPosition - 1);
+                }
+                for (int i = 0; i < n; i++)
+                {
+                    trackState(values[i], tupleElements[i], types[i]);
+                }
+                if (useRestField && values.Length == TupleTypeSymbol.RestPosition)
+                {
+                    var restField = tupleType.GetMembers(TupleTypeSymbol.RestFieldName).FirstOrDefault() as FieldSymbol;
+                    if ((object)restField != null)
+                    {
+                        trackState(values.Last(), restField, types.Last());
+                    }
+                }
+            }
+
+            void trackState(BoundExpression value, FieldSymbol field, TypeSymbolWithAnnotations valueType) =>
+                TrackNullableStateForAssignment(value, field.Type, GetOrCreateSlot(field, slot), valueType, MakeSlot(value));
         }
 
         public override BoundNode? VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
@@ -3564,7 +3756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // conversion "from" type -> method parameter type
                         NullableAnnotation operandAnnotation = operandType.NullableAnnotation;
-                        operandType = ClassifyAndApplyConversion(operandOpt ?? node, parameterType, isLiftedConversion ? underlyingOperandType : operandType,
+                        _ = ClassifyAndApplyConversion(operandOpt ?? node, parameterType, isLiftedConversion ? underlyingOperandType : operandType,
                             useLegacyWarnings, AssignmentKind.Argument, target: parameter, reportWarnings: reportRemainingWarnings);
 
                         // method parameter type -> method return type
@@ -3680,6 +3872,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             return operandType;
                         }
+                    }
+                    if (operandType.TypeSymbol?.IsTupleType == true)
+                    {
+                        goto case ConversionKind.ImplicitTuple;
                     }
                     goto case ConversionKind.ImplicitReference;
 
@@ -4645,8 +4841,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitDefaultExpression(BoundDefaultExpression node)
         {
+            Debug.Assert(!this.IsConditionalState);
+
             var result = base.VisitDefaultExpression(node);
             TypeSymbol type = node.Type;
+            if (EmptyStructTypeCache.IsTrackableStructType(type))
+            {
+                int slot = GetOrCreateObjectCreationPlaceholderSlot(node);
+                if (slot > 0)
+                {
+                    this.State[slot] = NullableAnnotation.NotNullable;
+                    InheritNullableStateOfTrackableStruct(type, slot, valueSlot: -1, isDefaultValue: true, isByRefTarget: false, slotWatermark: GetSlotWatermark());
+                }
+            }
             _resultType = TypeSymbolWithAnnotations.Create(type, (type is null || type.IsNullableType() || !type.IsValueType) ? NullableAnnotation.Nullable : NullableAnnotation.Unknown);
             return result;
         }
@@ -4909,8 +5116,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
             Debug.Assert(!IsConditionalState);
-            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt);
-            VisitObjectOrDynamicObjectCreation(node, node.InitializerExpressionOpt);
+            var arguments = node.Arguments;
+            var argumentTypes = VisitArgumentsEvaluate(arguments, node.ArgumentRefKindsOpt);
+            VisitObjectOrDynamicObjectCreation(node, arguments, argumentTypes, node.InitializerExpressionOpt);
             return null;
         }
 
@@ -4978,7 +5186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
         {
             var result = base.VisitStackAllocArrayCreation(node);
-            Debug.Assert((object)node.Type == null || node.Type.IsPointerType() || node.Type.IsByRefLikeType);
+            Debug.Assert((object)node.Type == null || node.Type.IsPointerType() || node.Type.IsRefLikeType);
             SetResult(node);
             return result;
         }
@@ -5156,8 +5364,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitOptionalImplicitConversion(expr, elementType, useLegacyWarnings: false, AssignmentKind.Return);
             return null;
         }
-
-        #endregion Visitors
 
         protected override string Dump(LocalState state)
         {

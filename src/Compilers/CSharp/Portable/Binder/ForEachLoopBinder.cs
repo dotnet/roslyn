@@ -624,6 +624,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (collectionExprType.IsErrorType())
+            {
+                return false;
+            }
+
             // Retry with a different assumption about whether the foreach is async
             var ignoredBuilder = new ForEachEnumeratorInfo.Builder();
             var ignoredDiagnostics = DiagnosticBag.GetInstance();
