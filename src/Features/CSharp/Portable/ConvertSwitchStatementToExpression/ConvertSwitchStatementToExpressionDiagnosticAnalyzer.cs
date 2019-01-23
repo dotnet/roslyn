@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -42,8 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 location: switchStatement.GetFirstToken().GetLocation(),
                 additionalLocations: new[] { switchStatement.GetLocation() },
                 properties: ImmutableDictionary<string, string>.Empty
-                    .Add(Constants.NodeToGenerateKey, ((int)nodeToGenerate).ToString())
-                    .Add(Constants.ShouldRemoveNextStatementKey, shouldRemoveNextStatement.ToString())));
+                    .Add(Constants.NodeToGenerateKey, ((int)nodeToGenerate).ToString(CultureInfo.InvariantCulture))
+                    .Add(Constants.ShouldRemoveNextStatementKey, shouldRemoveNextStatement.ToString(CultureInfo.InvariantCulture))));
         }
 
         public override bool OpenFileOnly(Workspace workspace)
