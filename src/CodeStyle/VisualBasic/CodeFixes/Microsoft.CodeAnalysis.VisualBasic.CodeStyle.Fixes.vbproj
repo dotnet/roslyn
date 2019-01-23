@@ -2,11 +2,10 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>netstandard1.3</TargetFramework>
     <RootNamespace></RootNamespace>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
@@ -20,14 +19,17 @@
 
   <Target Name="_GetFilesToPackage">
     <ItemGroup>
-      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.VisualBasic.CodeStyle\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.dll"/>
-      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.dll"/>
-      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CodeStyle\Microsoft.CodeAnalysis.CodeStyle.dll"/>
-      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CodeStyle.Fixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll"/>
-      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.VisualBasic.CodeStyle\**\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.resources.dll"/>
-      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes\**\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.resources.dll"/>
-      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CodeStyle\**\Microsoft.CodeAnalysis.CodeStyle.resources.dll"/>
-      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CodeStyle.Fixes\**\Microsoft.CodeAnalysis.CodeStyle.Fixes.resources.dll"/>
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.CodeStyle\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.dll"/>
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.dll"/>
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CodeStyle.dll"/>
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll"/>
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.CodeStyle\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.resources.dll"/>
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.resources.dll"/>
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CodeStyle.resources.dll"/>
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CodeStyle.Fixes.resources.dll"/>
+
+      <!-- .editorconfig support prior to new support in the compiler -->
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\Microsoft.VisualStudio.CodingConventions.dll"/>
 
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="analyzers/dotnet/vb/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
     </ItemGroup>
@@ -36,12 +38,10 @@
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="$(MicrosoftCodeAnalysisVisualBasicWorkspacesFixedVersion)" />
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Core\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />
+    <ProjectReference Include="..\..\Core\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" Aliases="global,CodeStyle" />
     <ProjectReference Include="..\..\Core\CodeFixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.csproj" />
     <ProjectReference Include="..\Analyzers\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.vbproj" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />
   </ItemGroup>

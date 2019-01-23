@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 return parseFunc();
             }
-            catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
+            catch (InsufficientExecutionStackException)
             {
                 return CreateForGlobalFailure(lexer.TextWindow.Position, createEmptyNodeFunc());
             }
@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 // incomplete members must be processed before we add any nodes to the body:
                                 AddIncompleteMembers(ref pendingIncompleteMembers, ref body);
 
-                                body.Members.Add(_syntaxFactory.GlobalStatement(ParseUsingStatement(awaitTokenOpt: default)));
+                                body.Members.Add(_syntaxFactory.GlobalStatement(ParseUsingStatement()));
                                 seen = NamespaceParts.MembersAndStatements;
                             }
                             else
@@ -1019,7 +1019,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var argNodes = _pool.AllocateSeparated<AttributeArgumentSyntax>();
                 try
                 {
-                    tryAgain:
+tryAgain:
                     if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
                     {
                         if (this.IsPossibleAttributeArgument() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
@@ -1166,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return DeclarationModifiers.None;
             }
         }
-        
+
         private void ParseModifiers(SyntaxListBuilder tokens, bool forAccessors)
         {
             while (true)
@@ -1191,7 +1191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             modTok = CheckFeatureAvailability(modTok,
                                 isPartialType ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod);
                         }
-                        else if(nextToken.Kind == SyntaxKind.NamespaceKeyword)
+                        else if (nextToken.Kind == SyntaxKind.NamespaceKeyword)
                         {
                             // Error reported in binding
                             modTok = ConvertToKeyword(this.EatToken());
@@ -4006,12 +4006,12 @@ tryAgain:
 
             // If we got an explicitInterfaceOpt but not an identifier, then we're in the special
             // case for ERR_ExplicitEventFieldImpl (see ParseMemberName for details).
-            if (explicitInterfaceOpt != null && identifierOrThisOpt == null)
+            if (explicitInterfaceOpt != null && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken)
             {
                 Debug.Assert(typeParameterList == null, "Exit condition of ParseMemberName in this scenario");
 
                 // No need for a diagnostic, ParseMemberName has already added one.
-                var missingIdentifier = CreateMissingIdentifierToken();
+                var missingIdentifier = (identifierOrThisOpt == null) ? CreateMissingIdentifierToken() : identifierOrThisOpt;
 
                 var missingAccessorList =
                     _syntaxFactory.AccessorList(
@@ -5701,7 +5701,8 @@ tryAgain:
                         //   }
                         //
                         // Bad:
-                        //   event EventDelegate Parent.E; //(or anything else where the next token isn't open brace
+                        //   event EventDelegate Parent.
+                        //   E( //(or anything that is not the semicolon
                         //
                         // To recover: rollback to before the name of the field was parsed (just the part after the last
                         // dot), insert a missing identifier for the field name, insert missing accessors, and then treat
@@ -5709,21 +5710,26 @@ tryAgain:
                         //
                         //   event EventDelegate Parent./*Missing nodes here*/
                         //
-                        //   E;
+                        //   E(
                         //
                         // Rationale: The identifier could be the name of a type at the beginning of an existing member
                         // declaration (above which someone has started to type an explicit event implementation).
+                        //
+                        // In case the dot doesn't follow with an end line or E ends with a semicolon, the error recovery
+                        // is skipped. In that case the rationale above does not fit very well.
 
                         explicitInterfaceOpt = _syntaxFactory.ExplicitInterfaceSpecifier(
                             explicitInterfaceName,
                             AddError(separator, ErrorCode.ERR_ExplicitEventFieldImpl));
 
-                        Debug.Assert(beforeIdentifierPointSet);
-                        Reset(ref beforeIdentifierPoint);
-
-                        //clear fields that were populated after the reset point
-                        identifierOrThisOpt = null;
-                        typeParameterListOpt = null;
+                        if (separator.TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia) && this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
+                        {
+                            Debug.Assert(beforeIdentifierPointSet);
+                            Reset(ref beforeIdentifierPoint);
+                            //clear fields that were populated after the reset point
+                            identifierOrThisOpt = null;
+                            typeParameterListOpt = null;
+                        }
                     }
                     else
                     {
@@ -6699,6 +6705,7 @@ tryAgain:
                 case SyntaxKind.GotoKeyword:
                     return this.ParseGotoStatement();
                 case SyntaxKind.IfKeyword:
+                case SyntaxKind.ElseKeyword: // Including 'else' keyword to handle 'else without if' error cases 
                     return this.ParseIfStatement();
                 case SyntaxKind.LockKeyword:
                     return this.ParseLockStatement();
@@ -6716,7 +6723,7 @@ tryAgain:
                     }
                     break;
                 case SyntaxKind.UsingKeyword:
-                    return this.ParseUsingStatement(awaitTokenOpt: default);
+                    return PeekToken(1).Kind == SyntaxKind.OpenParenToken ? this.ParseUsingStatement() : this.ParseLocalDeclarationStatement();
                 case SyntaxKind.WhileKeyword:
                     return this.ParseWhileStatement();
                 case SyntaxKind.OpenBraceToken:
@@ -6730,7 +6737,14 @@ tryAgain:
                     }
                     else if (isPossibleAwaitUsing())
                     {
-                        return this.ParseUsingStatement(parseAwaitKeywordForAsyncStreams());
+                        if (PeekToken(2).Kind == SyntaxKind.OpenParenToken)
+                        {
+                            return this.ParseUsingStatement(parseAwaitKeywordForAsyncStreams());
+                        }
+                        else
+                        {
+                            return this.ParseLocalDeclarationStatement(parseAwaitKeywordForAsyncStreams());
+                        }
                     }
                     else if (this.IsPossibleLabeledStatement())
                     {
@@ -7359,6 +7373,7 @@ tryAgain:
                 case SyntaxKind.ForEachKeyword:
                 case SyntaxKind.GotoKeyword:
                 case SyntaxKind.IfKeyword:
+                case SyntaxKind.ElseKeyword:
                 case SyntaxKind.LockKeyword:
                 case SyntaxKind.ReturnKeyword:
                 case SyntaxKind.SwitchKeyword:
@@ -7954,20 +7969,24 @@ tryAgain:
 
         private IfStatementSyntax ParseIfStatement()
         {
-            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IfKeyword);
-            var @if = this.EatToken(SyntaxKind.IfKeyword);
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IfKeyword || this.CurrentToken.Kind == SyntaxKind.ElseKeyword);
+
+            bool firstTokenIsElse = this.CurrentToken.Kind == SyntaxKind.ElseKeyword;
+            var @if = firstTokenIsElse
+                ? this.EatToken(SyntaxKind.IfKeyword, ErrorCode.ERR_ElseCannotStartStatement)
+                : this.EatToken(SyntaxKind.IfKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
             var condition = this.ParseExpressionCore();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            var statement = this.ParseEmbeddedStatement();
-            var elseClause = ParseElseClauseOpt();
+            var statement = firstTokenIsElse ? this.ParseExpressionStatement() : this.ParseEmbeddedStatement();
+            var elseClause = this.ParseElseClauseOpt();
 
             return _syntaxFactory.IfStatement(@if, openParen, condition, closeParen, statement, elseClause);
         }
 
         private ElseClauseSyntax ParseElseClauseOpt()
         {
-           if (this.CurrentToken.Kind != SyntaxKind.ElseKeyword)
+            if (this.CurrentToken.Kind != SyntaxKind.ElseKeyword)
             {
                 return null;
             }
@@ -8191,7 +8210,7 @@ tryAgain:
             return _syntaxFactory.UnsafeStatement(@unsafe, block);
         }
 
-        private UsingStatementSyntax ParseUsingStatement(SyntaxToken awaitTokenOpt)
+        private UsingStatementSyntax ParseUsingStatement(SyntaxToken awaitTokenOpt = default)
         {
             var @using = this.EatToken(SyntaxKind.UsingKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
@@ -8332,8 +8351,14 @@ tryAgain:
         /// <summary>
         /// Parses any kind of local declaration statement: local variable or local function.
         /// </summary>
-        private StatementSyntax ParseLocalDeclarationStatement()
+        private StatementSyntax ParseLocalDeclarationStatement(SyntaxToken awaitKeywordOpt = default)
         {
+            var usingKeyword = this.CurrentToken.Kind == SyntaxKind.UsingKeyword ? this.EatToken() : null;
+            if (usingKeyword != null)
+            {
+                usingKeyword = CheckFeatureAvailability(usingKeyword, MessageID.IDS_FeatureUsingDeclarations);
+            }
+
             var mods = _pool.Allocate();
             this.ParseDeclarationModifiers(mods);
 
@@ -8343,7 +8368,7 @@ tryAgain:
                 TypeSyntax type;
                 LocalFunctionStatementSyntax localFunction;
                 this.ParseLocalDeclaration(variables,
-                    allowLocalFunctions: true,
+                    allowLocalFunctions: usingKeyword == default,
                     mods: mods.ToList(),
                     type: out type,
                     localFunction: out localFunction);
@@ -8371,12 +8396,14 @@ tryAgain:
                         mods[i] = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
                     }
                 }
-
                 var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
                 return _syntaxFactory.LocalDeclarationStatement(
+                    awaitKeywordOpt,
+                    usingKeyword,
                     mods.ToList(),
                     _syntaxFactory.VariableDeclaration(type, variables),
-                    semicolon);
+                    semicolon
+                    );
             }
             finally
             {
@@ -8564,7 +8591,7 @@ tryAgain:
                     mod = this.EatToken();
                 }
 
-                if (k == SyntaxKind.StaticKeyword || k == SyntaxKind.ReadOnlyKeyword || k == SyntaxKind.VolatileKeyword)
+                if (k == SyntaxKind.ReadOnlyKeyword || k == SyntaxKind.VolatileKeyword)
                 {
                     mod = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
                 }
@@ -8596,6 +8623,7 @@ tryAgain:
         {
             switch (kind)
             {
+                case SyntaxKind.StaticKeyword:
                 case SyntaxKind.AsyncKeyword:
                 case SyntaxKind.UnsafeKeyword:
                 // Not a valid modifier, but we should parse to give a good
@@ -8656,28 +8684,36 @@ tryAgain:
             SyntaxListBuilder badBuilder = null;
             for (int i = 0; i < modifiers.Count; i++)
             {
-                switch (modifiers[i].ContextualKind)
+                var modifier = modifiers[i];
+                switch (modifier.ContextualKind)
                 {
                     case SyntaxKind.AsyncKeyword:
                         IsInAsync = true;
                         forceLocalFunc = true;
-                        break;
+                        continue;
                     case SyntaxKind.UnsafeKeyword:
                         forceLocalFunc = true;
-                        break;
-                    case SyntaxKind.StaticKeyword:
+                        continue;
                     case SyntaxKind.ReadOnlyKeyword:
                     case SyntaxKind.VolatileKeyword:
-                        break; // already reported earlier, no need to report again
-                    default:
-                        if (badBuilder == null)
+                        continue; // already reported earlier, no need to report again
+                    case SyntaxKind.StaticKeyword:
+                        modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureStaticLocalFunctions);
+                        if ((object)modifier == modifiers[i])
                         {
-                            badBuilder = _pool.Allocate();
-                            badBuilder.AddRange(modifiers);
+                            continue;
                         }
-                        badBuilder[i] = this.AddError(modifiers[i], ErrorCode.ERR_BadMemberFlag, ((SyntaxToken)modifiers[i]).Text);
+                        break;
+                    default:
+                        modifier = this.AddError(modifier, ErrorCode.ERR_BadMemberFlag, modifier.Text);
                         break;
                 }
+                if (badBuilder == null)
+                {
+                    badBuilder = _pool.Allocate();
+                    badBuilder.AddRange(modifiers);
+                }
+                badBuilder[i] = modifier;
             }
             if (badBuilder != null)
             {
@@ -8830,6 +8866,7 @@ tryAgain:
                 case SyntaxKind.ForEachKeyword:
                 case SyntaxKind.GotoKeyword:
                 case SyntaxKind.IfKeyword:
+                case SyntaxKind.ElseKeyword:
                 case SyntaxKind.LockKeyword:
                 case SyntaxKind.ReturnKeyword:
                 case SyntaxKind.SwitchKeyword:

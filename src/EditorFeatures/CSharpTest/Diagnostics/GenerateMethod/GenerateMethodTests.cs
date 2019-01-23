@@ -5141,6 +5141,36 @@ class Program
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestWithYieldReturnInAsyncMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    async IAsyncEnumerable<int> Goo()
+    {
+        yield return [|Bar|]();
+    }
+}",
+@"using System;
+using System.Collections.Generic;
+
+class Program
+{
+    async IAsyncEnumerable<int> Goo()
+    {
+        yield return Bar();
+    }
+
+    private int Bar()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
         [WorkItem(30235, "https://github.com/dotnet/roslyn/issues/30235")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestWithYieldReturnInLocalFunction()

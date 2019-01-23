@@ -1888,7 +1888,7 @@ done:
                 case SyntaxKind.GlobalStatement:
                 case SyntaxKind.Subpattern:
                     return node;
-                case SyntaxKind.DeconstructionPatternClause:
+                case SyntaxKind.PositionalPatternClause:
                     return node.Parent;
             }
 
@@ -2005,7 +2005,7 @@ done:
                         goto foundParent;
                 }
             }
-            foundParent:;
+foundParent:;
 
             var bindableParent = this.GetBindableSyntaxNode(parent);
             Debug.Assert(bindableParent != null);

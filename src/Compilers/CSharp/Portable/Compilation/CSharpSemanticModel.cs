@@ -215,6 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder = new TypeofBinder(expression, binder);
             }
 
+            binder = new WithNullableContextBinder(SyntaxTree, position, binder);
+
             return new ExecutableCodeBinder(expression, binder.ContainingMemberOrLambda, binder).GetBinder(expression);
         }
 
@@ -489,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the SymbolInfo for the Deconstruct method used for a deconstruction pattern clause, if any.
         /// </summary>
-        public SymbolInfo GetSymbolInfo(DeconstructionPatternClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+        public SymbolInfo GetSymbolInfo(PositionalPatternClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(node);
             return this.GetSymbolInfoWorker(node, SymbolInfoOptions.DefaultOptions, cancellationToken);
@@ -3654,7 +3656,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (unwrappedSymbols.Length == 1 && unwrappedSymbols[0].Kind == SymbolKind.NamedType)
                         {
-                            Debug.Assert(resultKind != LookupResultKind.Viable || unwrappedSymbols[0] == boundAttribute.Type.GetNonErrorGuess());
+                            Debug.Assert(resultKind != LookupResultKind.Viable ||
+                                TypeSymbol.Equals((TypeSymbol)unwrappedSymbols[0], boundAttribute.Type.GetNonErrorGuess(), TypeCompareKind.ConsiderEverything2));
 
                             typeSymbol = (NamedTypeSymbol)unwrappedSymbols[0];
                             constructor = boundAttribute.Constructor;
@@ -4156,7 +4159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (object)tupleElement == null ? SymbolInfo.None : new SymbolInfo(tupleElement, ImmutableArray<ISymbol>.Empty, CandidateReason.None);
             }
 
-            if (parent3.IsKind(SyntaxKind.PropertyPatternClause) || parent3.IsKind(SyntaxKind.DeconstructionPatternClause))
+            if (parent3.IsKind(SyntaxKind.PropertyPatternClause) || parent3.IsKind(SyntaxKind.PositionalPatternClause))
             {
                 return GetSymbolInfoWorker(identifierNameSyntax, SymbolInfoOptions.DefaultOptions, cancellationToken);
             }
@@ -4618,8 +4621,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetSymbolInfo(selectOrGroupClause, cancellationToken);
                 case OrderingSyntax orderingSyntax:
                     return this.GetSymbolInfo(orderingSyntax, cancellationToken);
-                case DeconstructionPatternClauseSyntax dpcSyntax:
-                    return this.GetSymbolInfo(dpcSyntax, cancellationToken);
+                case PositionalPatternClauseSyntax ppcSyntax:
+                    return this.GetSymbolInfo(ppcSyntax, cancellationToken);
             }
 
             return SymbolInfo.None;

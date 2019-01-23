@@ -2034,7 +2034,7 @@ class H
 
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
-            CompileAndVerify(compilation, expectedOutput:@"1").VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"1").VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -3515,7 +3515,7 @@ class H
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void GlobalCode_LabeledStatement_06()
         {
             string source =

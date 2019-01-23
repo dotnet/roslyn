@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
 
                 protected override async Task AddDocumentFixesAsync(
-                    Document document, ImmutableArray<Diagnostic> diagnostics, 
+                    Document document, ImmutableArray<Diagnostic> diagnostics,
                     ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
                     FixAllState fixAllState, CancellationToken cancellationToken)
                 {
@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
 
                 protected async override Task AddProjectFixesAsync(
-                    Project project, ImmutableArray<Diagnostic> diagnostics, 
-                    ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> bag, 
+                    Project project, ImmutableArray<Diagnostic> diagnostics,
+                    ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> bag,
                     FixAllState fixAllState, CancellationToken cancellationToken)
                 {
                     foreach (var diagnostic in diagnostics.Where(d => !d.Location.IsInSource && d.IsSuppressed))
@@ -106,8 +106,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
 
                 public override async Task<CodeAction> TryGetMergedFixAsync(
-                    ImmutableArray<(Diagnostic diagnostic, CodeAction action)> batchOfFixes, 
-                    FixAllState fixAllState, 
+                    ImmutableArray<(Diagnostic diagnostic, CodeAction action)> batchOfFixes,
+                    FixAllState fixAllState,
                     CancellationToken cancellationToken)
                 {
                     // Batch all the attribute removal fixes into a single fix.

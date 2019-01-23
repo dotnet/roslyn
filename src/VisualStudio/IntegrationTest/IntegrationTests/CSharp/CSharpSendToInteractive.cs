@@ -53,7 +53,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
          }
      }
  }
-", 
+",
                 open: true);
 
             VisualStudio.InteractiveWindow.SubmitText("using System;");

@@ -8826,8 +8826,8 @@ struct B
             compVerifier.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "PROTOTYPE(patterns2): Pattern-matching does not correctly conflate object and dynamic for this case")]
-        [WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/31269")]
+        [WorkItem(16195, "https://github.com/dotnet/roslyn/issues/31269")]
         public void TestIgnoreDynamicVsObjectAndTupleElementNames_01()
         {
             var source =
@@ -9315,7 +9315,7 @@ expectedIL: @"{
 </symbols>");
         }
 
-        [Fact(Skip = "PROTOTYPE(patterns2): This test is sensitive to the precise code generated, which is currently in flux.")]
+        [Fact]
         [WorkItem(19280, "https://github.com/dotnet/roslyn/issues/19280")]
         public void TestSignificanceOfDynamicVersusObjectAndTupleNamesInUniquenessOfPatternMatchingTemps()
         {
@@ -9350,65 +9350,52 @@ class Program
             var compVerifier = CompileAndVerify(compilation, expectedOutput: "abc");
             compVerifier.VerifyIL("Program.M2",
 @"{
-  // Code size      105 (0x69)
-  .maxstack  2
-  .locals init (object V_0,
-                Generic<object, (int a, int b)> V_1,
-                Generic<dynamic, (int x, int y)> V_2,
-                Generic<object, (int a, int b)> V_3, //g
-                Generic<dynamic, (int x, int y)> V_4, //g
-                object V_5)
+  // Code size       86 (0x56)
+  .maxstack  1
+  .locals init (Generic<object, (int a, int b)> V_0, //g
+                Generic<dynamic, (int x, int y)> V_1, //g
+                object V_2,
+                object V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  stloc.s    V_5
-  IL_0004:  ldloc.s    V_5
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  brtrue.s   IL_000c
-  IL_000a:  br.s       IL_0018
+  IL_0002:  stloc.3
+  IL_0003:  ldloc.3
+  IL_0004:  stloc.2
+  IL_0005:  ldloc.2
+  IL_0006:  isinst     ""Generic<object, (int a, int b)>""
+  IL_000b:  stloc.0
   IL_000c:  ldloc.0
-  IL_000d:  isinst     ""Generic<object, (int a, int b)>""
-  IL_0012:  dup
-  IL_0013:  stloc.1
-  IL_0014:  brfalse.s  IL_0018
-  IL_0016:  br.s       IL_002d
-  IL_0018:  br.s       IL_0041
-  IL_001a:  ldloc.0
+  IL_000d:  brtrue.s   IL_001a
+  IL_000f:  br.s       IL_0031
+  IL_0011:  ldloc.2
+  IL_0012:  castclass  ""Generic<dynamic, (int x, int y)>""
+  IL_0017:  stloc.1
+  IL_0018:  br.s       IL_0043
+  IL_001a:  ldarg.1
   IL_001b:  brtrue.s   IL_001f
-  IL_001d:  br.s       IL_002b
-  IL_001f:  ldloc.0
-  IL_0020:  isinst     ""Generic<dynamic, (int x, int y)>""
-  IL_0025:  dup
-  IL_0026:  stloc.2
-  IL_0027:  brfalse.s  IL_002b
-  IL_0029:  br.s       IL_0053
-  IL_002b:  br.s       IL_0068
-  IL_002d:  ldloc.1
-  IL_002e:  stloc.3
-  IL_002f:  ldarg.1
-  IL_0030:  brtrue.s   IL_0034
-  IL_0032:  br.s       IL_0018
-  IL_0034:  ldstr      ""a""
-  IL_0039:  call       ""void System.Console.Write(string)""
-  IL_003e:  nop
-  IL_003f:  br.s       IL_0068
-  IL_0041:  ldarg.2
-  IL_0042:  brtrue.s   IL_0046
-  IL_0044:  br.s       IL_001a
-  IL_0046:  ldstr      ""b""
-  IL_004b:  call       ""void System.Console.Write(string)""
-  IL_0050:  nop
-  IL_0051:  br.s       IL_0068
-  IL_0053:  ldloc.2
-  IL_0054:  stloc.s    V_4
-  IL_0056:  ldarg.3
-  IL_0057:  brtrue.s   IL_005b
-  IL_0059:  br.s       IL_002b
-  IL_005b:  ldstr      ""c""
-  IL_0060:  call       ""void System.Console.Write(string)""
-  IL_0065:  nop
-  IL_0066:  br.s       IL_0068
-  IL_0068:  ret
+  IL_001d:  br.s       IL_002c
+  IL_001f:  ldstr      ""a""
+  IL_0024:  call       ""void System.Console.Write(string)""
+  IL_0029:  nop
+  IL_002a:  br.s       IL_0055
+  IL_002c:  ldarg.2
+  IL_002d:  brtrue.s   IL_0036
+  IL_002f:  br.s       IL_0011
+  IL_0031:  ldarg.2
+  IL_0032:  brtrue.s   IL_0036
+  IL_0034:  br.s       IL_0055
+  IL_0036:  ldstr      ""b""
+  IL_003b:  call       ""void System.Console.Write(string)""
+  IL_0040:  nop
+  IL_0041:  br.s       IL_0055
+  IL_0043:  ldarg.3
+  IL_0044:  brtrue.s   IL_0048
+  IL_0046:  br.s       IL_0055
+  IL_0048:  ldstr      ""c""
+  IL_004d:  call       ""void System.Console.Write(string)""
+  IL_0052:  nop
+  IL_0053:  br.s       IL_0055
+  IL_0055:  ret
 }"
             );
         }

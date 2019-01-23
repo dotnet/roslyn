@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             switch (tk)
             {
                 case SyntaxKind.IdentifierToken when this.CurrentToken.ContextualKind == SyntaxKind.UnderscoreToken:
-                    // We permit a type named `_` on the right-hand-side of an is operator, but not inside of a pattern.
+                // We permit a type named `_` on the right-hand-side of an is operator, but not inside of a pattern.
                 case SyntaxKind.CloseParenToken:
                 case SyntaxKind.CloseBracketToken:
                 case SyntaxKind.CloseBraceToken:
@@ -137,11 +137,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         //
         // Parse an expression where a declaration expression would be permitted. This is suitable for use after
         // the `out` keyword in an argument list, or in the elements of a tuple literal (because they may
-        // be on the left-hand-side of a deconstruction). The first element of a tuple is handled slightly
+        // be on the left-hand-side of a positional subpattern). The first element of a tuple is handled slightly
         // differently, as we check for the comma before concluding that the identifier should cause a
         // disambiguation. For example, for the input `(A < B , C > D)`, we treat this as a tuple with
         // two elements, because if we considered the `A<B,C>` to be a type, it wouldn't be a tuple at
-        // all. Since we don't have such a thing as a one-element tuple (even for deconstruction), the
+        // all. Since we don't have such a thing as a one-element tuple (even for positional subpattern), the
         // absence of the comma after the `D` means we don't treat the `D` as contributing to the
         // disambiguation of the expression/type. More formally, ...
         //
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// pattern
         /// 	: declaration_pattern
         /// 	| constant_pattern
-        /// 	| deconstruction_pattern
+        /// 	| positional_pattern
         /// 	| property_pattern
         /// 	| discard_pattern
         /// 	;
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// constant_pattern
         /// 	: expression
         /// 	;
-        /// deconstruction_pattern
+        /// positional_pattern
         /// 	: type? '(' subpatterns? ')' property_subpattern? identifier?
         /// 	;
         /// subpatterns
@@ -442,19 +442,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     propertyPatternClause0 == null &&
                     designation0 == null &&
                     subPatterns.Count == 1 &&
-                    subPatterns[0].NameColon == null)
+                    subPatterns[0].NameColon == null &&
+                    subPatterns.SeparatorCount == 0)
                 {
                     if (subPatterns[0].Pattern is ConstantPatternSyntax cp)
                     {
-                        // There is an ambiguity between a deconstruction pattern `(` pattern `)`
+                        // There is an ambiguity between a positional pattern `(` pattern `)`
                         // and a constant expression pattern that happens to be parenthesized.
                         // Per 2017-11-20 LDM we treat such syntax as a parenthesized expression always.
                         return _syntaxFactory.ConstantPattern(_syntaxFactory.ParenthesizedExpression(openParenToken, cp.Expression, closeParenToken));
                     }
                 }
 
-                var deconstructionPatternClause = _syntaxFactory.DeconstructionPatternClause(openParenToken, subPatterns, closeParenToken);
-                var result = _syntaxFactory.RecursivePattern(type, deconstructionPatternClause, propertyPatternClause0, designation0);
+                var positionalPatternClause = _syntaxFactory.PositionalPatternClause(openParenToken, subPatterns, closeParenToken);
+                var result = _syntaxFactory.RecursivePattern(type, positionalPatternClause, propertyPatternClause0, designation0);
 
                 bool singleElementPattern =
                     type == null &&
@@ -471,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClause))
             {
                 parseDesignation(out VariableDesignationSyntax designation0);
-                return _syntaxFactory.RecursivePattern(type, deconstructionPatternClause: null, propertyPatternClause, designation0);
+                return _syntaxFactory.RecursivePattern(type, positionalPatternClause: null, propertyPatternClause, designation0);
             }
 
             if (type != null && parseDesignation(out VariableDesignationSyntax designation))
@@ -557,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var list = _pool.AllocateSeparated<SubpatternSyntax>();
             try
             {
-                tryAgain:
+tryAgain:
 
                 if (this.IsPossibleSubpatternElement() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
@@ -577,6 +578,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleSubpatternElement())
                         {
                             list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+                            if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
+                            {
+                                break;
+                            }
                             list.Add(this.ParseSubpatternElement());
                             continue;
                         }
@@ -621,12 +626,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         private bool IsPossibleSubpatternElement()
         {
-            var tk = this.CurrentToken.Kind;
-            bool isExpression = this.IsPossibleExpression() &&
-                    // IsPossibleExpression returns true when the next token is a binary operator.
-                    // That is useful for error recovery elsewhere, but not here.
-                    !(SyntaxFacts.IsBinaryExpression(tk) || SyntaxFacts.IsAssignmentExpressionOperatorToken(tk));
-            return isExpression || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
+            return this.IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false) ||
+                this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
         }
 
         private PostSkipAction SkipBadPatternListTokens(
@@ -672,19 +673,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var expression = ParseExpressionCore();
                 var switchExpressionCase = _syntaxFactory.SwitchExpressionArm(pattern, whenClause, arrow, expression);
                 arms.Add(switchExpressionCase);
-                if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
                 {
-                    var commaToken = this.EatToken();
-                    if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                    {
-                        commaToken = this.AddError(commaToken, ErrorCode.ERR_UnexpectedToken, this.CurrentToken.Text);
-                    }
-
+                    var commaToken = this.EatToken(SyntaxKind.CommaToken);
                     arms.AddSeparator(commaToken);
-                }
-                else
-                {
-                    break;
                 }
             }
 

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,8 +8,6 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    [ExportFormattingRule(Name, LanguageNames.CSharp), Shared]
-    [ExtensionOrder(After = QueryExpressionFormattingRule.Name)]
     internal class TokenBasedFormattingRule : BaseFormattingRule
     {
         internal const string Name = "CSharp Token Based Formatting Rule";
@@ -65,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                             !currentToken.IsParenInParenthesizedExpression() &&
                             !currentToken.IsCommaInInitializerExpression() &&
                             !currentToken.IsCommaInAnyArgumentsList() &&
+                            !currentToken.IsCommaInTupleExpression() &&
                             !currentToken.IsParenInArgumentList() &&
                             !currentToken.IsDotInMemberAccess() &&
                             !currentToken.IsCloseParenInStatement() &&
@@ -311,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                                                SyntaxKind.LabeledStatement,
                                                SyntaxKind.AttributeTargetSpecifier,
                                                SyntaxKind.NameColon,
-                                               SyntaxKind.SwitchExpressionArm))
+                                               SyntaxKindEx.SwitchExpressionArm))
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
@@ -383,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // suppress warning operator: null! or x! or x++! or x[i]! or (x)! or ...
             if (currentToken.Kind() == SyntaxKind.ExclamationToken &&
-                currentToken.Parent.Kind() == SyntaxKind.SuppressNullableWarningExpression)
+                currentToken.Parent.Kind() == SyntaxKindEx.SuppressNullableWarningExpression)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
@@ -416,8 +414,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
-            // ! *
-            if (previousToken.Kind() == SyntaxKind.ExclamationToken)
+            // ! *, except where ! is the suppress nullable warning operator
+            if (previousToken.Kind() == SyntaxKind.ExclamationToken
+                && previousToken.Parent.Kind() != SyntaxKindEx.SuppressNullableWarningExpression)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }

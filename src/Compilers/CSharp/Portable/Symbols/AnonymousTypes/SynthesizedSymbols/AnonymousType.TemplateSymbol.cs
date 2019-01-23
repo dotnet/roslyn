@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            internal sealed override bool IsByRefLikeType
+            public sealed override bool IsRefLikeType
             {
                 get { return false; }
             }
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return Accessibility.Internal; }
             }
 
-            internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
+            internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
             {
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
@@ -373,12 +373,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return this; }
             }
 
-            internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
+            internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
             {
                 return this.Manager.System_Object;
             }
 
-            internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved)
+            internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
             {
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }

@@ -182,7 +182,7 @@ class C : System.IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         System.Console.Write(""DisposeAsync1 "");
-        await Task.Delay(10);
+        await Task.Yield();
         System.Console.Write(""DisposeAsync2 "");
     }
 }
@@ -267,7 +267,7 @@ class C : System.IAsyncDisposable
     [System.Obsolete]
     public async System.Threading.Tasks.ValueTask DisposeAsync()
     {
-        await System.Threading.Tasks.Task.Delay(10);
+        await System.Threading.Tasks.Task.Yield();
     }
 }
 ";
@@ -323,7 +323,7 @@ class C : System.IAsyncDisposable
     public async System.Threading.Tasks.ValueTask DisposeAsync()
     {
         System.Console.Write($""dispose_start "");
-        await System.Threading.Tasks.Task.Delay(10);
+        await System.Threading.Tasks.Task.Yield();
         System.Console.Write($""dispose_end "");
     }
 }
@@ -438,7 +438,7 @@ class C : System.IAsyncDisposable
     public async System.Threading.Tasks.ValueTask DisposeAsync()
     {
         System.Console.Write($""dispose_start "");
-        await System.Threading.Tasks.Task.Delay(10);
+        await System.Threading.Tasks.Task.Yield();
         System.Console.Write($""dispose_end "");
     }
 }
@@ -446,6 +446,42 @@ class C : System.IAsyncDisposable
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        public void TestThrowingDisposeAsync()
+        {
+            string source = @"
+class C : System.IAsyncDisposable
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        try
+        {
+            await using (var x = new C())
+            {
+                System.Console.Write(""using "");
+            }
+        }
+        catch (System.Exception e)
+        {
+            System.Console.Write($""caught {e.Message}"");
+            return;
+        }
+        System.Console.Write(""SKIPPED"");
+    }
+    public async System.Threading.Tasks.ValueTask DisposeAsync()
+    {
+        bool b = true;
+        if (b) throw new System.Exception(""message"");
+        System.Console.Write(""SKIPPED"");
+        await System.Threading.Tasks.Task.Yield();
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "using caught message");
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
@@ -463,7 +499,7 @@ class C
         finally
         {
             System.Console.Write(""before "");
-            await Task.Delay(10);
+            await Task.Yield();
             System.Console.Write(""after"");
         }
         return 1;
@@ -1444,7 +1480,7 @@ class S : System.IAsyncDisposable
     public async System.Threading.Tasks.ValueTask DisposeAsync()
     {
         System.Console.Write($""dispose{_i}_start "");
-        await System.Threading.Tasks.Task.Delay(10);
+        await System.Threading.Tasks.Task.Yield();
         System.Console.Write($""dispose{_i}_end "");
     }
 }

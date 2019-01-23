@@ -101,8 +101,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return token.IsContextualKeyword()
         End Function
 
-        Public Function IsKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsKeyword
-            Return token.IsKeyword()
+        Public Function IsReservedKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsReservedKeyword
+            Return token.IsReservedKeyword()
         End Function
 
         Public Function IsPreprocessorKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsPreprocessorKeyword
@@ -812,6 +812,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If useFullSpan OrElse node.Span.Contains(position) Then
 
                     If TypeOf node Is MethodBlockBaseSyntax AndAlso Not TypeOf node.Parent Is PropertyBlockSyntax Then
+                        Return node
+                    End If
+
+                    If TypeOf node Is MethodBaseSyntax AndAlso Not TypeOf node.Parent Is MethodBlockBaseSyntax Then
                         Return node
                     End If
 

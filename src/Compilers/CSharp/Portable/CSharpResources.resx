@@ -198,6 +198,9 @@
   <data name="IDS_Collection" xml:space="preserve">
     <value>collection</value>
   </data>
+  <data name="IDS_Disposable" xml:space="preserve">
+    <value>disposable</value>
+  </data>
   <data name="IDS_FeaturePropertyAccessorMods" xml:space="preserve">
     <value>access modifiers on properties</value>
   </data>
@@ -2633,13 +2636,25 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</value>
   </data>
   <data name="ERR_AwaitForEachMissingMember" xml:space="preserve">
-    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</value>
+    <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance definition for '{1}'</value>
   </data>
   <data name="ERR_ForEachMissingMemberWrongAsync" xml:space="preserve">
     <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</value>
   </data>
   <data name="ERR_AwaitForEachMissingMemberWrongAsync" xml:space="preserve">
     <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</value>
+  </data>
+  <data name="ERR_PossibleAsyncIteratorWithoutYield" xml:space="preserve">
+    <value>The body of an async-iterator method must contain a 'yield' statement.</value>
+  </data>
+  <data name="ERR_PossibleAsyncIteratorWithoutYieldOrAwait" xml:space="preserve">
+    <value>The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.</value>
+  </data>
+  <data name="ERR_StaticLocalFunctionCannotCaptureVariable" xml:space="preserve">
+    <value>A static local function cannot contain a reference to '{0}'.</value>
+  </data>
+  <data name="ERR_StaticLocalFunctionCannotCaptureThis" xml:space="preserve">
+    <value>A static local function cannot contain a reference to 'this' or 'base'.</value>
   </data>
   <data name="WRN_BadXMLRefParamType" xml:space="preserve">
     <value>Invalid type for parameter {0} in XML comment cref attribute: '{1}'</value>
@@ -2779,6 +2794,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_BadYieldInFinally" xml:space="preserve">
     <value>Cannot yield in the body of a finally clause</value>
   </data>
+  <data name="ERR_IteratorMustBeAsync" xml:space="preserve">
+    <value>Method '{0}' with an iterator block must be 'async' to return '{1}'</value>
+  </data>
   <data name="ERR_BadYieldInTryOfCatch" xml:space="preserve">
     <value>Cannot yield a value in the body of a try block with a catch clause</value>
   </data>
@@ -2804,10 +2822,16 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Unrecognized #pragma directive</value>
   </data>
   <data name="WRN_IllegalPPWarning" xml:space="preserve">
-    <value>Expected disable or restore</value>
+    <value>Expected disable, restore, enable or safeonly</value>
   </data>
   <data name="WRN_IllegalPPWarning_Title" xml:space="preserve">
-    <value>Expected disable or restore after #pragma warning</value>
+    <value>Expected disable, restore, enable or safeonly after #pragma warning</value>
+  </data>
+  <data name="WRN_IllegalPPWarningSafeOnly" xml:space="preserve">
+    <value>Expected nullable</value>
+  </data>
+  <data name="WRN_IllegalPPWarningSafeOnly_Title" xml:space="preserve">
+    <value>Expected nullable after #pragma warning safeonly</value>
   </data>
   <data name="WRN_BadRestoreNumber" xml:space="preserve">
     <value>Cannot restore warning 'CS{0}' because it was disabled globally</value>
@@ -2957,7 +2981,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.</value>
   </data>
   <data name="ERR_NoConvToIDisp" xml:space="preserve">
-    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'</value>
+    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</value>
   </data>
   <data name="ERR_NoConvToIDispWrongAsync" xml:space="preserve">
     <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</value>
@@ -3630,7 +3654,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>Since '{0}' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task&lt;T&gt;'?</value>
   </data>
   <data name="ERR_BadAsyncReturn" xml:space="preserve">
-    <value>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, or IAsyncEnumerable&lt;T&gt;</value>
+    <value>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, IAsyncEnumerable&lt;T&gt;, or IAsyncEnumerator&lt;T&gt;</value>
   </data>
   <data name="ERR_CantReturnVoid" xml:space="preserve">
     <value>Cannot return an expression of type 'void'</value>
@@ -4284,9 +4308,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_Text" xml:space="preserve">
     <value>&lt;text&gt;</value>
   </data>
-  <data name="IDS_InjectedDeclaration" xml:space="preserve">
-    <value>injected declaration</value>
-  </data>
   <data name="IDS_FeatureNullPropagatingOperator" xml:space="preserve">
     <value>null propagating operator</value>
   </data>
@@ -4599,7 +4620,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               `default` (latest major version), or
                               `latest` (latest version, including minor versions),
                               or specific versions like `6` or `7.1`
--nullable[+|-]                Enable/disable Nullable Reference Types feature
+-nullable[+|-]                Specify nullable context option enable|disable.
+-nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
+                              Specify nullable context option enable|disable|safeonly|warnings|safeonlywarnings.
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public
@@ -4622,7 +4645,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 -baseaddress:&lt;address&gt;        Base address for the library to be built
 -checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
                               checksum stored in PDB. Supported values are:
-                              SHA1 (default) or SHA256.
+                              SHA1 or SHA256 (default).
 -codepage:&lt;n&gt;                 Specify the codepage to use when opening source
                               files
 -utf8output                   Output compiler messages in UTF-8 encoding
@@ -4640,6 +4663,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 -errorendlocation             Output line and column of the end location of
                               each error
 -preferreduilang              Specify the preferred output language name.
+-nosdkpath                    Disable searching the default SDK path for standard library assemblies.
 -nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
 -subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
 -lib:&lt;file list&gt;              Specify additional directories to search in for
@@ -5250,6 +5274,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureNullableReferenceTypes" xml:space="preserve">
     <value>nullable reference types</value>
   </data>
+  <data name="IDS_FeaturePragmaWarningEnableOrSafeOnly" xml:space="preserve">
+    <value>warning action enable or safeonly</value>
+  </data>
   <data name="WRN_ConvertingNullableToNonNullable" xml:space="preserve">
     <value>Converting null literal or possible null value to non-nullable type.</value>
   </data>
@@ -5403,6 +5430,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_AnnotationDisallowedInObjectCreation" xml:space="preserve">
     <value>Cannot use a nullable reference type in object creation.</value>
   </data>
+  <data name="WRN_NullableValueTypeMayBeNull" xml:space="preserve">
+    <value>Nullable value type may be null.</value>
+  </data>
+  <data name="WRN_NullableValueTypeMayBeNull_Title" xml:space="preserve">
+    <value>Nullable value type may be null.</value>
+  </data>
   <data name="WRN_NullabilityMismatchInTypeParameterConstraint" xml:space="preserve">
     <value>The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. Nullability of type argument '{3}' doesn't match constraint type '{1}'.</value>
   </data>
@@ -5421,20 +5454,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NullableUnconstrainedTypeParameter" xml:space="preserve">
     <value>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</value>
   </data>
-  <data name="WRN_SuppressionOperatorNotReferenceType" xml:space="preserve">
-    <value>The suppression operator (!) can only be applied to reference types.</value>
-  </data>
-  <data name="WRN_SuppressionOperatorNotReferenceType_Title" xml:space="preserve">
-    <value>The suppression operator (!) can only be applied to reference types.</value>
-  </data>
   <data name="ERR_NullableOptionNotAvailable" xml:space="preserve">
     <value>Invalid '{0}' value: '{1}' for C# {2}. Please use language version {3} or greater.</value>
-  </data>
-  <data name="WRN_MissingNonNullTypesContext" xml:space="preserve">
-    <value>The suppression operator (!) should be used in code within a '#nullable' context.</value>
-  </data>
-  <data name="WRN_MissingNonNullTypesContext_Title" xml:space="preserve">
-    <value>The suppression operator (!) should be used in code within a '#nullable' context.</value>
   </data>
   <data name="WRN_CantInferNullabilityOfMethodTypeArgs" xml:space="preserve">
     <value>The nullability of type arguments for method '{0}' cannot be inferred from the usage. Try specifying the type arguments explicitly.</value>
@@ -5524,7 +5545,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.</value>
   </data>
   <data name="ERR_InDynamicMethodArg" xml:space="preserve">
-    <value>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</value>
+    <value>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</value>
   </data>
   <data name="ERR_TupleSizesMismatchForBinOps" xml:space="preserve">
     <value>Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</value>
@@ -5571,14 +5592,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRecursivePatterns" xml:space="preserve">
     <value>recursive patterns</value>
   </data>
-  <data name="ERR_InferredRecursivePatternType" xml:space="preserve">
-    <value>The type 'var' is not permitted in recursive patterns. If you want the type inferred, just omit it.</value>
-  </data>
   <data name="ERR_WrongNumberOfSubpatterns" xml:space="preserve">
     <value>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</value>
   </data>
   <data name="ERR_PropertyPatternNameMissing" xml:space="preserve">
-    <value>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0}}}'</value>
+    <value>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0} }}'</value>
   </data>
   <data name="ERR_DefaultPattern" xml:space="preserve">
     <value>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</value>
@@ -5670,14 +5688,26 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRangeOperator" xml:space="preserve">
     <value>range operator</value>
   </data>
+  <data name="IDS_FeatureStaticLocalFunctions" xml:space="preserve">
+    <value>static local functions</value>
+  </data>
   <data name="ERR_BadDynamicAwaitForEach" xml:space="preserve">
     <value>Cannot use a collection of dynamic type in an asynchronous foreach</value>
   </data>
-  <data name="ERR_ExplicitNonNullTypesAttribute" xml:space="preserve">
-    <value>Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.</value>
-  </data>
   <data name="ERR_NullableDirectiveQualifierExpected" xml:space="preserve">
-    <value>Expected enable or disable</value>
+    <value>Expected 'enable', 'safeonly', 'disable', or 'restore'</value>
+  </data>
+  <data name="ERR_ExpressionTreeCantContainRefStruct" xml:space="preserve">
+    <value>Expression tree cannot contain value of ref struct or restricted type '{0}'.</value>
+  </data>
+  <data name="ERR_ElseCannotStartStatement" xml:space="preserve">
+    <value>'else' cannot start a statement.</value>
+  </data>
+  <data name="ERR_ExpressionTreeCantContainNullCoalescingAssignment" xml:space="preserve">
+    <value>An expression tree may not contain a null coalescing assignment</value>
+  </data>
+  <data name="ERR_BadNullableContextOption" xml:space="preserve">
+    <value>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'safeonly', 'warnings' or 'safeonlywarnings'</value>
   </data>
   <data name="ERR_SwitchGoverningExpressionRequiresParens" xml:space="preserve">
     <value>Parentheses are required around the switch governing expression.</value>
@@ -5714,5 +5744,38 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DiscardPatternInSwitchStatement" xml:space="preserve">
     <value>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInExplicitlyImplementedInterface" xml:space="preserve">
+    <value>Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInExplicitlyImplementedInterface_Title" xml:space="preserve">
+    <value>Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInInterfaceImplementedByBase" xml:space="preserve">
+    <value>'{0}' does not implement interface member '{1}'. Nullability of reference types in interface implemented by the base type doesn't match.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInInterfaceImplementedByBase_Title" xml:space="preserve">
+    <value>Type does not implement interface member. Nullability of reference types in interface implemented by the base type doesn't match.</value>
+  </data>
+  <data name="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList" xml:space="preserve">
+    <value>'{0}' is already listed in the interface list on type '{1}' with different nullability of reference types.</value>
+  </data>
+  <data name="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList_Title" xml:space="preserve">
+    <value>Interface is already listed in the interface list with different nullability of reference types.</value>
+  </data>
+  <data name="ERR_DuplicateExplicitImpl" xml:space="preserve">
+    <value>'{0}' is explicitly implemented more than once.</value>
+  </data>
+  <data name="ERR_UsingVarInSwitchCase" xml:space="preserve">
+    <value>A using variable cannot be used directly within a switch section (consider using braces). </value>
+  </data>
+  <data name="ERR_GoToForwardJumpOverUsingVar" xml:space="preserve">
+    <value>A goto cannot jump to a location after a using declaration.</value>
+  </data>
+  <data name="ERR_GoToBackwardJumpOverUsingVar" xml:space="preserve">
+    <value>A goto cannot jump to a location before a using declaration within the same block.</value>
+  </data>
+  <data name="IDS_FeatureUsingDeclarations" xml:space="preserve">
+    <value>using declarations</value>
   </data>
 </root>

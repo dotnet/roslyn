@@ -202,7 +202,7 @@ class AsyncExample
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestUsingAwait_OnAsync()
+        public async Task TestAwaitUsing_OnAsync()
         {
             await TestAsync(
 @"using System.Threading.Tasks;
@@ -211,13 +211,13 @@ class C
 {
     {|Cursor:[|async|]|} Task M()
     {
-        using [|await|] (var x = new object());
+        [|await|] using (var x = new object());
     }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestUsingAwait_OnAwait()
+        public async Task TestAwaitUsing_OnAwait()
         {
             await TestAsync(
 @"using System.Threading.Tasks;
@@ -226,7 +226,37 @@ class C
 {
     [|async|] Task M()
     {
-        using {|Cursor:[|await|]|} (var x = new object());
+        {|Cursor:[|await|]|} using (var x = new object());
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestAwaitUsingDeclaration_OnAsync()
+        {
+            await TestAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    {|Cursor:[|async|]|} Task M()
+    {
+        [|await|] using var x = new object();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestAwaitUsingDeclaration_OnAwait()
+        {
+            await TestAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    [|async|] Task M()
+    {
+        {|Cursor:[|await|]|} using var x = new object();
     }
 }");
         }

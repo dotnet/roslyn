@@ -1419,7 +1419,7 @@ True
             verifier.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "PROTOTYPE(patterns2): Support for instrumentation for pattern switch is incomplete")]
+        [Fact]
         public void PatternsCoverage()
         {
             string source = @"

@@ -46,7 +46,7 @@ namespace RunTests.Cache
             public bool IsPullRequest { get; set; }
             public int PullRequestId { get; set; }
             public string PullRequestUserName { get; set; }
-       } 
+        }
 
         internal sealed class TestCacheData
         {

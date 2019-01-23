@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceMemberContainerTypeSymbol containingType,
             DeclarationModifiers modifiers,
             string name,
-            SyntaxReference syntax, 
+            SyntaxReference syntax,
             Location location)
             : base(containingType, name, syntax, location)
         {
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeSyntax?.Location ?? this.Locations[0], type);
             }
-            else if (type.IsByRefLikeType && (this.IsStatic || !containingType.IsByRefLikeType))
+            else if (type.IsRefLikeType && (this.IsStatic || !containingType.IsRefLikeType))
             {
                 diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeSyntax?.Location ?? this.Locations[0], type);
             }
@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var binderFactory = compilation.GetBinderFactory(SyntaxTree);
                 var binder = binderFactory.GetBinder(typeSyntax);
 
-                binder = binder.WithContainingMemberOrLambda(this);
+                binder = binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
                 if (!ContainingType.IsScriptClass)
                 {
                     type = binder.BindType(typeSyntax, diagnosticsForFirstDeclarator);
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 if ((object)initializerOpt.Type != null && !initializerOpt.Type.IsErrorType())
                                 {
-                                    type = TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, initializerOpt.Type);
+                                    type = TypeSymbolWithAnnotations.Create(initializerOpt.Type);
                                 }
 
                                 _lazyFieldTypeInferred = 1;
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (type.IsNull)
                         {
-                            type = TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, binder.CreateErrorType("var"));
+                            type = TypeSymbolWithAnnotations.Create(binder.CreateErrorType("var"));
                         }
                     }
                 }
@@ -570,6 +570,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return false;
+        }
+
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        {
+            var options = (CSharpParseOptions)SyntaxTree.Options;
+            bool includeNullability = options.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
+            Type.CheckAllConstraints(conversions.WithNullability(includeNullability), ErrorLocation, diagnostics);
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
         }
     }
 }

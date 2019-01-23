@@ -106,6 +106,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add [Obsolete].
+        /// </summary>
+        internal static string Add_Obsolete {
+            get {
+                return ResourceManager.GetString("Add_Obsolete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add parentheses.
         /// </summary>
         internal static string Add_parentheses_around_conditional_expression_in_interpolated_string {

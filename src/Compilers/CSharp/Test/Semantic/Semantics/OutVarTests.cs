@@ -4418,7 +4418,23 @@ public class X
                 // (18,30): error CS0841: Cannot use local variable 'x4' before it is declared
                 //         bool f (object o) => x4 && TakeOutParam(o, out int x4);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(18, 30),
-                // (25,67): error CS0128: A local variable named 'x5' is already defined in this scope
+                // (25,67): error CS0128: A local variable or function named 'x5' is already defined in this scope
+                //                                          TakeOutParam(o2, out int x5) && 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(25, 67),
+                // (39,15): error CS0103: The name 'x7' does not exist in the current context
+                //         Dummy(x7, 1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(39, 15),
+                // (43,15): error CS0103: The name 'x7' does not exist in the current context
+                //         Dummy(x7, 2); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(43, 15)
+                );
+
+            compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_3);
+            compilation.VerifyDiagnostics(
+                // (18,30): error CS0841: Cannot use local variable 'x4' before it is declared
+                //         bool f (object o) => x4 && TakeOutParam(o, out int x4);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(18, 30),
+                // (25,67): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //                                          TakeOutParam(o2, out int x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(25, 67),
                 // (39,15): error CS0103: The name 'x7' does not exist in the current context
@@ -5531,7 +5547,7 @@ True");
 @"
 IFieldInitializerOperation (Field: System.Boolean X.Test1) (OperationKind.FieldInitializer, Type: null) (Syntax: '= TakeOutPa ... & Dummy(x1)')
   Locals: Local_1: System.Int32 x1
-  IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'TakeOutPara ... & Dummy(x1)')
+  IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'TakeOutPara ... & Dummy(x1)')
     Left: 
       IInvocationOperation (System.Boolean X.TakeOutParam(System.Int32 y, out System.Int32 x)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'TakeOutPara ... out int x1)')
         Instance Receiver: 
@@ -10976,7 +10992,7 @@ public class X
 @"
 IParameterInitializerOperation (Parameter: [System.Boolean p = default(System.Boolean)]) (OperationKind.ParameterInitializer, Type: null, IsInvalid) (Syntax: '= TakeOutPa ... ) && x3 > 0')
   Locals: Local_1: System.Int32 x3
-  IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid) (Syntax: 'TakeOutPara ... ) && x3 > 0')
+  IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: System.Boolean, IsInvalid) (Syntax: 'TakeOutPara ... ) && x3 > 0')
     Left: 
       IInvocationOperation (System.Boolean X.TakeOutParam(System.Int32 y, out System.Int32 x)) (OperationKind.Invocation, Type: System.Boolean, IsInvalid) (Syntax: 'TakeOutPara ... out int x3)')
         Instance Receiver: 
@@ -10992,7 +11008,7 @@ IParameterInitializerOperation (Parameter: [System.Boolean p = default(System.Bo
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Right: 
-      IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid) (Syntax: 'x3 > 0')
+      IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean, IsInvalid) (Syntax: 'x3 > 0')
         Left: 
           ILocalReferenceOperation: x3 (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x3')
         Right: 
@@ -11234,7 +11250,7 @@ True");
 @"
 IPropertyInitializerOperation (Property: System.Boolean X.Test1 { get; }) (OperationKind.PropertyInitializer, Type: null) (Syntax: '= TakeOutPa ... & Dummy(x1)')
   Locals: Local_1: System.Int32 x1
-  IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'TakeOutPara ... & Dummy(x1)')
+  IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'TakeOutPara ... & Dummy(x1)')
     Left: 
       IInvocationOperation (System.Boolean X.TakeOutParam(System.Int32 y, out System.Int32 x)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'TakeOutPara ... out int x1)')
         Instance Receiver: 
@@ -19114,7 +19130,7 @@ public class Cls
 }";
             var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
-            CompileAndVerify(compilation, expectedOutput: 
+            CompileAndVerify(compilation, expectedOutput:
 @"124
 125").VerifyDiagnostics();
 
@@ -28400,7 +28416,7 @@ class H
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void GlobalCode_LabeledStatement_06()
         {
             string source =
@@ -34251,7 +34267,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
             IOperation blockBodyOperation = model.GetOperation(blockBodySyntax);
-            Assert.Equal(OperationKind.ConstructorBodyOperation, blockBodyOperation.Parent.Kind);
+            Assert.Equal(OperationKind.ConstructorBody, blockBodyOperation.Parent.Kind);
             Assert.Same(initializerOperation.Parent.Parent, blockBodyOperation.Parent);
             Assert.Null(blockBodyOperation.Parent.Parent);
 
@@ -34284,7 +34300,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
 
             compilation.VerifyOperationTree(declarationSyntax, expectedOperationTree:
 @"
-IConstructorBodyOperation (OperationKind.ConstructorBodyOperation, Type: null, IsInvalid) (Syntax: 'C() : this( ... out var z);')
+IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null, IsInvalid) (Syntax: 'C() : this( ... out var z);')
   Locals: Local_1: System.Int32 x
   Initializer: 
     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: ': this(out var x)')
@@ -34372,7 +34388,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
             IOperation expressionBodyOperation = model.GetOperation(expressionBodySyntax);
-            Assert.Equal(OperationKind.MethodBodyOperation, expressionBodyOperation.Parent.Kind);
+            Assert.Equal(OperationKind.MethodBody, expressionBodyOperation.Parent.Kind);
             Assert.Null(expressionBodyOperation.Parent.Parent);
 
             var blockBodySyntax = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
@@ -34408,7 +34424,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
             Assert.Same(expressionBodyOperation.Parent, model.GetOperation(declarationSyntax));
             compilation.VerifyOperationTree(declarationSyntax, expectedOperationTree:
 @"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null, IsInvalid) (Syntax: 'get {return ... out var y);')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'get {return ... out var y);')
   BlockBody: 
     IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{return M(out var x);}')
       Locals: Local_1: System.Int32 x

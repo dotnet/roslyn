@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -24,9 +25,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="d">The input diagnostic</param>
         /// <param name="warningLevelOption">The maximum warning level to allow. Diagnostics with a higher warning level will be filtered out.</param>
         /// <param name="generalDiagnosticOption">How warning diagnostics should be reported</param>
+        /// <param name="nullableOption">Whether Nullable Reference Types feature is enabled globally</param>
         /// <param name="specificDiagnosticOptions">How specific diagnostics should be reported</param>
         /// <returns>A diagnostic updated to reflect the options, or null if it has been filtered out</returns>
-        public static Diagnostic Filter(Diagnostic d, int warningLevelOption, ReportDiagnostic generalDiagnosticOption, IDictionary<string, ReportDiagnostic> specificDiagnosticOptions)
+        public static Diagnostic Filter(Diagnostic d, int warningLevelOption, NullableContextOptions nullableOption, ReportDiagnostic generalDiagnosticOption, IDictionary<string, ReportDiagnostic> specificDiagnosticOptions)
         {
             if (d == null)
             {
@@ -70,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     d.Location as Location,
                     d.Category,
                     warningLevelOption,
+                    nullableOption,
                     generalDiagnosticOption,
                     specificDiagnosticOptions,
                     out hasPragmaSuppression);
@@ -77,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 reportAction = GetDiagnosticReport(d.Severity, d.IsEnabledByDefault, d.Id, d.WarningLevel, d.Location as Location,
-                    d.Category, warningLevelOption, generalDiagnosticOption, specificDiagnosticOptions, out hasPragmaSuppression);
+                    d.Category, warningLevelOption, nullableOption, generalDiagnosticOption, specificDiagnosticOptions, out hasPragmaSuppression);
             }
 
             if (hasPragmaSuppression)
@@ -98,6 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Location location,
             string category,
             int warningLevelOption,
+            NullableContextOptions nullableOption,
             ReportDiagnostic generalDiagnosticOption,
             IDictionary<string, ReportDiagnostic> specificDiagnosticOptions,
             out bool hasPragmaSuppression)
@@ -113,18 +117,89 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Compute if the reporting should be suppressed.
-            if (diagnosticWarningLevel > warningLevelOption  // honor the warning level
-                || report == ReportDiagnostic.Suppress)                // check options (/nowarn)
+            if (diagnosticWarningLevel > warningLevelOption)  // honor the warning level
             {
                 return ReportDiagnostic.Suppress;
             }
 
+            bool isNullableFlowAnalysisSafetyWarning = ErrorFacts.NullableFlowAnalysisSafetyWarnings.Contains(id);
+            bool isNullableFlowAnalysisNonSafetyWarning = ErrorFacts.NullableFlowAnalysisNonSafetyWarnings.Contains(id);
+            Debug.Assert(!isNullableFlowAnalysisSafetyWarning || !isNullableFlowAnalysisNonSafetyWarning);
+
+            if (report == ReportDiagnostic.Suppress && // check options (/nowarn)
+                !isNullableFlowAnalysisSafetyWarning && !isNullableFlowAnalysisNonSafetyWarning)
+            {
+                return ReportDiagnostic.Suppress;
+            }
+
+            var pragmaWarningState = Syntax.PragmaWarningState.Default;
+
             // If location is available, check out pragmas
             if (location != null &&
                 location.SourceTree != null &&
-                ((SyntaxTree)location.SourceTree).GetPragmaDirectiveWarningState(id, location.SourceSpan.Start) == ReportDiagnostic.Suppress)
+                (pragmaWarningState = location.SourceTree.GetPragmaDirectiveWarningState(id, location.SourceSpan.Start)) == Syntax.PragmaWarningState.Disabled)
             {
                 hasPragmaSuppression = true;
+            }
+
+            if (pragmaWarningState == Syntax.PragmaWarningState.Enabled)
+            {
+                switch (report)
+                {
+                    case ReportDiagnostic.Error:
+                    case ReportDiagnostic.Hidden:
+                    case ReportDiagnostic.Info:
+                    case ReportDiagnostic.Warn:
+                        // No need to adjust the current report state, it already means "enabled"
+                        return report;
+
+                    case ReportDiagnostic.Suppress:
+                        // Enable the warning
+                        return ReportDiagnostic.Default;
+
+                    case ReportDiagnostic.Default:
+                        if (generalDiagnosticOption == ReportDiagnostic.Error && promoteToAnError())
+                        {
+                            return ReportDiagnostic.Error;
+                        }
+
+                        return ReportDiagnostic.Default;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(report);
+                }
+            }
+            else if (report == ReportDiagnostic.Suppress) // check options (/nowarn)
+            {
+                return ReportDiagnostic.Suppress;
+            }
+
+            // Nullable flow analysis warnings cannot be turned on by specific diagnostic options.
+            // They can be turned on by nullable options and specific diagnostic options
+            // can either turn them off, or adjust the way they are reported.
+            switch (nullableOption)
+            {
+                case NullableContextOptions.Disable:
+                    if (isNullableFlowAnalysisSafetyWarning || isNullableFlowAnalysisNonSafetyWarning)
+                    {
+                        return ReportDiagnostic.Suppress;
+                    }
+                    break;
+
+                case NullableContextOptions.SafeOnly:
+                case NullableContextOptions.SafeOnlyWarnings:
+                    if (isNullableFlowAnalysisNonSafetyWarning)
+                    {
+                        return ReportDiagnostic.Suppress;
+                    }
+                    break;
+
+                case NullableContextOptions.Enable:
+                case NullableContextOptions.Warnings:
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(nullableOption);
             }
 
             // Unless specific warning options are defined (/warnaserror[+|-]:<n> or /nowarn:<n>, 
@@ -134,15 +209,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (generalDiagnosticOption)
                 {
                     case ReportDiagnostic.Error:
-                        // If we've been asked to do warn-as-error then don't raise severity for anything below warning (info or hidden).
-                        if (severity == DiagnosticSeverity.Warning)
+                        if (promoteToAnError())
                         {
-                            // In the case where /warnaserror+ is followed by /warnaserror-:<n> on the command line,
-                            // do not promote the warning specified in <n> to an error.
-                            if (!isSpecified && (report == ReportDiagnostic.Default))
-                            {
-                                return ReportDiagnostic.Error;
-                            }
+                            return ReportDiagnostic.Error;
                         }
                         break;
                     case ReportDiagnostic.Suppress:
@@ -160,6 +229,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return report;
+
+            bool promoteToAnError()
+            {
+                Debug.Assert(report == ReportDiagnostic.Default);
+                Debug.Assert(generalDiagnosticOption == ReportDiagnostic.Error);
+
+                // If we've been asked to do warn-as-error then don't raise severity for anything below warning (info or hidden).
+                return severity == DiagnosticSeverity.Warning &&
+                       // In the case where /warnaserror+ is followed by /warnaserror-:<n> on the command line,
+                       // do not promote the warning specified in <n> to an error.
+                       !isSpecified;
+
+            }
         }
     }
 }

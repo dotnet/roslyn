@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class GenericConstraintsTests : CompilingTestBase
     {
@@ -3269,6 +3269,27 @@ unsafe class C
                 // (20,9): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'C.UnmanagedWithInterface<T>(T*)'. There is no boxing conversion from 'int' to 'System.IDisposable'.
                 //         UnmanagedWithInterface(&a);         // fail (does not match interface)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "UnmanagedWithInterface").WithArguments("C.UnmanagedWithInterface<T>(T*)", "System.IDisposable", "T", "int").WithLocation(20, 9));
+        }
+
+        [Fact, WorkItem(31439, "https://github.com/dotnet/roslyn/issues/31439")]
+        public void CircularTypeArgumentUnmanagedConstraint()
+        {
+            var code = @"
+public struct X<T>
+    where T : unmanaged
+{
+}
+
+public struct Z
+{
+    public X<Z> field;
+}
+";
+            CreateCompilation(code).VerifyDiagnostics(
+                // (9,17): error CS8377: The type 'Z' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'X<T>'
+                //     public X<Z> field;
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("X<T>", "T", "Z").WithLocation(9, 17)
+            );
         }
     }
 }

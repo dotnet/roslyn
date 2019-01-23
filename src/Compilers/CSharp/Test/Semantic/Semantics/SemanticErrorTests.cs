@@ -15530,7 +15530,7 @@ unsafe class Test
 }
 ";
 
-            var c = CompileAndVerify(text, expectedOutput: "7788", verify: Verification.Fails, options:TestOptions.UnsafeReleaseExe);
+            var c = CompileAndVerify(text, expectedOutput: "7788", verify: Verification.Fails, options: TestOptions.UnsafeReleaseExe);
 
             c.VerifyIL("Test.example1()", @"
 {
@@ -15725,9 +15725,9 @@ class C
             CreateCompilation(text).VerifyDiagnostics(
                 // (7,22): warning CS0642: Possible mistaken empty statement
                 Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"),
-                // (6,16): error CS1674: 'int': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (6,16): error CS1674: 'int': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "int a = 0").WithArguments("int"),
-                // (7,20): error CS1674: 'int': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (7,20): error CS1674: 'int': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "a").WithArguments("int"));
         }
 

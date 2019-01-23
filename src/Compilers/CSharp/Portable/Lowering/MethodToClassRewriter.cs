@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var newType = VisitType(local.Type.TypeSymbol);
-            if (newType == local.Type.TypeSymbol)
+            if (TypeSymbol.Equals(newType, local.Type.TypeSymbol, TypeCompareKind.ConsiderEverything2))
             {
                 newLocal = local;
             }
@@ -180,8 +180,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitUsingStatement(BoundUsingStatement node)
         {
-            // Using statements have been lowered away before the lambda and async rewriters
-            throw ExceptionUtilities.Unreachable;
+            var newLocals = RewriteLocals(node.Locals);
+            BoundMultipleLocalDeclarations declarationsOpt = (BoundMultipleLocalDeclarations)this.Visit(node.DeclarationsOpt);
+            BoundExpression expressionOpt = (BoundExpression)this.Visit(node.ExpressionOpt);
+            BoundStatement body = (BoundStatement)this.Visit(node.Body);
+            Conversion disposableConversion = RewriteConversion(node.IDisposableConversion);
+            return node.Update(newLocals, declarationsOpt, expressionOpt, disposableConversion, body, node.AwaitOpt, node.DisposeMethodOpt);
         }
 
         private Conversion RewriteConversion(Conversion conversion)
@@ -448,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
             var rewritten = (BoundObjectCreationExpression)base.VisitObjectCreationExpression(node);
-            if (rewritten.Type != node.Type && (object)node.Constructor != null)
+            if (!TypeSymbol.Equals(rewritten.Type, node.Type, TypeCompareKind.ConsiderEverything2) && (object)node.Constructor != null)
             {
                 MethodSymbol ctor = VisitMethodSymbol(node.Constructor);
                 rewritten = rewritten.Update(

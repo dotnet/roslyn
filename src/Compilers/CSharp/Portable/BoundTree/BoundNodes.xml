@@ -3,7 +3,7 @@
 
 
 <!-- 
- To re-generate source from this file, run build/scripts/generate-compiler-code.cmd
+ To re-generate source from this file, run eng/generate-compiler-code.cmd
 
  Important things to know about reference types, value types, and nulls.
 
@@ -146,6 +146,12 @@
   <Node Name="BoundBadStatement" Base="BoundStatement">
     <!-- Any child bound nodes that we need to preserve are put here. -->
     <Field Name="ChildBoundNodes" Type="ImmutableArray&lt;BoundNode&gt;"/>
+  </Node>
+
+  <!-- This node is used to wrap the BoundBlock for a finally extracted by AsyncExceptionHandlerRewriter.
+    It is processed and removed by AsyncIteratorRewriter. -->
+  <Node Name="BoundExtractedFinallyBlock" Base="BoundStatement">
+    <Field Name="FinallyBlock" Type="BoundBlock"/>
   </Node>
 
   <Node Name="BoundTypeExpression" Base="BoundExpression">
@@ -341,13 +347,15 @@
     <Field Name="MethodOpt" Type="MethodSymbol" Null="allow"/>
   </Node>
 
-  <Node Name="BoundBinaryOperator" Base="BoundExpression">
+  <AbstractNode Name="BoundBinaryOperatorBase" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
-    <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="Left" Type="BoundExpression"/>
     <Field Name="Right" Type="BoundExpression"/>
+  </AbstractNode>
+
+  <Node Name="BoundBinaryOperator" Base="BoundBinaryOperatorBase">
+    <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
     <Field Name="MethodOpt" Type="MethodSymbol" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
@@ -368,13 +376,8 @@
     <Field Name="Operators" Type="TupleBinaryOperatorInfo.Multiple"/>
   </Node>
 
-  <Node Name="BoundUserDefinedConditionalLogicalOperator" Base="BoundExpression">
-    <!-- Non-null type is required for this node kind -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
+  <Node Name="BoundUserDefinedConditionalLogicalOperator" Base="BoundBinaryOperatorBase">
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
-    <Field Name="Left" Type="BoundExpression"/>
-    <Field Name="Right" Type="BoundExpression"/>
     <Field Name="LogicalOperator" Type="MethodSymbol"/>
     <Field Name="TrueOperator" Type="MethodSymbol"/>
     <Field Name="FalseOperator" Type="MethodSymbol"/>
@@ -708,8 +711,6 @@
     <Field Name="StatementOpt" Type="BoundStatement" Null="allow"/>
     <Field Name="Span" Type="TextSpan"/>
   </Node>
-
-  
   
   <!--  
   BoundBlock contains 
@@ -732,7 +733,8 @@
   <!--
   This node is used to represent a visibility scope for locals, 
   for which lifetime is extended beyond the visibility scope. 
-  At the moment, only locals declared within CasePatternSwitchLabelSyntax 
+  At the moment, only locals declared within CaseSwitchLabelSyntax
+  and SwitchExpressionSyntax
   have their lifetime expanded to the entire switch body, whereas their 
   visibility scope is the declaring switch section. The node is added into 
   the tree during lowering phase.
@@ -779,7 +781,13 @@
   <Node Name="BoundMultipleLocalDeclarations" Base="BoundStatement">
     <Field Name="LocalDeclarations" Type="ImmutableArray&lt;BoundLocalDeclaration&gt;"/>
   </Node>
- 
+
+  <Node Name="BoundUsingLocalDeclarations" Base="BoundMultipleLocalDeclarations">
+    <Field Name="DisposeMethodOpt" Type="MethodSymbol" Null="Allow"/>
+    <Field Name="IDisposableConversion" Type="Conversion"/>
+    <Field Name="AwaitOpt" Type="AwaitableInfo" Null="allow"/>
+  </Node>
+
   <!-- 
   Bound node that represents a local function declaration:
     void Foo() { }
@@ -836,7 +844,7 @@
     <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
     <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundSwitchSection&gt;"/>
     <Field Name="DecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
-    <Field Name="DefaultLabel" Type="BoundPatternSwitchLabel" Null="allow"/>
+    <Field Name="DefaultLabel" Type="BoundSwitchLabel" Null="allow"/>
     <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
   </Node>
 
@@ -880,16 +888,16 @@
     <Field Name="ContinueLabel" Type="GeneratedLabelSymbol"/>
   </AbstractNode>
 
-  <Node Name="BoundDoStatement" Base="BoundLoopStatement">
+  <AbstractNode Name="BoundConditionalLoopStatement" Base="BoundLoopStatement">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Body" Type="BoundStatement"/>
+  </AbstractNode>
+
+  <Node Name="BoundDoStatement" Base="BoundConditionalLoopStatement">
   </Node>
 
-  <Node Name="BoundWhileStatement" Base="BoundLoopStatement">
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="Condition" Type="BoundExpression"/>
-    <Field Name="Body" Type="BoundStatement"/>
+  <Node Name="BoundWhileStatement" Base="BoundConditionalLoopStatement">
   </Node>
 
   <Node Name="BoundForStatement" Base="BoundLoopStatement">
@@ -945,6 +953,7 @@
     <Field Name="IDisposableConversion" Type="Conversion" />
     <Field Name="Body" Type="BoundStatement"/>
     <Field Name="AwaitOpt" Type="AwaitableInfo" Null="allow"/>
+    <Field Name="DisposeMethodOpt" Type="MethodSymbol" Null="allow"/>
   </Node>
 
   <Node Name="BoundFixedStatement" Base="BoundStatement">
@@ -962,10 +971,17 @@
     <Field Name="TryBlock" Type="BoundBlock"/>
     <Field Name="CatchBlocks" Type="ImmutableArray&lt;BoundCatchBlock&gt;"/>
     <Field Name="FinallyBlockOpt" Type="BoundBlock" Null="allow"/>
-    
+
+    <!--
+    When lowering trys, we sometimes extract the finally clause out of the try.
+    For example, `try { } finally { await expr; }` becomes something like `try { } catch { ... } finallyLabel: { await expr; ... }`.
+    We need to save the label for the finally so that async-iterator rewriting can implement proper disposal.
+    -->
+    <Field Name="FinallyLabelOpt" Type="LabelSymbol" Null="allow"/>
+
     <!--
     PreferFaultHandler is a hint to the codegen to emit Finally in the following shape -
-    
+
     try
     {    
     }
@@ -1238,10 +1254,10 @@
 
   <Node Name="BoundSwitchSection" Base="BoundStatementList">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="SwitchLabels" Type="ImmutableArray&lt;BoundPatternSwitchLabel&gt;"/>
+    <Field Name="SwitchLabels" Type="ImmutableArray&lt;BoundSwitchLabel&gt;"/>
   </Node>
 
-  <Node Name="BoundPatternSwitchLabel" Base="BoundNode">
+  <Node Name="BoundSwitchLabel" Base="BoundNode">
     <Field Name="Label" Type="LabelSymbol"/>
     <Field Name="Pattern" Type="BoundPattern"/>
     <Field Name="WhenClause" Type="BoundExpression" Null="allow"/>
@@ -1311,11 +1327,14 @@
     <Field Name="Invoked" Type="bool"/>
     <Field Name="Indexed" Type="bool"/>
   </Node>
-  
-  <Node Name="BoundDynamicInvocation" Base="BoundExpression">
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+
+  <AbstractNode Name="BoundDynamicInvocableBase" Base="BoundExpression">
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+  </AbstractNode>
+  
+  <Node Name="BoundDynamicInvocation" Base="BoundDynamicInvocableBase">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     
@@ -1562,14 +1581,11 @@
     <Field Name="BinderOpt" Type="Binder" Null="allow" />
   </Node>
 
-  <Node Name="BoundDynamicCollectionElementInitializer" Base="BoundExpression">
+  <Node Name="BoundDynamicCollectionElementInitializer" Base="BoundDynamicInvocableBase">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     
     <!-- We don't hold on DynamicMethodInvocation directly since dynamic invocation isn't specified explicitly in the source. -->
-    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
-    <!-- Used for IOperation to enable translating the initializer to a IDynamicInvocationOperation -->
-    <Field Name="ImplicitReceiver" Type="BoundImplicitReceiver" />
 
     <!-- The set of applicable Add methods that may be invoked at runtime. Empty otherwise. -->
     <Field Name="ApplicableMethods" Type="ImmutableArray&lt;MethodSymbol&gt;" />

@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // method group info, which is what signature help already does.
                 if (info.Symbol == null)
                 {
-                    var memberGroupMethods = 
+                    var memberGroupMethods =
                         SemanticModel.GetMemberGroup(invocation.Expression, CancellationToken)
                                      .OfType<IMethodSymbol>();
 
@@ -1491,17 +1491,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If it's of the form (...) then infer that the type should be a 
                 // tuple, whose elements are inferred from the individual patterns
                 // in the deconstruction.
-                var deconstructionPart = recursivePattern.DeconstructionPatternClause;
-                if (deconstructionPart != null)
+                var positionalPart = recursivePattern.PositionalPatternClause;
+                if (positionalPart != null)
                 {
-                    var subPatternCount = deconstructionPart.Subpatterns.Count;
+                    var subPatternCount = positionalPart.Subpatterns.Count;
                     if (subPatternCount >= 2)
                     {
                         // infer a tuple type for this deconstruction.
                         var elementTypesBuilder = ArrayBuilder<ITypeSymbol>.GetInstance(subPatternCount);
                         var elementNamesBuilder = ArrayBuilder<string>.GetInstance(subPatternCount);
 
-                        foreach (var subPattern in deconstructionPart.Subpatterns)
+                        foreach (var subPattern in positionalPart.Subpatterns)
                         {
                             elementNamesBuilder.Add(subPattern.NameColon?.Name.Identifier.ValueText);
 
@@ -1891,16 +1891,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var memberType = GetMemberType(memberSymbol, out _);
 
-                if (memberType is INamedTypeSymbol namedType)
-                {
-                    if (memberType.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T ||
-                        memberType.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerator_T)
-                    {
-                        return CreateResult(namedType.TypeArguments[0]);
-                    }
-                }
-
-                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                // We don't care what the type is, as long as it has 1 type argument. This will work for IEnumerable, IEnumerator,
+                // IAsyncEnumerable, IAsyncEnumerator and it's also good for error recovery in case there is a missing using.
+                return memberType is INamedTypeSymbol namedType && namedType.TypeArguments.Length == 1
+                    ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(namedType.TypeArguments[0]))
+                    : SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
             private static ITypeSymbol GetMemberType(ISymbol memberSymbol, out bool isAsync)
@@ -2157,7 +2152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if (expr is IdentifierNameSyntax name)
                         {
-                            elementNamesBuilder.Add(name.Identifier.ValueText == "" ? null : 
+                            elementNamesBuilder.Add(name.Identifier.ValueText == "" ? null :
                                 name.Identifier.ValueText);
                             elementTypesBuilder.Add(GetTypes(expr).FirstOrDefault().InferredType ?? this.Compilation.ObjectType);
                         }

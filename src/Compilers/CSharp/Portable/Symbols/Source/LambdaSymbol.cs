@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation,
             Symbol containingSymbol,
             UnboundLambda unboundLambda,
-            ImmutableArray<TypeSymbolWithAnnotations> parameterTypes, 
+            ImmutableArray<TypeSymbolWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
             RefKind refKind,
             TypeSymbolWithAnnotations returnType,
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _messageID = unboundLambda.Data.MessageID;
             _syntax = unboundLambda.Syntax;
             _refKind = refKind;
-            _returnType = returnType.IsNull ? TypeSymbolWithAnnotations.Create(NonNullTypesNullContext.Instance, ReturnTypeIsBeingInferred) : returnType;
+            _returnType = returnType.IsNull ? TypeSymbolWithAnnotations.Create(ReturnTypeIsBeingInferred) : returnType;
             _isSynthesized = unboundLambda.WasCompilerGenerated;
             _isAsync = unboundLambda.IsAsync;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     type = TypeSymbolWithAnnotations.Create(new ExtendedErrorTypeSymbol(compilation, name: string.Empty, arity: 0, errorInfo: null));
                     refKind = RefKind.None;
                 }
-                
+
                 var name = unboundLambda.ParameterName(p);
                 var location = unboundLambda.ParameterLocation(p);
                 var locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create<Location>(location);
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (object)lambda != null
                 && lambda._syntax == _syntax
                 && lambda._refKind == _refKind
-                && lambda.ReturnType.TypeSymbol == this.ReturnType.TypeSymbol
+                && TypeSymbol.Equals(lambda.ReturnType.TypeSymbol, this.ReturnType.TypeSymbol, TypeCompareKind.ConsiderEverything2)
                 && System.Linq.ImmutableArrayExtensions.SequenceEqual(lambda.ParameterTypes, this.ParameterTypes, (p1, p2) => p1.TypeSymbol.Equals(p2.TypeSymbol))
                 && Equals(lambda.ContainingSymbol, this.ContainingSymbol);
         }

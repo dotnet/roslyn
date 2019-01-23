@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SwitchExpressionLocalRewriter.Rewrite(this, node);
         }
 
-        private class SwitchExpressionLocalRewriter : BasePatternSwitchLocalRewriter
+        private class SwitchExpressionLocalRewriter : BaseSwitchLocalRewriter
         {
             private SwitchExpressionLocalRewriter(BoundSwitchExpression node, LocalRewriter localRewriter)
                 : base(node.Syntax, localRewriter, node.SwitchArms.SelectAsArray(arm => arm.Syntax), isSwitchStatement: false)
@@ -43,7 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
                 var outerVariables = ArrayBuilder<LocalSymbol>.GetInstance();
                 var loweredSwitchGoverningExpression = _localRewriter.VisitExpression(node.Expression);
-                BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(node.DecisionDag, loweredSwitchGoverningExpression, result);
+                BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(
+                    node.DecisionDag, loweredSwitchGoverningExpression, result, out BoundExpression savedInputExpression);
+                Debug.Assert(savedInputExpression != null);
 
                 // lower the decision dag.
                 (ImmutableArray<BoundStatement> loweredDag, ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections) =
@@ -86,14 +88,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (node.DefaultLabel != null)
                 {
                     result.Add(_factory.Label(node.DefaultLabel));
-                    // https://github.com/dotnet/roslyn/issues/27747 Need a dedicated platform exception type to throw for input not matched.
-                    result.Add(_factory.ThrowNull());
+                    var objectType = _factory.SpecialType(SpecialType.System_Object);
+                    var thrownExpression =
+                        (implicitConversionExists(savedInputExpression, objectType) &&
+                                _factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject, isOptional: true) is MethodSymbol exception1)
+                            ? _factory.New(exception1, _factory.Convert(objectType, savedInputExpression)) :
+                        (_factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor, isOptional: true) is MethodSymbol exception0)
+                            ? _factory.New(exception0) :
+                        _factory.New(_factory.WellKnownMethod(WellKnownMember.System_InvalidOperationException__ctor));
+                    result.Add(_factory.Throw(thrownExpression));
                 }
 
                 result.Add(_factory.Label(afterSwitchExpression));
                 outerVariables.Add(resultTemp);
                 outerVariables.AddRange(_tempAllocator.AllTemps());
                 return _factory.SpillSequence(outerVariables.ToImmutableAndFree(), result.ToImmutableAndFree(), _factory.Local(resultTemp));
+
+                bool implicitConversionExists(BoundExpression expression, TypeSymbol type)
+                {
+                    HashSet<DiagnosticInfo> discarded = null;
+                    Conversion c = _localRewriter._compilation.Conversions.ClassifyConversionFromExpression(expression, type, ref discarded);
+                    return c.IsImplicit;
+                }
             }
         }
     }

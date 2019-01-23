@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDeconstructValuePlaceholder FailInference(Binder binder)
         {
-            return SetInferredType(TypeSymbolWithAnnotations.Create(binder.NonNullTypesContext, binder.CreateErrorType()), binder, success: false);
+            return SetInferredType(TypeSymbolWithAnnotations.Create(binder.CreateErrorType()), binder, success: false);
         }
     }
 }

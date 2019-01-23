@@ -4659,7 +4659,7 @@ class C
     }
 }
 ");
-            
+
             var compilation0 = CreateCompilationWithMscorlib40(new[] { source0.Tree }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 
@@ -4753,7 +4753,7 @@ class C
                 Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingAttribute, "F").WithArguments("C.F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute").WithLocation(12, 29));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29662")]
+        [Fact]
         public void AddedIteratorStateMachineAttribute()
         {
             var source0 = MarkedSource(@"
@@ -4938,7 +4938,7 @@ class C
                 Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingAttribute, "F").WithArguments("C.F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute").WithLocation(6, 28));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29662")]
+        [Fact]
         public void AddedAsyncStateMachineAttribute()
         {
             var source0 = MarkedSource(@"
@@ -4972,7 +4972,7 @@ class C
     }
 }
 ");
-                        
+
             var compilation0 = CreateEmptyCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 

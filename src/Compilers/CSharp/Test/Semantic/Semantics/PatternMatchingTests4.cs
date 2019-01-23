@@ -7,10 +7,10 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     [CompilerTrait(CompilerFeature.Patterns)]
-    public class ITuplePatternTests : PatternMatchingTestBase
+    public class PatternMatchingTests4 : PatternMatchingTestBase
     {
         [Fact]
         public void TestPresenceOfITuple()
@@ -854,7 +854,7 @@ class C1
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
-            var dpcss = tree.GetRoot().DescendantNodes().OfType<DeconstructionPatternClauseSyntax>().ToArray();
+            var dpcss = tree.GetRoot().DescendantNodes().OfType<PositionalPatternClauseSyntax>().ToArray();
             for (int i = 0; i < dpcss.Length; i++)
             {
                 var dpcs = dpcss[i];
@@ -1641,7 +1641,7 @@ class _
             (false, false) => 1,
             (false, true) => 2,
             // (true, false) => 3,
-            (true, true) => 4
+            (true, true) => 4,
             };
     }
 }
@@ -1667,7 +1667,7 @@ class _
             (false, false) => 1,
             (false, true) => 2,
             (true, false) => 3,
-            (true, true) => 4
+            (true, true) => 4,
             };
     }
 }
@@ -1718,7 +1718,7 @@ class _
             (true, false) => 3,
             (true, true) => 4,
             _ => 5,
-            (null, true) => 6
+            (null, true) => 6,
             };
     }
 }
@@ -1726,7 +1726,7 @@ class _
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 // (13,13): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
-                //             (null, true) => 6
+                //             (null, true) => 6,
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "(null, true)").WithLocation(13, 13)
                 );
         }
@@ -1895,6 +1895,211 @@ class A: IA, I1, I2, ITuple
                 //         if (a is (var x, var y)) Console.Write($"{x} {y}");
                 Diagnostic(ErrorCode.ERR_AmbigCall, "(var x, var y)").WithArguments("I1.Deconstruct(out int, out int)", "I2.Deconstruct(out int, out int)").WithLocation(8, 18)
                 );
+        }
+
+        [Fact]
+        public void UnmatchedInput_01()
+        {
+            var source =
+@"using System;
+public class C
+{
+    static void Main()
+    {
+        var t = (1, 2);
+        try
+        {
+            _ = t switch { (3, 4) => 1 };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.GetType().Name);
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (9,19): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //             _ = t switch { (3, 4) => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
+                );
+            CompileAndVerify(compilation, expectedOutput: "InvalidOperationException");
+        }
+
+        [Fact]
+        public void UnmatchedInput_02()
+        {
+            var source =
+@"using System; using System.Runtime.CompilerServices;
+public class C
+{
+    static void Main()
+    {
+        var t = (1, 2);
+        try
+        {
+            _ = t switch { (3, 4) => 1 };
+        }
+        catch (SwitchExpressionException ex)
+        {
+            Console.WriteLine($""{ex.GetType().Name}({ex.UnmatchedValue})"");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.GetType().Name);
+        }
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public class SwitchExpressionException : InvalidOperationException
+    {
+        public SwitchExpressionException() {}
+        // public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public object UnmatchedValue { get; }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (9,19): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //             _ = t switch { (3, 4) => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
+                );
+            CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException()");
+        }
+
+        [Fact]
+        public void UnmatchedInput_03()
+        {
+            var source =
+@"using System; using System.Runtime.CompilerServices;
+public class C
+{
+    static void Main()
+    {
+        var t = (1, 2);
+        try
+        {
+            _ = t switch { (3, 4) => 1 };
+        }
+        catch (SwitchExpressionException ex)
+        {
+            Console.WriteLine($""{ex.GetType().Name}({ex.UnmatchedValue})"");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.GetType().Name);
+        }
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public class SwitchExpressionException : InvalidOperationException
+    {
+        public SwitchExpressionException() => throw null;
+        public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public object UnmatchedValue { get; }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (9,19): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //             _ = t switch { (3, 4) => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
+                );
+            CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException((1, 2))");
+        }
+
+        [Fact]
+        public void UnmatchedInput_04()
+        {
+            var source =
+@"using System; using System.Runtime.CompilerServices;
+public class C
+{
+    static void Main()
+    {
+        try
+        {
+            _ = (1, 2) switch { (3, 4) => 1 };
+        }
+        catch (SwitchExpressionException ex)
+        {
+            Console.WriteLine($""{ex.GetType().Name}({ex.UnmatchedValue})"");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.GetType().Name);
+        }
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public class SwitchExpressionException : InvalidOperationException
+    {
+        public SwitchExpressionException() => throw null;
+        public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public object UnmatchedValue { get; }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,24): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //             _ = (1, 2) switch { (3, 4) => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(8, 24)
+                );
+            CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException((1, 2))");
+        }
+
+        [Fact]
+        public void UnmatchedInput_05()
+        {
+            var source =
+@"using System; using System.Runtime.CompilerServices;
+public class C
+{
+    static void Main()
+    {
+        try
+        {
+            R r = new R();
+            _ = r switch { (3, 4) => 1 };
+        }
+        catch (SwitchExpressionException ex)
+        {
+            Console.WriteLine($""{ex.GetType().Name}({ex.UnmatchedValue})"");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.GetType().Name);
+        }
+    }
+}
+ref struct R
+{
+    public void Deconstruct(out int X, out int Y) => (X, Y) = (1, 2);
+}
+namespace System.Runtime.CompilerServices
+{
+    public class SwitchExpressionException : InvalidOperationException
+    {
+        public SwitchExpressionException() {}
+        public SwitchExpressionException(object unmatchedValue) => throw null;
+        public object UnmatchedValue { get; }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (9,19): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //             _ = r switch { (3, 4) => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
+                );
+            CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException()");
         }
 
         [Fact]
@@ -2282,6 +2487,288 @@ namespace System
             CompileAndVerify(compilation, expectedOutput: "0 a");
         }
 
+        [Fact]
+        public void WrongNumberOfDesignatorsForTuple()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        _ = (1, 2) is var (_, _, _);
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (5,27): error CS8502: Matching the tuple type '(int, int)' requires '2' subpatterns, but '3' subpatterns are present.
+                //         _ = (1, 2) is var (_, _, _);
+                Diagnostic(ErrorCode.ERR_WrongNumberOfSubpatterns, "(_, _, _)").WithArguments("(int, int)", "2", "3").WithLocation(5, 27)
+                );
+        }
+
+        [Fact]
+        public void PropertyNameMissing()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        _ = (1, 2) is { 1, 2 };
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (5,25): error CS8503: A property subpattern requires a reference to the property or field to be matched, e.g. '{ Name: 1 }'
+                //         _ = (1, 2) is { 1, 2 };
+                Diagnostic(ErrorCode.ERR_PropertyPatternNameMissing, "1").WithArguments("1").WithLocation(5, 25)
+                );
+        }
+
+        [Fact]
+        public void IndexedProperty_01()
+        {
+            var source1 =
+@"Imports System
+Imports System.Runtime.InteropServices
+<Assembly: PrimaryInteropAssembly(0, 0)> 
+<Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")> 
+<ComImport()>
+<Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E211"")>
+Public Interface I
+    Property P(x As Object, Optional y As Object = Nothing) As Object
+End Interface";
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            var source2 =
+@"class C
+{
+    static void Main(I i)
+    {
+        _ = i is { P: 1 };
+    }
+}";
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics(
+                // (5,20): error CS0857: Indexed property 'I.P' must have all arguments optional
+                //         _ = i is { P: 1 };
+                Diagnostic(ErrorCode.ERR_IndexedPropertyMustHaveAllOptionalParams, "P").WithArguments("I.P").WithLocation(5, 20)
+                );
+        }
+
+        [Fact, WorkItem(31209, "https://github.com/dotnet/roslyn/issues/31209")]
+        public void IndexedProperty_02()
+        {
+            var source1 =
+@"Imports System
+Imports System.Runtime.InteropServices
+<Assembly: PrimaryInteropAssembly(0, 0)> 
+<Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")> 
+<ComImport()>
+<Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E211"")>
+Public Interface I
+    Property P(Optional x As Object = Nothing, Optional y As Object = Nothing) As Object
+End Interface";
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            var source2 =
+@"class C
+{
+    static void Main(I i)
+    {
+        _ = i is { P: 1 };
+    }
+}";
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            // https://github.com/dotnet/roslyn/issues/31209 asks what the desired behavior is for this case.
+            // This test demonstrates that we at least behave rationally and do not crash.
+            compilation2.VerifyDiagnostics(
+                // (5,20): error CS0154: The property or indexer 'P' cannot be used in this context because it lacks the get accessor
+                //         _ = i is { P: 1 };
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "P").WithArguments("P").WithLocation(5, 20)
+                );
+        }
+
+        [Fact]
+        public void TestMissingIntegralTypes()
+        {
+            var source =
+@"public class C
+{
+    public static void Main()
+    {
+        M(1U);
+        M(2UL);
+        M(1);
+        M(2);
+        M(3);
+    }
+    static void M(object o)
+    {
+        System.Console.Write(o switch {
+            (uint)1 => 1,
+            (ulong)2 => 2,
+            1 => 3,
+            2 => 4,
+            _ => 5 });
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "12345");
+        }
+
+        [Fact]
+        public void TestConvertInputTupleToInterface()
+        {
+            var source =
+@"#pragma warning disable CS0436 // The type 'ValueTuple<T1, T2>' conflicts with the imported type
+using System.Runtime.CompilerServices;
+using System;
+public class C
+{
+    public static void Main()
+    {
+        Console.Write((1, 2) switch
+        {
+            ITuple t => 3
+        });
+    }
+}
+namespace System
+{
+    struct ValueTuple<T1, T2> : ITuple
+    {
+        int ITuple.Length => 2;
+        object ITuple.this[int i] => i switch { 0 => (object)Item1, 1 => (object)Item2, _ => throw null };
+        public T1 Item1;
+        public T2 Item2;
+        public ValueTuple(T1 item1, T2 item2) => (Item1, Item2) = (item1, item2);
+    }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "3");
+        }
+
+        [Fact]
+        public void TestUnusedTupleInput()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        Console.Write((M(1), M(2)) switch { _ => 3 });
+    }
+    static int M(int x) { Console.Write(x); return x; }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "123");
+        }
+
+        [Fact]
+        public void TestNestedTupleOpt()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        var x = (1, 20);
+        Console.Write((x, 300) switch  { ((1, int x2), int y) => x2+y });
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (7,32): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //         Console.Write((x, 300) switch  { ((1, int x2), int y) => x2+y });
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 32)
+                );
+            CompileAndVerify(compilation, expectedOutput: "320");
+        }
+
+        [Fact]
+        public void TestGotoCaseTypeMismatch()
+        {
+            var source =
+@"public class C
+{
+    public static void Main()
+    {
+        int i = 1;
+        switch (i)
+        {
+            case 1:
+                if (i == 1)
+                    goto case string.Empty;
+                break;
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (10,21): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //                     goto case string.Empty;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "goto case string.Empty;").WithArguments("string", "int").WithLocation(10, 21)
+                );
+        }
+
+        [Fact]
+        public void TestGotoCaseNotConstant()
+        {
+            var source =
+@"public class C
+{
+    public static void Main()
+    {
+        int i = 1;
+        switch (i)
+        {
+            case 1:
+                if (i == 1)
+                    goto case string.Empty.Length;
+                break;
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (10,21): error CS0150: A constant value is expected
+                //                     goto case string.Empty.Length;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "goto case string.Empty.Length;").WithLocation(10, 21)
+                );
+        }
+
+        [Fact]
+        public void TestExhaustiveWithNullTest()
+        {
+            var source =
+@"public class C
+{
+    public static void Main()
+    {
+        object o = null;
+        _ = o switch { null => 1 };
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,15): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //         _ = o switch { null => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 15)
+                );
+        }
+
         [Fact, WorkItem(31167, "https://github.com/dotnet/roslyn/issues/31167")]
         public void NonExhaustiveBoolSwitchExpression()
         {
@@ -2429,6 +2916,185 @@ class Program
                 //         if (p is var (x, y)) { }
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var (x, y)").WithLocation(7, 18)
                 );
+        }
+
+        [Fact]
+        public void UnmatchedInput_06()
+        {
+            var source =
+@"using System; using System.Runtime.CompilerServices;
+public class C
+{
+    static void Main()
+    {
+        Console.WriteLine(M(1, 2));
+        try
+        {
+            Console.WriteLine(M(1, 3));
+        }
+        catch (SwitchExpressionException ex)
+        {
+            Console.WriteLine($""{ex.GetType().Name}({ex.UnmatchedValue})"");
+        }
+    }
+    public static int M(int x, int y) {
+        return (x, y) switch { (1, 2) => 3 };
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public class SwitchExpressionException : InvalidOperationException
+    {
+        public SwitchExpressionException() => throw null;
+        public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public object UnmatchedValue { get; }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (17,23): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //         return (x, y) switch { (1, 2) => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(17, 23)
+                );
+            CompileAndVerify(compilation, expectedOutput: @"3
+SwitchExpressionException((1, 3))");
+        }
+
+        [Fact]
+        public void RecordOrderOfEvaluation()
+        {
+            var source = @"using System;
+class Program
+{
+    static void Main()
+    {
+        var data = new A(new A(1, new A(2, 3)), new A(4, new A(5, 6)));
+        Console.WriteLine(data switch
+            {
+            A(A(1, A(2, 1)), _) => 3,
+            A(A(1, 2), _) { X: 1 } => 2,
+            A(1, _) => 1,
+            A(A(1, A(2, 3) { X: 1 }), A(4, A(5, 6))) => 5,
+            A(_, A(4, A(5, 1))) => 4,
+            A(A(1, A(2, 3)), A(4, A(5, 6) { Y: 5 })) => 6,
+            A(A(1, A(2, 3) { Y: 5 }), A(4, A(5, 6))) => 7,
+            A(A(1, A(2, 3)), A(4, A(5, 6))) => 8,
+            _ => 9
+            });
+    }
+}
+class A
+{
+    public A(object x, object y)
+    {
+        (_x, _y) = (x, y);
+    }
+    public void Deconstruct(out object x, out object y)
+    {
+        Console.WriteLine($""{this}.Deconstruct"");
+        (x, y) = (_x, _y);
+    }
+    private object _x;
+    public object X
+    {
+        get
+        {
+            Console.WriteLine($""{this}.X"");
+            return _x;
+        }
+    }
+    private object _y;
+    public object Y
+    {
+        get
+        {
+            Console.WriteLine($""{this}.Y"");
+            return _y;
+        }
+    }
+    public override string ToString() => $""A({_x}, {_y})"";
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput:
+@"A(A(1, A(2, 3)), A(4, A(5, 6))).Deconstruct
+A(1, A(2, 3)).Deconstruct
+A(2, 3).Deconstruct
+A(2, 3).X
+A(4, A(5, 6)).Deconstruct
+A(5, 6).Deconstruct
+A(5, 6).Y
+A(2, 3).Y
+8");
+        }
+
+        [Fact]
+        public void MissingValueTuple()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+    }
+    int M(int x, int y)
+    {
+        return (x, y) switch { (1, 2) => 1, _ => 2 };
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib40(source);
+            compilation.VerifyDiagnostics(
+                // (9,16): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         return (x, y) switch { (1, 2) => 1, _ => 2 };
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(x, y)").WithArguments("System.ValueTuple`2").WithLocation(9, 16)
+                );
+        }
+
+        [Fact]
+        public void UnmatchedInput_07()
+        {
+            var source =
+@"using System; using System.Runtime.CompilerServices;
+public class C
+{
+    static void Main()
+    {
+        Console.WriteLine(M(1, 2));
+        try
+        {
+            Console.WriteLine(M(1, 3));
+        }
+        catch (SwitchExpressionException ex)
+        {
+            Console.WriteLine($""{ex.GetType().Name}({ex.UnmatchedValue})"");
+        }
+    }
+    public static int M(int x, int y, int a = 3, int b = 4, int c = 5, int d = 6, int e = 7, int f = 8, int g = 9) {
+        return (x, y, a, b, c, d, e, f, g) switch { (1, 2, _, _, _, _, _, _, _) => 3 };
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public class SwitchExpressionException : InvalidOperationException
+    {
+        public SwitchExpressionException() => throw null;
+        public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public object UnmatchedValue { get; }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (17,44): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //         return (x, y, a, b, c, d, e, f, g) switch { (1, 2, _, _, _, _, _, _, _) => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(17, 44)
+                );
+            CompileAndVerify(compilation, expectedOutput: @"3
+SwitchExpressionException((1, 3, 3, 4, 5, 6, 7, 8, 9))");
         }
     }
 }

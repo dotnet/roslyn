@@ -375,13 +375,13 @@ public class Point
 {
     public static void Main()
     {
-        var r = 1 switch { _ => 0 };
+        var r = 1 switch { _ => 0, };
     }
 }";
             CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithoutRecursivePatterns).VerifyDiagnostics(
                 // (5,17): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //         var r = 1 switch { _ => 0 };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { _ => 0 }").WithArguments("recursive patterns", "8.0").WithLocation(5, 17)
+                //         var r = 1 switch { _ => 0, };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { _ => 0, }").WithArguments("recursive patterns", "8.0").WithLocation(5, 17)
                 );
         }
 
@@ -433,48 +433,15 @@ public class Point
                 // (6,34): error CS1525: Invalid expression term '?'
                 //         var r1 = b switch { true ? true : true => true, false => false };
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(6, 34),
-                // (6,48): error CS1513: } expected
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 48),
                 // (6,48): error CS1003: Syntax error, ',' expected
                 //         var r1 = b switch { true ? true : true => true, false => false };
                 Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 48),
-                // (6,51): error CS1002: ; expected
+                // (6,48): error CS8504: Pattern missing
                 //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "true").WithLocation(6, 51),
-                // (6,55): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(6, 48),
+                // (6,57): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
                 //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 55),
-                // (6,55): error CS1513: } expected
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(6, 55),
-                // (6,63): error CS1002: ; expected
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=>").WithLocation(6, 63),
-                // (6,63): error CS1513: } expected
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 63),
-                // (6,72): error CS1002: ; expected
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(6, 72),
-                // (6,73): error CS1597: Semicolon after method or accessor block is not valid
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(6, 73),
-                // (9,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(9, 1),
-                // (7,9): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
-                //         var r2 = b switch { (true ? true : true) => true, false => false };
-                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(7, 9),
-                // (7,18): error CS0103: The name 'b' does not exist in the current context
-                //         var r2 = b switch { (true ? true : true) => true, false => false };
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(7, 18),
-                // (7,20): warning CS8409: The switch expression does not handle all possible inputs (it is not exhaustive).
-                //         var r2 = b switch { (true ? true : true) => true, false => false };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 20),
-                // (6,20): warning CS8409: The switch expression does not handle all possible inputs (it is not exhaustive).
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "false").WithLocation(6, 57)
                 );
         }
 
@@ -488,7 +455,7 @@ public class Point
     public static void Main()
     {
         var b = (true, false);
-        var r1 = b switch { (true ? true : true, _) => true, _ => false };
+        var r1 = b switch { (true ? true : true, _) => true, _ => false, };
         var r2 = b is (true ? true : true, _);
         switch (b.Item1) { case true ? true : true: break; }
     }
@@ -609,7 +576,7 @@ public class Point
     {
         int q = 1;
         int u;
-        var x = q switch { 0 => u=0, 1 => u=M(u), _ => u=2 };
+        var x = q switch { 0 => u=0, 1 => u=M(u), _ => u=2, };
         System.Console.WriteLine(u);
     }
     static int M(int i) => i;
@@ -633,9 +600,9 @@ public class Point
     public static void Main()
     {
         int a = 1;
-        var b = a switch { var x1 => x1 };
+        var b = a switch { var x1 => x1, };
         var c = a switch { var x2 when x2 is var x3 => x3 };
-        var d = a switch { var x4 => x4 is var x5 ? x5 : 1 };
+        var d = a switch { var x4 => x4 is var x5 ? x5 : 1, };
     }
     static int M(int i) => i;
 }";
@@ -991,14 +958,14 @@ public class X
                 Console.WriteLine(t9);
                 break;
         }
-        // PROTOTYPE(patterns2): Lowering and code gen not yet supported for switch expression
-        //Console.WriteLine(t switch { (_, _, _, _, _, _, _, _, var t9) => t9 });
+        Console.WriteLine(t switch { (_, _, _, _, _, _, _, _, var t9) => t9 });
     }
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"9
+9
 9");
         }
 
@@ -2066,13 +2033,13 @@ class Point
             };
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
-                // (10,24): error CS8400: Pattern missing
+                // (10,24): error CS8504: Pattern missing
                 //         if (p is Point(, { })) { }
                 Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(10, 24),
                 // (9,23): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
                 //         if (p is Point({ }, { }, { })) { }
                 Diagnostic(ErrorCode.ERR_BadArgCount, "({ }, { }, { })").WithArguments("Deconstruct", "3").WithLocation(9, 23),
-                // (9,23): error CS8129: No suitable Deconstruct instance or extension method was found for type 'Point', with 3 out parameters and a void return type.
+                // (9,23): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'Point', with 3 out parameters and a void return type.
                 //         if (p is Point({ }, { }, { })) { }
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "({ }, { }, { })").WithArguments("Point", "3").WithLocation(9, 23)
                 );

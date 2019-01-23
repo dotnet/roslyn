@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         private int _updates;
 
         public TestUIThreadOperationContext(int maxUpdates)
-            :base(allowCancellation: false, defaultDescription: "")
+            : base(allowCancellation: false, defaultDescription: "")
         {
             _maxUpdates = maxUpdates;
             _cancellationTokenSource = new CancellationTokenSource();

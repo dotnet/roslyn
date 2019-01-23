@@ -47,6 +47,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return bodyWithAwaitLifted;
             }
 
+            CSharpCompilation compilation = method.DeclaringCompilation;
+            bool isAsyncEnumerableOrEnumerator = method.IsIAsyncEnumerableReturningAsync(compilation) ||
+                method.IsIAsyncEnumeratorReturningAsync(compilation);
+            if (isAsyncEnumerableOrEnumerator && !method.IsIterator)
+            {
+                bool containsAwait = AwaitDetector.ContainsAwait(bodyWithAwaitLifted);
+                diagnostics.Add(containsAwait ? ErrorCode.ERR_PossibleAsyncIteratorWithoutYield : ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait,
+                    method.Locations[0], method.ReturnType);
+
+                stateMachineType = null;
+                return bodyWithAwaitLifted;
+            }
+
             // The CLR doesn't support adding fields to structs, so in order to enable EnC in an async method we need to generate a class.
             // For async-iterators, we also need to generate a class.
             var typeKind = (compilationState.Compilation.Options.EnableEditAndContinue || method.IsIterator) ? TypeKind.Class : TypeKind.Struct;
@@ -54,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             stateMachineType = new AsyncStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, typeKind);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
 
-            AsyncRewriter rewriter = method.IsIterator
+            AsyncRewriter rewriter = isAsyncEnumerableOrEnumerator
                 ? new AsyncIteratorRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
                 : new AsyncRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
 
@@ -104,10 +117,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Binder.GetWellKnownTypeMember(F.Compilation, member, bag, body.Syntax.Location);
         }
 
-        protected override bool PreserveInitialParameterValues
-        {
-            get { return false; }
-        }
+        protected override bool PreserveInitialParameterValuesAndThreadId
+            => false;
 
         protected override void GenerateControlFields()
         {
@@ -156,6 +167,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Constructor
+            GenerateConstructor();
+        }
+
+        protected virtual void GenerateConstructor()
+        {
             if (stateMachineType.TypeKind == TypeKind.Class)
             {
                 F.CurrentFunction = stateMachineType.Constructor;
@@ -240,7 +256,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method: method,
                 methodOrdinal: _methodOrdinal,
                 asyncMethodBuilderMemberCollection: _asyncMethodBuilderMemberCollection,
-                asyncIteratorInfo: null,
                 F: F,
                 state: stateField,
                 builder: _builderField,
@@ -252,6 +267,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics: diagnostics);
 
             rewriter.GenerateMoveNext(body, moveNextMethod);
+        }
+
+        /// <summary>
+        /// Note: do not use a static/singleton instance of this type, as it holds state.
+        /// </summary>
+        private class AwaitDetector : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            private bool _sawAwait;
+
+            public static bool ContainsAwait(BoundNode node)
+            {
+                var detector = new AwaitDetector();
+                detector.Visit(node);
+                return detector._sawAwait;
+            }
+
+            public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
+            {
+                _sawAwait = true;
+                return null;
+            }
         }
     }
 }
