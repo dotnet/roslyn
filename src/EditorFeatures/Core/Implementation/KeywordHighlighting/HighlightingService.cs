@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         public IEnumerable<TextSpan> GetHighlights(
              SyntaxNode root, int position, CancellationToken cancellationToken)
         {
+            if (root == null)
+            {
+                return SpecializedCollections.EmptyEnumerable<TextSpan>();
+            }
+
             return _highlighters.Where(h => h.Metadata.Language == root.Language)
                                .Select(h => h.Value.GetHighlights(root, position, cancellationToken))
                                .WhereNotNull()
