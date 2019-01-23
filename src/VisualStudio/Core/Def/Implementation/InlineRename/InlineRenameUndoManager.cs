@@ -218,26 +218,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
 
             private IEnumerable<IOleUndoUnit> GetUndoUnits(IOleUndoManager undoManager)
             {
-                // Unfortunately, EnumUndoable returns the units in oldest-first order.
-                IEnumOleUndoUnits undoUnitEnumerator = null;
-                var hr = ErrorHandler.CallWithCOMConvention(() => undoManager.EnumUndoable(out undoUnitEnumerator));
-
-                if (ErrorHandler.Succeeded(hr) && undoUnitEnumerator != null)
+                IEnumOleUndoUnits undoUnitEnumerator;
+                try
                 {
-                    const int BatchSize = 100;
-                    while (true)
-                    {
-                        IOleUndoUnit[] fetchedUndoUnits = new IOleUndoUnit[BatchSize];
-                        undoUnitEnumerator.Next(BatchSize, fetchedUndoUnits, out var fetchedCount);
-                        for (int i = 0; i < fetchedCount; i++)
-                        {
-                            yield return fetchedUndoUnits[i];
-                        }
+                    // Unfortunately, EnumUndoable returns the units in oldest-first order.
+                    undoManager.EnumUndoable(out undoUnitEnumerator);
+                }
+                catch (COMException)
+                {
+                    yield break;
+                }
 
-                        if (fetchedCount < BatchSize)
-                        {
-                            break;
-                        }
+                const int BatchSize = 100;
+                IOleUndoUnit[] fetchedUndoUnits = new IOleUndoUnit[BatchSize];
+
+                while (true)
+                {
+                    undoUnitEnumerator.Next(BatchSize, fetchedUndoUnits, out var fetchedCount);
+                    for (int i = 0; i < fetchedCount; i++)
+                    {
+                        yield return fetchedUndoUnits[i];
+                    }
+
+                    if (fetchedCount < BatchSize)
+                    {
+                        break;
                     }
                 }
             }
