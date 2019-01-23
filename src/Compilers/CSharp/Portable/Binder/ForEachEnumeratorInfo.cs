@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public AwaitableInfo DisposeAwaitableInfo;
 
         // When using pattern-based Dispose, this stores the method to invoke to Dispose
-        public MethodSymbol DisposeMethod;
+        public readonly MethodSymbol DisposeMethod;
 
         // Conversions that will be required when the foreach is lowered.
         public readonly Conversion CollectionConversion; //collection expression to collection type
