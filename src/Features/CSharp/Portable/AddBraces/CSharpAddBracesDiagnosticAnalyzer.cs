@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -56,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             }
 
             var embeddedStatement = statement.GetEmbeddedStatement();
+
             switch (embeddedStatement.Kind())
             {
                 case SyntaxKind.Block:
@@ -95,6 +98,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             if (option.Value == PreferBracesPreference.WhenMultiline
                 && !IsConsideredMultiLine(statement, embeddedStatement)
                 && !RequiresBracesToMatchContext(statement, embeddedStatement))
+            {
+                return;
+            }
+
+            if (statement.ContainsInterleavedDirective(cancellationToken))
             {
                 return;
             }

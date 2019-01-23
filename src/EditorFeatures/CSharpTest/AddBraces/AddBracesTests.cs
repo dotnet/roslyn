@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
@@ -1316,6 +1317,173 @@ class Program
             {
                 return;
             }
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task DoNotFireForIfWhenIntercedingDirectiveBefore(int bracesPreference)
+        {
+            await TestMissingInRegularAndScriptAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+#if test
+        [|if (true)|]
+#endif
+            return;
+    }
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task DoNotFireForIfWithIntercedingDirectiveAfter(int bracesPreference)
+        {
+            await TestMissingInRegularAndScriptAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        [|if (true)|]
+#if test
+            return;
+#endif
+    }
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task FireForIfWithoutIntercedingDirective(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+#if test
+#endif
+        [|if (true)|]
+            return;
+    }
+}",
+
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+#if test
+#endif
+        if (true)
+        {
+            return;
+        }
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task FireForInnerNestedStatementWhenDirectiveEntirelyInside(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        [|while (true)
+#if test
+            if (true)|]
+                return;
+#endif
+    }
+}",
+
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        while (true)
+#if test
+            if (true)
+            {
+                return;
+            }
+#endif
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task FireForOuterNestedStatementWhenDirectiveEntirelyInside(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        [|while (true)
+#if test
+            if (true)|]
+#endif
+                return;
+    }
+}",
+
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        while (true)
+        {
+#if test
+            if (true)
+#endif
+                return;
+        }
     }
 }",
                 (PreferBracesPreference)bracesPreference,
