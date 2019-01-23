@@ -1383,7 +1383,33 @@ ref struct DisposableEnumerator
 1
 2
 3
-Done with DisposableEnumerator");
+Done with DisposableEnumerator").VerifyIL("C.Main", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  1
+  .locals init (DisposableEnumerator V_0)
+  IL_0000:  newobj     ""Enumerable1..ctor()""
+  IL_0005:  call       ""DisposableEnumerator Enumerable1.GetEnumerator()""
+  IL_000a:  stloc.0
+  .try
+  {
+    IL_000b:  br.s       IL_0019
+    IL_000d:  ldloca.s   V_0
+    IL_000f:  call       ""int DisposableEnumerator.Current.get""
+    IL_0014:  call       ""void System.Console.WriteLine(int)""
+    IL_0019:  ldloca.s   V_0
+    IL_001b:  call       ""bool DisposableEnumerator.MoveNext()""
+    IL_0020:  brtrue.s   IL_000d
+    IL_0022:  leave.s    IL_002c
+  }
+  finally
+  {
+    IL_0024:  ldloca.s   V_0
+    IL_0026:  call       ""void DisposableEnumerator.Dispose()""
+    IL_002b:  endfinally
+  }
+  IL_002c:  ret
+}");
         }
 
         [Fact]

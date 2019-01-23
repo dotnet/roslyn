@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion.Boxing :
                     Conversion.ImplicitReference;
 
-                BoundExpression receiver = isExtension ?
+                BoundExpression receiver = isExtension || idisposableTypeSymbol.IsRefLikeType ?
                     boundEnumeratorVar :
                     ConvertReceiverForInvocation(forEachSyntax, boundEnumeratorVar, disposeMethod, receiverConversion, idisposableTypeSymbol);
 
