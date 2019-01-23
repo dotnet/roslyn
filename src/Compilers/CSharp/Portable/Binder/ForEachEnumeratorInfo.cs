@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public MethodSymbol CurrentPropertyGetter;
             public MethodSymbol MoveNextMethod;
 
-            public bool NeedsDisposeMethod;
+            public bool NeedsDisposal;
             public AwaitableInfo DisposeAwaitableInfo;
             public MethodSymbol DisposeMethod;
 
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GetEnumeratorMethod,
                     CurrentPropertyGetter,
                     MoveNextMethod,
-                    NeedsDisposeMethod,
+                    NeedsDisposal,
                     DisposeAwaitableInfo,
                     DisposeMethod,
                     CollectionConversion,

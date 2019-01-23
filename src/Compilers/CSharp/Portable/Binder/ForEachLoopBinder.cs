@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ConstantValue.NotAvailable,
                 builder.CollectionType);
 
-            if (builder.NeedsDisposeMethod && IsAsync)
+            if (builder.NeedsDisposal && IsAsync)
             {
                 hasErrors |= GetAwaitDisposeAsyncInfo(ref builder, diagnostics);
             }
@@ -808,7 +808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // We don't know the runtime type, so we will have to insert a runtime check for IDisposable (with a conditional call to IDisposable.Dispose).
-                builder.NeedsDisposeMethod = true;
+                builder.NeedsDisposal = true;
                 return EnumeratorResult.Succeeded;
             }
 
@@ -841,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isAsync ? this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable) : this.Compilation.GetSpecialType(SpecialType.System_IDisposable),
                     ref useSiteDiagnostics).IsImplicit)
             {
-                builder.NeedsDisposeMethod = true;
+                builder.NeedsDisposal = true;
             }
             else if (enumeratorType.IsRefLikeType)
             {
@@ -852,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol disposeMethod = TryFindDisposePatternMethod(receiver, _syntax, isAsync, patternDisposeDiags);
                 if (!(disposeMethod is null))
                 {
-                    builder.NeedsDisposeMethod = true;
+                    builder.NeedsDisposal = true;
                     builder.DisposeMethod = disposeMethod;
                 }
                 patternDisposeDiags.Free();
@@ -910,7 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol.Equals(builder.GetEnumeratorMethod.ReturnType.TypeSymbol, this.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerator), TypeCompareKind.ConsiderEverything2));
 
             // We don't know the runtime type, so we will have to insert a runtime check for IDisposable (with a conditional call to IDisposable.Dispose).
-            builder.NeedsDisposeMethod = true;
+            builder.NeedsDisposal = true;
             return builder;
         }
 
