@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Returns true if the nullable state from the operand of the conversion
             // can be used as is, and we can create a slot from the conversion.
-            bool isSupportedConversion(Conversion conversion, BoundExpression operandOpt)
+            bool isSupportedConversion(Conversion conversion, BoundExpression? operandOpt)
             {
                 // https://github.com/dotnet/roslyn/issues/32599: Allow implicit and explicit
                 // conversions where the nullable state of the operand remains valid.
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return operandOpt?.IsLiteralNullOrDefault() == true;
                     case ConversionKind.ImplicitTupleLiteral:
                         {
-                            var arguments = ((BoundConvertedTupleLiteral)operandOpt).Arguments;
+                            var arguments = ((BoundConvertedTupleLiteral)operandOpt!).Arguments;
                             var conversions = conversion.UnderlyingConversions;
                             for (int i = 0; i < arguments.Length; i++)
                             {
@@ -1938,7 +1938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return possiblyConversion;
         }
 
-        public override BoundNode VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
+        public override BoundNode? VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
         {
 
             BoundExpression leftOperand = node.LeftOperand;
@@ -2143,7 +2143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitConditionalAccess(BoundConditionalAccess node)
+        public override BoundNode? VisitConditionalAccess(BoundConditionalAccess node)
         {
             Debug.Assert(!IsConditionalState);
 
@@ -2477,7 +2477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             method = VisitArguments(node, arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt,
-                node.Expanded, node.InvokedAsExtensionMethod, conversions, method).method;
+                node.Expanded, node.InvokedAsExtensionMethod, conversions, method).method!;
 
             if (method.MethodKind == MethodKind.LocalFunction)
             {
@@ -2636,7 +2636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// If you pass in a method symbol, its type arguments will be re-inferred and the re-inferred method will be returned.
         /// </summary>
-        private (MethodSymbol method, ImmutableArray<TypeSymbolWithAnnotations> resultTypes) VisitArguments(
+        private (MethodSymbol? method, ImmutableArray<TypeSymbolWithAnnotations> resultTypes) VisitArguments(
             BoundExpression node,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
