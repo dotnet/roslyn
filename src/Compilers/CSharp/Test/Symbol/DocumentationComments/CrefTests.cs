@@ -1662,7 +1662,7 @@ class A<T, U>
             Assert.False(actualWinner.IsDefinition);
 
             var actualParameterType = actualWinner.GetParameters().Single().Type.TypeSymbol;
-            AssertEx.All(actualWinner.ContainingType.TypeArguments(), typeParam => typeParam == actualParameterType); //CONSIDER: Would be different in Dev11.
+            AssertEx.All(actualWinner.ContainingType.TypeArguments(), typeParam => TypeSymbol.Equals(typeParam, actualParameterType, TypeCompareKind.ConsiderEverything2)); //CONSIDER: Would be different in Dev11.
             Assert.Equal(1, ((TypeParameterSymbol)actualParameterType).Ordinal);
 
             Assert.Equal(2, actualCandidates.Length);

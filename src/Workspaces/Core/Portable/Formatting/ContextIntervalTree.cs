@@ -172,5 +172,10 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return result;
             }
         }
+
+#if DEBUG
+        public override string ToString()
+            => $"Interval tree with '{System.Linq.Enumerable.Count(this)}' entries. Use '.ToList()' to visualize contents.";
+#endif
     }
 }

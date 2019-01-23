@@ -137,7 +137,7 @@ namespace Roslyn.Test.Utilities
     {
         public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
         public static bool IsUnix => !IsWindows;
-        public static bool IsDesktop => CoreClrShim.AssemblyLoadContext.Type == null;
+        public static bool IsDesktop => RuntimeUtilities.IsDesktopRuntime;
         public static bool IsWindowsDesktop => IsWindows && IsDesktop;
         public static bool IsMonoDesktop => Type.GetType("Mono.Runtime") != null;
         public static bool IsCoreClr => !IsDesktop;
@@ -223,7 +223,7 @@ namespace Roslyn.Test.Utilities
 
     public class NoIOperationValidation : ExecutionCondition
     {
-        public override bool ShouldSkip => !CompilationExtensions.EnableVerifyIOperation;
+        public override bool ShouldSkip => CompilationExtensions.EnableVerifyIOperation;
         public override string SkipReason => "Test not supported in TEST_IOPERATION_INTERFACE";
     }
 

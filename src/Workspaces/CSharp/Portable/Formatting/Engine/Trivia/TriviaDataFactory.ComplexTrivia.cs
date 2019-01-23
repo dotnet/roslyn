@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 var formatSpanEnd = commonToken2.Kind() == SyntaxKind.None ? commonToken1.Span.End : commonToken2.Span.Start;
                 var span = TextSpan.FromBounds(commonToken1.Span.End, formatSpanEnd);
-                if (context.IsSpacingSuppressed(span))
+                if (context.IsSpacingSuppressed(span, TreatAsElastic))
                 {
                     return false;
                 }

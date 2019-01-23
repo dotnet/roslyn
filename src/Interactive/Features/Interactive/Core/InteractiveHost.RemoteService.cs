@@ -133,8 +133,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     if (_processExitHandlerStatus == ProcessExitHandlerStatus.Hooked)
                     {
-                       Process.Exited -= ProcessExitedHandler;
-                       _processExitHandlerStatus = ProcessExitHandlerStatus.Handled;
+                        Process.Exited -= ProcessExitedHandler;
+                        _processExitHandlerStatus = ProcessExitHandlerStatus.Handled;
                     }
                 }
 

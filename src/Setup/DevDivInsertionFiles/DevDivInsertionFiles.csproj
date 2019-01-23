@@ -7,14 +7,14 @@
     <_NuGetRepackAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NuGetPackageRoot)roslyntools.nugetrepack.buildtasks\$(RoslynToolsNuGetRepackVersion)\tools\netcoreapp2.1\RoslynTools.NuGetRepack.BuildTasks.dll</_NuGetRepackAssembly>
   </PropertyGroup>
 
-  <UsingTask TaskName="RoslynTools.GetAssemblyFullName" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
-  <UsingTask TaskName="RoslynTools.Unzip" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
   <UsingTask TaskName="Microsoft.NET.Build.Tasks.JoinItems" AssemblyFile="$(MicrosoftNETBuildTasksAssembly)" />
   <UsingTask TaskName="Roslyn.Tools.ReplacePackageParts" AssemblyFile="$(_NuGetRepackAssembly)" />
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <OutputType>Library</OutputType>
+    <ApplyPartialNgenOptimization>true</ApplyPartialNgenOptimization>
   </PropertyGroup>
   
   <ItemGroup>
@@ -25,9 +25,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <_DevDivInsertionFilesDir>$(ArtifactsConfigurationDir)DevDivInsertionFiles\</_DevDivInsertionFilesDir>
-    <_DependentAssemblyVersionsFile>$(_DevDivInsertionFilesDir)DependentAssemblyVersions.csv</_DependentAssemblyVersionsFile>
-    <_ManagedDependenciesDir>$(ArtifactsConfigurationDir)DevDivPackages\ManagedDependencies\</_ManagedDependenciesDir>
+    <_DependentAssemblyVersionsFile>$(DevDivPackagesDir)DependentAssemblyVersions.csv</_DependentAssemblyVersionsFile>
     <_OptimizedDependenciesDir>$(ArtifactsTmpDir)OptimizedDependencies\</_OptimizedDependenciesDir>
     <_OptimizedNuGetPackageVersionSuffix Condition="'$(OfficialBuild)' != 'true'">vs-ci</_OptimizedNuGetPackageVersionSuffix>
     <_OptimizedNuGetPackageVersionSuffix Condition="'$(OfficialBuild)' == 'true'">vs-$(VersionSuffixDateStamp)-$(VersionSuffixBuildOfTheDayPadded)</_OptimizedNuGetPackageVersionSuffix>
@@ -36,26 +34,29 @@
   <!-- 
     List of dependencies that are expected to be inserted into VS by Roslyn Insertion Tool.
     DevEnvLib is the relative path within the package of the binary that's used by devenv process.
-    This binary will get IBC data embedded if they are available for it and Optimize is not false.
+    This binary will get IBC data embedded if OverwriteNgenOptimizationData is true.
     Note - optimizing Authenticode-signed 3rd party libraries would invalidate their signature.
   -->
   <ItemGroup>
-    <ExpectedDependency Include="Humanizer.Core" DevEnvLib="lib/netstandard2.0/Humanizer.dll" Optimize="false" />
-    <ExpectedDependency Include="ICSharpCode.Decompiler" DevEnvLib="lib/netstandard2.0/ICSharpCode.Decompiler.dll" Optimize="false" />
+    <ExpectedDependency Include="Humanizer.Core" DevEnvLib="lib/netstandard2.0/Humanizer.dll"/>
+    <ExpectedDependency Include="ICSharpCode.Decompiler" DevEnvLib="lib/netstandard2.0/ICSharpCode.Decompiler.dll"/>
     <ExpectedDependency Include="Microsoft.DiaSymReader" DevEnvLib="lib/netstandard1.1/Microsoft.DiaSymReader.dll"/>
     <ExpectedDependency Include="Microsoft.CodeAnalysis.Elfie" DevEnvLib="lib/net46/Microsoft.CodeAnalysis.Elfie.dll"/>
-    <ExpectedDependency Include="System.Collections.Immutable" DevEnvLib="lib/netstandard2.0/System.Collections.Immutable.dll"/>
-    <ExpectedDependency Include="System.Reflection.Metadata" DevEnvLib="lib/netstandard2.0/System.Reflection.Metadata.dll"/>
-    <ExpectedDependency Include="System.Runtime.CompilerServices.Unsafe" DevEnvLib="lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll"/>
-    <ExpectedDependency Include="System.Text.Encoding.CodePages" DevEnvLib="lib/netstandard2.0/System.Text.Encoding.CodePages.dll"/>
+    <ExpectedDependency Include="System.Buffers" DevEnvLib="lib/netstandard2.0/System.Buffers.dll"/>
+    <ExpectedDependency Include="System.Collections.Immutable" DevEnvLib="lib/netstandard2.0/System.Collections.Immutable.dll" OverwriteNgenOptimizationData="true"/>
+    <ExpectedDependency Include="System.Reflection.Metadata" DevEnvLib="lib/netstandard2.0/System.Reflection.Metadata.dll" OverwriteNgenOptimizationData="true"/>
+    <ExpectedDependency Include="System.Memory" DevEnvLib="lib/netstandard2.0/System.Memory.dll"/>
+    <ExpectedDependency Include="System.Runtime.CompilerServices.Unsafe" DevEnvLib="lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll" OverwriteNgenOptimizationData="true"/>
+    <ExpectedDependency Include="System.Text.Encoding.CodePages" DevEnvLib="lib/netstandard2.0/System.Text.Encoding.CodePages.dll" OverwriteNgenOptimizationData="true"/>
+    <ExpectedDependency Include="System.Numerics.Vectors" DevEnvLib="lib/netstandard2.0/System.Numerics.Vectors.dll"/>
 
     <!-- 
-      Do not optimize this binary for now.
+      Do not overwrite optimization data for this binary for now.
       This assembly is signed by Open key in CoreFX and MicroBuild does not support this key.
       Arcade SignTool doesn't support signing directly at this point either.
       https://github.com/dotnet/arcade/issues/1204
     -->
-    <ExpectedDependency Include="System.Threading.Tasks.Extensions" DevEnvLib="lib/netstandard2.0/System.Threading.Tasks.Extensions.dll" Optimize="false" />
+    <ExpectedDependency Include="System.Threading.Tasks.Extensions" DevEnvLib="lib/netstandard2.0/System.Threading.Tasks.Extensions.dll"/>
   </ItemGroup>
   
   <Target Name="_CalculateDependenciesToInsert" DependsOnTargets="ResolveAssemblyReferences">
@@ -74,9 +75,9 @@
       </_CopyLocalDependency>
     </ItemGroup>
 
-    <RoslynTools.GetAssemblyFullName Items="@(_CopyLocalDependency)" PathMetadata="_AssemblyPath" FullNameMetadata="FusionName">
+    <Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName Items="@(_CopyLocalDependency)" PathMetadata="_AssemblyPath" FullNameMetadata="FusionName">
       <Output TaskParameter="ItemsWithFullName" ItemName="_Dependency"/>
-    </RoslynTools.GetAssemblyFullName>
+    </Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName>
 
     <!--     
       Exclude dependencies that are not inserted from Roslyn repo.
@@ -101,7 +102,7 @@
     <ItemGroup>
       <_Dependency>
         <_AssemblyName>$([MSBuild]::ValueOrDefault('%(_Dependency.FusionName)', '').Split(',')[0])</_AssemblyName>
-        <_AssemblyVersion>$([MSBuild]::ValueOrDefault('%(_Dependency.FusionName)', '').Split(',')[1])</_AssemblyVersion>
+        <_AssemblyVersion>$([MSBuild]::ValueOrDefault('%(_Dependency.FusionName)', '').Split(',')[1].Split('=')[1])</_AssemblyVersion>
         <_NuGetPackageFileName>%(_Dependency.NuGetPackageId).%(_Dependency.NuGetPackageVersion).nupkg</_NuGetPackageFileName>
         <_NuGetPackageDir>$(NuGetPackageRoot)$([MSBuild]::ValueOrDefault('%(_Dependency.NuGetPackageId)', '').ToLower())\%(_Dependency.NuGetPackageVersion)\</_NuGetPackageDir>
       </_Dependency>
@@ -129,13 +130,14 @@
       <_DependencyWithExpectedMetadata>
         <_UnpackDir>$(_OptimizedDependenciesDir)%(_DependencyWithExpectedMetadata.Identity)\</_UnpackDir>
         <_OptimizeAssembly>$(_OptimizedDependenciesDir)%(_DependencyWithExpectedMetadata.Identity)\%(_DependencyWithExpectedMetadata.DevEnvLib)</_OptimizeAssembly>
-        <_PreviousOptimizedFile>$([System.IO.Path]::Combine($(IbcOptimizationDataDir), '$([System.IO.Path]::GetFileNameWithoutExtension(%(_DependencyWithExpectedMetadata.DevEnvLib))).pgo'))</_PreviousOptimizedFile>
       </_DependencyWithExpectedMetadata>
 
-      <_DependencyWithOptimizationData Include="@(_DependencyWithExpectedMetadata)" Condition="'%(_DependencyWithExpectedMetadata.Optimize)' != 'false' and Exists(%(_DependencyWithExpectedMetadata._PreviousOptimizedFile))" />
-      <_DependencyWithoutOptimizationData Include="@(_Dependency)" Exclude="@(_DependencyWithOptimizationData)"/>
+      <_DependencyWithOptimizationData Include="@(_DependencyWithExpectedMetadata)" 
+                                       Condition="'%(_DependencyWithExpectedMetadata.OverwriteNgenOptimizationData)' == 'true' and '$(ApplyPartialNgenOptimization)' == 'true'" />
 
-      <OptimizeAssembly Include="%(_DependencyWithOptimizationData._OptimizeAssembly)" PreviousOptimizedFile="%(_DependencyWithOptimizationData._PreviousOptimizedFile)" />
+      <_DependencyWithoutOptimizationData Include="@(_DependencyWithExpectedMetadata)" Exclude="@(_DependencyWithOptimizationData)"/>
+
+      <OptimizeAssembly Include="%(_DependencyWithOptimizationData._OptimizeAssembly)" />
     </ItemGroup>
   </Target>
 
@@ -148,7 +150,7 @@
           Inputs="$(MSBuildAllProjects)"
           Outputs="$(_DependentAssemblyVersionsFile)">
 
-    <MakeDir Directories="$(_DevDivInsertionFilesDir)"/>
+    <MakeDir Directories="$(DevDivPackagesDir)"/>
     <WriteLinesToFile Lines="@(_Dependency->'%(_AssemblyName),%(_AssemblyVersion)')" File="$(_DependentAssemblyVersionsFile)" Overwrite="true"/>
 
     <ItemGroup>
@@ -162,8 +164,8 @@
   <Target Name="_UnpackOptimizedDependencies" Condition="'@(_DependencyWithOptimizationData)' != ''">
     <MakeDir Directories="@(_DependencyWithOptimizationData->'%(_UnpackDir)')"/>
 
-    <RoslynTools.Unzip SourceFiles="%(_DependencyWithOptimizationData._NuGetPackageDir)%(_DependencyWithOptimizationData._NuGetPackageFileName)" 
-                       DestinationFolder="%(_DependencyWithOptimizationData._UnpackDir)" />
+    <Unzip SourceFiles="%(_DependencyWithOptimizationData._NuGetPackageDir)%(_DependencyWithOptimizationData._NuGetPackageFileName)" 
+           DestinationFolder="%(_DependencyWithOptimizationData._UnpackDir)" />
   </Target>
 
   <!--
@@ -174,11 +176,11 @@
           Condition="'$(Configuration)' == 'Release' and '$(ContinuousIntegrationBuild)' == 'true'"
           DependsOnTargets="_CalculateDependenciesToInsert;_UnpackOptimizedDependencies;ApplyOptimizations">
 
-    <MakeDir Directories="$(_ManagedDependenciesDir)"/>
+    <MakeDir Directories="$(DevDivPackagesDir)"/>
 
     <!-- Repack optimized dependencies -->
     <Roslyn.Tools.ReplacePackageParts SourcePackage="%(_DependencyWithOptimizationData._NuGetPackageDir)%(_DependencyWithOptimizationData._NuGetPackageFileName)"
-                                      DestinationFolder="$(_ManagedDependenciesDir)"
+                                      DestinationFolder="$(DevDivPackagesDir)"
                                       NewVersionSuffix="$(_OptimizedNuGetPackageVersionSuffix)"
                                       Parts="%(_DependencyWithOptimizationData.DevEnvLib)"
                                       ReplacementFiles="%(_DependencyWithOptimizationData._OptimizeAssembly)"
@@ -187,7 +189,7 @@
     </Roslyn.Tools.ReplacePackageParts>
 
     <!-- Copy unoptimized dependencies -->
-    <Copy SourceFiles="@(_DependencyWithoutOptimizationData->'%(_NuGetPackageDir)%(_NuGetPackageFileName)')" DestinationFolder="$(_ManagedDependenciesDir)">
+    <Copy SourceFiles="@(_DependencyWithoutOptimizationData->'%(_NuGetPackageDir)%(_NuGetPackageFileName)')" DestinationFolder="$(DevDivPackagesDir)">
       <Output TaskParameter="CopiedFiles" ItemName="FileWrites"/>
     </Copy>
   </Target>

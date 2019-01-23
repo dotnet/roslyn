@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass
 {
     [ExportLanguageService(typeof(IImplementAbstractClassService), LanguageNames.CSharp), Shared]
-    internal class CSharpImplementAbstractClassService : 
+    internal class CSharpImplementAbstractClassService :
         AbstractImplementAbstractClassService<ClassDeclarationSyntax>
     {
         protected override bool TryInitializeState(

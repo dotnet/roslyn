@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (type.TypeSymbol.Equals(overriddenPropertyType.TypeSymbol, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamic))
                     {
                         type = type.WithTypeAndModifiers(
-                            CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.TypeSymbol, type.TypeSymbol, this.ContainingAssembly, nonNullTypesContext: this),
+                            CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.TypeSymbol, type.TypeSymbol, this.ContainingAssembly),
                             overriddenPropertyType.CustomModifiers);
                         _lazyType = default;
                         _lazyType.InterlockedInitialize(type);
@@ -769,7 +769,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
 
-            if (this.Type.ContainsNullableReferenceTypes())
+            if (this.Type.NeedsNullableAttribute())
             {
                 DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
@@ -1178,9 +1178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     DeclaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
             }
 
-            AddSynthesizedNonNullTypesAttributeForMember(ref attributes);
-
-            if (type.ContainsNullableReferenceTypes())
+            if (type.NeedsNullableAttribute())
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }
@@ -1315,11 +1313,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // NullableAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
-            {
-                // NonNullTypesAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNonNullTypesAttribute, arguments.AttributeSyntaxOpt.Location);
-            }
         }
 
         internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
@@ -1422,7 +1415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 {
                                     diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, this.CSharpSyntaxNode.Type.Location, type);
                                 }
-                                else if (this.IsAutoProperty && type.IsByRefLikeType && (this.IsStatic || !this.ContainingType.IsByRefLikeType))
+                                else if (this.IsAutoProperty && type.IsRefLikeType && (this.IsStatic || !this.ContainingType.IsRefLikeType))
                                 {
                                     diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, this.CSharpSyntaxNode.Type.Location, type);
                                 }
@@ -1530,14 +1523,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static BaseParameterListSyntax GetParameterListSyntax(BasePropertyDeclarationSyntax syntax)
         {
             return (syntax.Kind() == SyntaxKind.IndexerDeclaration) ? ((IndexerDeclarationSyntax)syntax).ParameterList : null;
-        }
-
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                return GetNonNullTypesFromSyntax() ?? ContainingModule?.NonNullTypes;
-            }
         }
     }
 }

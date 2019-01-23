@@ -22,6 +22,11 @@
         <target state="new">C# Formatting Rules</target>
         <note />
       </trans-unit>
+      <trans-unit id="Discard">
+        <source>Discard</source>
+        <target state="new">Discard</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
         <target state="translated">Formatar Configurações do Documento (Experimento)</target>
@@ -59,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Insert_Snippet">
         <source>Insert Snippet</source>
-        <target state="translated">Inserir Trecho</target>
+        <target state="translated">Inserir Snippet</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_format_block_on_close_brace">
@@ -367,6 +372,11 @@
         <target state="translated">Novas opções de linha para palavras-chaves</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="new">Unused local</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_var_when_generating_locals">
         <source>Use 'var' when generating locals</source>
         <target state="translated">Usar "var" ao gerar locais</target>
@@ -474,7 +484,7 @@
       </trans-unit>
       <trans-unit id="Place_code_snippets_in_completion_lists">
         <source>Place _code snippets in completion lists</source>
-        <target state="translated">Colocar trechos de _código em listas de conclusão</target>
+        <target state="translated">Colocar snippets de _código em listas de conclusão</target>
         <note />
       </trans-unit>
       <trans-unit id="Completion_Lists">
@@ -525,6 +535,11 @@
       <trans-unit id="Elsewhere">
         <source>Elsewhere</source>
         <target state="translated">Em outro lugar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_on_multiple_lines">
+        <source>When on multiple lines</source>
+        <target state="new">When on multiple lines</target>
         <note />
       </trans-unit>
       <trans-unit id="When_variable_type_is_apparent">
@@ -624,22 +639,22 @@
       </trans-unit>
       <trans-unit id="Always_include_snippets">
         <source>Always include snippets</source>
-        <target state="translated">Sempre incluir trechos</target>
+        <target state="translated">Sempre incluir snippets</target>
         <note />
       </trans-unit>
       <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
         <source>Include snippets when ?-Tab is typed after an identifier</source>
-        <target state="translated">Incluir trechos quando ?-Tab for digitado após um identificador</target>
+        <target state="translated">Incluir snippets quando ?-Tab for digitado após um identificador</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_include_snippets">
         <source>Never include snippets</source>
-        <target state="translated">Nunca incluir trechos</target>
+        <target state="translated">Nunca incluir snippets</target>
         <note />
       </trans-unit>
       <trans-unit id="Snippets_behavior">
         <source>Snippets behavior</source>
-        <target state="translated">Comportamento de trechos</target>
+        <target state="translated">Comportamento de snippets</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is_deleted">

@@ -314,6 +314,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 && method.ReturnType.TypeSymbol.IsIAsyncEnumerableType(compilation);
         }
 
+        /// <summary>
+        /// Returns whether this method is async and returns an IAsyncEnumerator`1.
+        /// </summary>
+        public static bool IsIAsyncEnumeratorReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
+        {
+            return method.IsAsync
+                && method.ReturnType.TypeSymbol.IsIAsyncEnumeratorType(compilation);
+        }
+
         internal static CSharpSyntaxNode ExtractReturnTypeSyntax(this MethodSymbol method)
         {
             method = method.PartialDefinitionPart ?? method;

@@ -351,7 +351,7 @@ class C
         }
 
         private void AssertOuterIsCorrespondingLoopOfInner<TOuterSyntax, TInnerSyntax>(string source)
-            where TOuterSyntax : SyntaxNode 
+            where TOuterSyntax : SyntaxNode
             where TInnerSyntax : SyntaxNode
         {
             var (expected, actual) = GetOuterOperationAndCorrespondingInnerOperation<TOuterSyntax, TInnerSyntax>(source);

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -156,7 +156,7 @@ namespace RunTests
 
         private static void WriteLogFile(Options options)
         {
-            var logFilePath = Path.Combine(options.LogsDirectory, "runtests.log");
+            var logFilePath = Path.Combine(options.OutputDirectory, "runtests.log");
             try
             {
                 using (var writer = new StreamWriter(logFilePath, append: false))
@@ -244,7 +244,7 @@ namespace RunTests
         {
             if (!string.IsNullOrEmpty(options.ProcDumpDirectory))
             {
-                return new ProcDumpInfo(Path.Combine(options.ProcDumpDirectory, "procdump.exe"), options.LogsDirectory);
+                return new ProcDumpInfo(Path.Combine(options.ProcDumpDirectory, "procdump.exe"), options.OutputDirectory);
             }
 
             return null;
@@ -351,8 +351,8 @@ namespace RunTests
         {
             var testExecutionOptions = new TestExecutionOptions(
                 xunitPath: options.XunitPath,
-                procDumpInfo: GetProcDumpInfo(options),
-                logsDirectory: options.LogsDirectory,
+                procDumpInfo: options.UseProcDump ? GetProcDumpInfo(options) : null,
+                outputDirectory: options.OutputDirectory,
                 trait: options.Trait,
                 noTrait: options.NoTrait,
                 useHtml: options.UseHtml,
@@ -373,7 +373,7 @@ namespace RunTests
                 dataStorage = new WebDataStorage();
             }
 
-            return new CachingTestExecutor(testExecutionOptions, processTestExecutor, dataStorage);
+            return new CachingTestExecutor(processTestExecutor, dataStorage);
         }
 
         /// <summary>

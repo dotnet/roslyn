@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 Debug.Assert(!value.IsNull);
                 value = value.GetFieldValue("value", inspectionContext);
             }
-            
+
             var runtimeType = type.GetLmrType();
             // Primitives, enums, function pointers, and null values with a declared type that is an interface have no visible members.
             Debug.Assert(!runtimeType.IsInterface || value.IsNull);

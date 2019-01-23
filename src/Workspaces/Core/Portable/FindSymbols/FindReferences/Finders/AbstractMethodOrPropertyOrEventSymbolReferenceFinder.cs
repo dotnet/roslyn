@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         protected ImmutableArray<IMethodSymbol> GetReferencedAccessorSymbols(
-            ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, 
+            ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts,
             SemanticModel model, IPropertySymbol property, SyntaxNode node, CancellationToken cancellationToken)
         {
             if (syntaxFacts.IsForEachStatement(node))

@@ -98,14 +98,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
-                !typeOpt.IsNullableType() &&
-                typeOpt.IsAnnotated)
+                !typeOpt.IsNullableType() && !typeOpt.IsValueType &&
+                (typeOpt.NullableAnnotation == NullableAnnotation.Annotated ||
+                 (typeOpt.NullableAnnotation == NullableAnnotation.Nullable && !typeOpt.TypeSymbol.IsTypeParameterDisallowingAnnotation())))
             {
                 AddPunctuation(SyntaxKind.QuestionToken);
             }
             else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
                 !typeOpt.IsValueType &&
-                typeOpt.IsNullable == false)
+                typeOpt.NullableAnnotation.IsAnyNotNullable() && !typeOpt.TypeSymbol.IsTypeParameterDisallowingAnnotation())
             {
                 AddPunctuation(SyntaxKind.ExclamationToken);
             }
@@ -650,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     AddSpace();
                                 }
 
-                                if (csharpType.IsByRefLikeType)
+                                if (csharpType.IsRefLikeType)
                                 {
                                     AddKeyword(SyntaxKind.RefKeyword);
                                     AddSpace();
@@ -785,10 +786,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (typeParam.HasReferenceTypeConstraint)
                             {
                                 AddKeyword(SyntaxKind.ClassKeyword);
-                                if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
-                                    typeParameterSymbol?.ReferenceTypeConstraintIsNullable == true) // https://github.com/dotnet/roslyn/issues/26198 Switch to public API when we will have one.
+
+                                switch (typeParameterSymbol?.ReferenceTypeConstraintIsNullable) // https://github.com/dotnet/roslyn/issues/26198 Switch to public API when we will have one.
                                 {
-                                    AddPunctuation(SyntaxKind.QuestionToken);
+                                    case true:
+                                        if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier))
+                                        {
+                                            AddPunctuation(SyntaxKind.QuestionToken);
+                                        }
+                                        break;
+
+                                    case false:
+                                        if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier))
+                                        {
+                                            AddPunctuation(SyntaxKind.ExclamationToken);
+                                        }
+                                        break;
                                 }
 
                                 needComma = true;

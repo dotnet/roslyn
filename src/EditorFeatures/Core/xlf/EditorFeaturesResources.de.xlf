@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Change_configuration">
         <source>Change configuration</source>
-        <target state="new">Change configuration</target>
+        <target state="translated">Konfiguration ändern</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_cleanup_is_not_configured">
@@ -39,7 +39,27 @@
       </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
-        <target state="new">Format Document performed additional cleanup</target>
+        <target state="translated">Durch "Dokument formatieren" wurde eine zusätzliche Bereinigung durchgeführt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_assembly_name">
+        <source>Invalid assembly name</source>
+        <target state="new">Invalid assembly name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_characters_in_assembly_name">
+        <source>Invalid characters in assembly name</source>
+        <target state="new">Invalid characters in assembly name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Keyword_Control">
+        <source>Keyword - Control</source>
+        <target state="new">Keyword - Control</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operator_Overloaded">
+        <source>Operator - Overloaded</source>
+        <target state="new">Operator - Overloaded</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste_Tracking">
@@ -62,39 +82,99 @@
         <target state="new">String - Escape Character</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_Static">
+        <source>Symbol - Static</source>
+        <target state="new">Symbol - Static</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Constants">
+        <source>User Members - Constants</source>
+        <target state="new">User Members - Constants</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Enum_Members">
+        <source>User Members - Enum Members</source>
+        <target state="new">User Members - Enum Members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Events">
+        <source>User Members - Events</source>
+        <target state="new">User Members - Events</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Extension_Methods">
+        <source>User Members - Extension Methods</source>
+        <target state="new">User Members - Extension Methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Fields">
+        <source>User Members - Fields</source>
+        <target state="new">User Members - Fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Labels">
+        <source>User Members - Labels</source>
+        <target state="new">User Members - Labels</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Locals">
+        <source>User Members - Locals</source>
+        <target state="new">User Members - Locals</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Methods">
+        <source>User Members - Methods</source>
+        <target state="new">User Members - Methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Namespaces">
+        <source>User Members - Namespaces</source>
+        <target state="new">User Members - Namespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Parameters">
+        <source>User Members - Parameters</source>
+        <target state="new">User Members - Parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Properties">
+        <source>User Members - Properties</source>
+        <target state="new">User Members - Properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Types_Classes">
         <source>User Types - Classes</source>
-        <target state="translated">Benutzertypen - Klassen</target>
+        <target state="translated">Benutzertypen: Klassen</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Delegates">
         <source>User Types - Delegates</source>
-        <target state="translated">Benutzertypen - Delegaten</target>
+        <target state="translated">Benutzertypen: Delegaten</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Enums">
         <source>User Types - Enums</source>
-        <target state="translated">Benutzertypen - Aufzählungen</target>
+        <target state="translated">Benutzertypen – Enumerationen</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Interfaces">
         <source>User Types - Interfaces</source>
-        <target state="translated">Benutzertypen - Schnittstellen</target>
+        <target state="translated">Benutzertypen: Schnittstellen</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Structures">
         <source>User Types - Structures</source>
-        <target state="translated">Benutzertypen - Strukturen</target>
+        <target state="translated">Benutzertypen: Strukturen</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Type_Parameters">
         <source>User Types - Type Parameters</source>
-        <target state="translated">Benutzertypen - Typparameter</target>
+        <target state="translated">Benutzertypen: Typparameter</target>
         <note />
       </trans-unit>
       <trans-unit id="String_Verbatim">
         <source>String - Verbatim</source>
-        <target state="translated">Zeichenfolge - ausführlich</target>
+        <target state="translated">Zeichenfolge: ausführlich</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Attribute_Name">
@@ -104,92 +184,92 @@
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_CData_Section">
         <source>XML Doc Comments - CData Section</source>
-        <target state="translated">XML-Dok-Kommentare - CData-Abschnitt</target>
+        <target state="translated">XML-Dok-Kommentare: CData-Abschnitt</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Text">
         <source>XML Doc Comments - Text</source>
-        <target state="translated">XML-Dok-Kommentare - Text</target>
+        <target state="translated">XML-Dok-Kommentare: Text</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Delimiter">
         <source>XML Doc Comments - Delimiter</source>
-        <target state="translated">XML-Dok-Kommentare - Trennzeichen</target>
+        <target state="translated">XML-Dok-Kommentare: Trennzeichen</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Comment">
         <source>XML Doc Comments - Comment</source>
-        <target state="translated">XML-Dok-Kommentare - Kommentar</target>
+        <target state="translated">XML-Dok-Kommentare: Kommentar</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Modules">
         <source>User Types - Modules</source>
-        <target state="translated">Benutzertypen - Module</target>
+        <target state="translated">Benutzertypen: Module</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_XML_Literals_Attribute_Name">
         <source>VB XML Literals - Attribute Name</source>
-        <target state="translated">VB XML-Literale - Attributname</target>
+        <target state="translated">VB XML-Literale: Attributname</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_XML_Literals_Attribute_Quotes">
         <source>VB XML Literals - Attribute Quotes</source>
-        <target state="translated">VB XML-Literale - Attributanführungszeichen</target>
+        <target state="translated">VB XML-Literale: Attributanführungszeichen</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_XML_Literals_Attribute_Value">
         <source>VB XML Literals - Attribute Value</source>
-        <target state="translated">VB XML-Literale - Attributwert</target>
+        <target state="translated">VB XML-Literale: Attributwert</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_XML_Literals_CData_Section">
         <source>VB XML Literals - CData Section</source>
-        <target state="translated">VB XML-Literale - CData-Abschnitt</target>
+        <target state="translated">VB XML-Literale: CData-Abschnitt</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_XML_Literals_Comment">
         <source>VB XML Literals - Comment</source>
-        <target state="translated">VB XML-Literale - Kommentar</target>
+        <target state="translated">VB XML-Literale: Kommentar</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_XML_Literals_Delimiter">
         <source>VB XML Literals - Delimiter</source>
-        <target state="translated">VB XML-Literale - Trennzeichen</target>
+        <target state="translated">VB XML-Literale: Trennzeichen</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_XML_Literals_Embedded_Expression">
         <source>VB XML Literals - Embedded Expression</source>
-        <target state="translated">VB XML-Literale - Eingebetteter Ausdruck</target>
+        <target state="translated">VB XML-Literale: Eingebetteter Ausdruck</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_XML_Literals_Entity_Reference">
         <source>VB XML Literals - Entity Reference</source>
-        <target state="translated">VB XML-Literale - Entitätsverweis</target>
+        <target state="translated">VB XML-Literale: Entitätsverweis</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_XML_Literals_Name">
         <source>VB XML Literals - Name</source>
-        <target state="translated">VB XML-Literale - Name</target>
+        <target state="translated">VB XML-Literale: Name</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_XML_Literals_Processing_Instruction">
         <source>VB XML Literals - Processing Instruction</source>
-        <target state="translated">VB XML-Literale - Verarbeitungsanweisung</target>
+        <target state="translated">VB XML-Literale: Verarbeitungsanweisung</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_XML_Literals_Text">
         <source>VB XML Literals - Text</source>
-        <target state="translated">VB XML-Literale - Text</target>
+        <target state="translated">VB XML-Literale: Text</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Attribute_Quotes">
         <source>XML Doc Comments - Attribute Quotes</source>
-        <target state="translated">XML-Dok-Kommentare - Attributanführungszeichen</target>
+        <target state="translated">XML-Dok-Kommentare: Attributanführungszeichen</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Attribute_Value">
         <source>XML Doc Comments - Attribute Value</source>
-        <target state="translated">XML-Dok-Kommentare - Attributwert</target>
+        <target state="translated">XML-Dok-Kommentare: Attributwert</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_Code">
@@ -384,7 +464,7 @@
       </trans-unit>
       <trans-unit id="_0_Line_1">
         <source>{0} - (Line {1})</source>
-        <target state="translated">{0} - (Zeile {1})</target>
+        <target state="translated">{0}: (Zeile {1})</target>
         <note />
       </trans-unit>
       <trans-unit id="Class_Parts">
@@ -644,7 +724,7 @@
       </trans-unit>
       <trans-unit id="Go_to_Definition">
         <source>Go to Definition</source>
-        <target state="translated">Gehe zu Definition</target>
+        <target state="translated">Zur Definition wechseln</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigating_to_definition">
@@ -754,7 +834,7 @@
       </trans-unit>
       <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
         <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="translated">Das Umbenennen von Elementen des Typs anonym wird noch nicht unterstützt.</target>
+        <target state="translated">Das Umbenennen von Membern des Typs anonym wird noch nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
@@ -799,17 +879,17 @@
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Entity_Reference">
         <source>XML Doc Comments - Entity Reference</source>
-        <target state="translated">XML-Dok-Kommentare - Entitätsverweis</target>
+        <target state="translated">XML-Dok-Kommentare: Entitätsverweis</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Name">
         <source>XML Doc Comments - Name</source>
-        <target state="translated">XML-Dok-Kommentare - Name</target>
+        <target state="translated">XML-Dok-Kommentare: Name</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Processing_Instruction">
         <source>XML Doc Comments - Processing Instruction</source>
-        <target state="translated">XML-Dok-Kommentare - Verarbeitungsanweisung</target>
+        <target state="translated">XML-Dok-Kommentare: Verarbeitungsanweisung</target>
         <note />
       </trans-unit>
       <trans-unit id="Active_Statement">
@@ -829,7 +909,7 @@
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">
         <source>'symbol' cannot be a namespace.</source>
-        <target state="translated">'"symbol" kann kein Namespace sein.</target>
+        <target state="translated">"symbol" kann kein Namespace sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply1">
@@ -864,7 +944,7 @@
       </trans-unit>
       <trans-unit id="Preview_Changes_0">
         <source>Preview Changes - {0}</source>
-        <target state="translated">Vorschau der Änderungen - {0}</target>
+        <target state="translated">Vorschau der Änderungen: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Preview_Code_Changes_colon">
@@ -1011,7 +1091,7 @@ Möchten Sie fortfahren?</target>
       </trans-unit>
       <trans-unit id="_0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_that_support_this_operation">
         <source>'{0}' does not support the '{1}' operation. However, it may contain nested '{2}'s (see '{2}.{3}') that support this operation.</source>
-        <target state="translated">'Der Vorgang "{1}" wird von "{0}" nicht unterstützt. Es können jedoch geschachtelte "{2}" enthalten sein (siehe "{2}.{3}"), die diesen Vorgang unterstützen.</target>
+        <target state="translated">Der Vorgang "{1}" wird von "{0}" nicht unterstützt. Es können jedoch geschachtelte "{2}" enthalten sein (siehe "{2}.{3}"), die diesen Vorgang unterstützen.</target>
         <note />
       </trans-unit>
       <trans-unit id="Brace_Completion">
@@ -1091,17 +1171,17 @@ Möchten Sie fortfahren?</target>
       </trans-unit>
       <trans-unit id="_0_references">
         <source>'{0}' references</source>
-        <target state="translated">'"{0}"-Verweise</target>
+        <target state="translated">{0}-Verweise</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_implementations">
         <source>'{0}' implementations</source>
-        <target state="translated">'"{0}"-Implementierungen</target>
+        <target state="translated">{0}-Implementierungen</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_declarations">
         <source>'{0}' declarations</source>
-        <target state="translated">'"{0}"-Deklarationen</target>
+        <target state="translated">{0}-Deklarationen</target>
         <note />
       </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active">

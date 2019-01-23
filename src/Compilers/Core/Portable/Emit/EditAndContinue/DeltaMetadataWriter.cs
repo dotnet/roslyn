@@ -654,9 +654,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
                     encInfos.Add(CreateEncLocalInfo(local, signature));
                 }
-                
+
                 BlobHandle blobIndex = metadata.GetOrAddBlob(writer);
-                
+
                 localSignatureHandle = GetOrAddStandaloneSignatureHandle(blobIndex);
                 writer.Free();
             }
@@ -1443,9 +1443,6 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 _changes = writer._changes;
             }
-
-            protected override bool ProcessReferencesInCurrentModule
-                => false;
 
             public override void Visit(CommonPEModuleBuilder module)
             {

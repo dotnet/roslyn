@@ -705,7 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsByRefLikeType
+        public sealed override bool IsRefLikeType
         {
             get
             {
@@ -1404,7 +1404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForUnmatchedOperators(diagnostics);
 
             var location = Locations[0];
-            if (this.IsByRefLikeType)
+            if (this.IsRefLikeType)
             {
                 this.DeclaringCompilation.EnsureIsByRefLikeAttributeExists(diagnostics, location, modifyCompilation: true);
             }
@@ -1417,8 +1417,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // https://github.com/dotnet/roslyn/issues/30080: Report diagnostics for base type and interfaces at more specific locations.
             var baseType = BaseTypeNoUseSiteDiagnostics;
             var interfaces = InterfacesNoUseSiteDiagnostics();
-            if (baseType?.ContainsNullableReferenceTypes() == true ||
-                interfaces.Any(t => t.ContainsNullableReferenceTypes()))
+            if (baseType?.NeedsNullableAttribute() == true ||
+                interfaces.Any(t => t.NeedsNullableAttribute()))
             {
                 this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
@@ -2095,7 +2095,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (instanceMap.TryGetValue(tOriginal, out oldInstance))
             {
                 // short circuit when we find a cycle, but only return true when the cycle contains the top struct
-                return (oldInstance != t) && ReferenceEquals(tOriginal, top);
+                return (!TypeSymbol.Equals(oldInstance, t, TypeCompareKind.ConsiderEverything2)) && ReferenceEquals(tOriginal, top);
             }
             else
             {
@@ -2542,7 +2542,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             return builder.ToImmutableAndFree();
         }
-        
+
         /// <summary>
         /// Report an error if a member (other than a method) exists with the same name
         /// as the property accessor, or if a method exists with the same name and signature.

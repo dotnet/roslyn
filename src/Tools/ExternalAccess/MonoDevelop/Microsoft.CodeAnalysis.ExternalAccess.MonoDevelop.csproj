@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.MonoDevelop</RootNamespace>
+    <TargetFramework>net472</TargetFramework>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.ExternalAccess.MonoDevelop</PackageId>
+    <PackageDescription>
+      A supporting package for MonoDevelop:
+      https://github.com/mono/monodevelop
+    </PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      ⚠ ONLY MONODEVELOP ASSEMBLIES MAY BE ADDED HERE ⚠
+    -->
+    <InternalsVisibleTo Include="MonoDevelop.Ide" Key="$(MonoDevelopKey)" />
+    <InternalsVisibleTo Include="MonoDevelop.Refactoring" Key="$(MonoDevelopKey)" />
+    <InternalsVisibleTo Include="MonoDevelop.CSharpBinding" Key="$(MonoDevelopKey)" />
+    <InternalsVisibleTo Include="MonoDevelop.VBNetBinding" Key="$(MonoDevelopKey)" />
+    <InternalsVisibleTo Include="MonoDevelop.Ide.Tests" Key="$(MonoDevelopKey)" />
+    <InternalsVisibleTo Include="MonoDevelop.Refactoring.Tests" Key="$(MonoDevelopKey)" />
+    <InternalsVisibleTo Include="MonoDevelop.CSharpBinding.Tests" Key="$(MonoDevelopKey)" />
+    <InternalsVisibleTo Include="MonoDevelop.VBNetBinding.Tests" Key="$(MonoDevelopKey)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+
+</Project>

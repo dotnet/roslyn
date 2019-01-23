@@ -224,6 +224,61 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics, useLatestFrameworkReferences: true);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.AsyncStreams)]
+        [Fact]
+        public void AwaitFlow_AsyncIterator()
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    /*<bind>*/{
+        await M2();
+        yield return 42;
+    }/*</bind>*/
+
+    static Task M2() => null;
+}
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(24,32): error CS0234: The type or namespace name 'ValueTask<>' does not exist in the namespace 'System.Threading.Tasks' (are you missing an assembly reference?)
+                //         System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "ValueTask<bool>").WithArguments("ValueTask<>", "System.Threading.Tasks").WithLocation(24, 32),
+                // file.cs(32,32): error CS0234: The type or namespace name 'ValueTask' does not exist in the namespace 'System.Threading.Tasks' (are you missing an assembly reference?)
+                //         System.Threading.Tasks.ValueTask DisposeAsync();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "ValueTask").WithArguments("ValueTask", "System.Threading.Tasks").WithLocation(32, 32)
+            };
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'await M2();')
+          Expression: 
+            IAwaitOperation (OperationKind.Await, Type: System.Void) (Syntax: 'await M2()')
+              Expression: 
+                IInvocationOperation (System.Threading.Tasks.Task C.M2()) (OperationKind.Invocation, Type: System.Threading.Tasks.Task) (Syntax: 'M2()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        IReturnOperation (OperationKind.YieldReturn, Type: null) (Syntax: 'yield return 42;')
+          ReturnedValue: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source + s_IAsyncEnumerable, expectedFlowGraph, expectedDiagnostics);
+        }
+
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void AwaitFlow_01()

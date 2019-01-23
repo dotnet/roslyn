@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 }
             }
 
-            if (projectName == null)
+            if (string.IsNullOrEmpty(projectName))
             {
                 if (hierarchy is IVsContainedLanguageProjectNameProvider containedLanguageProjectNameProvider)
                 {
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return null;
             }
 
-            return this.Workspace.GetProjectForUniqueName(projectName);
+            return this.Workspace.GetProjectWithHierarchyAndName(hierarchy, projectName);
         }
 
         public int GetLanguage(IVsHierarchy hierarchy, uint itemid, IVsTextBufferCoordinator bufferCoordinator, out IVsContainedLanguage language)

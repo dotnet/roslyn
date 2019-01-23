@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, rewrittenConversion, resultKind, rewrittenResultType);
             }
 
-            var isUnconstrainedTypeParameter = rewrittenLeft.Type != null && !rewrittenLeft.Type.IsReferenceType && !rewrittenLeft.Type.IsValueType;
+            var isUnconstrainedTypeParameter = (object)rewrittenLeft.Type != null && !rewrittenLeft.Type.IsReferenceType && !rewrittenLeft.Type.IsValueType;
 
             // first we can make a small optimization:
             // If left is a constant then we already know whether it is null or not. If it is null then we
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsStringConcat(BoundExpression expression)
         {
-            if  (expression.Kind != BoundKind.Call)
+            if (expression.Kind != BoundKind.Call)
             {
                 return false;
             }
@@ -226,12 +226,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // before performing the leftConversion.
             // See comments in Binder.BindNullCoalescingOperator referring to GetConvertedLeftForNullCoalescingOperator for more details.
 
-            if (rewrittenLeftType != rewrittenResultType && rewrittenLeftType.IsNullableType())
+            if (!TypeSymbol.Equals(rewrittenLeftType, rewrittenResultType, TypeCompareKind.ConsiderEverything2) && rewrittenLeftType.IsNullableType())
             {
                 TypeSymbol strippedLeftType = rewrittenLeftType.GetNullableUnderlyingType();
                 MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeftType, SpecialMember.System_Nullable_T_GetValueOrDefault);
                 rewrittenLeft = BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, getValueOrDefault);
-                if (strippedLeftType == rewrittenResultType)
+                if (TypeSymbol.Equals(strippedLeftType, rewrittenResultType, TypeCompareKind.ConsiderEverything2))
                 {
                     return rewrittenLeft;
                 }

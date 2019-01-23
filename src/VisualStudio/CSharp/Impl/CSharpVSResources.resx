@@ -565,4 +565,13 @@
   <data name="CSharp_Formatting_Rules" xml:space="preserve">
     <value>C# Formatting Rules</value>
   </data>
+  <data name="Discard" xml:space="preserve">
+    <value>Discard</value>
+  </data>
+  <data name="Unused_local" xml:space="preserve">
+    <value>Unused local</value>
+  </data>
+  <data name="When_on_multiple_lines" xml:space="preserve">
+    <value>When on multiple lines</value>
+  </data>
 </root>

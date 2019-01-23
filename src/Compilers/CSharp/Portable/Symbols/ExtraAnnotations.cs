@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         //   1) don't accept null input
         //   2) return a reference type
         // All types in a member which can be annotated should be annotated. Value types and void can be skipped (with a `default`)
-        private static readonly ImmutableDictionary<string, ImmutableArray<ImmutableArray<bool>>> Annotations =
-            new Dictionary<string, ImmutableArray<ImmutableArray<bool>>>
+        private static readonly ImmutableDictionary<string, ImmutableArray<ImmutableArray<byte>>> Annotations =
+            new Dictionary<string, ImmutableArray<ImmutableArray<byte>>>
             {
                 { "System.Boolean System.Boolean.Parse(System.String)", Array(default, Nullable(false)) },
                 { "System.Void System.Buffer.BlockCopy(System.Array, System.Int32, System.Array, System.Int32, System.Int32)", Array(default, Nullable(false), default, Nullable(false), default, default) },
@@ -121,19 +121,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // use assembly qualified name format (used in metadata) rather than symbol display?
         }
 
-        private static ImmutableArray<ImmutableArray<bool>> Array(params ImmutableArray<bool>[] values)
+        private static ImmutableArray<ImmutableArray<byte>> Array(params ImmutableArray<byte>[] values)
             => values.ToImmutableArray();
 
         private static ImmutableArray<FlowAnalysisAnnotations> Array(params FlowAnalysisAnnotations[] values)
             => values.ToImmutableArray();
 
-        private static ImmutableArray<bool> Nullable(params bool[] values)
+        private static ImmutableArray<byte> Nullable(bool isNullable)
         {
-            Debug.Assert(values.Length > 0);
-            return values.ToImmutableArray();
+            return ImmutableArray.Create((byte)(isNullable ? NullableAnnotation.Annotated : NullableAnnotation.NotAnnotated));
         }
 
-        internal static ImmutableArray<ImmutableArray<bool>> GetExtraAnnotations(string key)
+        internal static ImmutableArray<ImmutableArray<byte>> GetExtraAnnotations(string key)
         {
             if (key is null)
             {

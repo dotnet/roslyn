@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis
             return builderOpt?.ToImmutableAndFree() ?? ImmutableArray<T>.Empty;
         }
 
-        public static void AddIfNotNull<T> (this ArrayBuilder<T> builder, T? value)
+        public static void AddIfNotNull<T>(this ArrayBuilder<T> builder, T? value)
             where T : struct
         {
             if (value != null)

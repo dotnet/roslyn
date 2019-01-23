@@ -65,90 +65,147 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((expressionSyntax == null) ^ (declarationSyntax == null)); // Can't have both or neither.
 
-            TypeSymbol iDisposable = hasAwait
-                ? this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable)
-                : this.Compilation.GetSpecialType(SpecialType.System_IDisposable);
+            var boundUsingStatement = BindUsingStatementOrDeclarationFromParts((CSharpSyntaxNode)expressionSyntax ?? declarationSyntax, _syntax.UsingKeyword, _syntax.AwaitKeyword, originalBinder, this, diagnostics);
+            Debug.Assert(boundUsingStatement is BoundUsingStatement);
+            return boundUsingStatement;
+        }
 
-            Debug.Assert((object)iDisposable != null);
-            bool hasErrors = ReportUseSiteDiagnostics(iDisposable, diagnostics, hasAwait ? _syntax.AwaitKeyword : _syntax.UsingKeyword);
+        internal static BoundStatement BindUsingStatementOrDeclarationFromParts(SyntaxNode syntax, SyntaxToken usingKeyword, SyntaxToken awaitKeyword, Binder originalBinder, UsingStatementBinder usingBinderOpt, DiagnosticBag diagnostics)
+        {
+            bool isUsingDeclaration = syntax.Kind() == SyntaxKind.LocalDeclarationStatement;
+            bool isExpression = !isUsingDeclaration && syntax.Kind() != SyntaxKind.VariableDeclaration;
+            bool hasAwait = awaitKeyword != default;
+
+            Debug.Assert(isUsingDeclaration || usingBinderOpt != null);
+
+            TypeSymbol disposableInterface = getDisposableInterface(hasAwait);
+
+            Debug.Assert((object)disposableInterface != null);
+            bool hasErrors = ReportUseSiteDiagnostics(disposableInterface, diagnostics, hasAwait ? awaitKeyword : usingKeyword);
 
             Conversion iDisposableConversion = Conversion.NoConversion;
-            BoundMultipleLocalDeclarations declarationsOpt = null;
+            ImmutableArray<BoundLocalDeclaration> declarationsOpt = default;
+            BoundMultipleLocalDeclarations multipleDeclarationsOpt = null;
             BoundExpression expressionOpt = null;
             AwaitableInfo awaitOpt = null;
-            if (expressionSyntax != null)
+            TypeSymbol declarationTypeOpt = null;
+            MethodSymbol disposeMethodOpt = null;
+
+            if (isExpression)
             {
-                expressionOpt = this.BindTargetExpression(diagnostics, originalBinder);
-
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, iDisposable, ref useSiteDiagnostics);
-                diagnostics.Add(expressionSyntax, useSiteDiagnostics);
-
-                if (!iDisposableConversion.IsImplicit)
-                {
-                    TypeSymbol expressionType = expressionOpt.Type;
-                    if ((object)expressionType == null || !expressionType.IsErrorType())
-                    {
-                        Error(diagnostics, hasAwait ? ErrorCode.ERR_NoConvToIAsyncDisp : ErrorCode.ERR_NoConvToIDisp, expressionSyntax, expressionOpt.Display);
-                    }
-                    hasErrors = true;
-                }
+                expressionOpt = usingBinderOpt.BindTargetExpression(diagnostics, originalBinder);
+                hasErrors |= !populateDisposableConversionOrDisposeMethod(fromExpression: true);
             }
             else
             {
-                ImmutableArray<BoundLocalDeclaration> declarations;
-                originalBinder.BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.UsingVariable, diagnostics, out declarations);
+                VariableDeclarationSyntax declarationSyntax = isUsingDeclaration ? ((LocalDeclarationStatementSyntax)syntax).Declaration : (VariableDeclarationSyntax)syntax;
+                originalBinder.BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.UsingVariable, diagnostics, out declarationsOpt);
 
-                Debug.Assert(!declarations.IsEmpty);
+                Debug.Assert(!declarationsOpt.IsEmpty);
+                multipleDeclarationsOpt = new BoundMultipleLocalDeclarations(declarationSyntax, declarationsOpt);
+                declarationTypeOpt = declarationsOpt[0].DeclaredType.Type;
 
-                declarationsOpt = new BoundMultipleLocalDeclarations(declarationSyntax, declarations);
-
-                TypeSymbol declType = declarations[0].DeclaredType.Type;
-
-                if (declType.IsDynamic())
+                if (declarationTypeOpt.IsDynamic())
                 {
                     iDisposableConversion = Conversion.ImplicitDynamic;
                 }
                 else
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declType, iDisposable, ref useSiteDiagnostics);
-                    diagnostics.Add(declarationSyntax, useSiteDiagnostics);
-
-                    if (!iDisposableConversion.IsImplicit)
-                    {
-                        if (!declType.IsErrorType())
-                        {
-                            Error(diagnostics, hasAwait ? ErrorCode.ERR_NoConvToIAsyncDisp : ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declType);
-                        }
-
-                        hasErrors = true;
-                    }
+                    hasErrors |= !populateDisposableConversionOrDisposeMethod(fromExpression: false);
                 }
             }
 
             if (hasAwait)
             {
-                TypeSymbol taskType = this.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);
-                hasErrors |= ReportUseSiteDiagnostics(taskType, diagnostics, _syntax.AwaitKeyword);
+                TypeSymbol taskType = originalBinder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);
+                hasErrors |= ReportUseSiteDiagnostics(taskType, diagnostics, awaitKeyword);
 
-                var resource = (SyntaxNode)expressionSyntax ?? declarationSyntax;
-                BoundExpression placeholder = new BoundAwaitableValuePlaceholder(resource, taskType).MakeCompilerGenerated();
-                awaitOpt = BindAwaitInfo(placeholder, resource, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+                BoundExpression placeholder = new BoundAwaitableValuePlaceholder(syntax, taskType).MakeCompilerGenerated();
+                awaitOpt = originalBinder.BindAwaitInfo(placeholder, syntax, awaitKeyword.GetLocation(), diagnostics, ref hasErrors);
             }
 
-            BoundStatement boundBody = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);
+            // This is not awesome, but its factored. 
+            // In the future it might be better to have a seperate shared type that we add the info to, and have the callers create the appropriate bound nodes from it
+            if (isUsingDeclaration)
+            {
+                return new BoundUsingLocalDeclarations(syntax, disposeMethodOpt, iDisposableConversion, awaitOpt, declarationsOpt, hasErrors);
+            }
+            else
+            {
+                BoundStatement boundBody = originalBinder.BindPossibleEmbeddedStatement(usingBinderOpt._syntax.Statement, diagnostics);
 
-            Debug.Assert(GetDeclaredLocalsForScope(_syntax) == this.Locals);
-            return new BoundUsingStatement(
-                _syntax,
-                this.Locals,
-                declarationsOpt,
-                expressionOpt,
-                iDisposableConversion,
-                boundBody,
-                awaitOpt,
-                hasErrors);
+                return new BoundUsingStatement(
+                    usingBinderOpt._syntax,
+                    usingBinderOpt.Locals,
+                    multipleDeclarationsOpt,
+                    expressionOpt,
+                    iDisposableConversion,
+                    boundBody,
+                    awaitOpt,
+                    disposeMethodOpt,
+                    hasErrors);
+            }
+
+            bool populateDisposableConversionOrDisposeMethod(bool fromExpression)
+            {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                iDisposableConversion = classifyConversion(fromExpression, disposableInterface, ref useSiteDiagnostics);
+
+                diagnostics.Add(syntax, useSiteDiagnostics);
+
+                if (iDisposableConversion.IsImplicit)
+                {
+                    return true;
+                }
+
+                TypeSymbol type = fromExpression ? expressionOpt.Type : declarationTypeOpt;
+
+                // If this is a ref struct, try binding via pattern.
+                // We won't need to try and bind a second time if it fails, as async dispose can't be pattern based (ref structs are not allowed in async methods)
+                if (!(type is null) && type.IsValueType && type.IsRefLikeType)
+                {
+                    BoundExpression receiver = fromExpression
+                                               ? expressionOpt
+                                               : new BoundLocal(syntax, declarationsOpt[0].LocalSymbol, null, type) { WasCompilerGenerated = true };
+
+                    disposeMethodOpt = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, diagnostics);
+                    if (!(disposeMethodOpt is null))
+                    {
+                        return true;
+                    }
+                }
+
+                if (type is null || !type.IsErrorType())
+                {
+                    // Retry with a different assumption about whether the `using` is async
+                    TypeSymbol alternateInterface = getDisposableInterface(!hasAwait);
+                    HashSet<DiagnosticInfo> ignored = null;
+                    Conversion alternateConversion = classifyConversion(fromExpression, alternateInterface, ref ignored);
+
+                    bool wrongAsync = alternateConversion.IsImplicit;
+                    ErrorCode errorCode = wrongAsync
+                        ? (hasAwait ? ErrorCode.ERR_NoConvToIAsyncDispWrongAsync : ErrorCode.ERR_NoConvToIDispWrongAsync)
+                        : (hasAwait ? ErrorCode.ERR_NoConvToIAsyncDisp : ErrorCode.ERR_NoConvToIDisp);
+
+                    Error(diagnostics, errorCode, syntax, declarationTypeOpt ?? expressionOpt.Display);
+                }
+
+                return false;
+            }
+
+            Conversion classifyConversion(bool fromExpression, TypeSymbol targetInterface, ref HashSet<DiagnosticInfo> diag)
+            {
+                return fromExpression ?
+                    originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, targetInterface, ref diag) :
+                    originalBinder.Conversions.ClassifyImplicitConversionFromType(declarationTypeOpt, targetInterface, ref diag);
+            }
+
+            TypeSymbol getDisposableInterface(bool isAsync)
+            {
+                return isAsync
+                    ? originalBinder.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable)
+                    : originalBinder.Compilation.GetSpecialType(SpecialType.System_IDisposable);
+            }
         }
 
         internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)

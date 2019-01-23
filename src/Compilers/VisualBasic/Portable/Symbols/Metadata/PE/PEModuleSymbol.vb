@@ -464,7 +464,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                     Yield ContainingAssembly.CreateMultipleForwardingErrorTypeSymbol(name, Me, firstSymbol, secondSymbol)
                 Else
-                    Yield firstSymbol.LookupTopLevelMetadataType(name, digThroughForwardedTypes:= true)
+                    Yield firstSymbol.LookupTopLevelMetadataType(name, digThroughForwardedTypes:=true)
                 End If
             Next
         End Function

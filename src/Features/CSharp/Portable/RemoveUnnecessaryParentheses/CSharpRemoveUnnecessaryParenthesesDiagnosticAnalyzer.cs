@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
 {
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
             out PrecedenceKind precedence, out bool clarifiesPrecedence)
         {
             return CanRemoveParenthesesHelper(
-                parenthesizedExpression, semanticModel, 
+                parenthesizedExpression, semanticModel,
                 out precedence, out clarifiesPrecedence);
         }
 
@@ -84,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
             }
 
             // We're parented by something binary-like. 
-            parentPrecedenceKind = GetPrecedenceKind(parentExpression);
+            parentPrecedenceKind = CSharpPrecedenceService.Instance.GetPrecedenceKind(parentExpression);
 
             // Precedence is clarified any time we have expression with different precedence
             // (and the inner expression is not a primary expression).  in other words, this
@@ -98,27 +97,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
             clarifiesPrecedence = !innerIsSimple &&
                                   parentExpression.GetOperatorPrecedence() != innerPrecedence;
             return true;
-        }
-
-        public static PrecedenceKind GetPrecedenceKind(ExpressionSyntax parentExpression)
-        {
-            var precedence = parentExpression.GetOperatorPrecedence();
-            switch (precedence)
-            {
-                case OperatorPrecedence.NullCoalescing: return PrecedenceKind.Coalesce;
-                case OperatorPrecedence.ConditionalOr:
-                case OperatorPrecedence.ConditionalAnd: return PrecedenceKind.Logical;
-                case OperatorPrecedence.LogicalOr:
-                case OperatorPrecedence.LogicalXor:
-                case OperatorPrecedence.LogicalAnd: return PrecedenceKind.Bitwise;
-                case OperatorPrecedence.Equality: return PrecedenceKind.Equality;
-                case OperatorPrecedence.RelationalAndTypeTesting: return PrecedenceKind.Relational;
-                case OperatorPrecedence.Shift: return PrecedenceKind.Shift;
-                case OperatorPrecedence.Additive:
-                case OperatorPrecedence.Multiplicative: return PrecedenceKind.Arithmetic;
-            }
-
-            throw ExceptionUtilities.UnexpectedValue(precedence);
         }
     }
 }

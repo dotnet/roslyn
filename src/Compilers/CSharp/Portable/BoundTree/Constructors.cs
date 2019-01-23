@@ -336,11 +336,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             : this(
                 syntax,
                 operatorKind,
-                left,
-                right,
                 constantValueOpt,
                 methodOpt,
                 resultKind,
+                left,
+                right,
                 type,
                 hasErrors)
         {
@@ -365,12 +365,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             : this(
                 syntax,
                 operatorKind,
-                left,
-                right,
                 logicalOperator,
                 trueOperator,
                 falseOperator,
                 resultKind,
+                left,
+                right,
                 type,
                 hasErrors)
         {
@@ -556,16 +556,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundTryStatement
     {
-        public BoundTryStatement(SyntaxNode syntax, BoundBlock tryBlock, ImmutableArray<BoundCatchBlock> catchBlocks, BoundBlock finallyBlockOpt)
-            : this(syntax, tryBlock, catchBlocks, finallyBlockOpt, preferFaultHandler: false, hasErrors: false)
-        {
-        }
-    }
-
-    internal partial class BoundDeclarationPattern
-    {
-        public BoundDeclarationPattern(SyntaxNode syntax, LocalSymbol localSymbol, BoundTypeExpression declaredType, bool isVar, bool hasErrors = false)
-            : this(syntax, localSymbol, localSymbol == null ? new BoundDiscardExpression(syntax, declaredType.Type) : (BoundExpression)new BoundLocal(syntax, localSymbol, null, declaredType.Type), declaredType, isVar, hasErrors)
+        public BoundTryStatement(SyntaxNode syntax, BoundBlock tryBlock, ImmutableArray<BoundCatchBlock> catchBlocks, BoundBlock finallyBlockOpt, LabelSymbol finallyLabelOpt = null)
+            : this(syntax, tryBlock, catchBlocks, finallyBlockOpt, finallyLabelOpt, preferFaultHandler: false, hasErrors: false)
         {
         }
     }
@@ -575,6 +567,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundAddressOfOperator(SyntaxNode syntax, BoundExpression operand, TypeSymbol type, bool hasErrors = false)
              : this(syntax, operand, isManaged: false, type, hasErrors)
         {
-        }  
+        }
     }
 }

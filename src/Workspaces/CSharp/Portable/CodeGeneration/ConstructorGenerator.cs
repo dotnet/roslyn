@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         internal static ConstructorDeclarationSyntax GenerateConstructorDeclaration(
-            IMethodSymbol constructor, CodeGenerationDestination destination, 
+            IMethodSymbol constructor, CodeGenerationDestination destination,
             Workspace workspace, CodeGenerationOptions options, ParseOptions parseOptions)
         {
             options = options ?? CodeGenerationOptions.Default;

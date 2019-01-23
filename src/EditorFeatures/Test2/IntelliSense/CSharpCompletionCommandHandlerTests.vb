@@ -1000,6 +1000,72 @@ class Class
             End Using
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestPropertyInPropertySubpattern() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class Class
+{
+    int Prop { get; set; }
+    int OtherProp { get; set; }
+    public void M()
+    {
+        _ = this is $$
+    }
+}]]></Document>)
+
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("C")
+                Await state.AssertSelectedCompletionItem(displayText:="Class", isHardSelected:=True)
+                state.SendTypeChars(" { P")
+                Await state.AssertSelectedCompletionItem(displayText:="Prop", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("{ Prop:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars(" 0, ")
+                Await state.AssertSelectedCompletionItem(displayText:="OtherProp", isSoftSelected:=True)
+                state.SendTypeChars("O")
+                Await state.AssertSelectedCompletionItem(displayText:="OtherProp", isHardSelected:=True)
+                state.SendTypeChars(": 1 }")
+                Assert.Contains("is Class { Prop: 0, OtherProp: 1 }", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestPropertyInPropertySubpattern_TriggerWithSpace() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class Class
+{
+    int Prop { get; set; }
+    int OtherProp { get; set; }
+    public void M()
+    {
+        _ = this is $$
+    }
+}]]></Document>)
+
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("C")
+                Await state.AssertSelectedCompletionItem(displayText:="Class", isHardSelected:=True)
+                state.SendTypeChars(" ")
+                Assert.Contains("is Class", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars("{ P")
+                Await state.AssertSelectedCompletionItem(displayText:="Prop", isHardSelected:=True)
+                state.SendTypeChars(" ")
+                Assert.Contains("is Class { Prop ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars(":")
+                Assert.Contains("is Class { Prop :", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars(" 0, ")
+                Await state.AssertSelectedCompletionItem(displayText:="OtherProp", isSoftSelected:=True)
+                state.SendTypeChars("O")
+                Await state.AssertSelectedCompletionItem(displayText:="OtherProp", isHardSelected:=True)
+                state.SendTypeChars(" ")
+                Assert.Contains("is Class { Prop : 0, OtherProp", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars(": 1 }")
+                Assert.Contains("is Class { Prop : 0, OtherProp : 1 }", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
@@ -1534,7 +1600,7 @@ class C
         End Function
 
         <WorkItem(544293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544293")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/30795"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function NoKeywordsOrSymbolsAfterNamedParameterWithCSharp7() As Task
             Using state = TestState.CreateTestStateFromWorkspace(
                         <Workspace>
@@ -1558,9 +1624,9 @@ class Goo
 
                 state.SendTypeChars("a")
                 Await state.AssertCompletionSession()
-                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "num" AndAlso i.DisplayTextSuffix = ":"))
-                Assert.False(state.GetCompletionItems().Any(Function(i) i.DisplayText = "System"))
-                Assert.False(state.GetCompletionItems().Any(Function(c) c.DisplayText = "int"))
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "num:" AndAlso i.DisplayTextSuffix = ":"))
+                Assert.False(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "System"))
+                Assert.False(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(c) c.DisplayText = "int"))
             End Using
         End Function
 
@@ -1584,9 +1650,9 @@ class Goo
 
                 state.SendTypeChars("a")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "num" AndAlso i.DisplayTextSuffix = ":"))
-                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "System"))
-                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(c) c.DisplayText = "int"))
+                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "num:" AndAlso i.DisplayTextSuffix = ":"))
+                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "System"))
+                Assert.True(state.GetCompletionItems().Any(Function(c) c.DisplayText = "int"))
             End Using
         End Function
 

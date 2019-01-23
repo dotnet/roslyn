@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         blocks.AddRange(GetAttributes(t.AttributeLists));
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, blocks, cancellationToken));
                         blocks.Free();
-                        
+
                         return;
                     }
 

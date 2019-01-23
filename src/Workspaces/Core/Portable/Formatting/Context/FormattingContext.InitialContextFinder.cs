@@ -158,12 +158,12 @@ namespace Microsoft.CodeAnalysis.Formatting
                         return true;
                     }
 
-                    if (o.ContainsElasticTrivia(_tokenStream) && !o.Option.IsOn(SuppressOption.IgnoreElastic))
+                    if (!o.TextSpan.Contains(startPosition))
                     {
                         return true;
                     }
 
-                    if (!o.TextSpan.Contains(startPosition))
+                    if (o.ContainsElasticTrivia(_tokenStream) && !o.Option.IsOn(SuppressOption.IgnoreElasticWrapping))
                     {
                         return true;
                     }

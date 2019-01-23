@@ -2,6 +2,26 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../ServicesVSResources.resx">
     <body>
+      <trans-unit id="Add_to_current_file">
+        <source>Add to _current file</source>
+        <target state="new">Add to _current file</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below">
+        <source>Additional changes are needed to complete the refactoring. Review changes below.</source>
+        <target state="new">Additional changes are needed to complete the refactoring. Review changes below.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="All_methods">
+        <source>All methods</source>
+        <target state="new">All methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_colon">
+        <source>Allow:</source>
+        <target state="new">Allow:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
         <target state="translated">Sempre para esclarecimento</target>
@@ -12,6 +32,31 @@
         <target state="translated">Aplicar esquema de mapeamento de teclas '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
+        <source>Avoid expression statements that implicitly ignore value</source>
+        <target state="new">Avoid expression statements that implicitly ignore value</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_parameters">
+        <source>Avoid unused parameters</source>
+        <target state="new">Avoid unused parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_value_assignments">
+        <source>Avoid unused value assignments</source>
+        <target state="new">Avoid unused value assignments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Back">
+        <source>Back</source>
+        <target state="new">Back</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Calculating_dependents">
+        <source>Calculating dependents...</source>
+        <target state="new">Calculating dependents...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="new">Colorize regular expressions</target>
@@ -20,6 +65,11 @@
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">O elemento é inválido.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finish">
+        <source>Finish</source>
+        <target state="new">Finish</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
@@ -37,6 +87,11 @@
         <target state="translated">Em outros operadores</target>
         <note />
       </trans-unit>
+      <trans-unit id="Interface_cannot_have_field">
+        <source>Interface cannot have field.</source>
+        <target state="new">Interface cannot have field.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
         <source>Keep all parentheses in:</source>
         <target state="translated">Mantenha todos os parênteses em:</target>
@@ -47,9 +102,39 @@
         <target state="new">Kind</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_0_abstract">
+        <source>Make '{0}' abstract</source>
+        <target state="new">Make '{0}' abstract</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_abstract">
+        <source>Make abstract</source>
+        <target state="new">Make abstract</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Members">
+        <source>Members</source>
+        <target state="new">Members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace_0">
+        <source>Namespace: '{0}'</source>
+        <target state="new">Namespace: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">Nunca se desnecessário</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Non_public_methods">
+        <source>Non-public methods</source>
+        <target state="new">Non-public methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_preferences_colon">
+        <source>Parameter preferences:</source>
+        <target state="new">Parameter preferences:</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_preferences_colon">
@@ -72,6 +157,11 @@
         <target state="new">Prefer range operator</target>
         <note />
       </trans-unit>
+      <trans-unit id="Pull_Members_Up">
+        <source>Pull Members Up</source>
+        <target state="new">Pull Members Up</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Regular_Expressions">
         <source>Regular Expressions</source>
         <target state="new">Regular Expressions</target>
@@ -87,14 +177,79 @@
         <target state="translated">Redefinir mapeamento de teclas padrão do Visual Studio</target>
         <note />
       </trans-unit>
+      <trans-unit id="Review_Changes">
+        <source>Review Changes</source>
+        <target state="new">Review Changes</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Save_dot_editorconfig_file">
         <source>Save .editorconfig file</source>
         <target state="new">Save .editorconfig file</target>
         <note />
       </trans-unit>
+      <trans-unit id="Select_destination">
+        <source>Select destination</source>
+        <target state="new">Select destination</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_Dependents">
+        <source>_Select Dependents</source>
+        <target state="new">_Select Dependents</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_Public">
+        <source>_Select Public</source>
+        <target state="new">_Select Public</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_destination_and_members_to_pull_up">
+        <source>Select destination and members to pull up.</source>
+        <target state="new">Select destination and members to pull up.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_destination_colon">
+        <source>Select destination:</source>
+        <target state="new">Select destination:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_member">
+        <source>Select member</source>
+        <target state="new">Select member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_members_colon">
+        <source>Select members:</source>
+        <target state="new">Select members:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
+        <source>Unused value is explicitly assigned to an unused local</source>
+        <target state="new">Unused value is explicitly assigned to an unused local</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_value_is_explicitly_assigned_to_discard">
+        <source>Unused value is explicitly assigned to discard</source>
+        <target state="new">Unused value is explicitly assigned to discard</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
         <source>Use expression body for lambdas</source>
         <target state="new">Use expression body for lambdas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_local_functions">
+        <source>Use expression body for local functions</source>
+        <target state="new">Use expression body for local functions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_assigned_here_is_never_used">
+        <source>Value assigned here is never used</source>
+        <target state="new">Value assigned here is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
+        <source>Value returned by invocation is implicitly ignored</source>
+        <target state="new">Value returned by invocation is implicitly ignored</target>
         <note />
       </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
@@ -222,9 +377,24 @@
         <target state="translated">O valor não é válido</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_abstract">
+        <source>'{0}' will be changed to abstract.</source>
+        <target state="new">'{0}' will be changed to abstract.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_non_static">
+        <source>'{0}' will be changed to non-static.</source>
+        <target state="new">'{0}' will be changed to non-static.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_public">
+        <source>'{0}' will be changed to public.</source>
+        <target state="new">'{0}' will be changed to public.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="given_workspace_doesn_t_support_undo">
         <source>given workspace doesn't support undo</source>
-        <target state="translated">o espaço de trabalho fornecido não dá suporte a desfazer</target>
+        <target state="translated">o workspace fornecido não dá suporte a desfazer</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_a_reference_to_0">
@@ -359,7 +529,7 @@
       </trans-unit>
       <trans-unit id="The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace">
         <source>The given DocumentId did not come from the Visual Studio workspace.</source>
-        <target state="translated">O DocumentId fornecido não veio do espaço de trabalho do Visual Studio.</target>
+        <target state="translated">O DocumentId fornecido não veio do workspace do Visual Studio.</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_colon_0_1_Use_the_dropdown_to_view_and_switch_to_other_projects_this_file_may_belong_to">
@@ -731,12 +901,12 @@ Use a lista suspensa para exibir e mudar entre outros projetos aos quais este ar
       </trans-unit>
       <trans-unit id="This_workspace_only_supports_opening_documents_on_the_UI_thread">
         <source>This workspace only supports opening documents on the UI thread.</source>
-        <target state="translated">Este espaço de trabalho só dá suporte à abertura de documentos no thread da interface do usuário.</target>
+        <target state="translated">Este workspace só dá suporte à abertura de documentos no thread da interface do usuário.</target>
         <note />
       </trans-unit>
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_parse_options">
         <source>This workspace does not support updating Visual Basic parse options.</source>
-        <target state="translated">Este espaço de trabalho não dá suporte à atualização das opções de análise do Visual Basic.</target>
+        <target state="translated">Este workspace não dá suporte à atualização das opções de análise do Visual Basic.</target>
         <note />
       </trans-unit>
       <trans-unit id="Synchronize_0">
