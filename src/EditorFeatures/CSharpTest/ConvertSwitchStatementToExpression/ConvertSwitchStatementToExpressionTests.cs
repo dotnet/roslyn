@@ -562,6 +562,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestMissingOnGoto()
+        {
+            await TestMissingAsync(
+@"class Program
+{
+    int M(int i)
+    {
+        [||]switch (i)
+        {
+            case 1:
+                return 0;
+            case 2:
+                goto default;
+            default:
+                return 2;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestTrivia()
         {
             await TestInCSharp8(
