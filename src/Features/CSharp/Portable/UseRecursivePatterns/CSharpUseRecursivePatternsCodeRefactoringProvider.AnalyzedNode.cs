@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             public override bool Contains(ExpressionSyntax e) => Left.Contains(e) || Right.Contains(e);
 
-            public override AnalyzedNode Reduce() => Union(Left.Reduce(), Right.Reduce());
+            public override AnalyzedNode Reduce() => Intersection(Left.Reduce(), Right.Reduce());
 
             public override void GetChildren(List<AnalyzedNode> nodes)
             {
@@ -96,42 +96,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                     Token(SyntaxKind.ColonToken));
             }
 
-            private static AnalyzedNode UnionCore(Conjuction conjuction, PatternMatch match)
+            private static AnalyzedNode IntersectionCore(Conjuction conjuction, PatternMatch match)
             {
                 if (conjuction.Left.Contains(match.Expression))
                 {
-                    return new Conjuction(Union(conjuction.Left, match), conjuction.Right);
+                    return new Conjuction(Intersection(conjuction.Left, match), conjuction.Right);
                 }
 
                 if (conjuction.Right.Contains(match.Expression))
                 {
-                    return new Conjuction(conjuction.Left, Union(conjuction.Right, match));
+                    return new Conjuction(conjuction.Left, Intersection(conjuction.Right, match));
                 }
 
                 return new Conjuction(conjuction, match);
             }
 
-            private static AnalyzedNode UnionCore(PatternMatch leftMatch, PatternMatch rightMatch)
+            private static AnalyzedNode IntersectionCore(PatternMatch leftMatch, PatternMatch rightMatch)
             {
                 if (AreEquivalent(leftMatch.Expression, rightMatch.Expression))
                 {
-                    return new PatternMatch(leftMatch.Expression, Union(leftMatch.Pattern, rightMatch.Pattern));
+                    return new PatternMatch(leftMatch.Expression, Intersection(leftMatch.Pattern, rightMatch.Pattern));
                 }
 
                 if (leftMatch.Pattern.Contains(rightMatch.Expression))
                 {
-                    return new PatternMatch(leftMatch.Expression, Union(leftMatch.Pattern, rightMatch));
+                    return new PatternMatch(leftMatch.Expression, Intersection(leftMatch.Pattern, rightMatch));
                 }
 
                 if (rightMatch.Pattern.Contains(leftMatch.Expression))
                 {
-                    return new PatternMatch(rightMatch.Expression, Union(rightMatch.Pattern, leftMatch));
+                    return new PatternMatch(rightMatch.Expression, Intersection(rightMatch.Pattern, leftMatch));
                 }
 
                 return new Conjuction(leftMatch, rightMatch);
             }
 
-            private static AnalyzedNode UnionCore(VarPattern var, PatternMatch match)
+            private static AnalyzedNode IntersectionCore(VarPattern var, PatternMatch match)
             {
                 if (var.Contains(match.Expression))
                 {
@@ -141,29 +141,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 return new Conjuction(var, match);
             }
 
-            private static AnalyzedNode Union(AnalyzedNode left, AnalyzedNode right)
+            private static AnalyzedNode Intersection(AnalyzedNode left, AnalyzedNode right)
             {
                 // Since the bitwise-OR operator is symmetrical, each case covers both orderings for each pair.
-                // We always have C(N+1, 2) cases where N is the number of kinds. So the following switch is
-                // exhaustive at the moment. The +1 addition accounts for union logic of each node with itself.
                 switch (left.Kind | right.Kind)
                 {
                     case NodeKind.Conjunction | NodeKind.Conjunction:
                         var conjuction = (Conjuction)right;
-                        return Union(Union(left, conjuction.Left), conjuction.Right);
+                        return Intersection(Intersection(left, conjuction.Left), conjuction.Right);
 
                     case NodeKind.PatternMatch | NodeKind.PatternMatch:
-                        return UnionCore((PatternMatch)left, (PatternMatch)right);
+                        return IntersectionCore((PatternMatch)left, (PatternMatch)right);
 
                     case NodeKind.Conjunction | NodeKind.PatternMatch:
                         return left.Kind == NodeKind.PatternMatch
-                            ? UnionCore((Conjuction)right, (PatternMatch)left)
-                            : UnionCore((Conjuction)left, (PatternMatch)right);
+                            ? IntersectionCore((Conjuction)right, (PatternMatch)left)
+                            : IntersectionCore((Conjuction)left, (PatternMatch)right);
 
                     case NodeKind.PatternMatch | NodeKind.VarPattern:
                         return left.Kind == NodeKind.PatternMatch
-                            ? UnionCore((VarPattern)right, (PatternMatch)left)
-                            : UnionCore((VarPattern)left, (PatternMatch)right);
+                            ? IntersectionCore((VarPattern)right, (PatternMatch)left)
+                            : IntersectionCore((VarPattern)left, (PatternMatch)right);
 
                     case NodeKind.TypePattern | NodeKind.VarPattern:
                     case NodeKind.PatternMatch | NodeKind.TypePattern:
