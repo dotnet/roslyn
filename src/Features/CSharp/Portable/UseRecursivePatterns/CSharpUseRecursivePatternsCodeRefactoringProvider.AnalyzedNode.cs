@@ -91,9 +91,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             public CasePatternSwitchLabelSyntax AsCasePatternSwitchLabelSyntax()
             {
-                 return CasePatternSwitchLabel(AsPatternSyntax(out var children),
-                    children.OfType<Evaluation>().SingleOrDefault()?.AsWhenClauseSyntax(),
-                    Token(SyntaxKind.ColonToken));
+                return CasePatternSwitchLabel(AsPatternSyntax(out var children),
+                   children.OfType<Evaluation>().SingleOrDefault()?.AsWhenClauseSyntax(),
+                   Token(SyntaxKind.ColonToken));
             }
 
             private static AnalyzedNode IntersectionCore(Conjuction conjuction, PatternMatch match)
