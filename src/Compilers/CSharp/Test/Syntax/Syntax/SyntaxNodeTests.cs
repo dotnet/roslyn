@@ -9,6 +9,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 using System.Text;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -573,6 +574,29 @@ a + b";
             Assert.Throws<ArgumentOutOfRangeException>(() => classDecl2.FindNode(invalidSpan));
             // Parent node's span.
             Assert.Throws<ArgumentOutOfRangeException>(() => classDecl.FindNode(root.FullSpan));
+        }
+
+        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
+        [Fact]
+        public void TestGetLocationFindNode()
+        {
+            var code = @"class Goo
+{
+})";
+            var tree = SyntaxFactory.ParseSyntaxTree(code);
+            var nodeOrToken = tree.FindNodeOrTokenByKind(SyntaxKind.ClassDeclaration);
+            var node = nodeOrToken.AsNode();
+            Assert.NotNull(node);
+
+
+            // Node should contain skipped text, in this case the trailing ")"
+            Assert.True(node.ContainsSkippedText);
+
+            var location = node.GetLocation();
+            Assert.Equal(node.FullSpan, location.SourceSpan);
+
+            var foundNode = location.SourceTree.GetRoot(CancellationToken.None).FindNode(location.SourceSpan);
+            Assert.Equal(node, foundNode);
         }
 
         [WorkItem(539941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539941")]
@@ -1778,12 +1802,12 @@ class Test
             var nodeLocation = method.GetLocation();
             Assert.True(nodeLocation.IsInSource);
             Assert.Equal(tree, nodeLocation.SourceTree);
-            Assert.Equal(method.Span, nodeLocation.SourceSpan);
+            Assert.Equal(method.FullSpan, nodeLocation.SourceSpan);
 
             var tokenLocation = method.Identifier.GetLocation();
             Assert.True(tokenLocation.IsInSource);
             Assert.Equal(tree, tokenLocation.SourceTree);
-            Assert.Equal(method.Identifier.Span, tokenLocation.SourceSpan);
+            Assert.Equal(method.Identifier.FullSpan, tokenLocation.SourceSpan);
 
             var triviaLocation = method.ReturnType.GetLastToken().TrailingTrivia[0].GetLocation();
             Assert.True(triviaLocation.IsInSource);

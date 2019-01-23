@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis
 
         public Location GetLocation()
         {
-            return this.SyntaxTree.GetLocation(this.Span);
+            return this.SyntaxTree.GetLocation(this.FullSpan);
         }
 
         internal Location Location

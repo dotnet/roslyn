@@ -22,22 +22,22 @@ namespace Microsoft.CodeAnalysis
         }
 
         public SourceLocation(SyntaxNode node)
-            : this(node.SyntaxTree, node.Span)
+            : this(node.SyntaxTree, node.FullSpan)
         {
         }
 
         public SourceLocation(in SyntaxToken token)
-            : this(token.SyntaxTree, token.Span)
+            : this(token.SyntaxTree, token.FullSpan)
         {
         }
 
         public SourceLocation(in SyntaxNodeOrToken nodeOrToken)
-            : this(nodeOrToken.SyntaxTree, nodeOrToken.Span)
+            : this(nodeOrToken.SyntaxTree, nodeOrToken.FullSpan)
         {
         }
 
         public SourceLocation(in SyntaxTrivia trivia)
-            : this(trivia.SyntaxTree, trivia.Span)
+            : this(trivia.SyntaxTree, trivia.FullSpan)
         {
         }
 
