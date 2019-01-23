@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var node = context.Node;
-            var syntaxTree = node.SyntaxTree;
+            var switchStatement = context.Node;
+            var syntaxTree = switchStatement.SyntaxTree;
 
             if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp8)
             {
@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 return;
             }
 
-            var switchStatement = context.Node;
             if (switchStatement.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
             {
                 return;
