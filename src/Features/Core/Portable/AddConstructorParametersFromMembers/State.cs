@@ -70,7 +70,8 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
                 this.MissingParameters = missingParametersBuilder.ToImmutableAndFree();
                 this.MissingMembers = missingMembersBuilder.ToImmutableAndFree();
-                return true;
+
+                return MissingParameters.Length != 0;
             }
 
             /// <summary>
