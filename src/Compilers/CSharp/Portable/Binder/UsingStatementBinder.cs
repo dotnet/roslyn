@@ -90,6 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AwaitableInfo awaitOpt = null;
             TypeSymbol declarationTypeOpt = null;
             MethodSymbol disposeMethodOpt = null;
+            TypeSymbol awaitableTypeOpt = null;
 
             if (isExpression)
             {
@@ -117,11 +118,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasAwait)
             {
-                TypeSymbol taskType = originalBinder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);
-                hasErrors |= ReportUseSiteDiagnostics(taskType, diagnostics, awaitKeyword);
-
-                BoundExpression placeholder = new BoundAwaitableValuePlaceholder(syntax, taskType).MakeCompilerGenerated();
-                awaitOpt = originalBinder.BindAwaitInfo(placeholder, syntax, awaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+                if (awaitableTypeOpt is null)
+                {
+                    awaitOpt = AwaitableInfo.Empty;
+                }
+                else
+                {
+                    hasErrors |= ReportUseSiteDiagnostics(awaitableTypeOpt, diagnostics, awaitKeyword);
+                    BoundExpression placeholder = new BoundAwaitableValuePlaceholder(syntax, awaitableTypeOpt).MakeCompilerGenerated();
+                    awaitOpt = originalBinder.BindAwaitInfo(placeholder, syntax, awaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+                }
             }
 
             // This is not awesome, but its factored. 
@@ -146,6 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors);
             }
 
+            // initializes iDisposableConversion, awaitableTypeOpt and disposeMethodOpt
             bool populateDisposableConversionOrDisposeMethod(bool fromExpression)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -155,14 +162,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (iDisposableConversion.IsImplicit)
                 {
+                    if (hasAwait)
+                    {
+                        awaitableTypeOpt = originalBinder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);
+                    }
                     return true;
                 }
 
                 TypeSymbol type = fromExpression ? expressionOpt.Type : declarationTypeOpt;
 
-                // If this is a ref struct, try binding via pattern.
+                // If this is a ref struct, or we're in a valid asynchronous using, try binding via pattern.
                 // We won't need to try and bind a second time if it fails, as async dispose can't be pattern based (ref structs are not allowed in async methods)
-                if (!(type is null) && type.IsValueType && type.IsRefLikeType)
+                bool isRefStruct = !(type is null) && type.IsValueType && type.IsRefLikeType;
+                if (!(type is null) && (isRefStruct || hasAwait))
                 {
                     BoundExpression receiver = fromExpression
                                                ? expressionOpt
@@ -171,6 +183,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     disposeMethodOpt = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, diagnostics);
                     if (!(disposeMethodOpt is null))
                     {
+                        if (hasAwait)
+                        {
+                            awaitableTypeOpt = disposeMethodOpt.ReturnType.TypeSymbol;
+                        }
                         return true;
                     }
                 }

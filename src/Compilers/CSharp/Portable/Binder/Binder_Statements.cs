@@ -677,7 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!(expr is null));
             Debug.Assert(!(expr.Type is null));
-            Debug.Assert(expr.Type.IsValueType && expr.Type.IsRefLikeType); // pattern dispose lookup is only valid on ref structs
+            Debug.Assert((expr.Type.IsValueType && expr.Type.IsRefLikeType) || hasAwait); // pattern dispose lookup is only valid on ref structs or asynchronous usings
 
             // Don't try and lookup if we're not enabled
             if (MessageID.IDS_FeatureUsingDeclarations.RequiredVersion() > Compilation.LanguageVersion)
@@ -692,8 +692,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     out var disposeMethod);
 
             if ((!hasAwait && disposeMethod?.ReturnsVoid == false)
-                || (hasAwait && disposeMethod?.ReturnType.TypeSymbol.IsNonGenericTaskType(Compilation) == false)
-                || result == PatternLookupResult.NotAMethod)
+                || result == PatternLookupResult.NotAMethod
+                || disposeMethod?.IsExtensionMethod == true)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 if (this.IsAccessible(disposeMethod, ref useSiteDiagnostics))

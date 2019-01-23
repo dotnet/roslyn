@@ -1493,7 +1493,7 @@ class C
     {
         foreach (var x in new Enumerable1())
         {
-            System.Console.WriteLine(x);
+            System.Console.Write(x);
         }
     }
 }
@@ -1512,17 +1512,11 @@ ref struct DisposableEnumerator
 
 static class DisposeExtension
 {
-    public static void Dispose(this DisposableEnumerator de) { System.Console.WriteLine(""Done with DisposableEnumerator""); } 
+    public static void Dispose(this DisposableEnumerator de) => throw null;
 }
-
 ";
-
-
-            var compilation = CompileAndVerify(source, expectedOutput: @"
-1
-2
-3
-Done with DisposableEnumerator");
+            // extension methods do not contribute to disposal
+            CompileAndVerify(source, expectedOutput: @"123");
         }
 
         [Fact]
@@ -1535,7 +1529,7 @@ class C
     {
         foreach (var x in new Enumerable1())
         {
-            System.Console.WriteLine(x);
+            System.Console.Write(x);
         }
     }
 }
@@ -1554,17 +1548,11 @@ ref struct DisposableEnumerator
 
 static class DisposeExtension
 {
-    public static void Dispose(this DisposableEnumerator de, int arg = 4) { System.Console.WriteLine($""Done with DisposableEnumerator. arg was {arg}""); } 
+    public static void Dispose(this DisposableEnumerator de, int arg = 4) => throw null;
 }
-
 ";
-
-
-            var compilation = CompileAndVerify(source, expectedOutput: @"
-1
-2
-3
-Done with DisposableEnumerator. arg was 4");
+            // extension methods do not contribute to disposal
+            CompileAndVerify(source, expectedOutput: @"123");
         }
 
         [Fact]
@@ -1577,7 +1565,7 @@ class C
     {
         foreach (var x in new Enumerable1())
         {
-            System.Console.WriteLine(x);
+            System.Console.Write(x);
         }
     }
 }
@@ -1596,17 +1584,11 @@ ref struct DisposableEnumerator
 
 static class DisposeExtension
 {
-    public static void Dispose(this DisposableEnumerator de, params object[] args) { System.Console.WriteLine($""Done with DisposableEnumerator. Args was {args}, length {args.Length}""); } 
+    public static void Dispose(this DisposableEnumerator de, params object[] args) => throw null;
 }
-
 ";
-
-
-            var compilation = CompileAndVerify(source, expectedOutput: @"
-1
-2
-3
-Done with DisposableEnumerator. Args was System.Object[], length 0");
+            // extension methods do not contribute to disposal
+            CompileAndVerify(source, expectedOutput: @"123");
         }
 
         [Fact]
