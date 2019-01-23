@@ -79,6 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             builder.Add(Of XmlDocumentSyntax, XmlExpressionStructureProvider)()
             builder.Add(Of XmlElementSyntax, XmlExpressionStructureProvider)()
             builder.Add(Of XmlProcessingInstructionSyntax, XmlExpressionStructureProvider)()
+            builder.Add(Of LiteralExpressionSyntax, StringLiteralExpressionStructureProvider)()
 
             Return builder.ToImmutable()
         End Function
