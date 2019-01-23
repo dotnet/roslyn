@@ -46,10 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var properties = diagnostic.Properties;
-                    var nodeToGenerate = (SyntaxKind)int.Parse(properties[Constants.NodeToGenerateKey]);
-                    var shouldRemoveNextStatement = bool.Parse(properties[Constants.ShouldRemoveNextStatementKey]);
-
                     var span = diagnostic.AdditionalLocations[0].SourceSpan;
                     if (spans.Any((s, nodeSpan) => s.Contains(nodeSpan), span))
                     {
@@ -58,6 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     }
 
                     spans.Add(span);
+
+                    var properties = diagnostic.Properties;
+                    var nodeToGenerate = (SyntaxKind)int.Parse(properties[Constants.NodeToGenerateKey]);
+                    var shouldRemoveNextStatement = bool.Parse(properties[Constants.ShouldRemoveNextStatementKey]);
 
                     var switchStatement = (SwitchStatementSyntax)editor.OriginalRoot.FindNode(span);
                     editor.ReplaceNode(switchStatement,
