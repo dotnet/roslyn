@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 originalNodes,
                 t => (t, Enumerable.Empty<TNode>()),
                 (semanticModel, node, _) => canReplace(semanticModel, node),
-                (semanticModel, currentRoot, node, _) => updateRoot(semanticModel, currentRoot, node),
+                (semanticModel, currentRoot, _, node) => updateRoot(semanticModel, currentRoot, node),
                 cancellationToken);
         }
 
