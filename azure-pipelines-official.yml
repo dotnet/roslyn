@@ -47,6 +47,7 @@ jobs:
   - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@1
     inputs:
       signType: $(SignType)
+      zipSources: false
     condition: and(succeeded(), in(variables['SignType'], 'test', 'real'))
 
   - task: ms-vseng.MicroBuildTasks.965C8DC6-1483-45C9-B384-5AC75DA1F1A4.MicroBuildOptProfPlugin@1
