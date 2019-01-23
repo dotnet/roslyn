@@ -70,7 +70,7 @@ jobs:
     - task: PublishTestResults@1
       inputs:
         testRunner: XUnit
-        testResultsFiles: '**/xUnitResults/*.xml'
+        testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(_configuration)\*.xml'
         mergeTestResults: true
         testRunTitle: 'Windows Desktop Spanish'
       condition: succeededOrFailed()
