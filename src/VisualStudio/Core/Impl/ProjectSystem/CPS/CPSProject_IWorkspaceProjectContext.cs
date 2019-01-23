@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
@@ -182,10 +183,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             _visualStudioProject.AddSourceFile(filePath, sourceCodeKind, folderNames.AsImmutableOrNull());
         }
 
+        public Task AddSourceFileAsync(string filePath, bool isInCurrentContext = true, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
+        {
+            return _visualStudioProject.AddSourceFileAsync(filePath, sourceCodeKind, folderNames.AsImmutableOrNull());
+        }
+
         public void RemoveSourceFile(string filePath)
         {
             _visualStudioProject.RemoveSourceFile(filePath);
         }
+
+        public Task RemoveSourceFileAsync(string filePath) => _visualStudioProject.RemoveSourceFileAsync(filePath);
 
         public void AddAdditionalFile(string filePath, bool isInCurrentContext = true)
         {

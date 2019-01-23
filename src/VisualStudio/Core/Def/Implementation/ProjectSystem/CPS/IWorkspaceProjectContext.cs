@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
@@ -36,7 +37,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 
         // Files.
         void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular);
+        Task AddSourceFileAsync(string filePath, bool isInCurrentContext = true, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular);
         void RemoveSourceFile(string filePath);
+        Task RemoveSourceFileAsync(string filePath);
         void AddAdditionalFile(string filePath, bool isInCurrentContext = true);
         void RemoveAdditionalFile(string filePath);
         void AddDynamicFile(string filePath, IEnumerable<string> folderNames = null);

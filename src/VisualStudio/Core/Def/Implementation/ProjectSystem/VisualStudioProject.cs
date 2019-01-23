@@ -17,6 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal sealed class VisualStudioProject
     {
+        private const string FileRemovedEventName = "FileRemovedEventName";
+        private const string FileAddedEventName = "FileAddedEventName";
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
 
@@ -362,6 +364,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
+                Action fireEvents = null;
                 _activeBatchScopes--;
 
                 if (_activeBatchScopes > 0)
@@ -378,13 +381,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         solution,
                         documentFileNamesAdded,
                         documentsToOpen,
-                        (s, documents) => solution.AddDocuments(documents),
-                        (s, id) =>
+                        addDocuments: (s, documents) =>
+                        {
+                            s = s.AddDocuments(documents);
+                            foreach (var document in documents)
+                            {
+                                if (fireEvents == null)
+                                {
+                                    fireEvents = () => NotifyFileAdded(document.FilePath);
+                                }
+                                else
+                                {
+                                    fireEvents += () => NotifyFileAdded(document.FilePath);
+                                }
+                            }
+                            return s;
+                        },
+                        removeDocument: (s, id) =>
                         {
                             // Clear any document-specific data now (like open file trackers, etc.). If we called OnRemoveDocument directly this is
                             // called, but since we're doing this in one large batch we need to do it now.
                             _workspace.ClearDocumentData(id);
-                            return s.RemoveDocument(id);
+                            var path = s.GetDocument(id).FilePath;
+                            s = s.RemoveDocument(id);
+                            if (fireEvents == null)
+                            {
+                                fireEvents = () => NotifyFileRemoved(path);
+                            }
+                            else
+                            {
+                                fireEvents += () => NotifyFileRemoved(path);
+                            }
+                            return s;
                         });
 
                     solution = _additionalFiles.UpdateSolutionForBatch(
@@ -503,6 +531,54 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 // Check for those files being opened to start wire-up if necessary
                 _workspace.CheckForOpenDocuments(documentFileNamesAdded.ToImmutable());
+
+                fireEvents?.Invoke();
+            }
+        }
+
+
+        private void NotifyFileRemoved(string path)
+        {
+            var ev = _eventMap.GetEventHandlers<EventHandler<string>>(FileRemovedEventName);
+            if (ev.HasHandlers)
+            {
+                ev.RaiseEvent(handler => handler(this, path));
+            }
+        }
+
+        private void NotifyFileAdded(string path)
+        {
+            var ev = _eventMap.GetEventHandlers<EventHandler<string>>(FileAddedEventName);
+            if (ev.HasHandlers)
+            {
+                ev.RaiseEvent(handler => handler(this, path));
+            }
+        }
+
+        private readonly EventMap _eventMap = new EventMap();
+        private event EventHandler<string> OnFileRemoved
+        {
+            add
+            {
+                _eventMap.AddEventHandler(FileRemovedEventName, value);
+            }
+
+            remove
+            {
+                _eventMap.RemoveEventHandler(FileRemovedEventName, value);
+            }
+        }
+
+        private event EventHandler<string> OnFileAdded
+        {
+            add
+            {
+                _eventMap.AddEventHandler(FileAddedEventName, value);
+            }
+
+            remove
+            {
+                _eventMap.RemoveEventHandler(FileAddedEventName, value);
             }
         }
 
@@ -514,6 +590,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             _sourceFiles.AddFile(fullPath, sourceCodeKind, folders);
         }
+
+        public async Task AddSourceFileAsync(string fullPath, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, ImmutableArray<string> folders = default)
+        {
+            var gate = new SemaphoreSlim(0);
+            void Handler(object sender, string path)
+            {
+                if (path == fullPath)
+                {
+                    gate.Release();
+                }
+            }
+
+            OnFileAdded += Handler;
+            OnFileRemoved += Handler;
+            var documentId = _sourceFiles.AddFileWithAction(fullPath, sourceCodeKind, folders, path => NotifyFileAdded(path));
+            await gate.WaitAsync().ConfigureAwait(false);
+            OnFileAdded -= Handler;
+            OnFileRemoved -= Handler;
+            gate.Dispose();
+        }
+
+        private void VisualStudioProject_OnFileAdded(object sender, string e) => throw new NotImplementedException();
 
         public DocumentId AddSourceTextContainer(
             SourceTextContainer textContainer,
@@ -533,6 +631,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void RemoveSourceFile(string fullPath)
         {
             _sourceFiles.RemoveFile(fullPath);
+        }
+
+        public async Task RemoveSourceFileAsync(string fullPath)
+        {
+            var gate = new SemaphoreSlim(0);
+            void FileRemovedHandler(object sender, string path)
+            {
+                if (path == fullPath)
+                {
+                    gate.Release();
+                }
+            }
+            OnFileRemoved += FileRemovedHandler;
+            _sourceFiles.RemoveFileWithAction(fullPath, path => NotifyFileRemoved(path));
+            await gate.WaitAsync().ConfigureAwait(false);
+            OnFileRemoved -= FileRemovedHandler;
+            gate.Dispose();
         }
 
         public void RemoveSourceTextContainer(SourceTextContainer textContainer)
@@ -1136,6 +1251,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public DocumentId AddFile(string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders)
             {
+                return AddFileWithAction(fullPath, sourceCodeKind, folders, null);
+            }
+
+            public DocumentId AddFileWithAction(string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders, Action<string> onAddedToWorkspace)
+            {
                 if (string.IsNullOrEmpty(fullPath))
                 {
                     throw new ArgumentException($"{nameof(fullPath)} isn't a valid path.", nameof(fullPath));
@@ -1173,6 +1293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     {
                         _project._workspace.ApplyChangeToWorkspace(w => _documentAddAction(w, documentInfo));
                         _project._workspace.CheckForOpenDocuments(ImmutableArray.Create(fullPath));
+                        onAddedToWorkspace?.Invoke(fullPath);
                     }
                 }
 
@@ -1290,13 +1411,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     _documentIdToDynamicFileInfoProvider.Remove(documentId);
 
-                    RemoveFileInternal(documentId, fullPath);
+                    RemoveFileInternal(documentId, fullPath, null);
 
                     return fileInfoProvider;
                 }
             }
 
             public void RemoveFile(string fullPath)
+            {
+                RemoveFileWithAction(fullPath, null);
+            }
+
+            public void RemoveFileWithAction(string fullPath, Action<string> onComplete)
             {
                 if (string.IsNullOrEmpty(fullPath))
                 {
@@ -1313,11 +1439,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     _project._documentFileChangeContext.StopWatchingFile(_project._documentFileWatchingTokens[documentId]);
                     _project._documentFileWatchingTokens.Remove(documentId);
 
-                    RemoveFileInternal(documentId, fullPath);
+                    RemoveFileInternal(documentId, fullPath, onComplete);
                 }
             }
 
-            private void RemoveFileInternal(DocumentId documentId, string fullPath)
+            private void RemoveFileInternal(DocumentId documentId, string fullPath, Action<string> onComplete)
             {
                 _orderedDocumentsInBatch = _orderedDocumentsInBatch?.Remove(documentId);
                 _documentPathsToDocumentIds.Remove(fullPath);
@@ -1336,6 +1462,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     else
                     {
                         _project._workspace.ApplyChangeToWorkspace(w => _documentRemoveAction(w, documentId));
+                        onComplete?.Invoke(fullPath);
                     }
                 }
                 else
@@ -1345,6 +1472,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         if (_documentsAddedInBatch[i].Id == documentId)
                         {
                             _documentsAddedInBatch.RemoveAt(i);
+                            onComplete?.Invoke(fullPath);
                             break;
                         }
                     }
