@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -26,6 +27,29 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
+            var node = context.Node;
+            var syntaxTree = node.SyntaxTree;
+
+            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp8)
+            {
+                return;
+            }
+
+            var options = context.Options;
+            var cancellationToken = context.CancellationToken;
+            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+
+            var styleOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferSwitchExpression);
+            if (!styleOption.Value)
+            {
+                // User has disabled this feature.
+                return;
+            }
+
             var switchStatement = context.Node;
             if (switchStatement.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
             {
