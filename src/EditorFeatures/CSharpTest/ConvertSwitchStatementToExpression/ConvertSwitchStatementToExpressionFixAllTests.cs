@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestNested_01()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInCSharp8(
 @"class Program
 {    
     int M(int i, int j)
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestNested_02()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInCSharp8(
 @"class Program
 {
     System.Action<int> M(int i, int j)

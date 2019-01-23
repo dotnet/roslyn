@@ -3,6 +3,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -15,10 +16,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new ConvertSwitchStatementToExpressionDiagnosticAnalyzer(), new ConvertSwitchStatementToExpressionCodeFixProvider());
 
+        private Task TestInCSharp8(string actual, string expected)
+            => TestInRegularAndScriptAsync(actual, expected, parseOptions: TestOptions.Regular8);
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestReturn()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInCSharp8(
 @"class Program
 {
     int M(int i)
@@ -54,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestReturnAndThrow()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInCSharp8(
 @"class Program
 {
     int M(int i)
@@ -90,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestAssignmnet_Array()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInCSharp8(
 @"class Program
 {
     int[] array = new int[1];
@@ -281,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestAllThrow()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInCSharp8(
 @"class Program
 {
     void M(int i)
@@ -311,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestAssignment()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInCSharp8(
 @"class Program
 {
     void M(int i)
@@ -399,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestAssignment_Compound()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInCSharp8(
 @"class Program
 {
     void M(int i)
@@ -439,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestAssignment_UseBeforeAssignment()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInCSharp8(
 @"class Program
 {
     void M(int i)
@@ -560,7 +564,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestTrivia()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInCSharp8(
 @"class Program
 {
     int M(int i)
