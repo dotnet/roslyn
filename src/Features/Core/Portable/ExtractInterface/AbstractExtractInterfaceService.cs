@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 interfaceDocument.Project.Solution,
                 interfaceDocumentSemanticModel.GetEnclosingNamespace(0, cancellationToken),
                 extractedInterfaceSymbol.GenerateRootNamespaceOrType(namespaceParts.ToArray()),
-                options: new CodeGenerationOptions(interfaceDocumentSemanticModel.SyntaxTree.GetLocation(new TextSpan())),
+                options: new CodeGenerationOptions(contextLocation: interfaceDocumentSemanticModel.SyntaxTree.GetLocation(new TextSpan()), generateMethodBodies: false),
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return unformattedInterfaceDocument;
