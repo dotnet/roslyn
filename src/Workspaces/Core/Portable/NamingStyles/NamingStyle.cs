@@ -312,6 +312,10 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
         private string CreateCompliantNameDirectly(string name)
         {
+            // Example: for specified prefix = "Test_" and name = "Test_m_BaseName", we remove "Test_m_"
+            // "Test_" will be added back later in this method
+            name = StripCommonPrefixes(name.StartsWith(Prefix) ? name.Substring(Prefix.Length) : name, out _);
+
             var addPrefix = !name.StartsWith(Prefix);
             var addSuffix = !name.EndsWith(Suffix);
 
