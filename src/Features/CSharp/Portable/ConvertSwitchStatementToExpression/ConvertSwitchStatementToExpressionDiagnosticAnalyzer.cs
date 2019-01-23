@@ -51,6 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             => false;
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SyntaxAnalysis;
+            => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
     }
 }
