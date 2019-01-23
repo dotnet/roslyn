@@ -3767,8 +3767,8 @@ public unsafe struct MyStruct<T> where T : unmanaged
                 .VerifyIL("MyStruct<T>.Test", il);
         }
 
-        [Fact]
-        public void CircularGenericUnmanagedInstantation()
+        [Fact, WorkItem(31439, "https://github.com/dotnet/roslyn/issues/31439")]
+        public void CircularTypeArgumentUnmanagedConstraint()
         {
             var code = @"
 public struct X<T>
