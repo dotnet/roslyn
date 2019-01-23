@@ -32,20 +32,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (otherSideType.Name == string.Empty || otherSideType.Name == "var");
             }
 
-            protected override IEnumerable<TypeInferenceInfo> GetTypes_DoNotCallDirectly(ExpressionSyntax expression, bool objectAsDefault)
+            protected override IEnumerable<TypeInferenceInfo> GetTypes_DoNotCallDirectly(SyntaxNode node, bool objectAsDefault)
             {
-                var types = GetTypesSimple(expression).Where(IsUsableTypeFunc);
+                var types = GetTypesSimple(node).Where(IsUsableTypeFunc);
                 if (types.Any())
                 {
                     return types;
                 }
 
-                return GetTypesComplex(expression).Where(IsUsableTypeFunc);
+                return GetTypesComplex(node).Where(IsUsableTypeFunc);
             }
 
-            private static bool DecomposeBinaryOrAssignmentExpression(ExpressionSyntax expression, out SyntaxToken operatorToken, out ExpressionSyntax left, out ExpressionSyntax right)
+            private static bool DecomposeBinaryOrAssignmentExpression(SyntaxNode node, out SyntaxToken operatorToken, out ExpressionSyntax left, out ExpressionSyntax right)
             {
-                if (expression is BinaryExpressionSyntax binaryExpression)
+                if (node is BinaryExpressionSyntax binaryExpression)
                 {
                     operatorToken = binaryExpression.OperatorToken;
                     left = binaryExpression.Left;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                if (expression is AssignmentExpressionSyntax assignmentExpression)
+                if (node is AssignmentExpressionSyntax assignmentExpression)
                 {
                     operatorToken = assignmentExpression.OperatorToken;
                     left = assignmentExpression.Left;
@@ -66,15 +66,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            private IEnumerable<TypeInferenceInfo> GetTypesComplex(ExpressionSyntax expression)
+            private IEnumerable<TypeInferenceInfo> GetTypesComplex(SyntaxNode node)
             {
-                if (DecomposeBinaryOrAssignmentExpression(expression,
+                if (DecomposeBinaryOrAssignmentExpression(node,
                         out var operatorToken, out var left, out var right))
                 {
-                    var types = InferTypeInBinaryOrAssignmentExpression(expression, operatorToken, left, right, left).Where(IsUsableTypeFunc);
+                    var types = InferTypeInBinaryOrAssignmentExpression((ExpressionSyntax)node, operatorToken, left, right, left).Where(IsUsableTypeFunc);
                     if (types.IsEmpty())
                     {
-                        types = InferTypeInBinaryOrAssignmentExpression(expression, operatorToken, left, right, right).Where(IsUsableTypeFunc);
+                        types = InferTypeInBinaryOrAssignmentExpression((ExpressionSyntax)node, operatorToken, left, right, right).Where(IsUsableTypeFunc);
                     }
 
                     return types;
@@ -84,16 +84,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
-            private IEnumerable<TypeInferenceInfo> GetTypesSimple(ExpressionSyntax expression)
+            private IEnumerable<TypeInferenceInfo> GetTypesSimple(SyntaxNode node)
             {
-                if (expression is RefTypeSyntax refType)
+                if (node is RefTypeSyntax refType)
                 {
                     return GetTypes(refType.Type);
                 }
-                else if (expression != null)
+                else if (node != null)
                 {
-                    var typeInfo = SemanticModel.GetTypeInfo(expression, CancellationToken);
-                    var symbolInfo = SemanticModel.GetSymbolInfo(expression, CancellationToken);
+                    var typeInfo = SemanticModel.GetTypeInfo(node, CancellationToken);
+                    var symbolInfo = SemanticModel.GetSymbolInfo(node, CancellationToken);
 
                     if (symbolInfo.CandidateReason != CandidateReason.WrongArity)
                     {
@@ -122,10 +122,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             protected override IEnumerable<TypeInferenceInfo> InferTypesWorker_DoNotCallDirectly(
-                ExpressionSyntax expression)
+                SyntaxNode node)
             {
-                expression = expression.WalkUpParentheses();
-                var parent = expression.Parent;
+                var expression = node as ExpressionSyntax;
+                if (expression != null)
+                {
+                    expression = expression.WalkUpParentheses();
+                    node = expression;
+                }
+
+                var parent = node.Parent;
 
                 switch (parent)
                 {
@@ -146,6 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CheckedExpressionSyntax checkedExpression: return InferTypes(checkedExpression);
                     case ConditionalAccessExpressionSyntax conditionalAccessExpression: return InferTypeInConditionalAccessExpression(conditionalAccessExpression);
                     case ConditionalExpressionSyntax conditionalExpression: return InferTypeInConditionalExpression(conditionalExpression, expression);
+                    case ConstantPatternSyntax constantPattern: return InferTypeInConstantPattern(constantPattern);
                     case DoStatementSyntax doStatement: return InferTypeInDoStatement(doStatement);
                     case EqualsValueClauseSyntax equalsValue: return InferTypeInEqualsValueClause(equalsValue);
                     case ExpressionStatementSyntax expressionStatement: return InferTypeInExpressionStatement(expressionStatement);
@@ -153,15 +160,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ForStatementSyntax forStatement: return InferTypeInForStatement(forStatement, expression);
                     case IfStatementSyntax ifStatement: return InferTypeInIfStatement(ifStatement);
                     case InitializerExpressionSyntax initializerExpression: return InferTypeInInitializerExpression(initializerExpression, expression);
-                    case IsPatternExpressionSyntax isPatternExpression: return InferTypeInIsPatternExpression(isPatternExpression, expression);
+                    case IsPatternExpressionSyntax isPatternExpression: return InferTypeInIsPatternExpression(isPatternExpression, node);
                     case LockStatementSyntax lockStatement: return InferTypeInLockStatement(lockStatement);
                     case MemberAccessExpressionSyntax memberAccessExpression: return InferTypeInMemberAccessExpression(memberAccessExpression, expression);
+                    case NameColonSyntax nameColon: return InferTypeInNameColon(nameColon);
                     case NameEqualsSyntax nameEquals: return InferTypeInNameEquals(nameEquals);
                     case LambdaExpressionSyntax lambdaExpression: return InferTypeInLambdaExpression(lambdaExpression);
                     case PostfixUnaryExpressionSyntax postfixUnary: return InferTypeInPostfixUnaryExpression(postfixUnary);
                     case PrefixUnaryExpressionSyntax prefixUnary: return InferTypeInPrefixUnaryExpression(prefixUnary);
+                    case RecursivePatternSyntax propertyPattern: return InferTypeInRecursivePattern(propertyPattern);
+                    case PropertyPatternClauseSyntax propertySubpattern: return InferTypeInPropertyPatternClause(propertySubpattern, node);
                     case RefExpressionSyntax refExpression: return InferTypeInRefExpression(refExpression);
                     case ReturnStatementSyntax returnStatement: return InferTypeForReturnStatement(returnStatement);
+                    case SubpatternSyntax subpattern: return InferTypeInSubpattern(subpattern, node);
                     case SwitchLabelSyntax switchLabel: return InferTypeInSwitchLabel(switchLabel);
                     case SwitchStatementSyntax switchStatement: return InferTypeInSwitchStatement(switchStatement);
                     case ThrowExpressionSyntax throwExpression: return InferTypeInThrowExpression(throwExpression);
@@ -421,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //
                     // They're actually instantiating a delegate, so the delegate type is
                     // that type.
-                    return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(type));
+                    return CreateResult(type);
                 }
 
                 var constructors = type.InstanceConstructors.Where(m => m.Parameters.Length > index);
@@ -531,7 +542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // 
                 // This does, however, cover the more common cases of
                 // arrays/pointers/errors/dynamic.
-                return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Int32)));
+                return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInAttributeArgument(int index, IEnumerable<IMethodSymbol> methods, AttributeArgumentSyntax argumentOpt = null)
@@ -776,7 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Int32)));
+                return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArrayType(ArrayTypeSyntax arrayType, SyntaxToken? previousToken = null)
@@ -799,9 +810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInAttribute(AttributeSyntax attribute)
-            {
-                return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.AttributeType()));
-            }
+                => CreateResult(this.Compilation.AttributeType());
 
             private IEnumerable<TypeInferenceInfo> InferTypeInAttributeDeclaration(AttributeListSyntax attributeDeclaration, SyntaxToken? previousToken)
             {
@@ -811,7 +820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.AttributeType()));
+                return CreateResult(this.Compilation.AttributeType());
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInAttributeTargetSpecifier(
@@ -824,7 +833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.AttributeType()));
+                return CreateResult(this.Compilation.AttributeType());
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInBracketedArgumentList(BracketedArgumentListSyntax bracketedArgumentList, SyntaxToken previousToken)
@@ -905,7 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (onRightOfToken)
                         {
                             // x << Goo(), x >> Goo(), x <<= Goo(), x >>= Goo()
-                            return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Int32)));
+                            return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
                         }
 
                         break;
@@ -915,7 +924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (operatorToken.Kind() == SyntaxKind.AmpersandAmpersandToken ||
                     operatorToken.Kind() == SyntaxKind.BarBarToken)
                 {
-                    return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Boolean)));
+                    return CreateResult(SpecialType.System_Boolean);
                 }
 
                 // Infer type for deconstruction
@@ -1001,14 +1010,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.GreaterThanGreaterThanToken:
                     case SyntaxKind.LessThanLessThanEqualsToken:
                     case SyntaxKind.GreaterThanGreaterThanEqualsToken:
-                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Int32)));
+                        return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
 
                     case SyntaxKind.BarEqualsToken:
                     case SyntaxKind.AmpersandEqualsToken:
                         // NOTE(cyrusn): |= and &= can be used for both ints and bools  However, in the
                         // case where there isn't enough information to determine which the user wanted,
                         // I'm just defaulting to bool based on personal preference.
-                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Boolean)));
+                        return CreateResult(SpecialType.System_Boolean);
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
@@ -1038,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.ExceptionType()));
+                return CreateResult(this.Compilation.ExceptionType());
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInCatchFilterClause(CatchFilterClauseSyntax catchFilterClause, SyntaxToken? previousToken = null)
@@ -1049,7 +1058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Boolean)));
+                return CreateResult(SpecialType.System_Boolean);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInCoalesceExpression(
@@ -1074,7 +1083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var rightTypes = GetTypes(coalesceExpression.Right);
                 if (!rightTypes.Any())
                 {
-                    return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(Compilation.GetSpecialType(SpecialType.System_Object)));
+                    return CreateResult(SpecialType.System_Object);
                 }
 
                 return rightTypes
@@ -1093,7 +1102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (expressionOpt != null && conditional.Condition == expressionOpt)
                 {
                     // Goo() ? a : b
-                    return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Boolean)));
+                    return CreateResult(SpecialType.System_Boolean);
                 }
 
                 // a ? Goo() : b
@@ -1131,7 +1140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Boolean)));
+                return CreateResult(SpecialType.System_Boolean);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInEqualsValueClause(EqualsValueClauseSyntax equalsValue, SyntaxToken? previousToken = null)
@@ -1156,7 +1165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (SemanticModel.GetDeclaredSymbol(equalsValue.Parent, CancellationToken) is IParameterSymbol parameter)
                     {
-                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(parameter.Type));
+                        return CreateResult(parameter.Type);
                     }
                 }
 
@@ -1168,9 +1177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(propertyDeclaration?.Type != null, "Property type should never be null");
 
                 var typeInfo = SemanticModel.GetTypeInfo(propertyDeclaration.Type);
-                return typeInfo.Type != null
-                    ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(typeInfo.Type))
-                    : SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                return CreateResult(typeInfo.Type);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInExpressionStatement(ExpressionStatementSyntax expressionStatement, SyntaxToken? previousToken = null)
@@ -1182,7 +1189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Void)));
+                return CreateResult(SpecialType.System_Void);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInForEachStatement(ForEachStatementSyntax forEachStatementSyntax, ExpressionSyntax expressionOpt = null, SyntaxToken? previousToken = null)
@@ -1202,9 +1209,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var variableTypes = GetTypes(forEachStatementSyntax.Type);
                 if (!variableTypes.Any())
                 {
-                    return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(
+                    return CreateResult(
                         this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T)
-                        .Construct(Compilation.GetSpecialType(SpecialType.System_Object))));
+                            .Construct(Compilation.GetSpecialType(SpecialType.System_Object)));
                 }
 
                 var type = this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
@@ -1224,7 +1231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Boolean)));
+                return CreateResult(SpecialType.System_Boolean);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInIfStatement(IfStatementSyntax ifStatement, SyntaxToken? previousToken = null)
@@ -1235,7 +1242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Boolean)));
+                return CreateResult(SpecialType.System_Boolean);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInImplicitArrayCreation(ImplicitArrayCreationExpressionSyntax implicitArray, SyntaxToken previousToken)
@@ -1396,26 +1403,124 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
+            private IEnumerable<TypeInferenceInfo> InferTypeInRecursivePattern(RecursivePatternSyntax recursivePattern)
+            {
+                var type = this.SemanticModel.GetTypeInfo(recursivePattern).ConvertedType;
+                return CreateResult(type);
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInConstantPattern(
+                ConstantPatternSyntax constantPattern)
+            {
+                return InferTypes(constantPattern);
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInPropertyPatternClause(
+                PropertyPatternClauseSyntax propertySubpattern,
+                SyntaxNode child)
+            {
+                return InferTypes(propertySubpattern);
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInSubpattern(
+                SubpatternSyntax subpattern,
+                SyntaxNode child)
+            {
+                // we have  { X: ... }.  The type of ... is whatever the type of 'X' is in its
+                // parent type.  So look up the parent type first, then find the X member in it
+                // and use that type.
+                if (child == subpattern.Pattern &&
+                    subpattern.NameColon != null)
+                {
+                    var result = ArrayBuilder<TypeInferenceInfo>.GetInstance();
+
+                    foreach (var symbol in this.SemanticModel.GetSymbolInfo(subpattern.NameColon.Name).GetAllSymbols())
+                    {
+                        switch (symbol)
+                        {
+                            case IFieldSymbol field:
+                                result.Add(new TypeInferenceInfo(field.Type));
+                                break;
+                            case IPropertySymbol property:
+                                result.Add(new TypeInferenceInfo(property.Type));
+                                break;
+                        }
+                    }
+
+                    return result.ToImmutableAndFree();
+                }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
+
             private IEnumerable<TypeInferenceInfo> InferTypeInIsPatternExpression(
                 IsPatternExpressionSyntax isPatternExpression,
-                ExpressionSyntax expression)
+                SyntaxNode child)
             {
-                if (expression == isPatternExpression.Expression)
+                if (child == isPatternExpression.Expression)
                 {
                     return GetPatternTypes(isPatternExpression.Pattern);
                 }
+                else if (child == isPatternExpression.Pattern)
+                {
+                    return GetTypes(isPatternExpression.Expression);
+                }
 
-                return null;
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
             private IEnumerable<TypeInferenceInfo> GetPatternTypes(PatternSyntax pattern)
             {
                 switch (pattern)
                 {
-                    case DeclarationPatternSyntax declarationPattern: return GetTypes(declarationPattern.Type);
                     case ConstantPatternSyntax constantPattern: return GetTypes(constantPattern.Expression);
-                    default: return null;
+                    case DeclarationPatternSyntax declarationPattern: return GetTypes(declarationPattern.Type);
+                    case RecursivePatternSyntax recursivePattern: return GetTypesForRecursivePattern(recursivePattern);
+                    default: return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
+            }
+
+            private IEnumerable<TypeInferenceInfo> GetTypesForRecursivePattern(RecursivePatternSyntax recursivePattern)
+            {
+                // if it's of the for "X (...)" then just infer 'X' as the type.
+                if (recursivePattern.Type != null)
+                {
+                    return CreateResult(SemanticModel.GetTypeInfo(recursivePattern).ConvertedType);
+                }
+
+                // If it's of the form (...) then infer that the type should be a 
+                // tuple, whose elements are inferred from the individual patterns
+                // in the deconstruction.
+                var positionalPart = recursivePattern.PositionalPatternClause;
+                if (positionalPart != null)
+                {
+                    var subPatternCount = positionalPart.Subpatterns.Count;
+                    if (subPatternCount >= 2)
+                    {
+                        // infer a tuple type for this deconstruction.
+                        var elementTypesBuilder = ArrayBuilder<ITypeSymbol>.GetInstance(subPatternCount);
+                        var elementNamesBuilder = ArrayBuilder<string>.GetInstance(subPatternCount);
+
+                        foreach (var subPattern in positionalPart.Subpatterns)
+                        {
+                            elementNamesBuilder.Add(subPattern.NameColon?.Name.Identifier.ValueText);
+
+                            var patternType = GetPatternTypes(subPattern.Pattern).FirstOrDefault();
+                            if (patternType.InferredType == null)
+                            {
+                                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                            }
+
+                            elementTypesBuilder.Add(patternType.InferredType);
+                        }
+
+                        var type = Compilation.CreateTupleTypeSymbol(
+                            elementTypesBuilder.ToImmutableAndFree(), elementNamesBuilder.ToImmutableAndFree());
+                        return CreateResult(type);
+                    }
+                }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInLockStatement(LockStatementSyntax lockStatement, SyntaxToken? previousToken = null)
@@ -1426,7 +1531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Object)));
+                return CreateResult(SpecialType.System_Object);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInLambdaExpression(LambdaExpressionSyntax lambdaExpression, SyntaxToken? previousToken = null)
@@ -1559,8 +1664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var taskOfT = this.Compilation.TaskOfTType();
                     if (taskOfT != null)
                     {
-                        return SpecializedCollections.SingletonEnumerable(
-                            new TypeInferenceInfo(taskOfT.Construct(this.Compilation.ObjectType)));
+                        return CreateResult(taskOfT.Construct(this.Compilation.ObjectType));
                     }
                 }
                 else if (name.Equals(nameof(Enumerable.Select)) ||
@@ -1592,8 +1696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         this.Compilation.ObjectType;
                                 }
 
-                                return SpecializedCollections.SingletonEnumerable(
-                                    new TypeInferenceInfo(ienumerableType.Construct(typeArg)));
+                                return CreateResult(ienumerableType.Construct(typeArg));
                             }
                         }
                     }
@@ -1671,6 +1774,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            private IEnumerable<TypeInferenceInfo> InferTypeInNameColon(NameColonSyntax nameColon)
+            {
+                if (nameColon.Parent is SubpatternSyntax subpattern)
+                {
+                    return GetPatternTypes(subpattern.Pattern);
+                }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
+
             private IEnumerable<TypeInferenceInfo> InferTypeInNameEquals(NameEqualsSyntax nameEquals, SyntaxToken? previousToken = null)
             {
                 if (previousToken == nameEquals.EqualsToken)
@@ -1701,7 +1814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SyntaxKind.PostDecrementExpression:
                     case SyntaxKind.PostIncrementExpression:
-                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Int32)));
+                        return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
@@ -1719,14 +1832,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.UnaryPlusExpression:
                     case SyntaxKind.UnaryMinusExpression:
                         // ++, --, +Goo(), -Goo();
-                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Int32)));
+                        return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
 
                     case SyntaxKind.BitwiseNotExpression:
                         // ~Goo()
                         var types = InferTypes(prefixUnaryExpression);
                         if (!types.Any())
                         {
-                            return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Int32)));
+                            return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
                         }
                         else
                         {
@@ -1735,7 +1848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SyntaxKind.LogicalNotExpression:
                         // !Goo()
-                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Boolean)));
+                        return CreateResult(SpecialType.System_Boolean);
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
@@ -1759,7 +1872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!types.Any())
                 {
-                    return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(task));
+                    return CreateResult(task);
                 }
 
                 return types.Select(t => t.InferredType.SpecialType == SpecialType.System_Void ? new TypeInferenceInfo(task) : new TypeInferenceInfo(taskOfT.Construct(t.InferredType)));
@@ -1909,7 +2022,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Int32)));
+                return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInThrowExpression(ThrowExpressionSyntax throwExpression, SyntaxToken? previousToken = null)
@@ -1920,7 +2033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.ExceptionType()));
+                return CreateResult(this.Compilation.ExceptionType());
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInThrowStatement(ThrowStatementSyntax throwStatement, SyntaxToken? previousToken = null)
@@ -1931,7 +2044,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.ExceptionType()));
+                return CreateResult(this.Compilation.ExceptionType());
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInUsingStatement(UsingStatementSyntax usingStatement, SyntaxToken? previousToken = null)
@@ -1942,7 +2055,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_IDisposable)));
+                return CreateResult(SpecialType.System_IDisposable);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInVariableDeclarator(VariableDeclaratorSyntax variableDeclarator)
@@ -1962,13 +2075,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (variableDeclaration.IsParentKind(SyntaxKind.UsingStatement))
                         {
                             // using (var v = Goo())
-                            return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_IDisposable)));
+                            return CreateResult(SpecialType.System_IDisposable);
                         }
 
                         if (variableDeclaration.IsParentKind(SyntaxKind.ForStatement))
                         {
                             // for (var v = Goo(); ..
-                            return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Int32)));
+                            return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
                         }
 
                         // Return the types here if they actually bound to a type called 'var'.
@@ -1996,7 +2109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (tupleType != null)
                     {
-                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(tupleType));
+                        return CreateResult(tupleType);
                     }
                 }
 
@@ -2117,7 +2230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Boolean)));
+                return CreateResult(SpecialType.System_Boolean);
             }
 
             private IEnumerable<TypeInferenceInfo> GetCollectionElementType(INamedTypeSymbol type, int parameterIndex)

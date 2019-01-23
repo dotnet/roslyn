@@ -891,7 +891,7 @@ namespace System.Runtime.CompilerServices
                 string assemblyName = "",
                 string sourceFileName = "")
         {
-            IEnumerable<MetadataReference> allReferences = CoreClrShim.IsRunningOnCoreClr
+            IEnumerable<MetadataReference> allReferences = RuntimeUtilities.IsCoreClrRuntime
                 ? TargetFrameworkUtil.NetStandard20References
                 : TargetFrameworkUtil.Mscorlib461ExtendedReferences.Add(TestReferences.Net461.netstandardRef);
 
@@ -1745,6 +1745,22 @@ namespace System.Runtime.CompilerServices
         #endregion
 
         #region Span
+
+        protected static CSharpCompilation CreateCompilationWithSpan(SyntaxTree tree, CSharpCompilationOptions options = null)
+        {
+            var reference = CreateCompilation(
+                SpanSource,
+                options: TestOptions.UnsafeReleaseDll);
+
+            reference.VerifyDiagnostics();
+
+            var comp = CreateCompilation(
+                tree,
+                references: new[] { reference.EmitToImageReference() },
+                options: options);
+
+            return comp;
+        }
 
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {

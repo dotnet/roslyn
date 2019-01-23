@@ -9980,6 +9980,99 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
   }
 
+  internal sealed partial class DiscardPatternSyntax : PatternSyntax
+  {
+    internal readonly SyntaxToken underscoreToken;
+
+    internal DiscardPatternSyntax(SyntaxKind kind, SyntaxToken underscoreToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+        : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 1;
+        this.AdjustFlagsAndWidth(underscoreToken);
+        this.underscoreToken = underscoreToken;
+    }
+
+
+    internal DiscardPatternSyntax(SyntaxKind kind, SyntaxToken underscoreToken, SyntaxFactoryContext context)
+        : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 1;
+        this.AdjustFlagsAndWidth(underscoreToken);
+        this.underscoreToken = underscoreToken;
+    }
+
+
+    internal DiscardPatternSyntax(SyntaxKind kind, SyntaxToken underscoreToken)
+        : base(kind)
+    {
+        this.SlotCount = 1;
+        this.AdjustFlagsAndWidth(underscoreToken);
+        this.underscoreToken = underscoreToken;
+    }
+
+    public SyntaxToken UnderscoreToken => this.underscoreToken;
+
+    internal override GreenNode GetSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.underscoreToken;
+            default: return null;
+        }
+    }
+
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.DiscardPatternSyntax(this, parent, position);
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDiscardPattern(this);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDiscardPattern(this);
+
+    public DiscardPatternSyntax Update(SyntaxToken underscoreToken)
+    {
+        if (underscoreToken != this.UnderscoreToken)
+        {
+            var newNode = SyntaxFactory.DiscardPattern(underscoreToken);
+            var diags = this.GetDiagnostics();
+            if (diags != null && diags.Length > 0)
+               newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new DiscardPatternSyntax(this.Kind, this.underscoreToken, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new DiscardPatternSyntax(this.Kind, this.underscoreToken, GetDiagnostics(), annotations);
+
+    internal DiscardPatternSyntax(ObjectReader reader)
+        : base(reader)
+    {
+      this.SlotCount = 1;
+      var underscoreToken = (SyntaxToken)reader.ReadValue();
+      if (underscoreToken != null)
+      {
+         AdjustFlagsAndWidth(underscoreToken);
+         this.underscoreToken = underscoreToken;
+      }
+    }
+
+    internal override void WriteTo(ObjectWriter writer)
+    {
+      base.WriteTo(writer);
+      writer.WriteValue(this.underscoreToken);
+    }
+
+    static DiscardPatternSyntax()
+    {
+       ObjectBinder.RegisterTypeReader(typeof(DiscardPatternSyntax), r => new DiscardPatternSyntax(r));
+    }
+  }
+
   internal sealed partial class DeclarationPatternSyntax : PatternSyntax
   {
     internal readonly TypeSyntax type;
@@ -10086,6 +10179,678 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     static DeclarationPatternSyntax()
     {
        ObjectBinder.RegisterTypeReader(typeof(DeclarationPatternSyntax), r => new DeclarationPatternSyntax(r));
+    }
+  }
+
+  internal sealed partial class VarPatternSyntax : PatternSyntax
+  {
+    internal readonly SyntaxToken varKeyword;
+    internal readonly VariableDesignationSyntax designation;
+
+    internal VarPatternSyntax(SyntaxKind kind, SyntaxToken varKeyword, VariableDesignationSyntax designation, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+        : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 2;
+        this.AdjustFlagsAndWidth(varKeyword);
+        this.varKeyword = varKeyword;
+        this.AdjustFlagsAndWidth(designation);
+        this.designation = designation;
+    }
+
+
+    internal VarPatternSyntax(SyntaxKind kind, SyntaxToken varKeyword, VariableDesignationSyntax designation, SyntaxFactoryContext context)
+        : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 2;
+        this.AdjustFlagsAndWidth(varKeyword);
+        this.varKeyword = varKeyword;
+        this.AdjustFlagsAndWidth(designation);
+        this.designation = designation;
+    }
+
+
+    internal VarPatternSyntax(SyntaxKind kind, SyntaxToken varKeyword, VariableDesignationSyntax designation)
+        : base(kind)
+    {
+        this.SlotCount = 2;
+        this.AdjustFlagsAndWidth(varKeyword);
+        this.varKeyword = varKeyword;
+        this.AdjustFlagsAndWidth(designation);
+        this.designation = designation;
+    }
+
+    public SyntaxToken VarKeyword => this.varKeyword;
+    public VariableDesignationSyntax Designation => this.designation;
+
+    internal override GreenNode GetSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.varKeyword;
+            case 1: return this.designation;
+            default: return null;
+        }
+    }
+
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.VarPatternSyntax(this, parent, position);
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitVarPattern(this);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitVarPattern(this);
+
+    public VarPatternSyntax Update(SyntaxToken varKeyword, VariableDesignationSyntax designation)
+    {
+        if (varKeyword != this.VarKeyword || designation != this.Designation)
+        {
+            var newNode = SyntaxFactory.VarPattern(varKeyword, designation);
+            var diags = this.GetDiagnostics();
+            if (diags != null && diags.Length > 0)
+               newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new VarPatternSyntax(this.Kind, this.varKeyword, this.designation, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new VarPatternSyntax(this.Kind, this.varKeyword, this.designation, GetDiagnostics(), annotations);
+
+    internal VarPatternSyntax(ObjectReader reader)
+        : base(reader)
+    {
+      this.SlotCount = 2;
+      var varKeyword = (SyntaxToken)reader.ReadValue();
+      if (varKeyword != null)
+      {
+         AdjustFlagsAndWidth(varKeyword);
+         this.varKeyword = varKeyword;
+      }
+      var designation = (VariableDesignationSyntax)reader.ReadValue();
+      if (designation != null)
+      {
+         AdjustFlagsAndWidth(designation);
+         this.designation = designation;
+      }
+    }
+
+    internal override void WriteTo(ObjectWriter writer)
+    {
+      base.WriteTo(writer);
+      writer.WriteValue(this.varKeyword);
+      writer.WriteValue(this.designation);
+    }
+
+    static VarPatternSyntax()
+    {
+       ObjectBinder.RegisterTypeReader(typeof(VarPatternSyntax), r => new VarPatternSyntax(r));
+    }
+  }
+
+  internal sealed partial class RecursivePatternSyntax : PatternSyntax
+  {
+    internal readonly TypeSyntax type;
+    internal readonly PositionalPatternClauseSyntax positionalPatternClause;
+    internal readonly PropertyPatternClauseSyntax propertyPatternClause;
+    internal readonly VariableDesignationSyntax designation;
+
+    internal RecursivePatternSyntax(SyntaxKind kind, TypeSyntax type, PositionalPatternClauseSyntax positionalPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+        : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 4;
+        if (type != null)
+        {
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
+        if (positionalPatternClause != null)
+        {
+            this.AdjustFlagsAndWidth(positionalPatternClause);
+            this.positionalPatternClause = positionalPatternClause;
+        }
+        if (propertyPatternClause != null)
+        {
+            this.AdjustFlagsAndWidth(propertyPatternClause);
+            this.propertyPatternClause = propertyPatternClause;
+        }
+        if (designation != null)
+        {
+            this.AdjustFlagsAndWidth(designation);
+            this.designation = designation;
+        }
+    }
+
+
+    internal RecursivePatternSyntax(SyntaxKind kind, TypeSyntax type, PositionalPatternClauseSyntax positionalPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation, SyntaxFactoryContext context)
+        : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 4;
+        if (type != null)
+        {
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
+        if (positionalPatternClause != null)
+        {
+            this.AdjustFlagsAndWidth(positionalPatternClause);
+            this.positionalPatternClause = positionalPatternClause;
+        }
+        if (propertyPatternClause != null)
+        {
+            this.AdjustFlagsAndWidth(propertyPatternClause);
+            this.propertyPatternClause = propertyPatternClause;
+        }
+        if (designation != null)
+        {
+            this.AdjustFlagsAndWidth(designation);
+            this.designation = designation;
+        }
+    }
+
+
+    internal RecursivePatternSyntax(SyntaxKind kind, TypeSyntax type, PositionalPatternClauseSyntax positionalPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation)
+        : base(kind)
+    {
+        this.SlotCount = 4;
+        if (type != null)
+        {
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
+        if (positionalPatternClause != null)
+        {
+            this.AdjustFlagsAndWidth(positionalPatternClause);
+            this.positionalPatternClause = positionalPatternClause;
+        }
+        if (propertyPatternClause != null)
+        {
+            this.AdjustFlagsAndWidth(propertyPatternClause);
+            this.propertyPatternClause = propertyPatternClause;
+        }
+        if (designation != null)
+        {
+            this.AdjustFlagsAndWidth(designation);
+            this.designation = designation;
+        }
+    }
+
+    public TypeSyntax Type => this.type;
+    public PositionalPatternClauseSyntax PositionalPatternClause => this.positionalPatternClause;
+    public PropertyPatternClauseSyntax PropertyPatternClause => this.propertyPatternClause;
+    public VariableDesignationSyntax Designation => this.designation;
+
+    internal override GreenNode GetSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.type;
+            case 1: return this.positionalPatternClause;
+            case 2: return this.propertyPatternClause;
+            case 3: return this.designation;
+            default: return null;
+        }
+    }
+
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.RecursivePatternSyntax(this, parent, position);
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRecursivePattern(this);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRecursivePattern(this);
+
+    public RecursivePatternSyntax Update(TypeSyntax type, PositionalPatternClauseSyntax positionalPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation)
+    {
+        if (type != this.Type || positionalPatternClause != this.PositionalPatternClause || propertyPatternClause != this.PropertyPatternClause || designation != this.Designation)
+        {
+            var newNode = SyntaxFactory.RecursivePattern(type, positionalPatternClause, propertyPatternClause, designation);
+            var diags = this.GetDiagnostics();
+            if (diags != null && diags.Length > 0)
+               newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new RecursivePatternSyntax(this.Kind, this.type, this.positionalPatternClause, this.propertyPatternClause, this.designation, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new RecursivePatternSyntax(this.Kind, this.type, this.positionalPatternClause, this.propertyPatternClause, this.designation, GetDiagnostics(), annotations);
+
+    internal RecursivePatternSyntax(ObjectReader reader)
+        : base(reader)
+    {
+      this.SlotCount = 4;
+      var type = (TypeSyntax)reader.ReadValue();
+      if (type != null)
+      {
+         AdjustFlagsAndWidth(type);
+         this.type = type;
+      }
+      var positionalPatternClause = (PositionalPatternClauseSyntax)reader.ReadValue();
+      if (positionalPatternClause != null)
+      {
+         AdjustFlagsAndWidth(positionalPatternClause);
+         this.positionalPatternClause = positionalPatternClause;
+      }
+      var propertyPatternClause = (PropertyPatternClauseSyntax)reader.ReadValue();
+      if (propertyPatternClause != null)
+      {
+         AdjustFlagsAndWidth(propertyPatternClause);
+         this.propertyPatternClause = propertyPatternClause;
+      }
+      var designation = (VariableDesignationSyntax)reader.ReadValue();
+      if (designation != null)
+      {
+         AdjustFlagsAndWidth(designation);
+         this.designation = designation;
+      }
+    }
+
+    internal override void WriteTo(ObjectWriter writer)
+    {
+      base.WriteTo(writer);
+      writer.WriteValue(this.type);
+      writer.WriteValue(this.positionalPatternClause);
+      writer.WriteValue(this.propertyPatternClause);
+      writer.WriteValue(this.designation);
+    }
+
+    static RecursivePatternSyntax()
+    {
+       ObjectBinder.RegisterTypeReader(typeof(RecursivePatternSyntax), r => new RecursivePatternSyntax(r));
+    }
+  }
+
+  internal sealed partial class PositionalPatternClauseSyntax : CSharpSyntaxNode
+  {
+    internal readonly SyntaxToken openParenToken;
+    internal readonly GreenNode subpatterns;
+    internal readonly SyntaxToken closeParenToken;
+
+    internal PositionalPatternClauseSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode subpatterns, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+        : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(openParenToken);
+        this.openParenToken = openParenToken;
+        if (subpatterns != null)
+        {
+            this.AdjustFlagsAndWidth(subpatterns);
+            this.subpatterns = subpatterns;
+        }
+        this.AdjustFlagsAndWidth(closeParenToken);
+        this.closeParenToken = closeParenToken;
+    }
+
+
+    internal PositionalPatternClauseSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode subpatterns, SyntaxToken closeParenToken, SyntaxFactoryContext context)
+        : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(openParenToken);
+        this.openParenToken = openParenToken;
+        if (subpatterns != null)
+        {
+            this.AdjustFlagsAndWidth(subpatterns);
+            this.subpatterns = subpatterns;
+        }
+        this.AdjustFlagsAndWidth(closeParenToken);
+        this.closeParenToken = closeParenToken;
+    }
+
+
+    internal PositionalPatternClauseSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode subpatterns, SyntaxToken closeParenToken)
+        : base(kind)
+    {
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(openParenToken);
+        this.openParenToken = openParenToken;
+        if (subpatterns != null)
+        {
+            this.AdjustFlagsAndWidth(subpatterns);
+            this.subpatterns = subpatterns;
+        }
+        this.AdjustFlagsAndWidth(closeParenToken);
+        this.closeParenToken = closeParenToken;
+    }
+
+    public SyntaxToken OpenParenToken => this.openParenToken;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> Subpatterns => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.subpatterns));
+    public SyntaxToken CloseParenToken => this.closeParenToken;
+
+    internal override GreenNode GetSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.openParenToken;
+            case 1: return this.subpatterns;
+            case 2: return this.closeParenToken;
+            default: return null;
+        }
+    }
+
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.PositionalPatternClauseSyntax(this, parent, position);
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPositionalPatternClause(this);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPositionalPatternClause(this);
+
+    public PositionalPatternClauseSyntax Update(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeParenToken)
+    {
+        if (openParenToken != this.OpenParenToken || subpatterns != this.Subpatterns || closeParenToken != this.CloseParenToken)
+        {
+            var newNode = SyntaxFactory.PositionalPatternClause(openParenToken, subpatterns, closeParenToken);
+            var diags = this.GetDiagnostics();
+            if (diags != null && diags.Length > 0)
+               newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new PositionalPatternClauseSyntax(this.Kind, this.openParenToken, this.subpatterns, this.closeParenToken, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new PositionalPatternClauseSyntax(this.Kind, this.openParenToken, this.subpatterns, this.closeParenToken, GetDiagnostics(), annotations);
+
+    internal PositionalPatternClauseSyntax(ObjectReader reader)
+        : base(reader)
+    {
+      this.SlotCount = 3;
+      var openParenToken = (SyntaxToken)reader.ReadValue();
+      if (openParenToken != null)
+      {
+         AdjustFlagsAndWidth(openParenToken);
+         this.openParenToken = openParenToken;
+      }
+      var subpatterns = (GreenNode)reader.ReadValue();
+      if (subpatterns != null)
+      {
+         AdjustFlagsAndWidth(subpatterns);
+         this.subpatterns = subpatterns;
+      }
+      var closeParenToken = (SyntaxToken)reader.ReadValue();
+      if (closeParenToken != null)
+      {
+         AdjustFlagsAndWidth(closeParenToken);
+         this.closeParenToken = closeParenToken;
+      }
+    }
+
+    internal override void WriteTo(ObjectWriter writer)
+    {
+      base.WriteTo(writer);
+      writer.WriteValue(this.openParenToken);
+      writer.WriteValue(this.subpatterns);
+      writer.WriteValue(this.closeParenToken);
+    }
+
+    static PositionalPatternClauseSyntax()
+    {
+       ObjectBinder.RegisterTypeReader(typeof(PositionalPatternClauseSyntax), r => new PositionalPatternClauseSyntax(r));
+    }
+  }
+
+  internal sealed partial class PropertyPatternClauseSyntax : CSharpSyntaxNode
+  {
+    internal readonly SyntaxToken openBraceToken;
+    internal readonly GreenNode subpatterns;
+    internal readonly SyntaxToken closeBraceToken;
+
+    internal PropertyPatternClauseSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode subpatterns, SyntaxToken closeBraceToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+        : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(openBraceToken);
+        this.openBraceToken = openBraceToken;
+        if (subpatterns != null)
+        {
+            this.AdjustFlagsAndWidth(subpatterns);
+            this.subpatterns = subpatterns;
+        }
+        this.AdjustFlagsAndWidth(closeBraceToken);
+        this.closeBraceToken = closeBraceToken;
+    }
+
+
+    internal PropertyPatternClauseSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode subpatterns, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
+        : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(openBraceToken);
+        this.openBraceToken = openBraceToken;
+        if (subpatterns != null)
+        {
+            this.AdjustFlagsAndWidth(subpatterns);
+            this.subpatterns = subpatterns;
+        }
+        this.AdjustFlagsAndWidth(closeBraceToken);
+        this.closeBraceToken = closeBraceToken;
+    }
+
+
+    internal PropertyPatternClauseSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode subpatterns, SyntaxToken closeBraceToken)
+        : base(kind)
+    {
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(openBraceToken);
+        this.openBraceToken = openBraceToken;
+        if (subpatterns != null)
+        {
+            this.AdjustFlagsAndWidth(subpatterns);
+            this.subpatterns = subpatterns;
+        }
+        this.AdjustFlagsAndWidth(closeBraceToken);
+        this.closeBraceToken = closeBraceToken;
+    }
+
+    public SyntaxToken OpenBraceToken => this.openBraceToken;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> Subpatterns => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.subpatterns));
+    public SyntaxToken CloseBraceToken => this.closeBraceToken;
+
+    internal override GreenNode GetSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.openBraceToken;
+            case 1: return this.subpatterns;
+            case 2: return this.closeBraceToken;
+            default: return null;
+        }
+    }
+
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.PropertyPatternClauseSyntax(this, parent, position);
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPropertyPatternClause(this);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPropertyPatternClause(this);
+
+    public PropertyPatternClauseSyntax Update(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeBraceToken)
+    {
+        if (openBraceToken != this.OpenBraceToken || subpatterns != this.Subpatterns || closeBraceToken != this.CloseBraceToken)
+        {
+            var newNode = SyntaxFactory.PropertyPatternClause(openBraceToken, subpatterns, closeBraceToken);
+            var diags = this.GetDiagnostics();
+            if (diags != null && diags.Length > 0)
+               newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new PropertyPatternClauseSyntax(this.Kind, this.openBraceToken, this.subpatterns, this.closeBraceToken, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new PropertyPatternClauseSyntax(this.Kind, this.openBraceToken, this.subpatterns, this.closeBraceToken, GetDiagnostics(), annotations);
+
+    internal PropertyPatternClauseSyntax(ObjectReader reader)
+        : base(reader)
+    {
+      this.SlotCount = 3;
+      var openBraceToken = (SyntaxToken)reader.ReadValue();
+      if (openBraceToken != null)
+      {
+         AdjustFlagsAndWidth(openBraceToken);
+         this.openBraceToken = openBraceToken;
+      }
+      var subpatterns = (GreenNode)reader.ReadValue();
+      if (subpatterns != null)
+      {
+         AdjustFlagsAndWidth(subpatterns);
+         this.subpatterns = subpatterns;
+      }
+      var closeBraceToken = (SyntaxToken)reader.ReadValue();
+      if (closeBraceToken != null)
+      {
+         AdjustFlagsAndWidth(closeBraceToken);
+         this.closeBraceToken = closeBraceToken;
+      }
+    }
+
+    internal override void WriteTo(ObjectWriter writer)
+    {
+      base.WriteTo(writer);
+      writer.WriteValue(this.openBraceToken);
+      writer.WriteValue(this.subpatterns);
+      writer.WriteValue(this.closeBraceToken);
+    }
+
+    static PropertyPatternClauseSyntax()
+    {
+       ObjectBinder.RegisterTypeReader(typeof(PropertyPatternClauseSyntax), r => new PropertyPatternClauseSyntax(r));
+    }
+  }
+
+  internal sealed partial class SubpatternSyntax : CSharpSyntaxNode
+  {
+    internal readonly NameColonSyntax nameColon;
+    internal readonly PatternSyntax pattern;
+
+    internal SubpatternSyntax(SyntaxKind kind, NameColonSyntax nameColon, PatternSyntax pattern, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+        : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 2;
+        if (nameColon != null)
+        {
+            this.AdjustFlagsAndWidth(nameColon);
+            this.nameColon = nameColon;
+        }
+        this.AdjustFlagsAndWidth(pattern);
+        this.pattern = pattern;
+    }
+
+
+    internal SubpatternSyntax(SyntaxKind kind, NameColonSyntax nameColon, PatternSyntax pattern, SyntaxFactoryContext context)
+        : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 2;
+        if (nameColon != null)
+        {
+            this.AdjustFlagsAndWidth(nameColon);
+            this.nameColon = nameColon;
+        }
+        this.AdjustFlagsAndWidth(pattern);
+        this.pattern = pattern;
+    }
+
+
+    internal SubpatternSyntax(SyntaxKind kind, NameColonSyntax nameColon, PatternSyntax pattern)
+        : base(kind)
+    {
+        this.SlotCount = 2;
+        if (nameColon != null)
+        {
+            this.AdjustFlagsAndWidth(nameColon);
+            this.nameColon = nameColon;
+        }
+        this.AdjustFlagsAndWidth(pattern);
+        this.pattern = pattern;
+    }
+
+    public NameColonSyntax NameColon => this.nameColon;
+    public PatternSyntax Pattern => this.pattern;
+
+    internal override GreenNode GetSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.nameColon;
+            case 1: return this.pattern;
+            default: return null;
+        }
+    }
+
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.SubpatternSyntax(this, parent, position);
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSubpattern(this);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSubpattern(this);
+
+    public SubpatternSyntax Update(NameColonSyntax nameColon, PatternSyntax pattern)
+    {
+        if (nameColon != this.NameColon || pattern != this.Pattern)
+        {
+            var newNode = SyntaxFactory.Subpattern(nameColon, pattern);
+            var diags = this.GetDiagnostics();
+            if (diags != null && diags.Length > 0)
+               newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new SubpatternSyntax(this.Kind, this.nameColon, this.pattern, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new SubpatternSyntax(this.Kind, this.nameColon, this.pattern, GetDiagnostics(), annotations);
+
+    internal SubpatternSyntax(ObjectReader reader)
+        : base(reader)
+    {
+      this.SlotCount = 2;
+      var nameColon = (NameColonSyntax)reader.ReadValue();
+      if (nameColon != null)
+      {
+         AdjustFlagsAndWidth(nameColon);
+         this.nameColon = nameColon;
+      }
+      var pattern = (PatternSyntax)reader.ReadValue();
+      if (pattern != null)
+      {
+         AdjustFlagsAndWidth(pattern);
+         this.pattern = pattern;
+      }
+    }
+
+    internal override void WriteTo(ObjectWriter writer)
+    {
+      base.WriteTo(writer);
+      writer.WriteValue(this.nameColon);
+      writer.WriteValue(this.pattern);
+    }
+
+    static SubpatternSyntax()
+    {
+       ObjectBinder.RegisterTypeReader(typeof(SubpatternSyntax), r => new SubpatternSyntax(r));
     }
   }
 
@@ -11212,14 +11977,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class LocalDeclarationStatementSyntax : StatementSyntax
   {
+    internal readonly SyntaxToken awaitKeyword;
+    internal readonly SyntaxToken usingKeyword;
     internal readonly GreenNode modifiers;
     internal readonly VariableDeclarationSyntax declaration;
     internal readonly SyntaxToken semicolonToken;
 
-    internal LocalDeclarationStatementSyntax(SyntaxKind kind, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal LocalDeclarationStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 3;
+        this.SlotCount = 5;
+        if (awaitKeyword != null)
+        {
+            this.AdjustFlagsAndWidth(awaitKeyword);
+            this.awaitKeyword = awaitKeyword;
+        }
+        if (usingKeyword != null)
+        {
+            this.AdjustFlagsAndWidth(usingKeyword);
+            this.usingKeyword = usingKeyword;
+        }
         if (modifiers != null)
         {
             this.AdjustFlagsAndWidth(modifiers);
@@ -11232,11 +12009,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal LocalDeclarationStatementSyntax(SyntaxKind kind, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken, SyntaxFactoryContext context)
+    internal LocalDeclarationStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 3;
+        this.SlotCount = 5;
+        if (awaitKeyword != null)
+        {
+            this.AdjustFlagsAndWidth(awaitKeyword);
+            this.awaitKeyword = awaitKeyword;
+        }
+        if (usingKeyword != null)
+        {
+            this.AdjustFlagsAndWidth(usingKeyword);
+            this.usingKeyword = usingKeyword;
+        }
         if (modifiers != null)
         {
             this.AdjustFlagsAndWidth(modifiers);
@@ -11249,10 +12036,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal LocalDeclarationStatementSyntax(SyntaxKind kind, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+    internal LocalDeclarationStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
         : base(kind)
     {
-        this.SlotCount = 3;
+        this.SlotCount = 5;
+        if (awaitKeyword != null)
+        {
+            this.AdjustFlagsAndWidth(awaitKeyword);
+            this.awaitKeyword = awaitKeyword;
+        }
+        if (usingKeyword != null)
+        {
+            this.AdjustFlagsAndWidth(usingKeyword);
+            this.usingKeyword = usingKeyword;
+        }
         if (modifiers != null)
         {
             this.AdjustFlagsAndWidth(modifiers);
@@ -11264,6 +12061,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.semicolonToken = semicolonToken;
     }
 
+    public SyntaxToken AwaitKeyword => this.awaitKeyword;
+    public SyntaxToken UsingKeyword => this.usingKeyword;
     /// <summary>Gets the modifier list.</summary>
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
     public VariableDeclarationSyntax Declaration => this.declaration;
@@ -11273,9 +12072,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.modifiers;
-            case 1: return this.declaration;
-            case 2: return this.semicolonToken;
+            case 0: return this.awaitKeyword;
+            case 1: return this.usingKeyword;
+            case 2: return this.modifiers;
+            case 3: return this.declaration;
+            case 4: return this.semicolonToken;
             default: return null;
         }
     }
@@ -11286,11 +12087,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLocalDeclarationStatement(this);
 
-    public LocalDeclarationStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+    public LocalDeclarationStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
     {
-        if (modifiers != this.Modifiers || declaration != this.Declaration || semicolonToken != this.SemicolonToken)
+        if (awaitKeyword != this.AwaitKeyword || usingKeyword != this.UsingKeyword || modifiers != this.Modifiers || declaration != this.Declaration || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.LocalDeclarationStatement(modifiers, declaration, semicolonToken);
+            var newNode = SyntaxFactory.LocalDeclarationStatement(awaitKeyword, usingKeyword, modifiers, declaration, semicolonToken);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -11303,14 +12104,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new LocalDeclarationStatementSyntax(this.Kind, this.modifiers, this.declaration, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new LocalDeclarationStatementSyntax(this.Kind, this.awaitKeyword, this.usingKeyword, this.modifiers, this.declaration, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new LocalDeclarationStatementSyntax(this.Kind, this.modifiers, this.declaration, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new LocalDeclarationStatementSyntax(this.Kind, this.awaitKeyword, this.usingKeyword, this.modifiers, this.declaration, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal LocalDeclarationStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 3;
+      this.SlotCount = 5;
+      var awaitKeyword = (SyntaxToken)reader.ReadValue();
+      if (awaitKeyword != null)
+      {
+         AdjustFlagsAndWidth(awaitKeyword);
+         this.awaitKeyword = awaitKeyword;
+      }
+      var usingKeyword = (SyntaxToken)reader.ReadValue();
+      if (usingKeyword != null)
+      {
+         AdjustFlagsAndWidth(usingKeyword);
+         this.usingKeyword = usingKeyword;
+      }
       var modifiers = (GreenNode)reader.ReadValue();
       if (modifiers != null)
       {
@@ -11334,6 +12147,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.awaitKeyword);
+      writer.WriteValue(this.usingKeyword);
       writer.WriteValue(this.modifiers);
       writer.WriteValue(this.declaration);
       writer.WriteValue(this.semicolonToken);
@@ -12303,7 +13118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier => this.identifier;
-    /// <summary>Gets a SyntaxToken that represents the colon succeeding the statement's label.</summary>
+    /// <summary>Gets a SyntaxToken that represents the colon following the statement's label.</summary>
     public SyntaxToken ColonToken => this.colonToken;
     public StatementSyntax Statement => this.statement;
 
@@ -14169,7 +14984,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// <summary>
     /// The variable(s) of the loop. In correct code this is a tuple
     /// literal, declaration expression with a tuple designator, or
-    /// a wildcard syntax in the form of a simple identifier. In broken
+    /// a discard syntax in the form of a simple identifier. In broken
     /// code it could be something else.
     /// </summary>
     public ExpressionSyntax Variable => this.variable;
@@ -15375,12 +16190,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.SlotCount = 7;
         this.AdjustFlagsAndWidth(switchKeyword);
         this.switchKeyword = switchKeyword;
-        this.AdjustFlagsAndWidth(openParenToken);
-        this.openParenToken = openParenToken;
+        if (openParenToken != null)
+        {
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+        }
         this.AdjustFlagsAndWidth(expression);
         this.expression = expression;
-        this.AdjustFlagsAndWidth(closeParenToken);
-        this.closeParenToken = closeParenToken;
+        if (closeParenToken != null)
+        {
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+        }
         this.AdjustFlagsAndWidth(openBraceToken);
         this.openBraceToken = openBraceToken;
         if (sections != null)
@@ -15400,12 +16221,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.SlotCount = 7;
         this.AdjustFlagsAndWidth(switchKeyword);
         this.switchKeyword = switchKeyword;
-        this.AdjustFlagsAndWidth(openParenToken);
-        this.openParenToken = openParenToken;
+        if (openParenToken != null)
+        {
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+        }
         this.AdjustFlagsAndWidth(expression);
         this.expression = expression;
-        this.AdjustFlagsAndWidth(closeParenToken);
-        this.closeParenToken = closeParenToken;
+        if (closeParenToken != null)
+        {
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+        }
         this.AdjustFlagsAndWidth(openBraceToken);
         this.openBraceToken = openBraceToken;
         if (sections != null)
@@ -15424,12 +16251,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.SlotCount = 7;
         this.AdjustFlagsAndWidth(switchKeyword);
         this.switchKeyword = switchKeyword;
-        this.AdjustFlagsAndWidth(openParenToken);
-        this.openParenToken = openParenToken;
+        if (openParenToken != null)
+        {
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+        }
         this.AdjustFlagsAndWidth(expression);
         this.expression = expression;
-        this.AdjustFlagsAndWidth(closeParenToken);
-        this.closeParenToken = closeParenToken;
+        if (closeParenToken != null)
+        {
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+        }
         this.AdjustFlagsAndWidth(openBraceToken);
         this.openBraceToken = openBraceToken;
         if (sections != null)
@@ -15446,7 +16279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// </summary>
     public SyntaxToken SwitchKeyword => this.switchKeyword;
     /// <summary>
-    /// Gets a SyntaxToken that represents the open parenthesis preceding the switch expression.
+    /// Gets a SyntaxToken that represents the open parenthesis preceding the switch governing expression.
     /// </summary>
     public SyntaxToken OpenParenToken => this.openParenToken;
     /// <summary>
@@ -15454,7 +16287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// </summary>
     public ExpressionSyntax Expression => this.expression;
     /// <summary>
-    /// Gets a SyntaxToken that represents the close parenthesis succeeding the switch expression.
+    /// Gets a SyntaxToken that represents the close parenthesis following the switch governing expression.
     /// </summary>
     public SyntaxToken CloseParenToken => this.closeParenToken;
     /// <summary>
@@ -15466,7 +16299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// </summary>
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchSectionSyntax> Sections => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchSectionSyntax>(this.sections);
     /// <summary>
-    /// Gets a SyntaxToken that represents the open braces succeeding the switch sections.
+    /// Gets a SyntaxToken that represents the open braces following the switch sections.
     /// </summary>
     public SyntaxToken CloseBraceToken => this.closeBraceToken;
 
@@ -16133,6 +16966,322 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     static DefaultSwitchLabelSyntax()
     {
        ObjectBinder.RegisterTypeReader(typeof(DefaultSwitchLabelSyntax), r => new DefaultSwitchLabelSyntax(r));
+    }
+  }
+
+  internal sealed partial class SwitchExpressionSyntax : ExpressionSyntax
+  {
+    internal readonly ExpressionSyntax governingExpression;
+    internal readonly SyntaxToken switchKeyword;
+    internal readonly SyntaxToken openBraceToken;
+    internal readonly GreenNode arms;
+    internal readonly SyntaxToken closeBraceToken;
+
+    internal SwitchExpressionSyntax(SyntaxKind kind, ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, GreenNode arms, SyntaxToken closeBraceToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+        : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 5;
+        this.AdjustFlagsAndWidth(governingExpression);
+        this.governingExpression = governingExpression;
+        this.AdjustFlagsAndWidth(switchKeyword);
+        this.switchKeyword = switchKeyword;
+        this.AdjustFlagsAndWidth(openBraceToken);
+        this.openBraceToken = openBraceToken;
+        if (arms != null)
+        {
+            this.AdjustFlagsAndWidth(arms);
+            this.arms = arms;
+        }
+        this.AdjustFlagsAndWidth(closeBraceToken);
+        this.closeBraceToken = closeBraceToken;
+    }
+
+
+    internal SwitchExpressionSyntax(SyntaxKind kind, ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, GreenNode arms, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
+        : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 5;
+        this.AdjustFlagsAndWidth(governingExpression);
+        this.governingExpression = governingExpression;
+        this.AdjustFlagsAndWidth(switchKeyword);
+        this.switchKeyword = switchKeyword;
+        this.AdjustFlagsAndWidth(openBraceToken);
+        this.openBraceToken = openBraceToken;
+        if (arms != null)
+        {
+            this.AdjustFlagsAndWidth(arms);
+            this.arms = arms;
+        }
+        this.AdjustFlagsAndWidth(closeBraceToken);
+        this.closeBraceToken = closeBraceToken;
+    }
+
+
+    internal SwitchExpressionSyntax(SyntaxKind kind, ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, GreenNode arms, SyntaxToken closeBraceToken)
+        : base(kind)
+    {
+        this.SlotCount = 5;
+        this.AdjustFlagsAndWidth(governingExpression);
+        this.governingExpression = governingExpression;
+        this.AdjustFlagsAndWidth(switchKeyword);
+        this.switchKeyword = switchKeyword;
+        this.AdjustFlagsAndWidth(openBraceToken);
+        this.openBraceToken = openBraceToken;
+        if (arms != null)
+        {
+            this.AdjustFlagsAndWidth(arms);
+            this.arms = arms;
+        }
+        this.AdjustFlagsAndWidth(closeBraceToken);
+        this.closeBraceToken = closeBraceToken;
+    }
+
+    public ExpressionSyntax GoverningExpression => this.governingExpression;
+    public SyntaxToken SwitchKeyword => this.switchKeyword;
+    public SyntaxToken OpenBraceToken => this.openBraceToken;
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SwitchExpressionArmSyntax> Arms => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SwitchExpressionArmSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.arms));
+    public SyntaxToken CloseBraceToken => this.closeBraceToken;
+
+    internal override GreenNode GetSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.governingExpression;
+            case 1: return this.switchKeyword;
+            case 2: return this.openBraceToken;
+            case 3: return this.arms;
+            case 4: return this.closeBraceToken;
+            default: return null;
+        }
+    }
+
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.SwitchExpressionSyntax(this, parent, position);
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSwitchExpression(this);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSwitchExpression(this);
+
+    public SwitchExpressionSyntax Update(ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SwitchExpressionArmSyntax> arms, SyntaxToken closeBraceToken)
+    {
+        if (governingExpression != this.GoverningExpression || switchKeyword != this.SwitchKeyword || openBraceToken != this.OpenBraceToken || arms != this.Arms || closeBraceToken != this.CloseBraceToken)
+        {
+            var newNode = SyntaxFactory.SwitchExpression(governingExpression, switchKeyword, openBraceToken, arms, closeBraceToken);
+            var diags = this.GetDiagnostics();
+            if (diags != null && diags.Length > 0)
+               newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new SwitchExpressionSyntax(this.Kind, this.governingExpression, this.switchKeyword, this.openBraceToken, this.arms, this.closeBraceToken, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new SwitchExpressionSyntax(this.Kind, this.governingExpression, this.switchKeyword, this.openBraceToken, this.arms, this.closeBraceToken, GetDiagnostics(), annotations);
+
+    internal SwitchExpressionSyntax(ObjectReader reader)
+        : base(reader)
+    {
+      this.SlotCount = 5;
+      var governingExpression = (ExpressionSyntax)reader.ReadValue();
+      if (governingExpression != null)
+      {
+         AdjustFlagsAndWidth(governingExpression);
+         this.governingExpression = governingExpression;
+      }
+      var switchKeyword = (SyntaxToken)reader.ReadValue();
+      if (switchKeyword != null)
+      {
+         AdjustFlagsAndWidth(switchKeyword);
+         this.switchKeyword = switchKeyword;
+      }
+      var openBraceToken = (SyntaxToken)reader.ReadValue();
+      if (openBraceToken != null)
+      {
+         AdjustFlagsAndWidth(openBraceToken);
+         this.openBraceToken = openBraceToken;
+      }
+      var arms = (GreenNode)reader.ReadValue();
+      if (arms != null)
+      {
+         AdjustFlagsAndWidth(arms);
+         this.arms = arms;
+      }
+      var closeBraceToken = (SyntaxToken)reader.ReadValue();
+      if (closeBraceToken != null)
+      {
+         AdjustFlagsAndWidth(closeBraceToken);
+         this.closeBraceToken = closeBraceToken;
+      }
+    }
+
+    internal override void WriteTo(ObjectWriter writer)
+    {
+      base.WriteTo(writer);
+      writer.WriteValue(this.governingExpression);
+      writer.WriteValue(this.switchKeyword);
+      writer.WriteValue(this.openBraceToken);
+      writer.WriteValue(this.arms);
+      writer.WriteValue(this.closeBraceToken);
+    }
+
+    static SwitchExpressionSyntax()
+    {
+       ObjectBinder.RegisterTypeReader(typeof(SwitchExpressionSyntax), r => new SwitchExpressionSyntax(r));
+    }
+  }
+
+  internal sealed partial class SwitchExpressionArmSyntax : CSharpSyntaxNode
+  {
+    internal readonly PatternSyntax pattern;
+    internal readonly WhenClauseSyntax whenClause;
+    internal readonly SyntaxToken equalsGreaterThanToken;
+    internal readonly ExpressionSyntax expression;
+
+    internal SwitchExpressionArmSyntax(SyntaxKind kind, PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+        : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(pattern);
+        this.pattern = pattern;
+        if (whenClause != null)
+        {
+            this.AdjustFlagsAndWidth(whenClause);
+            this.whenClause = whenClause;
+        }
+        this.AdjustFlagsAndWidth(equalsGreaterThanToken);
+        this.equalsGreaterThanToken = equalsGreaterThanToken;
+        this.AdjustFlagsAndWidth(expression);
+        this.expression = expression;
+    }
+
+
+    internal SwitchExpressionArmSyntax(SyntaxKind kind, PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression, SyntaxFactoryContext context)
+        : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(pattern);
+        this.pattern = pattern;
+        if (whenClause != null)
+        {
+            this.AdjustFlagsAndWidth(whenClause);
+            this.whenClause = whenClause;
+        }
+        this.AdjustFlagsAndWidth(equalsGreaterThanToken);
+        this.equalsGreaterThanToken = equalsGreaterThanToken;
+        this.AdjustFlagsAndWidth(expression);
+        this.expression = expression;
+    }
+
+
+    internal SwitchExpressionArmSyntax(SyntaxKind kind, PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
+        : base(kind)
+    {
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(pattern);
+        this.pattern = pattern;
+        if (whenClause != null)
+        {
+            this.AdjustFlagsAndWidth(whenClause);
+            this.whenClause = whenClause;
+        }
+        this.AdjustFlagsAndWidth(equalsGreaterThanToken);
+        this.equalsGreaterThanToken = equalsGreaterThanToken;
+        this.AdjustFlagsAndWidth(expression);
+        this.expression = expression;
+    }
+
+    public PatternSyntax Pattern => this.pattern;
+    public WhenClauseSyntax WhenClause => this.whenClause;
+    public SyntaxToken EqualsGreaterThanToken => this.equalsGreaterThanToken;
+    public ExpressionSyntax Expression => this.expression;
+
+    internal override GreenNode GetSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.pattern;
+            case 1: return this.whenClause;
+            case 2: return this.equalsGreaterThanToken;
+            case 3: return this.expression;
+            default: return null;
+        }
+    }
+
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position) => new CSharp.Syntax.SwitchExpressionArmSyntax(this, parent, position);
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSwitchExpressionArm(this);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSwitchExpressionArm(this);
+
+    public SwitchExpressionArmSyntax Update(PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
+    {
+        if (pattern != this.Pattern || whenClause != this.WhenClause || equalsGreaterThanToken != this.EqualsGreaterThanToken || expression != this.Expression)
+        {
+            var newNode = SyntaxFactory.SwitchExpressionArm(pattern, whenClause, equalsGreaterThanToken, expression);
+            var diags = this.GetDiagnostics();
+            if (diags != null && diags.Length > 0)
+               newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new SwitchExpressionArmSyntax(this.Kind, this.pattern, this.whenClause, this.equalsGreaterThanToken, this.expression, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new SwitchExpressionArmSyntax(this.Kind, this.pattern, this.whenClause, this.equalsGreaterThanToken, this.expression, GetDiagnostics(), annotations);
+
+    internal SwitchExpressionArmSyntax(ObjectReader reader)
+        : base(reader)
+    {
+      this.SlotCount = 4;
+      var pattern = (PatternSyntax)reader.ReadValue();
+      if (pattern != null)
+      {
+         AdjustFlagsAndWidth(pattern);
+         this.pattern = pattern;
+      }
+      var whenClause = (WhenClauseSyntax)reader.ReadValue();
+      if (whenClause != null)
+      {
+         AdjustFlagsAndWidth(whenClause);
+         this.whenClause = whenClause;
+      }
+      var equalsGreaterThanToken = (SyntaxToken)reader.ReadValue();
+      if (equalsGreaterThanToken != null)
+      {
+         AdjustFlagsAndWidth(equalsGreaterThanToken);
+         this.equalsGreaterThanToken = equalsGreaterThanToken;
+      }
+      var expression = (ExpressionSyntax)reader.ReadValue();
+      if (expression != null)
+      {
+         AdjustFlagsAndWidth(expression);
+         this.expression = expression;
+      }
+    }
+
+    internal override void WriteTo(ObjectWriter writer)
+    {
+      base.WriteTo(writer);
+      writer.WriteValue(this.pattern);
+      writer.WriteValue(this.whenClause);
+      writer.WriteValue(this.equalsGreaterThanToken);
+      writer.WriteValue(this.expression);
+    }
+
+    static SwitchExpressionArmSyntax()
+    {
+       ObjectBinder.RegisterTypeReader(typeof(SwitchExpressionArmSyntax), r => new SwitchExpressionArmSyntax(r));
     }
   }
 
@@ -30192,14 +31341,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal readonly SyntaxToken pragmaKeyword;
     internal readonly SyntaxToken warningKeyword;
     internal readonly SyntaxToken disableOrRestoreKeyword;
+    internal readonly SyntaxToken nullableKeyword;
     internal readonly GreenNode errorCodes;
     internal readonly SyntaxToken endOfDirectiveToken;
     internal readonly bool isActive;
 
-    internal PragmaWarningDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, GreenNode errorCodes, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal PragmaWarningDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SyntaxToken nullableKeyword, GreenNode errorCodes, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 6;
+        this.SlotCount = 7;
         this.AdjustFlagsAndWidth(hashToken);
         this.hashToken = hashToken;
         this.AdjustFlagsAndWidth(pragmaKeyword);
@@ -30208,6 +31358,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.warningKeyword = warningKeyword;
         this.AdjustFlagsAndWidth(disableOrRestoreKeyword);
         this.disableOrRestoreKeyword = disableOrRestoreKeyword;
+        if (nullableKeyword != null)
+        {
+            this.AdjustFlagsAndWidth(nullableKeyword);
+            this.nullableKeyword = nullableKeyword;
+        }
         if (errorCodes != null)
         {
             this.AdjustFlagsAndWidth(errorCodes);
@@ -30219,11 +31374,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal PragmaWarningDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, GreenNode errorCodes, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
+    internal PragmaWarningDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SyntaxToken nullableKeyword, GreenNode errorCodes, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 6;
+        this.SlotCount = 7;
         this.AdjustFlagsAndWidth(hashToken);
         this.hashToken = hashToken;
         this.AdjustFlagsAndWidth(pragmaKeyword);
@@ -30232,6 +31387,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.warningKeyword = warningKeyword;
         this.AdjustFlagsAndWidth(disableOrRestoreKeyword);
         this.disableOrRestoreKeyword = disableOrRestoreKeyword;
+        if (nullableKeyword != null)
+        {
+            this.AdjustFlagsAndWidth(nullableKeyword);
+            this.nullableKeyword = nullableKeyword;
+        }
         if (errorCodes != null)
         {
             this.AdjustFlagsAndWidth(errorCodes);
@@ -30243,10 +31403,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal PragmaWarningDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, GreenNode errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
+    internal PragmaWarningDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SyntaxToken nullableKeyword, GreenNode errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
         : base(kind)
     {
-        this.SlotCount = 6;
+        this.SlotCount = 7;
         this.AdjustFlagsAndWidth(hashToken);
         this.hashToken = hashToken;
         this.AdjustFlagsAndWidth(pragmaKeyword);
@@ -30255,6 +31415,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.warningKeyword = warningKeyword;
         this.AdjustFlagsAndWidth(disableOrRestoreKeyword);
         this.disableOrRestoreKeyword = disableOrRestoreKeyword;
+        if (nullableKeyword != null)
+        {
+            this.AdjustFlagsAndWidth(nullableKeyword);
+            this.nullableKeyword = nullableKeyword;
+        }
         if (errorCodes != null)
         {
             this.AdjustFlagsAndWidth(errorCodes);
@@ -30269,6 +31434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public SyntaxToken PragmaKeyword => this.pragmaKeyword;
     public SyntaxToken WarningKeyword => this.warningKeyword;
     public SyntaxToken DisableOrRestoreKeyword => this.disableOrRestoreKeyword;
+    public SyntaxToken NullableKeyword => this.nullableKeyword;
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> ErrorCodes => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.errorCodes));
     public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
     public override bool IsActive => this.isActive;
@@ -30281,8 +31447,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             case 1: return this.pragmaKeyword;
             case 2: return this.warningKeyword;
             case 3: return this.disableOrRestoreKeyword;
-            case 4: return this.errorCodes;
-            case 5: return this.endOfDirectiveToken;
+            case 4: return this.nullableKeyword;
+            case 5: return this.errorCodes;
+            case 6: return this.endOfDirectiveToken;
             default: return null;
         }
     }
@@ -30293,11 +31460,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPragmaWarningDirectiveTrivia(this);
 
-    public PragmaWarningDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
+    public PragmaWarningDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SyntaxToken nullableKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
     {
-        if (hashToken != this.HashToken || pragmaKeyword != this.PragmaKeyword || warningKeyword != this.WarningKeyword || disableOrRestoreKeyword != this.DisableOrRestoreKeyword || errorCodes != this.ErrorCodes || endOfDirectiveToken != this.EndOfDirectiveToken)
+        if (hashToken != this.HashToken || pragmaKeyword != this.PragmaKeyword || warningKeyword != this.WarningKeyword || disableOrRestoreKeyword != this.DisableOrRestoreKeyword || nullableKeyword != this.NullableKeyword || errorCodes != this.ErrorCodes || endOfDirectiveToken != this.EndOfDirectiveToken)
         {
-            var newNode = SyntaxFactory.PragmaWarningDirectiveTrivia(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, errorCodes, endOfDirectiveToken, isActive);
+            var newNode = SyntaxFactory.PragmaWarningDirectiveTrivia(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, nullableKeyword, errorCodes, endOfDirectiveToken, isActive);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -30310,14 +31477,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new PragmaWarningDirectiveTriviaSyntax(this.Kind, this.hashToken, this.pragmaKeyword, this.warningKeyword, this.disableOrRestoreKeyword, this.errorCodes, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new PragmaWarningDirectiveTriviaSyntax(this.Kind, this.hashToken, this.pragmaKeyword, this.warningKeyword, this.disableOrRestoreKeyword, this.nullableKeyword, this.errorCodes, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new PragmaWarningDirectiveTriviaSyntax(this.Kind, this.hashToken, this.pragmaKeyword, this.warningKeyword, this.disableOrRestoreKeyword, this.errorCodes, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new PragmaWarningDirectiveTriviaSyntax(this.Kind, this.hashToken, this.pragmaKeyword, this.warningKeyword, this.disableOrRestoreKeyword, this.nullableKeyword, this.errorCodes, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
 
     internal PragmaWarningDirectiveTriviaSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 6;
+      this.SlotCount = 7;
       var hashToken = (SyntaxToken)reader.ReadValue();
       if (hashToken != null)
       {
@@ -30342,6 +31509,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          AdjustFlagsAndWidth(disableOrRestoreKeyword);
          this.disableOrRestoreKeyword = disableOrRestoreKeyword;
       }
+      var nullableKeyword = (SyntaxToken)reader.ReadValue();
+      if (nullableKeyword != null)
+      {
+         AdjustFlagsAndWidth(nullableKeyword);
+         this.nullableKeyword = nullableKeyword;
+      }
       var errorCodes = (GreenNode)reader.ReadValue();
       if (errorCodes != null)
       {
@@ -30364,6 +31537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       writer.WriteValue(this.pragmaKeyword);
       writer.WriteValue(this.warningKeyword);
       writer.WriteValue(this.disableOrRestoreKeyword);
+      writer.WriteValue(this.nullableKeyword);
       writer.WriteValue(this.errorCodes);
       writer.WriteValue(this.endOfDirectiveToken);
       writer.WriteBoolean(this.isActive);
@@ -31299,7 +32473,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public virtual TResult VisitWhenClause(WhenClauseSyntax node) => this.DefaultVisit(node);
 
+    public virtual TResult VisitDiscardPattern(DiscardPatternSyntax node) => this.DefaultVisit(node);
+
     public virtual TResult VisitDeclarationPattern(DeclarationPatternSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitVarPattern(VarPatternSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitRecursivePattern(RecursivePatternSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitPositionalPatternClause(PositionalPatternClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitPropertyPatternClause(PropertyPatternClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitSubpattern(SubpatternSyntax node) => this.DefaultVisit(node);
 
     public virtual TResult VisitConstantPattern(ConstantPatternSyntax node) => this.DefaultVisit(node);
 
@@ -31382,6 +32568,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public virtual TResult VisitCaseSwitchLabel(CaseSwitchLabelSyntax node) => this.DefaultVisit(node);
 
     public virtual TResult VisitDefaultSwitchLabel(DefaultSwitchLabelSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitSwitchExpression(SwitchExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual TResult VisitSwitchExpressionArm(SwitchExpressionArmSyntax node) => this.DefaultVisit(node);
 
     public virtual TResult VisitTryStatement(TryStatementSyntax node) => this.DefaultVisit(node);
 
@@ -31717,7 +32907,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public virtual void VisitWhenClause(WhenClauseSyntax node) => this.DefaultVisit(node);
 
+    public virtual void VisitDiscardPattern(DiscardPatternSyntax node) => this.DefaultVisit(node);
+
     public virtual void VisitDeclarationPattern(DeclarationPatternSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitVarPattern(VarPatternSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitRecursivePattern(RecursivePatternSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitPositionalPatternClause(PositionalPatternClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitPropertyPatternClause(PropertyPatternClauseSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitSubpattern(SubpatternSyntax node) => this.DefaultVisit(node);
 
     public virtual void VisitConstantPattern(ConstantPatternSyntax node) => this.DefaultVisit(node);
 
@@ -31800,6 +33002,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public virtual void VisitCaseSwitchLabel(CaseSwitchLabelSyntax node) => this.DefaultVisit(node);
 
     public virtual void VisitDefaultSwitchLabel(DefaultSwitchLabelSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitSwitchExpression(SwitchExpressionSyntax node) => this.DefaultVisit(node);
+
+    public virtual void VisitSwitchExpressionArm(SwitchExpressionArmSyntax node) => this.DefaultVisit(node);
 
     public virtual void VisitTryStatement(TryStatementSyntax node) => this.DefaultVisit(node);
 
@@ -32575,11 +33781,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return node.Update(whenKeyword, condition);
     }
 
+    public override CSharpSyntaxNode VisitDiscardPattern(DiscardPatternSyntax node)
+    {
+      var underscoreToken = (SyntaxToken)this.Visit(node.UnderscoreToken);
+      return node.Update(underscoreToken);
+    }
+
     public override CSharpSyntaxNode VisitDeclarationPattern(DeclarationPatternSyntax node)
     {
       var type = (TypeSyntax)this.Visit(node.Type);
       var designation = (VariableDesignationSyntax)this.Visit(node.Designation);
       return node.Update(type, designation);
+    }
+
+    public override CSharpSyntaxNode VisitVarPattern(VarPatternSyntax node)
+    {
+      var varKeyword = (SyntaxToken)this.Visit(node.VarKeyword);
+      var designation = (VariableDesignationSyntax)this.Visit(node.Designation);
+      return node.Update(varKeyword, designation);
+    }
+
+    public override CSharpSyntaxNode VisitRecursivePattern(RecursivePatternSyntax node)
+    {
+      var type = (TypeSyntax)this.Visit(node.Type);
+      var positionalPatternClause = (PositionalPatternClauseSyntax)this.Visit(node.PositionalPatternClause);
+      var propertyPatternClause = (PropertyPatternClauseSyntax)this.Visit(node.PropertyPatternClause);
+      var designation = (VariableDesignationSyntax)this.Visit(node.Designation);
+      return node.Update(type, positionalPatternClause, propertyPatternClause, designation);
+    }
+
+    public override CSharpSyntaxNode VisitPositionalPatternClause(PositionalPatternClauseSyntax node)
+    {
+      var openParenToken = (SyntaxToken)this.Visit(node.OpenParenToken);
+      var subpatterns = this.VisitList(node.Subpatterns);
+      var closeParenToken = (SyntaxToken)this.Visit(node.CloseParenToken);
+      return node.Update(openParenToken, subpatterns, closeParenToken);
+    }
+
+    public override CSharpSyntaxNode VisitPropertyPatternClause(PropertyPatternClauseSyntax node)
+    {
+      var openBraceToken = (SyntaxToken)this.Visit(node.OpenBraceToken);
+      var subpatterns = this.VisitList(node.Subpatterns);
+      var closeBraceToken = (SyntaxToken)this.Visit(node.CloseBraceToken);
+      return node.Update(openBraceToken, subpatterns, closeBraceToken);
+    }
+
+    public override CSharpSyntaxNode VisitSubpattern(SubpatternSyntax node)
+    {
+      var nameColon = (NameColonSyntax)this.Visit(node.NameColon);
+      var pattern = (PatternSyntax)this.Visit(node.Pattern);
+      return node.Update(nameColon, pattern);
     }
 
     public override CSharpSyntaxNode VisitConstantPattern(ConstantPatternSyntax node)
@@ -32648,10 +33899,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override CSharpSyntaxNode VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
     {
+      var awaitKeyword = (SyntaxToken)this.Visit(node.AwaitKeyword);
+      var usingKeyword = (SyntaxToken)this.Visit(node.UsingKeyword);
       var modifiers = this.VisitList(node.Modifiers);
       var declaration = (VariableDeclarationSyntax)this.Visit(node.Declaration);
       var semicolonToken = (SyntaxToken)this.Visit(node.SemicolonToken);
-      return node.Update(modifiers, declaration, semicolonToken);
+      return node.Update(awaitKeyword, usingKeyword, modifiers, declaration, semicolonToken);
     }
 
     public override CSharpSyntaxNode VisitVariableDeclaration(VariableDeclarationSyntax node)
@@ -32934,6 +34187,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       var keyword = (SyntaxToken)this.Visit(node.Keyword);
       var colonToken = (SyntaxToken)this.Visit(node.ColonToken);
       return node.Update(keyword, colonToken);
+    }
+
+    public override CSharpSyntaxNode VisitSwitchExpression(SwitchExpressionSyntax node)
+    {
+      var governingExpression = (ExpressionSyntax)this.Visit(node.GoverningExpression);
+      var switchKeyword = (SyntaxToken)this.Visit(node.SwitchKeyword);
+      var openBraceToken = (SyntaxToken)this.Visit(node.OpenBraceToken);
+      var arms = this.VisitList(node.Arms);
+      var closeBraceToken = (SyntaxToken)this.Visit(node.CloseBraceToken);
+      return node.Update(governingExpression, switchKeyword, openBraceToken, arms, closeBraceToken);
+    }
+
+    public override CSharpSyntaxNode VisitSwitchExpressionArm(SwitchExpressionArmSyntax node)
+    {
+      var pattern = (PatternSyntax)this.Visit(node.Pattern);
+      var whenClause = (WhenClauseSyntax)this.Visit(node.WhenClause);
+      var equalsGreaterThanToken = (SyntaxToken)this.Visit(node.EqualsGreaterThanToken);
+      var expression = (ExpressionSyntax)this.Visit(node.Expression);
+      return node.Update(pattern, whenClause, equalsGreaterThanToken, expression);
     }
 
     public override CSharpSyntaxNode VisitTryStatement(TryStatementSyntax node)
@@ -33712,9 +34984,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       var pragmaKeyword = (SyntaxToken)this.Visit(node.PragmaKeyword);
       var warningKeyword = (SyntaxToken)this.Visit(node.WarningKeyword);
       var disableOrRestoreKeyword = (SyntaxToken)this.Visit(node.DisableOrRestoreKeyword);
+      var nullableKeyword = (SyntaxToken)this.Visit(node.NullableKeyword);
       var errorCodes = this.VisitList(node.ErrorCodes);
       var endOfDirectiveToken = (SyntaxToken)this.Visit(node.EndOfDirectiveToken);
-      return node.Update(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, errorCodes, endOfDirectiveToken, node.IsActive);
+      return node.Update(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, nullableKeyword, errorCodes, endOfDirectiveToken, node.IsActive);
     }
 
     public override CSharpSyntaxNode VisitPragmaChecksumDirectiveTrivia(PragmaChecksumDirectiveTriviaSyntax node)
@@ -36295,6 +37568,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
+    public DiscardPatternSyntax DiscardPattern(SyntaxToken underscoreToken)
+    {
+#if DEBUG
+      if (underscoreToken == null)
+        throw new ArgumentNullException(nameof(underscoreToken));
+      switch (underscoreToken.Kind)
+      {
+        case SyntaxKind.UnderscoreToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(underscoreToken));
+      }
+#endif
+
+      int hash;
+      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.DiscardPattern, underscoreToken, this.context, out hash);
+      if (cached != null) return (DiscardPatternSyntax)cached;
+
+      var result = new DiscardPatternSyntax(SyntaxKind.DiscardPattern, underscoreToken, this.context);
+      if (hash >= 0)
+      {
+          SyntaxNodeCache.AddNode(result, hash);
+      }
+
+      return result;
+    }
+
     public DeclarationPatternSyntax DeclarationPattern(TypeSyntax type, VariableDesignationSyntax designation)
     {
 #if DEBUG
@@ -36309,6 +37609,135 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       if (cached != null) return (DeclarationPatternSyntax)cached;
 
       var result = new DeclarationPatternSyntax(SyntaxKind.DeclarationPattern, type, designation, this.context);
+      if (hash >= 0)
+      {
+          SyntaxNodeCache.AddNode(result, hash);
+      }
+
+      return result;
+    }
+
+    public VarPatternSyntax VarPattern(SyntaxToken varKeyword, VariableDesignationSyntax designation)
+    {
+#if DEBUG
+      if (varKeyword == null)
+        throw new ArgumentNullException(nameof(varKeyword));
+      switch (varKeyword.Kind)
+      {
+        case SyntaxKind.VarKeyword:
+          break;
+        default:
+          throw new ArgumentException(nameof(varKeyword));
+      }
+      if (designation == null)
+        throw new ArgumentNullException(nameof(designation));
+#endif
+
+      int hash;
+      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.VarPattern, varKeyword, designation, this.context, out hash);
+      if (cached != null) return (VarPatternSyntax)cached;
+
+      var result = new VarPatternSyntax(SyntaxKind.VarPattern, varKeyword, designation, this.context);
+      if (hash >= 0)
+      {
+          SyntaxNodeCache.AddNode(result, hash);
+      }
+
+      return result;
+    }
+
+    public RecursivePatternSyntax RecursivePattern(TypeSyntax type, PositionalPatternClauseSyntax positionalPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation)
+    {
+#if DEBUG
+#endif
+
+      return new RecursivePatternSyntax(SyntaxKind.RecursivePattern, type, positionalPatternClause, propertyPatternClause, designation, this.context);
+    }
+
+    public PositionalPatternClauseSyntax PositionalPatternClause(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeParenToken)
+    {
+#if DEBUG
+      if (openParenToken == null)
+        throw new ArgumentNullException(nameof(openParenToken));
+      switch (openParenToken.Kind)
+      {
+        case SyntaxKind.OpenParenToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(openParenToken));
+      }
+      if (closeParenToken == null)
+        throw new ArgumentNullException(nameof(closeParenToken));
+      switch (closeParenToken.Kind)
+      {
+        case SyntaxKind.CloseParenToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(closeParenToken));
+      }
+#endif
+
+      int hash;
+      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.PositionalPatternClause, openParenToken, subpatterns.Node, closeParenToken, this.context, out hash);
+      if (cached != null) return (PositionalPatternClauseSyntax)cached;
+
+      var result = new PositionalPatternClauseSyntax(SyntaxKind.PositionalPatternClause, openParenToken, subpatterns.Node, closeParenToken, this.context);
+      if (hash >= 0)
+      {
+          SyntaxNodeCache.AddNode(result, hash);
+      }
+
+      return result;
+    }
+
+    public PropertyPatternClauseSyntax PropertyPatternClause(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeBraceToken)
+    {
+#if DEBUG
+      if (openBraceToken == null)
+        throw new ArgumentNullException(nameof(openBraceToken));
+      switch (openBraceToken.Kind)
+      {
+        case SyntaxKind.OpenBraceToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(openBraceToken));
+      }
+      if (closeBraceToken == null)
+        throw new ArgumentNullException(nameof(closeBraceToken));
+      switch (closeBraceToken.Kind)
+      {
+        case SyntaxKind.CloseBraceToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(closeBraceToken));
+      }
+#endif
+
+      int hash;
+      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.PropertyPatternClause, openBraceToken, subpatterns.Node, closeBraceToken, this.context, out hash);
+      if (cached != null) return (PropertyPatternClauseSyntax)cached;
+
+      var result = new PropertyPatternClauseSyntax(SyntaxKind.PropertyPatternClause, openBraceToken, subpatterns.Node, closeBraceToken, this.context);
+      if (hash >= 0)
+      {
+          SyntaxNodeCache.AddNode(result, hash);
+      }
+
+      return result;
+    }
+
+    public SubpatternSyntax Subpattern(NameColonSyntax nameColon, PatternSyntax pattern)
+    {
+#if DEBUG
+      if (pattern == null)
+        throw new ArgumentNullException(nameof(pattern));
+#endif
+
+      int hash;
+      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.Subpattern, nameColon, pattern, this.context, out hash);
+      if (cached != null) return (SubpatternSyntax)cached;
+
+      var result = new SubpatternSyntax(SyntaxKind.Subpattern, nameColon, pattern, this.context);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -36531,9 +37960,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return new LocalFunctionStatementSyntax(SyntaxKind.LocalFunctionStatement, modifiers.Node, returnType, identifier, typeParameterList, parameterList, constraintClauses.Node, body, expressionBody, semicolonToken, this.context);
     }
 
-    public LocalDeclarationStatementSyntax LocalDeclarationStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+    public LocalDeclarationStatementSyntax LocalDeclarationStatement(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
     {
 #if DEBUG
+      if (awaitKeyword != null)
+      {
+      switch (awaitKeyword.Kind)
+      {
+        case SyntaxKind.AwaitKeyword:
+        case SyntaxKind.None:
+          break;
+        default:
+          throw new ArgumentException(nameof(awaitKeyword));
+      }
+      }
+      if (usingKeyword != null)
+      {
+      switch (usingKeyword.Kind)
+      {
+        case SyntaxKind.UsingKeyword:
+        case SyntaxKind.None:
+          break;
+        default:
+          throw new ArgumentException(nameof(usingKeyword));
+      }
+      }
       if (declaration == null)
         throw new ArgumentNullException(nameof(declaration));
       if (semicolonToken == null)
@@ -36547,17 +37998,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      int hash;
-      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.LocalDeclarationStatement, modifiers.Node, declaration, semicolonToken, this.context, out hash);
-      if (cached != null) return (LocalDeclarationStatementSyntax)cached;
-
-      var result = new LocalDeclarationStatementSyntax(SyntaxKind.LocalDeclarationStatement, modifiers.Node, declaration, semicolonToken, this.context);
-      if (hash >= 0)
-      {
-          SyntaxNodeCache.AddNode(result, hash);
-      }
-
-      return result;
+      return new LocalDeclarationStatementSyntax(SyntaxKind.LocalDeclarationStatement, awaitKeyword, usingKeyword, modifiers.Node, declaration, semicolonToken, this.context);
     }
 
     public VariableDeclarationSyntax VariableDeclaration(TypeSyntax type, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<VariableDeclaratorSyntax> variables)
@@ -37610,25 +39051,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         default:
           throw new ArgumentException(nameof(switchKeyword));
       }
-      if (openParenToken == null)
-        throw new ArgumentNullException(nameof(openParenToken));
+      if (openParenToken != null)
+      {
       switch (openParenToken.Kind)
       {
         case SyntaxKind.OpenParenToken:
+        case SyntaxKind.None:
           break;
         default:
           throw new ArgumentException(nameof(openParenToken));
       }
+      }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
-      if (closeParenToken == null)
-        throw new ArgumentNullException(nameof(closeParenToken));
+      if (closeParenToken != null)
+      {
       switch (closeParenToken.Kind)
       {
         case SyntaxKind.CloseParenToken:
+        case SyntaxKind.None:
           break;
         default:
           throw new ArgumentException(nameof(closeParenToken));
+      }
       }
       if (openBraceToken == null)
         throw new ArgumentNullException(nameof(openBraceToken));
@@ -37750,6 +39195,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 
       return result;
+    }
+
+    public SwitchExpressionSyntax SwitchExpression(ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SwitchExpressionArmSyntax> arms, SyntaxToken closeBraceToken)
+    {
+#if DEBUG
+      if (governingExpression == null)
+        throw new ArgumentNullException(nameof(governingExpression));
+      if (switchKeyword == null)
+        throw new ArgumentNullException(nameof(switchKeyword));
+      switch (switchKeyword.Kind)
+      {
+        case SyntaxKind.SwitchKeyword:
+          break;
+        default:
+          throw new ArgumentException(nameof(switchKeyword));
+      }
+      if (openBraceToken == null)
+        throw new ArgumentNullException(nameof(openBraceToken));
+      switch (openBraceToken.Kind)
+      {
+        case SyntaxKind.OpenBraceToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(openBraceToken));
+      }
+      if (closeBraceToken == null)
+        throw new ArgumentNullException(nameof(closeBraceToken));
+      switch (closeBraceToken.Kind)
+      {
+        case SyntaxKind.CloseBraceToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(closeBraceToken));
+      }
+#endif
+
+      return new SwitchExpressionSyntax(SyntaxKind.SwitchExpression, governingExpression, switchKeyword, openBraceToken, arms.Node, closeBraceToken, this.context);
+    }
+
+    public SwitchExpressionArmSyntax SwitchExpressionArm(PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
+    {
+#if DEBUG
+      if (pattern == null)
+        throw new ArgumentNullException(nameof(pattern));
+      if (equalsGreaterThanToken == null)
+        throw new ArgumentNullException(nameof(equalsGreaterThanToken));
+      switch (equalsGreaterThanToken.Kind)
+      {
+        case SyntaxKind.EqualsGreaterThanToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(equalsGreaterThanToken));
+      }
+      if (expression == null)
+        throw new ArgumentNullException(nameof(expression));
+#endif
+
+      return new SwitchExpressionArmSyntax(SyntaxKind.SwitchExpressionArm, pattern, whenClause, equalsGreaterThanToken, expression, this.context);
     }
 
     public TryStatementSyntax TryStatement(SyntaxToken tryKeyword, BlockSyntax block, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CatchClauseSyntax> catches, FinallyClauseSyntax @finally)
@@ -40564,7 +42067,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return new LineDirectiveTriviaSyntax(SyntaxKind.LineDirectiveTrivia, hashToken, lineKeyword, line, file, endOfDirectiveToken, isActive, this.context);
     }
 
-    public PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
+    public PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SyntaxToken nullableKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
     {
 #if DEBUG
       if (hashToken == null)
@@ -40600,9 +42103,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       {
         case SyntaxKind.DisableKeyword:
         case SyntaxKind.RestoreKeyword:
+        case SyntaxKind.EnableKeyword:
+        case SyntaxKind.SafeOnlyKeyword:
           break;
         default:
           throw new ArgumentException(nameof(disableOrRestoreKeyword));
+      }
+      if (nullableKeyword != null)
+      {
+      switch (nullableKeyword.Kind)
+      {
+        case SyntaxKind.NullableKeyword:
+        case SyntaxKind.None:
+          break;
+        default:
+          throw new ArgumentException(nameof(nullableKeyword));
+      }
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -40615,7 +42131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      return new PragmaWarningDirectiveTriviaSyntax(SyntaxKind.PragmaWarningDirectiveTrivia, hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, errorCodes.Node, endOfDirectiveToken, isActive, this.context);
+      return new PragmaWarningDirectiveTriviaSyntax(SyntaxKind.PragmaWarningDirectiveTrivia, hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, nullableKeyword, errorCodes.Node, endOfDirectiveToken, isActive, this.context);
     }
 
     public PragmaChecksumDirectiveTriviaSyntax PragmaChecksumDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken checksumKeyword, SyntaxToken file, SyntaxToken guid, SyntaxToken bytes, SyntaxToken endOfDirectiveToken, bool isActive)
@@ -43383,6 +44899,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
+    public static DiscardPatternSyntax DiscardPattern(SyntaxToken underscoreToken)
+    {
+#if DEBUG
+      if (underscoreToken == null)
+        throw new ArgumentNullException(nameof(underscoreToken));
+      switch (underscoreToken.Kind)
+      {
+        case SyntaxKind.UnderscoreToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(underscoreToken));
+      }
+#endif
+
+      int hash;
+      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.DiscardPattern, underscoreToken, out hash);
+      if (cached != null) return (DiscardPatternSyntax)cached;
+
+      var result = new DiscardPatternSyntax(SyntaxKind.DiscardPattern, underscoreToken);
+      if (hash >= 0)
+      {
+          SyntaxNodeCache.AddNode(result, hash);
+      }
+
+      return result;
+    }
+
     public static DeclarationPatternSyntax DeclarationPattern(TypeSyntax type, VariableDesignationSyntax designation)
     {
 #if DEBUG
@@ -43397,6 +44940,135 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       if (cached != null) return (DeclarationPatternSyntax)cached;
 
       var result = new DeclarationPatternSyntax(SyntaxKind.DeclarationPattern, type, designation);
+      if (hash >= 0)
+      {
+          SyntaxNodeCache.AddNode(result, hash);
+      }
+
+      return result;
+    }
+
+    public static VarPatternSyntax VarPattern(SyntaxToken varKeyword, VariableDesignationSyntax designation)
+    {
+#if DEBUG
+      if (varKeyword == null)
+        throw new ArgumentNullException(nameof(varKeyword));
+      switch (varKeyword.Kind)
+      {
+        case SyntaxKind.VarKeyword:
+          break;
+        default:
+          throw new ArgumentException(nameof(varKeyword));
+      }
+      if (designation == null)
+        throw new ArgumentNullException(nameof(designation));
+#endif
+
+      int hash;
+      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.VarPattern, varKeyword, designation, out hash);
+      if (cached != null) return (VarPatternSyntax)cached;
+
+      var result = new VarPatternSyntax(SyntaxKind.VarPattern, varKeyword, designation);
+      if (hash >= 0)
+      {
+          SyntaxNodeCache.AddNode(result, hash);
+      }
+
+      return result;
+    }
+
+    public static RecursivePatternSyntax RecursivePattern(TypeSyntax type, PositionalPatternClauseSyntax positionalPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation)
+    {
+#if DEBUG
+#endif
+
+      return new RecursivePatternSyntax(SyntaxKind.RecursivePattern, type, positionalPatternClause, propertyPatternClause, designation);
+    }
+
+    public static PositionalPatternClauseSyntax PositionalPatternClause(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeParenToken)
+    {
+#if DEBUG
+      if (openParenToken == null)
+        throw new ArgumentNullException(nameof(openParenToken));
+      switch (openParenToken.Kind)
+      {
+        case SyntaxKind.OpenParenToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(openParenToken));
+      }
+      if (closeParenToken == null)
+        throw new ArgumentNullException(nameof(closeParenToken));
+      switch (closeParenToken.Kind)
+      {
+        case SyntaxKind.CloseParenToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(closeParenToken));
+      }
+#endif
+
+      int hash;
+      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.PositionalPatternClause, openParenToken, subpatterns.Node, closeParenToken, out hash);
+      if (cached != null) return (PositionalPatternClauseSyntax)cached;
+
+      var result = new PositionalPatternClauseSyntax(SyntaxKind.PositionalPatternClause, openParenToken, subpatterns.Node, closeParenToken);
+      if (hash >= 0)
+      {
+          SyntaxNodeCache.AddNode(result, hash);
+      }
+
+      return result;
+    }
+
+    public static PropertyPatternClauseSyntax PropertyPatternClause(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeBraceToken)
+    {
+#if DEBUG
+      if (openBraceToken == null)
+        throw new ArgumentNullException(nameof(openBraceToken));
+      switch (openBraceToken.Kind)
+      {
+        case SyntaxKind.OpenBraceToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(openBraceToken));
+      }
+      if (closeBraceToken == null)
+        throw new ArgumentNullException(nameof(closeBraceToken));
+      switch (closeBraceToken.Kind)
+      {
+        case SyntaxKind.CloseBraceToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(closeBraceToken));
+      }
+#endif
+
+      int hash;
+      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.PropertyPatternClause, openBraceToken, subpatterns.Node, closeBraceToken, out hash);
+      if (cached != null) return (PropertyPatternClauseSyntax)cached;
+
+      var result = new PropertyPatternClauseSyntax(SyntaxKind.PropertyPatternClause, openBraceToken, subpatterns.Node, closeBraceToken);
+      if (hash >= 0)
+      {
+          SyntaxNodeCache.AddNode(result, hash);
+      }
+
+      return result;
+    }
+
+    public static SubpatternSyntax Subpattern(NameColonSyntax nameColon, PatternSyntax pattern)
+    {
+#if DEBUG
+      if (pattern == null)
+        throw new ArgumentNullException(nameof(pattern));
+#endif
+
+      int hash;
+      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Subpattern, nameColon, pattern, out hash);
+      if (cached != null) return (SubpatternSyntax)cached;
+
+      var result = new SubpatternSyntax(SyntaxKind.Subpattern, nameColon, pattern);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -43619,9 +45291,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return new LocalFunctionStatementSyntax(SyntaxKind.LocalFunctionStatement, modifiers.Node, returnType, identifier, typeParameterList, parameterList, constraintClauses.Node, body, expressionBody, semicolonToken);
     }
 
-    public static LocalDeclarationStatementSyntax LocalDeclarationStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+    public static LocalDeclarationStatementSyntax LocalDeclarationStatement(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
     {
 #if DEBUG
+      if (awaitKeyword != null)
+      {
+      switch (awaitKeyword.Kind)
+      {
+        case SyntaxKind.AwaitKeyword:
+        case SyntaxKind.None:
+          break;
+        default:
+          throw new ArgumentException(nameof(awaitKeyword));
+      }
+      }
+      if (usingKeyword != null)
+      {
+      switch (usingKeyword.Kind)
+      {
+        case SyntaxKind.UsingKeyword:
+        case SyntaxKind.None:
+          break;
+        default:
+          throw new ArgumentException(nameof(usingKeyword));
+      }
+      }
       if (declaration == null)
         throw new ArgumentNullException(nameof(declaration));
       if (semicolonToken == null)
@@ -43635,17 +45329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      int hash;
-      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.LocalDeclarationStatement, modifiers.Node, declaration, semicolonToken, out hash);
-      if (cached != null) return (LocalDeclarationStatementSyntax)cached;
-
-      var result = new LocalDeclarationStatementSyntax(SyntaxKind.LocalDeclarationStatement, modifiers.Node, declaration, semicolonToken);
-      if (hash >= 0)
-      {
-          SyntaxNodeCache.AddNode(result, hash);
-      }
-
-      return result;
+      return new LocalDeclarationStatementSyntax(SyntaxKind.LocalDeclarationStatement, awaitKeyword, usingKeyword, modifiers.Node, declaration, semicolonToken);
     }
 
     public static VariableDeclarationSyntax VariableDeclaration(TypeSyntax type, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<VariableDeclaratorSyntax> variables)
@@ -44698,25 +46382,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         default:
           throw new ArgumentException(nameof(switchKeyword));
       }
-      if (openParenToken == null)
-        throw new ArgumentNullException(nameof(openParenToken));
+      if (openParenToken != null)
+      {
       switch (openParenToken.Kind)
       {
         case SyntaxKind.OpenParenToken:
+        case SyntaxKind.None:
           break;
         default:
           throw new ArgumentException(nameof(openParenToken));
       }
+      }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
-      if (closeParenToken == null)
-        throw new ArgumentNullException(nameof(closeParenToken));
+      if (closeParenToken != null)
+      {
       switch (closeParenToken.Kind)
       {
         case SyntaxKind.CloseParenToken:
+        case SyntaxKind.None:
           break;
         default:
           throw new ArgumentException(nameof(closeParenToken));
+      }
       }
       if (openBraceToken == null)
         throw new ArgumentNullException(nameof(openBraceToken));
@@ -44838,6 +46526,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 
       return result;
+    }
+
+    public static SwitchExpressionSyntax SwitchExpression(ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SwitchExpressionArmSyntax> arms, SyntaxToken closeBraceToken)
+    {
+#if DEBUG
+      if (governingExpression == null)
+        throw new ArgumentNullException(nameof(governingExpression));
+      if (switchKeyword == null)
+        throw new ArgumentNullException(nameof(switchKeyword));
+      switch (switchKeyword.Kind)
+      {
+        case SyntaxKind.SwitchKeyword:
+          break;
+        default:
+          throw new ArgumentException(nameof(switchKeyword));
+      }
+      if (openBraceToken == null)
+        throw new ArgumentNullException(nameof(openBraceToken));
+      switch (openBraceToken.Kind)
+      {
+        case SyntaxKind.OpenBraceToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(openBraceToken));
+      }
+      if (closeBraceToken == null)
+        throw new ArgumentNullException(nameof(closeBraceToken));
+      switch (closeBraceToken.Kind)
+      {
+        case SyntaxKind.CloseBraceToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(closeBraceToken));
+      }
+#endif
+
+      return new SwitchExpressionSyntax(SyntaxKind.SwitchExpression, governingExpression, switchKeyword, openBraceToken, arms.Node, closeBraceToken);
+    }
+
+    public static SwitchExpressionArmSyntax SwitchExpressionArm(PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
+    {
+#if DEBUG
+      if (pattern == null)
+        throw new ArgumentNullException(nameof(pattern));
+      if (equalsGreaterThanToken == null)
+        throw new ArgumentNullException(nameof(equalsGreaterThanToken));
+      switch (equalsGreaterThanToken.Kind)
+      {
+        case SyntaxKind.EqualsGreaterThanToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(equalsGreaterThanToken));
+      }
+      if (expression == null)
+        throw new ArgumentNullException(nameof(expression));
+#endif
+
+      return new SwitchExpressionArmSyntax(SyntaxKind.SwitchExpressionArm, pattern, whenClause, equalsGreaterThanToken, expression);
     }
 
     public static TryStatementSyntax TryStatement(SyntaxToken tryKeyword, BlockSyntax block, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CatchClauseSyntax> catches, FinallyClauseSyntax @finally)
@@ -47652,7 +49398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return new LineDirectiveTriviaSyntax(SyntaxKind.LineDirectiveTrivia, hashToken, lineKeyword, line, file, endOfDirectiveToken, isActive);
     }
 
-    public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
+    public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SyntaxToken nullableKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
     {
 #if DEBUG
       if (hashToken == null)
@@ -47688,9 +49434,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       {
         case SyntaxKind.DisableKeyword:
         case SyntaxKind.RestoreKeyword:
+        case SyntaxKind.EnableKeyword:
+        case SyntaxKind.SafeOnlyKeyword:
           break;
         default:
           throw new ArgumentException(nameof(disableOrRestoreKeyword));
+      }
+      if (nullableKeyword != null)
+      {
+      switch (nullableKeyword.Kind)
+      {
+        case SyntaxKind.NullableKeyword:
+        case SyntaxKind.None:
+          break;
+        default:
+          throw new ArgumentException(nameof(nullableKeyword));
+      }
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -47703,7 +49462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      return new PragmaWarningDirectiveTriviaSyntax(SyntaxKind.PragmaWarningDirectiveTrivia, hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, errorCodes.Node, endOfDirectiveToken, isActive);
+      return new PragmaWarningDirectiveTriviaSyntax(SyntaxKind.PragmaWarningDirectiveTrivia, hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, nullableKeyword, errorCodes.Node, endOfDirectiveToken, isActive);
     }
 
     public static PragmaChecksumDirectiveTriviaSyntax PragmaChecksumDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken checksumKeyword, SyntaxToken file, SyntaxToken guid, SyntaxToken bytes, SyntaxToken endOfDirectiveToken, bool isActive)
@@ -48025,7 +49784,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
            typeof(IsPatternExpressionSyntax),
            typeof(ThrowExpressionSyntax),
            typeof(WhenClauseSyntax),
+           typeof(DiscardPatternSyntax),
            typeof(DeclarationPatternSyntax),
+           typeof(VarPatternSyntax),
+           typeof(RecursivePatternSyntax),
+           typeof(PositionalPatternClauseSyntax),
+           typeof(PropertyPatternClauseSyntax),
+           typeof(SubpatternSyntax),
            typeof(ConstantPatternSyntax),
            typeof(InterpolatedStringTextSyntax),
            typeof(InterpolationSyntax),
@@ -48067,6 +49832,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
            typeof(CasePatternSwitchLabelSyntax),
            typeof(CaseSwitchLabelSyntax),
            typeof(DefaultSwitchLabelSyntax),
+           typeof(SwitchExpressionSyntax),
+           typeof(SwitchExpressionArmSyntax),
            typeof(TryStatementSyntax),
            typeof(CatchClauseSyntax),
            typeof(CatchDeclarationSyntax),

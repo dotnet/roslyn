@@ -44,17 +44,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.Verify.CodeActionsNotShowing();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19914")]
+        [WpfFact]
         public void VerifyQuickInfoOnStringDocCommentsFromMetadata()
         {
             VisualStudio.InteractiveWindow.InsertCode("static void Goo(string[] args) { }");
             VisualStudio.InteractiveWindow.PlaceCaret("[]", charsOffset: -2);
             VisualStudio.InteractiveWindow.InvokeQuickInfo();
             var s = VisualStudio.InteractiveWindow.GetQuickInfo();
-            Assert.Equal("class‎ System‎.String", s);
+            Assert.Equal("class System.String", s);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19914")]
+        [WpfFact]
         public void International()
         {
             VisualStudio.InteractiveWindow.InsertCode(@"delegate void العربية();
@@ -62,7 +62,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.PlaceCaret("func", charsOffset: -1);
             VisualStudio.InteractiveWindow.InvokeQuickInfo();
             var s = VisualStudio.InteractiveWindow.GetQuickInfo();
-            Assert.Equal("‎(field‎)‎ العربية‎ func", s);
+            Assert.Equal("(field) العربية func", s);
         }
 
         [WpfFact]

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (NamedTypeSymbol @interface in subType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
-                if (@interface.IsInterface && @interface == superInterface)
+                if (@interface.IsInterface && TypeSymbol.Equals(@interface, superInterface, TypeCompareKind.ConsiderEverything2))
                 {
                     return true;
                 }
@@ -41,16 +41,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return typeSymbol.IsReferenceType || typeSymbol.IsEnumType() || typeSymbol.SpecialType.CanBeConst();
         }
 
-        // https://github.com/dotnet/roslyn/issues/30056: Should probably rename this method to have more specific name.
-        //                                    At the moment it is used only for Nullable Reference Types feature and
-        //                                    its implementation is specialized for this feature.
-        //    T => true
-        //    T where T : struct => false
-        //    T where T : class => false
-        //    T where T : class? => true
-        //    T where T : IComparable => true
-        //    T where T : IComparable? => true
-        public static bool IsUnconstrainedTypeParameter(this TypeSymbol type)
+        /// <summary>
+        /// T => true
+        /// T where T : struct => false
+        /// T where T : class => false
+        /// T where T : class? => true
+        /// T where T : IComparable => true
+        /// T where T : IComparable? => true
+        /// </summary>
+        public static bool IsTypeParameterDisallowingAnnotation(this TypeSymbol type)
         {
             if (type.TypeKind != TypeKind.TypeParameter)
             {
@@ -62,12 +61,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return !typeParameter.IsValueType && !(typeParameter.IsReferenceType && typeParameter.IsNotNullableIfReferenceType == true);
         }
 
-        //    T => true
-        //    T where T : struct => false
-        //    T where T : class => false
-        //    T where T : class? => true
-        //    T where T : IComparable => false
-        //    T where T : IComparable? => true
+        /// <summary>
+        /// T => true
+        /// T where T : struct => false
+        /// T where T : class => false
+        /// T where T : class? => true
+        /// T where T : IComparable => false
+        /// T where T : IComparable? => true
+        /// </summary>
         public static bool IsPossiblyNullableReferenceTypeTypeParameter(this TypeSymbol type)
         {
             if (type.TypeKind != TypeKind.TypeParameter)
@@ -907,7 +908,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static readonly Func<TypeSymbol, TypeParameterSymbol, bool, bool> s_containsTypeParameterPredicate =
-            (type, parameter, unused) => type.TypeKind == TypeKind.TypeParameter && ((object)parameter == null || type == parameter);
+            (type, parameter, unused) => type.TypeKind == TypeKind.TypeParameter && ((object)parameter == null || TypeSymbol.Equals(type, parameter, TypeCompareKind.ConsiderEverything2));
 
         public static bool ContainsTypeParameter(this TypeSymbol type, MethodSymbol parameterContainer)
         {
@@ -1055,7 +1056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return ignoreSpanLikeTypes ?
                         false :
-                        type.IsByRefLikeType;
+                        type.IsRefLikeType;
         }
 
         public static bool IsIntrinsicType(this TypeSymbol type)

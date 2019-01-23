@@ -11,6 +11,9 @@ namespace Microsoft.CodeAnalysis
     internal enum TypeCompareKind
     {
         ConsiderEverything = 0,
+
+        // This comparison option is temporary. All usages should be reviewed, and it should be removed. https://github.com/dotnet/roslyn/issues/31742
+        ConsiderEverything2 = ConsiderEverything,
         IgnoreCustomModifiersAndArraySizesAndLowerBounds = 1,
         IgnoreDynamic = 2,
         IgnoreTupleNames = 4,
@@ -28,6 +31,8 @@ namespace Microsoft.CodeAnalysis
 
         AllNullableIgnoreOptions = IgnoreNullableModifiersForReferenceTypes | UnknownNullableModifierMatchesAny | IgnoreInsignificantNullableModifiersDifference,
         AllIgnoreOptions = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreDynamic | IgnoreTupleNames | AllNullableIgnoreOptions,
-        AllIgnoreOptionsForVB = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreTupleNames
+        AllIgnoreOptionsForVB = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreTupleNames,
+
+        CLRSignatureCompareOptions = TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds,
     }
 }

@@ -3,7 +3,7 @@
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.Editor.Wrapping.SeparatedSyntaxList
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping.SeparatedSyntaxList
     Partial Friend Class VisualBasicArgumentWrapper
         Inherits AbstractVisualBasicSeparatedSyntaxListWrapper(Of ArgumentListSyntax, ArgumentSyntax)
 

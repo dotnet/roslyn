@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool embedAllSourceFiles = false;
             bool resourcesOrModulesSpecified = false;
             Encoding codepage = null;
-            var checksumAlgorithm = SourceHashAlgorithm.Sha1;
+            var checksumAlgorithm = SourceHashAlgorithm.Sha256;
             var defines = ArrayBuilder<string>.GetInstance();
             List<CommandLineReference> metadataReferences = new List<CommandLineReference>();
             List<CommandLineAnalyzerReference> analyzers = new List<CommandLineAnalyzerReference>();
@@ -346,6 +346,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     case "safeonly":
                                         Debug.Assert(loweredValue == nameof(NullableContextOptions.SafeOnly).ToLower());
                                         nullableContextOptions = NullableContextOptions.SafeOnly;
+                                        break;
+                                    case "warnings":
+                                        Debug.Assert(loweredValue == nameof(NullableContextOptions.Warnings).ToLower());
+                                        nullableContextOptions = NullableContextOptions.Warnings;
+                                        break;
+                                    case "safeonlywarnings":
+                                        Debug.Assert(loweredValue == nameof(NullableContextOptions.SafeOnlyWarnings).ToLower());
+                                        nullableContextOptions = NullableContextOptions.SafeOnlyWarnings;
                                         break;
                                     default:
                                         AddDiagnostic(diagnostics, ErrorCode.ERR_BadNullableContextOption, value);

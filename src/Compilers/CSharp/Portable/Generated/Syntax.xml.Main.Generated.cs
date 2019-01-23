@@ -466,8 +466,44 @@ namespace Microsoft.CodeAnalysis.CSharp
       return this.DefaultVisit(node);
     }
 
+    /// <summary>Called when the visitor visits a DiscardPatternSyntax node.</summary>
+    public virtual TResult VisitDiscardPattern(DiscardPatternSyntax node)
+    {
+      return this.DefaultVisit(node);
+    }
+
     /// <summary>Called when the visitor visits a DeclarationPatternSyntax node.</summary>
     public virtual TResult VisitDeclarationPattern(DeclarationPatternSyntax node)
+    {
+      return this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a VarPatternSyntax node.</summary>
+    public virtual TResult VisitVarPattern(VarPatternSyntax node)
+    {
+      return this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a RecursivePatternSyntax node.</summary>
+    public virtual TResult VisitRecursivePattern(RecursivePatternSyntax node)
+    {
+      return this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a PositionalPatternClauseSyntax node.</summary>
+    public virtual TResult VisitPositionalPatternClause(PositionalPatternClauseSyntax node)
+    {
+      return this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a PropertyPatternClauseSyntax node.</summary>
+    public virtual TResult VisitPropertyPatternClause(PropertyPatternClauseSyntax node)
+    {
+      return this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a SubpatternSyntax node.</summary>
+    public virtual TResult VisitSubpattern(SubpatternSyntax node)
     {
       return this.DefaultVisit(node);
     }
@@ -714,6 +750,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     /// <summary>Called when the visitor visits a DefaultSwitchLabelSyntax node.</summary>
     public virtual TResult VisitDefaultSwitchLabel(DefaultSwitchLabelSyntax node)
+    {
+      return this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a SwitchExpressionSyntax node.</summary>
+    public virtual TResult VisitSwitchExpression(SwitchExpressionSyntax node)
+    {
+      return this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a SwitchExpressionArmSyntax node.</summary>
+    public virtual TResult VisitSwitchExpressionArm(SwitchExpressionArmSyntax node)
     {
       return this.DefaultVisit(node);
     }
@@ -1711,8 +1759,44 @@ namespace Microsoft.CodeAnalysis.CSharp
       this.DefaultVisit(node);
     }
 
+    /// <summary>Called when the visitor visits a DiscardPatternSyntax node.</summary>
+    public virtual void VisitDiscardPattern(DiscardPatternSyntax node)
+    {
+      this.DefaultVisit(node);
+    }
+
     /// <summary>Called when the visitor visits a DeclarationPatternSyntax node.</summary>
     public virtual void VisitDeclarationPattern(DeclarationPatternSyntax node)
+    {
+      this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a VarPatternSyntax node.</summary>
+    public virtual void VisitVarPattern(VarPatternSyntax node)
+    {
+      this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a RecursivePatternSyntax node.</summary>
+    public virtual void VisitRecursivePattern(RecursivePatternSyntax node)
+    {
+      this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a PositionalPatternClauseSyntax node.</summary>
+    public virtual void VisitPositionalPatternClause(PositionalPatternClauseSyntax node)
+    {
+      this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a PropertyPatternClauseSyntax node.</summary>
+    public virtual void VisitPropertyPatternClause(PropertyPatternClauseSyntax node)
+    {
+      this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a SubpatternSyntax node.</summary>
+    public virtual void VisitSubpattern(SubpatternSyntax node)
     {
       this.DefaultVisit(node);
     }
@@ -1959,6 +2043,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     /// <summary>Called when the visitor visits a DefaultSwitchLabelSyntax node.</summary>
     public virtual void VisitDefaultSwitchLabel(DefaultSwitchLabelSyntax node)
+    {
+      this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a SwitchExpressionSyntax node.</summary>
+    public virtual void VisitSwitchExpression(SwitchExpressionSyntax node)
+    {
+      this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a SwitchExpressionArmSyntax node.</summary>
+    public virtual void VisitSwitchExpressionArm(SwitchExpressionArmSyntax node)
     {
       this.DefaultVisit(node);
     }
@@ -3097,11 +3193,56 @@ namespace Microsoft.CodeAnalysis.CSharp
       return node.Update(whenKeyword, condition);
     }
 
+    public override SyntaxNode VisitDiscardPattern(DiscardPatternSyntax node)
+    {
+      var underscoreToken = this.VisitToken(node.UnderscoreToken);
+      return node.Update(underscoreToken);
+    }
+
     public override SyntaxNode VisitDeclarationPattern(DeclarationPatternSyntax node)
     {
       var type = (TypeSyntax)this.Visit(node.Type);
       var designation = (VariableDesignationSyntax)this.Visit(node.Designation);
       return node.Update(type, designation);
+    }
+
+    public override SyntaxNode VisitVarPattern(VarPatternSyntax node)
+    {
+      var varKeyword = this.VisitToken(node.VarKeyword);
+      var designation = (VariableDesignationSyntax)this.Visit(node.Designation);
+      return node.Update(varKeyword, designation);
+    }
+
+    public override SyntaxNode VisitRecursivePattern(RecursivePatternSyntax node)
+    {
+      var type = (TypeSyntax)this.Visit(node.Type);
+      var positionalPatternClause = (PositionalPatternClauseSyntax)this.Visit(node.PositionalPatternClause);
+      var propertyPatternClause = (PropertyPatternClauseSyntax)this.Visit(node.PropertyPatternClause);
+      var designation = (VariableDesignationSyntax)this.Visit(node.Designation);
+      return node.Update(type, positionalPatternClause, propertyPatternClause, designation);
+    }
+
+    public override SyntaxNode VisitPositionalPatternClause(PositionalPatternClauseSyntax node)
+    {
+      var openParenToken = this.VisitToken(node.OpenParenToken);
+      var subpatterns = this.VisitList(node.Subpatterns);
+      var closeParenToken = this.VisitToken(node.CloseParenToken);
+      return node.Update(openParenToken, subpatterns, closeParenToken);
+    }
+
+    public override SyntaxNode VisitPropertyPatternClause(PropertyPatternClauseSyntax node)
+    {
+      var openBraceToken = this.VisitToken(node.OpenBraceToken);
+      var subpatterns = this.VisitList(node.Subpatterns);
+      var closeBraceToken = this.VisitToken(node.CloseBraceToken);
+      return node.Update(openBraceToken, subpatterns, closeBraceToken);
+    }
+
+    public override SyntaxNode VisitSubpattern(SubpatternSyntax node)
+    {
+      var nameColon = (NameColonSyntax)this.Visit(node.NameColon);
+      var pattern = (PatternSyntax)this.Visit(node.Pattern);
+      return node.Update(nameColon, pattern);
     }
 
     public override SyntaxNode VisitConstantPattern(ConstantPatternSyntax node)
@@ -3170,10 +3311,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
     {
+      var awaitKeyword = this.VisitToken(node.AwaitKeyword);
+      var usingKeyword = this.VisitToken(node.UsingKeyword);
       var modifiers = this.VisitList(node.Modifiers);
       var declaration = (VariableDeclarationSyntax)this.Visit(node.Declaration);
       var semicolonToken = this.VisitToken(node.SemicolonToken);
-      return node.Update(modifiers, declaration, semicolonToken);
+      return node.Update(awaitKeyword, usingKeyword, modifiers, declaration, semicolonToken);
     }
 
     public override SyntaxNode VisitVariableDeclaration(VariableDeclarationSyntax node)
@@ -3456,6 +3599,25 @@ namespace Microsoft.CodeAnalysis.CSharp
       var keyword = this.VisitToken(node.Keyword);
       var colonToken = this.VisitToken(node.ColonToken);
       return node.Update(keyword, colonToken);
+    }
+
+    public override SyntaxNode VisitSwitchExpression(SwitchExpressionSyntax node)
+    {
+      var governingExpression = (ExpressionSyntax)this.Visit(node.GoverningExpression);
+      var switchKeyword = this.VisitToken(node.SwitchKeyword);
+      var openBraceToken = this.VisitToken(node.OpenBraceToken);
+      var arms = this.VisitList(node.Arms);
+      var closeBraceToken = this.VisitToken(node.CloseBraceToken);
+      return node.Update(governingExpression, switchKeyword, openBraceToken, arms, closeBraceToken);
+    }
+
+    public override SyntaxNode VisitSwitchExpressionArm(SwitchExpressionArmSyntax node)
+    {
+      var pattern = (PatternSyntax)this.Visit(node.Pattern);
+      var whenClause = (WhenClauseSyntax)this.Visit(node.WhenClause);
+      var equalsGreaterThanToken = this.VisitToken(node.EqualsGreaterThanToken);
+      var expression = (ExpressionSyntax)this.Visit(node.Expression);
+      return node.Update(pattern, whenClause, equalsGreaterThanToken, expression);
     }
 
     public override SyntaxNode VisitTryStatement(TryStatementSyntax node)
@@ -4234,9 +4396,10 @@ namespace Microsoft.CodeAnalysis.CSharp
       var pragmaKeyword = this.VisitToken(node.PragmaKeyword);
       var warningKeyword = this.VisitToken(node.WarningKeyword);
       var disableOrRestoreKeyword = this.VisitToken(node.DisableOrRestoreKeyword);
+      var nullableKeyword = this.VisitToken(node.NullableKeyword);
       var errorCodes = this.VisitList(node.ErrorCodes);
       var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
-      return node.Update(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, errorCodes, endOfDirectiveToken, node.IsActive);
+      return node.Update(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, nullableKeyword, errorCodes, endOfDirectiveToken, node.IsActive);
     }
 
     public override SyntaxNode VisitPragmaChecksumDirectiveTrivia(PragmaChecksumDirectiveTriviaSyntax node)
@@ -6683,6 +6846,26 @@ namespace Microsoft.CodeAnalysis.CSharp
       return SyntaxFactory.WhenClause(SyntaxFactory.Token(SyntaxKind.WhenKeyword), condition);
     }
 
+    /// <summary>Creates a new DiscardPatternSyntax instance.</summary>
+    public static DiscardPatternSyntax DiscardPattern(SyntaxToken underscoreToken)
+    {
+      switch (underscoreToken.Kind())
+      {
+        case SyntaxKind.UnderscoreToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(underscoreToken));
+      }
+      return (DiscardPatternSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.DiscardPattern((Syntax.InternalSyntax.SyntaxToken)underscoreToken.Node).CreateRed();
+    }
+
+
+    /// <summary>Creates a new DiscardPatternSyntax instance.</summary>
+    public static DiscardPatternSyntax DiscardPattern()
+    {
+      return SyntaxFactory.DiscardPattern(SyntaxFactory.Token(SyntaxKind.UnderscoreToken));
+    }
+
     /// <summary>Creates a new DeclarationPatternSyntax instance.</summary>
     public static DeclarationPatternSyntax DeclarationPattern(TypeSyntax type, VariableDesignationSyntax designation)
     {
@@ -6693,6 +6876,110 @@ namespace Microsoft.CodeAnalysis.CSharp
       return (DeclarationPatternSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.DeclarationPattern(type == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeSyntax)type.Green, designation == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
     }
 
+
+    /// <summary>Creates a new VarPatternSyntax instance.</summary>
+    public static VarPatternSyntax VarPattern(SyntaxToken varKeyword, VariableDesignationSyntax designation)
+    {
+      switch (varKeyword.Kind())
+      {
+        case SyntaxKind.VarKeyword:
+          break;
+        default:
+          throw new ArgumentException(nameof(varKeyword));
+      }
+      if (designation == null)
+        throw new ArgumentNullException(nameof(designation));
+      return (VarPatternSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.VarPattern((Syntax.InternalSyntax.SyntaxToken)varKeyword.Node, designation == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
+    }
+
+
+    /// <summary>Creates a new VarPatternSyntax instance.</summary>
+    public static VarPatternSyntax VarPattern(VariableDesignationSyntax designation)
+    {
+      return SyntaxFactory.VarPattern(SyntaxFactory.Token(SyntaxKind.VarKeyword), designation);
+    }
+
+    /// <summary>Creates a new RecursivePatternSyntax instance.</summary>
+    public static RecursivePatternSyntax RecursivePattern(TypeSyntax type, PositionalPatternClauseSyntax positionalPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation)
+    {
+      return (RecursivePatternSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.RecursivePattern(type == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeSyntax)type.Green, positionalPatternClause == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PositionalPatternClauseSyntax)positionalPatternClause.Green, propertyPatternClause == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PropertyPatternClauseSyntax)propertyPatternClause.Green, designation == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
+    }
+
+
+    /// <summary>Creates a new RecursivePatternSyntax instance.</summary>
+    public static RecursivePatternSyntax RecursivePattern()
+    {
+      return SyntaxFactory.RecursivePattern(default(TypeSyntax), default(PositionalPatternClauseSyntax), default(PropertyPatternClauseSyntax), default(VariableDesignationSyntax));
+    }
+
+    /// <summary>Creates a new PositionalPatternClauseSyntax instance.</summary>
+    public static PositionalPatternClauseSyntax PositionalPatternClause(SyntaxToken openParenToken, SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeParenToken)
+    {
+      switch (openParenToken.Kind())
+      {
+        case SyntaxKind.OpenParenToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(openParenToken));
+      }
+      switch (closeParenToken.Kind())
+      {
+        case SyntaxKind.CloseParenToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(closeParenToken));
+      }
+      return (PositionalPatternClauseSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.PositionalPatternClause((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node, subpatterns.Node.ToGreenSeparatedList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SubpatternSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node).CreateRed();
+    }
+
+
+    /// <summary>Creates a new PositionalPatternClauseSyntax instance.</summary>
+    public static PositionalPatternClauseSyntax PositionalPatternClause(SeparatedSyntaxList<SubpatternSyntax> subpatterns = default(SeparatedSyntaxList<SubpatternSyntax>))
+    {
+      return SyntaxFactory.PositionalPatternClause(SyntaxFactory.Token(SyntaxKind.OpenParenToken), subpatterns, SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+    }
+
+    /// <summary>Creates a new PropertyPatternClauseSyntax instance.</summary>
+    public static PropertyPatternClauseSyntax PropertyPatternClause(SyntaxToken openBraceToken, SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeBraceToken)
+    {
+      switch (openBraceToken.Kind())
+      {
+        case SyntaxKind.OpenBraceToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(openBraceToken));
+      }
+      switch (closeBraceToken.Kind())
+      {
+        case SyntaxKind.CloseBraceToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(closeBraceToken));
+      }
+      return (PropertyPatternClauseSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.PropertyPatternClause((Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node, subpatterns.Node.ToGreenSeparatedList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SubpatternSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node).CreateRed();
+    }
+
+
+    /// <summary>Creates a new PropertyPatternClauseSyntax instance.</summary>
+    public static PropertyPatternClauseSyntax PropertyPatternClause(SeparatedSyntaxList<SubpatternSyntax> subpatterns = default(SeparatedSyntaxList<SubpatternSyntax>))
+    {
+      return SyntaxFactory.PropertyPatternClause(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), subpatterns, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+    }
+
+    /// <summary>Creates a new SubpatternSyntax instance.</summary>
+    public static SubpatternSyntax Subpattern(NameColonSyntax nameColon, PatternSyntax pattern)
+    {
+      if (pattern == null)
+        throw new ArgumentNullException(nameof(pattern));
+      return (SubpatternSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Subpattern(nameColon == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NameColonSyntax)nameColon.Green, pattern == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
+    }
+
+
+    /// <summary>Creates a new SubpatternSyntax instance.</summary>
+    public static SubpatternSyntax Subpattern(PatternSyntax pattern)
+    {
+      return SyntaxFactory.Subpattern(default(NameColonSyntax), pattern);
+    }
 
     /// <summary>Creates a new ConstantPatternSyntax instance.</summary>
     public static ConstantPatternSyntax ConstantPattern(ExpressionSyntax expression)
@@ -6868,8 +7155,24 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new LocalDeclarationStatementSyntax instance.</summary>
-    public static LocalDeclarationStatementSyntax LocalDeclarationStatement(SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+    public static LocalDeclarationStatementSyntax LocalDeclarationStatement(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
     {
+      switch (awaitKeyword.Kind())
+      {
+        case SyntaxKind.AwaitKeyword:
+        case SyntaxKind.None:
+          break;
+        default:
+          throw new ArgumentException(nameof(awaitKeyword));
+      }
+      switch (usingKeyword.Kind())
+      {
+        case SyntaxKind.UsingKeyword:
+        case SyntaxKind.None:
+          break;
+        default:
+          throw new ArgumentException(nameof(usingKeyword));
+      }
       if (declaration == null)
         throw new ArgumentNullException(nameof(declaration));
       switch (semicolonToken.Kind())
@@ -6879,20 +7182,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         default:
           throw new ArgumentException(nameof(semicolonToken));
       }
-      return (LocalDeclarationStatementSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.LocalDeclarationStatement(modifiers.Node.ToGreenList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken>(), declaration == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node).CreateRed();
+      return (LocalDeclarationStatementSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.LocalDeclarationStatement((Syntax.InternalSyntax.SyntaxToken)awaitKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)usingKeyword.Node, modifiers.Node.ToGreenList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken>(), declaration == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node).CreateRed();
     }
 
 
     /// <summary>Creates a new LocalDeclarationStatementSyntax instance.</summary>
     public static LocalDeclarationStatementSyntax LocalDeclarationStatement(SyntaxTokenList modifiers, VariableDeclarationSyntax declaration)
     {
-      return SyntaxFactory.LocalDeclarationStatement(modifiers, declaration, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+      return SyntaxFactory.LocalDeclarationStatement(default(SyntaxToken), default(SyntaxToken), modifiers, declaration, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
     }
 
     /// <summary>Creates a new LocalDeclarationStatementSyntax instance.</summary>
     public static LocalDeclarationStatementSyntax LocalDeclarationStatement(VariableDeclarationSyntax declaration)
     {
-      return SyntaxFactory.LocalDeclarationStatement(default(SyntaxTokenList), declaration, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+      return SyntaxFactory.LocalDeclarationStatement(default(SyntaxToken), default(SyntaxToken), default(SyntaxTokenList), declaration, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
     }
 
     /// <summary>Creates a new VariableDeclarationSyntax instance.</summary>
@@ -7851,6 +8154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
       switch (openParenToken.Kind())
       {
         case SyntaxKind.OpenParenToken:
+        case SyntaxKind.None:
           break;
         default:
           throw new ArgumentException(nameof(openParenToken));
@@ -7860,6 +8164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
       switch (closeParenToken.Kind())
       {
         case SyntaxKind.CloseParenToken:
+        case SyntaxKind.None:
           break;
         default:
           throw new ArgumentException(nameof(closeParenToken));
@@ -7885,13 +8190,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>Creates a new SwitchStatementSyntax instance.</summary>
     public static SwitchStatementSyntax SwitchStatement(ExpressionSyntax expression, SyntaxList<SwitchSectionSyntax> sections)
     {
-      return SyntaxFactory.SwitchStatement(SyntaxFactory.Token(SyntaxKind.SwitchKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), expression, SyntaxFactory.Token(SyntaxKind.CloseParenToken), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), sections, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+      return SyntaxFactory.SwitchStatement(SyntaxFactory.Token(SyntaxKind.SwitchKeyword), default(SyntaxToken), expression, default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), sections, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
     }
 
     /// <summary>Creates a new SwitchStatementSyntax instance.</summary>
     public static SwitchStatementSyntax SwitchStatement(ExpressionSyntax expression)
     {
-      return SyntaxFactory.SwitchStatement(SyntaxFactory.Token(SyntaxKind.SwitchKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), expression, SyntaxFactory.Token(SyntaxKind.CloseParenToken), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default(SyntaxList<SwitchSectionSyntax>), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+      return SyntaxFactory.SwitchStatement(SyntaxFactory.Token(SyntaxKind.SwitchKeyword), default(SyntaxToken), expression, default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default(SyntaxList<SwitchSectionSyntax>), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
     }
 
     /// <summary>Creates a new SwitchSectionSyntax instance.</summary>
@@ -7975,6 +8280,78 @@ namespace Microsoft.CodeAnalysis.CSharp
     public static DefaultSwitchLabelSyntax DefaultSwitchLabel(SyntaxToken colonToken)
     {
       return SyntaxFactory.DefaultSwitchLabel(SyntaxFactory.Token(SyntaxKind.DefaultKeyword), colonToken);
+    }
+
+    /// <summary>Creates a new SwitchExpressionSyntax instance.</summary>
+    public static SwitchExpressionSyntax SwitchExpression(ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, SeparatedSyntaxList<SwitchExpressionArmSyntax> arms, SyntaxToken closeBraceToken)
+    {
+      if (governingExpression == null)
+        throw new ArgumentNullException(nameof(governingExpression));
+      switch (switchKeyword.Kind())
+      {
+        case SyntaxKind.SwitchKeyword:
+          break;
+        default:
+          throw new ArgumentException(nameof(switchKeyword));
+      }
+      switch (openBraceToken.Kind())
+      {
+        case SyntaxKind.OpenBraceToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(openBraceToken));
+      }
+      switch (closeBraceToken.Kind())
+      {
+        case SyntaxKind.CloseBraceToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(closeBraceToken));
+      }
+      return (SwitchExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.SwitchExpression(governingExpression == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax)governingExpression.Green, (Syntax.InternalSyntax.SyntaxToken)switchKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node, arms.Node.ToGreenSeparatedList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchExpressionArmSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node).CreateRed();
+    }
+
+
+    /// <summary>Creates a new SwitchExpressionSyntax instance.</summary>
+    public static SwitchExpressionSyntax SwitchExpression(ExpressionSyntax governingExpression, SeparatedSyntaxList<SwitchExpressionArmSyntax> arms)
+    {
+      return SyntaxFactory.SwitchExpression(governingExpression, SyntaxFactory.Token(SyntaxKind.SwitchKeyword), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), arms, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+    }
+
+    /// <summary>Creates a new SwitchExpressionSyntax instance.</summary>
+    public static SwitchExpressionSyntax SwitchExpression(ExpressionSyntax governingExpression)
+    {
+      return SyntaxFactory.SwitchExpression(governingExpression, SyntaxFactory.Token(SyntaxKind.SwitchKeyword), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default(SeparatedSyntaxList<SwitchExpressionArmSyntax>), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+    }
+
+    /// <summary>Creates a new SwitchExpressionArmSyntax instance.</summary>
+    public static SwitchExpressionArmSyntax SwitchExpressionArm(PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
+    {
+      if (pattern == null)
+        throw new ArgumentNullException(nameof(pattern));
+      switch (equalsGreaterThanToken.Kind())
+      {
+        case SyntaxKind.EqualsGreaterThanToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(equalsGreaterThanToken));
+      }
+      if (expression == null)
+        throw new ArgumentNullException(nameof(expression));
+      return (SwitchExpressionArmSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.SwitchExpressionArm(pattern == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PatternSyntax)pattern.Green, whenClause == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.WhenClauseSyntax)whenClause.Green, (Syntax.InternalSyntax.SyntaxToken)equalsGreaterThanToken.Node, expression == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
+    }
+
+
+    /// <summary>Creates a new SwitchExpressionArmSyntax instance.</summary>
+    public static SwitchExpressionArmSyntax SwitchExpressionArm(PatternSyntax pattern, WhenClauseSyntax whenClause, ExpressionSyntax expression)
+    {
+      return SyntaxFactory.SwitchExpressionArm(pattern, whenClause, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), expression);
+    }
+
+    /// <summary>Creates a new SwitchExpressionArmSyntax instance.</summary>
+    public static SwitchExpressionArmSyntax SwitchExpressionArm(PatternSyntax pattern, ExpressionSyntax expression)
+    {
+      return SyntaxFactory.SwitchExpressionArm(pattern, default(WhenClauseSyntax), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), expression);
     }
 
     /// <summary>Creates a new TryStatementSyntax instance.</summary>
@@ -10827,7 +11204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new PragmaWarningDirectiveTriviaSyntax instance.</summary>
-    public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
+    public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SyntaxToken nullableKeyword, SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
     {
       switch (hashToken.Kind())
       {
@@ -10854,9 +11231,19 @@ namespace Microsoft.CodeAnalysis.CSharp
       {
         case SyntaxKind.DisableKeyword:
         case SyntaxKind.RestoreKeyword:
+        case SyntaxKind.EnableKeyword:
+        case SyntaxKind.SafeOnlyKeyword:
           break;
         default:
           throw new ArgumentException(nameof(disableOrRestoreKeyword));
+      }
+      switch (nullableKeyword.Kind())
+      {
+        case SyntaxKind.NullableKeyword:
+        case SyntaxKind.None:
+          break;
+        default:
+          throw new ArgumentException(nameof(nullableKeyword));
       }
       switch (endOfDirectiveToken.Kind())
       {
@@ -10865,20 +11252,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         default:
           throw new ArgumentException(nameof(endOfDirectiveToken));
       }
-      return (PragmaWarningDirectiveTriviaSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.PragmaWarningDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node, (Syntax.InternalSyntax.SyntaxToken)pragmaKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)warningKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)disableOrRestoreKeyword.Node, errorCodes.Node.ToGreenSeparatedList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node, isActive).CreateRed();
+      return (PragmaWarningDirectiveTriviaSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.PragmaWarningDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node, (Syntax.InternalSyntax.SyntaxToken)pragmaKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)warningKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)disableOrRestoreKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)nullableKeyword.Node, errorCodes.Node.ToGreenSeparatedList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node, isActive).CreateRed();
     }
 
 
     /// <summary>Creates a new PragmaWarningDirectiveTriviaSyntax instance.</summary>
     public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken disableOrRestoreKeyword, SeparatedSyntaxList<ExpressionSyntax> errorCodes, bool isActive)
     {
-      return SyntaxFactory.PragmaWarningDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.PragmaKeyword), SyntaxFactory.Token(SyntaxKind.WarningKeyword), disableOrRestoreKeyword, errorCodes, SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
+      return SyntaxFactory.PragmaWarningDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.PragmaKeyword), SyntaxFactory.Token(SyntaxKind.WarningKeyword), disableOrRestoreKeyword, default(SyntaxToken), errorCodes, SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
     }
 
     /// <summary>Creates a new PragmaWarningDirectiveTriviaSyntax instance.</summary>
     public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken disableOrRestoreKeyword, bool isActive)
     {
-      return SyntaxFactory.PragmaWarningDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.PragmaKeyword), SyntaxFactory.Token(SyntaxKind.WarningKeyword), disableOrRestoreKeyword, default(SeparatedSyntaxList<ExpressionSyntax>), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
+      return SyntaxFactory.PragmaWarningDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.PragmaKeyword), SyntaxFactory.Token(SyntaxKind.WarningKeyword), disableOrRestoreKeyword, default(SyntaxToken), default(SeparatedSyntaxList<ExpressionSyntax>), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
     }
 
     /// <summary>Creates a new PragmaChecksumDirectiveTriviaSyntax instance.</summary>

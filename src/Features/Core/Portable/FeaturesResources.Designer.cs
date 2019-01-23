@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class FeaturesResources {
@@ -2915,6 +2915,33 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pull &apos;{0}&apos; up.
+        /// </summary>
+        internal static string Pull_0_up {
+            get {
+                return ResourceManager.GetString("Pull_0_up", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pull &apos;{0}&apos; up to &apos;{1}&apos;.
+        /// </summary>
+        internal static string Pull_0_up_to_1 {
+            get {
+                return ResourceManager.GetString("Pull_0_up_to_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pull members up to base type....
+        /// </summary>
+        internal static string Pull_members_up_to_base_type {
+            get {
+                return ResourceManager.GetString("Pull_members_up_to_base_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to range variable.
         /// </summary>
         internal static string range_variable {
@@ -4476,15 +4503,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Wrap expression (including operators).
-        /// </summary>
-        internal static string Wrap_expression_including_operators {
-            get {
-                return ResourceManager.GetString("Wrap_expression_including_operators", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Wrap long argument list.
         /// </summary>
         internal static string Wrap_long_argument_list {
@@ -4499,6 +4517,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Wrap_long_parameter_list {
             get {
                 return ResourceManager.GetString("Wrap_long_parameter_list", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrapping.
+        /// </summary>
+        internal static string Wrapping {
+            get {
+                return ResourceManager.GetString("Wrapping", resourceCulture);
             }
         }
         

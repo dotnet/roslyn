@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _lazySymbolScopeTasks = _lazySymbolScopeTasks ?? new Dictionary<ISymbol, Task<HostSymbolStartAnalysisScope>>();
                     if (!_lazySymbolScopeTasks.TryGetValue(symbol, out var symbolScopeTask))
                     {
-                        symbolScopeTask = Task.Run(getSymbolAnalysisScopeCore, analyzerExecutor.CancellationToken);
+                        symbolScopeTask = Task.Run(() => getSymbolAnalysisScopeCore(), analyzerExecutor.CancellationToken);
                         _lazySymbolScopeTasks.Add(symbol, symbolScopeTask);
                     }
 

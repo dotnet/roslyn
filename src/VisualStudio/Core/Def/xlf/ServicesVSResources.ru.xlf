@@ -7,9 +7,19 @@
         <target state="new">Add to _current file</target>
         <note />
       </trans-unit>
+      <trans-unit id="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below">
+        <source>Additional changes are needed to complete the refactoring. Review changes below.</source>
+        <target state="new">Additional changes are needed to complete the refactoring. Review changes below.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="All_methods">
         <source>All methods</source>
         <target state="new">All methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_colon">
+        <source>Allow:</source>
+        <target state="new">Allow:</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_for_clarity">
@@ -37,6 +47,16 @@
         <target state="new">Avoid unused value assignments</target>
         <note />
       </trans-unit>
+      <trans-unit id="Back">
+        <source>Back</source>
+        <target state="new">Back</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Calculating_dependents">
+        <source>Calculating dependents...</source>
+        <target state="new">Calculating dependents...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="new">Colorize regular expressions</target>
@@ -45,6 +65,11 @@
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">Элемент недопустим.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finish">
+        <source>Finish</source>
+        <target state="new">Finish</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
@@ -62,6 +87,11 @@
         <target state="translated">В других операторах</target>
         <note />
       </trans-unit>
+      <trans-unit id="Interface_cannot_have_field">
+        <source>Interface cannot have field.</source>
+        <target state="new">Interface cannot have field.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
         <source>Keep all parentheses in:</source>
         <target state="translated">Сохранять все круглые скобки в:</target>
@@ -70,6 +100,26 @@
       <trans-unit id="Kind">
         <source>Kind</source>
         <target state="new">Kind</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_0_abstract">
+        <source>Make '{0}' abstract</source>
+        <target state="new">Make '{0}' abstract</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_abstract">
+        <source>Make abstract</source>
+        <target state="new">Make abstract</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Members">
+        <source>Members</source>
+        <target state="new">Members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace_0">
+        <source>Namespace: '{0}'</source>
+        <target state="new">Namespace: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -107,6 +157,11 @@
         <target state="new">Prefer range operator</target>
         <note />
       </trans-unit>
+      <trans-unit id="Pull_Members_Up">
+        <source>Pull Members Up</source>
+        <target state="new">Pull Members Up</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Regular_Expressions">
         <source>Regular Expressions</source>
         <target state="new">Regular Expressions</target>
@@ -122,6 +177,11 @@
         <target state="translated">Сброс схемы назначения клавиш Visual Studio по умолчанию</target>
         <note />
       </trans-unit>
+      <trans-unit id="Review_Changes">
+        <source>Review Changes</source>
+        <target state="new">Review Changes</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Save_dot_editorconfig_file">
         <source>Save .editorconfig file</source>
         <target state="new">Save .editorconfig file</target>
@@ -130,6 +190,36 @@
       <trans-unit id="Select_destination">
         <source>Select destination</source>
         <target state="new">Select destination</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_Dependents">
+        <source>_Select Dependents</source>
+        <target state="new">_Select Dependents</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_Public">
+        <source>_Select Public</source>
+        <target state="new">_Select Public</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_destination_and_members_to_pull_up">
+        <source>Select destination and members to pull up.</source>
+        <target state="new">Select destination and members to pull up.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_destination_colon">
+        <source>Select destination:</source>
+        <target state="new">Select destination:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_member">
+        <source>Select member</source>
+        <target state="new">Select member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_members_colon">
+        <source>Select members:</source>
+        <target state="new">Select members:</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -285,6 +375,21 @@
       <trans-unit id="Not_a_valid_value">
         <source>Not a valid value</source>
         <target state="translated">Недопустимое значение</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_abstract">
+        <source>'{0}' will be changed to abstract.</source>
+        <target state="new">'{0}' will be changed to abstract.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_non_static">
+        <source>'{0}' will be changed to non-static.</source>
+        <target state="new">'{0}' will be changed to non-static.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_public">
+        <source>'{0}' will be changed to public.</source>
+        <target state="new">'{0}' will be changed to public.</target>
         <note />
       </trans-unit>
       <trans-unit id="given_workspace_doesn_t_support_undo">

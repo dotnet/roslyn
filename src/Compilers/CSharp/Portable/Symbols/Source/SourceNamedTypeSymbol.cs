@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     TypeSyntax t = baseTypeSyntax.Type;
                     TypeSymbol bt = baseBinder.BindType(t, unusedDiagnostics).TypeSymbol;
 
-                    if (bt == @base)
+                    if (TypeSymbol.Equals(bt, @base, TypeCompareKind.ConsiderEverything2))
                     {
                         unusedDiagnostics.Free();
                         return t.GetLocation();
@@ -1161,7 +1161,7 @@ next:;
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor));
             }
 
-            if (this.IsByRefLikeType)
+            if (this.IsRefLikeType)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsByRefLikeAttribute(this));
 

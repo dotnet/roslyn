@@ -200,12 +200,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
+        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
         {
             return _baseType;
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _baseType; }
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        internal sealed override bool IsByRefLikeType
+        public sealed override bool IsRefLikeType
         {
             get { return false; }
         }

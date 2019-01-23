@@ -197,6 +197,21 @@
         <target state="new">Private method '{0}' can be removed as it is never invoked.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Pull_0_up">
+        <source>Pull '{0}' up</source>
+        <target state="new">Pull '{0}' up</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_0_up_to_1">
+        <source>Pull '{0}' up to '{1}'</source>
+        <target state="new">Pull '{0}' up to '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_members_up_to_base_type">
+        <source>Pull members up to base type...</source>
+        <target state="new">Pull members up to base type...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
         <source>Related method signatures found in metadata will not be updated.</source>
         <target state="translated">將不會更新中繼資料中所找到的相關方法簽章。</target>
@@ -357,11 +372,6 @@
         <target state="new">Wrap expression</target>
         <note />
       </trans-unit>
-      <trans-unit id="Wrap_expression_including_operators">
-        <source>Wrap expression (including operators)</source>
-        <target state="new">Wrap expression (including operators)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Wrap_long_argument_list">
         <source>Wrap long argument list</source>
         <target state="new">Wrap long argument list</target>
@@ -370,6 +380,11 @@
       <trans-unit id="Wrap_long_parameter_list">
         <source>Wrap long parameter list</source>
         <target state="new">Wrap long parameter list</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrapping">
+        <source>Wrapping</source>
+        <target state="new">Wrapping</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_can_be_simplified">
