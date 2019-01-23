@@ -72,7 +72,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                         _document.Project.Solution,
                         _state.TypeToGenerateIn,
                         property,
-                        new CodeGenerationOptions(afterThisLocation: _state.IdentifierToken.GetLocation()),
+                        new CodeGenerationOptions(
+                            afterThisLocation: _state.IdentifierToken.GetLocation(),
+                            generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface),
                         cancellationToken)
                         .ConfigureAwait(false);
 
@@ -86,7 +88,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                         _document.Project.Solution,
                         _state.TypeToGenerateIn,
                         method,
-                        new CodeGenerationOptions(afterThisLocation: _state.Location, parseOptions: syntaxTree.Options),
+                        new CodeGenerationOptions(
+                            afterThisLocation: _state.Location,
+                            generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface,
+                            parseOptions: syntaxTree.Options),
                         cancellationToken)
                         .ConfigureAwait(false);
 
