@@ -574,4 +574,7 @@
   <data name="When_on_multiple_lines" xml:space="preserve">
     <value>When on multiple lines</value>
   </data>
+  <data name="Prefer_switch_expression" xml:space="preserve">
+    <value>Prefer switch expression</value>
+  </data>
 </root>

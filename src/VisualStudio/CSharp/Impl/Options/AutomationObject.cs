@@ -665,6 +665,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CSharpCodeStyleOptions.PreferConditionalDelegateCall, value); }
         }
 
+        public string Style_PreferSwitchExpression
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferSwitchExpression); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferSwitchExpression, value); }
+        }
+
         public string Style_PreferPatternMatchingOverAsWithNullCheck
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck); }
