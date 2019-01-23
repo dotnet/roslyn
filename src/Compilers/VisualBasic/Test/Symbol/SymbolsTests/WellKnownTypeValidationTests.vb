@@ -451,7 +451,12 @@ End Namespace
             For special As SpecialType = CType(SpecialType.None + 1, SpecialType) To SpecialType.Count
                 Dim symbol = comp.GetSpecialType(special)
                 Assert.NotNull(symbol)
-                Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind)
+
+                If special = SpecialType.System_Runtime_CompilerServices_RuntimeFeature Then
+                    Assert.Equal(SymbolKind.ErrorType, symbol.Kind) ' Not available
+                Else
+                    Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind)
+                End If
             Next
         End Sub
 
@@ -474,7 +479,12 @@ End Namespace
                 End Select
 
                 Dim symbol = comp.GetSpecialTypeMember(special)
-                Assert.NotNull(symbol)
+
+                If special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces Then
+                    Assert.Null(symbol) ' Not available
+                Else
+                    Assert.NotNull(symbol)
+                End If
             Next
         End Sub
 

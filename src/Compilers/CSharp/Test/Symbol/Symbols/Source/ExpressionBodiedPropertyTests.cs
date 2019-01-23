@@ -41,11 +41,11 @@ class C
         [Fact]
         public void Syntax03()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilation(@"
 interface C
 {
     int P => 1;
-}", parseOptions: TestOptions.Regular7);
+}", parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest);
             comp.VerifyDiagnostics(
                 // (4,14): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
                 //     int P => 1;
