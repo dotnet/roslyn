@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.NeedsDisposeMethod = true;
             }
-            else if (enumeratorType.IsValueType && enumeratorType.IsRefLikeType)
+            else if (enumeratorType.IsRefLikeType)
             {
                 // if it wasn't directly convertable to IDisposable, see if it is pattern disposable
                 // again, we throw away any binding diagnostics, and assume it's not disposable if we encounter errors
