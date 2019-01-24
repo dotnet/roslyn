@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class LambdaTests : CompilingTestBase
+    public class LambdaTests : CompilingTestBase
     {
         [Fact, WorkItem(608181, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608181")]
         public void BadInvocationInLambda()
@@ -2940,6 +2940,254 @@ class Program
             model = comp.GetSemanticModel(tree);
             ParameterSyntax parameterSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
             Assert.Equal("void Program.method1()", model.GetEnclosingSymbol(parameterSyntax.SpanStart).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ShadowNames_Local()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System;
+using System.Linq;
+class Program
+{
+    static void M()
+    {
+        Action a1 = () => { object x = 0; }; // local
+        Action<string> a2 = x => { }; // parameter
+        Action<string> a3 = (string x) => { }; // parameter
+        object x = null;
+        Action a4 = () => { void x() { } }; // method
+        Action a5 = () => { _ = from x in new[] { 1, 2, 3 } select x; }; // range variable
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (9,36): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         Action a1 = () => { object x = 0; }; // local
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(9, 36),
+                // (10,29): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         Action<string> a2 = x => { }; // parameter
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(10, 29),
+                // (11,37): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         Action<string> a3 = (string x) => { }; // parameter
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 37),
+                // (13,34): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         Action a4 = () => { void x() { } }; // method
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(13, 34),
+                // (14,38): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
+                //         Action a5 = () => { _ = from x in new[] { 1, 2, 3 } select x; }; // range variable
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(14, 38));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        // PROTOTYPE: Need similar tests for queries as for lambdas.
+
+        [Fact]
+        public void ShadowNames_Parameter()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System;
+using System.Linq;
+class Program
+{
+    static Action<object> F = (object x) =>
+    {
+        Action a1 = () => { object x = 0; }; // local
+        Action<string> a2 = x => { }; // parameter
+        Action<string> a3 = (string x) => { }; // parameter
+        Action a4 = () => { void x() { } }; // method
+        Action a5 = () => { _ = from x in new[] { 1, 2, 3 } select x; }; // range variable
+    };
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (9,36): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         Action a1 = () => { object x = 0; }; // local
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(9, 36),
+                // (10,29): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         Action<string> a2 = x => { }; // parameter
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(10, 29),
+                // (11,37): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         Action<string> a3 = (string x) => { }; // parameter
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 37),
+                // (13,38): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
+                //         Action a5 = () => { _ = from x in new[] { 1, 2, 3 } select x; }; // range variable
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(13, 38));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ShadowNames_TypeParameter()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System;
+using System.Linq;
+class Program
+{
+    static void M<x>()
+    {
+        Action a1 = () => { object x = 0; }; // local
+        Action<string> a2 = x => { }; // parameter
+        Action<string> a3 = (string x) => { }; // parameter
+        Action a4 = () => { void x() { } }; // method
+        Action a5 = () => { _ = from x in new[] { 1, 2, 3 } select x; }; // range variable
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (9,36): error CS0412: 'x': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //         Action a1 = () => { object x = 0; }; // local
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "x").WithArguments("x").WithLocation(9, 36),
+                // (10,29): error CS0412: 'x': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //         Action<string> a2 = x => { }; // parameter
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "x").WithArguments("x").WithLocation(10, 29),
+                // (11,37): error CS0412: 'x': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //         Action<string> a3 = (string x) => { }; // parameter
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "x").WithArguments("x").WithLocation(11, 37),
+                // (12,34): error CS0412: 'x': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //         Action a4 = () => { void x() { } }; // method
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "x").WithArguments("x").WithLocation(12, 34),
+                // (13,38): error CS1948: The range variable 'x' cannot have the same name as a method type parameter
+                //         Action a5 = () => { _ = from x in new[] { 1, 2, 3 } select x; }; // range variable
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableSameAsTypeParam, "x").WithArguments("x").WithLocation(13, 38));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ShadowNames_LambdaInsideLambda()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System;
+class Program
+{
+    static void M<T>(object x)
+    {
+        Action a1 = () =>
+        {
+            Action b1 = () => { object x = 1; }; // local
+            Action<string> b2 = (string x) => { }; // parameter
+        };
+        Action a2 = () =>
+        {
+            Action b3 = () => { object T = 3; }; // local
+            Action<string> b4 = T => { }; // parameter
+        };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (10,40): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             Action b1 = () => { object x = 1; }; // local
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(10, 40),
+                // (11,41): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             Action<string> b2 = (string x) => { }; // parameter
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 41),
+                // (15,40): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //             Action b3 = () => { object T = 3; }; // local
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(15, 40),
+                // (16,33): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //             Action<string> b4 = T => { }; // parameter
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(16, 33));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ShadowNames_LambdaInsideLocalFunction_01()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System;
+class Program
+{
+    static void M()
+    {
+        void F1()
+        {
+            object x = null;
+            Action a1 = () => { int x = 0; };
+        }
+        void F2<T>()
+        {
+            Action a2 = () => { int T = 0; };
+        }
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (11,37): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             Action a1 = () => { int x = 0; };
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 37),
+                // (15,37): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //             Action a2 = () => { int T = 0; };
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(15, 37));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ShadowNames_LambdaInsideLocalFunction_02()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System;
+class Program
+{
+    static void M<T>()
+    {
+        object x = null;
+        void F()
+        {
+            Action<int> a1 = (int x) =>
+            {
+                Action b1 = () => { int T = 0; };
+            };
+            Action a2 = () =>
+            {
+                int x = 0;
+                Action<int> b2 = (int T) => { };
+            };
+        }
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (11,35): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             Action<int> a1 = (int x) =>
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 35),
+                // (13,41): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //                 Action b1 = () => { int T = 0; };
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(13, 41),
+                // (17,21): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                 int x = 0;
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(17, 21),
+                // (18,39): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //                 Action<int> b2 = (int T) => { };
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(18, 39));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
         }
     }
 }
