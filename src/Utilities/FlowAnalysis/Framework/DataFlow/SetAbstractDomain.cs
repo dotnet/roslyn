@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public override ImmutableHashSet<T> Bottom => ImmutableHashSet<T>.Empty;
 
-        public override int Compare(ImmutableHashSet<T> oldValue, ImmutableHashSet<T> newValue)
+        public override int Compare(ImmutableHashSet<T> oldValue, ImmutableHashSet<T> newValue, bool assertMonotonicity)
         {
             Debug.Assert(oldValue != null);
             Debug.Assert(newValue != null);

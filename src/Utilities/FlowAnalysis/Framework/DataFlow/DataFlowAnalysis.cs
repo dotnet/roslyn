@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     var isUnreachableBlock = unreachableBlocks.Contains(block.Ordinal);
 
                     // Get the input data for the block.
-                    var input = GetInput(resultBuilder[block]);
+                    var input = resultBuilder[block];
                     if (input == null)
                     {
                         Debug.Assert(needsAtLeastOnePass);
@@ -153,145 +153,127 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     // Flow the new input through the block to get a new output.
                     var output = Flow(OperationVisitor, block, AnalysisDomain.Clone(input));
 
-                    // Compare the previous output with the new output.
-                    if (!needsAtLeastOnePass)
+                    try
                     {
-                        int compare = AnalysisDomain.Compare(GetOutput(resultBuilder[block]), output);
+                        // Update the current block result's
+                        // output values with the new ones.
+                        CloneAndUpdateOutputIfEntryOrExitBlock(resultBuilder, block, output);
 
-                        // The newly computed abstract values for each basic block
-                        // must be always greater or equal than the previous value
-                        // to ensure termination. 
-                        Debug.Assert(compare <= 0, "The newly computed abstract value must be greater or equal than the previous one.");
+                        // Propagate the output data to all the successor blocks of the current block.
+                        uniqueSuccessors.Clear();
 
-                        // Is old output value >= new output value ?
-                        if (compare >= 0)
+                        // Get the successors with corresponding flow branches.
+                        // CONSIDER: Currently we need to do a bunch of branch adjusments for branches to/from finally, catch and filter regions.
+                        //           We should revisit the overall CFG API and the walker to avoid such adjustments.
+                        var successorsWithAdjustedBranches = GetSuccessorsWithAdjustedBranches(block).ToArray();
+                        foreach ((BranchWithInfo successorWithBranch, BranchWithInfo preadjustSuccessorWithBranch) successorWithAdjustedBranch in successorsWithAdjustedBranches)
                         {
-                            Debug.Assert(IsValidWorklistState());
-                            output.Dispose();
-                            continue;
-                        }
-                    }
+                            // successorWithAdjustedBranch returns a pair of branches:
+                            //  1. successorWithBranch - This is the adjusted branch for a branch from inside a try region to outside the try region, where we don't flow into finally region.
+                            //                           The adjusted branch is targeted into the finally.
+                            //  2. preadjustSuccessorWithBranch - This is the original branch, which is primarily used to update the input data and successors of finally and catch region regions.
+                            //                                    Currently, these blocks have no branch coming out from it.
 
-                    // The newly computed value is greater than the previous value,
-                    // so we need to update the current block result's
-                    // output values with the new ones.
-                    UpdateOutput(resultBuilder, block, output);
+                            // Flow the current analysis data through the branch.
+                            (TAnalysisData newSuccessorInput, bool isFeasibleBranch) = OperationVisitor.FlowBranch(block, successorWithAdjustedBranch.successorWithBranch, AnalysisDomain.Clone(output));
 
-                    // Since the new output value is different than the previous one, 
-                    // we need to propagate it to all the successor blocks of the current block.
-                    uniqueSuccessors.Clear();
-
-                    // Get the successors with corresponding flow branches.
-                    // CONSIDER: Currently we need to do a bunch of branch adjusments for branches to/from finally, catch and filter regions.
-                    //           We should revisit the overall CFG API and the walker to avoid such adjustments.
-                    var successorsWithAdjustedBranches = GetSuccessorsWithAdjustedBranches(block).ToArray();
-                    foreach ((BranchWithInfo successorWithBranch, BranchWithInfo preadjustSuccessorWithBranch) successorWithAdjustedBranch in successorsWithAdjustedBranches)
-                    {
-                        // successorWithAdjustedBranch returns a pair of branches:
-                        //  1. successorWithBranch - This is the adjusted branch for a branch from inside a try region to outside the try region, where we don't flow into finally region.
-                        //                           The adjusted branch is targeted into the finally.
-                        //  2. preadjustSuccessorWithBranch - This is the original branch, which is primarily used to update the input data and successors of finally and catch region regions.
-                        //                                    Currently, these blocks have no branch coming out from it.
-
-                        // Flow the current analysis data through the branch.
-                        (TAnalysisData newSuccessorInput, bool isFeasibleBranch) = OperationVisitor.FlowBranch(block, successorWithAdjustedBranch.successorWithBranch, AnalysisDomain.Clone(output));
-
-                        if (successorWithAdjustedBranch.preadjustSuccessorWithBranch != null)
-                        {
-                            UpdateFinallySuccessorsAndCatchInput(successorWithAdjustedBranch.preadjustSuccessorWithBranch, newSuccessorInput);
-                        }
-
-                        // Certain branches have no destination (e.g. BranchKind.Throw), so we don't need to update the input data for the branch destination block.
-                        var successorBlockOpt = successorWithAdjustedBranch.successorWithBranch.Destination;
-                        if (successorBlockOpt == null)
-                        {
-                            newSuccessorInput.Dispose();
-                            continue;
-                        }
-
-                        // Perf: We can stop tracking data for entities whose lifetime is limited by the leaving regions.
-                        //       Below invocation explicitly drops such data from destination input.
-                        newSuccessorInput = OperationVisitor.OnLeavingRegions(successorWithAdjustedBranch.successorWithBranch.LeavingRegions, block, newSuccessorInput);
-
-                        var isBackEdge = block.Ordinal >= successorBlockOpt.Ordinal;
-                        if (isUnreachableBlock && !unreachableBlocks.Contains(successorBlockOpt.Ordinal))
-                        {
-                            // Skip processing successor input for branch from an unreachable block to a reachable block.
-                            continue;
-                        }
-                        else if (!isFeasibleBranch)
-                        {
-                            // Skip processing the successor input for conditional branch that can never be taken.
-                            if (inputDataFromInfeasibleBranchesMap.TryGetValue(successorBlockOpt.Ordinal, out TAnalysisData currentInfeasibleData))
+                            if (successorWithAdjustedBranch.preadjustSuccessorWithBranch != null)
                             {
-                                var dataToDispose = newSuccessorInput;
-                                newSuccessorInput = OperationVisitor.MergeAnalysisData(currentInfeasibleData, newSuccessorInput, isBackEdge);
-                                Debug.Assert(!ReferenceEquals(dataToDispose, newSuccessorInput));
-                                dataToDispose.Dispose();
+                                UpdateFinallySuccessorsAndCatchInput(successorWithAdjustedBranch.preadjustSuccessorWithBranch, newSuccessorInput);
                             }
 
-                            inputDataFromInfeasibleBranchesMap[successorBlockOpt.Ordinal] = newSuccessorInput;
-                            continue;
-                        }
-
-                        // Get the current input data for the successor block, and check if it changes after merging the new input data.
-                        var currentSuccessorInput = GetInput(resultBuilder[successorBlockOpt]);
-                        TAnalysisData mergedSuccessorInput;
-                        if (currentSuccessorInput != null)
-                        {
-                            mergedSuccessorInput = OperationVisitor.MergeAnalysisData(currentSuccessorInput, newSuccessorInput, isBackEdge);
-                            newSuccessorInput.Dispose();
-                        }
-                        else
-                        {
-                            mergedSuccessorInput = newSuccessorInput;
-                        }
-
-                        if (currentSuccessorInput != null)
-                        {
-                            int compare = AnalysisDomain.Compare(currentSuccessorInput, mergedSuccessorInput);
-
-                            // The newly computed abstract values for each basic block
-                            // must be always greater or equal than the previous value
-                            // to ensure termination.
-                            Debug.Assert(compare <= 0, "The newly computed abstract value must be greater or equal than the previous one.");
-
-                            // Is old input value >= new input value
-                            if (compare >= 0)
+                            // Certain branches have no destination (e.g. BranchKind.Throw), so we don't need to update the input data for the branch destination block.
+                            var successorBlockOpt = successorWithAdjustedBranch.successorWithBranch.Destination;
+                            if (successorBlockOpt == null)
                             {
-                                mergedSuccessorInput.Dispose();
+                                newSuccessorInput.Dispose();
                                 continue;
                             }
+
+                            // Perf: We can stop tracking data for entities whose lifetime is limited by the leaving regions.
+                            //       Below invocation explicitly drops such data from destination input.
+                            newSuccessorInput = OperationVisitor.OnLeavingRegions(successorWithAdjustedBranch.successorWithBranch.LeavingRegions, block, newSuccessorInput);
+
+                            var isBackEdge = block.Ordinal >= successorBlockOpt.Ordinal;
+                            if (isUnreachableBlock && !unreachableBlocks.Contains(successorBlockOpt.Ordinal))
+                            {
+                                // Skip processing successor input for branch from an unreachable block to a reachable block.
+                                newSuccessorInput.Dispose();
+                                continue;
+                            }
+                            else if (!isFeasibleBranch)
+                            {
+                                // Skip processing the successor input for conditional branch that can never be taken.
+                                if (inputDataFromInfeasibleBranchesMap.TryGetValue(successorBlockOpt.Ordinal, out TAnalysisData currentInfeasibleData))
+                                {
+                                    var dataToDispose = newSuccessorInput;
+                                    newSuccessorInput = OperationVisitor.MergeAnalysisData(currentInfeasibleData, newSuccessorInput, isBackEdge);
+                                    Debug.Assert(!ReferenceEquals(dataToDispose, newSuccessorInput));
+                                    dataToDispose.Dispose();
+                                }
+
+                                inputDataFromInfeasibleBranchesMap[successorBlockOpt.Ordinal] = newSuccessorInput;
+                                continue;
+                            }
+
+                            TAnalysisData mergedSuccessorInput;
+                            var currentSuccessorInput = resultBuilder[successorBlockOpt];
+                            if (currentSuccessorInput != null)
+                            {
+                                // Check if the current input data for the successor block is equal to the new input data from this branch.
+                                // If so, we don't need to propagate new input data from this branch.
+                                if (AnalysisDomain.Equals(currentSuccessorInput, newSuccessorInput))
+                                {
+                                    newSuccessorInput.Dispose();
+                                    continue;
+                                }
+
+                                // Otherwise, check if the input data for the successor block changes after merging with the new input data.
+                                mergedSuccessorInput = OperationVisitor.MergeAnalysisData(currentSuccessorInput, newSuccessorInput, isBackEdge);
+                                newSuccessorInput.Dispose();
+
+                                int compare = AnalysisDomain.Compare(currentSuccessorInput, mergedSuccessorInput);
+
+                                // The newly computed abstract values for each basic block
+                                // must be always greater or equal than the previous value
+                                // to ensure termination.
+                                Debug.Assert(compare <= 0, "The newly computed abstract value must be greater or equal than the previous one.");
+
+                                // Is old input value >= new input value
+                                if (compare >= 0)
+                                {
+                                    mergedSuccessorInput.Dispose();
+                                    continue;
+                                }
+                            }
+                            else
+                            {
+                                mergedSuccessorInput = newSuccessorInput;
+                            }
+
+                            // Input to successor has changed, so we need to update its new input and
+                            // reprocess the successor by adding it to the worklist.
+                            UpdateInput(resultBuilder, successorBlockOpt, mergedSuccessorInput);
+
+                            if (uniqueSuccessors.Add(successorBlockOpt))
+                            {
+                                worklist.Add(successorBlockOpt.Ordinal);
+                            }
                         }
 
-                        // Input to successor has changed, so we need to update its new input and
-                        // reprocess the successor by adding it to the worklist.
-                        UpdateInput(resultBuilder, successorBlockOpt, mergedSuccessorInput);
-
-                        if (uniqueSuccessors.Add(successorBlockOpt))
-                        {
-                            worklist.Add(successorBlockOpt.Ordinal);
-                        }
+                        Debug.Assert(IsValidWorklistState());
                     }
-
-                    Debug.Assert(IsValidWorklistState());
+                    finally
+                    {
+                        output.Dispose();
+                    }
                 }
 
-                var inputMergedDataForUnhandledThrowOperations = OperationVisitor.GetMergedDataForUnhandledThrowOperations();
-                DataFlowAnalysisInfo<TAnalysisData> mergedDataForUnhandledThrowOperationsOpt;
-                if (inputMergedDataForUnhandledThrowOperations != null)
-                {
-                    var outputMergedDataForUnhandledThrowOperations = AnalysisDomain.Clone(inputMergedDataForUnhandledThrowOperations);
-                    mergedDataForUnhandledThrowOperationsOpt = new DataFlowAnalysisInfo<TAnalysisData>(
-                        inputMergedDataForUnhandledThrowOperations, outputMergedDataForUnhandledThrowOperations);
-                }
-                else
-                {
-                    mergedDataForUnhandledThrowOperationsOpt = null;
-                }
+                var mergedDataForUnhandledThrowOperationsOpt = OperationVisitor.GetMergedDataForUnhandledThrowOperations();
 
                 var dataflowAnalysisResult = resultBuilder.ToResult(ToBlockResult, OperationVisitor.GetStateMap(),
                     OperationVisitor.GetPredicateValueKindMap(), OperationVisitor.GetReturnValueAndPredicateKind(), OperationVisitor.InterproceduralResultsMap,
+                    resultBuilder.EntryBlockOutputData, resultBuilder.ExitBlockOutputData,
                     mergedDataForUnhandledThrowOperationsOpt, cfg, OperationVisitor.ValueDomain.UnknownOrMayBeValue);
                 mergedDataForUnhandledThrowOperationsOpt?.Dispose();
 
@@ -337,10 +319,31 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 // If so, just update the resultBuilder input.
                 // Otherwise, update the catchBlockInputDataMap.
 
-                var catchBlockInputData = GetInput(resultBuilder[catchBlock]);
+                var catchBlockInputData = resultBuilder[catchBlock];
                 if (catchBlockInputData != null)
                 {
-                    UpdateInput(resultBuilder, catchBlock, AnalysisDomain.Merge(catchBlockInputData, dataToMerge));
+                    // Check if the current input data for the catch block is equal to the new input data from this branch.
+                    // If so, we don't need to propagate new input data from this branch.
+                    if (AnalysisDomain.Equals(catchBlockInputData, dataToMerge))
+                    {
+                        return null;
+                    }
+
+                    // Otherwise, check if the input data for the catch block changes after merging with the new input data.
+                    var mergedData = AnalysisDomain.Merge(catchBlockInputData, dataToMerge);
+                    int compare = AnalysisDomain.Compare(catchBlockInputData, mergedData);
+
+                    // The newly computed abstract values for each basic block
+                    // must be always greater or equal than the previous value
+                    // to ensure termination.
+                    Debug.Assert(compare <= 0, "The newly computed abstract value must be greater or equal than the previous one.");
+
+                    if (compare == 0)
+                    {
+                        return null;
+                    }
+
+                    UpdateInput(resultBuilder, catchBlock, mergedData);
                 }
                 else
                 {
@@ -518,22 +521,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         internal abstract TAnalysisResult ToResult(TAnalysisContext analysisContext, DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> dataFlowAnalysisResult);
-        internal abstract TBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, DataFlowAnalysisInfo<TAnalysisData> blockAnalysisData);
-        private static TAnalysisData GetInput(DataFlowAnalysisInfo<TAnalysisData> result) => result.Input;
-        private static TAnalysisData GetOutput(DataFlowAnalysisInfo<TAnalysisData> result) => result.Output;
+        internal abstract TBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, TAnalysisData blockAnalysisData);
         
-        private static void UpdateInput(DataFlowAnalysisResultBuilder<TAnalysisData> builder, BasicBlock block, TAnalysisData newInput)
+        private void UpdateInput(DataFlowAnalysisResultBuilder<TAnalysisData> builder, BasicBlock block, TAnalysisData newInput)
         {
-            var currentData = builder[block];
-            var newData = currentData.WithInput(newInput);
-            builder.Update(block, newData);
+            Debug.Assert(newInput != null);
+            Debug.Assert(builder[block] == null || AnalysisDomain.Compare(builder[block], newInput) <= 0, "Non-monotonic update");
+            builder.Update(block, newInput);
         }
 
-        private static void UpdateOutput(DataFlowAnalysisResultBuilder<TAnalysisData> builder, BasicBlock block, TAnalysisData newOutput)
+        private void CloneAndUpdateOutputIfEntryOrExitBlock(DataFlowAnalysisResultBuilder<TAnalysisData> builder, BasicBlock block, TAnalysisData newOutput)
         {
-            var currentData = builder[block];
-            var newData = currentData.WithOutput(newOutput);
-            builder.Update(block, newData);
+            switch (block.Kind)
+            {
+                case BasicBlockKind.Entry:
+                    builder.EntryBlockOutputData = AnalysisDomain.Clone(newOutput);
+                    break;
+
+                case BasicBlockKind.Exit:
+                    builder.ExitBlockOutputData = AnalysisDomain.Clone(newOutput);
+                    break;
+            }
         }
     }
 }

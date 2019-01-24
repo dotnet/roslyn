@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             
             public override DisposeAbstractValue UnknownOrMayBeValue => DisposeAbstractValue.Unknown;
 
-            public override int Compare(DisposeAbstractValue oldValue, DisposeAbstractValue newValue)
+            public override int Compare(DisposeAbstractValue oldValue, DisposeAbstractValue newValue, bool assertMonotonicity)
             {
                 Debug.Assert(oldValue != null);
                 Debug.Assert(newValue != null);
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 }
                 else
                 {
-                    Debug.Fail("Non-monotonic Merge function");
+                    FireNonMonotonicAssertIfNeeded(assertMonotonicity);
                     return 1;
                 }
             }

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Analyzer.Utilities.Extensions;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
@@ -12,10 +10,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
     /// </summary>
     internal sealed class DefaultPointsToValueGenerator
     {
+        private readonly TrackedEntitiesBuilder _trackedEntitiesBuilder;
         private readonly ImmutableDictionary<AnalysisEntity, PointsToAbstractValue>.Builder _defaultPointsToValueMapBuilder;
-        
-        public DefaultPointsToValueGenerator()
+
+        public DefaultPointsToValueGenerator(TrackedEntitiesBuilder trackedEntitiesBuilder)
         {
+            _trackedEntitiesBuilder = trackedEntitiesBuilder;
             _defaultPointsToValueMapBuilder = ImmutableDictionary.CreateBuilder<AnalysisEntity, PointsToAbstractValue>();
         }
 
@@ -39,13 +39,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 }
 
                 value = PointsToAbstractValue.Create(AbstractLocation.CreateAnalysisEntityDefaultLocation(analysisEntity), mayBeNull: true);
+                _trackedEntitiesBuilder.AllEntities.Add(analysisEntity);
                 _defaultPointsToValueMapBuilder.Add(analysisEntity, value);
             }
 
             return value;
         }
 
-        public void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder) => builder.UnionWith(_defaultPointsToValueMapBuilder.Keys);
         public bool IsTrackedEntity(AnalysisEntity analysisEntity) => _defaultPointsToValueMapBuilder.ContainsKey(analysisEntity);
     }
 }

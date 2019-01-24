@@ -21,7 +21,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
             public override PropertySetAbstractValue UnknownOrMayBeValue => PropertySetAbstractValue.Unknown;
 
-            public override int Compare(PropertySetAbstractValue oldValue, PropertySetAbstractValue newValue)
+            public override int Compare(PropertySetAbstractValue oldValue, PropertySetAbstractValue newValue, bool assertMonotonicity)
             {
                 return Comparer<PropertySetAbstractValue>.Default.Compare(oldValue, newValue);
             }

@@ -16,14 +16,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
     /// </summary>
     internal class PropertySetBlockAnalysisResult : AbstractBlockAnalysisResult
     {
-        public PropertySetBlockAnalysisResult(BasicBlock basicBlock, DataFlowAnalysisInfo<PropertySetAnalysisData> blockAnalysisData)
+        public PropertySetBlockAnalysisResult(BasicBlock basicBlock, PropertySetAnalysisData blockAnalysisData)
             : base(basicBlock)
         {
-            InputData = blockAnalysisData.Input?.ToImmutableDictionary() ?? ImmutableDictionary<AbstractLocation, PropertySetAbstractValue>.Empty;
-            OutputData = blockAnalysisData.Output?.ToImmutableDictionary() ?? ImmutableDictionary<AbstractLocation, PropertySetAbstractValue>.Empty;
+            Data = blockAnalysisData?.ToImmutableDictionary() ?? ImmutableDictionary<AbstractLocation, PropertySetAbstractValue>.Empty;
         }
 
-        public ImmutableDictionary<AbstractLocation, PropertySetAbstractValue> InputData { get; }
-        public ImmutableDictionary<AbstractLocation, PropertySetAbstractValue> OutputData { get; }
+        public ImmutableDictionary<AbstractLocation, PropertySetAbstractValue> Data { get; }
     }
 }

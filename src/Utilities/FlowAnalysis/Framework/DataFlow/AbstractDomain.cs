@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     /// <summary>
@@ -33,6 +35,26 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <para>Zero: <paramref name="oldValue"/> equals <paramref name="newValue"/>.</para>
         /// <para>Greater than zero: <paramref name="oldValue"/> is greater than <paramref name="newValue"/>.</para>
         ///</returns>
-        public abstract int Compare(T oldValue, T newValue);
+        public int Compare(T oldValue, T newValue)
+            => Compare(oldValue, newValue, assertMonotonicity: true);
+
+        /// <summary>
+        /// Indicates if <paramref name="value1"/> and <paramref name="value2"/> are equal.
+        /// </summary>
+        /// <param name="value1">A value to compare</param>
+        /// <param name="value2">A value to compare</param>
+        public bool Equals(T value1, T value2)
+            => Compare(value1, value2, assertMonotonicity: false) == 0;
+
+        public abstract int Compare(T oldValue, T newValue, bool assertMonotonicity);
+
+        [Conditional("DEBUG")]
+        protected static void FireNonMonotonicAssertIfNeeded(bool assertMonotonicity)
+        {
+            if (assertMonotonicity)
+            {
+                Debug.Fail("Non-monotonic merge");
+            }
+        }
     }
 }

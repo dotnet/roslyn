@@ -186,8 +186,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 => GetClonedAnalysisDataHelper(analysisData);
             public override ParameterValidationAnalysisData GetEmptyAnalysisData()
                 => GetEmptyAnalysisDataHelper();
-            protected override ParameterValidationAnalysisData GetAnalysisDataAtBlockEnd(ParameterValidationAnalysisResult analysisResult, BasicBlock block)
-                => GetClonedAnalysisDataHelper(analysisResult[block].OutputData);
+            protected override ParameterValidationAnalysisData GetExitBlockOutputData(ParameterValidationAnalysisResult analysisResult)
+                => GetClonedAnalysisDataHelper(analysisResult.ExitBlockOutput.Data);
             protected override bool Equals(ParameterValidationAnalysisData value1, ParameterValidationAnalysisData value2)
                 => EqualsHelper(value1, value2);
 

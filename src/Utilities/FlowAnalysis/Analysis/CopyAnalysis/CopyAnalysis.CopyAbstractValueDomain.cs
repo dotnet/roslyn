@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             public override CopyAbstractValue UnknownOrMayBeValue => CopyAbstractValue.Unknown;
 
-            public override int Compare(CopyAbstractValue oldValue, CopyAbstractValue newValue)
+            public override int Compare(CopyAbstractValue oldValue, CopyAbstractValue newValue, bool assertMonotonicity)
             {
                 Debug.Assert(oldValue != null);
                 Debug.Assert(newValue != null);
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 }
                 else
                 {
-                    Debug.Fail("Non-monotonic Merge function");
+                    FireNonMonotonicAssertIfNeeded(assertMonotonicity);
                     return 1;
                 }
             }
@@ -70,8 +70,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                     return CopyAbstractValue.Unknown;
                 }
 
-                var mergedLocations = _entitiesDomain.Intersect(value1.AnalysisEntities, value2.AnalysisEntities);
-                return mergedLocations.IsEmpty ? CopyAbstractValue.Unknown : new CopyAbstractValue(mergedLocations);
+                var mergedEntities = _entitiesDomain.Intersect(value1.AnalysisEntities, value2.AnalysisEntities);
+                return mergedEntities.IsEmpty ? CopyAbstractValue.Unknown : new CopyAbstractValue(mergedEntities);
             }
         }
     }

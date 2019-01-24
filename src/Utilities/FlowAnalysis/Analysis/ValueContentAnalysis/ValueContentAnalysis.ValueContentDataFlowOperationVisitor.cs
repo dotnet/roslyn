@@ -133,8 +133,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 => (ValueContentAnalysisData)analysisData.Clone();
             public override ValueContentAnalysisData GetEmptyAnalysisData()
                 => new ValueContentAnalysisData();
-            protected override ValueContentAnalysisData GetAnalysisDataAtBlockEnd(ValueContentAnalysisResult analysisResult, BasicBlock block)
-                => new ValueContentAnalysisData(analysisResult[block].OutputData);
+            protected override ValueContentAnalysisData GetExitBlockOutputData(ValueContentAnalysisResult analysisResult)
+                => new ValueContentAnalysisData(analysisResult.ExitBlockOutput.Data);
             protected override bool Equals(ValueContentAnalysisData value1, ValueContentAnalysisData value2)
                 => value1.Equals(value2);
             protected override void ApplyInterproceduralAnalysisResultCore(ValueContentAnalysisData resultData)

@@ -91,13 +91,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
 
             foreach (var block in analysisContext.ControlFlowGraph.Blocks)
             {
-                var data = new ParameterValidationAnalysisData(dataFlowAnalysisResult[block].InputData);
+                var data = new ParameterValidationAnalysisData(dataFlowAnalysisResult[block].Data);
                 data = Flow(newOperationVisitor, block, data);
             }
 
             return new ParameterValidationAnalysisResult(dataFlowAnalysisResult, newOperationVisitor.HazardousParameterUsages);
         }
 
-        internal override ParameterValidationBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, DataFlowAnalysisInfo<ParameterValidationAnalysisData> blockAnalysisData) => new ParameterValidationBlockAnalysisResult(basicBlock, blockAnalysisData);
+        internal override ParameterValidationBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, ParameterValidationAnalysisData blockAnalysisData) => new ParameterValidationBlockAnalysisResult(basicBlock, blockAnalysisData);
     }
 }

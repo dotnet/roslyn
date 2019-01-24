@@ -13,14 +13,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
     /// </summary>
     internal class ParameterValidationBlockAnalysisResult : AbstractBlockAnalysisResult
     {
-        public ParameterValidationBlockAnalysisResult(BasicBlock basicBlock, DataFlowAnalysisInfo<ParameterValidationAnalysisData> blockAnalysisData)
+        public ParameterValidationBlockAnalysisResult(BasicBlock basicBlock, ParameterValidationAnalysisData blockAnalysisData)
             : base (basicBlock)
         {
-            InputData = blockAnalysisData.Input?.ToImmutableDictionary() ?? ImmutableDictionary<AbstractLocation, ParameterValidationAbstractValue>.Empty;
-            OutputData = blockAnalysisData.Output?.ToImmutableDictionary() ?? ImmutableDictionary<AbstractLocation, ParameterValidationAbstractValue>.Empty;
+            Data = blockAnalysisData?.ToImmutableDictionary() ?? ImmutableDictionary<AbstractLocation, ParameterValidationAbstractValue>.Empty;
         }
 
-        public ImmutableDictionary<AbstractLocation, ParameterValidationAbstractValue> InputData { get; }
-        public ImmutableDictionary<AbstractLocation, ParameterValidationAbstractValue> OutputData { get; }
+        public ImmutableDictionary<AbstractLocation, ParameterValidationAbstractValue> Data { get; }
     }
 }

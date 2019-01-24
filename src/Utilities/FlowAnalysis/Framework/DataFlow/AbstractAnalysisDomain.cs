@@ -36,5 +36,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <para>Greater than zero: <paramref name="oldValue"/> is greater than <paramref name="newValue"/>.</para>
         ///</returns>
         public abstract int Compare(TAnalysisData oldValue, TAnalysisData newValue);
+
+        /// <summary>
+        /// Indicates if <paramref name="value1"/> with <paramref name="value2"/> are equal.
+        /// </summary>
+        /// <param name="value1">A value to compare</param>
+        /// <param name="value2">A value to compare</param>
+        public abstract bool Equals(TAnalysisData value1, TAnalysisData value2);
     }
 }

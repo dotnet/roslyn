@@ -30,6 +30,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\PooledHashSetExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperationBlockAnalysisContextExtension.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\WellKnownDiagnosticTagsExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PointsToAnalysis\TrackedEntitiesBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\FilePathInjectionSinks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\RegexSinks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\ProcessCommandSinks.cs" />
@@ -143,7 +144,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\AnalysisEntityFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\AnalysisEntityMapAbstractDomain.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\DataFlowAnalysis.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\DataFlowAnalysisInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\DataFlowAnalysisResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\DataFlowAnalysisResultBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\DataFlowOperationVisitor.cs" />

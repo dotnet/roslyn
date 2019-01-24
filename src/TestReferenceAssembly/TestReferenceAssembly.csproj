@@ -4,7 +4,4 @@
     <TargetFramework>net46</TargetFramework>
     <RootNamespace>OtherDll</RootNamespace>
   </PropertyGroup>
-  <ItemGroup>
-    <Folder Include="obj\Debug\" />
-  </ItemGroup>
 </Project>

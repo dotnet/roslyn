@@ -92,9 +92,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 return new TaintedDataAnalysisData();
             }
 
-            protected override TaintedDataAnalysisData GetAnalysisDataAtBlockEnd(TaintedDataAnalysisResult analysisResult, BasicBlock block)
+            protected override TaintedDataAnalysisData GetExitBlockOutputData(TaintedDataAnalysisResult analysisResult)
             {
-                return new TaintedDataAnalysisData(analysisResult[block].OutputData);
+                return new TaintedDataAnalysisData(analysisResult.ExitBlockOutput.Data);
             }
 
             protected override void SetAbstractValue(AnalysisEntity analysisEntity, TaintedDataAbstractValue value)

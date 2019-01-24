@@ -15,7 +15,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             public override TaintedDataAbstractValue Bottom => TaintedDataAbstractValue.NotTainted;
 
-            public override int Compare(TaintedDataAbstractValue oldValue, TaintedDataAbstractValue newValue)
+            public override int Compare(TaintedDataAbstractValue oldValue, TaintedDataAbstractValue newValue, bool assertMonotonicity)
             {
                 // The newly computed abstract values for each basic block
                 // must be always greater or equal than the previous value
