@@ -514,7 +514,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ConversionKind.Identity:
                     case ConversionKind.DefaultOrNullLiteral:
                     case ConversionKind.ImplicitReference:
-                    case ConversionKind.ImplicitNullable:
                         return true;
                     case ConversionKind.ImplicitTupleLiteral:
                         {
@@ -798,6 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (targetType.IsNullableType())
                 {
+                    Debug.Assert(targetType.TypeSymbol.Equals(valueType.TypeSymbol, TypeCompareKind.AllIgnoreOptions));
                     // Nullable<T> is handled here rather than in InheritNullableStateOfTrackableStruct since that
                     // method only clones auto-properties (see https://github.com/dotnet/roslyn/issues/29619).
                     // When that issue is fixed, Nullable<T> should be handled there instead.
@@ -4634,14 +4634,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private int GetNullableOfTValueSlot(TypeSymbol containingType, int containingSlot, out Symbol fieldOrProperty)
+        private int GetNullableOfTValueSlot(TypeSymbol containingType, int containingSlot, out Symbol valueProperty)
         {
             Debug.Assert(containingType.IsNullableType());
             Debug.Assert(TypeSymbol.Equals(GetSlotType(containingSlot), containingType, TypeCompareKind.ConsiderEverything2));
 
             var getValue = (MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value);
-            fieldOrProperty = getValue?.AsMember((NamedTypeSymbol)containingType)?.AssociatedSymbol;
-            return (fieldOrProperty is null) ? -1 : GetOrCreateSlot(fieldOrProperty, containingSlot);
+            valueProperty = getValue?.AsMember((NamedTypeSymbol)containingType)?.AssociatedSymbol;
+            return (valueProperty is null) ? -1 : GetOrCreateSlot(valueProperty, containingSlot);
         }
 
         protected override void VisitForEachExpression(BoundForEachStatement node)

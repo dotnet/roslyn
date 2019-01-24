@@ -40374,6 +40374,68 @@ class Program
 
         [Fact]
         [WorkItem(32531, "https://github.com/dotnet/roslyn/issues/32531")]
+        public void Conversions_ImplicitNullable_05()
+        {
+            var source =
+@"#pragma warning disable 0649
+struct A
+{
+    internal object? F;
+}
+struct B
+{
+    internal object? F;
+}
+class Program
+{
+    static void F1()
+    {
+        A a1 = new A();
+        B? b1 = a1; // 1
+        _ = b1.Value;
+        b1.Value.F.ToString(); // 2
+    }
+    static void F2()
+    {
+        A? a2 = new A() { F = 2 };
+        B? b2 = a2; // 3
+        _ = b2.Value;
+        b2.Value.F.ToString(); // 4
+    }
+    static void F3(A? a3)
+    {
+        B? b3 = a3; // 5
+        _ = b3.Value; // 6
+        b3.Value.F.ToString(); // 7
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (15,17): error CS0029: Cannot implicitly convert type 'A' to 'B?'
+                //         B? b1 = a1; // 1
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "a1").WithArguments("A", "B?").WithLocation(15, 17),
+                // (17,9): warning CS8602: Possible dereference of a null reference.
+                //         b1.Value.F.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b1.Value.F").WithLocation(17, 9),
+                // (22,17): error CS0029: Cannot implicitly convert type 'A?' to 'B?'
+                //         B? b2 = a2; // 3
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "a2").WithArguments("A?", "B?").WithLocation(22, 17),
+                // (24,9): warning CS8602: Possible dereference of a null reference.
+                //         b2.Value.F.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b2.Value.F").WithLocation(24, 9),
+                // (28,17): error CS0029: Cannot implicitly convert type 'A?' to 'B?'
+                //         B? b3 = a3; // 5
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "a3").WithArguments("A?", "B?").WithLocation(28, 17),
+                // (29,13): warning CS8629: Nullable value type may be null.
+                //         _ = b3.Value; // 6
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "b3.Value").WithLocation(29, 13),
+                // (30,9): warning CS8602: Possible dereference of a null reference.
+                //         b3.Value.F.ToString(); // 7
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b3.Value.F").WithLocation(30, 9));
+        }
+
+        [Fact]
+        [WorkItem(32531, "https://github.com/dotnet/roslyn/issues/32531")]
         public void Conversions_ExplicitNullable_01()
         {
             var source =
@@ -40544,8 +40606,18 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/32599: Support implicit tuple conversions. See // 1, 2.
+            // https://github.com/dotnet/roslyn/issues/32599: Support implicit tuple conversions
+            // (should report warnings for // 1, 2 only).
             comp.VerifyDiagnostics(
+                // (13,16): warning CS8629: Nullable value type may be null.
+                //         S t1 = t.Item1.Value;
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t.Item1.Value").WithLocation(13, 16),
+                // (16,9): warning CS8602: Possible dereference of a null reference.
+                //         t2.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t2.F").WithLocation(16, 9),
+                // (17,16): warning CS8629: Nullable value type may be null.
+                //         S u1 = u.a.Value;
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "u.a.Value").WithLocation(17, 16),
                 // (18,16): warning CS8629: Nullable value type may be null.
                 //         S u2 = u.b.Value;
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "u.b.Value").WithLocation(18, 16));
