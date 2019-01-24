@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             var descSection = quickInfoItem.Sections.FirstOrDefault(s => s.Kind == QuickInfoSectionKinds.Description);
             if (descSection != null)
             {
-                firstLineElements.Add(BuildClassifiedTextElement(descSection));
+                firstLineElements.Add(Helpers.BuildClassifiedTextElement(descSection.TaggedParts));
             }
 
             var elements = new List<object>
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             // Add the remaining sections as Stacked style
             elements.AddRange(
                 quickInfoItem.Sections.Where(s => s.Kind != QuickInfoSectionKinds.Description)
-                                      .Select(BuildClassifiedTextElement));
+                                      .Select(s => Helpers.BuildClassifiedTextElement(s.TaggedParts)));
 
             // build text for RelatedSpan
             if (quickInfoItem.RelatedSpans.Any())
@@ -83,12 +83,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                                 elements);
 
             return new IntellisenseQuickInfoItem(trackingSpan, content);
-        }
-
-        private static ClassifiedTextElement BuildClassifiedTextElement(QuickInfoSection section)
-        {
-            return new ClassifiedTextElement(section.TaggedParts.Select(
-                    part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
         }
     }
 }
