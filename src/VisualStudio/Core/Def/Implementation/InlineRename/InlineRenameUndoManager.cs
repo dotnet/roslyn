@@ -218,18 +218,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
 
             private IEnumerable<IOleUndoUnit> GetUndoUnits(IOleUndoManager undoManager)
             {
-
-                // Unfortunately, EnumUndoable returns the units in oldest-first order.
-                undoManager.EnumUndoable(out var undoUnitEnumerator);
-                if (undoUnitEnumerator == null)
+                IEnumOleUndoUnits undoUnitEnumerator;
+                try
+                {
+                    // Unfortunately, EnumUndoable returns the units in oldest-first order.
+                    undoManager.EnumUndoable(out undoUnitEnumerator);
+                }
+                catch (COMException)
                 {
                     yield break;
                 }
 
                 const int BatchSize = 100;
+                IOleUndoUnit[] fetchedUndoUnits = new IOleUndoUnit[BatchSize];
+
                 while (true)
                 {
-                    IOleUndoUnit[] fetchedUndoUnits = new IOleUndoUnit[BatchSize];
                     undoUnitEnumerator.Next(BatchSize, fetchedUndoUnits, out var fetchedCount);
                     for (int i = 0; i < fetchedCount; i++)
                     {
