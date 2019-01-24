@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             builder.Add<SimpleLambdaExpressionSyntax, SimpleLambdaExpressionStructureProvider>();
             builder.Add<StructDeclarationSyntax, TypeDeclarationStructureProvider, MetadataAsSource.MetadataTypeDeclarationStructureProvider>();
             builder.Add<SwitchStatementSyntax, SwitchStatementStructureProvider>();
+            builder.Add<LiteralExpressionSyntax, StringLiteralExpressionStructureProvider>();
 
             return builder.ToImmutable();
         }
