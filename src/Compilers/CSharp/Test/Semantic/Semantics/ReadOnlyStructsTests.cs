@@ -249,5 +249,22 @@ public class Program
                 Diagnostic(ErrorCode.ERR_AssgReadonlyStatic2, "s.field").WithArguments("Program.s").WithLocation(8, 9)
                 );
         }
+
+        [Fact]
+        public void ReadOnlyStructMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+    public readonly int M()
+    {
+        return i;
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
     }
 }
