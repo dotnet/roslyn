@@ -106,6 +106,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 return;
             }
 
+            // If there are compiler diagnostics on the declaration we can't reliably
+            // tell that the refactoring will be accurate, so don't provide any
+            // code diagnostics
+            if (localDeclaration.GetDiagnostics().Any())
+            {
+                return;
+            }
+
             var local = semanticModel.GetDeclaredSymbol(localDeclaration.Declaration.Variables[0], cancellationToken);
             if (local == null)
             {
