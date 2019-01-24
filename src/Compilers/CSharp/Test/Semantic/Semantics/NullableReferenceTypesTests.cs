@@ -40152,6 +40152,8 @@ class Program
         }
 
         [Fact]
+        [WorkItem(32703, "https://github.com/dotnet/roslyn/issues/32703")]
+        [WorkItem(31395, "https://github.com/dotnet/roslyn/issues/31395")]
         public void CopyClassFields()
         {
             var source =
@@ -40176,8 +40178,8 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/32703: Not inferring nullability of non-nullable value compared to null.
-            // https://github.com/dotnet/roslyn/issues/31395: Nullability of class members should be copied on assignment.
+            // https://github.com/dotnet/roslyn/issues/32703: Not inferring nullability of non-nullable value compared to null (see // 1).
+            // https://github.com/dotnet/roslyn/issues/31395: Nullability of class members should be copied on assignment (see // 2).
             comp.VerifyDiagnostics(
                 // (13,13): hidden CS8605: Result of the comparison is possibly always true.
                 //         if (x.G != null) return;
@@ -40188,6 +40190,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem(32703, "https://github.com/dotnet/roslyn/issues/32703")]
         public void CopyStructFields()
         {
             var source =
@@ -40211,7 +40214,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/32703: Not inferring nullability of non-nullable value compared to null.
+            // https://github.com/dotnet/roslyn/issues/32703: Not inferring nullability of non-nullable value compared to null (see // 1, 2).
             comp.VerifyDiagnostics(
                 // (12,13): hidden CS8605: Result of the comparison is possibly always true.
                 //         if (x.G != null) return;
@@ -40219,6 +40222,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem(32703, "https://github.com/dotnet/roslyn/issues/32703")]
         public void CopyNullableStructFields()
         {
             var source =
@@ -40243,7 +40247,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/32703: Not inferring nullability of non-nullable value compared to null.
+            // https://github.com/dotnet/roslyn/issues/32703: Not inferring nullability of non-nullable value compared to null (see //1, 2).
             comp.VerifyDiagnostics(
                 // (13,13): hidden CS8605: Result of the comparison is possibly always true.
                 //         if (x.Value.G != null) return;
@@ -40326,6 +40330,46 @@ class Program
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(32531, "https://github.com/dotnet/roslyn/issues/32531")]
+        public void Conversions_ImplicitNullable_04()
+        {
+            var source =
+@"class Program
+{
+    static void F1(long x1)
+    {
+        int? y1 = x1; // 1
+        y1.Value.ToString();
+    }
+    static void F2(long? x2)
+    {
+        int? y2 = x2; // 2
+        y2.Value.ToString(); // 3
+    }
+    static void F3(long? x3)
+    {
+        if (x3 == null) return;
+        int? y3 = x3; // 4
+        y3.Value.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,19): error CS0266: Cannot implicitly convert type 'long' to 'int?'. An explicit conversion exists (are you missing a cast?)
+                //         int? y1 = x1; // 1
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x1").WithArguments("long", "int?").WithLocation(5, 19),
+                // (10,19): error CS0266: Cannot implicitly convert type 'long?' to 'int?'. An explicit conversion exists (are you missing a cast?)
+                //         int? y2 = x2; // 2
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x2").WithArguments("long?", "int?").WithLocation(10, 19),
+                // (11,9): warning CS8629: Nullable value type may be null.
+                //         y2.Value.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y2.Value").WithLocation(11, 9),
+                // (16,19): error CS0266: Cannot implicitly convert type 'long?' to 'int?'. An explicit conversion exists (are you missing a cast?)
+                //         int? y3 = x3; // 4
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x3").WithArguments("long?", "int?").WithLocation(16, 19));
         }
 
         [Fact]
