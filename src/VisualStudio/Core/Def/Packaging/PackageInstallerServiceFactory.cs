@@ -407,21 +407,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             // Process this single project.
-            ProcessProjectChange(solution, projectId);
+            var dteProject = GetDteProject(solution, projectId);
 
-            // After processing this single project, yield so the foreground thread
-            // can do more work.  Then go and loop again so we can process the 
+            // After creating the DteProject we can yield to the UI thread 
+            // and call NuGet to get the packages. Then go and loop again so we can process the 
             // rest of the projects.
             Task.Factory.SafeStartNewFromAsync(
-                async () =>
-                {
-                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                    cancellationToken.ThrowIfCancellationRequested();
+                    async () =>
+                    {
+                        // Processing the project changes can be expensive and should 
+                        // be done off the UI thread
+                        ProcessProjectChange(dteProject, projectId);
 
-                    ProcessBatchedChangesOnForeground(cancellationToken);
-                },
-                cancellationToken,
-                TaskScheduler.Default);
+                        await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        ProcessBatchedChangesOnForeground(cancellationToken);
+                    },
+                    cancellationToken,
+                    TaskScheduler.Default);
         }
 
         private ProjectId DequeueNextProject(Solution solution)
@@ -448,7 +452,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
         }
 
-        private void ProcessProjectChange(Solution solution, ProjectId projectId)
+        private EnvDTE.Project GetDteProject(Solution solution, ProjectId projectId)
         {
             this.AssertIsForeground();
 
@@ -459,7 +463,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             if (project == null)
             {
                 // Project was removed.  Nothing needs to be done.
-                return;
+                return null;
             }
 
             // We really only need to know the NuGet status for managed language projects.
@@ -469,14 +473,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             if (project.Language != LanguageNames.CSharp &&
                 project.Language != LanguageNames.VisualBasic)
             {
-                return;
+                return null;
             }
 
             // Project was changed in some way.  Let's go find the set of installed packages for it.
-            var dteProject = _workspace.TryGetDTEProject(projectId);
+            return _workspace.TryGetDTEProject(projectId);
+        }
+
+        private void ProcessProjectChange(EnvDTE.Project dteProject, ProjectId projectId)
+        {
             if (dteProject == null)
             {
-                // Don't have a DTE project for this project ID.  not something we can query NuGet for.
                 return;
             }
 
