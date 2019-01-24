@@ -2035,7 +2035,7 @@ interface I
     event System.Action E3 { add; remove; }
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
                 // (4,30): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 //     event System.Action E1 { add; }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(4, 30),

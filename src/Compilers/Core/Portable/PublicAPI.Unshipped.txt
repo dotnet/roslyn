@@ -1,4 +1,5 @@
 *REMOVED*Microsoft.CodeAnalysis.Operations.IEventAssignmentOperation.EventReference.get -> Microsoft.CodeAnalysis.Operations.IEventReferenceOperation
+*REMOVED*Microsoft.CodeAnalysis.SpecialType.Count = 43 -> Microsoft.CodeAnalysis.SpecialType
 Microsoft.CodeAnalysis.IFieldSymbol.IsFixedSizeBuffer.get -> bool
 Microsoft.CodeAnalysis.ITypeSymbol.IsRefLikeType.get -> bool
 Microsoft.CodeAnalysis.ITypeSymbol.IsUnmanagedType.get -> bool
@@ -17,6 +18,8 @@ Microsoft.CodeAnalysis.Operations.IDeclarationPatternOperation.MatchedType.get -
 Microsoft.CodeAnalysis.Operations.IDeclarationPatternOperation.MatchesNull.get -> bool
 Microsoft.CodeAnalysis.Operations.IDiscardPatternOperation
 Microsoft.CodeAnalysis.Operations.IPatternOperation.InputType.get -> Microsoft.CodeAnalysis.ITypeSymbol
+Microsoft.CodeAnalysis.SpecialType.Count = 44 -> Microsoft.CodeAnalysis.SpecialType
+Microsoft.CodeAnalysis.SpecialType.System_Runtime_CompilerServices_RuntimeFeature = 44 -> Microsoft.CodeAnalysis.SpecialType
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.ConstantName = 30 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.EnumMemberName = 28 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.ExtensionMethodName = 29 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind

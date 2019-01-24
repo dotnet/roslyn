@@ -247,8 +247,13 @@ namespace Microsoft.CodeAnalysis
         System_AsyncCallback = 43,
 
         /// <summary>
+        /// Indicates that the type is System.Runtime.CompilerServices.RuntimeFeature.
+        /// </summary>
+        System_Runtime_CompilerServices_RuntimeFeature = 44,
+
+        /// <summary>
         /// Count of special types. This is not a count of enum members.
         /// </summary>
-        Count = System_AsyncCallback
+        Count = System_Runtime_CompilerServices_RuntimeFeature
     }
 }

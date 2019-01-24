@@ -893,7 +893,7 @@ namespace System.Runtime.CompilerServices
         {
             IEnumerable<MetadataReference> allReferences = CoreClrShim.IsRunningOnCoreClr
                 ? TargetFrameworkUtil.NetStandard20References
-                : TargetFrameworkUtil.Mscorlib461ExtendedReferences.Add(TestReferences.Net461.netstandardRef);
+                : TargetFrameworkUtil.Mscorlib461ExtendedReferences;
 
             allReferences = allReferences.Concat(new[] { TestReferences.NetStandard20.TasksExtensionsRef, TestReferences.NetStandard20.UnsafeRef });
 

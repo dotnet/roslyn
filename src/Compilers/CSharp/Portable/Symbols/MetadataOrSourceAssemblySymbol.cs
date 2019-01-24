@@ -22,43 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <remarks></remarks>
         private NamedTypeSymbol[] _lazySpecialTypes;
-        private ThreeState _lazyRuntimeSupportsDefaultInterfaceImplementation = ThreeState.Unknown;
 
         /// <summary>
         /// How many Cor types have we cached so far.
         /// </summary>
         private int _cachedSpecialTypes;
-
-        internal override bool RuntimeSupportsDefaultInterfaceImplementation
-        {
-            get
-            {
-                if ((object)CorLibrary == this)
-                {
-                    if (!_lazyRuntimeSupportsDefaultInterfaceImplementation.HasValue())
-                    {
-                        // PROTOTYPE(DefaultInterfaceImplementation): Implement real detection if the feature is supported by the runtime
-                        // For now we assume that it is supported by default
-                        _lazyRuntimeSupportsDefaultInterfaceImplementation = ThreeState.True;
-                    }
-
-                    return _lazyRuntimeSupportsDefaultInterfaceImplementation.Value();
-                }
-
-                return base.RuntimeSupportsDefaultInterfaceImplementation;
-            }
-            set
-            {
-                if ((object)CorLibrary == this)
-                {
-                    Debug.Assert(!_lazyRuntimeSupportsDefaultInterfaceImplementation.HasValue());
-                    _lazyRuntimeSupportsDefaultInterfaceImplementation = value.ToThreeState();
-                    return;
-                }
-
-                base.RuntimeSupportsDefaultInterfaceImplementation = value;
-            }
-        }
 
         /// <summary>
         /// Lookup declaration for predefined CorLib type in this Assembly.

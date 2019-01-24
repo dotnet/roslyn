@@ -831,7 +831,8 @@ interface i1
     event myDelegate myevent { add; remove; }
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest)).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                              targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
                 // (6,35): error CS0073: An add or remove accessor must have a body
                 //     event myDelegate myevent { add; remove; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 35),
@@ -839,7 +840,8 @@ interface i1
                 //     event myDelegate myevent { add; remove; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 43));
 
-            CreateCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7,
+                              targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
                 // (6,35): error CS0073: An add or remove accessor must have a body
                 //     event myDelegate myevent { add; remove; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 35),
@@ -865,7 +867,8 @@ interface i1
     event myDelegate myevent { add {} remove {} }
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7,
+                              targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
                 // (5,32): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
                 //     event myDelegate myevent { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(5, 32),
@@ -885,7 +888,8 @@ interface i1
     event myDelegate myevent { add {} }
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7,
+                              targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
                 // (5,32): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
                 //     event myDelegate myevent { add {} }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(5, 32),
@@ -8989,8 +8993,11 @@ struct S6<T>
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 14, Column = 39 });
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+                // (14,39): error CS1002: ; expected
+                //         T P { get { return default(T) } set { } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(14, 39)
+                );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
