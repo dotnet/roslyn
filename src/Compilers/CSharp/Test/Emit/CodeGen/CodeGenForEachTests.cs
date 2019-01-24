@@ -1383,7 +1383,10 @@ ref struct DisposableEnumerator
 1
 2
 3
-Done with DisposableEnumerator").VerifyIL("C.Main", @"
+Done with DisposableEnumerator");
+
+            // IL Should not contain any Box/unbox instructions as we're a ref struct 
+            compilation.VerifyIL("C.Main", @"
 {
   // Code size       45 (0x2d)
   .maxstack  1
