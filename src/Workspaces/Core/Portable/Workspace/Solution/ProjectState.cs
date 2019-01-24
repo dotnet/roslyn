@@ -339,6 +339,9 @@ namespace Microsoft.CodeAnalysis
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public IImmutableDictionary<DocumentId, TextDocumentState> AdditionalDocumentStates => _additionalDocumentStates;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        internal string CommandLineOptions => _commandLineOptions;
+
         public bool ContainsDocument(DocumentId documentId)
         {
             return _documentStates.ContainsKey(documentId);

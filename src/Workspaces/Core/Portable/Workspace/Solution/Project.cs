@@ -170,6 +170,11 @@ namespace Microsoft.CodeAnalysis
         public IEnumerable<TextDocument> AdditionalDocuments => _projectState.AdditionalDocumentIds.Select(GetAdditionalDocument);
 
         /// <summary>
+        /// The command line options with this project.
+        /// </summary>
+        internal string CommandLineOptions => _projectState.CommandLineOptions;
+
+        /// <summary>
         /// True if the project contains a document with the specified ID.
         /// </summary>
         public bool ContainsDocument(DocumentId documentId)
