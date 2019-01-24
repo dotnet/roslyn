@@ -40443,18 +40443,33 @@ class Program
             var source =
 @"class Program
 {
-    static void F(int? x)
+    static void F1(int? x1)
     {
-        int y = (int)x; // 1
-        long z = (long)x; // 2
+        int y1 = (int)x1; // 1
+    }
+    static void F2(int? x2)
+    {
+        if (x2 == null) return;
+        int y2 = (int)x2;
+    }
+    static void F3(int? x3)
+    {
+        long y3 = (long)x3; // 2
+    }
+    static void F4(int? x4)
+    {
+        if (x4 == null) return;
+        long y4 = (long)x4;
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // PROTOTYPE: Missing warning.
             comp.VerifyDiagnostics(
-                // (5,17): warning CS8629: Nullable value type may be null.
-                //         int y = (int)x; // 1
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(int)x").WithLocation(5, 17));
+                // (5,18): warning CS8629: Nullable value type may be null.
+                //         int y1 = (int)x1; // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(int)x1").WithLocation(5, 18),
+                // (14,19): warning CS8629: Nullable value type may be null.
+                //         long y3 = (long)x3; // 2
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(long)x3").WithLocation(14, 19));
         }
 
         [Fact]
