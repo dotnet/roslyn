@@ -171,6 +171,31 @@ class Program
                 (CodeCleanupOptions.AddAccessibilityModifiers, enabled: true));
         }
 
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public Task RetainExternModifier()
+        {
+            var code = @"class Program
+{
+    void Method()
+    {
+        static extern int a;
+    }
+}
+";
+            var expected = @"internal class Program
+{
+    private void Method()
+    {
+        static private extern int a;
+    }
+}
+";
+            return AssertCodeCleanupResult(expected, code,
+                (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
+                (CodeCleanupOptions.AddAccessibilityModifiers, enabled: true));
+        }
+
         protected static async Task AssertCodeCleanupResult(string expected, string code, params (PerLanguageOption<bool> option, bool enabled)[] options)
         {
             var exportProvider = ExportProviderCache

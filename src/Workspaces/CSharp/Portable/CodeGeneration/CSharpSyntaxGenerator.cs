@@ -1825,6 +1825,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 list = list.Add(SyntaxFactory.Token(SyntaxKind.RefKeyword));
             }
 
+            if (modifiers.IsExtern)
+            {
+                list = list.Add(SyntaxFactory.Token(SyntaxKind.ExternKeyword));
+            }
             return list;
         }
 
@@ -1926,6 +1930,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                     case SyntaxKind.RefKeyword:
                         modifiers = modifiers | DeclarationModifiers.Ref;
+                        break;
+
+                    case SyntaxKind.ExternKeyword:
+                        modifiers = modifiers | DeclarationModifiers.Extern;
                         break;
                 }
             }

@@ -1,3 +1,4 @@
+Microsoft.CodeAnalysis.Editing.DeclarationModifiers.IsExtern.get -> bool
 Microsoft.CodeAnalysis.Solution.WithProjectDocumentsOrder(Microsoft.CodeAnalysis.ProjectId projectId, System.Collections.Immutable.ImmutableList<Microsoft.CodeAnalysis.DocumentId> documentIds) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Workspace.ClearOpenDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> void
 Microsoft.CodeAnalysis.Workspace.ClearOpenDocument(Microsoft.CodeAnalysis.DocumentId documentId, bool isSolutionClosing) -> void
@@ -34,6 +35,7 @@ Microsoft.CodeAnalysis.Workspace.OnOutputRefFilePathChanged(Microsoft.CodeAnalys
 override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
 override Microsoft.CodeAnalysis.Options.OptionKey.ToString() -> string
 static Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.AdditiveTypeNames.get -> System.Collections.Immutable.ImmutableArray<string>
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Extern.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Project project, string pattern, Microsoft.CodeAnalysis.SymbolFilter filter, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Project project, string pattern, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Solution solution, string pattern, Microsoft.CodeAnalysis.SymbolFilter filter, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>

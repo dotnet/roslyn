@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.Editing
             bool isWithEvents = false,
             bool isPartial = false,
             bool isAsync = false,
-            bool isWriteOnly = false)
+            bool isWriteOnly = false,
+            bool isExtern = false)
             : this(
                   (isStatic ? Modifiers.Static : Modifiers.None) |
                   (isAbstract ? Modifiers.Abstract : Modifiers.None) |
@@ -39,7 +40,8 @@ namespace Microsoft.CodeAnalysis.Editing
                   (isConst ? Modifiers.Const : Modifiers.None) |
                   (isWithEvents ? Modifiers.WithEvents : Modifiers.None) |
                   (isPartial ? Modifiers.Partial : Modifiers.None) |
-                  (isAsync ? Modifiers.Async : Modifiers.None))
+                  (isAsync ? Modifiers.Async : Modifiers.None) |
+                  (isExtern ? Modifiers.Extern : Modifiers.None))
         {
         }
 
@@ -83,6 +85,8 @@ namespace Microsoft.CodeAnalysis.Editing
         public bool IsPartial => (_modifiers & Modifiers.Partial) != 0;
 
         public bool IsAsync => (_modifiers & Modifiers.Async) != 0;
+
+        public bool IsExtern => (_modifiers & Modifiers.Extern) != 0;
 
         public bool IsWriteOnly => (_modifiers & Modifiers.WriteOnly) != 0;
 
@@ -176,6 +180,7 @@ namespace Microsoft.CodeAnalysis.Editing
             Async = 0x0800,
             WriteOnly = 0x1000,
             Ref = 0x2000,
+            Extern = 0x4000
         }
 
         public static DeclarationModifiers None => default;
@@ -193,6 +198,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public static DeclarationModifiers Partial => new DeclarationModifiers(Modifiers.Partial);
         public static DeclarationModifiers Async => new DeclarationModifiers(Modifiers.Async);
         public static DeclarationModifiers WriteOnly => new DeclarationModifiers(Modifiers.WriteOnly);
+        public static DeclarationModifiers Extern => new DeclarationModifiers(Modifiers.Extern);
         public static DeclarationModifiers Ref => new DeclarationModifiers(Modifiers.Ref);
 
         public static DeclarationModifiers operator |(DeclarationModifiers left, DeclarationModifiers right)
