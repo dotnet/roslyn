@@ -40251,6 +40251,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem(32531, "https://github.com/dotnet/roslyn/issues/32531")]
         public void Conversions_ImplicitNullable_01()
         {
             var source =
@@ -40285,6 +40286,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem(32531, "https://github.com/dotnet/roslyn/issues/32531")]
         public void Conversions_ImplicitNullable_02()
         {
             var source =
@@ -40308,6 +40310,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem(32531, "https://github.com/dotnet/roslyn/issues/32531")]
         public void Conversions_ImplicitNullable_03()
         {
             var source =
@@ -40326,6 +40329,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem(32531, "https://github.com/dotnet/roslyn/issues/32531")]
         public void Conversions_ExplicitNullable_01()
         {
             var source =
@@ -40355,6 +40359,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem(32531, "https://github.com/dotnet/roslyn/issues/32531")]
         public void Conversions_ExplicitNullable_02()
         {
             var source =
@@ -40384,6 +40389,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem(32531, "https://github.com/dotnet/roslyn/issues/32531")]
         public void Conversions_ExplicitNullable_03()
         {
             var source =
@@ -40407,6 +40413,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem(32531, "https://github.com/dotnet/roslyn/issues/32531")]
         public void Conversions_ExplicitNullable_04()
         {
             var source =
@@ -40430,6 +40437,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem(32531, "https://github.com/dotnet/roslyn/issues/32531")]
         public void Conversions_ExplicitNullable_05()
         {
             var source =
@@ -40450,7 +40458,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(32599, "https://github.com/dotnet/roslyn/issues/32599")]
+        [WorkItem(32531, "https://github.com/dotnet/roslyn/issues/32531")]
         public void Tuple_Conversions_ImplicitNullable()
         {
             var source =

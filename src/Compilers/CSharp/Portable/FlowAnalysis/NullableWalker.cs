@@ -3506,26 +3506,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 reportRemainingWarnings: reportNestedWarnings);
         }
 
-        private void TrackNullableStateIfNullableConversion(BoundConversion node)
-        {
-            Debug.Assert(node.ConversionKind == ConversionKind.ImplicitNullable || node.ConversionKind == ConversionKind.ExplicitNullable);
-
-            var operand = node.Operand;
-            var operandType = operand.Type;
-            var convertedType = node.Type;
-            if (AreNullableAndUnderlyingTypes(convertedType, operandType, out TypeSymbolWithAnnotations underlyingType))
-            {
-                // Implicit conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
-                int valueSlot = MakeSlot(operand);
-                if (valueSlot > 0)
-                {
-                    int containingSlot = GetOrCreateObjectCreationPlaceholderSlot(node);
-                    Debug.Assert(containingSlot > 0);
-                    TrackNullableStateOfNullableValue(containingSlot, convertedType, operand, underlyingType, valueSlot);
-                }
-            }
-        }
-
         private static bool AreNullableAndUnderlyingTypes(TypeSymbol nullableTypeOpt, TypeSymbol underlyingTypeOpt, out TypeSymbolWithAnnotations underlyingTypeWithAnnotations)
         {
             if (nullableTypeOpt?.IsNullableType() == true &&
@@ -3627,6 +3607,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (targetSlot > 0)
             {
                 TrackNullableStateForAssignment(value, symbol.GetTypeOrReturnType(), targetSlot, valueType, valueSlot);
+            }
+        }
+
+        private void TrackNullableStateIfNullableConversion(BoundConversion node)
+        {
+            Debug.Assert(node.ConversionKind == ConversionKind.ImplicitNullable || node.ConversionKind == ConversionKind.ExplicitNullable);
+
+            var operand = node.Operand;
+            var operandType = operand.Type;
+            var convertedType = node.Type;
+            if (AreNullableAndUnderlyingTypes(convertedType, operandType, out TypeSymbolWithAnnotations underlyingType))
+            {
+                // Implicit conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
+                int valueSlot = MakeSlot(operand);
+                if (valueSlot > 0)
+                {
+                    int containingSlot = GetOrCreateObjectCreationPlaceholderSlot(node);
+                    Debug.Assert(containingSlot > 0);
+                    TrackNullableStateOfNullableValue(containingSlot, convertedType, operand, underlyingType, valueSlot);
+                }
             }
         }
 
