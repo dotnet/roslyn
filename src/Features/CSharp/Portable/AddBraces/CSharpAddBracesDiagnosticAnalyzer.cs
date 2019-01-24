@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 using FormattingRangeHelper = Microsoft.CodeAnalysis.CSharp.Utilities.FormattingRangeHelper;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
@@ -44,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             var cancellationToken = context.CancellationToken;
 
             var optionSet = context.Options.GetDocumentOptionSetAsync(statement.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
+
             if (optionSet == null)
             {
                 return;
@@ -99,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 return;
             }
 
-            if (statement.ContainsInterleavedDirective(cancellationToken))
+            if (ContainsInterleavedDirective(statement, embeddedStatement, cancellationToken))
             {
                 return;
             }
@@ -112,6 +115,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 additionalLocations: null,
                 properties: null,
                 SyntaxFacts.GetText(firstToken.Kind())));
+        }
+
+        /// <summary>
+        /// Check if there are interleaved directives on the statement.
+        /// Handles special case with if/else.
+        /// </summary>
+        /// <param name="statement"></param>
+        /// <param name="embeddedStatement"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        private static bool ContainsInterleavedDirective(SyntaxNode statement, StatementSyntax embeddedStatement, CancellationToken cancellationToken)
+        {
+            if (statement.Kind() == SyntaxKind.IfStatement)
+            {
+                var ifStatementNode = (IfStatementSyntax)statement;
+                var elseNode = ifStatementNode.Else;
+                if (elseNode != null && !embeddedStatement.IsMissing)
+                {
+                    // For IF/ELSE statements, only the IF part should be checked for interleaved directives when the diagnostic is triggered on the IF.
+                    // A separate diagnostic will be triggered to handle the ELSE part.
+                    var ifStatementSpanWithoutElse = TextSpan.FromBounds(statement.Span.Start, embeddedStatement.Span.End);
+                    return statement.ContainsInterleavedDirective(ifStatementSpanWithoutElse, cancellationToken);
+                }
+            }
+            return statement.ContainsInterleavedDirective(cancellationToken);
         }
 
         /// <summary>

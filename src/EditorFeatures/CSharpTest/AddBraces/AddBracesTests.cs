@@ -1370,6 +1370,297 @@ class Program
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline)]
+        [InlineData((int)PreferBracesPreference.Always)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task DoNotFireForIfElseWithIntercedingDirectiveInBoth(int bracesPreference)
+        {
+            await TestMissingInRegularAndScriptAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        [|if (true)
+#if test
+            return;
+        else|]
+#endif
+            return;
+    }
+}",
+                new TestParameters(options: Option(CSharpCodeStyleOptions.PreferBraces, (PreferBracesPreference)bracesPreference, NotificationOption.Silent)));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task OnlyFireForIfWithIntercedingDirectiveInElseAroundIf(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+#if test
+        [|if (true)
+            return;
+        else|]
+#endif
+            return;
+    }
+}",
+
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+#if test
+        if (true)
+        {
+            return;
+        }
+        else
+#endif
+            return;
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task OnlyFireForElseWithIntercedingDirectiveInIfAroundElse(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        [|if (true)
+#if test
+            return;
+        else|]
+            return;
+#endif
+    }
+}",
+
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        if (true)
+#if test
+            return;
+        else
+        {
+            return;
+        }
+#endif
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task OnlyFireForElseWithIntercedingDirectiveInIf(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+#if test
+        [|if (true)
+#endif
+            return;
+        else|]
+            return;
+    }
+}",
+
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+#if test
+        if (true)
+#endif
+            return;
+        else
+        {
+            return;
+        }
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task OnlyFireForIfWithIntercedingDirectiveInElse(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        [|if (true)
+            return;
+        else|]
+#if test
+            return;
+#endif
+    }
+}",
+
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        if (true)
+        {
+            return;
+        }
+        else
+#if test
+            return;
+#endif
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task FireForIfElseWithDirectiveAroundIf(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+#if test
+        [|if (true)
+            return;
+#endif
+        else|]
+        {
+            return;
+        }
+    }
+}",
+
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+#if test
+        if (true)
+        {
+            return;
+        }
+#endif
+        else
+        {
+            return;
+        }
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, true)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task FireForIfElseWithDirectiveAroundElse(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        [|if (true)
+        {
+            return;
+        }
+#if test
+        else|]
+            return;
+#endif
+    }
+}",
+
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        if (true)
+        {
+            return;
+        }
+#if test
+        else
+        {
+            return;
+        }
+#endif
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         [InlineData((int)PreferBracesPreference.None, false)]
         [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
         [InlineData((int)PreferBracesPreference.Always, true)]
@@ -1402,6 +1693,45 @@ class Program
         {
             return;
         }
+    }
+}",
+                (PreferBracesPreference)bracesPreference,
+                expectDiagnostic);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [InlineData((int)PreferBracesPreference.None, false)]
+        [InlineData((int)PreferBracesPreference.WhenMultiline, false)]
+        [InlineData((int)PreferBracesPreference.Always, true)]
+        [WorkItem(32480, "https://github.com/dotnet/roslyn/issues/32480")]
+        public async Task FireForIfWithDirectiveAfterEmbeddedStatement(int bracesPreference, bool expectDiagnostic)
+        {
+            await TestAsync(
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        [|if (true)|]
+            return;
+#if test
+#endif
+    }
+}",
+
+   @"
+#define test
+class Program
+{
+    static void Main()
+    {
+        if (true)
+        {
+            return;
+        }
+#if test
+#endif
     }
 }",
                 (PreferBracesPreference)bracesPreference,
