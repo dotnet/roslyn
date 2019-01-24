@@ -801,6 +801,26 @@ namespace Microsoft.CodeAnalysis
             return ForkProject(GetProjectState(projectId));
         }
 
+        internal SolutionState WithProjectCommandLineOptions(ProjectId projectId, string commandLineOptions)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            CheckContainsProject(projectId);
+
+            var oldProject = this.GetProjectState(projectId);
+            var newProject = oldProject.UpdateCommandLineOptions(commandLineOptions);
+
+            if (oldProject == newProject)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProject);
+        }
+
         /// <summary>
         /// Create a new solution instance with the project specified updated to have
         /// the specified hasAllInformation.

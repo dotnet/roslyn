@@ -1040,6 +1040,17 @@ namespace Microsoft.CodeAnalysis
             return new Solution(newState);
         }
 
+        internal Solution WithProjectCommandLineOptions(ProjectId projectId, string commandLineOptions)
+        {
+            var newState = _state.WithProjectCommandLineOptions(projectId, commandLineOptions);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
         /// <summary>
         /// Gets a copy of the solution isolated from the original so that they do not share computed state.
         /// 

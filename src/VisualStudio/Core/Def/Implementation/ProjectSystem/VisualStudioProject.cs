@@ -59,6 +59,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string _outputRefFilePath;
         private string _defaultNamespace;
 
+        private string _commandLineOptions;
+
         private readonly Dictionary<string, List<MetadataReferenceProperties>> _allMetadataReferences = new Dictionary<string, List<MetadataReferenceProperties>>();
 
         /// <summary>
@@ -237,6 +239,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                        value,
                        s => s.WithProjectParseOptions(Id, value),
                        w => w.OnParseOptionsChanged(Id, value));
+        }
+
+        internal string CommandLineOptions
+        {
+            get => _commandLineOptions;
+            set
+            {
+                if (_activeBatchScopes > 0)
+                {
+                    _commandLineOptions = value;
+                }
+                else
+                {
+                    ChangeProjectProperty(ref _commandLineOptions, value, s => s.WithProjectCommandLineOptions(Id, value), w => w.OnProjectCommandLineOptionsChanged(Id, value));
+                }
+            }
         }
 
         /// <summary>
@@ -492,6 +510,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
 
                     ClearAndZeroCapacity(_projectPropertyModificationsInBatch);
+
+                    // Command line options, solution will remain the same if the command line options didn't change.
+                    solution = solution.WithProjectCommandLineOptions(Id, _commandLineOptions);
 
                     return solution;
                 });

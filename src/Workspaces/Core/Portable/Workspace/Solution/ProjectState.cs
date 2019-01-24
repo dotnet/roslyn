@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis
         // Checksums for this solution state
         private readonly ValueSource<ProjectStateChecksums> _lazyChecksums;
 
+        private readonly string _commandLineOptions;
+
         // this will be initialized lazily.
         private AnalyzerOptions _analyzerOptionsDoNotAccessDirectly;
 
@@ -53,7 +55,8 @@ namespace Microsoft.CodeAnalysis
             ImmutableSortedDictionary<DocumentId, DocumentState> documentStates,
             ImmutableSortedDictionary<DocumentId, TextDocumentState> additionalDocumentStates,
             AsyncLazy<VersionStamp> lazyLatestDocumentVersion,
-            AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion)
+            AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion,
+            string commandLineOptions)
         {
             _solutionServices = solutionServices;
             _languageServices = languageServices;
@@ -70,6 +73,8 @@ namespace Microsoft.CodeAnalysis
             _projectInfo = ClearAllDocumentsFromProjectInfo(projectInfo);
 
             _lazyChecksums = new AsyncLazy<ProjectStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
+
+            _commandLineOptions = commandLineOptions;
         }
 
         public ProjectState(ProjectInfo projectInfo, HostLanguageServices languageServices, SolutionServices solutionServices)
@@ -363,7 +368,8 @@ namespace Microsoft.CodeAnalysis
             ImmutableSortedDictionary<DocumentId, DocumentState> documentStates = null,
             ImmutableSortedDictionary<DocumentId, TextDocumentState> additionalDocumentStates = null,
             AsyncLazy<VersionStamp> latestDocumentVersion = null,
-            AsyncLazy<VersionStamp> latestDocumentTopLevelChangeVersion = null)
+            AsyncLazy<VersionStamp> latestDocumentTopLevelChangeVersion = null,
+            string commandLineOptions = null)
         {
             return new ProjectState(
                 projectInfo ?? _projectInfo,
@@ -374,7 +380,8 @@ namespace Microsoft.CodeAnalysis
                 documentStates ?? _documentStates,
                 additionalDocumentStates ?? _additionalDocumentStates,
                 latestDocumentVersion ?? _lazyLatestDocumentVersion,
-                latestDocumentTopLevelChangeVersion ?? _lazyLatestDocumentTopLevelChangeVersion);
+                latestDocumentTopLevelChangeVersion ?? _lazyLatestDocumentTopLevelChangeVersion,
+                commandLineOptions ?? _commandLineOptions);
         }
 
         public ProjectState UpdateName(string name)
@@ -708,6 +715,18 @@ namespace Microsoft.CodeAnalysis
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
                 documentIds: documentIds);
+        }
+
+        internal ProjectState UpdateCommandLineOptions(string commandLineOptions)
+        {
+            if (_commandLineOptions == commandLineOptions)
+            {
+                return this;
+            }
+
+            return this.With(
+                projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
+                commandLineOptions: commandLineOptions);
         }
 
         private void GetLatestDependentVersions(
