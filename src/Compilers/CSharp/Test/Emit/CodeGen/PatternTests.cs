@@ -2153,7 +2153,7 @@ public class Program
 }
 ";
             var v = CompileAndVerify(source, options: TestOptions.DebugExe);
-            v.VerifyIL("Program.Main",
+            v.VerifyIL(qualifiedMethodName: "Program.Main",
 @"{
   // Code size       55 (0x37)
   .maxstack  2
@@ -2161,10 +2161,13 @@ public class Program
                 Program V_1, //y
                 Program V_2,
                 Program V_3)
- -IL_0000:  nop
- -IL_0001:  ldc.i4.0
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: int i = 0;
+  IL_0001:  ldc.i4.0
   IL_0002:  stloc.0
- -IL_0003:  ldloc.0
+  // sequence point: var y = (i s ...   }).Chain()
+  IL_0003:  ldloc.0
   IL_0004:  brfalse.s  IL_000e
   IL_0006:  br.s       IL_0008
   IL_0008:  ldloc.0
@@ -2185,12 +2188,14 @@ public class Program
   IL_0028:  ldloc.3
   IL_0029:  callvirt   ""Program Program.Chain()""
   IL_002e:  stloc.1
- -IL_002f:  ldloc.1
+  // sequence point: y.Chain2();
+  IL_002f:  ldloc.1
   IL_0030:  callvirt   ""Program Program.Chain2()""
   IL_0035:  pop
- -IL_0036:  ret
+  // sequence point: }
+  IL_0036:  ret
 }
-", sequencePoints: "Program.Main");
+", sequencePoints: "Program.Main", source: source);
         }
     }
 }
