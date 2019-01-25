@@ -2105,6 +2105,16 @@ public class X
                 // (16,47): error CS0128: A local variable or function named 'y1' is already defined in this scope
                 //         var res = from x1 in new[] { 1 is var y1 ? y1 : 0}
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "y1").WithArguments("y1").WithLocation(16, 47),
+                // (18,47): error CS0128: A local variable or function named 'y3' is already defined in this scope
+                //                   join x3 in new[] { 3 is var y3 ? y3 : 0}
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y3").WithArguments("y3").WithLocation(18, 47)
+                );
+
+            compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_3);
+            compilation.VerifyDiagnostics(
+                // (16,47): error CS0128: A local variable or function named 'y1' is already defined in this scope
+                //         var res = from x1 in new[] { 1 is var y1 ? y1 : 0}
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y1").WithArguments("y1").WithLocation(16, 47),
                 // (17,47): error CS0136: A local or parameter named 'y2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   from x2 in new[] { 2 is var y2 ? y2 : 0}
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y2").WithArguments("y2").WithLocation(17, 47),
@@ -2227,6 +2237,16 @@ public class X
 }
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (26,47): error CS0128: A local variable or function named 'y1' is already defined in this scope
+                //                   from x1 in new[] { 1 is var y1 ? y1 : 0}
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y1").WithArguments("y1").WithLocation(26, 47),
+                // (28,47): error CS0128: A local variable or function named 'y3' is already defined in this scope
+                //                   join x3 in new[] { 3 is var y3 ? y3 : 0}
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y3").WithArguments("y3").WithLocation(28, 47)
+                );
+
+            compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_3);
             compilation.VerifyDiagnostics(
                 // (26,47): error CS0128: A local variable or function named 'y1' is already defined in this scope
                 //                   from x1 in new[] { 1 is var y1 ? y1 : 0}
@@ -2687,6 +2707,13 @@ public class X
 }
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (26,45): error CS0128: A local variable or function named 'y2' is already defined in this scope
+                //                               x1 + 1 is var y2)
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y2").WithArguments("y2").WithLocation(26, 45)
+                );
+
+            compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_3);
             compilation.VerifyDiagnostics(
                 // (17,47): error CS0136: A local or parameter named 'y1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                               where x1 is var y1
