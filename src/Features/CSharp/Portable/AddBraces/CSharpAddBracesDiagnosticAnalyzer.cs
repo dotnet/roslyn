@@ -133,8 +133,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                     var ifStatementSpanWithoutElse = TextSpan.FromBounds(statement.Span.Start, embeddedStatement.Span.End);
                     return statement.ContainsInterleavedDirective(ifStatementSpanWithoutElse, cancellationToken);
                 }
-
             }
+
             return statement.ContainsInterleavedDirective(cancellationToken);
         }
 
