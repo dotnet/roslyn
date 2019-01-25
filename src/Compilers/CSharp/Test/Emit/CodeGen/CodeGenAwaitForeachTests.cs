@@ -4820,5 +4820,51 @@ class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
         }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        public void PatternBasedDisposal_ReturnsTaskOfInt()
+        {
+            string source = @"
+using System.Threading.Tasks;
+class C
+{
+    public static async Task Main()
+    {
+        await foreach (var i in new C())
+        {
+        }
+        System.Console.Write(""Done"");
+    }
+    public Enumerator GetAsyncEnumerator()
+    {
+        return new Enumerator();
+    }
+    public sealed class Enumerator
+    {
+        public async System.Threading.Tasks.Task<bool> MoveNextAsync()
+        {
+            System.Console.Write(""MoveNextAsync "");
+            await System.Threading.Tasks.Task.Yield();
+            return false;
+        }
+        public int Current
+        {
+            get => throw null;
+        }
+        public async System.Threading.Tasks.Task<int> DisposeAsync()
+        {
+            System.Console.Write(""DisposeAsync "");
+            await System.Threading.Tasks.Task.Yield();
+            return 1;
+        }
+    }
+}
+";
+            // it's okay to await `Task<int>` even if we don't care about the result
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
+        }
     }
 }

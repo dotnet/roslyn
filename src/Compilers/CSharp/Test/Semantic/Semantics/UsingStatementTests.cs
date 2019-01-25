@@ -439,6 +439,9 @@ class C4
         }
     }
 }";
+            // Extension methods should just be ignored, rather than rejected after-the-fact. So there should be no error about ambiguities
+            // Tracked by https://github.com/dotnet/roslyn/issues/32767
+
             CreateCompilation(source).VerifyDiagnostics(
                 // (20,16): error CS0121: The call is ambiguous between the following methods or properties: 'C2.Dispose(S1)' and 'C3.Dispose(S1)'
                 //         using (S1 c = new S1())
@@ -673,6 +676,9 @@ class C4
        }
     }
 }";
+            // Extension methods should just be ignored, rather than rejected after-the-fact. So there should be no error about ambiguities
+            // Tracked by https://github.com/dotnet/roslyn/issues/32767
+
             CreateCompilation(source).VerifyDiagnostics(
                 // (21,15): error CS0121: The call is ambiguous between the following methods or properties: 'C2.Dispose(S1, int)' and 'C3.Dispose(S1, int)'
                 //        using (S1 s = new S1())

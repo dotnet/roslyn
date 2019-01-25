@@ -570,12 +570,18 @@ class C
                 // (6,9): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
                 //         await using (new C())
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.IAsyncDisposable").WithLocation(6, 9),
+                // (6,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task<int>>'.
+                //         await using (new C())
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(6, 9),
                 // (6,22): error CS8410: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using (new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "new C()").WithArguments("C").WithLocation(6, 22),
                 // (9,9): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
                 //         await using (var x = new C())
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.IAsyncDisposable").WithLocation(9, 9),
+                // (9,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task<int>>'.
+                //         await using (var x = new C())
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(9, 9),
                 // (9,22): error CS8410: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using (var x = new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(9, 22),
@@ -1885,13 +1891,13 @@ public class C
     {
         System.Console.Write($""dispose_start "");
         await System.Threading.Tasks.Task.Yield();
-        System.Console.Write($""dispose_end "");
+        System.Console.Write($""dispose_end({x.Length}) "");
     }
 }
 ";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
+            CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end(0) return");
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
@@ -2046,6 +2052,97 @@ public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
     public void OnCompleted(System.Action continuation) { }
 }
 ";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        public void TestPatternBasedDisposal_ReturnsTask()
+        {
+            string source = @"
+public struct C
+{
+    public static async System.Threading.Tasks.Task<int> Main()
+    {
+        {
+            await using var x = new C();
+            System.Console.Write(""using "");
+        }
+        System.Console.Write(""return"");
+        return 1;
+    }
+    public async System.Threading.Tasks.Task DisposeAsync()
+    {
+        System.Console.Write($""dispose_start "");
+        await System.Threading.Tasks.Task.Yield();
+        System.Console.Write($""dispose_end "");
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        public void TestPatternBasedDisposal_ReturnsTaskOfBool()
+        {
+            string source = @"
+public struct C
+{
+    public static async System.Threading.Tasks.Task<int> Main()
+    {
+        {
+            await using var x = new C();
+            System.Console.Write(""using "");
+        }
+        System.Console.Write(""return"");
+        return 1;
+    }
+    public async System.Threading.Tasks.Task<bool> DisposeAsync()
+    {
+        System.Console.Write($""dispose_start "");
+        await System.Threading.Tasks.Task.Yield();
+        System.Console.Write($""dispose_end "");
+        return true;
+    }
+}
+";
+            // it's okay to await `Task<bool>` even if we don't care about the result
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        public void TestPatternBasedDisposal_ReturnsTaskOfInt()
+        {
+            string source = @"
+public struct C
+{
+    public static async System.Threading.Tasks.Task<int> Main()
+    {
+        {
+            await using var x = new C();
+            System.Console.Write(""using "");
+        }
+        System.Console.Write(""return"");
+        return 1;
+    }
+    public async System.Threading.Tasks.Task<int> DisposeAsync()
+    {
+        System.Console.Write($""dispose_start "");
+        await System.Threading.Tasks.Task.Yield();
+        System.Console.Write($""dispose_end "");
+        return 1;
+    }
+}
+";
+            // it's okay to await `Task<int>` even if we don't care about the result
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
