@@ -677,7 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!(expr is null));
             Debug.Assert(!(expr.Type is null));
-            Debug.Assert((expr.Type.IsValueType && expr.Type.IsRefLikeType) || hasAwait); // pattern dispose lookup is only valid on ref structs or asynchronous usings
+            Debug.Assert(expr.Type.IsRefLikeType || hasAwait); // pattern dispose lookup is only valid on ref structs or asynchronous usings
 
             // Don't try and lookup if we're not enabled
             if (MessageID.IDS_FeatureUsingDeclarations.RequiredVersion() > Compilation.LanguageVersion)

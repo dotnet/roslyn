@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol getEnumeratorMethod = builder.GetEnumeratorMethod;
             if (IsAsync)
             {
-                BoundExpression placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, builder.MoveNextMethod?.ReturnType.TypeSymbol ?? CreateErrorType());
+                var placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, builder.MoveNextMethod?.ReturnType.TypeSymbol ?? CreateErrorType());
                 awaitInfo = BindAwaitInfo(placeholder, _syntax.Expression, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
 
                 if (!hasErrors && awaitInfo.GetResult?.ReturnType.SpecialType != SpecialType.System_Boolean)
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? this.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask, diagnostics, this._syntax)
                 : builder.DisposeMethod.ReturnType.TypeSymbol;
 
-            BoundExpression placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, awaitableType);
+            var placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, awaitableType);
 
             bool hasErrors = false;
             builder.DisposeAwaitableInfo = BindAwaitInfo(placeholder, _syntax.Expression, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);

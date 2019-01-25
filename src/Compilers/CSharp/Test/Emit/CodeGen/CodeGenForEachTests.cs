@@ -1520,6 +1520,46 @@ static class DisposeExtension
         }
 
         [Fact]
+        public void TestForEachPatternDisposableRefStructWithTwoExtensionMethods()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var x in new Enumerable1())
+        {
+            System.Console.Write(x);
+        }
+    }
+}
+
+class Enumerable1
+{
+    public DisposableEnumerator GetEnumerator() { return new DisposableEnumerator(); }
+}
+
+ref struct DisposableEnumerator
+{
+    int x;
+    public int Current { get { return x; } }
+    public bool MoveNext() { return ++x < 4; }
+}
+
+static class DisposeExtension1
+{
+    public static void Dispose(this DisposableEnumerator de) => throw null;
+}
+static class DisposeExtension2
+{
+    public static void Dispose(this DisposableEnumerator de) => throw null;
+}
+";
+            // extension methods do not contribute to disposal
+            CompileAndVerify(source, expectedOutput: @"123");
+        }
+
+        [Fact]
         public void TestForEachPatternDisposableRefStructWithExtensionMethodAndDefaultArguments()
         {
             var source = @"
