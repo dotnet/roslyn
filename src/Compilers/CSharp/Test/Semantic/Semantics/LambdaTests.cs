@@ -3259,6 +3259,63 @@ class Program
         }
 
         [Fact]
+        public void ShadowNames_Nested_01()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System;
+class Program
+{
+    static void M()
+    {
+        Func<int, Func<int, Func<int, int>>> f = x => x => x => x;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (8,55): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         Func<int, Func<int, Func<int, int>>> f = x => x => x => x;
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(8, 55),
+                // (8,60): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         Func<int, Func<int, Func<int, int>>> f = x => x => x => x;
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(8, 60));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ShadowNames_Nested_02()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System;
+class Program
+{
+    static void M()
+    {
+        Func<int, int, int, Func<int, int, Func<int, int, int>>> f = (x, y, z) => (_, x) => (y, _) => x + y + z + _;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (8,87): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         Func<int, int, int, Func<int, int, Func<int, int, int>>> f = (x, y, z) => (_, x) => (y, _) => x + y + z + _;
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(8, 87),
+                // (8,94): error CS0136: A local or parameter named 'y' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         Func<int, int, int, Func<int, int, Func<int, int, int>>> f = (x, y, z) => (_, x) => (y, _) => x + y + z + _;
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y").WithArguments("y").WithLocation(8, 94),
+                // (8,97): error CS0136: A local or parameter named '_' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         Func<int, int, int, Func<int, int, Func<int, int, int>>> f = (x, y, z) => (_, x) => (y, _) => x + y + z + _;
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "_").WithArguments("_").WithLocation(8, 97));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void ShadowNames_LambdaInsideLocalFunction_01()
         {
             var source =
