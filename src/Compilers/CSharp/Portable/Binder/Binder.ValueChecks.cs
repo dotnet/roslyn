@@ -209,9 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var outer = (BoundSuppressNullableWarningExpression)expr;
                         var inner = CheckValue(outer.Expression, valueKind, diagnostics);
-                        expr = outer.Update(inner, inner.Type);
+                        return outer.Update(inner, inner.Type);
                     }
-                    break;
             }
 
             bool hasResolutionErrors = false;
@@ -325,12 +324,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CheckEventValueKind((BoundEventAccess)expr, valueKind, diagnostics);
 
                 case BoundKind.SuppressNullableWarningExpression:
-                    if (!IsLegalSuppressionValueKind(valueKind))
-                    {
-                        Error(diagnostics, ErrorCode.ERR_IllegalSuppression, node);
-                        return false;
-                    }
-
+                    // https://github.com/dotnet/roslyn/issues/29710 We can reach this assertion
+                    Debug.Assert(false);
                     return CheckValueKind(node, ((BoundSuppressNullableWarningExpression)expr).Expression, valueKind, checkingReceiver, diagnostics);
             }
 
@@ -522,23 +517,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
             Error(diagnostics, GetStandardLvalueError(valueKind), node);
-            return false;
-        }
-
-        private static bool IsLegalSuppressionValueKind(BindValueKind valueKind)
-        {
-            // Need to review allowed uses of the suppression operator
-            // Tracked by https://github.com/dotnet/roslyn/issues/31297
-
-            switch (valueKind)
-            {
-                case BindValueKind.RValue:
-                case BindValueKind.RValueOrMethodGroup:
-                case BindValueKind.RefOrOut:
-                    return true;
-            }
-
-            // all others are illegal
             return false;
         }
 
@@ -2422,10 +2400,6 @@ moreArguments:
                     // only possible in error cases (if possible at all)
                     return scopeOfTheContainingExpression;
 
-                case BoundKind.SuppressNullableWarningExpression:
-                    var suppressed = (BoundSuppressNullableWarningExpression)expr;
-                    return GetValEscape(suppressed.Expression, scopeOfTheContainingExpression);
-
                 default:
                     // in error situations some unexpected nodes could make here
                     // returning "scopeOfTheContainingExpression" seems safer than throwing.
@@ -2756,11 +2730,6 @@ moreArguments:
                 case BoundKind.ArrayAccess:
                     // only possible in error cases (if possible at all)
                     return false;
-
-                case BoundKind.SuppressNullableWarningExpression:
-                    // Need to implement and test escape rules for suppression operator
-                    // Tracked by https://github.com/dotnet/roslyn/issues/31297
-                    goto default;
 
                 default:
                     // in error situations some unexpected nodes could make here

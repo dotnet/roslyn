@@ -984,10 +984,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hadError = false;
             foreach (var argument in arguments.Arguments)
             {
-                var argumentWithoutSuppressions = argument.RemoveSuppressions();
-                if (argumentWithoutSuppressions.Kind == BoundKind.UnboundLambda)
+                if (argument.Kind == BoundKind.UnboundLambda)
                 {
-                    hadError |= ((UnboundLambda)argumentWithoutSuppressions).GenerateSummaryErrors(diagnostics);
+                    hadError |= ((UnboundLambda)argument).GenerateSummaryErrors(diagnostics);
                 }
             }
 
@@ -1121,12 +1120,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If the problem is that a lambda isn't convertible to the given type, also report why.
                 // The argument and parameter type might match, but may not have same in/out modifiers
-                if (argument.KindIgnoringSuppressions() == BoundKind.UnboundLambda && refArg == refParameter)
+                if (argument.Kind == BoundKind.UnboundLambda && refArg == refParameter)
                 {
-                    ((UnboundLambda)argument.RemoveSuppressions()).GenerateAnonymousFunctionConversionError(diagnostics, parameterType);
+                    ((UnboundLambda)argument).GenerateAnonymousFunctionConversionError(diagnostics, parameterType);
                 }
-                else if (argument.KindIgnoringSuppressions() == BoundKind.MethodGroup && parameterType.TypeKind == TypeKind.Delegate &&
-                        Conversions.ReportDelegateMethodGroupDiagnostics(binder, (BoundMethodGroup)argument.RemoveSuppressions(), parameterType, diagnostics))
+                else if (argument.Kind == BoundKind.MethodGroup && parameterType.TypeKind == TypeKind.Delegate &&
+                        Conversions.ReportDelegateMethodGroupDiagnostics(binder, (BoundMethodGroup)argument, parameterType, diagnostics))
                 {
                     // a diagnostic has been reported by ReportDelegateMethodGroupDiagnostics
                 }

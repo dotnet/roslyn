@@ -187,33 +187,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(resultKind != LookupResultKind.Viable);
 
             TypeSymbol resultType = expr.Type;
-            BoundKind exprKind = expr.KindIgnoringSuppressions();
+            BoundKind exprKind = expr.Kind;
 
             if (expr.HasAnyErrors && ((object)resultType != null || exprKind == BoundKind.UnboundLambda))
             {
                 return expr;
             }
 
-            var exprWithoutSuppressions = expr.RemoveSuppressions();
             if (exprKind == BoundKind.BadExpression)
             {
-                var badExpression = (BoundBadExpression)exprWithoutSuppressions;
-                return badExpression
-                    .Update(resultKind, badExpression.Symbols, badExpression.ChildBoundNodes, resultType)
-                    .WrapWithSuppressionsFrom(expr);
+                var badExpression = (BoundBadExpression)expr;
+                return badExpression.Update(resultKind, badExpression.Symbols, badExpression.ChildBoundNodes, resultType);
             }
             else
             {
-                var symbols = ArrayBuilder<Symbol>.GetInstance();
-                exprWithoutSuppressions.GetExpressionSymbols(symbols, parent: null, binder: this);
-
+                ArrayBuilder<Symbol> symbols = ArrayBuilder<Symbol>.GetInstance();
+                expr.GetExpressionSymbols(symbols, parent: null, binder: this);
                 return new BoundBadExpression(
-                    exprWithoutSuppressions.Syntax,
+                    expr.Syntax,
                     resultKind,
                     symbols.ToImmutableAndFree(),
-                    ImmutableArray.Create(exprWithoutSuppressions),
-                    resultType ?? CreateErrorType())
-                    .WrapWithSuppressionsFrom(expr);
+                    ImmutableArray.Create(expr),
+                    resultType ?? CreateErrorType());
             }
         }
 
@@ -2071,8 +2066,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression operand,
             TypeSymbol targetType)
         {
-            operand = operand.RemoveSuppressions();
-
             // Make sure that errors within the unbound lambda don't get lost.
             if (operand.Kind == BoundKind.UnboundLambda)
             {
@@ -3833,7 +3826,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 BoundExpression argument = analyzedArguments.Arguments.Count >= 1 ? analyzedArguments.Arguments[0] : null;
-                var argumentWithoutSuppressions = argument.RemoveSuppressions();
 
                 if (hasErrors)
                 {
@@ -3842,13 +3834,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // There are four cases for a delegate creation expression (7.6.10.5):
                 // 1. An anonymous function is treated as a conversion from the anonymous function to the delegate type.
-                else if (argumentWithoutSuppressions is UnboundLambda unboundLambda)
+                else if (argument is UnboundLambda)
                 {
                     // analyzedArguments.HasErrors could be true,
                     // but here the argument is an unbound lambda, the error comes from inside
                     // eg: new Action<int>(x => x.)
                     // We should try to bind it anyway in order for intellisense to work.
 
+                    UnboundLambda unboundLambda = (UnboundLambda)argument;
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     var conversion = this.Conversions.ClassifyConversionFromExpression(unboundLambda, type, ref useSiteDiagnostics);
                     diagnostics.Add(node, useSiteDiagnostics);
@@ -3871,7 +3864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Just stuff the bound lambda into the delegate creation expression. When we lower the lambda to
                     // its method form we will rewrite this expression to refer to the method.
 
-                    return new BoundDelegateCreationExpression(node, boundLambda.WrapWithSuppressionsFrom(argument), methodOpt: null, isExtensionMethod: false, type: type, hasErrors: !conversion.IsImplicit);
+                    return new BoundDelegateCreationExpression(node, boundLambda, methodOpt: null, isExtensionMethod: false, type: type, hasErrors: !conversion.IsImplicit);
                 }
 
                 else if (analyzedArguments.HasErrors)
@@ -3880,12 +3873,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // 2. A method group
-                else if (argumentWithoutSuppressions.Kind == BoundKind.MethodGroup)
+                else if (argument.Kind == BoundKind.MethodGroup)
                 {
-                    var methodGroup = (BoundMethodGroup)argumentWithoutSuppressions;
-                    hasErrors = MethodGroupConversionDoesNotExistOrHasErrors(methodGroup, type, node.Location, diagnostics, out Conversion conversion);
+                    Conversion conversion;
+                    BoundMethodGroup methodGroup = (BoundMethodGroup)argument;
+                    hasErrors = MethodGroupConversionDoesNotExistOrHasErrors(methodGroup, type, node.Location, diagnostics, out conversion);
                     methodGroup = FixMethodGroupWithTypeOrValue(methodGroup, conversion, diagnostics);
-                    return new BoundDelegateCreationExpression(node, methodGroup.WrapWithSuppressionsFrom(argument), conversion.Method, conversion.IsExtensionMethod, type, hasErrors);
+                    return new BoundDelegateCreationExpression(node, methodGroup, conversion.Method, conversion.IsExtensionMethod, type, hasErrors);
                 }
 
                 else if ((object)argument.Type == null)
@@ -4193,7 +4187,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind = boundMember.ResultKind;
                 hasErrors = boundMember.HasAnyErrors || implicitReceiver.HasAnyErrors;
 
-                Debug.Assert(boundMember.Kind != BoundKind.SuppressNullableWarningExpression || boundMember.KindIgnoringSuppressions() != BoundKind.PropertyGroup);
                 if (boundMember.Kind == BoundKind.PropertyGroup)
                 {
                     boundMember = BindIndexedPropertyAccess((BoundPropertyGroup)boundMember, mustHaveAllOptionalParameters: true, diagnostics: diagnostics);
@@ -5583,20 +5576,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(node, boundLeft);
             }
 
-            var boundLeftWithoutSuppressions = boundLeft.RemoveSuppressions();
             // No member accesses on default
-            if (boundLeftWithoutSuppressions.IsLiteralDefault())
+            if (boundLeft.IsLiteralDefault())
             {
                 DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), "default");
                 diagnostics.Add(new CSDiagnostic(diagnosticInfo, operatorToken.GetLocation()));
                 return BadExpression(node, boundLeft);
             }
 
-            if (boundLeftWithoutSuppressions.Kind == BoundKind.UnboundLambda)
+            if (boundLeft.Kind == BoundKind.UnboundLambda)
             {
                 Debug.Assert((object)leftType == null);
 
-                var msgId = ((UnboundLambda)boundLeft.RemoveSuppressions()).MessageID;
+                var msgId = ((UnboundLambda)boundLeft).MessageID;
                 diagnostics.Add(ErrorCode.ERR_BadUnaryOp, node.Location, SyntaxFacts.GetText(operatorToken.Kind()), msgId.Localize());
                 return BadExpression(node, boundLeft);
             }
@@ -5635,16 +5627,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var rightName = right.Identifier.ValueText;
                 var rightArity = right.Arity;
 
-                switch (boundLeftWithoutSuppressions.Kind)
+                switch (boundLeft.Kind)
                 {
                     case BoundKind.NamespaceExpression:
                         {
                             // If K is zero and E is a namespace and E contains a nested namespace with name I, 
                             // then the result is that namespace.
 
-                            errorIfSuppression();
-
-                            var ns = ((BoundNamespaceExpression)boundLeftWithoutSuppressions).NamespaceSymbol;
+                            var ns = ((BoundNamespaceExpression)boundLeft).NamespaceSymbol;
                             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                             this.LookupMembersWithFallback(lookupResult, ns, rightName, rightArity, ref useSiteDiagnostics, options: options);
                             diagnostics.Add(right, useSiteDiagnostics);
@@ -5701,8 +5691,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.TypeExpression:
                         {
                             Debug.Assert((object)leftType != null);
-                            errorIfSuppression();
-
                             if (leftType.TypeKind == TypeKind.TypeParameter)
                             {
                                 Error(diagnostics, ErrorCode.ERR_BadSKunknown, boundLeft.Syntax, leftType, MessageID.IDS_SK_TYVAR.Localize());
@@ -5735,7 +5723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default:
                         {
                             // Can't dot into the null literal or stackalloc expressions.
-                            if ((boundLeft.KindIgnoringSuppressions() == BoundKind.Literal && ((BoundLiteral)boundLeft.RemoveSuppressions()).ConstantValueOpt == ConstantValue.Null) ||
+                            if ((boundLeft.Kind == BoundKind.Literal && ((BoundLiteral)boundLeft).ConstantValueOpt == ConstantValue.Null) ||
                                 boundLeft.Kind == BoundKind.StackAllocArrayCreation)
                             {
                                 if (!boundLeft.HasAnyErrors)
@@ -5761,14 +5749,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 lookupResult.Free();
             }
-
-            void errorIfSuppression()
-            {
-                if (boundLeft.Kind == BoundKind.SuppressNullableWarningExpression)
-                {
-                    Error(diagnostics, ErrorCode.ERR_IllegalSuppression, boundLeft.Syntax);
-                }
-            }
         }
 
         private static void WarnOnAccessOfOffDefault(SyntaxNode node, BoundExpression boundLeft, DiagnosticBag diagnostics)
@@ -5786,11 +5766,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression MakeMemberAccessValue(BoundExpression expr, DiagnosticBag diagnostics)
         {
-            switch (expr.KindIgnoringSuppressions())
+            switch (expr.Kind)
             {
                 case BoundKind.MethodGroup:
                     {
-                        var methodGroup = (BoundMethodGroup)expr.RemoveSuppressions();
+                        var methodGroup = (BoundMethodGroup)expr;
                         HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                         var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteDiagnostics: ref useSiteDiagnostics);
                         diagnostics.Add(expr.Syntax, useSiteDiagnostics);
@@ -5805,14 +5785,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Error(diagnostics, ErrorCode.ERR_BadSKunknown, methodGroup.NameSyntax, method, MessageID.IDS_SK_METHOD.Localize());
                             }
                         }
-                        expr = this.BindMemberAccessBadResult(methodGroup).WrapWithSuppressionsFrom(expr);
+                        expr = this.BindMemberAccessBadResult(methodGroup);
                         resolution.Free();
                         return expr;
                     }
 
                 case BoundKind.PropertyGroup:
-                    return BindIndexedPropertyAccess((BoundPropertyGroup)expr.RemoveSuppressions(), mustHaveAllOptionalParameters: false, diagnostics: diagnostics)
-                        .WrapWithSuppressionsFrom(expr);
+                    return BindIndexedPropertyAccess((BoundPropertyGroup)expr, mustHaveAllOptionalParameters: false, diagnostics: diagnostics);
 
                 default:
                     return expr;
@@ -7787,13 +7766,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var operatorToken = node.OperatorToken;
 
-            if (receiver.KindIgnoringSuppressions() == BoundKind.UnboundLambda)
+            if (receiver.Kind == BoundKind.UnboundLambda)
             {
-                var lambda = (UnboundLambda)receiver.RemoveSuppressions();
-                var msgId = lambda.MessageID;
+                var msgId = ((UnboundLambda)receiver).MessageID;
                 DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), msgId.Localize());
                 diagnostics.Add(new CSDiagnostic(diagnosticInfo, node.Location));
-                return BadExpression(receiverSyntax, lambda).WrapWithSuppressionsFrom(receiver);
+                return BadExpression(receiverSyntax, receiver);
             }
 
             var receiverType = receiver.Type;

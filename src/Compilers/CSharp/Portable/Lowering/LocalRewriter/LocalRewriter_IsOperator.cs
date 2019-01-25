@@ -3,6 +3,8 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -25,7 +27,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion,
             TypeSymbol rewrittenType)
         {
-            Debug.Assert(rewrittenOperand.Kind != BoundKind.MethodGroup);
+            if (rewrittenOperand.Kind == BoundKind.MethodGroup)
+            {
+                var methodGroup = (BoundMethodGroup)rewrittenOperand;
+                BoundExpression receiver = methodGroup.ReceiverOpt;
+                if (receiver != null && receiver.Kind != BoundKind.ThisReference)
+                {
+                    // possible side-effect
+                    return RewriteConstantIsOperator(receiver.Syntax, receiver, ConstantValue.False, rewrittenType);
+                }
+                else
+                {
+                    return MakeLiteral(syntax, ConstantValue.False, rewrittenType);
+                }
+            }
+
             var operandType = rewrittenOperand.Type;
             var targetType = rewrittenTargetType.Type;
 

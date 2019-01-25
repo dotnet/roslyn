@@ -2121,7 +2121,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((BoundExpressionWithNullability)expr).NullableAnnotation;
                 case BoundKind.MethodGroup:
                 case BoundKind.UnboundLambda:
-                case BoundKind.SuppressNullableWarningExpression:
                     return NullableAnnotation.Unknown;
                 default:
                     Debug.Assert(false); // unexpected value
@@ -3190,12 +3189,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression getArgumentForMethodTypeInference(BoundExpression argument, TypeSymbolWithAnnotations argumentType)
             {
-                if (argument.KindIgnoringSuppressions() == BoundKind.Lambda)
+                if (argument.Kind == BoundKind.Lambda)
                 {
                     // MethodTypeInferrer must infer nullability for lambdas based on the nullability
                     // from flow analysis rather than the declared nullability. To allow that, we need
                     // to re-bind lambdas in MethodTypeInferrer.
-                    return GetUnboundLambda((BoundLambda)argument.RemoveSuppressions(), GetVariableState()).WrapWithSuppressionsFrom(argument);
+                    return GetUnboundLambda((BoundLambda)argument, GetVariableState());
                 }
                 if (argumentType.IsNull)
                 {
@@ -3281,16 +3280,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             return (expr, group?.Conversion ?? Conversion.Identity);
-        }
-
-        /// <summary>
-        /// Returns true if the expression had a suppression.
-        /// </summary>
-        bool RemoveSuppressions(ref BoundExpression expression)
-        {
-            var original = expression;
-            expression = expression.RemoveSuppressions();
-            return expression != original;
         }
 
         // See Binder.BindNullCoalescingOperator for initial binding.
@@ -3496,7 +3485,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             (BoundExpression operand, Conversion conversion) = RemoveConversion(expr, includeExplicitConversions: false);
-
             var operandType = VisitRvalueWithResult(operand);
             // If an explicit conversion was used in place of an implicit conversion, the explicit
             // conversion was created by initial binding after reporting "error CS0266:

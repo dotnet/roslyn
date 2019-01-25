@@ -591,17 +591,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitPointerIndirectionOperator(node);
         }
 
-        private BoundExpression RemoveSuppressionsAndReportInExpressionTree(BoundExpression expr)
-        {
-            while (expr.Kind == BoundKind.SuppressNullableWarningExpression)
-            {
-                ReportSuppressionInExpressionTree(expr);
-                expr = ((BoundSuppressNullableWarningExpression)expr).Expression;
-            }
-
-            return expr;
-        }
-
         public override BoundNode VisitConversion(BoundConversion node)
         {
             CheckUnsafeType(node.Operand);
@@ -611,8 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.ConversionKind)
             {
                 case ConversionKind.MethodGroup:
-                    var operandWithoutSuppressions = RemoveSuppressionsAndReportInExpressionTree(node.Operand);
-                    VisitMethodGroup((BoundMethodGroup)operandWithoutSuppressions, parentIsConversion: true);
+                    VisitMethodGroup((BoundMethodGroup)node.Operand, parentIsConversion: true);
                     return node;
 
                 case ConversionKind.AnonymousFunction:
@@ -712,22 +700,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return base.VisitNullCoalescingAssignmentOperator(node);
-        }
-
-        public override BoundNode VisitSuppressNullableWarningExpression(BoundSuppressNullableWarningExpression node)
-        {
-            ReportSuppressionInExpressionTree(node);
-
-            return base.VisitSuppressNullableWarningExpression(node);
-        }
-
-        private void ReportSuppressionInExpressionTree(BoundExpression node)
-        {
-            Debug.Assert(node.Kind == BoundKind.SuppressNullableWarningExpression);
-            if (_inExpressionLambda)
-            {
-                Error(ErrorCode.ERR_ExpressionTreeCantContainSuppressNullableWarning, node);
-            }
         }
 
         public override BoundNode VisitDynamicInvocation(BoundDynamicInvocation node)

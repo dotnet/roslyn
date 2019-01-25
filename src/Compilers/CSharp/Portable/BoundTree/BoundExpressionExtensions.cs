@@ -171,10 +171,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     symbols.AddRange(originalIndexers);
                     break;
 
-                case BoundKind.SuppressNullableWarningExpression:
-                    // caller removed suppressions
-                    throw ExceptionUtilities.Unreachable;
-
                 default:
                     var symbol = node.ExpressionSymbol;
                     if ((object)symbol != null)
@@ -299,33 +295,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return NullableAnnotation.Unknown;
-        }
-
-        public static BoundKind KindIgnoringSuppressions(this BoundExpression expr)
-        {
-            return RemoveSuppressions(expr).Kind;
-        }
-
-        internal static BoundExpression RemoveSuppressions(this BoundExpression expr)
-        {
-            while (expr.Kind == BoundKind.SuppressNullableWarningExpression)
-            {
-                expr = ((BoundSuppressNullableWarningExpression)expr).Expression;
-            }
-
-            return expr;
-        }
-
-        internal static BoundExpression WrapWithSuppressionsFrom(this BoundExpression expr, BoundExpression suppressionsSource)
-        {
-            if (suppressionsSource.Kind != BoundKind.SuppressNullableWarningExpression)
-            {
-                return expr;
-            }
-
-            var suppression = (BoundSuppressNullableWarningExpression)suppressionsSource;
-            var nested = expr.WrapWithSuppressionsFrom(suppression.Expression);
-            return suppression.Update(nested, nested.Type);
         }
     }
 }

@@ -12,8 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(conversion.ConversionKind == ConversionKind.InterpolatedString);
             BoundExpression format;
             ArrayBuilder<BoundExpression> expressions;
-            BoundExpression operand = conversion.Operand.RemoveSuppressions();
-            MakeInterpolatedStringFormat((BoundInterpolatedString)operand, out format, out expressions);
+            MakeInterpolatedStringFormat((BoundInterpolatedString)conversion.Operand, out format, out expressions);
             expressions.Insert(0, format);
             var stringFactory = _factory.WellKnownType(WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory);
 

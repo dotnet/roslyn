@@ -719,40 +719,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (ultimateReceiver.Kind == BoundKind.QueryClause) ultimateReceiver = ((BoundQueryClause)ultimateReceiver).Value;
             if ((object)ultimateReceiver.Type == null)
             {
-                var ultimateReceiverWithoutSuppressions = ultimateReceiver.RemoveSuppressions();
-                var kindIgnoringSuppressions = ultimateReceiverWithoutSuppressions.Kind;
-
                 if (ultimateReceiver.HasAnyErrors || node.HasErrors)
                 {
                     // report no additional errors
                 }
-                else if (ultimateReceiverWithoutSuppressions.IsLiteralNull())
+                else if (ultimateReceiver.IsLiteralNull())
                 {
                     diagnostics.Add(ErrorCode.ERR_NullNotValid, node.Location);
                 }
-                else if (ultimateReceiverWithoutSuppressions.IsLiteralDefault())
+                else if (ultimateReceiver.IsLiteralDefault())
                 {
                     diagnostics.Add(ErrorCode.ERR_DefaultLiteralNotValid, node.Location);
                 }
-                else if (kindIgnoringSuppressions == BoundKind.NamespaceExpression)
+                else if (ultimateReceiver.Kind == BoundKind.NamespaceExpression)
                 {
                     diagnostics.Add(ErrorCode.ERR_BadSKunknown, ultimateReceiver.Syntax.Location, ultimateReceiver.Syntax, MessageID.IDS_SK_NAMESPACE.Localize());
                 }
-                else if (kindIgnoringSuppressions == BoundKind.Lambda || kindIgnoringSuppressions == BoundKind.UnboundLambda)
+                else if (ultimateReceiver.Kind == BoundKind.Lambda || ultimateReceiver.Kind == BoundKind.UnboundLambda)
                 {
                     // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.
                     diagnostics.Add(ErrorCode.ERR_QueryNoProvider, node.Location, MessageID.IDS_AnonMethod.Localize(), methodName);
                 }
-                else if (kindIgnoringSuppressions == BoundKind.MethodGroup)
+                else if (ultimateReceiver.Kind == BoundKind.MethodGroup)
                 {
-                    var methodGroup = (BoundMethodGroup)ultimateReceiverWithoutSuppressions;
+                    var methodGroup = (BoundMethodGroup)ultimateReceiver;
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteDiagnostics: ref useSiteDiagnostics);
                     diagnostics.Add(node, useSiteDiagnostics);
                     diagnostics.AddRange(resolution.Diagnostics);
                     if (resolution.HasAnyErrors)
                     {
-                        receiver = this.BindMemberAccessBadResult(methodGroup).WrapWithSuppressionsFrom(ultimateReceiver);
+                        receiver = this.BindMemberAccessBadResult(methodGroup);
                     }
                     else
                     {

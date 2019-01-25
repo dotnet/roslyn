@@ -212,7 +212,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Estimate the return type of Select's lambda argument
             BoundExpression arg = arguments.Argument(arguments.IsExtensionMethodInvocation ? 1 : 0);
-            Debug.Assert(arg.Kind != BoundKind.SuppressNullableWarningExpression);
             TypeSymbol type = null;
             if (arg.Kind == BoundKind.UnboundLambda)
             {
