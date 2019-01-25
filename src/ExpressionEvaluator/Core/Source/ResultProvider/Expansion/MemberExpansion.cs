@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var expansions = ArrayBuilder<Expansion>.GetInstance();
 
-            // Expand members. TODO: Ideally, this would be done lazily.
+            // Expand members. TODO: Ideally, this would be done lazily (https://github.com/dotnet/roslyn/issues/32800)
             // From the members, collect the fields and properties,
             // separated into static and instance members.
             var staticMembers = ArrayBuilder<MemberAndDeclarationInfo>.GetInstance();
