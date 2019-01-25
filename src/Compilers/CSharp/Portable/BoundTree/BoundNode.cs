@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             WasCompilerGeneratedIsChecked = 1 << 2,
 #endif
+            IsSuppressed = 1 << 4,
         }
 
         protected BoundNode(BoundKind kind, SyntaxNode syntax)
@@ -149,6 +150,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public bool IsSuppressed
+        {
+            get
+            {
+                return (_attributes & BoundNodeAttributes.IsSuppressed) != 0;
+            }
+            internal set
+            {
+
+                if (value)
+                {
+                    _attributes |= BoundNodeAttributes.IsSuppressed;
+                }
+                else
+                {
+                    Debug.Assert((_attributes & BoundNodeAttributes.IsSuppressed) == 0, "flag should not be reset");
+                }
+            }
+        }
 
         public BoundKind Kind
         {

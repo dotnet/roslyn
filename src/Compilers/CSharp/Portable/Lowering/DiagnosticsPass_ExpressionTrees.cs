@@ -291,16 +291,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode Visit(BoundNode node)
         {
-            if (_inExpressionLambda &&
-                // Ignoring BoundConversion nodes prevents redundant diagnostics
-                !(node is BoundConversion) &&
-                node is BoundExpression expr &&
-                expr.Type is TypeSymbol type &&
-                type.IsRestrictedType())
+            if (_inExpressionLambda && node is BoundExpression expression)
             {
-                Error(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, node, type.Name);
+                ReportSuppressionIfNeeded(expression);
+
+                if (!(node is BoundConversion) && // Ignoring BoundConversion nodes prevents redundant diagnostics
+                    expression.Type is TypeSymbol type &&
+                    type.IsRestrictedType())
+                {
+                    Error(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, node, type.Name);
+                }
             }
+
             return base.Visit(node);
+        }
+
+        private void ReportSuppressionIfNeeded(BoundExpression expression)
+        {
+            if (expression.IsSuppressed)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeCantContainSuppressNullableWarning, expression);
+            }
         }
 
         public override BoundNode VisitRefTypeOperator(BoundRefTypeOperator node)
@@ -666,9 +677,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // a failed conversion).
             Debug.Assert(!(!parentIsConversion && _inExpressionLambda));
 
-            if (_inExpressionLambda && (node.LookupSymbolOpt as MethodSymbol)?.MethodKind == MethodKind.LocalFunction)
+            if (_inExpressionLambda)
             {
-                Error(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, node);
+                if ((node.LookupSymbolOpt as MethodSymbol)?.MethodKind == MethodKind.LocalFunction)
+                {
+                    Error(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, node);
+                }
+                ReportSuppressionIfNeeded(node);
             }
 
             CheckReceiverIfField(node.ReceiverOpt);

@@ -238,10 +238,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Either we have a dynamic method group invocation "dyn.M(...)" or 
                 // a dynamic delegate invocation "dyn(...)" -- either way, bind it as a dynamic
                 // invocation and let the lowering pass sort it out.
+                reportSuppressionIfNeeded();
                 result = BindDynamicInvocation(node, boundExpression, analyzedArguments, ImmutableArray<MethodSymbol>.Empty, diagnostics, queryClause);
             }
             else if (boundExpression.Kind == BoundKind.MethodGroup)
             {
+                reportSuppressionIfNeeded();
                 result = BindMethodGroupInvocation(
                     node, expression, methodName, (BoundMethodGroup)boundExpression, analyzedArguments,
                     diagnostics, queryClause, allowUnexpandedForm: allowUnexpandedForm, anyApplicableCandidates: out _);
@@ -268,6 +270,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckRestrictedTypeReceiver(result, this.Compilation, diagnostics);
 
             return result;
+
+            void reportSuppressionIfNeeded()
+            {
+                if (boundExpression.IsSuppressed)
+                {
+                    Error(diagnostics, ErrorCode.ERR_IllegalSuppression, boundExpression.Syntax);
+                }
+            }
         }
 
         private BoundExpression BindDynamicInvocation(

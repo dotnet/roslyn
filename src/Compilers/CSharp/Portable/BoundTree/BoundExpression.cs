@@ -3,8 +3,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System;
 
@@ -12,6 +10,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundExpression
     {
+        public abstract BoundExpression WithSuppressionCore();
+
         public virtual ConstantValue ConstantValue
         {
             get
@@ -354,14 +354,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
         public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
-    }
-
-    internal partial class BoundSuppressNullableWarningExpression
-    {
-        public override ConstantValue ConstantValue
-        {
-            get { return this.Expression.ConstantValue; }
-        }
     }
 
     internal partial class BoundLiteral

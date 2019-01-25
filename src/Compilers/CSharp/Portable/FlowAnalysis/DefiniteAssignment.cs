@@ -1216,11 +1216,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ((BoundTupleExpression)node).VisitAllElements((x, self) => self.Assign(x, value: null, isRef: isRef), this);
                     break;
 
-                case BoundKind.SuppressNullableWarningExpression:
-                    // for example, assigning to `x!` in `M(out x!)` assigns to `x`
-                    AssignImpl(((BoundSuppressNullableWarningExpression)node).Expression, value, isRef, written, read);
-                    break;
-
                 default:
                     // Other kinds of left-hand-sides either represent things not tracked (e.g. array elements)
                     // or errors that have been reported earlier (e.g. assignment to a unary increment)

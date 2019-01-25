@@ -635,11 +635,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new RangeOperation(operation.IsLifted, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, Visit(operation.LeftOperand), Visit(operation.RightOperand), operation.Method, operation.IsImplicit);
         }
 
-        public override IOperation VisitSuppressNullableWarningOperation(ISuppressNullableWarningOperation operation, object argument)
-        {
-            return new SuppressNullableWarningOperation(((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, Visit(operation.Expression), operation.ConstantValue, operation.IsImplicit);
-        }
-
         public override IOperation VisitReDim(IReDimOperation operation, object argument)
         {
             return new ReDimOperation(VisitArray(operation.Clauses), operation.Preserve, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);

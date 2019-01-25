@@ -1907,15 +1907,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.RightOperand, nameof(operation.RightOperand));
         }
 
-        public override void VisitSuppressNullableWarningOperation(ISuppressNullableWarningOperation operation)
-        {
-            LogString(nameof(ISuppressNullableWarningOperation));
-
-            LogCommonPropertiesAndNewLine(operation);
-
-            Visit(operation.Expression, nameof(operation.Expression));
-        }
-
         public override void VisitReDim(IReDimOperation operation)
         {
             LogString(nameof(IReDimOperation));

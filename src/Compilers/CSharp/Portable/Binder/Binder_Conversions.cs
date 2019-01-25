@@ -300,6 +300,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var unboundLambda = (UnboundLambda)source;
             var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination);
+            if (unboundLambda.IsSuppressed)
+            {
+                boundLambda = boundLambda.WithSuppression();
+            }
             diagnostics.AddRange(boundLambda.Diagnostics);
 
             return new BoundConversion(

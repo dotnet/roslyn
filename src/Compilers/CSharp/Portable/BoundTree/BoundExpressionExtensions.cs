@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static partial class BoundExpressionExtensions
     {
+        public static T WithSuppression<T>(this T node) where T : BoundExpression
+        {
+            return (T)node.WithSuppressionCore();
+        }
+
         /// <summary>
         /// Returns the RefKind if the expression represents a symbol
         /// that has a RefKind, or RefKind.None otherwise.
@@ -234,8 +239,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (expr.Kind)
             {
-                case BoundKind.SuppressNullableWarningExpression:
-                    return NullableAnnotation.Unknown;
                 case BoundKind.Local:
                     {
                         var local = (BoundLocal)expr;

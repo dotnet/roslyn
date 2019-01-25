@@ -885,9 +885,47 @@ namespace BoundTreeGenerator
             {
                 WriteAccept(node.Name);
                 WriteUpdateMethod(node as Node);
+                WriteWithSuppressionMethod(node as Node);
             }
 
             WriteClassFooter(node);
+        }
+
+        private void WriteWithSuppressionMethod(Node node)
+        {
+            switch (_targetLang)
+            {
+                case TargetLanguage.CSharp:
+                    {
+                        if (node.Name != "BoundExpression" && IsDerivedType("BoundExpression", node.Name))
+                        {
+                            Blank();
+                            Write("public override BoundExpression WithSuppressionCore()", node.Name);
+                            Blank();
+                            Brace();
+                            Write("if (!this.IsSuppressed)");
+                            Blank();
+                            Brace();
+                            Write("var result = new {0}", node.Name);
+                            var fields = new[] { "this.Syntax" }.Concat(AllSpecifiableFields(node).Select(f => $"this.{f.Name}")).Concat(new[] { "this.HasErrors" });
+                            ParenList(fields);
+                            WriteLine(";");
+                            WriteLine("result.WasCompilerGenerated = this.WasCompilerGenerated;");
+                            WriteLine("result.IsSuppressed = true;");
+                            WriteLine("return result;");
+                            Unbrace();
+                            WriteLine("return this;");
+                            Unbrace();
+                        }
+                        break;
+                    }
+
+                case TargetLanguage.VB:
+                    break;
+
+                default:
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
+            }
         }
 
         private void WriteUpdateMethod(Node node)
@@ -921,6 +959,10 @@ namespace BoundTreeGenerator
                             ParenList(fields);
                             WriteLine(";");
                             WriteLine("result.WasCompilerGenerated = this.WasCompilerGenerated;");
+                            if (IsDerivedType("BoundExpression", node.Name))
+                            {
+                                WriteLine("result.IsSuppressed = this.IsSuppressed;");
+                            }
                             WriteLine("return result;");
                             Unbrace();
                         }
@@ -1257,11 +1299,20 @@ namespace BoundTreeGenerator
                                 else
                                     Write("new TreeDumperNode(\"{0}\", node.{1}, null)", ToCamelCase(field.Name), field.Name);
 
-                                if (i == allFields.Length - 1)
-                                    WriteLine("");
-                                else
+                                if (i != allFields.Length - 1)
                                     WriteLine(",");
                             }
+
+                            if (IsDerivedType("BoundExpression", node.Name))
+                            {
+                                if (allFields.Length != 0)
+                                {
+                                    WriteLine(",");
+                                }
+                                Write("new TreeDumperNode(\"isSuppressed\", node.IsSuppressed, null)");
+                            }
+
+                            WriteLine("");
                             Unbrace();
                         }
                         else

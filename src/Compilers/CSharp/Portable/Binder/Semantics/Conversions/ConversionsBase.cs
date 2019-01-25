@@ -834,17 +834,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.SuppressNullableWarningExpression:
-                    {
-                        var innerExpression = ((BoundSuppressNullableWarningExpression)sourceExpression).Expression;
-                        var innerConversion = ClassifyImplicitBuiltInConversionFromExpression(innerExpression, innerExpression.Type, destination, ref useSiteDiagnostics);
-                        if (innerConversion.Exists)
-                        {
-                            return innerConversion;
-                        }
-                        break;
-                    }
-
                 case BoundKind.ExpressionWithNullability:
                     {
                         var innerExpression = ((BoundExpressionWithNullability)sourceExpression).Expression;

@@ -81,6 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
+            public override BoundExpression WithSuppressionCore()
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+
             public void Free()
             {
                 if (_locals != null) _locals.Free();
