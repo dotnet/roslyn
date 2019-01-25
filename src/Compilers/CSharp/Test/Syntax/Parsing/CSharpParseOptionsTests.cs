@@ -23,18 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         }
 
         [Fact]
-        public void LanguageVersionFactsCurrentVersion()
-        {
-            var highest = Enum.
-                GetValues(typeof(LanguageVersion)).
-                Cast<LanguageVersion>().
-                Where(x => x != LanguageVersion.Latest).
-                Max();
-
-            Assert.Equal(LanguageVersionFacts.CurrentVersion, highest);
-        }
-
-        [Fact]
         [WorkItem(15358, "https://github.com/dotnet/roslyn/issues/15358")]
         public void WithDocumentationModeDoesntChangeFeatures()
         {

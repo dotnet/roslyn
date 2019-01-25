@@ -77,17 +77,6 @@ Public Class VisualBasicParseOptionsTests
     End Sub
 
     <Fact>
-    Public Sub LanguageVersionFactsCurrentVersion()
-        Dim highest = System.Enum.
-            GetValues(GetType(LanguageVersion)).
-            Cast(Of LanguageVersion).
-            Where(Function(x) x <> LanguageVersion.Latest).
-            Max()
-
-        Assert.Equal(LanguageVersionFacts.CurrentVersion, highest)
-    End Sub
-
-    <Fact>
     Public Sub CurrentVersionNumber()
         Dim highest = System.Enum.
             GetValues(GetType(LanguageVersion)).
