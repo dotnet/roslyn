@@ -6017,7 +6017,7 @@ class C
                 SymbolDisplayPartKind.FieldName);
             Verify(
                 SymbolDisplay.ToDisplayParts(member, formatWithBothModifiers),
-                "static object?[,]![]! F1",
+                "static object?[]![,]! F1",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
@@ -6035,7 +6035,7 @@ class C
             member = comp.GetMember("C.F2");
             Verify(
                 SymbolDisplay.ToDisplayParts(member, formatWithoutModifiers),
-                "static object[,][] F2");
+                "static object[][,] F2");
             Verify(
                 SymbolDisplay.ToDisplayParts(member, formatWithNullableModifier),
                 "static object[,]?[] F2");
@@ -6052,7 +6052,7 @@ class C
                 "static object[,][]? F3");
             Verify(
                 SymbolDisplay.ToDisplayParts(member, formatWithBothModifiers),
-                "static object![,]![]? F3");
+                "static object![]![,]? F3");
         }
 
         [Fact]

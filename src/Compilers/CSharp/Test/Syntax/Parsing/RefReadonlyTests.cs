@@ -491,7 +491,6 @@ class Test
                 // new ref[];
                 Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(1, 10)
                 );
-
             N(SyntaxKind.ExpressionStatement);
             {
                 N(SyntaxKind.ObjectCreationExpression);

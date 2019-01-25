@@ -31,7 +31,11 @@ class C
             comp.VerifyDiagnostics(
                 // (7,52): error CS1586: Array creation must have array size or array initializer
                 //     Expression<Action<dynamic>> e = x => new object[](x);
-                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]"));
+                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(7, 52),
+                // (7,42): error CS0149: Method name expected
+                //     Expression<Action<dynamic>> e = x => new object[](x);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "new object[]").WithLocation(7, 42)
+                );
         }
 
         [Fact]
