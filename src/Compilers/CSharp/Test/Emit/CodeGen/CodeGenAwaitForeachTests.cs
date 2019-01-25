@@ -4287,8 +4287,6 @@ public class Collection<T> : ICollection<T>
     {
         return new MyAsyncEnumerator<T>();
     }
-    public System.Threading.Tasks.ValueTask DisposeAsync()
-        => throw null;
 }
 public sealed class MyAsyncEnumerator<T> : IMyAsyncEnumerator<T>
 {
@@ -4307,6 +4305,8 @@ public sealed class MyAsyncEnumerator<T> : IMyAsyncEnumerator<T>
         i++;
         return await Task.FromResult(i < 4);
     }
+    public System.Threading.Tasks.ValueTask DisposeAsync()
+        => throw null;
 }
 
 class C
@@ -4320,7 +4320,7 @@ class C
         }
     }
 }";
-            // DisposeAsync on derived type is ignored, since we don't do runtime check
+            // DisposeAsync on implementing type is ignored, since we don't do runtime check
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
@@ -4543,7 +4543,7 @@ public class C
 }
 public static class Extension
 {
-    public static System.Threading.Tasks.ValueTask DisposeAsync(this C c) => throw null;
+    public static System.Threading.Tasks.ValueTask DisposeAsync(this C.Enumerator e) => throw null;
 }";
             // extension methods do not contribute to pattern-based disposal
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
@@ -4770,6 +4770,50 @@ public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
     public bool IsCompleted { get { return true; } }
     public bool GetResult() { return true; }
     public void OnCompleted(System.Action continuation) { }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        public void PatternBasedDisposal_ReturnsTask()
+        {
+            string source = @"
+using System.Threading.Tasks;
+class C
+{
+    public static async Task Main()
+    {
+        await foreach (var i in new C())
+        {
+        }
+        System.Console.Write(""Done"");
+    }
+    public Enumerator GetAsyncEnumerator()
+    {
+        return new Enumerator();
+    }
+    public sealed class Enumerator
+    {
+        public async System.Threading.Tasks.Task<bool> MoveNextAsync()
+        {
+            System.Console.Write(""MoveNextAsync "");
+            await System.Threading.Tasks.Task.Yield();
+            return false;
+        }
+        public int Current
+        {
+            get => throw null;
+        }
+        public async System.Threading.Tasks.Task DisposeAsync()
+        {
+            System.Console.Write(""DisposeAsync "");
+            await System.Threading.Tasks.Task.Yield();
+        }
+    }
 }
 ";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);

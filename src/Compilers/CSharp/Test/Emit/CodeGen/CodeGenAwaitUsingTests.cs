@@ -2050,5 +2050,34 @@ public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        public void TestInRegularMethod()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        await using var x = new object();
+        await using (var y = new object()) { }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8410: 'object': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+                //         await using var x = new object();
+                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x = new object();").WithArguments("object").WithLocation(6, 9),
+                // (6,9): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
+                //         await using var x = new object();
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await").WithLocation(6, 9),
+                // (7,9): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
+                //         await using (var y = new object()) { }
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await").WithLocation(7, 9),
+                // (7,22): error CS8410: 'object': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+                //         await using (var y = new object()) { }
+                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var y = new object()").WithArguments("object").WithLocation(7, 22)
+                );
+        }
     }
 }

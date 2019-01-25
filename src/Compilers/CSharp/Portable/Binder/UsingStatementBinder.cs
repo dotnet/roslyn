@@ -118,16 +118,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasAwait)
             {
+                BoundAwaitableValuePlaceholder placeholderOpt;
                 if (awaitableTypeOpt is null)
                 {
-                    awaitOpt = AwaitableInfo.Empty;
+                    placeholderOpt = null;
                 }
                 else
                 {
                     hasErrors |= ReportUseSiteDiagnostics(awaitableTypeOpt, diagnostics, awaitKeyword);
-                    var placeholder = new BoundAwaitableValuePlaceholder(syntax, awaitableTypeOpt).MakeCompilerGenerated();
-                    awaitOpt = originalBinder.BindAwaitInfo(placeholder, syntax, awaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+                    placeholderOpt = new BoundAwaitableValuePlaceholder(syntax, awaitableTypeOpt).MakeCompilerGenerated();
                 }
+
+                // even if we don't have a proper value to await, we'll still report bad usages of `await`
+                awaitOpt = originalBinder.BindAwaitInfo(placeholderOpt, syntax, awaitKeyword.GetLocation(), diagnostics, ref hasErrors);
             }
 
             // This is not awesome, but its factored. 
@@ -173,8 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If this is a ref struct, or we're in a valid asynchronous using, try binding via pattern.
                 // We won't need to try and bind a second time if it fails, as async dispose can't be pattern based (ref structs are not allowed in async methods)
-                bool isRefStruct = !(type is null) && type.IsValueType && type.IsRefLikeType;
-                if (!(type is null) && (isRefStruct || hasAwait))
+                if (!(type is null) && (type.IsRefLikeType || hasAwait))
                 {
                     BoundExpression receiver = fromExpression
                                                ? expressionOpt
