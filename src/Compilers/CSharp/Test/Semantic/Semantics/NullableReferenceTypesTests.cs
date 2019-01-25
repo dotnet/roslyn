@@ -40580,7 +40580,7 @@ class Program
 
         [Fact]
         [WorkItem(32531, "https://github.com/dotnet/roslyn/issues/32531")]
-        public void Tuple_Conversions_ImplicitNullable()
+        public void Tuple_Conversions_ImplicitNullable_01()
         {
             var source =
 @"struct S
@@ -40635,6 +40635,39 @@ class Program
                 // (19,9): warning CS8602: Possible dereference of a null reference.
                 //         v.Item2.Value.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "v.Item2.Value.F").WithLocation(19, 9));
+        }
+
+        [Fact]
+        [WorkItem(32599, "https://github.com/dotnet/roslyn/issues/32599")]
+        public void Tuple_Conversions_ImplicitNullable_02()
+        {
+            var source =
+@"struct S
+{
+    internal object? F;
+}
+class Program
+{
+    static void F()
+    {
+        S x = new S();
+        S y = new S() { F = 1 };
+        (S, S) t = (x, y);
+        (S a, S b)? u = t;
+        t.Item1.F.ToString(); // 1
+        t.Item2.F.ToString();
+        u.Value.a.F.ToString(); // 2
+        u.Value.b.F.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,9): warning CS8602: Possible dereference of a null reference.
+                //         t.Item1.F.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item1.F").WithLocation(13, 9),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         u.Value.a.F.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u.Value.a.F").WithLocation(15, 9));
         }
 
         [Fact]
