@@ -4465,6 +4465,94 @@ class C
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        public void PatternBasedDisposal_TwoOverloads()
+        {
+            string source = @"
+using System.Threading.Tasks;
+class C
+{
+    public static async Task Main()
+    {
+        await foreach (var i in new C())
+        {
+        }
+        System.Console.Write(""Done"");
+    }
+    public Enumerator GetAsyncEnumerator()
+    {
+        return new Enumerator();
+    }
+    public sealed class Enumerator
+    {
+        public async System.Threading.Tasks.Task<bool> MoveNextAsync()
+        {
+            System.Console.Write(""MoveNextAsync "");
+            await System.Threading.Tasks.Task.Yield();
+            return false;
+        }
+        public int Current
+        {
+            get => throw null;
+        }
+        public async System.Threading.Tasks.ValueTask DisposeAsync(int i = 0)
+        {
+            System.Console.Write(""DisposeAsync "");
+            await System.Threading.Tasks.Task.Yield();
+        }
+        public System.Threading.Tasks.ValueTask DisposeAsync(params string[] s)
+            => throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        public void PatternBasedDisposal_NoExtensions()
+        {
+            string source = @"
+using System.Threading.Tasks;
+public class C
+{
+    public static async Task Main()
+    {
+        await foreach (var i in new C())
+        {
+        }
+        System.Console.Write(""Done"");
+    }
+    public Enumerator GetAsyncEnumerator()
+    {
+        return new Enumerator();
+    }
+    public sealed class Enumerator
+    {
+        public async System.Threading.Tasks.Task<bool> MoveNextAsync()
+        {
+            System.Console.Write(""MoveNextAsync "");
+            await System.Threading.Tasks.Task.Yield();
+            return false;
+        }
+        public int Current
+        {
+            get => throw null;
+        }
+    }
+}
+public static class Extension
+{
+    public static System.Threading.Tasks.ValueTask DisposeAsync(this C c) => throw null;
+}";
+            // extension methods do not contribute to pattern-based disposal
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "MoveNextAsync Done");
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_InterfacePreferredToInstanceMethod()
         {
             string source = @"

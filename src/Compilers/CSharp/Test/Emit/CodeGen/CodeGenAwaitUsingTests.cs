@@ -1674,15 +1674,41 @@ public static class Extensions
         => throw null;
 }
 ";
+            // extension methods do not contribute to pattern-based disposal
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (6,22): warning CS0280: 'C' does not implement the 'disposable' pattern. 'Extensions.DisposeAsync(C)' has the wrong signature.
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.WRN_PatternBadSignature, "var x = new C()").WithArguments("C", "disposable", "Extensions.DisposeAsync(C)").WithLocation(6, 22),
                 // (6,22): error CS8410: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using (var x = new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(6, 22)
                 );
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+        public void TestPatternBasedDisposal_TwoOverloads()
+        {
+            string source = @"
+public class C
+{
+    public static async System.Threading.Tasks.Task<int> Main()
+    {
+        await using (var x = new C())
+        {
+        }
+        return 1;
+    }
+    public async System.Threading.Tasks.ValueTask DisposeAsync(int i = 0)
+    {
+        System.Console.Write($""dispose"");
+        await System.Threading.Tasks.Task.Yield();
+    }
+    public System.Threading.Tasks.ValueTask DisposeAsync(params string[] s)
+        => throw null;
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "dispose");
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
@@ -1707,11 +1733,9 @@ public static class Extensions
         => throw null;
 }
 ";
+            // extension methods do not contribute to pattern-based disposal
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (6,22): warning CS0280: 'C' does not implement the 'disposable' pattern. 'Extensions.DisposeAsync(C)' has the wrong signature.
-                //         await using (new C())
-                Diagnostic(ErrorCode.WRN_PatternBadSignature, "new C()").WithArguments("C", "disposable", "Extensions.DisposeAsync(C)").WithLocation(6, 22),
                 // (6,22): error CS8410: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using (new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "new C()").WithArguments("C").WithLocation(6, 22)

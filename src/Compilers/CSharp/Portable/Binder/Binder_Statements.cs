@@ -691,9 +691,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     diagnostics,
                                                     out var disposeMethod);
 
-            if ((!hasAwait && disposeMethod?.ReturnsVoid == false)
-                || result == PatternLookupResult.NotAMethod
-                || disposeMethod?.IsExtensionMethod == true)
+            if (disposeMethod?.IsExtensionMethod == true)
+            {
+                // Extension methods should just be ignored, rather than rejected after-the-fact
+                // Tracked by https://github.com/dotnet/roslyn/issues/32767
+
+                // extension methods do not contribute to pattern-based disposal
+                disposeMethod = null;
+            }
+            else if ((!hasAwait && disposeMethod?.ReturnsVoid == false)
+                || result == PatternLookupResult.NotAMethod)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 if (this.IsAccessible(disposeMethod, ref useSiteDiagnostics))

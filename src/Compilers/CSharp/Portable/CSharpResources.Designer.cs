@@ -15485,7 +15485,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not implement the &apos;{1}&apos; pattern. &apos;{2}&apos; has the wrong signature or is an extension..
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not implement the &apos;{1}&apos; pattern. &apos;{2}&apos; has the wrong signature..
         /// </summary>
         internal static string WRN_PatternBadSignature {
             get {
@@ -15494,7 +15494,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type does not implement the collection pattern; member has the wrong signature or is an extension.
+        ///   Looks up a localized string similar to Type does not implement the collection pattern; member has the wrong signature.
         /// </summary>
         internal static string WRN_PatternBadSignature_Title {
             get {
