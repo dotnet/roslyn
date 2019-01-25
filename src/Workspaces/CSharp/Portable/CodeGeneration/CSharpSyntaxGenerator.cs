@@ -1523,17 +1523,68 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             });
         }
 
-        private static readonly DeclarationModifiers s_fieldModifiers = DeclarationModifiers.Const | DeclarationModifiers.New | DeclarationModifiers.ReadOnly | DeclarationModifiers.Static;
-        private static readonly DeclarationModifiers s_methodModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.Async | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
-        private static readonly DeclarationModifiers s_constructorModifiers = DeclarationModifiers.Static;
-        private static readonly DeclarationModifiers s_propertyModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
-        private static readonly DeclarationModifiers s_eventModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
-        private static readonly DeclarationModifiers s_eventFieldModifiers = DeclarationModifiers.New | DeclarationModifiers.Static;
-        private static readonly DeclarationModifiers s_indexerModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
-        private static readonly DeclarationModifiers s_classModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static;
-        private static readonly DeclarationModifiers s_structModifiers = DeclarationModifiers.New | DeclarationModifiers.Partial;
-        private static readonly DeclarationModifiers s_interfaceModifiers = DeclarationModifiers.New | DeclarationModifiers.Partial;
-        private static readonly DeclarationModifiers s_accessorModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Virtual;
+        private static readonly DeclarationModifiers s_fieldModifiers =
+            DeclarationModifiers.Const |
+            DeclarationModifiers.New |
+            DeclarationModifiers.ReadOnly |
+            DeclarationModifiers.Static;
+        private static readonly DeclarationModifiers s_methodModifiers =
+            DeclarationModifiers.Abstract |
+            DeclarationModifiers.Async |
+            DeclarationModifiers.New |
+            DeclarationModifiers.Override |
+            DeclarationModifiers.Partial |
+            DeclarationModifiers.ReadOnly |
+            DeclarationModifiers.Sealed |
+            DeclarationModifiers.Static |
+            DeclarationModifiers.Virtual;
+        private static readonly DeclarationModifiers s_constructorModifiers =
+            DeclarationModifiers.Static;
+        private static readonly DeclarationModifiers s_propertyModifiers =
+            DeclarationModifiers.Abstract |
+            DeclarationModifiers.New |
+            DeclarationModifiers.Override |
+            DeclarationModifiers.ReadOnly |
+            DeclarationModifiers.Sealed |
+            DeclarationModifiers.Static |
+            DeclarationModifiers.Virtual;
+        private static readonly DeclarationModifiers s_eventModifiers =
+            DeclarationModifiers.Abstract |
+            DeclarationModifiers.New |
+            DeclarationModifiers.Override |
+            DeclarationModifiers.Sealed |
+            DeclarationModifiers.Static |
+            DeclarationModifiers.Virtual;
+        private static readonly DeclarationModifiers s_eventFieldModifiers =
+            DeclarationModifiers.New |
+            DeclarationModifiers.Static;
+        private static readonly DeclarationModifiers s_indexerModifiers =
+            DeclarationModifiers.Abstract |
+            DeclarationModifiers.New |
+            DeclarationModifiers.Override |
+            DeclarationModifiers.ReadOnly |
+            DeclarationModifiers.Sealed |
+            DeclarationModifiers.Virtual;
+        private static readonly DeclarationModifiers s_classModifiers =
+            DeclarationModifiers.Abstract |
+            DeclarationModifiers.New |
+            DeclarationModifiers.Partial |
+            DeclarationModifiers.Sealed |
+            DeclarationModifiers.Static;
+        private static readonly DeclarationModifiers s_structModifiers =
+            DeclarationModifiers.New |
+            DeclarationModifiers.Partial |
+            DeclarationModifiers.ReadOnly;
+        private static readonly DeclarationModifiers s_interfaceModifiers =
+            DeclarationModifiers.New |
+            DeclarationModifiers.Partial;
+        private static readonly DeclarationModifiers s_accessorModifiers =
+            DeclarationModifiers.New;
+        private static readonly DeclarationModifiers s_localDeclarationModifiers =
+            DeclarationModifiers.Ref;
+        private static readonly DeclarationModifiers s_parameterModifiers =
+            DeclarationModifiers.Ref;
+
 
         private static DeclarationModifiers GetAllowedModifiers(SyntaxKind kind)
         {
@@ -1583,9 +1634,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.RemoveAccessorDeclaration:
                     return s_accessorModifiers;
 
-                case SyntaxKind.EnumMemberDeclaration:
-                case SyntaxKind.Parameter:
                 case SyntaxKind.LocalDeclarationStatement:
+                    return s_localDeclarationModifiers;
+
+                case SyntaxKind.Parameter:
+                    return s_parameterModifiers;
+
+                case SyntaxKind.EnumMemberDeclaration:
                 case SyntaxKind.DestructorDeclaration:
                 default:
                     return DeclarationModifiers.None;
