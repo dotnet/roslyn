@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol getEnumeratorMethod = builder.GetEnumeratorMethod;
             if (IsAsync)
             {
-                BoundExpression placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, builder.MoveNextMethod?.ReturnType.TypeSymbol ?? CreateErrorType());
+                var placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, builder.MoveNextMethod?.ReturnType.TypeSymbol ?? CreateErrorType());
                 awaitInfo = BindAwaitInfo(placeholder, _syntax.Expression, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
 
                 if (!hasErrors && awaitInfo.GetResult?.ReturnType.SpecialType != SpecialType.System_Boolean)
@@ -503,8 +503,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool GetAwaitDisposeAsyncInfo(ref ForEachEnumeratorInfo.Builder builder, DiagnosticBag diagnostics)
         {
-            BoundExpression placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression,
-                this.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask, diagnostics, this._syntax));
+            var awaitableType = builder.DisposeMethod is null
+                ? this.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask, diagnostics, this._syntax)
+                : builder.DisposeMethod.ReturnType.TypeSymbol;
+
+            var placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, awaitableType);
 
             bool hasErrors = false;
             builder.DisposeAwaitableInfo = BindAwaitInfo(placeholder, _syntax.Expression, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
@@ -836,16 +839,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol enumeratorType = builder.GetEnumeratorMethod.ReturnType.TypeSymbol;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            if (!enumeratorType.IsSealed ||
+            // For async foreach, we don't do the runtime check
+            if ((!enumeratorType.IsSealed && !isAsync) ||
                 this.Conversions.ClassifyImplicitConversionFromType(enumeratorType,
                     isAsync ? this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable) : this.Compilation.GetSpecialType(SpecialType.System_IDisposable),
                     ref useSiteDiagnostics).IsImplicit)
             {
                 builder.NeedsDisposal = true;
             }
-            else if (enumeratorType.IsRefLikeType)
+            else if (enumeratorType.IsRefLikeType || isAsync)
             {
-                // if it wasn't directly convertable to IDisposable, see if it is pattern disposable
+                // if it wasn't directly convertable to IDisposable, see if it is pattern-disposable
                 // again, we throw away any binding diagnostics, and assume it's not disposable if we encounter errors
                 var patternDisposeDiags = new DiagnosticBag();
                 var receiver = new BoundDisposableValuePlaceholder(_syntax, enumeratorType);

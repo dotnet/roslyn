@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol getEnumeratorMethod,
             MethodSymbol currentPropertyGetter,
             MethodSymbol moveNextMethod,
-            bool needsDisposeMethod,
+            bool needsDisposal,
             AwaitableInfo disposeAwaitableInfo,
             MethodSymbol disposeMethod,
             Conversion collectionConversion,
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.GetEnumeratorMethod = getEnumeratorMethod;
             this.CurrentPropertyGetter = currentPropertyGetter;
             this.MoveNextMethod = moveNextMethod;
-            this.NeedsDisposal = needsDisposeMethod;
+            this.NeedsDisposal = needsDisposal;
             this.DisposeAwaitableInfo = disposeAwaitableInfo;
             this.DisposeMethod = disposeMethod;
             this.CollectionConversion = collectionConversion;
