@@ -2254,7 +2254,7 @@ static class MyClass3
         <Document>
 static partial class B
 {
-    static partial void PartialMethod(A a);
+    static partial void PartialMethod();
 }
         </Document>
         <Document>
