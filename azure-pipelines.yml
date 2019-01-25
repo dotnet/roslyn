@@ -70,14 +70,14 @@ jobs:
     - task: PublishTestResults@1
       inputs:
         testRunner: XUnit
-        testResultsFiles: '**/xUnitResults/*.xml'
+        testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\Debug\*.xml'
         mergeTestResults: true
         testRunTitle: 'Windows Desktop Spanish'
       condition: succeededOrFailed()
 
     - task: PublishBuildArtifacts@1
       inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(_configuration)'
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\Debug'
         ArtifactName: 'Windows Desktop Spanish' 
         publishLocation: Container
       continueOnError: true

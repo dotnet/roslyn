@@ -1,14 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.VisualStudio.GraphModel.CodeSchema;
 using Microsoft.VisualStudio.GraphModel.Schemas;
@@ -19,30 +16,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
     {
         public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
         {
-            var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
-
-            foreach (var node in context.InputNodes)
+            using (Logger.LogBlock(FunctionId.GraphQuery_IsUsedBy, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken))
             {
-                var symbol = graphBuilder.GetSymbol(node);
-                var references = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+                var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
 
-                foreach (var reference in references)
+                foreach (var node in context.InputNodes)
                 {
-                    var referencedSymbol = reference.Definition;
-                    var projectId = graphBuilder.GetContextProject(node).Id;
+                    var symbol = graphBuilder.GetSymbol(node);
+                    var references = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
 
-                    var allLocations = referencedSymbol.Locations.Concat(reference.Locations.Select(r => r.Location))
-                                                                 .Where(l => l != null && l.IsInSource);
-
-                    foreach (var location in allLocations)
+                    foreach (var reference in references)
                     {
-                        var locationNode = GetLocationNode(referencedSymbol, location, context, projectId, cancellationToken);
-                        graphBuilder.AddLink(node, CodeLinkCategories.SourceReferences, locationNode);
+                        var referencedSymbol = reference.Definition;
+                        var projectId = graphBuilder.GetContextProject(node).Id;
+
+                        var allLocations = referencedSymbol.Locations.Concat(reference.Locations.Select(r => r.Location))
+                                                                     .Where(l => l != null && l.IsInSource);
+
+                        foreach (var location in allLocations)
+                        {
+                            var locationNode = GetLocationNode(referencedSymbol, location, context, projectId, cancellationToken);
+                            graphBuilder.AddLink(node, CodeLinkCategories.SourceReferences, locationNode);
+                        }
                     }
                 }
-            }
 
-            return graphBuilder;
+                return graphBuilder;
+            }
         }
 
         internal GraphNode GetLocationNode(ISymbol symbol, Location location, IGraphContext context, ProjectId projectId, CancellationToken cancellationToken)

@@ -137,7 +137,7 @@ namespace Roslyn.Test.Utilities
     {
         public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
         public static bool IsUnix => !IsWindows;
-        public static bool IsDesktop => CoreClrShim.AssemblyLoadContext.Type == null;
+        public static bool IsDesktop => RuntimeUtilities.IsDesktopRuntime;
         public static bool IsWindowsDesktop => IsWindows && IsDesktop;
         public static bool IsMonoDesktop => Type.GetType("Mono.Runtime") != null;
         public static bool IsCoreClr => !IsDesktop;
@@ -160,7 +160,23 @@ namespace Roslyn.Test.Utilities
 
     public class HasEnglishDefaultEncoding : ExecutionCondition
     {
-        public override bool ShouldSkip => Encoding.GetEncoding(0)?.CodePage != 1252;
+        public override bool ShouldSkip
+        {
+            get
+            {
+                try
+                {
+                    return Encoding.GetEncoding(0)?.CodePage != 1252;
+                }
+                catch (EntryPointNotFoundException)
+                {
+                    // Mono is throwing this exception on recent runs. Need to just assume false in this case while the
+                    // bug is tracked down. 
+                    // https://github.com/mono/mono/issues/12603
+                    return false;
+                }
+            }
+        }
 
         public override string SkipReason => "OS default codepage is not Windows-1252.";
     }

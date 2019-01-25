@@ -593,6 +593,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to DateTimeKind must be Utc.
+        /// </summary>
+        internal static string DateTimeKind_must_be_Utc {
+            get {
+                return ResourceManager.GetString("DateTimeKind_must_be_Utc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Delegate.
         /// </summary>
         internal static string Delegate {

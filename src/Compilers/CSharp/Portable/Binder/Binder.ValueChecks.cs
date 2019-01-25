@@ -383,8 +383,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                // array elements and pointer dereferencing are readwrite variables
+                // array access is readwrite variable if the indexing expression is not System.Range
                 case BoundKind.ArrayAccess:
+                    {
+                        if (RequiresRefAssignableVariable(valueKind))
+                        {
+                            Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                            return false;
+                        }
+
+                        var boundAccess = (BoundArrayAccess)expr;
+                        if (boundAccess.Indices.Length == 1 &&
+                            TypeSymbol.Equals(
+                                boundAccess.Indices[0].Type,
+                                Compilation.GetWellKnownType(WellKnownType.System_Range),
+                                TypeCompareKind.ConsiderEverything))
+                        {
+                            // Range indexer is an rvalue
+                            Error(diagnostics, GetStandardLvalueError(valueKind), node);
+                            return false;
+                        }
+                        return true;
+                    }
+
+                // pointer dereferencing is a readwrite variable
                 case BoundKind.PointerIndirectionOperator:
                 // The undocumented __refvalue(tr, T) expression results in a variable of type T.
                 case BoundKind.RefValueOperator:
@@ -2359,6 +2381,11 @@ moreArguments:
                 case BoundKind.ImplicitReceiver:
                     // binder uses this as a placeholder when binding members inside an object initializer
                     // just say it does not escape anywhere, so that we do not get false errors.
+                    return scopeOfTheContainingExpression;
+
+                case BoundKind.DisposableValuePlaceholder:
+                    // Disposable value placeholder is only ever used to lookup a pattern dispose method
+                    // then immediately discarded. The actual expression will be generated during lowering 
                     return scopeOfTheContainingExpression;
 
                 case BoundKind.PointerElementAccess:
