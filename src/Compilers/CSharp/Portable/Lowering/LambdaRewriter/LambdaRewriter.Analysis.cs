@@ -359,17 +359,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Right now we only create one environment per scope
                         Debug.Assert(scope.DeclaredEnvironments.Count == 1);
-                        var capturingClosures = PooledHashSet<Closure>.GetInstance();
-                        closuresCapturingScopeVariables[scope] = capturingClosures;
+
+                        closuresCapturingScopeVariables[scope] = PooledHashSet<Closure>.GetInstance();
                         environmentsToScopes[scope.DeclaredEnvironments[0]] = scope;
                     }
-                });
 
-                VisitClosures(ScopeTree, (_, closure) =>
-                {
-                    foreach (var env in closure.CapturedEnvironments)
+                    foreach (var closure in scope.Closures)
                     {
-                        closuresCapturingScopeVariables[environmentsToScopes[env]].Add(closure);
+                        foreach (var env in closure.CapturedEnvironments)
+                        {
+                            // A closure should only ever capture a scope which is an ancestor of its own,
+                            // which we should have already visited
+                            Debug.Assert(environmentsToScopes.ContainsKey(env));
+
+                            closuresCapturingScopeVariables[environmentsToScopes[env]].Add(closure);
+                        }
                     }
                 });
 
