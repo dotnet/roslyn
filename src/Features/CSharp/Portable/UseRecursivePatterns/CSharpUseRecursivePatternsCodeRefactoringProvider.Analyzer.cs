@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -11,20 +13,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
     {
         private sealed class Analyzer : CSharpSyntaxVisitor<AnalyzedNode>
         {
-            private static readonly Analyzer s_instance = new Analyzer();
+            private readonly SemanticModel _semanticModel;
 
-            private Analyzer() { }
-
-            public static AnalyzedNode Analyze(SyntaxNode node)
+            private Analyzer(SemanticModel semanticModel)
             {
-                return s_instance.Visit(node);
+                _semanticModel = semanticModel;
+            }
+
+            public static AnalyzedNode Analyze(SyntaxNode node, SemanticModel semanticModel)
+            {
+                return new Analyzer(semanticModel).Visit(node);
             }
 
             public override AnalyzedNode VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node)
             {
                 if (node.WhenClause != null)
                 {
-                    return new Conjuction(Visit(node.Pattern), Visit(node.WhenClause.Condition));
+                    return new Conjunction(Visit(node.Pattern), Visit(node.WhenClause.Condition));
                 }
 
                 return null;
@@ -34,25 +39,52 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             {
                 var left = node.Left;
                 var right = node.Right;
-
                 switch (node.Kind())
                 {
-                    case SyntaxKind.EqualsExpression when AnalyzeLeftOfPatternMatch(left):
+                    case SyntaxKind.EqualsExpression when AnalyzeLeftOfPatternMatch(left) && IsConstant(right):
                         return new PatternMatch(left, new ConstantPattern(right));
 
-                    case SyntaxKind.IsExpression:
-                        return new PatternMatch(left, new TypePattern((TypeSyntax)right));
+                    case SyntaxKind.EqualsExpression when AnalyzeLeftOfPatternMatch(right) && IsConstant(left):
+                        return new PatternMatch(right, new ConstantPattern(left));
 
-                    case SyntaxKind.NotEqualsExpression when right.IsKind(SyntaxKind.NullLiteralExpression):
+                    case SyntaxKind.NotEqualsExpression when AnalyzeLeftOfPatternMatch(left) && IsConstantNull(right):
                         return new PatternMatch(left, NotNullPattern.Instance);
 
+                    case SyntaxKind.NotEqualsExpression when AnalyzeLeftOfPatternMatch(right) && IsConstantNull(left):
+                        return new PatternMatch(right, NotNullPattern.Instance);
+
+                    case SyntaxKind.IsExpression when AnalyzeLeftOfPatternMatch(left):
+                        return new PatternMatch(left,
+                            IsLoweredToNullCheck(left, right)
+                                ? NotNullPattern.Instance
+                                : new TypePattern((TypeSyntax)right));
+
                     case SyntaxKind.LogicalAndExpression
-                        when Visit(left) is AnalyzedNode analyzedLeft &&
-                            Visit(right) is AnalyzedNode analyzedRight:
-                        return new Conjuction(analyzedLeft, analyzedRight);
+                        when Visit(left) is var analyzedLeft && analyzedLeft != null &&
+                            Visit(right) is var analyzedRight && analyzedRight != null:
+                        return new Conjunction(analyzedLeft, analyzedRight);
                 }
 
-                return null;
+                return DefaultVisit(node);
+            }
+
+            private bool IsLoweredToNullCheck(ExpressionSyntax e, ExpressionSyntax type)
+            {
+                return _semanticModel.ClassifyConversion(e,
+                    _semanticModel.GetTypeInfo(type).Type).IsIdentityOrImplicitReference();
+            }
+
+            private bool IsConstantNull(ExpressionSyntax e)
+            {
+                return e.IsKind(SyntaxKind.NullLiteralExpression);
+                var constant = _semanticModel.GetConstantValue(e);
+                return constant.HasValue && constant.Value is null;
+            }
+
+            private bool IsConstant(ExpressionSyntax e)
+            {
+                return true;
+                return _semanticModel.GetConstantValue(e).HasValue;
             }
 
             private static bool AnalyzeLeftOfPatternMatch(ExpressionSyntax node)
@@ -82,47 +114,61 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             }
 
             public override AnalyzedNode VisitIsPatternExpression(IsPatternExpressionSyntax node)
-            {
-                return new PatternMatch(node.Expression, Visit(node.Pattern));
-            }
+                => new PatternMatch(node.Expression, Visit(node.Pattern));
 
             public override AnalyzedNode VisitConstantPattern(ConstantPatternSyntax node)
-            {
-                return new ConstantPattern(node.Expression);
-            }
+                => new ConstantPattern(node.Expression);
 
             public override AnalyzedNode VisitDeclarationPattern(DeclarationPatternSyntax node)
-            {
-                switch (node.Designation)
-                {
-                    case SingleVariableDesignationSyntax n:
-                        return new Conjuction(new TypePattern(node.Type), new VarPattern(n.Identifier));
+                => new Conjunction(new TypePattern(node.Type), Visit(node.Designation));
 
-                    case DiscardDesignationSyntax n:
-                        return new TypePattern(node.Type);
+            public override AnalyzedNode VisitDiscardPattern(DiscardPatternSyntax node)
+                => DiscardPattern.Instance;
 
-                    case ParenthesizedVariableDesignationSyntax n:
-                        throw new NotImplementedException();
+            public override AnalyzedNode VisitDiscardDesignation(DiscardDesignationSyntax node)
+                => DiscardPattern.Instance;
 
-                    case var value:
-                        throw ExceptionUtilities.UnexpectedValue(value);
-                }
-            }
+            public override AnalyzedNode VisitParenthesizedVariableDesignation(ParenthesizedVariableDesignationSyntax node)
+                => new PositionalPattern(node.Variables.SelectAsArray(v => ((NameColonSyntax)null, Visit(v))));
+
+            public override AnalyzedNode VisitSingleVariableDesignation(SingleVariableDesignationSyntax node)
+                => new VarPattern(node.Identifier);
 
             public override AnalyzedNode VisitVarPattern(VarPatternSyntax node)
-            {
-                switch (node.Designation)
-                {
-                    case SingleVariableDesignationSyntax n:
-                        return new VarPattern(n.Identifier);
-                }
-
-                return null;
-            }
+                => Visit(node.Designation);
 
             public override AnalyzedNode VisitRecursivePattern(RecursivePatternSyntax node)
             {
-                throw new NotImplementedException();
+                var nodes = new List<AnalyzedNode>();
+
+                if (node.Type is var type && type != null)
+                {
+                    nodes.Add(new TypePattern(type));
+                }
+
+                if (node.PositionalPatternClause is var positinal && positinal != null)
+                {
+                    nodes.Add(new PositionalPattern(
+                        positinal.Subpatterns.SelectAsArray(sub => (sub.NameColon, Visit(sub.Pattern)))));
+                }
+
+                if (node.PropertyPatternClause is var property && property != null)
+                {
+                    nodes.AddRange(property.Subpatterns
+                        .Select(sub => new PatternMatch(sub.NameColon.Name, Visit(sub.Pattern))));
+                }
+
+                if (node.Designation is var designation && designation != null)
+                {
+                    nodes.Add(Visit(designation));
+                }
+
+                if (nodes.Count == 0)
+                {
+                    return NotNullPattern.Instance;
+                }
+
+                return nodes.Aggregate((left, right) => new Conjunction(left, right));
             }
 
             public override AnalyzedNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
@@ -133,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                         new ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)));
                 }
 
-                return null;
+                return DefaultVisit(node);
             }
 
             public override AnalyzedNode VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
@@ -145,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                         new ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)));
                 }
 
-                return null;
+                return DefaultVisit(node);
             }
 
             public override AnalyzedNode DefaultVisit(SyntaxNode node)

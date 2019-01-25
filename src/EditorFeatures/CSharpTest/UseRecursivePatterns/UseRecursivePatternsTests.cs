@@ -344,5 +344,73 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
     }
 }");
         }
+
+        [Fact]
+        public async Task Test13()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    bool M()
+    {
+        return x is var v [||]&& v != null;
+    }
+}",
+@"class C
+{
+    bool M()
+    {
+        return x is { } v ;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task Test14()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    bool M(C x)
+    {
+        return x is var v [||]&& v is object;
+    }
+}",
+@"class C
+{
+    bool M(C x)
+    {
+        return x is { } v ;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task Test15()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    bool M(C c)
+    {
+        return c is var (x, y) [||]&& x is SomeType && y != null;
+    }
+}",
+@"class C
+{
+    bool M(C c)
+    {
+        return c is (SomeType
+        {
+        }
+
+        x,
+        {
+        }
+
+        y);
+    }
+}");
+        }
     }
 }

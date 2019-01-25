@@ -26,26 +26,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             var cancellationToken = context.CancellationToken;
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            SyntaxNode node;
-            var token = root.FindToken(textSpan.Start);
-            if (token.IsKind(SyntaxKind.EqualsEqualsToken, SyntaxKind.AmpersandAmpersandToken))
-            {
-                node = token.Parent;
-            }
-            else if (token.IsKind(SyntaxKind.WhenKeyword))
-            {
-                node = token.Parent.Parent;
-            }
-            else
+            var node = GetOutermostExpression(root.FindToken(textSpan.Start).Parent);
+            if (node == null)
             {
                 return;
             }
 
-            // TODO find outermost AND operator
-
-            //var semanticModel = await context.Document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var analyzedNode = Analyzer.Analyze(node);
+            var semanticModel = await context.Document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var analyzedNode = Analyzer.Analyze(node, semanticModel);
             if (analyzedNode == null)
             {
                 return;
@@ -67,8 +55,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             context.RegisterRefactoring(new MyCodeAction(
                 c => document.ReplaceNodeAsync(node,
                     node.IsKind(SyntaxKind.CasePatternSwitchLabel)
-                        ? ((Conjuction)reducedNode).AsCasePatternSwitchLabelSyntax()
-                        : (SyntaxNode)reducedNode.AsExpressionSyntax(), c)));
+                        ? (SyntaxNode)((Conjunction)reducedNode).AsCasePatternSwitchLabelSyntax()
+                        : reducedNode.AsExpressionSyntax(), c)));
+        }
+
+        private static SyntaxNode GetOutermostExpression(SyntaxNode node)
+        {
+            if (node.IsKind(SyntaxKind.WhenClause))
+            {
+                return node.Parent;
+            }
+
+            var current = node;
+            SyntaxNode last = null;
+            while (current.IsKind(SyntaxKind.LogicalAndExpression, SyntaxKind.EqualsExpression))
+            {
+                last = current;
+                current = current.Parent;
+            }
+
+            return last;
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
