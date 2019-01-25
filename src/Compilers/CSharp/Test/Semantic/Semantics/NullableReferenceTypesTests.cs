@@ -40606,7 +40606,7 @@ class Program
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/32599: Support implicit tuple conversions
-            // (should report warnings for // 1, 2, 3 only).
+            // (should report warnings for dereferences of F in // 1, 2, 3 only).
             comp.VerifyDiagnostics(
                 // (14,9): warning CS8602: Possible dereference of a null reference.
                 //         t.Item1.F.ToString(); // 1

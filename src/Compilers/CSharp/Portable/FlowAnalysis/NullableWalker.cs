@@ -787,7 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // }
                     // For now, we copy a limited set of BoundNode types that shouldn't contain cycles.
                     if ((value.Kind == BoundKind.ObjectCreationExpression || value.Kind == BoundKind.AnonymousObjectCreationExpression || value.Kind == BoundKind.DynamicObjectCreationExpression || targetType.TypeSymbol.IsAnonymousType) &&
-                        targetType.TypeSymbol.Equals(valueType.TypeSymbol, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)) // https://github.com/dotnet/roslyn/issues/29968 Allow assignment to base type.
+                        areEquivalentTypes(targetType, valueType)) // https://github.com/dotnet/roslyn/issues/29968 Allow assignment to base type.
                     {
                         if (valueSlot > 0)
                         {
@@ -797,11 +797,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (targetType.IsNullableType())
                 {
-                    Debug.Assert(targetType.TypeSymbol.Equals(valueType.TypeSymbol, TypeCompareKind.AllIgnoreOptions));
+                    Debug.Assert(areEquivalentTypes(targetType, valueType));
                     // Nullable<T> is handled here rather than in InheritNullableStateOfTrackableStruct since that
                     // method only clones auto-properties (see https://github.com/dotnet/roslyn/issues/29619).
                     // When that issue is fixed, Nullable<T> should be handled there instead.
-                    if (valueSlot > 0)
+                    if (valueSlot > 0 && areEquivalentTypes(targetType, valueType))
                     {
                         InheritNullableStateOfTrackableType(targetSlot, valueSlot, isByRefTarget, slotWatermark: GetSlotWatermark());
                     }
@@ -812,6 +812,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, isDefaultValue: IsDefaultValue(value), isByRefTarget: IsByRefTarget(targetSlot), slotWatermark: GetSlotWatermark());
                 }
             }
+
+            bool areEquivalentTypes(TypeSymbolWithAnnotations t1, TypeSymbolWithAnnotations t2) =>
+                t1.TypeSymbol.Equals(t2.TypeSymbol, TypeCompareKind.AllIgnoreOptions);
         }
 
         private int GetSlotWatermark() => this.nextVariableSlot;
