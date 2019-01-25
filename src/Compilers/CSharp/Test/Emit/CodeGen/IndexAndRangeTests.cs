@@ -715,7 +715,7 @@ class C
 11");
             verifier.VerifyIL("C.M", @"
 {
-  // Code size      152 (0x98)
+  // Code size      159 (0x9f)
   .maxstack  5
   .locals init (System.Range V_0,
                 int[] V_1,
@@ -725,67 +725,70 @@ class C
                 System.Index V_5)
   IL_0000:  ldc.i4.1
   IL_0001:  call       ""System.Index System.Index.op_Implicit(int)""
-  IL_0006:  call       ""System.Range System.Range.FromStart(System.Index)""
-  IL_000b:  stloc.0
-  IL_000c:  ldarg.0
-  IL_000d:  stloc.1
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  call       ""System.Index System.Range.Start.get""
-  IL_0015:  stloc.s    V_5
-  IL_0017:  ldloca.s   V_5
-  IL_0019:  call       ""bool System.Index.FromEnd.get""
-  IL_001e:  brtrue.s   IL_0032
-  IL_0020:  ldloca.s   V_0
-  IL_0022:  call       ""System.Index System.Range.Start.get""
-  IL_0027:  stloc.s    V_5
-  IL_0029:  ldloca.s   V_5
-  IL_002b:  call       ""int System.Index.Value.get""
-  IL_0030:  br.s       IL_0046
-  IL_0032:  ldloc.1
-  IL_0033:  ldlen
-  IL_0034:  conv.i4
-  IL_0035:  ldloca.s   V_0
-  IL_0037:  call       ""System.Index System.Range.Start.get""
-  IL_003c:  stloc.s    V_5
-  IL_003e:  ldloca.s   V_5
-  IL_0040:  call       ""int System.Index.Value.get""
-  IL_0045:  sub
-  IL_0046:  stloc.2
-  IL_0047:  ldloca.s   V_0
-  IL_0049:  call       ""System.Index System.Range.End.get""
-  IL_004e:  stloc.s    V_5
-  IL_0050:  ldloca.s   V_5
-  IL_0052:  call       ""bool System.Index.FromEnd.get""
-  IL_0057:  brtrue.s   IL_006b
-  IL_0059:  ldloca.s   V_0
-  IL_005b:  call       ""System.Index System.Range.End.get""
-  IL_0060:  stloc.s    V_5
-  IL_0062:  ldloca.s   V_5
-  IL_0064:  call       ""int System.Index.Value.get""
-  IL_0069:  br.s       IL_007f
-  IL_006b:  ldloc.1
-  IL_006c:  ldlen
-  IL_006d:  conv.i4
-  IL_006e:  ldloca.s   V_0
-  IL_0070:  call       ""System.Index System.Range.End.get""
-  IL_0075:  stloc.s    V_5
-  IL_0077:  ldloca.s   V_5
-  IL_0079:  call       ""int System.Index.Value.get""
-  IL_007e:  sub
-  IL_007f:  ldloc.2
-  IL_0080:  sub
-  IL_0081:  stloc.3
-  IL_0082:  ldloc.3
-  IL_0083:  newarr     ""int""
-  IL_0088:  stloc.s    V_4
-  IL_008a:  ldloc.1
-  IL_008b:  ldloc.2
-  IL_008c:  ldloc.s    V_4
-  IL_008e:  ldc.i4.0
-  IL_008f:  ldloc.3
-  IL_0090:  call       ""void System.Array.Copy(System.Array, int, System.Array, int, int)""
-  IL_0095:  ldloc.s    V_4
-  IL_0097:  ret
+  IL_0006:  ldc.i4.0
+  IL_0007:  ldc.i4.1
+  IL_0008:  newobj     ""System.Index..ctor(int, bool)""
+  IL_000d:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_0012:  stloc.0
+  IL_0013:  ldarg.0
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""System.Index System.Range.Start.get""
+  IL_001c:  stloc.s    V_5
+  IL_001e:  ldloca.s   V_5
+  IL_0020:  call       ""bool System.Index.FromEnd.get""
+  IL_0025:  brtrue.s   IL_0039
+  IL_0027:  ldloca.s   V_0
+  IL_0029:  call       ""System.Index System.Range.Start.get""
+  IL_002e:  stloc.s    V_5
+  IL_0030:  ldloca.s   V_5
+  IL_0032:  call       ""int System.Index.Value.get""
+  IL_0037:  br.s       IL_004d
+  IL_0039:  ldloc.1
+  IL_003a:  ldlen
+  IL_003b:  conv.i4
+  IL_003c:  ldloca.s   V_0
+  IL_003e:  call       ""System.Index System.Range.Start.get""
+  IL_0043:  stloc.s    V_5
+  IL_0045:  ldloca.s   V_5
+  IL_0047:  call       ""int System.Index.Value.get""
+  IL_004c:  sub
+  IL_004d:  stloc.2
+  IL_004e:  ldloca.s   V_0
+  IL_0050:  call       ""System.Index System.Range.End.get""
+  IL_0055:  stloc.s    V_5
+  IL_0057:  ldloca.s   V_5
+  IL_0059:  call       ""bool System.Index.FromEnd.get""
+  IL_005e:  brtrue.s   IL_0072
+  IL_0060:  ldloca.s   V_0
+  IL_0062:  call       ""System.Index System.Range.End.get""
+  IL_0067:  stloc.s    V_5
+  IL_0069:  ldloca.s   V_5
+  IL_006b:  call       ""int System.Index.Value.get""
+  IL_0070:  br.s       IL_0086
+  IL_0072:  ldloc.1
+  IL_0073:  ldlen
+  IL_0074:  conv.i4
+  IL_0075:  ldloca.s   V_0
+  IL_0077:  call       ""System.Index System.Range.End.get""
+  IL_007c:  stloc.s    V_5
+  IL_007e:  ldloca.s   V_5
+  IL_0080:  call       ""int System.Index.Value.get""
+  IL_0085:  sub
+  IL_0086:  ldloc.2
+  IL_0087:  sub
+  IL_0088:  stloc.3
+  IL_0089:  ldloc.3
+  IL_008a:  newarr     ""int""
+  IL_008f:  stloc.s    V_4
+  IL_0091:  ldloc.1
+  IL_0092:  ldloc.2
+  IL_0093:  ldloc.s    V_4
+  IL_0095:  ldc.i4.0
+  IL_0096:  ldloc.3
+  IL_0097:  call       ""void System.Array.Copy(System.Array, int, System.Array, int, int)""
+  IL_009c:  ldloc.s    V_4
+  IL_009e:  ret
 }
 ");
         }
@@ -815,7 +818,7 @@ class C
 3");
             verifier.VerifyIL("C.M", @"
 {
-  // Code size      152 (0x98)
+  // Code size      159 (0x9f)
   .maxstack  5
   .locals init (System.Range V_0,
                 int[] V_1,
@@ -823,69 +826,72 @@ class C
                 int V_3,
                 int[] V_4,
                 System.Index V_5)
-  IL_0000:  ldc.i4.3
-  IL_0001:  call       ""System.Index System.Index.op_Implicit(int)""
-  IL_0006:  call       ""System.Range System.Range.ToEnd(System.Index)""
-  IL_000b:  stloc.0
-  IL_000c:  ldarg.0
-  IL_000d:  stloc.1
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  call       ""System.Index System.Range.Start.get""
-  IL_0015:  stloc.s    V_5
-  IL_0017:  ldloca.s   V_5
-  IL_0019:  call       ""bool System.Index.FromEnd.get""
-  IL_001e:  brtrue.s   IL_0032
-  IL_0020:  ldloca.s   V_0
-  IL_0022:  call       ""System.Index System.Range.Start.get""
-  IL_0027:  stloc.s    V_5
-  IL_0029:  ldloca.s   V_5
-  IL_002b:  call       ""int System.Index.Value.get""
-  IL_0030:  br.s       IL_0046
-  IL_0032:  ldloc.1
-  IL_0033:  ldlen
-  IL_0034:  conv.i4
-  IL_0035:  ldloca.s   V_0
-  IL_0037:  call       ""System.Index System.Range.Start.get""
-  IL_003c:  stloc.s    V_5
-  IL_003e:  ldloca.s   V_5
-  IL_0040:  call       ""int System.Index.Value.get""
-  IL_0045:  sub
-  IL_0046:  stloc.2
-  IL_0047:  ldloca.s   V_0
-  IL_0049:  call       ""System.Index System.Range.End.get""
-  IL_004e:  stloc.s    V_5
-  IL_0050:  ldloca.s   V_5
-  IL_0052:  call       ""bool System.Index.FromEnd.get""
-  IL_0057:  brtrue.s   IL_006b
-  IL_0059:  ldloca.s   V_0
-  IL_005b:  call       ""System.Index System.Range.End.get""
-  IL_0060:  stloc.s    V_5
-  IL_0062:  ldloca.s   V_5
-  IL_0064:  call       ""int System.Index.Value.get""
-  IL_0069:  br.s       IL_007f
-  IL_006b:  ldloc.1
-  IL_006c:  ldlen
-  IL_006d:  conv.i4
-  IL_006e:  ldloca.s   V_0
-  IL_0070:  call       ""System.Index System.Range.End.get""
-  IL_0075:  stloc.s    V_5
-  IL_0077:  ldloca.s   V_5
-  IL_0079:  call       ""int System.Index.Value.get""
-  IL_007e:  sub
-  IL_007f:  ldloc.2
-  IL_0080:  sub
-  IL_0081:  stloc.3
-  IL_0082:  ldloc.3
-  IL_0083:  newarr     ""int""
-  IL_0088:  stloc.s    V_4
-  IL_008a:  ldloc.1
-  IL_008b:  ldloc.2
-  IL_008c:  ldloc.s    V_4
-  IL_008e:  ldc.i4.0
-  IL_008f:  ldloc.3
-  IL_0090:  call       ""void System.Array.Copy(System.Array, int, System.Array, int, int)""
-  IL_0095:  ldloc.s    V_4
-  IL_0097:  ret
+  IL_0000:  ldc.i4.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0007:  ldc.i4.3
+  IL_0008:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_000d:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_0012:  stloc.0
+  IL_0013:  ldarg.0
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""System.Index System.Range.Start.get""
+  IL_001c:  stloc.s    V_5
+  IL_001e:  ldloca.s   V_5
+  IL_0020:  call       ""bool System.Index.FromEnd.get""
+  IL_0025:  brtrue.s   IL_0039
+  IL_0027:  ldloca.s   V_0
+  IL_0029:  call       ""System.Index System.Range.Start.get""
+  IL_002e:  stloc.s    V_5
+  IL_0030:  ldloca.s   V_5
+  IL_0032:  call       ""int System.Index.Value.get""
+  IL_0037:  br.s       IL_004d
+  IL_0039:  ldloc.1
+  IL_003a:  ldlen
+  IL_003b:  conv.i4
+  IL_003c:  ldloca.s   V_0
+  IL_003e:  call       ""System.Index System.Range.Start.get""
+  IL_0043:  stloc.s    V_5
+  IL_0045:  ldloca.s   V_5
+  IL_0047:  call       ""int System.Index.Value.get""
+  IL_004c:  sub
+  IL_004d:  stloc.2
+  IL_004e:  ldloca.s   V_0
+  IL_0050:  call       ""System.Index System.Range.End.get""
+  IL_0055:  stloc.s    V_5
+  IL_0057:  ldloca.s   V_5
+  IL_0059:  call       ""bool System.Index.FromEnd.get""
+  IL_005e:  brtrue.s   IL_0072
+  IL_0060:  ldloca.s   V_0
+  IL_0062:  call       ""System.Index System.Range.End.get""
+  IL_0067:  stloc.s    V_5
+  IL_0069:  ldloca.s   V_5
+  IL_006b:  call       ""int System.Index.Value.get""
+  IL_0070:  br.s       IL_0086
+  IL_0072:  ldloc.1
+  IL_0073:  ldlen
+  IL_0074:  conv.i4
+  IL_0075:  ldloca.s   V_0
+  IL_0077:  call       ""System.Index System.Range.End.get""
+  IL_007c:  stloc.s    V_5
+  IL_007e:  ldloca.s   V_5
+  IL_0080:  call       ""int System.Index.Value.get""
+  IL_0085:  sub
+  IL_0086:  ldloc.2
+  IL_0087:  sub
+  IL_0088:  stloc.3
+  IL_0089:  ldloc.3
+  IL_008a:  newarr     ""int""
+  IL_008f:  stloc.s    V_4
+  IL_0091:  ldloc.1
+  IL_0092:  ldloc.2
+  IL_0093:  ldloc.s    V_4
+  IL_0095:  ldc.i4.0
+  IL_0096:  ldloc.3
+  IL_0097:  call       ""void System.Array.Copy(System.Array, int, System.Array, int, int)""
+  IL_009c:  ldloc.s    V_4
+  IL_009e:  ret
 }
 ");
         }
@@ -1139,11 +1145,14 @@ public static class Util
 
             CompileAndVerify(compilation).VerifyIL("Util.ToEnd", @"
 {
-  // Code size        7 (0x7)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""System.Range System.Range.ToEnd(System.Index)""
-  IL_0006:  ret
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldc.i4.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_000d:  ret
 }");
         }
 
@@ -1159,24 +1168,30 @@ public static class Util
 
             CompileAndVerify(compilation).VerifyIL("Util.ToEnd", @"
 {
-  // Code size       39 (0x27)
-  .maxstack  1
-  .locals init (System.Index? V_0,
-                System.Range? V_1)
-  IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool System.Index?.HasValue.get""
-  IL_0009:  brtrue.s   IL_0015
+  // Code size       49 (0x31)
+  .maxstack  3
+  .locals init (System.Index V_0,
+                System.Index? V_1,
+                System.Range? V_2)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  call       ""System.Index..ctor(int, bool)""
+  IL_0009:  ldarg.0
+  IL_000a:  stloc.1
   IL_000b:  ldloca.s   V_1
-  IL_000d:  initobj    ""System.Range?""
-  IL_0013:  ldloc.1
-  IL_0014:  ret
-  IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""System.Index System.Index?.GetValueOrDefault()""
-  IL_001c:  call       ""System.Range System.Range.ToEnd(System.Index)""
-  IL_0021:  newobj     ""System.Range?..ctor(System.Range)""
-  IL_0026:  ret
+  IL_000d:  call       ""bool System.Index?.HasValue.get""
+  IL_0012:  brtrue.s   IL_001e
+  IL_0014:  ldloca.s   V_2
+  IL_0016:  initobj    ""System.Range?""
+  IL_001c:  ldloc.2
+  IL_001d:  ret
+  IL_001e:  ldloc.0
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  call       ""System.Index System.Index?.GetValueOrDefault()""
+  IL_0026:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_002b:  newobj     ""System.Range?..ctor(System.Range)""
+  IL_0030:  ret
 }");
         }
 
@@ -1192,11 +1207,14 @@ public static class Util
 
             CompileAndVerify(compilation).VerifyIL("Util.FromStart", @"
 {
-  // Code size        7 (0x7)
-  .maxstack  1
+  // Code size       14 (0xe)
+  .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  call       ""System.Range System.Range.FromStart(System.Index)""
-  IL_0006:  ret
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldc.i4.1
+  IL_0003:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0008:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_000d:  ret
 }");
         }
 
@@ -1212,24 +1230,30 @@ public static class Util
 
             CompileAndVerify(compilation).VerifyIL("Util.FromStart", @"
 {
-  // Code size       39 (0x27)
-  .maxstack  1
+  // Code size       49 (0x31)
+  .maxstack  3
   .locals init (System.Index? V_0,
-                System.Range? V_1)
+                System.Index V_1,
+                System.Range? V_2)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
-  IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool System.Index?.HasValue.get""
-  IL_0009:  brtrue.s   IL_0015
-  IL_000b:  ldloca.s   V_1
-  IL_000d:  initobj    ""System.Range?""
-  IL_0013:  ldloc.1
-  IL_0014:  ret
-  IL_0015:  ldloca.s   V_0
-  IL_0017:  call       ""System.Index System.Index?.GetValueOrDefault()""
-  IL_001c:  call       ""System.Range System.Range.FromStart(System.Index)""
-  IL_0021:  newobj     ""System.Range?..ctor(System.Range)""
-  IL_0026:  ret
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldc.i4.0
+  IL_0005:  ldc.i4.1
+  IL_0006:  call       ""System.Index..ctor(int, bool)""
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""bool System.Index?.HasValue.get""
+  IL_0012:  brtrue.s   IL_001e
+  IL_0014:  ldloca.s   V_2
+  IL_0016:  initobj    ""System.Range?""
+  IL_001c:  ldloc.2
+  IL_001d:  ret
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  call       ""System.Index System.Index?.GetValueOrDefault()""
+  IL_0025:  ldloc.1
+  IL_0026:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_002b:  newobj     ""System.Range?..ctor(System.Range)""
+  IL_0030:  ret
 }");
         }
 
@@ -1245,10 +1269,16 @@ public static class Util
 
             CompileAndVerify(compilation).VerifyIL("Util.All", @"
 {
-  // Code size        6 (0x6)
-  .maxstack  1
-  IL_0000:  call       ""System.Range System.Range.All()""
-  IL_0005:  ret
+  // Code size       20 (0x14)
+  .maxstack  3
+  IL_0000:  ldc.i4.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  newobj     ""System.Index..ctor(int, bool)""
+  IL_000e:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_0013:  ret
 }");
         }
 
@@ -1564,12 +1594,15 @@ partial class Program
                 expectedOutput: "value: 'value: '1', fromEnd: 'True'', fromEnd: 'value: '0', fromEnd: 'True''")
                 .VerifyIL("Program.Create", @"
 {
-  // Code size       12 (0xc)
-  .maxstack  1
+  // Code size       19 (0x13)
+  .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  call       ""System.Range System.Range.FromStart(System.Index)""
-  IL_0006:  newobj     ""System.Range?..ctor(System.Range)""
-  IL_000b:  ret
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldc.i4.1
+  IL_0003:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0008:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_000d:  newobj     ""System.Range?..ctor(System.Range)""
+  IL_0012:  ret
 }");
         }
 
@@ -1593,12 +1626,15 @@ partial class Program
                 expectedOutput: "value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '1', fromEnd: 'True''")
                 .VerifyIL("Program.Create", @"
 {
-  // Code size       12 (0xc)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""System.Range System.Range.ToEnd(System.Index)""
-  IL_0006:  newobj     ""System.Range?..ctor(System.Range)""
-  IL_000b:  ret
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldc.i4.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_000d:  newobj     ""System.Range?..ctor(System.Range)""
+  IL_0012:  ret
 }");
         }
 
@@ -1681,15 +1717,18 @@ partial class Program
                 expectedOutput: "value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '0', fromEnd: 'True''")
                 .VerifyIL("Program.Create", @"
 {
-  // Code size       20 (0x14)
-  .maxstack  1
+  // Code size       27 (0x1b)
+  .maxstack  3
   .locals init (System.Index V_0)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""System.Index""
   IL_0008:  ldloc.0
-  IL_0009:  call       ""System.Range System.Range.FromStart(System.Index)""
-  IL_000e:  newobj     ""System.Range?..ctor(System.Range)""
-  IL_0013:  ret
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.1
+  IL_000b:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0010:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_0015:  newobj     ""System.Range?..ctor(System.Range)""
+  IL_001a:  ret
 }");
         }
 
@@ -1713,15 +1752,18 @@ partial class Program
                 expectedOutput: "value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '0', fromEnd: 'False''")
                 .VerifyIL("Program.Create", @"
 {
-  // Code size       20 (0x14)
-  .maxstack  1
+  // Code size       27 (0x1b)
+  .maxstack  2
   .locals init (System.Index V_0)
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    ""System.Index""
-  IL_0008:  ldloc.0
-  IL_0009:  call       ""System.Range System.Range.ToEnd(System.Index)""
-  IL_000e:  newobj     ""System.Range?..ctor(System.Range)""
-  IL_0013:  ret
+  IL_0000:  ldc.i4.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  initobj    ""System.Index""
+  IL_000f:  ldloc.0
+  IL_0010:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_0015:  newobj     ""System.Range?..ctor(System.Range)""
+  IL_001a:  ret
 }");
         }
 

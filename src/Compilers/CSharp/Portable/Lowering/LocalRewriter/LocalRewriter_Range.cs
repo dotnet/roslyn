@@ -15,21 +15,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node != null && node.MethodOpt != null);
 
             bool needLifting = false;
-            var operandsBuilder = new ArrayBuilder<BoundExpression>();
+            var F = _factory;
 
             var left = node.LeftOperand;
             if (left != null)
             {
-                operandsBuilder.Add(tryOptimizeOperand(left));
+                left = tryOptimizeOperand(left);
+            }
+            else
+            {
+                // new Index(0, fromEnd: false)
+                left = F.New(
+                    WellKnownMember.System_Index__ctor,
+                    ImmutableArray.Create<BoundExpression>(F.Literal(0), F.Literal(false)));
             }
 
             var right = node.RightOperand;
             if (right != null)
             {
-                operandsBuilder.Add(tryOptimizeOperand(right));
+                right = tryOptimizeOperand(right);
+            }
+            else
+            {
+                // new Index(0, fromEnd: true)
+                right = F.New(
+                    WellKnownMember.System_Index__ctor,
+                    ImmutableArray.Create<BoundExpression>(F.Literal(0), F.Literal(true)));
             }
 
-            ImmutableArray<BoundExpression> operands = operandsBuilder.ToImmutable();
+            var operands = ImmutableArray.Create(left, right);
 
             if (needLifting)
             {

@@ -895,10 +895,7 @@ namespace System
                     case WellKnownMember.System_Index__Value:
                     case WellKnownMember.System_Range__Start:
                     case WellKnownMember.System_Range__End:
-                    case WellKnownMember.System_Range__All:
                     case WellKnownMember.System_Range__Create:
-                    case WellKnownMember.System_Range__FromStart:
-                    case WellKnownMember.System_Range__ToEnd:
                     case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor:
                     case WellKnownMember.System_IAsyncDisposable__DisposeAsync:
                     case WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator:
