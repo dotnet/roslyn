@@ -3447,15 +3447,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             (BoundExpression operand, Conversion conversion) = RemoveConversion(node, includeExplicitConversions: true);
             TypeSymbolWithAnnotations operandType = VisitRvalueWithResult(operand);
-
-            switch (node.ConversionKind)
-            {
-                case ConversionKind.ImplicitNullable:
-                case ConversionKind.ExplicitNullable:
-                    TrackNullableStateIfNullableConversion(node);
-                    break;
-            }
-
             _resultType = ApplyConversion(
                 node,
                 operand,
@@ -3468,6 +3459,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AssignmentKind.Assignment,
                 reportTopLevelWarnings: fromExplicitCast,
                 reportRemainingWarnings: true);
+
+            switch (node.ConversionKind)
+            {
+                case ConversionKind.ImplicitNullable:
+                case ConversionKind.ExplicitNullable:
+                    TrackNullableStateIfNullableConversion(node);
+                    break;
+            }
+
             return null;
         }
 
@@ -3486,19 +3486,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             (BoundExpression operand, Conversion conversion) = RemoveConversion(expr, includeExplicitConversions: false);
             var operandType = VisitRvalueWithResult(operand);
-
-            var conv = expr as BoundConversion;
-            if (conv != null && conv.ConversionKind == ConversionKind.ImplicitNullable)
-            {
-                TrackNullableStateIfNullableConversion(conv);
-            }
-
             // If an explicit conversion was used in place of an implicit conversion, the explicit
             // conversion was created by initial binding after reporting "error CS0266:
             // Cannot implicitly convert type '...' to '...'. An explicit conversion exists ...".
             // Since an error was reported, we don't need to report nested warnings as well.
             bool reportNestedWarnings = !conversion.IsExplicit;
-            return ApplyConversion(
+            var resultType = ApplyConversion(
                 expr,
                 operand,
                 conversion,
@@ -3510,6 +3503,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 assignmentKind,
                 reportTopLevelWarnings: true,
                 reportRemainingWarnings: reportNestedWarnings);
+
+            var conv = expr as BoundConversion;
+            if (conv != null && conv.ConversionKind == ConversionKind.ImplicitNullable)
+            {
+                TrackNullableStateIfNullableConversion(conv);
+            }
+
+            return resultType;
         }
 
         private static bool AreNullableAndUnderlyingTypes(TypeSymbol nullableTypeOpt, TypeSymbol underlyingTypeOpt, out TypeSymbolWithAnnotations underlyingTypeWithAnnotations)
