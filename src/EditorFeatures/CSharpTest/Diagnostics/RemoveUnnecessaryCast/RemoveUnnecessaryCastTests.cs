@@ -2021,7 +2021,7 @@ class Program
 {
     public object M1(bool b)
         {
-            return b ? (byte)1 : (byte)0;
+            return b ? [|(byte)1 : (byte)0|];
         }
 
         public byte M2()
