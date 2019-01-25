@@ -2987,8 +2987,6 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        // PROTOTYPE: Need similar tests for queries as for lambdas.
-
         [Fact]
         public void ShadowNames_Parameter()
         {
@@ -3063,6 +3061,44 @@ class Program
                 // (13,38): error CS1948: The range variable 'x' cannot have the same name as a method type parameter
                 //         Action a5 = () => { _ = from x in new[] { 1, 2, 3 } select x; }; // range variable
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableSameAsTypeParam, "x").WithArguments("x").WithLocation(13, 38));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ShadowNames_QueryParameter()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System;
+using System.Linq;
+class Program
+{
+    static void Main(string[] args)
+    {
+        _ = from x in args select (Action)(() => { object x = 0; }); // local
+        _ = from x in args select (Action<string>)(x => { }); // parameter
+        _ = from x in args select (Action<string>)((string x) => { }); // parameter
+        _ = from x in args select (Action)(() => { void x() { } }); // method
+        _ = from x in args select (Action)(() => { _ = from x in new[] { 1, 2, 3 } select x; }); // range variable
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (9,59): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         _ = from x in args select (Action)(() => { object x = 0; }); // local
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(9, 59),
+                // (10,52): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         _ = from x in args select (Action<string>)(x => { }); // parameter
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(10, 52),
+                // (11,60): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         _ = from x in args select (Action<string>)((string x) => { }); // parameter
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 60),
+                // (13,61): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
+                //         _ = from x in args select (Action)(() => { _ = from x in new[] { 1, 2, 3 } select x; }); // range variable
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(13, 61));
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
