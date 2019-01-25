@@ -120,10 +120,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         /// Check if there are interleaved directives on the statement.
         /// Handles special case with if/else.
         /// </summary>
-        /// <param name="statement"></param>
-        /// <param name="embeddedStatement"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
         private static bool ContainsInterleavedDirective(SyntaxNode statement, StatementSyntax embeddedStatement, CancellationToken cancellationToken)
         {
             if (statement.Kind() == SyntaxKind.IfStatement)
@@ -137,6 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                     var ifStatementSpanWithoutElse = TextSpan.FromBounds(statement.Span.Start, embeddedStatement.Span.End);
                     return statement.ContainsInterleavedDirective(ifStatementSpanWithoutElse, cancellationToken);
                 }
+
             }
             return statement.ContainsInterleavedDirective(cancellationToken);
         }
