@@ -250,7 +250,7 @@ namespace Roslyn.Test.Utilities
         {
             dumpDirectory = null;
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             foreach (var module in modules)
             {
                 // Limit the number of dumps to 10.  After 10 we're likely in a bad state and are 
@@ -289,23 +289,34 @@ namespace Roslyn.Test.Utilities
                     }
 
                     string pePath = Path.Combine(dumpDirectory, fileName + module.Kind.GetDefaultExtension());
-                    string pdbPath = (module.Pdb != null) ? pdbPath = Path.Combine(dumpDirectory, fileName + ".pdb") : null;
                     try
                     {
                         module.Image.WriteToFile(pePath);
-                        if (pdbPath != null)
+                    }
+                    catch (IOException e)
+                    {
+                        pePath = $"<unable to write file: '{pePath}' -- {e.Message}>";
+                    }
+
+                    string pdbPath;
+                    if (!module.Pdb.IsDefaultOrEmpty)
+                    {
+                        pdbPath = Path.Combine(dumpDirectory, fileName + ".pdb");
+
+                        try
                         {
                             module.Pdb.WriteToFile(pdbPath);
                         }
-                    }
-                    catch (IOException)
-                    {
-                        pePath = "<unable to write file>";
-                        if (pdbPath != null)
+                        catch (IOException e)
                         {
-                            pdbPath = "<unable to write file>";
+                            pdbPath = $"<unable to write file: '{pdbPath}' -- {e.Message}>";
                         }
                     }
+                    else
+                    {
+                        pdbPath = null;
+                    }
+
                     sb.Append("PE(" + module.Kind + "): ");
                     sb.AppendLine(pePath);
                     if (pdbPath != null)
