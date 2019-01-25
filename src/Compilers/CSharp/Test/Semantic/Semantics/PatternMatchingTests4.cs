@@ -854,7 +854,7 @@ class C1
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
-            var dpcss = tree.GetRoot().DescendantNodes().OfType<DeconstructionPatternClauseSyntax>().ToArray();
+            var dpcss = tree.GetRoot().DescendantNodes().OfType<PositionalPatternClauseSyntax>().ToArray();
             for (int i = 0; i < dpcss.Length; i++)
             {
                 var dpcs = dpcss[i];
@@ -1641,7 +1641,7 @@ class _
             (false, false) => 1,
             (false, true) => 2,
             // (true, false) => 3,
-            (true, true) => 4
+            (true, true) => 4,
             };
     }
 }
@@ -1667,7 +1667,7 @@ class _
             (false, false) => 1,
             (false, true) => 2,
             (true, false) => 3,
-            (true, true) => 4
+            (true, true) => 4,
             };
     }
 }
@@ -1718,7 +1718,7 @@ class _
             (true, false) => 3,
             (true, true) => 4,
             _ => 5,
-            (null, true) => 6
+            (null, true) => 6,
             };
     }
 }
@@ -1726,7 +1726,7 @@ class _
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 // (13,13): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
-                //             (null, true) => 6
+                //             (null, true) => 6,
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "(null, true)").WithLocation(13, 13)
                 );
         }
@@ -1998,7 +1998,7 @@ namespace System.Runtime.CompilerServices
 {
     public class SwitchExpressionException : InvalidOperationException
     {
-        public SwitchExpressionException() {}
+        public SwitchExpressionException() => throw null;
         public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
         public object UnmatchedValue { get; }
     }
@@ -2040,7 +2040,7 @@ namespace System.Runtime.CompilerServices
 {
     public class SwitchExpressionException : InvalidOperationException
     {
-        public SwitchExpressionException() {}
+        public SwitchExpressionException() => throw null;
         public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
         public object UnmatchedValue { get; }
     }
@@ -2052,7 +2052,7 @@ namespace System.Runtime.CompilerServices
                 //             _ = (1, 2) switch { (3, 4) => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(8, 24)
                 );
-            CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException()");
+            CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException((1, 2))");
         }
 
         [Fact]
@@ -2088,7 +2088,7 @@ namespace System.Runtime.CompilerServices
     public class SwitchExpressionException : InvalidOperationException
     {
         public SwitchExpressionException() {}
-        public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public SwitchExpressionException(object unmatchedValue) => throw null;
         public object UnmatchedValue { get; }
     }
 }
@@ -2945,7 +2945,7 @@ namespace System.Runtime.CompilerServices
 {
     public class SwitchExpressionException : InvalidOperationException
     {
-        public SwitchExpressionException() {}
+        public SwitchExpressionException() => throw null;
         public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
         public object UnmatchedValue { get; }
     }
@@ -2958,7 +2958,7 @@ namespace System.Runtime.CompilerServices
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(17, 23)
                 );
             CompileAndVerify(compilation, expectedOutput: @"3
-SwitchExpressionException()");
+SwitchExpressionException((1, 3))");
         }
 
         [Fact]
@@ -3029,6 +3029,72 @@ A(5, 6).Deconstruct
 A(5, 6).Y
 A(2, 3).Y
 8");
+        }
+
+        [Fact]
+        public void MissingValueTuple()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+    }
+    int M(int x, int y)
+    {
+        return (x, y) switch { (1, 2) => 1, _ => 2 };
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib40(source);
+            compilation.VerifyDiagnostics(
+                // (9,16): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         return (x, y) switch { (1, 2) => 1, _ => 2 };
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(x, y)").WithArguments("System.ValueTuple`2").WithLocation(9, 16)
+                );
+        }
+
+        [Fact]
+        public void UnmatchedInput_07()
+        {
+            var source =
+@"using System; using System.Runtime.CompilerServices;
+public class C
+{
+    static void Main()
+    {
+        Console.WriteLine(M(1, 2));
+        try
+        {
+            Console.WriteLine(M(1, 3));
+        }
+        catch (SwitchExpressionException ex)
+        {
+            Console.WriteLine($""{ex.GetType().Name}({ex.UnmatchedValue})"");
+        }
+    }
+    public static int M(int x, int y, int a = 3, int b = 4, int c = 5, int d = 6, int e = 7, int f = 8, int g = 9) {
+        return (x, y, a, b, c, d, e, f, g) switch { (1, 2, _, _, _, _, _, _, _) => 3 };
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public class SwitchExpressionException : InvalidOperationException
+    {
+        public SwitchExpressionException() => throw null;
+        public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public object UnmatchedValue { get; }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (17,44): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //         return (x, y, a, b, c, d, e, f, g) switch { (1, 2, _, _, _, _, _, _, _) => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(17, 44)
+                );
+            CompileAndVerify(compilation, expectedOutput: @"3
+SwitchExpressionException((1, 3, 3, 4, 5, 6, 7, 8, 9))");
         }
     }
 }

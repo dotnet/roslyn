@@ -223,7 +223,7 @@ End Module")
 
         private static void RunCompilerOutput(TempFile file, string expectedOutput)
         {
-            if (!CoreClrShim.IsRunningOnCoreClr)
+            if (RuntimeHostInfo.IsDesktopRuntime)
             {
                 var result = ProcessUtilities.Run(file.Path, "", Path.GetDirectoryName(file.Path));
                 Assert.Equal(expectedOutput.Trim(), result.Output.Trim());

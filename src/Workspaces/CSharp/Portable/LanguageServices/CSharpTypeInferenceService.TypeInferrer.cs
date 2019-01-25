@@ -1491,17 +1491,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If it's of the form (...) then infer that the type should be a 
                 // tuple, whose elements are inferred from the individual patterns
                 // in the deconstruction.
-                var deconstructionPart = recursivePattern.DeconstructionPatternClause;
-                if (deconstructionPart != null)
+                var positionalPart = recursivePattern.PositionalPatternClause;
+                if (positionalPart != null)
                 {
-                    var subPatternCount = deconstructionPart.Subpatterns.Count;
+                    var subPatternCount = positionalPart.Subpatterns.Count;
                     if (subPatternCount >= 2)
                     {
                         // infer a tuple type for this deconstruction.
                         var elementTypesBuilder = ArrayBuilder<ITypeSymbol>.GetInstance(subPatternCount);
                         var elementNamesBuilder = ArrayBuilder<string>.GetInstance(subPatternCount);
 
-                        foreach (var subPattern in deconstructionPart.Subpatterns)
+                        foreach (var subPattern in positionalPart.Subpatterns)
                         {
                             elementNamesBuilder.Add(subPattern.NameColon?.Name.Identifier.ValueText);
 

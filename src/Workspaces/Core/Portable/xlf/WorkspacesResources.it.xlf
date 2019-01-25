@@ -22,6 +22,11 @@
         <target state="new">Core EditorConfig Options</target>
         <note />
       </trans-unit>
+      <trans-unit id="DateTimeKind_must_be_Utc">
+        <source>DateTimeKind must be Utc</source>
+        <target state="new">DateTimeKind must be Utc</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expression_level_preferences">
         <source>Expression-level preferences</source>
         <target state="new">Expression-level preferences</target>
