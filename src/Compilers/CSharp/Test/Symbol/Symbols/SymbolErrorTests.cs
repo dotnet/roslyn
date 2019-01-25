@@ -831,7 +831,7 @@ interface i1
     event myDelegate myevent { add; remove; }
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+            CreateCompilation(text, parseOptions: TestOptions.Regular,
                               targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
                 // (6,35): error CS0073: An add or remove accessor must have a body
                 //     event myDelegate myevent { add; remove; }
@@ -848,12 +848,12 @@ interface i1
                 // (6,43): error CS0073: An add or remove accessor must have a body
                 //     event myDelegate myevent { add; remove; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 43),
-                // (6,32): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (6,32): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //     event myDelegate myevent { add; remove; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(6, 32),
-                // (6,37): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(6, 32),
+                // (6,37): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //     event myDelegate myevent { add; remove; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(6, 37));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "8.0").WithLocation(6, 37));
         }
 
         [WorkItem(542570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542570")]
@@ -869,12 +869,12 @@ interface i1
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7,
                               targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
-                // (5,32): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (5,32): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 8.0 or greater.
                 //     event myDelegate myevent { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(5, 32),
-                // (5,39): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(5, 32),
+                // (5,39): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 8.0 or greater.
                 //     event myDelegate myevent { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(5, 39));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "8.0").WithLocation(5, 39));
         }
 
         [WorkItem(542570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542570")]
@@ -890,9 +890,9 @@ interface i1
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7,
                               targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
-                // (5,32): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (5,32): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 8.0 or greater.
                 //     event myDelegate myevent { add {} }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(5, 32),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(5, 32),
                 // (5,22): error CS0065: 'i1.myevent': event property must have both add and remove accessors
                 //     event myDelegate myevent { add {} }
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "myevent").WithArguments("i1.myevent").WithLocation(5, 22));
@@ -1669,12 +1669,12 @@ namespace n3
                 // (11,24): warning CS0169: The field 'MyClass.field' is never used
                 //         virtual ushort field;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("MyNamespace.MyClass.field").WithLocation(11, 24),
-                // (6,28): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (6,28): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 8.0 or greater.
                 //         static public void f();   // CS0106
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "f").WithArguments("static", "7.0", "7.1").WithLocation(6, 28),
-                // (6,28): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "f").WithArguments("static", "7.0", "8.0").WithLocation(6, 28),
+                // (6,28): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 8.0 or greater.
                 //         static public void f();   // CS0106
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "f").WithArguments("public", "7.0", "7.1").WithLocation(6, 28),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "f").WithArguments("public", "7.0", "8.0").WithLocation(6, 28),
                 // (6,28): error CS0501: 'I.f()' must declare a body because it is not marked abstract, extern, or partial
                 //         static public void f();   // CS0106
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "f").WithArguments("MyNamespace.I.f()").WithLocation(6, 28)
@@ -1704,15 +1704,15 @@ class C
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (3,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (3,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 8.0 or greater.
                 //     public static int P1 { get; }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("static", "7.0", "7.1").WithLocation(3, 23),
-                // (3,23): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("static", "7.0", "8.0").WithLocation(3, 23),
+                // (3,23): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 8.0 or greater.
                 //     public static int P1 { get; }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("public", "7.0", "7.1").WithLocation(3, 23),
-                // (4,18): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("public", "7.0", "8.0").WithLocation(3, 23),
+                // (4,18): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 8.0 or greater.
                 //     abstract int P2 { static set; }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("abstract", "7.0", "7.1").WithLocation(4, 18),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("abstract", "7.0", "8.0").WithLocation(4, 18),
                 // (4,30): error CS0106: The modifier 'static' is not valid for this item
                 //     abstract int P2 { static set; }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("static").WithLocation(4, 30),
@@ -3135,12 +3135,12 @@ class MyClass2 : MyClass
 ";
             //we're diverging from Dev10 - it's a little silly to report two errors saying the same modifier isn't allowed
             CreateCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (3,17): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (3,17): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 8.0 or greater.
                 //     sealed void M();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M").WithArguments("sealed", "7.0", "7.1").WithLocation(3, 17),
-                // (4,19): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M").WithArguments("sealed", "7.0", "8.0").WithLocation(3, 17),
+                // (4,19): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 8.0 or greater.
                 //     sealed object P { get; }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P").WithArguments("sealed", "7.0", "7.1").WithLocation(4, 19),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P").WithArguments("sealed", "7.0", "8.0").WithLocation(4, 19),
                 // (4,23): error CS0501: 'I.P.get' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed object P { get; }
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I.P.get").WithLocation(4, 23),
@@ -4030,15 +4030,15 @@ namespace N
 }
 ", parseOptions: TestOptions.Regular7)
                 .VerifyDiagnostics(
-                // (4,21): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (4,21): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 8.0 or greater.
                 //     int Q { private get; set; } // CS0275
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.0", "7.1").WithLocation(4, 21),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.0", "8.0").WithLocation(4, 21),
                 // (4,21): error CS0442: 'I.Q.get': abstract properties cannot have private accessors
                 //     int Q { private get; set; } // CS0275
                 Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "get").WithArguments("I.Q.get").WithLocation(4, 21),
-                // (5,30): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (5,30): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 8.0 or greater.
                 //     object R { get; internal set; } // CS0275
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7.0", "7.1").WithLocation(5, 30)
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7.0", "8.0").WithLocation(5, 30)
                 );
         }
 
@@ -4054,15 +4054,15 @@ namespace N
 }
 ", parseOptions: TestOptions.Regular7)
                 .VerifyDiagnostics(
-                // (4,32): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (4,32): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 8.0 or greater.
                 //     int this[char x] { private get; set; } // CS0275
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.0", "7.1").WithLocation(4, 32),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.0", "8.0").WithLocation(4, 32),
                 // (4,32): error CS0442: 'I.this[char].get': abstract properties cannot have private accessors
                 //     int this[char x] { private get; set; } // CS0275
                 Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "get").WithArguments("I.this[char].get").WithLocation(4, 32),
-                // (5,43): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (5,43): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 8.0 or greater.
                 //     object this[string x] { get; internal set; } // CS0275
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7.0", "7.1").WithLocation(5, 43)
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7.0", "8.0").WithLocation(5, 43)
                 );
         }
 
@@ -8832,18 +8832,18 @@ struct S6<T>
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7);
 
             comp.VerifyDiagnostics(
-                // (5,19): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (5,19): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //         interface IBar { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "IBar").WithArguments("default interface implementation", "7.1").WithLocation(5, 19),
-                // (6,22): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "IBar").WithArguments("default interface implementation", "8.0").WithLocation(5, 19),
+                // (6,22): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //         public class cly {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "cly").WithArguments("default interface implementation", "7.1").WithLocation(6, 22),
-                // (7,16): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "cly").WithArguments("default interface implementation", "8.0").WithLocation(6, 22),
+                // (7,16): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //         struct S { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "S").WithArguments("default interface implementation", "7.1").WithLocation(7, 16),
-                // (8,22): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "S").WithArguments("default interface implementation", "8.0").WithLocation(7, 16),
+                // (8,22): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //         private enum E { zero,  one }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "E").WithArguments("default interface implementation", "7.1").WithLocation(8, 22)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "E").WithArguments("default interface implementation", "8.0").WithLocation(8, 22)
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -8868,9 +8868,9 @@ struct S6<T>
                 // (5,16): error CS0525: Interfaces cannot contain instance fields
                 //         string field1;
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field1").WithLocation(5, 16),
-                // (6,21): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (6,21): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //         const ulong field2 = 0;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "field2").WithArguments("default interface implementation", "7.1").WithLocation(6, 21),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "field2").WithArguments("default interface implementation", "8.0").WithLocation(6, 21),
                 // (7,21): error CS0525: Interfaces cannot contain instance fields
                 //         public IFoo field3;
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field3").WithLocation(7, 21)
@@ -9482,12 +9482,12 @@ public class Clx
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (11,20): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (11,20): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //         void IFace.F();   // CS0541
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F").WithArguments("default interface implementation", "7.1").WithLocation(11, 20),
-                // (12,23): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F").WithArguments("default interface implementation", "8.0").WithLocation(11, 20),
+                // (12,23): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //         int IFace.P { set; } //CS0541
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "7.1").WithLocation(12, 23),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "8.0").WithLocation(12, 23),
                 // (12,23): error CS0501: 'IFace2.IFace.P.set' must declare a body because it is not marked abstract, extern, or partial
                 //         int IFace.P { set; } //CS0541
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("x.IFace2.x.IFace.P.set").WithLocation(12, 23),
@@ -14291,9 +14291,9 @@ struct U<T>
     static void M(this object o);
 }", parseOptions: TestOptions.Regular7)
                 .VerifyDiagnostics(
-                    // (3,17): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                    // (3,17): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 8.0 or greater.
                     //     static void M(this object o);
-                    Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M").WithArguments("static", "7.0", "7.1").WithLocation(3, 17),
+                    Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M").WithArguments("static", "7.0", "8.0").WithLocation(3, 17),
                     // (1,11): error CS1106: Extension method must be defined in a non-generic static class
                     // interface I
                     Diagnostic(ErrorCode.ERR_BadExtensionAgg, "I").WithLocation(1, 11),

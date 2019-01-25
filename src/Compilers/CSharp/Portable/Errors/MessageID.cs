@@ -254,6 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureRecursivePatterns:
                 case MessageID.IDS_FeatureUsingDeclarations:
                 case MessageID.IDS_FeatureStaticLocalFunctions:
+                case MessageID.IDS_DefaultInterfaceImplementation:
                     return LanguageVersion.CSharp8;
 
                 // C# 7.3 features.
@@ -288,7 +289,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureDefaultLiteral:
                 case MessageID.IDS_FeatureInferredTupleNames:
                 case MessageID.IDS_FeatureGenericPatternMatching:
-                case MessageID.IDS_DefaultInterfaceImplementation:
                     return LanguageVersion.CSharp7_1;
 
                 // C# 7 features.
