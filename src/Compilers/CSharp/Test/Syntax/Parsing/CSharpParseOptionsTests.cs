@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -19,6 +20,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 
             Assert.Equal(validValue, getter(newOpt1));
             Assert.Same(newOpt2, newOpt1);
+        }
+
+        [Fact]
+        public void LanguageVersionFactsCurrentVersion()
+        {
+            var highest = Enum.
+                GetValues(typeof(LanguageVersion)).
+                Cast<LanguageVersion>().
+                Where(x => x != LanguageVersion.Latest).
+                Max();
+
+            Assert.Equal(LanguageVersionFacts.CurrentVersion, highest);
         }
 
         [Fact]
