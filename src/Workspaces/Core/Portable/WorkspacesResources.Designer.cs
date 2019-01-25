@@ -1277,6 +1277,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefix &apos;{0}&apos; does not match expected prefix &apos;{1}&apos;.
+        /// </summary>
+        internal static string Prefix_0_does_not_match_expected_prefix_1 {
+            get {
+                return ResourceManager.GetString("Prefix_0_does_not_match_expected_prefix_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefix &apos;{0}&apos; is not expected.
+        /// </summary>
+        internal static string Prefix_0_is_not_expected {
+            get {
+                return ResourceManager.GetString("Prefix_0_is_not_expected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Private Method.
         /// </summary>
         internal static string Private_Method {
