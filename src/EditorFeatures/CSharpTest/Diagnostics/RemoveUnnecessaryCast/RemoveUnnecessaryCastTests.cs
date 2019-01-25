@@ -2011,6 +2011,26 @@ class Program
 }");
         }
 
+        [WorkItem(26640, "https://github.com/dotnet/roslyn/issues/26640")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveNumericCastInObjectCast()
+        {
+
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    public object M1(bool b)
+        {
+            return b ? (byte)1 : (byte)0;
+        }
+
+        public byte M2()
+        {
+            return (byte) M1(true);
+        }
+}");
+        }
+
         [WorkItem(545894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545894")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNecessaryCastInAttribute()
