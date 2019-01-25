@@ -1592,7 +1592,7 @@ class C
             var memberModel = model.GetMemberModel(foreachSyntax);
             BoundForEachStatement boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
-            Assert.False(internalInfo.NeedsDisposeMethod);
+            Assert.False(internalInfo.NeedsDisposal);
         }
 
         [Fact]
@@ -2046,7 +2046,7 @@ class C
             var memberModel = model.GetMemberModel(foreachSyntax);
             var boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
-            Assert.True(internalInfo.NeedsDisposeMethod);
+            Assert.True(internalInfo.NeedsDisposal);
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
@@ -2365,7 +2365,7 @@ public class C
             var memberModel = model.GetMemberModel(foreachSyntax);
             BoundForEachStatement boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
-            Assert.True(internalInfo.NeedsDisposeMethod);
+            Assert.True(internalInfo.NeedsDisposal);
 
             CompileAndVerify(comp,
                 expectedOutput: "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3)");
@@ -2428,7 +2428,7 @@ public class C
             var memberModel = model.GetMemberModel(foreachSyntax);
             BoundForEachStatement boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
-            Assert.True(internalInfo.NeedsDisposeMethod);
+            Assert.True(internalInfo.NeedsDisposal);
 
             var verifier = CompileAndVerify(comp,
                 expectedOutput: "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4)");
@@ -2725,7 +2725,7 @@ class C
             var memberModel = model.GetMemberModel(foreachSyntax);
             BoundForEachStatement boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
-            Assert.True(internalInfo.NeedsDisposeMethod);
+            Assert.True(internalInfo.NeedsDisposal);
 
             CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4)");
         }
@@ -2773,7 +2773,7 @@ class Client
             var memberModel = model.GetMemberModel(foreachSyntax);
             BoundForEachStatement boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
-            Assert.False(internalInfo.NeedsDisposeMethod);
+            Assert.False(internalInfo.NeedsDisposal);
         }
 
         [Fact]
@@ -2906,7 +2906,7 @@ class C : IAsyncEnumerable<int>
             var memberModel = model.GetMemberModel(foreachSyntax);
             var boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
-            Assert.True(internalInfo.NeedsDisposeMethod);
+            Assert.True(internalInfo.NeedsDisposal);
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
@@ -3651,7 +3651,7 @@ class Element
             var memberModel = model.GetMemberModel(foreachSyntax);
             var boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
-            Assert.True(internalInfo.NeedsDisposeMethod);
+            Assert.True(internalInfo.NeedsDisposal);
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
@@ -3724,7 +3724,7 @@ struct C : IAsyncEnumerable<int>
             var memberModel = model.GetMemberModel(foreachSyntax);
             var boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
-            Assert.True(internalInfo.NeedsDisposeMethod);
+            Assert.True(internalInfo.NeedsDisposal);
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
@@ -3834,7 +3834,7 @@ public static class Extensions
             var memberModel = model.GetMemberModel(foreachSyntax);
             var boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
-            Assert.True(internalInfo.NeedsDisposeMethod);
+            Assert.True(internalInfo.NeedsDisposal);
         }
 
         [Fact]
@@ -4160,7 +4160,7 @@ class C
             var memberModel = model.GetMemberModel(foreachSyntax);
             var boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
-            Assert.True(internalInfo.NeedsDisposeMethod);
+            Assert.True(internalInfo.NeedsDisposal);
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
@@ -4241,7 +4241,7 @@ class C
             var memberModel = model.GetMemberModel(foreachSyntax);
             BoundForEachStatement boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
-            Assert.True(internalInfo.NeedsDisposeMethod);
+            Assert.True(internalInfo.NeedsDisposal);
 
             verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {

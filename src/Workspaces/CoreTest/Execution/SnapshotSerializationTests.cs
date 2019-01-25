@@ -609,6 +609,43 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
+        [Fact]
+        public void TestCompilationOptions_NullableAndImport()
+        {
+            var csharpOptions = CSharp.CSharpCompilation.Create("dummy").Options.WithNullableContextOptions(CSharp.NullableContextOptions.SafeOnly).WithMetadataImportOptions(MetadataImportOptions.All);
+            var vbOptions = VisualBasic.VisualBasicCompilation.Create("dummy").Options.WithMetadataImportOptions(MetadataImportOptions.Internal);
+
+            var hostServices = MefHostServices.Create(MefHostServices.DefaultAssemblies);
+
+            var workspace = new AdhocWorkspace(hostServices);
+            var serializer = workspace.Services.GetService<ISerializerService>();
+
+            VerifyOptions(csharpOptions);
+            VerifyOptions(vbOptions);
+
+            void VerifyOptions(CompilationOptions originalOptions)
+            {
+                using (var stream = SerializableBytes.CreateWritableStream())
+                {
+                    using (var objectWriter = new ObjectWriter(stream))
+                    {
+                        serializer.Serialize(originalOptions, objectWriter, CancellationToken.None);
+                    }
+
+                    stream.Position = 0;
+                    using (var objectReader = ObjectReader.TryGetReader(stream))
+                    {
+                        var recoveredOptions = serializer.Deserialize<CompilationOptions>(originalOptions.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+
+                        var original = serializer.CreateChecksum(originalOptions, CancellationToken.None);
+                        var recovered = serializer.CreateChecksum(recoveredOptions, CancellationToken.None);
+
+                        Assert.Equal(original, recovered);
+                    }
+                }
+            }
+        }
+
         private async Task<string> GetXmlDocumentAsync(HostServices services)
         {
             using (var tempRoot = new TempRoot())
