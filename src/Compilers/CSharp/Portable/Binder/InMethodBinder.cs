@@ -84,6 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal override bool IsNestedFunctionBinder => _methodSymbol.MethodKind == MethodKind.LocalFunction;
+
         internal void MakeIterator()
         {
             if (_iteratorInfo == null)
