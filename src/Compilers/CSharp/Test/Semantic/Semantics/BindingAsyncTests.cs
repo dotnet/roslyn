@@ -1233,9 +1233,9 @@ interface IInterface
     async void F();
 }";
             CreateCompilationWithMscorlib45(source, parseOptions:TestOptions.Regular7).VerifyDiagnostics(
-                // (4,16): error CS8503: The modifier 'async' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (4,16): error CS8503: The modifier 'async' is not valid for this item in C# 7. Please use language version 8.0 or greater.
                 //     async void F(); 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F").WithArguments("async", "7.0", "7.1").WithLocation(4, 16),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F").WithArguments("async", "7.0", "8.0").WithLocation(4, 16),
                 // (4,16): error CS1994: The 'async' modifier can only be used in methods that have a body.
                 //     async void F(); 
                 Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "F").WithLocation(4, 16)

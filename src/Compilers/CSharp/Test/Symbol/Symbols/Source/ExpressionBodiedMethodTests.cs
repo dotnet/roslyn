@@ -86,9 +86,9 @@ interface C
     int M() => 1;
 }", parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest);
             comp.VerifyDiagnostics(
-                // (4,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (4,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 8.0 or greater.
                 //     int M() => 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M").WithArguments("default interface implementation", "7.1").WithLocation(4, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M").WithArguments("default interface implementation", "8.0").WithLocation(4, 9)
                 );
         }
 

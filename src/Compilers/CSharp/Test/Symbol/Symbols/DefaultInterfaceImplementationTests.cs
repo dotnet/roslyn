@@ -52,7 +52,7 @@ class Test1 : I1
         private void ValidateMethodImplementation_011(string source1)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -80,7 +80,7 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -97,7 +97,7 @@ class Test2 : I1
                              verify: VerifyOnCoreClr, symbolValidator: Validate2);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Validate2(compilation3.SourceModule);
@@ -176,7 +176,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -262,7 +262,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -358,7 +358,7 @@ class Derived : Base, I1
 class Test : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -426,7 +426,7 @@ class Derived : Base, I1
 class Test : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -498,7 +498,7 @@ class Test : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -570,7 +570,7 @@ class Test : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -628,7 +628,7 @@ class Test1 : I1
 class Test2 : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -674,7 +674,7 @@ class Test1 : Test2, I1
 class Test2 : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -723,7 +723,7 @@ class Test2 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -772,7 +772,7 @@ class Test2 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -821,7 +821,7 @@ class Test1 : I1
 class Test2 : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -875,7 +875,7 @@ class Test1 : Test2, I1
 class Test2 : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -933,7 +933,7 @@ class Test2 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -991,7 +991,7 @@ class Test2 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -1034,7 +1034,7 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
@@ -1062,7 +1062,7 @@ class Test2 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
             var test2 = compilation3.GetTypeByMetadataName("Test2");
@@ -1091,7 +1091,7 @@ public interface I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -1104,7 +1104,7 @@ class Test2 : I1
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference },
                                                      options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                     parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                     parseOptions: TestOptions.Regular);
                 Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 var m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
                 var test2 = compilation3.GetTypeByMetadataName("Test2");
@@ -1134,7 +1134,7 @@ public interface I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -1156,7 +1156,7 @@ class Test2 : I2
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugDll,
                                                      targetFramework: TargetFramework.DesktopLatestExtended,
-                                                     parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                     parseOptions: TestOptions.Regular);
                 Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 var m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
                 var test2 = compilation3.GetTypeByMetadataName("Test2");
@@ -1184,7 +1184,7 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7), skipUsesIsNullable: true);
+                                                 parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
@@ -1197,9 +1197,9 @@ class Test1 : I1
             Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
 
             compilation1.VerifyDiagnostics(
-                // (4,10): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (4,10): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     void M1() 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M1").WithArguments("default interface implementation", "7.1").WithLocation(4, 10),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M1").WithArguments("default interface implementation", "8.0").WithLocation(4, 10),
                 // (4,10): error CS8501: Target runtime doesn't support default interface implementation.
                 //     void M1() 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M1").WithLocation(4, 10)
@@ -1215,7 +1215,7 @@ class Test2 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
             var test2 = compilation3.GetTypeByMetadataName("Test2");
@@ -1223,9 +1223,9 @@ class Test2 : I1
             Assert.Same(m1, test2.FindImplementationForInterfaceMember(m1));
 
             compilation3.VerifyDiagnostics(
-                // (2,15): error CS8506: 'I1.M1()' cannot implement interface member 'I1.M1()' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (2,15): error CS8506: 'I1.M1()' cannot implement interface member 'I1.M1()' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.M1()' cannot implement interface member 'I1.M1()' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2").WithLocation(2, 15)
@@ -1249,7 +1249,7 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -1263,9 +1263,9 @@ class Test1 : I1
             Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
 
             compilation1.VerifyDiagnostics(
-                // (4,10): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (4,10): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     void M1() 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M1").WithArguments("default interface implementation", "7.1").WithLocation(4, 10)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M1").WithArguments("default interface implementation", "8.0").WithLocation(4, 10)
                 );
 
             Assert.True(m1.IsMetadataVirtual());
@@ -1277,7 +1277,7 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation2.GetMember<MethodSymbol>("I1.M1");
@@ -1295,7 +1295,7 @@ class Test2 : I1
                 });
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
@@ -1304,9 +1304,9 @@ class Test2 : I1
             Assert.Same(m1, test2.FindImplementationForInterfaceMember(m1));
 
             compilation3.VerifyDiagnostics(
-                // (2,15): error CS8506: 'I1.M1()' cannot implement interface member 'I1.M1()' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (2,15): error CS8506: 'I1.M1()' cannot implement interface member 'I1.M1()' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15)
                 );
         }
 
@@ -1324,7 +1324,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
@@ -1358,7 +1358,7 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
 
             var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
 
@@ -1372,9 +1372,9 @@ class Test1 : I1
             Assert.Null(test1.FindImplementationForInterfaceMember(m1));
 
             compilation1.VerifyDiagnostics(
-                // (4,17): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (4,17): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     static void M1() 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M1").WithArguments("default interface implementation", "7.1").WithLocation(4, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M1").WithArguments("default interface implementation", "8.0").WithLocation(4, 17)
                 );
 
             Assert.False(m1.IsMetadataVirtual());
@@ -1406,7 +1406,7 @@ class Test1 : I2
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -1460,7 +1460,7 @@ class Test2 : I2
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation2.GetMember<MethodSymbol>("I1.M1");
@@ -1482,7 +1482,7 @@ class Test2 : I2
                 });
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
@@ -1545,7 +1545,7 @@ class Test1 : I1
         private void ValidatePropertyImplementation_101(string source1, string propertyName, bool haveGet, bool haveSet, string accessCode, string expectedOutput)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -1574,7 +1574,7 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -1591,7 +1591,7 @@ class Test2 : I1
                 symbolValidator: Validate2);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -1824,7 +1824,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -1867,7 +1867,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -1895,7 +1895,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
@@ -1938,7 +1938,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
@@ -1977,7 +1977,7 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -2030,7 +2030,7 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -2116,7 +2116,7 @@ class Derived : Base, I1
 class Test : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -2231,7 +2231,7 @@ class Derived : Base, I1
 class Test : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -2322,7 +2322,7 @@ class Test : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -2447,7 +2447,7 @@ class Test : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -2535,7 +2535,7 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
+                                                 parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (4,15): error CS8501: Target runtime doesn't support default interface implementation.
@@ -2565,7 +2565,7 @@ class Test2 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
@@ -2655,7 +2655,7 @@ public interface I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -2668,7 +2668,7 @@ class Test2 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() },
                                                  options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
@@ -2707,7 +2707,7 @@ public interface I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -2727,7 +2727,7 @@ class Test2 : I2
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() },
                                                  targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             var test2 = compilation3.GetTypeByMetadataName("Test2");
@@ -2770,37 +2770,37 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7), skipUsesIsNullable: true);
+                                                 parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (4,15): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (4,15): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     int P1 => 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "1").WithArguments("default interface implementation", "7.1").WithLocation(4, 15),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1").WithArguments("default interface implementation", "8.0").WithLocation(4, 15),
                 // (4,15): error CS8501: Target runtime doesn't support default interface implementation.
                 //     int P1 => 1;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "1").WithLocation(4, 15),
-                // (5,14): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (5,14): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     int P3 { get => 3; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "get").WithArguments("default interface implementation", "7.1").WithLocation(5, 14),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(5, 14),
                 // (5,14): error CS8501: Target runtime doesn't support default interface implementation.
                 //     int P3 { get => 3; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(5, 14),
-                // (6,14): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (6,14): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     int P5 { set => System.Console.WriteLine(5); }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "7.1").WithLocation(6, 14),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(6, 14),
                 // (6,14): error CS8501: Target runtime doesn't support default interface implementation.
                 //     int P5 { set => System.Console.WriteLine(5); }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(6, 14),
-                // (7,14): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (7,14): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     int P7 { get { return 7;} set {} }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "get").WithArguments("default interface implementation", "7.1").WithLocation(7, 14),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(7, 14),
                 // (7,14): error CS8501: Target runtime doesn't support default interface implementation.
                 //     int P7 { get { return 7;} set {} }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(7, 14),
-                // (7,31): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (7,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     int P7 { get { return 7;} set {} }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "7.1").WithLocation(7, 31),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(7, 31),
                 // (7,31): error CS8501: Target runtime doesn't support default interface implementation.
                 //     int P7 { get { return 7;} set {} }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(7, 31)
@@ -2816,37 +2816,37 @@ class Test2 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
-                // (2,15): error CS8506: 'I1.P7.set' cannot implement interface member 'I1.P7.set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (2,15): error CS8506: 'I1.P7.set' cannot implement interface member 'I1.P7.set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.P7.set' cannot implement interface member 'I1.P7.set' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2").WithLocation(2, 15),
-                // (2,15): error CS8506: 'I1.P1.get' cannot implement interface member 'I1.P1.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (2,15): error CS8506: 'I1.P1.get' cannot implement interface member 'I1.P1.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.P1.get' cannot implement interface member 'I1.P1.get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2").WithLocation(2, 15),
-                // (2,15): error CS8506: 'I1.P3.get' cannot implement interface member 'I1.P3.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (2,15): error CS8506: 'I1.P3.get' cannot implement interface member 'I1.P3.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.P3.get' cannot implement interface member 'I1.P3.get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2").WithLocation(2, 15),
-                // (2,15): error CS8506: 'I1.P5.set' cannot implement interface member 'I1.P5.set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (2,15): error CS8506: 'I1.P5.set' cannot implement interface member 'I1.P5.set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.P5.set' cannot implement interface member 'I1.P5.set' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2").WithLocation(2, 15),
-                // (2,15): error CS8506: 'I1.P7.get' cannot implement interface member 'I1.P7.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (2,15): error CS8506: 'I1.P7.get' cannot implement interface member 'I1.P7.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.P7.get' cannot implement interface member 'I1.P7.get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2").WithLocation(2, 15)
@@ -2872,26 +2872,26 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (4,15): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (4,15): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     int P1 => 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "1").WithArguments("default interface implementation", "7.1").WithLocation(4, 15),
-                // (5,14): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1").WithArguments("default interface implementation", "8.0").WithLocation(4, 15),
+                // (5,14): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     int P3 { get => 3; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "get").WithArguments("default interface implementation", "7.1").WithLocation(5, 14),
-                // (6,14): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(5, 14),
+                // (6,14): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     int P5 { set => System.Console.WriteLine(5); }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "7.1").WithLocation(6, 14),
-                // (7,14): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(6, 14),
+                // (7,14): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     int P7 { get { return 7;} set {} }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "get").WithArguments("default interface implementation", "7.1").WithLocation(7, 14),
-                // (7,31): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(7, 14),
+                // (7,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     int P7 { get { return 7;} set {} }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "7.1").WithLocation(7, 31)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(7, 31)
                 );
 
             ValidatePropertyImplementation_501(compilation1.SourceModule, "Test1");
@@ -2903,7 +2903,7 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -2919,25 +2919,25 @@ class Test2 : I1
                 });
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(
-                // (2,15): error CS8506: 'I1.P7.set' cannot implement interface member 'I1.P7.set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (2,15): error CS8506: 'I1.P7.set' cannot implement interface member 'I1.P7.set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
-                // (2,15): error CS8506: 'I1.P1.get' cannot implement interface member 'I1.P1.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.P1.get' cannot implement interface member 'I1.P1.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
-                // (2,15): error CS8506: 'I1.P3.get' cannot implement interface member 'I1.P3.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.P3.get' cannot implement interface member 'I1.P3.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
-                // (2,15): error CS8506: 'I1.P5.set' cannot implement interface member 'I1.P5.set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.P5.set' cannot implement interface member 'I1.P5.set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
-                // (2,15): error CS8506: 'I1.P7.get' cannot implement interface member 'I1.P7.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.P7.get' cannot implement interface member 'I1.P7.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15)
                 );
 
             ValidatePropertyImplementation_501(compilation3.SourceModule, "Test2");
@@ -2960,26 +2960,26 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (4,22): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (4,22): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     static int P1 => 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "1").WithArguments("default interface implementation", "7.1").WithLocation(4, 22),
-                // (5,21): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1").WithArguments("default interface implementation", "8.0").WithLocation(4, 22),
+                // (5,21): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     static int P3 { get => 3; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "get").WithArguments("default interface implementation", "7.1").WithLocation(5, 21),
-                // (6,21): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(5, 21),
+                // (6,21): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     static int P5 { set => System.Console.WriteLine(5); }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "7.1").WithLocation(6, 21),
-                // (7,21): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(6, 21),
+                // (7,21): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     static int P7 { get { return 7;} set {} }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "get").WithArguments("default interface implementation", "7.1").WithLocation(7, 21),
-                // (7,38): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(7, 21),
+                // (7,38): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     static int P7 { get { return 7;} set {} }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "7.1").WithLocation(7, 38)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(7, 38)
                 );
 
             var derived = compilation1.SourceModule.GlobalNamespace.GetTypeMember("Test1");
@@ -3199,7 +3199,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -3242,7 +3242,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -3270,7 +3270,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -3313,7 +3313,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -3352,7 +3352,7 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -3405,7 +3405,7 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -3491,7 +3491,7 @@ class Derived : Base, I1
 class Test : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -3608,7 +3608,7 @@ class Derived : Base, I1
 class Test : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -3699,7 +3699,7 @@ class Test : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -3844,7 +3844,7 @@ class Test : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -3934,7 +3934,7 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
+                                                 parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (4,26): error CS8501: Target runtime doesn't support default interface implementation.
@@ -3964,7 +3964,7 @@ class Test2 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
@@ -4061,7 +4061,7 @@ public interface I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -4074,7 +4074,7 @@ class Test2 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() },
                                                  options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
@@ -4119,7 +4119,7 @@ public interface I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -4139,7 +4139,7 @@ class Test2 : I2
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                  targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             var test2 = compilation3.GetTypeByMetadataName("Test2");
@@ -4189,37 +4189,37 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7), skipUsesIsNullable: true);
+                                                 parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (4,26): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (4,26): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     int this[sbyte i] => 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "1").WithArguments("default interface implementation", "7.1").WithLocation(4, 26),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1").WithArguments("default interface implementation", "8.0").WithLocation(4, 26),
                 // (4,26): error CS8501: Target runtime doesn't support default interface implementation.
                 //     int this[sbyte i] => 1;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "1").WithLocation(4, 26),
-                // (6,7): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (6,7): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     { get => 3; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "get").WithArguments("default interface implementation", "7.1").WithLocation(6, 7),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(6, 7),
                 // (6,7): error CS8501: Target runtime doesn't support default interface implementation.
                 //     { get => 3; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(6, 7),
-                // (8,7): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (8,7): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     { set => System.Console.WriteLine(5); }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "7.1").WithLocation(8, 7),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(8, 7),
                 // (8,7): error CS8501: Target runtime doesn't support default interface implementation.
                 //     { set => System.Console.WriteLine(5); }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(8, 7),
-                // (11,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (11,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         get { return 7;} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "get").WithArguments("default interface implementation", "7.1").WithLocation(11, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(11, 9),
                 // (11,9): error CS8501: Target runtime doesn't support default interface implementation.
                 //         get { return 7;} 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(11, 9),
-                // (12,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (12,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         set {} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "7.1").WithLocation(12, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(12, 9),
                 // (12,9): error CS8501: Target runtime doesn't support default interface implementation.
                 //         set {} 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(12, 9)
@@ -4235,37 +4235,37 @@ class Test2 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
-                // (2,15): error CS8506: 'I1.this[long].set' cannot implement interface member 'I1.this[long].set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (2,15): error CS8506: 'I1.this[long].set' cannot implement interface member 'I1.this[long].set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].set", "I1.this[long].set", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].set", "I1.this[long].set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.this[long].set' cannot implement interface member 'I1.this[long].set' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].set", "I1.this[long].set", "Test2").WithLocation(2, 15),
-                // (2,15): error CS8506: 'I1.this[sbyte].get' cannot implement interface member 'I1.this[sbyte].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (2,15): error CS8506: 'I1.this[sbyte].get' cannot implement interface member 'I1.this[sbyte].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[sbyte].get", "I1.this[sbyte].get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[sbyte].get", "I1.this[sbyte].get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.this[sbyte].get' cannot implement interface member 'I1.this[sbyte].get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[sbyte].get", "I1.this[sbyte].get", "Test2").WithLocation(2, 15),
-                // (2,15): error CS8506: 'I1.this[short].get' cannot implement interface member 'I1.this[short].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (2,15): error CS8506: 'I1.this[short].get' cannot implement interface member 'I1.this[short].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[short].get", "I1.this[short].get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[short].get", "I1.this[short].get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.this[short].get' cannot implement interface member 'I1.this[short].get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[short].get", "I1.this[short].get", "Test2").WithLocation(2, 15),
-                // (2,15): error CS8506: 'I1.this[int].set' cannot implement interface member 'I1.this[int].set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (2,15): error CS8506: 'I1.this[int].set' cannot implement interface member 'I1.this[int].set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].set", "I1.this[int].set", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].set", "I1.this[int].set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.this[int].set' cannot implement interface member 'I1.this[int].set' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].set", "I1.this[int].set", "Test2").WithLocation(2, 15),
-                // (2,15): error CS8506: 'I1.this[long].get' cannot implement interface member 'I1.this[long].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (2,15): error CS8506: 'I1.this[long].get' cannot implement interface member 'I1.this[long].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].get", "I1.this[long].get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].get", "I1.this[long].get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.this[long].get' cannot implement interface member 'I1.this[long].get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].get", "I1.this[long].get", "Test2").WithLocation(2, 15)
@@ -4297,26 +4297,26 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (4,26): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (4,26): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     int this[sbyte i] => 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "1").WithArguments("default interface implementation", "7.1").WithLocation(4, 26),
-                // (6,7): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1").WithArguments("default interface implementation", "8.0").WithLocation(4, 26),
+                // (6,7): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     { get => 3; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "get").WithArguments("default interface implementation", "7.1").WithLocation(6, 7),
-                // (8,7): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(6, 7),
+                // (8,7): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     { set => System.Console.WriteLine(5); }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "7.1").WithLocation(8, 7),
-                // (11,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(8, 7),
+                // (11,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         get { return 7;} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "get").WithArguments("default interface implementation", "7.1").WithLocation(11, 9),
-                // (12,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(11, 9),
+                // (12,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         set {} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "7.1").WithLocation(12, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(12, 9)
                 );
 
             ValidateIndexerImplementation_501(compilation1.SourceModule, "Test1");
@@ -4328,7 +4328,7 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -4344,25 +4344,25 @@ class Test2 : I1
                 });
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(
-                // (2,15): error CS8506: 'I1.this[long].set' cannot implement interface member 'I1.this[long].set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (2,15): error CS8506: 'I1.this[long].set' cannot implement interface member 'I1.this[long].set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].set", "I1.this[long].set", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
-                // (2,15): error CS8506: 'I1.this[sbyte].get' cannot implement interface member 'I1.this[sbyte].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].set", "I1.this[long].set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.this[sbyte].get' cannot implement interface member 'I1.this[sbyte].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[sbyte].get", "I1.this[sbyte].get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
-                // (2,15): error CS8506: 'I1.this[short].get' cannot implement interface member 'I1.this[short].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[sbyte].get", "I1.this[sbyte].get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.this[short].get' cannot implement interface member 'I1.this[short].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[short].get", "I1.this[short].get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
-                // (2,15): error CS8506: 'I1.this[int].set' cannot implement interface member 'I1.this[int].set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[short].get", "I1.this[short].get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.this[int].set' cannot implement interface member 'I1.this[int].set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].set", "I1.this[int].set", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
-                // (2,15): error CS8506: 'I1.this[long].get' cannot implement interface member 'I1.this[long].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].set", "I1.this[int].set", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.this[long].get' cannot implement interface member 'I1.this[long].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].get", "I1.this[long].get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].get", "I1.this[long].get", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15)
                 );
 
             ValidateIndexerImplementation_501(compilation3.SourceModule, "Test2");
@@ -4391,7 +4391,7 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -4399,30 +4399,30 @@ class Test1 : I1
                 // (4,16): error CS0106: The modifier 'static' is not valid for this item
                 //     static int this[sbyte i] => 1;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(4, 16),
-                // (4,33): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (4,33): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     static int this[sbyte i] => 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "1").WithArguments("default interface implementation", "7.1").WithLocation(4, 33),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1").WithArguments("default interface implementation", "8.0").WithLocation(4, 33),
                 // (5,16): error CS0106: The modifier 'static' is not valid for this item
                 //     static int this[short i] 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(5, 16),
-                // (6,7): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (6,7): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     { get => 3; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "get").WithArguments("default interface implementation", "7.1").WithLocation(6, 7),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(6, 7),
                 // (7,16): error CS0106: The modifier 'static' is not valid for this item
                 //     static int this[int i] 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(7, 16),
-                // (8,7): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (8,7): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     { set => System.Console.WriteLine(5); }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "7.1").WithLocation(8, 7),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(8, 7),
                 // (9,16): error CS0106: The modifier 'static' is not valid for this item
                 //     static int this[long i] 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(9, 16),
-                // (11,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (11,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         get { return 7;} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "get").WithArguments("default interface implementation", "7.1").WithLocation(11, 9),
-                // (12,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(11, 9),
+                // (12,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         set {} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "7.1").WithLocation(12, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(12, 9)
                 );
 
             ValidateIndexerImplementation_501(compilation1.SourceModule, "Test1");
@@ -4459,7 +4459,7 @@ class Test1 : I1
         private void ValidateEventImplementation_101(string source1, DiagnosticDescription[] expected, bool haveAdd, bool haveRemove)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(expected);
@@ -4473,7 +4473,7 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -4620,7 +4620,7 @@ class Test1 : I1
         private void ValidateEventImplementation_102(string source1)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -4654,7 +4654,7 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -4675,7 +4675,7 @@ remove E1
                 symbolValidator: Validate2);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -4951,7 +4951,7 @@ class Derived : Base, I1
 class Test : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -5027,7 +5027,7 @@ class Derived : Base, I1
 class Test : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -5091,7 +5091,7 @@ class Test : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -5171,7 +5171,7 @@ class Test : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -5233,7 +5233,7 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
+                                                 parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (6,9): error CS8501: Target runtime doesn't support default interface implementation.
@@ -5254,7 +5254,7 @@ class Test2 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
@@ -5311,7 +5311,7 @@ public interface I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -5324,7 +5324,7 @@ class Test2 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() },
                                                  targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
@@ -5355,7 +5355,7 @@ public interface I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -5375,7 +5375,7 @@ class Test2 : I2
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                  targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             var test2 = compilation3.GetTypeByMetadataName("Test2");
@@ -5410,19 +5410,19 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7), skipUsesIsNullable: true);
+                                                 parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (6,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (6,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         add {} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(6, 9),
                 // (6,9): error CS8501: Target runtime doesn't support default interface implementation.
                 //         add {} 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(6, 9),
-                // (7,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (7,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         remove {} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(7, 9),
                 // (7,9): error CS8501: Target runtime doesn't support default interface implementation.
                 //         remove {} 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(7, 9)
@@ -5438,19 +5438,19 @@ class Test2 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
-                // (2,15): error CS8506: 'I1.E7.remove' cannot implement interface member 'I1.E7.remove' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (2,15): error CS8506: 'I1.E7.remove' cannot implement interface member 'I1.E7.remove' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.E7.remove' cannot implement interface member 'I1.E7.remove' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2").WithLocation(2, 15),
-                // (2,15): error CS8506: 'I1.E7.add' cannot implement interface member 'I1.E7.add' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (2,15): error CS8506: 'I1.E7.add' cannot implement interface member 'I1.E7.add' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.E7.add' cannot implement interface member 'I1.E7.add' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2").WithLocation(2, 15)
@@ -5477,17 +5477,17 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (6,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (6,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         add {} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(6, 9),
-                // (7,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(6, 9),
+                // (7,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         remove {} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(7, 9)
                 );
 
             ValidateEventImplementation_501(compilation1.SourceModule, "Test1");
@@ -5499,7 +5499,7 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -5515,16 +5515,16 @@ class Test2 : I1
                 });
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(
-                // (2,15): error CS8506: 'I1.E7.remove' cannot implement interface member 'I1.E7.remove' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (2,15): error CS8506: 'I1.E7.remove' cannot implement interface member 'I1.E7.remove' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
-                // (2,15): error CS8506: 'I1.E7.add' cannot implement interface member 'I1.E7.add' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.E7.add' cannot implement interface member 'I1.E7.add' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2", "default interface implementation", "7.3", "8.0").WithLocation(2, 15)
                 );
 
             ValidateEventImplementation_501(compilation3.SourceModule, "Test2");
@@ -5548,17 +5548,17 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (6,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                // (6,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         add {} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(6, 9),
-                // (7,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(6, 9),
+                // (7,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         remove {} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(7, 9)
                 );
 
             var derived = compilation1.GlobalNamespace.GetTypeMember("Test1");
@@ -5603,7 +5603,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -5760,7 +5760,7 @@ class Test1 : I2
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -5876,7 +5876,7 @@ public interface I2 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -6036,7 +6036,7 @@ class Test1 : I2
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -6154,7 +6154,7 @@ public interface I2 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -6189,7 +6189,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -6395,46 +6395,46 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (4,17): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (4,17): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public void M01();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M01").WithArguments("public", "7.0", "7.1").WithLocation(4, 17),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M01").WithArguments("public", "7.3", "8.0").WithLocation(4, 17),
                 // (5,20): error CS0106: The modifier 'protected' is not valid for this item
                 //     protected void M02();
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M02").WithArguments("protected").WithLocation(5, 20),
                 // (6,29): error CS0106: The modifier 'protected internal' is not valid for this item
                 //     protected internal void M03();
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M03").WithArguments("protected internal").WithLocation(6, 29),
-                // (7,19): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (7,19): error CS8503: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     internal void M04();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M04").WithArguments("internal", "7.0", "7.1").WithLocation(7, 19),
-                // (8,18): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M04").WithArguments("internal", "7.3", "8.0").WithLocation(7, 19),
+                // (8,18): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private void M05();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M05").WithArguments("private", "7.0", "7.1").WithLocation(8, 18),
-                // (9,17): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M05").WithArguments("private", "7.3", "8.0").WithLocation(8, 18),
+                // (9,17): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     static void M06();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M06").WithArguments("static", "7.0", "7.1").WithLocation(9, 17),
-                // (10,18): error CS8503: The modifier 'virtual' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M06").WithArguments("static", "7.3", "8.0").WithLocation(9, 17),
+                // (10,18): error CS8503: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     virtual void M07();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M07").WithArguments("virtual", "7.0", "7.1").WithLocation(10, 18),
-                // (11,17): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M07").WithArguments("virtual", "7.3", "8.0").WithLocation(10, 18),
+                // (11,17): error CS8503: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     sealed void M08();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M08").WithArguments("sealed", "7.0", "7.1").WithLocation(11, 17),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M08").WithArguments("sealed", "7.3", "8.0").WithLocation(11, 17),
                 // (12,19): error CS0106: The modifier 'override' is not valid for this item
                 //     override void M09();
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(12, 19),
-                // (13,19): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (13,19): error CS8503: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     abstract void M10();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M10").WithArguments("abstract", "7.0", "7.1").WithLocation(13, 19),
-                // (14,17): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M10").WithArguments("abstract", "7.3", "8.0").WithLocation(13, 19),
+                // (14,17): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     extern void M11();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M11").WithArguments("extern", "7.0", "7.1").WithLocation(14, 17),
-                // (15,16): error CS8503: The modifier 'async' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M11").WithArguments("extern", "7.3", "8.0").WithLocation(14, 17),
+                // (15,16): error CS8503: The modifier 'async' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     async void M12();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M12").WithArguments("async", "7.0", "7.1").WithLocation(15, 16),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M12").WithArguments("async", "7.3", "8.0").WithLocation(15, 16),
                 // (15,16): error CS1994: The 'async' modifier can only be used in methods that have a body.
                 //     async void M12();
                 Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M12").WithLocation(15, 16),
@@ -6515,7 +6515,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation1, expectedOutput:
 @"M1
@@ -6557,15 +6557,15 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
 
             compilation1.VerifyDiagnostics(
-                // (4,26): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (4,26): error CS8503: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public abstract void M1();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M1").WithArguments("abstract", "7.0", "7.1").WithLocation(4, 26),
-                // (4,26): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M1").WithArguments("abstract", "7.3", "8.0").WithLocation(4, 26),
+                // (4,26): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public abstract void M1();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M1").WithArguments("public", "7.0", "7.1").WithLocation(4, 26)
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M1").WithArguments("public", "7.3", "8.0").WithLocation(4, 26)
                 );
 
             var i1 = compilation1.GetTypeByMetadataName("I1");
@@ -6616,7 +6616,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation1, expectedOutput:
 @"M1
@@ -6682,7 +6682,7 @@ class Test2 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(
                 // (10,24): error CS0238: 'I1.M3()' cannot be sealed because it is not an override
@@ -6779,7 +6779,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
@@ -6830,7 +6830,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -6920,7 +6920,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -6932,7 +6932,7 @@ class Test1 : I1
             ValidateMethodModifiersImplicit_10(compilation1.SourceModule);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -6940,7 +6940,7 @@ class Test1 : I1
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"));
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(
@@ -6952,7 +6952,7 @@ class Test1 : I1
             ValidateMethodModifiersImplicit_10(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
@@ -6971,7 +6971,7 @@ class Test2 : I1
 ";
 
             var compilation5 = CreateCompilation(source3, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation5.VerifyDiagnostics(
@@ -6983,7 +6983,7 @@ class Test2 : I1
             ValidateI1M1NotImplemented(compilation5, "Test2");
 
             var compilation6 = CreateCompilation(source3, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation6.VerifyDiagnostics(
@@ -7097,7 +7097,7 @@ class Test1 : I1
                                                   params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -7105,7 +7105,7 @@ class Test1 : I1
             ValidateMethodModifiersImplicit_10(compilation1.SourceModule);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -7113,7 +7113,7 @@ class Test1 : I1
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"));
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected);
@@ -7121,7 +7121,7 @@ class Test1 : I1
             ValidateMethodModifiersImplicit_10(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected);
@@ -7161,21 +7161,21 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation1, expectedOutput: "M1", verify: VerifyOnCoreClr, symbolValidator: ValidateMethodModifiersExplicit_10);
 
             ValidateMethodModifiersExplicit_10(compilation1.SourceModule);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"));
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics(
                 // (9,13): error CS0122: 'I1.M1()' is inaccessible due to its protection level
@@ -7186,7 +7186,7 @@ class Test1 : I1
             ValidateMethodModifiersExplicit_10(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation4.VerifyDiagnostics(
                 // (9,13): error CS0122: 'I1.M1()' is inaccessible due to its protection level
@@ -7432,28 +7432,28 @@ class Test1 : Test2, I1
 }
 ";
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation1, expectedOutput: "Test2.M1", verify: VerifyOnCoreClr, symbolValidator: ValidateMethodModifiersExplicitInTest2_10);
 
             ValidateMethodModifiersExplicitInTest2_10(compilation1.SourceModule);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"));
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation3, expectedOutput: "Test2.M1", verify: VerifyOnCoreClr, symbolValidator: ValidateMethodModifiersExplicitInTest2_10);
 
             ValidateMethodModifiersExplicitInTest2_10(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation4, expectedOutput: "Test2.M1", verify: VerifyOnCoreClr, symbolValidator: ValidateMethodModifiersExplicitInTest2_10);
 
@@ -7491,7 +7491,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -7503,7 +7503,7 @@ class Test1 : I1
             ValidateI1M1NotImplemented(compilation1, "Test1");
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -7511,7 +7511,7 @@ class Test1 : I1
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"));
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(
@@ -7523,7 +7523,7 @@ class Test1 : I1
             ValidateI1M1NotImplemented(compilation3, "Test1");
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
@@ -7561,7 +7561,7 @@ class Test1 : Test2, I1
 }
 ";
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(
                 // (7,15): error CS8504: 'Test2' does not implement interface member 'I1.M1()'. 'Test2.M1()' cannot implicitly implement a non-public member.
@@ -7572,14 +7572,14 @@ class Test1 : Test2, I1
             ValidateMethodModifiersImplicitInTest2_10(compilation1.SourceModule);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"));
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics(
                 // (2,15): error CS8504: 'Test2' does not implement interface member 'I1.M1()'. 'Test2.M1()' cannot implicitly implement a non-public member.
@@ -7590,7 +7590,7 @@ class Test1 : Test2, I1
             ValidateMethodModifiersImplicitInTest2_10(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation4.VerifyDiagnostics(
                 // (2,15): error CS8504: 'Test2' does not implement interface member 'I1.M1()'. 'Test2.M1()' cannot implicitly implement a non-public member.
@@ -7627,7 +7627,7 @@ class Test1 : Test2, I1
 }
 ";
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  assemblyName: "MethodModifiers_10_11");
 
             compilation2.VerifyDiagnostics(
@@ -7637,7 +7637,7 @@ class Test1 : Test2, I1
                 );
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
 
@@ -7645,7 +7645,7 @@ class Test1 : Test2, I1
 
             var compilation3Ref = compilation3.EmitToImageReference();
             var compilation4 = CreateCompilation("", new[] { compilation2.ToMetadataReference(), compilation3Ref }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             ValidateMethodModifiersImplicitInTest2_10(compilation4.GetReferencedAssemblySymbol(compilation3Ref).Modules[0]);
         }
@@ -7665,7 +7665,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(
                 // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
@@ -7717,7 +7717,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -7776,7 +7776,7 @@ class Test2 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -7884,7 +7884,7 @@ class Test2 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -7952,7 +7952,7 @@ class Test2 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, verify: VerifyOnCoreClr, symbolValidator: Validate);
@@ -8037,37 +8037,37 @@ class Test2 : I1
             }
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(
-                // (4,17): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (4,17): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     extern void M1(); 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M1").WithArguments("extern", "7.0", "7.1").WithLocation(4, 17),
-                // (5,25): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M1").WithArguments("extern", "7.3", "8.0").WithLocation(4, 17),
+                // (5,25): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     virtual extern void M2(); 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M2").WithArguments("extern", "7.0", "7.1").WithLocation(5, 25),
-                // (5,25): error CS8503: The modifier 'virtual' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M2").WithArguments("extern", "7.3", "8.0").WithLocation(5, 25),
+                // (5,25): error CS8503: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     virtual extern void M2(); 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M2").WithArguments("virtual", "7.0", "7.1").WithLocation(5, 25),
-                // (6,24): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M2").WithArguments("virtual", "7.3", "8.0").WithLocation(5, 25),
+                // (6,24): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     static extern void M3(); 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M3").WithArguments("static", "7.0", "7.1").WithLocation(6, 24),
-                // (6,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M3").WithArguments("static", "7.3", "8.0").WithLocation(6, 24),
+                // (6,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     static extern void M3(); 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M3").WithArguments("extern", "7.0", "7.1").WithLocation(6, 24),
-                // (7,25): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M3").WithArguments("extern", "7.3", "8.0").WithLocation(6, 24),
+                // (7,25): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private extern void M4();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M4").WithArguments("private", "7.0", "7.1").WithLocation(7, 25),
-                // (7,25): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M4").WithArguments("private", "7.3", "8.0").WithLocation(7, 25),
+                // (7,25): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private extern void M4();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M4").WithArguments("extern", "7.0", "7.1").WithLocation(7, 25),
-                // (8,24): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M4").WithArguments("extern", "7.3", "8.0").WithLocation(7, 25),
+                // (8,24): error CS8503: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     extern sealed void M5();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M5").WithArguments("sealed", "7.0", "7.1").WithLocation(8, 24),
-                // (8,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M5").WithArguments("sealed", "7.3", "8.0").WithLocation(8, 24),
+                // (8,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     extern sealed void M5();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M5").WithArguments("extern", "7.0", "7.1").WithLocation(8, 24),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M5").WithArguments("extern", "7.3", "8.0").WithLocation(8, 24),
                 // (4,17): warning CS0626: Method, operator, or accessor 'I1.M1()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern void M1(); 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M1").WithArguments("I1.M1()").WithLocation(4, 17),
@@ -8088,7 +8088,7 @@ class Test2 : I1
             Validate(compilation2.SourceModule);
 
             var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
+                                                 parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
@@ -8152,7 +8152,7 @@ class Test2 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -8254,7 +8254,7 @@ class Test2 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -8398,7 +8398,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation1, expectedOutput: "M1", symbolValidator: Validate);
 
@@ -8451,7 +8451,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
@@ -8485,7 +8485,7 @@ class Test1 : I1
             }
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -8497,7 +8497,7 @@ class Test1 : I1
             }
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3,
@@ -8508,7 +8508,7 @@ class Test1 : I1
             Validate1(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation4,
@@ -8547,7 +8547,7 @@ class Test1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(
                 // (17,12): error CS0122: 'I1.M1()' is inaccessible due to its protection level
@@ -8570,7 +8570,7 @@ class Test2
 ";
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics(
                 // (6,12): error CS0122: 'I1.M1()' is inaccessible due to its protection level
@@ -8626,7 +8626,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -8681,7 +8681,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -8754,7 +8754,7 @@ public class C1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -8808,7 +8808,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -9273,55 +9273,55 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (4,16): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (4,16): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public int P01 {get; set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P01").WithArguments("public", "7.0", "7.1").WithLocation(4, 16),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P01").WithArguments("public", "7.3", "8.0").WithLocation(4, 16),
                 // (5,19): error CS0106: The modifier 'protected' is not valid for this item
                 //     protected int P02 {get;}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P02").WithArguments("protected").WithLocation(5, 19),
                 // (6,28): error CS0106: The modifier 'protected internal' is not valid for this item
                 //     protected internal int P03 {set;}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P03").WithArguments("protected internal").WithLocation(6, 28),
-                // (7,18): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (7,18): error CS8503: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     internal int P04 {get;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P04").WithArguments("internal", "7.0", "7.1").WithLocation(7, 18),
-                // (8,17): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P04").WithArguments("internal", "7.3", "8.0").WithLocation(7, 18),
+                // (8,17): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private int P05 {set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P05").WithArguments("private", "7.0", "7.1").WithLocation(8, 17),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P05").WithArguments("private", "7.3", "8.0").WithLocation(8, 17),
                 // (8,22): error CS0501: 'I1.P05.set' must declare a body because it is not marked abstract, extern, or partial
                 //     private int P05 {set;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.P05.set").WithLocation(8, 22),
-                // (9,16): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (9,16): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     static int P06 {get;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P06").WithArguments("static", "7.0", "7.1").WithLocation(9, 16),
-                // (10,17): error CS8503: The modifier 'virtual' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P06").WithArguments("static", "7.3", "8.0").WithLocation(9, 16),
+                // (10,17): error CS8503: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     virtual int P07 {set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P07").WithArguments("virtual", "7.0", "7.1").WithLocation(10, 17),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P07").WithArguments("virtual", "7.3", "8.0").WithLocation(10, 17),
                 // (10,22): error CS0501: 'I1.P07.set' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual int P07 {set;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.P07.set").WithLocation(10, 22),
-                // (11,16): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (11,16): error CS8503: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     sealed int P08 {get;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P08").WithArguments("sealed", "7.0", "7.1").WithLocation(11, 16),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P08").WithArguments("sealed", "7.3", "8.0").WithLocation(11, 16),
                 // (11,21): error CS0501: 'I1.P08.get' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed int P08 {get;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P08.get").WithLocation(11, 21),
                 // (12,18): error CS0106: The modifier 'override' is not valid for this item
                 //     override int P09 {set;}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P09").WithArguments("override").WithLocation(12, 18),
-                // (13,18): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (13,18): error CS8503: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     abstract int P10 {get;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P10").WithArguments("abstract", "7.0", "7.1").WithLocation(13, 18),
-                // (14,16): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P10").WithArguments("abstract", "7.3", "8.0").WithLocation(13, 18),
+                // (14,16): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     extern int P11 {get; set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P11").WithArguments("extern", "7.0", "7.1").WithLocation(14, 16),
-                // (16,22): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P11").WithArguments("extern", "7.3", "8.0").WithLocation(14, 16),
+                // (16,22): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     int P12 { public get; set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("public", "7.0", "7.1").WithLocation(16, 22),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("public", "7.3", "8.0").WithLocation(16, 22),
                 // (16,22): error CS0273: The accessibility modifier of the 'I1.P12.get' accessor must be more restrictive than the property or indexer 'I1.P12'
                 //     int P12 { public get; set;}
                 Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "get").WithArguments("I1.P12.get", "I1.P12").WithLocation(16, 22),
@@ -9331,18 +9331,18 @@ public interface I1
                 // (18,34): error CS0106: The modifier 'protected internal' is not valid for this item
                 //     int P14 { protected internal get; set;}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("protected internal").WithLocation(18, 34),
-                // (19,29): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (19,29): error CS8503: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     int P15 { get; internal set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7.0", "7.1").WithLocation(19, 29),
-                // (20,23): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7.3", "8.0").WithLocation(19, 29),
+                // (20,23): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     int P16 { private get; set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.0", "7.1").WithLocation(20, 23),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.3", "8.0").WithLocation(20, 23),
                 // (20,23): error CS0442: 'I1.P16.get': abstract properties cannot have private accessors
                 //     int P16 { private get; set;}
                 Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "get").WithArguments("I1.P16.get").WithLocation(20, 23),
-                // (21,23): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (21,23): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     int P17 { private get;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.0", "7.1").WithLocation(21, 23),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.3", "8.0").WithLocation(21, 23),
                 // (21,9): error CS0276: 'I1.P17': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor
                 //     int P17 { private get;}
                 Diagnostic(ErrorCode.ERR_AccessModMissingAccessor, "P17").WithArguments("I1.P17").WithLocation(21, 9),
@@ -9533,7 +9533,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
@@ -9627,7 +9627,7 @@ class Test2 : I2
         private void ValidatePropertyModifiers_05(string source1)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation1, expectedOutput:
 @"get_P1
@@ -9701,15 +9701,15 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
 
             compilation1.VerifyDiagnostics(
-                // (4,25): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (4,25): error CS8503: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public abstract int P1 {get; set;} 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("abstract", "7.0", "7.1").WithLocation(4, 25),
-                // (4,25): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("abstract", "7.3", "8.0").WithLocation(4, 25),
+                // (4,25): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public abstract int P1 {get; set;} 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("public", "7.0", "7.1").WithLocation(4, 25)
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("public", "7.3", "8.0").WithLocation(4, 25)
                 );
 
             ValidatePropertyModifiers_06(compilation1, "P1");
@@ -9848,7 +9848,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation1, expectedOutput:
 @"get_P1
@@ -9954,7 +9954,7 @@ class Test2 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(
                 // (4,25): error CS0112: A static member 'I1.P1' cannot be marked as override, virtual, or abstract
@@ -10194,7 +10194,7 @@ class Test1 : I1, I2, I3, I4, I5, I6, I7
         private void ValidatePropertyModifiers_09(string source1)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
@@ -10293,7 +10293,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
@@ -10482,7 +10482,7 @@ class Test1 : I1
                                                   params DiagnosticDescription[] expected2)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected1);
@@ -10490,7 +10490,7 @@ class Test1 : I1
             ValidatePropertyModifiers_11(compilation1.SourceModule);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -10507,7 +10507,7 @@ class Test1 : I1
             }
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected1);
@@ -10515,7 +10515,7 @@ class Test1 : I1
             ValidatePropertyModifiers_11(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected1);
@@ -10530,7 +10530,7 @@ class Test2 : I1
 ";
 
             var compilation5 = CreateCompilation(source3, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation5.VerifyDiagnostics(expected2);
@@ -10538,7 +10538,7 @@ class Test2 : I1
             ValidatePropertyNotImplemented_11(compilation5, "Test2");
 
             var compilation6 = CreateCompilation(source3, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation6.VerifyDiagnostics(expected2);
@@ -10651,7 +10651,7 @@ class Test1 : I1
                                                   params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -10659,13 +10659,13 @@ class Test1 : I1
             ValidatePropertyImplementation_11(compilation1.SourceModule);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected);
@@ -10673,7 +10673,7 @@ class Test1 : I1
             ValidatePropertyImplementation_11(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected);
@@ -10763,7 +10763,7 @@ class Test1 : I1
                                                   params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation1, expectedOutput:
 @"get_P1
@@ -10772,19 +10772,19 @@ set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidatePropertyImplementatio
             ValidatePropertyImplementation_11(compilation1.SourceModule);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics(expected);
 
             ValidatePropertyImplementation_11(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation4.VerifyDiagnostics(expected);
 
@@ -11132,7 +11132,7 @@ class Test1 : Test2, I1
         private void ValidatePropertyModifiers_11_08(string source1, string source2)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation1, expectedOutput:
 @"Test2.get_P1
@@ -11141,12 +11141,12 @@ Test2.set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidatePropertyImpleme
             ValidatePropertyImplementationByBase_11(compilation1.SourceModule);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation3, expectedOutput:
 @"Test2.get_P1
@@ -11155,7 +11155,7 @@ Test2.set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidatePropertyImpleme
             ValidatePropertyImplementationByBase_11(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation4, expectedOutput:
 @"Test2.get_P1
@@ -11215,26 +11215,26 @@ class Test1 : I1
                                                   params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(expected);
 
             ValidatePropertyNotImplemented_11(compilation1, "Test1");
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics(expected);
 
             ValidatePropertyNotImplemented_11(compilation3, "Test1");
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation4.VerifyDiagnostics(expected);
 
@@ -11284,26 +11284,26 @@ class Test1 : Test2, I1
                                                      params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(expected);
 
             ValidatePropertyImplementationByBase_11(compilation1.SourceModule);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics(expected);
 
             ValidatePropertyImplementationByBase_11(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation4.VerifyDiagnostics(expected);
 
@@ -11353,13 +11353,13 @@ class Test1 : Test2, I1
                                                      params DiagnosticDescription[] expected)
         {
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  assemblyName: "PropertyModifiers_11_11");
 
             compilation2.VerifyDiagnostics(expected);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
 
@@ -11367,7 +11367,7 @@ class Test1 : Test2, I1
 
             var compilation3Ref = compilation3.EmitToImageReference();
             var compilation4 = CreateCompilation("", new[] { compilation2.ToMetadataReference(), compilation3Ref }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             ValidatePropertyImplementationByBase_11(compilation4.GetReferencedAssemblySymbol(compilation3Ref).Modules[0]);
         }
@@ -11387,7 +11387,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(
                 // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
@@ -11560,7 +11560,7 @@ class Test7 : I7
         private void ValidatePropertyModifiers_13(string source1)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -11689,7 +11689,7 @@ class Test2 : I1, I2, I3
         private void ValidatePropertyModifiers_14(string source1, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(expected);
@@ -11961,7 +11961,7 @@ class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
         private void ValidatePropertyModifiers_15(string source1, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -12061,33 +12061,33 @@ class Test2 : I1, I2, I3, I4, I5
             ValidatePropertyModifiers_16(source1,
                 new DiagnosticDescription[]
                 {
-                // (4,16): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (4,16): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     extern int P1 {get;} 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("extern", "7.0", "7.1").WithLocation(4, 16),
-                // (8,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("extern", "7.3", "8.0").WithLocation(4, 16),
+                // (8,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     virtual extern int P2 {set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("extern", "7.0", "7.1").WithLocation(8, 24),
-                // (8,24): error CS8503: The modifier 'virtual' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("extern", "7.3", "8.0").WithLocation(8, 24),
+                // (8,24): error CS8503: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     virtual extern int P2 {set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("virtual", "7.0", "7.1").WithLocation(8, 24),
-                // (12,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("virtual", "7.3", "8.0").WithLocation(8, 24),
+                // (12,23): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     static extern int P3 {get; set;} 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P3").WithArguments("static", "7.0", "7.1").WithLocation(12, 23),
-                // (12,23): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P3").WithArguments("static", "7.3", "8.0").WithLocation(12, 23),
+                // (12,23): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     static extern int P3 {get; set;} 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P3").WithArguments("extern", "7.0", "7.1").WithLocation(12, 23),
-                // (16,24): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P3").WithArguments("extern", "7.3", "8.0").WithLocation(12, 23),
+                // (16,24): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private extern int P4 {get;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P4").WithArguments("private", "7.0", "7.1").WithLocation(16, 24),
-                // (16,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P4").WithArguments("private", "7.3", "8.0").WithLocation(16, 24),
+                // (16,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private extern int P4 {get;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P4").WithArguments("extern", "7.0", "7.1").WithLocation(16, 24),
-                // (20,23): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P4").WithArguments("extern", "7.3", "8.0").WithLocation(16, 24),
+                // (20,23): error CS8503: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     extern sealed int P5 {set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("sealed", "7.0", "7.1").WithLocation(20, 23),
-                // (20,23): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("sealed", "7.3", "8.0").WithLocation(20, 23),
+                // (20,23): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     extern sealed int P5 {set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("extern", "7.0", "7.1").WithLocation(20, 23),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("extern", "7.3", "8.0").WithLocation(20, 23),
                 // (8,28): warning CS0626: Method, operator, or accessor 'I2.P2.set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     virtual extern int P2 {set;}
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("I2.P2.set").WithLocation(8, 28),
@@ -12143,7 +12143,7 @@ class Test2 : I1, I2, I3, I4, I5
         private void ValidatePropertyModifiers_16(string source1, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, verify: VerifyOnCoreClr, symbolValidator: Validate);
@@ -12293,7 +12293,7 @@ class Test2 : I1, I2, I3, I4, I5
             }
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(expected1);
@@ -12301,7 +12301,7 @@ class Test2 : I1, I2, I3, I4, I5
             Validate(compilation2.SourceModule);
 
             var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
+                                                 parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(expected2);
@@ -12391,7 +12391,7 @@ class Test2 : I1, I2, I3, I4, I5
         private void ValidatePropertyModifiers_17(string source1, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -12635,7 +12635,7 @@ class Test2 : I1, I2, I3, I4, I5
         private void ValidatePropertyModifiers_18(string source1, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -12826,7 +12826,7 @@ class Test1 : I1
         private void ValidatePropertyModifiers_20(string source1, string source2)
         {
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
@@ -12880,7 +12880,7 @@ set_P1
             }
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -12897,7 +12897,7 @@ set_P1
             }
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3,
@@ -12911,7 +12911,7 @@ set_P1
             Validate1(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation4,
@@ -12958,7 +12958,7 @@ class Test1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(
                 // (18,16): error CS0122: 'I1.P1' is inaccessible due to its protection level
@@ -12989,7 +12989,7 @@ class Test2
 ";
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics(
                 // (7,16): error CS0122: 'I1.P1' is inaccessible due to its protection level
@@ -13094,7 +13094,7 @@ class Test1 : I1, I2, I3, I4
         private void ValidatePropertyModifiers_22(string source1)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
@@ -13334,7 +13334,7 @@ class Test6 : I6
         private void ValidatePropertyModifiers_23(string source1, string source2, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -13353,7 +13353,7 @@ class Test6 : I6
             }
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(expected);
@@ -13365,7 +13365,7 @@ class Test6 : I6
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() },
                                                  options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyEmitDiagnostics();
@@ -13457,7 +13457,7 @@ class Test1 : I1
         private void ValidatePropertyModifiers_23(string source1, string source2, Accessibility getAccess, Accessibility setAccess, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -13473,7 +13473,7 @@ class Test1 : I1
             }
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -13482,7 +13482,7 @@ class Test1 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() },
                                                  options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected);
@@ -13491,7 +13491,7 @@ class Test1 : I1
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() },
                                                  options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected);
@@ -14663,7 +14663,7 @@ class Test1 : I1
         private void ValidatePropertyModifiers_24(string source1, string source2)
         {
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
@@ -14717,7 +14717,7 @@ set_P1
             }
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -14734,7 +14734,7 @@ set_P1
             }
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3,
@@ -14748,7 +14748,7 @@ set_P1
             Validate1(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation4,
@@ -14795,7 +14795,7 @@ class Test1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(
                 // (18,13): error CS0271: The property or indexer 'I1.P1' cannot be used in this context because the get accessor is inaccessible
@@ -14826,7 +14826,7 @@ class Test2
 ";
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics(
                 // (7,13): error CS0271: The property or indexer 'I1.P1' cannot be used in this context because the get accessor is inaccessible
@@ -14864,7 +14864,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(
                 // (4,31): error CS0442: 'I1.P1.get': abstract properties cannot have private accessors
@@ -14992,7 +14992,7 @@ public interface I2
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -15064,7 +15064,7 @@ public interface I16{ int this[int x] { private get; set;} }
 public interface I17{ int this[int x] { private get;} }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -15528,55 +15528,55 @@ public interface I16{ int this[int x] { private get; set;} }
 public interface I17{ int this[int x] { private get;} }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (2,34): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (2,34): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 // public interface I01{ public int this[int x] {get; set;} }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("public", "7.0", "7.1").WithLocation(2, 34),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("public", "7.3", "8.0").WithLocation(2, 34),
                 // (3,37): error CS0106: The modifier 'protected' is not valid for this item
                 // public interface I02{ protected int this[int x] {get;} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("protected").WithLocation(3, 37),
                 // (4,46): error CS0106: The modifier 'protected internal' is not valid for this item
                 // public interface I03{ protected internal int this[int x] {set;} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("protected internal").WithLocation(4, 46),
-                // (5,36): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (5,36): error CS8503: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 // public interface I04{ internal int this[int x] {get;} }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("internal", "7.0", "7.1").WithLocation(5, 36),
-                // (6,35): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("internal", "7.3", "8.0").WithLocation(5, 36),
+                // (6,35): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 // public interface I05{ private int this[int x] {set;} }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("private", "7.0", "7.1").WithLocation(6, 35),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("private", "7.3", "8.0").WithLocation(6, 35),
                 // (6,48): error CS0501: 'I05.this[int].set' must declare a body because it is not marked abstract, extern, or partial
                 // public interface I05{ private int this[int x] {set;} }
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I05.this[int].set").WithLocation(6, 48),
                 // (7,34): error CS0106: The modifier 'static' is not valid for this item
                 // public interface I06{ static int this[int x] {get;} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(7, 34),
-                // (8,35): error CS8503: The modifier 'virtual' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (8,35): error CS8503: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 // public interface I07{ virtual int this[int x] {set;} }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("virtual", "7.0", "7.1").WithLocation(8, 35),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("virtual", "7.3", "8.0").WithLocation(8, 35),
                 // (8,48): error CS0501: 'I07.this[int].set' must declare a body because it is not marked abstract, extern, or partial
                 // public interface I07{ virtual int this[int x] {set;} }
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I07.this[int].set").WithLocation(8, 48),
-                // (9,34): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (9,34): error CS8503: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 // public interface I08{ sealed int this[int x] {get;} }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("sealed", "7.0", "7.1").WithLocation(9, 34),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("sealed", "7.3", "8.0").WithLocation(9, 34),
                 // (9,47): error CS0501: 'I08.this[int].get' must declare a body because it is not marked abstract, extern, or partial
                 // public interface I08{ sealed int this[int x] {get;} }
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I08.this[int].get").WithLocation(9, 47),
                 // (10,36): error CS0106: The modifier 'override' is not valid for this item
                 // public interface I09{ override int this[int x] {set;} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("override").WithLocation(10, 36),
-                // (11,36): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (11,36): error CS8503: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 // public interface I10{ abstract int this[int x] {get;} }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("abstract", "7.0", "7.1").WithLocation(11, 36),
-                // (12,34): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("abstract", "7.3", "8.0").WithLocation(11, 36),
+                // (12,34): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 // public interface I11{ extern int this[int x] {get; set;} }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7.0", "7.1").WithLocation(12, 34),
-                // (14,48): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7.3", "8.0").WithLocation(12, 34),
+                // (14,48): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 // public interface I12{ int this[int x] { public get; set;} }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("public", "7.0", "7.1").WithLocation(14, 48),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("public", "7.3", "8.0").WithLocation(14, 48),
                 // (14,48): error CS0273: The accessibility modifier of the 'I12.this[int].get' accessor must be more restrictive than the property or indexer 'I12.this[int]'
                 // public interface I12{ int this[int x] { public get; set;} }
                 Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "get").WithArguments("I12.this[int].get", "I12.this[int]").WithLocation(14, 48),
@@ -15586,18 +15586,18 @@ public interface I17{ int this[int x] { private get;} }
                 // (16,60): error CS0106: The modifier 'protected internal' is not valid for this item
                 // public interface I14{ int this[int x] { protected internal get; set;} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("protected internal").WithLocation(16, 60),
-                // (17,55): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (17,55): error CS8503: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 // public interface I15{ int this[int x] { get; internal set;} }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7.0", "7.1").WithLocation(17, 55),
-                // (18,49): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7.3", "8.0").WithLocation(17, 55),
+                // (18,49): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 // public interface I16{ int this[int x] { private get; set;} }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.0", "7.1").WithLocation(18, 49),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.3", "8.0").WithLocation(18, 49),
                 // (18,49): error CS0442: 'I16.this[int].get': abstract properties cannot have private accessors
                 // public interface I16{ int this[int x] { private get; set;} }
                 Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "get").WithArguments("I16.this[int].get").WithLocation(18, 49),
-                // (19,49): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (19,49): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 // public interface I17{ int this[int x] { private get;} }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.0", "7.1").WithLocation(19, 49),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.3", "8.0").WithLocation(19, 49),
                 // (19,27): error CS0276: 'I17.this[int]': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor
                 // public interface I17{ int this[int x] { private get;} }
                 Diagnostic(ErrorCode.ERR_AccessModMissingAccessor, "this").WithArguments("I17.this[int]").WithLocation(19, 27),
@@ -15788,7 +15788,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -15865,15 +15865,15 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
 
             compilation1.VerifyDiagnostics(
-                // (4,25): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (4,25): error CS8503: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public abstract int this[int x] {get; set;} 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("abstract", "7.0", "7.1").WithLocation(4, 25),
-                // (4,25): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("abstract", "7.3", "8.0").WithLocation(4, 25),
+                // (4,25): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public abstract int this[int x] {get; set;} 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("public", "7.0", "7.1").WithLocation(4, 25)
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("public", "7.3", "8.0").WithLocation(4, 25)
                 );
 
             ValidatePropertyModifiers_06(compilation1, "this[]");
@@ -16043,7 +16043,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -16701,7 +16701,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(
                 // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
@@ -17143,27 +17143,27 @@ class Test2 : I1, I2, I4, I5
             ValidatePropertyModifiers_16(source1,
                 new DiagnosticDescription[]
                 {
-                // (4,16): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (4,16): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     extern int this[int x] {get;} 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7.0", "7.1").WithLocation(4, 16),
-                // (8,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7.3", "8.0").WithLocation(4, 16),
+                // (8,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     virtual extern int this[int x] {set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7.0", "7.1").WithLocation(8, 24),
-                // (8,24): error CS8503: The modifier 'virtual' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7.3", "8.0").WithLocation(8, 24),
+                // (8,24): error CS8503: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     virtual extern int this[int x] {set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("virtual", "7.0", "7.1").WithLocation(8, 24),
-                // (12,24): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("virtual", "7.3", "8.0").WithLocation(8, 24),
+                // (12,24): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private extern int this[int x] {get;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("private", "7.0", "7.1").WithLocation(12, 24),
-                // (12,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("private", "7.3", "8.0").WithLocation(12, 24),
+                // (12,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private extern int this[int x] {get;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7.0", "7.1").WithLocation(12, 24),
-                // (16,23): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7.3", "8.0").WithLocation(12, 24),
+                // (16,23): error CS8503: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     extern sealed int this[int x] {set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("sealed", "7.0", "7.1").WithLocation(16, 23),
-                // (16,23): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("sealed", "7.3", "8.0").WithLocation(16, 23),
+                // (16,23): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     extern sealed int this[int x] {set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7.0", "7.1").WithLocation(16, 23),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7.3", "8.0").WithLocation(16, 23),
                 // (8,37): warning CS0626: Method, operator, or accessor 'I2.this[int].set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     virtual extern int this[int x] {set;}
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("I2.this[int].set").WithLocation(8, 37),
@@ -17458,7 +17458,7 @@ class Test1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -17490,7 +17490,7 @@ class Test2
 ";
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(
@@ -19010,7 +19010,7 @@ public class Test1 : I1, I2, I3, I4
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -19053,7 +19053,7 @@ class Test2
 ";
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(
@@ -19092,7 +19092,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -19224,7 +19224,7 @@ public interface I2
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -19294,7 +19294,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_EventNeedsBothAccessors).Verify(
@@ -19608,85 +19608,85 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_EventNeedsBothAccessors).Verify(
-                // (4,32): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (4,32): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public event System.Action P01;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P01").WithArguments("public", "7.0", "7.1").WithLocation(4, 32),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P01").WithArguments("public", "7.3", "8.0").WithLocation(4, 32),
                 // (5,35): error CS0106: The modifier 'protected' is not valid for this item
                 //     protected event System.Action P02 {add{}}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P02").WithArguments("protected").WithLocation(5, 35),
-                // (5,40): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (5,40): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     protected event System.Action P02 {add{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(5, 40),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(5, 40),
                 // (6,44): error CS0106: The modifier 'protected internal' is not valid for this item
                 //     protected internal event System.Action P03 {remove{}}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P03").WithArguments("protected internal").WithLocation(6, 44),
-                // (6,49): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (6,49): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     protected internal event System.Action P03 {remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(6, 49),
-                // (7,39): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(6, 49),
+                // (7,39): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     internal event System.Action P04 {add{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(7, 39),
-                // (8,38): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(7, 39),
+                // (8,38): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     private event System.Action P05 {remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(8, 38),
-                // (9,37): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(8, 38),
+                // (9,37): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     static event System.Action P06 {add{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(9, 37),
-                // (10,38): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(9, 37),
+                // (10,38): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     virtual event System.Action P07 {remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(10, 38),
-                // (11,37): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(10, 38),
+                // (11,37): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     sealed event System.Action P08 {add{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(11, 37),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(11, 37),
                 // (12,34): error CS0106: The modifier 'override' is not valid for this item
                 //     override event System.Action P09 {remove{}}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P09").WithArguments("override").WithLocation(12, 34),
-                // (12,39): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (12,39): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     override event System.Action P09 {remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(12, 39),
-                // (13,39): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(12, 39),
+                // (13,39): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     abstract event System.Action P10 {add{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(13, 39),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(13, 39),
                 // (13,39): error CS0500: 'I1.P10.add' cannot declare a body because it is marked abstract
                 //     abstract event System.Action P10 {add{}}
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I1.P10.add").WithLocation(13, 39),
-                // (14,37): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (14,37): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     extern event System.Action P11 {add{} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(14, 37),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(14, 37),
                 // (14,37): error CS0179: 'I1.P11.add' cannot be extern and declare a body
                 //     extern event System.Action P11 {add{} remove{}}
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("I1.P11.add").WithLocation(14, 37),
-                // (14,43): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (14,43): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     extern event System.Action P11 {add{} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(14, 43),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(14, 43),
                 // (14,43): error CS0179: 'I1.P11.remove' cannot be extern and declare a body
                 //     extern event System.Action P11 {add{} remove{}}
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("I1.P11.remove").WithLocation(14, 43),
-                // (15,37): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (15,37): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     extern event System.Action P12 {add; remove;}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(15, 37),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(15, 37),
                 // (15,37): warning CS0626: Method, operator, or accessor 'I1.P12.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern event System.Action P12 {add; remove;}
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "add").WithArguments("I1.P12.add").WithLocation(15, 37),
                 // (15,40): error CS0073: An add or remove accessor must have a body
                 //     extern event System.Action P12 {add; remove;}
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(15, 40),
-                // (15,42): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (15,42): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     extern event System.Action P12 {add; remove;}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(15, 42),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(15, 42),
                 // (15,42): warning CS0626: Method, operator, or accessor 'I1.P12.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern event System.Action P12 {add; remove;}
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "remove").WithArguments("I1.P12.remove").WithLocation(15, 42),
                 // (15,48): error CS0073: An add or remove accessor must have a body
                 //     extern event System.Action P12 {add; remove;}
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(15, 48),
-                // (16,32): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (16,32): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     extern event System.Action P13;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P13").WithArguments("extern", "7.0", "7.1").WithLocation(16, 32),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P13").WithArguments("extern", "7.3", "8.0").WithLocation(16, 32),
                 // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern event System.Action P13;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.add").WithLocation(16, 32),
@@ -20002,7 +20002,7 @@ class Test2 : I2
         private void ValidateEventModifiers_05(string source1)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation1, expectedOutput:
 @"get_P1
@@ -20076,15 +20076,15 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
 
             compilation1.VerifyDiagnostics(
-                // (4,41): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (4,41): error CS8503: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public abstract event System.Action P1; 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("abstract", "7.0", "7.1").WithLocation(4, 41),
-                // (4,41): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("abstract", "7.3", "8.0").WithLocation(4, 41),
+                // (4,41): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public abstract event System.Action P1; 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("public", "7.0", "7.1").WithLocation(4, 41)
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("public", "7.3", "8.0").WithLocation(4, 41)
                 );
 
             ValidateEventModifiers_06(compilation1);
@@ -20172,7 +20172,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation1, expectedOutput:
 @"get_P1
@@ -20246,7 +20246,7 @@ class Test1 : I1
 }
 ";
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyEmitDiagnostics(
                 // (4,39): warning CS0067: The event 'I1.P1' is never used
@@ -20291,7 +20291,7 @@ class Test2 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(
                 // (8,46): error CS0073: An add or remove accessor must have a body
@@ -20461,7 +20461,7 @@ class Test1 : I1, I2
         private void ValidateEventModifiers_09(string source1)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
@@ -20539,7 +20539,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
@@ -20748,7 +20748,7 @@ class Test1 : I1
         private void ValidateEventModifiers_11(string source1, string source2, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected1);
@@ -20797,7 +20797,7 @@ class Test1 : I1
             }
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -20811,7 +20811,7 @@ class Test1 : I1
             }
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected1);
@@ -20819,7 +20819,7 @@ class Test1 : I1
             Validate1(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected1);
@@ -20834,7 +20834,7 @@ class Test2 : I1
 ";
 
             var compilation5 = CreateCompilation(source3, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation5.VerifyDiagnostics(expected2);
@@ -20842,7 +20842,7 @@ class Test2 : I1
             ValidateEventNotImplemented_11(compilation5, "Test2");
 
             var compilation6 = CreateCompilation(source3, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation6.VerifyDiagnostics(expected2);
@@ -20917,26 +20917,26 @@ class Test1 : I1
                                                   params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(expected);
 
             ValidateEventImplementation_11(compilation1.SourceModule);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics(expected);
 
             ValidateEventImplementation_11(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation4.VerifyDiagnostics(expected);
 
@@ -21028,7 +21028,7 @@ class Test1 : I1
                                                   params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation1, expectedOutput:
 @"get_P1
@@ -21037,19 +21037,19 @@ set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidateEventImplementation_1
             ValidateEventImplementation_11(compilation1.SourceModule);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics(expected);
 
             ValidateEventImplementation_11(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation4.VerifyDiagnostics(expected);
 
@@ -21403,7 +21403,7 @@ class Test1 : Test2, I1
         private void ValidateEventModifiers_11_08(string source1, string source2)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                  parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation1, expectedOutput:
 @"Test2.get_P1
@@ -21412,12 +21412,12 @@ Test2.set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidateEventImplementa
             ValidateEventImplementationByBase_11(compilation1.SourceModule);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation3, expectedOutput:
 @"Test2.get_P1
@@ -21426,7 +21426,7 @@ Test2.set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidateEventImplementa
             ValidateEventImplementationByBase_11(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation4, expectedOutput:
 @"Test2.get_P1
@@ -21489,26 +21489,26 @@ class Test1 : I1
                                                   params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(expected);
 
             ValidateEventNotImplemented_11(compilation1, "Test1");
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics(expected);
 
             ValidateEventNotImplemented_11(compilation3, "Test1");
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation4.VerifyDiagnostics(expected);
 
@@ -21555,26 +21555,26 @@ class Test1 : Test2, I1
                                                      params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(expected);
 
             ValidateEventImplementationByBase_11(compilation1.SourceModule);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics(expected);
 
             ValidateEventImplementationByBase_11(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation4.VerifyDiagnostics(expected);
 
@@ -21621,13 +21621,13 @@ class Test1 : Test2, I1
                                                      params DiagnosticDescription[] expected)
         {
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  assemblyName: "EventModifiers_11_11");
 
             compilation2.VerifyDiagnostics(expected);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
 
@@ -21635,7 +21635,7 @@ class Test1 : Test2, I1
 
             var compilation3Ref = compilation3.EmitToImageReference();
             var compilation4 = CreateCompilation("", new[] { compilation2.ToMetadataReference(), compilation3Ref }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             ValidateEventImplementationByBase_11(compilation4.GetReferencedAssemblySymbol(compilation3Ref).Modules[0]);
         }
@@ -21655,7 +21655,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(
                 // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
@@ -21733,7 +21733,7 @@ class Test2 : I2
         private void ValidateEventModifiers_13(string source1)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -21851,7 +21851,7 @@ class Test2 : I1, I2, I3
         private void ValidateEventModifiers_14(string source1, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -22171,7 +22171,7 @@ class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
         private void ValidateEventModifiers_15(string source1, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -22282,7 +22282,7 @@ class Test2 : I1, I2, I3, I4, I5
         private void ValidateEventModifiers_16(string source1)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, verify: VerifyOnCoreClr, symbolValidator: Validate);
@@ -22444,43 +22444,43 @@ class Test2 : I1, I2, I3, I4, I5
             }
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(
-                // (4,32): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (4,32): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     extern event System.Action P1; 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("extern", "7.0", "7.1").WithLocation(4, 32),
-                // (8,40): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("extern", "7.3", "8.0").WithLocation(4, 32),
+                // (8,40): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     virtual extern event System.Action P2;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("extern", "7.0", "7.1").WithLocation(8, 40),
-                // (8,40): error CS8503: The modifier 'virtual' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("extern", "7.3", "8.0").WithLocation(8, 40),
+                // (8,40): error CS8503: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     virtual extern event System.Action P2;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("virtual", "7.0", "7.1").WithLocation(8, 40),
-                // (12,39): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("virtual", "7.3", "8.0").WithLocation(8, 40),
+                // (12,39): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     static extern event System.Action P3; 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P3").WithArguments("static", "7.0", "7.1").WithLocation(12, 39),
-                // (12,39): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P3").WithArguments("static", "7.3", "8.0").WithLocation(12, 39),
+                // (12,39): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     static extern event System.Action P3; 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P3").WithArguments("extern", "7.0", "7.1").WithLocation(12, 39),
-                // (16,40): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P3").WithArguments("extern", "7.3", "8.0").WithLocation(12, 39),
+                // (16,40): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private extern event System.Action P4;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P4").WithArguments("private", "7.0", "7.1").WithLocation(16, 40),
-                // (16,40): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P4").WithArguments("private", "7.3", "8.0").WithLocation(16, 40),
+                // (16,40): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private extern event System.Action P4;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P4").WithArguments("extern", "7.0", "7.1").WithLocation(16, 40),
-                // (20,39): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P4").WithArguments("extern", "7.3", "8.0").WithLocation(16, 40),
+                // (20,39): error CS8503: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     extern sealed event System.Action P5;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("sealed", "7.0", "7.1").WithLocation(20, 39),
-                // (20,39): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("sealed", "7.3", "8.0").WithLocation(20, 39),
+                // (20,39): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     extern sealed event System.Action P5;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("extern", "7.0", "7.1").WithLocation(20, 39),
-                // (26,9): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("extern", "7.3", "8.0").WithLocation(20, 39),
+                // (26,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         add => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(26, 9),
-                // (27,9): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(26, 9),
+                // (27,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         remove => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(27, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(27, 9),
                 // (8,40): warning CS0626: Method, operator, or accessor 'I2.P2.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     virtual extern event System.Action P2;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P2").WithArguments("I2.P2.add").WithLocation(8, 40),
@@ -22516,7 +22516,7 @@ class Test2 : I1, I2, I3, I4, I5
             Validate(compilation2.SourceModule);
 
             var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
+                                                 parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
@@ -22638,7 +22638,7 @@ class Test2 : I1, I2, I3, I4
         private void ValidateEventModifiers_17(string source1, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -22862,7 +22862,7 @@ class Test2 : I1, I2, I3, I4, I5
         private void ValidateEventModifiers_18(string source1, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -23064,7 +23064,7 @@ class Test1 : I1
         private void ValidateEventModifiers_20(string source1, string source2)
         {
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
@@ -23118,7 +23118,7 @@ set_P1
             }
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
@@ -23133,7 +23133,7 @@ set_P1
             }
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3,
@@ -23147,7 +23147,7 @@ set_P1
             Validate1(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation4,
@@ -23193,7 +23193,7 @@ class Test1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(
                 // (17,12): error CS0122: 'I1.P1' is inaccessible due to its protection level
@@ -23223,7 +23223,7 @@ class Test2
 ";
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics(
                 // (6,12): error CS0122: 'I1.P1' is inaccessible due to its protection level
@@ -23288,7 +23288,7 @@ class Test1 : I1.T1
         private void ValidateNestedTypes_01(string source1, Accessibility expected = Accessibility.Public)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             for (int i = 1; i <= 4; i++)
             {
@@ -23344,7 +23344,7 @@ class Test1 : I1.T1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
 
             for (int i = 1; i <= 4; i++)
             {
@@ -23352,18 +23352,18 @@ class Test1 : I1.T1
             }
 
             compilation1.VerifyDiagnostics(
-                // (4,15): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (4,15): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     interface T1
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "T1").WithArguments("default interface implementation", "7.1").WithLocation(4, 15),
-                // (9,11): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "T1").WithArguments("default interface implementation", "8.0").WithLocation(4, 15),
+                // (9,11): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     class T2
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "T2").WithArguments("default interface implementation", "7.1").WithLocation(9, 11),
-                // (12,12): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "T2").WithArguments("default interface implementation", "8.0").WithLocation(9, 11),
+                // (12,12): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     struct T3
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "T3").WithArguments("default interface implementation", "7.1").WithLocation(12, 12),
-                // (15,10): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "T3").WithArguments("default interface implementation", "8.0").WithLocation(12, 12),
+                // (15,10): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     enum T4
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "T4").WithArguments("default interface implementation", "7.1").WithLocation(15, 10)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "T4").WithArguments("default interface implementation", "8.0").WithLocation(15, 10)
                 );
         }
 
@@ -23453,7 +23453,7 @@ class Test1 : I1.T1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             for (int i = 1; i <= 4; i++)
             {
@@ -23518,7 +23518,7 @@ class Test1 : I1.T1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             for (int i = 1; i <= 4; i++)
             {
@@ -23587,7 +23587,7 @@ class Test1 : I1.T1
             ValidateNestedTypes_01(source1 + source2, Accessibility.Internal);
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe);
 
@@ -23705,7 +23705,7 @@ class Test1 : I1.T1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(
                 // (21,18): error CS0122: 'I1.T1' is inaccessible due to its protection level
@@ -23781,7 +23781,7 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -23797,7 +23797,7 @@ I4.M1
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -23815,7 +23815,7 @@ I4.M1
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidateMethodImplementationInDerived_01(compilation3.SourceModule);
@@ -23925,16 +23925,16 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (14,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (14,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     void I2.M1() 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M1").WithArguments("default interface implementation", "7.1").WithLocation(14, 13),
-                // (18,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M1").WithArguments("default interface implementation", "8.0").WithLocation(14, 13),
+                // (18,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     void I4.M1() 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M1").WithArguments("default interface implementation", "7.1").WithLocation(18, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M1").WithArguments("default interface implementation", "8.0").WithLocation(18, 13)
                 );
 
             ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
@@ -23949,17 +23949,17 @@ class Test1 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation2.VerifyDiagnostics(
-                // (6,15): error CS8506: 'I1.I2.M1()' cannot implement interface member 'I2.M1()' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (6,15): error CS8506: 'I1.I2.M1()' cannot implement interface member 'I2.M1()' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1()", "I2.M1()", "Test1", "default interface implementation", "7.0", "7.1").WithLocation(6, 15),
-                // (6,15): error CS8506: 'I1.I4.M1()' cannot implement interface member 'I4.M1()' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1()", "I2.M1()", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15),
+                // (6,15): error CS8506: 'I1.I4.M1()' cannot implement interface member 'I4.M1()' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1()", "I4.M1()", "Test1", "default interface implementation", "7.0", "7.1").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1()", "I4.M1()", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15)
                 );
 
             ValidateMethodImplementationInDerived_01(compilation2.SourceModule);
@@ -24001,7 +24001,7 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
+                                                 parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
@@ -24026,7 +24026,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation2.VerifyDiagnostics(
@@ -24069,7 +24069,7 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -24113,7 +24113,7 @@ public interface I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -24162,7 +24162,7 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -24219,7 +24219,7 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -24276,7 +24276,7 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -24318,7 +24318,7 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -24357,13 +24357,13 @@ class Test1 : I1
             CompileAndVerify(compilation1, verify: VerifyOnCoreClr, symbolValidator: Validate1);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(
-                // (9,20): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (9,20): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     extern void I2.M1(); 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M1").WithArguments("default interface implementation", "7.1").WithLocation(9, 20),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M1").WithArguments("default interface implementation", "8.0").WithLocation(9, 20),
                 // (9,20): warning CS0626: Method, operator, or accessor 'I1.I2.M1()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern void I2.M1(); 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M1").WithArguments("I1.I2.M1()").WithLocation(9, 20)
@@ -24372,7 +24372,7 @@ class Test1 : I1
             Validate1(compilation2.SourceModule);
 
             var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
+                                                 parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
@@ -24408,7 +24408,7 @@ class Test1 : I1
 ";
 
             var compilation4 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
@@ -24477,7 +24477,7 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest,
                                                  references: new[] { TestReferences.NetStandard30.SystemThreadingTasksRef });
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -24598,7 +24598,7 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -24614,7 +24614,7 @@ I4.M1
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
             var compilation2 = CreateCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -24632,7 +24632,7 @@ I4.M1
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
             var compilation3 = CreateCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidateMethodImplementationInDerived_01(compilation3.SourceModule);
@@ -24649,13 +24649,13 @@ I4.M1
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
             var compilation5 = CreateCompilation(source2 + source3, new[] { compilation4.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -24671,7 +24671,7 @@ I4.M1
                 );
 
             var compilation6 = CreateCompilation(source2 + source3, new[] { compilation4.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidateMethodImplementationInDerived_01(compilation6.SourceModule);
@@ -24734,7 +24734,7 @@ public interface I6 : I1, I2, I3, I5
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -24869,7 +24869,7 @@ class Test12 : I8
             foreach (var ref1 in refs1)
             {
                 var compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                     parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -24895,7 +24895,7 @@ class Test12 : I8
                 CompileAndVerify(compilation2, verify: VerifyOnCoreClr, symbolValidator: Validate2);
 
                 compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -24907,7 +24907,7 @@ class Test12 : I8
                 var refs2 = new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() };
 
                 var compilation4 = CreateCompilation(source4, new[] { ref1 }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                     parseOptions: TestOptions.Regular,
                                                      targetFramework: TargetFramework.NetStandardLatest);
                 Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -24946,7 +24946,7 @@ I5.I1.M1
                 foreach (var ref2 in refs2)
                 {
                     var compilation3 = CreateCompilation(source3, new[] { ref1, ref2 }, options: TestOptions.DebugDll,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                         parseOptions: TestOptions.Regular,
                                                          targetFramework: TargetFramework.NetStandardLatest);
                     Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -24991,7 +24991,7 @@ I5.I1.M1
                     }
 
                     var compilation5 = CreateCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugExe,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                         parseOptions: TestOptions.Regular,
                                                          targetFramework: TargetFramework.NetStandardLatest);
                     Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -25085,13 +25085,13 @@ class Test1 : I2, I3
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -25105,7 +25105,7 @@ class Test1 : I2, I3
                 );
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -25172,7 +25172,7 @@ class Test2 : I2<long>
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -25269,7 +25269,7 @@ I2.I1.M2
                 symbolValidator: Validate);
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -25287,7 +25287,7 @@ I2.I1.M2
                 symbolValidator: Validate);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Validate(compilation3.SourceModule);
@@ -25364,7 +25364,7 @@ class Test1 : I1
         private void ValidatePropertyImplementationInDerived_01(string source1, string source2)
         {
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -25380,7 +25380,7 @@ I4.M1
                 symbolValidator: ValidatePropertyImplementationInDerived_01);
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -25398,7 +25398,7 @@ I4.M1
                 symbolValidator: ValidatePropertyImplementationInDerived_01);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidatePropertyImplementationInDerived_01(compilation3.SourceModule);
@@ -25556,29 +25556,29 @@ class Test1 : I1
             ValidatePropertyImplementationInDerived_02(source1,
                 new DiagnosticDescription[]
                 {
-                // (14,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (14,18): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     int I2.M1 => Getter();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Getter()").WithArguments("default interface implementation", "7.1").WithLocation(14, 18),
-                // (16,17): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "Getter()").WithArguments("default interface implementation", "8.0").WithLocation(14, 18),
+                // (16,17): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     private int Getter()
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Getter").WithArguments("default interface implementation", "7.1").WithLocation(16, 17),
-                // (24,9): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "Getter").WithArguments("default interface implementation", "8.0").WithLocation(16, 17),
+                // (24,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         set 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "7.1").WithLocation(24, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(24, 9)
                 },
-                // (6,15): error CS8506: 'I1.I2.M1.get' cannot implement interface member 'I2.M1.get' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (6,15): error CS8506: 'I1.I2.M1.get' cannot implement interface member 'I2.M1.get' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.get", "I2.M1.get", "Test1", "default interface implementation", "7.0", "7.1").WithLocation(6, 15),
-                // (6,15): error CS8506: 'I1.I4.M1.set' cannot implement interface member 'I4.M1.set' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.get", "I2.M1.get", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15),
+                // (6,15): error CS8506: 'I1.I4.M1.set' cannot implement interface member 'I4.M1.set' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.set", "I4.M1.set", "Test1", "default interface implementation", "7.0", "7.1").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.set", "I4.M1.set", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15)
                 );
         }
 
         private void ValidatePropertyImplementationInDerived_02(string source1, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected1);
@@ -25595,7 +25595,7 @@ class Test1 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -25679,7 +25679,7 @@ class Test1 : I1
         private void ValidatePropertyImplementationInDerived_03(string source1, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
+                                                 parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(expected1);
@@ -25697,7 +25697,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation2.VerifyDiagnostics(expected2);
@@ -25745,7 +25745,7 @@ class Test1 : I1
         private void ValidatePropertyImplementationInDerived_04(string source1, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -25788,7 +25788,7 @@ public interface I1
         private void ValidatePropertyImplementationInDerived_05(string source1, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -26021,9 +26021,9 @@ class Test1 : I1
                 },
                 new DiagnosticDescription[]
                 {
-                // (9,23): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (9,23): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     extern int I2.M1 {get;} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "get").WithArguments("default interface implementation", "7.1").WithLocation(9, 23),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(9, 23),
                 // (9,23): warning CS0626: Method, operator, or accessor 'I1.I2.M1.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern int I2.M1 {get;} 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.I2.M1.get").WithLocation(9, 23)
@@ -26048,7 +26048,7 @@ class Test1 : I1
             DiagnosticDescription[] expected3, params DiagnosticDescription[] expected4)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected1);
@@ -26083,7 +26083,7 @@ class Test1 : I1
             CompileAndVerify(compilation1, verify: VerifyOnCoreClr, symbolValidator: Validate1);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(expected2);
@@ -26091,7 +26091,7 @@ class Test1 : I1
             Validate1(compilation2.SourceModule);
 
             var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
+                                                 parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(expected3);
@@ -26099,7 +26099,7 @@ class Test1 : I1
             Validate1(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected4);
@@ -26300,7 +26300,7 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -26317,7 +26317,7 @@ I4.M1.set
                 symbolValidator: ValidatePropertyImplementationInDerived_01);
 
             var compilation2 = CreateCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -26336,7 +26336,7 @@ I4.M1.set
                 symbolValidator: ValidatePropertyImplementationInDerived_01);
 
             var compilation3 = CreateCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidatePropertyImplementationInDerived_01(compilation3.SourceModule);
@@ -26354,13 +26354,13 @@ I4.M1.set
                 symbolValidator: ValidatePropertyImplementationInDerived_01);
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
             var compilation5 = CreateCompilation(source2 + source3, new[] { compilation4.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -26369,7 +26369,7 @@ I4.M1.set
             compilation5.VerifyDiagnostics(expected);
 
             var compilation6 = CreateCompilation(source2 + source3, new[] { compilation4.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidatePropertyImplementationInDerived_01(compilation6.SourceModule);
@@ -26595,7 +26595,7 @@ class Test12 : I8
         private void ValidatePropertyImplementationInDerived_12(string source1, string source4, string source5, DiagnosticDescription[] expected1, DiagnosticDescription[] expected2 = null)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -26654,7 +26654,7 @@ class Test5 : I8
             foreach (var ref1 in refs1)
             {
                 var compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                     parseOptions: TestOptions.Regular,
                                                      targetFramework: TargetFramework.NetStandardLatest);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -26680,7 +26680,7 @@ class Test5 : I8
                 CompileAndVerify(compilation2, verify: VerifyOnCoreClr, symbolValidator: Validate2);
 
                 compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -26692,7 +26692,7 @@ class Test5 : I8
                 var refs2 = new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() };
 
                 var compilation4 = CreateCompilation(source4, new[] { ref1 }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                     parseOptions: TestOptions.Regular,
                                                      targetFramework: TargetFramework.NetStandardLatest);
                 Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -26734,7 +26734,7 @@ I5.I1.M1.set
                 foreach (var ref2 in refs2)
                 {
                     var compilation3 = CreateCompilation(source3, new[] { ref1, ref2 }, options: TestOptions.DebugDll.WithConcurrentBuild(false),
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                         parseOptions: TestOptions.Regular,
                                                          targetFramework: TargetFramework.NetStandardLatest);
                     Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -26763,7 +26763,7 @@ I5.I1.M1.set
                     }
 
                     var compilation5 = CreateCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugExe,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                         parseOptions: TestOptions.Regular,
                                                          targetFramework: TargetFramework.NetStandardLatest);
                     Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -26852,20 +26852,20 @@ class Test1 : I2, I3
         private void ValidatePropertyImplementationInDerived_13(string source1, string source2, DiagnosticDescription[] expected1, DiagnosticDescription[] expected2 = null)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation2.VerifyDiagnostics(expected1);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -26929,7 +26929,7 @@ class Test2 : I2<long>
         private void ValidatePropertyImplementationInDerived_14(string source1, string source2)
         {
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -26998,7 +26998,7 @@ I2.I1.M1.set
                 symbolValidator: Validate);
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -27016,7 +27016,7 @@ I2.I1.M1.set
                 symbolValidator: Validate);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Validate(compilation3.SourceModule);
@@ -27095,7 +27095,7 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -27113,7 +27113,7 @@ I4.M1.remove
                 symbolValidator: ValidateEventImplementationInDerived_01);
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -27133,7 +27133,7 @@ I4.M1.remove
                 symbolValidator: ValidateEventImplementationInDerived_01);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidateEventImplementationInDerived_01(compilation3.SourceModule);
@@ -27287,22 +27287,22 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (16,9): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (16,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         add => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(16, 9),
-                // (17,9): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(16, 9),
+                // (17,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         remove => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(17, 9),
-                // (22,9): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(17, 9),
+                // (22,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         add => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(22, 9),
-                // (23,9): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(22, 9),
+                // (23,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         remove => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(23, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(23, 9)
                 );
 
             ValidateEventImplementationInDerived_01(compilation1.SourceModule);
@@ -27317,23 +27317,23 @@ class Test1 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation2.VerifyDiagnostics(
-                // (6,15): error CS8506: 'I1.I2.M1.remove' cannot implement interface member 'I2.M1.remove' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (6,15): error CS8506: 'I1.I2.M1.remove' cannot implement interface member 'I2.M1.remove' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.remove", "I2.M1.remove", "Test1", "default interface implementation", "7.0", "7.1").WithLocation(6, 15),
-                // (6,15): error CS8506: 'I1.I2.M1.add' cannot implement interface member 'I2.M1.add' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.remove", "I2.M1.remove", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15),
+                // (6,15): error CS8506: 'I1.I2.M1.add' cannot implement interface member 'I2.M1.add' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.add", "I2.M1.add", "Test1", "default interface implementation", "7.0", "7.1").WithLocation(6, 15),
-                // (6,15): error CS8506: 'I1.I4.M1.remove' cannot implement interface member 'I4.M1.remove' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.add", "I2.M1.add", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15),
+                // (6,15): error CS8506: 'I1.I4.M1.remove' cannot implement interface member 'I4.M1.remove' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.remove", "I4.M1.remove", "Test1", "default interface implementation", "7.0", "7.1").WithLocation(6, 15),
-                // (6,15): error CS8506: 'I1.I4.M1.add' cannot implement interface member 'I4.M1.add' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.remove", "I4.M1.remove", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15),
+                // (6,15): error CS8506: 'I1.I4.M1.add' cannot implement interface member 'I4.M1.add' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.add", "I4.M1.add", "Test1", "default interface implementation", "7.0", "7.1").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.add", "I4.M1.add", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15)
                 );
 
             ValidateEventImplementationInDerived_01(compilation2.SourceModule);
@@ -27378,7 +27378,7 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), skipUsesIsNullable: true);
+                                                 parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
@@ -27409,7 +27409,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation2.VerifyDiagnostics(
@@ -27466,7 +27466,7 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -27505,7 +27505,7 @@ public interface I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -27553,7 +27553,7 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -27612,7 +27612,7 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -27671,7 +27671,7 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -27733,7 +27733,7 @@ class Test2 : I4
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -27840,7 +27840,7 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -27858,7 +27858,7 @@ I4.M1.remove
                 symbolValidator: ValidateEventImplementationInDerived_01);
 
             var compilation2 = CreateCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -27878,7 +27878,7 @@ I4.M1.remove
                 symbolValidator: ValidateEventImplementationInDerived_01);
 
             var compilation3 = CreateCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidateEventImplementationInDerived_01(compilation3.SourceModule);
@@ -27897,13 +27897,13 @@ I4.M1.remove
                 symbolValidator: ValidateEventImplementationInDerived_01);
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
             var compilation5 = CreateCompilation(source2 + source3, new[] { compilation4.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -27916,7 +27916,7 @@ I4.M1.remove
                 );
 
             var compilation6 = CreateCompilation(source2 + source3, new[] { compilation4.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidateEventImplementationInDerived_01(compilation6.SourceModule);
@@ -28004,7 +28004,7 @@ public interface I6 : I1, I2, I3, I5
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -28182,7 +28182,7 @@ class Test12 : I8
             foreach (var ref1 in refs1)
             {
                 var compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                     parseOptions: TestOptions.Regular,
                                                      targetFramework: TargetFramework.NetStandardLatest);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -28208,7 +28208,7 @@ class Test12 : I8
                 CompileAndVerify(compilation2, verify: VerifyOnCoreClr, symbolValidator: Validate2);
 
                 compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetStandardLatest);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -28220,7 +28220,7 @@ class Test12 : I8
                 var refs2 = new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() };
 
                 var compilation4 = CreateCompilation(source4, new[] { ref1 }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                     parseOptions: TestOptions.Regular,
                                                      targetFramework: TargetFramework.NetStandardLatest);
                 Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -28262,7 +28262,7 @@ I5.I1.M1.remove
                 foreach (var ref2 in refs2)
                 {
                     var compilation3 = CreateCompilation(source3, new[] { ref1, ref2 }, options: TestOptions.DebugDll.WithConcurrentBuild(false),
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                         parseOptions: TestOptions.Regular,
                                                          targetFramework: TargetFramework.NetStandardLatest);
                     Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -28307,7 +28307,7 @@ I5.I1.M1.remove
                     }
 
                     var compilation5 = CreateCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugExe,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                         parseOptions: TestOptions.Regular,
                                                          targetFramework: TargetFramework.NetStandardLatest);
                     Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -28384,13 +28384,13 @@ class Test1 : I2, I3
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -28404,7 +28404,7 @@ class Test1 : I2, I3
                 );
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -28471,7 +28471,7 @@ class Test2 : I2<long>
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -28540,7 +28540,7 @@ I2.I1.M1.remove
                 symbolValidator: Validate);
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -28558,7 +28558,7 @@ I2.I1.M1.remove
                 symbolValidator: Validate);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Validate(compilation3.SourceModule);
@@ -28676,22 +28676,22 @@ class Test1 : I1
             ValidatePropertyImplementationInDerived_02(source1,
                 new DiagnosticDescription[]
                 {
-                // (16,17): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (16,17): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     private int Getter()
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Getter").WithArguments("default interface implementation", "7.1").WithLocation(16, 17),
-                // (14,27): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "Getter").WithArguments("default interface implementation", "8.0").WithLocation(16, 17),
+                // (14,27): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     int I2.this[int x] => Getter();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Getter()").WithArguments("default interface implementation", "7.1").WithLocation(14, 27),
-                // (24,9): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "Getter()").WithArguments("default interface implementation", "8.0").WithLocation(14, 27),
+                // (24,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         set 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "7.1").WithLocation(24, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(24, 9)
                 },
-                // (6,15): error CS8506: 'I1.I2.this[int].get' cannot implement interface member 'I2.this[int].get' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (6,15): error CS8506: 'I1.I2.this[int].get' cannot implement interface member 'I2.this[int].get' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.this[int].get", "I2.this[int].get", "Test1", "default interface implementation", "7.0", "7.1").WithLocation(6, 15),
-                // (6,15): error CS8506: 'I1.I4.this[int].set' cannot implement interface member 'I4.this[int].set' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.this[int].get", "I2.this[int].get", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15),
+                // (6,15): error CS8506: 'I1.I4.this[int].set' cannot implement interface member 'I4.this[int].set' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.this[int].set", "I4.this[int].set", "Test1", "default interface implementation", "7.0", "7.1").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.this[int].set", "I4.this[int].set", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15)
                 );
         }
 
@@ -29065,9 +29065,9 @@ class Test1 : I1
                 },
                 new DiagnosticDescription[]
                 {
-                // (9,32): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (9,32): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     extern int I2.this[int x] {get;} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "get").WithArguments("default interface implementation", "7.1").WithLocation(9, 32),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(9, 32),
                 // (9,32): warning CS0626: Method, operator, or accessor 'I1.I2.this[int].get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern int I2.this[int x] {get;} 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.I2.this[int].get").WithLocation(9, 32)
@@ -29597,7 +29597,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyEmitDiagnostics(
                 // (5,26): error CS0106: The modifier 'protected' is not valid for this item
@@ -29666,7 +29666,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
 
@@ -29711,34 +29711,34 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation2, expectedOutput: "112244");
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation3, expectedOutput: "112244");
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
 
             compilation4.VerifyDiagnostics(
-                // (4,16): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (4,16): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     static int F1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F1").WithArguments("default interface implementation", "7.1").WithLocation(4, 16),
-                // (5,23): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F1").WithArguments("default interface implementation", "8.0").WithLocation(4, 16),
+                // (5,23): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static int F2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F2").WithArguments("default interface implementation", "7.1").WithLocation(5, 23),
-                // (6,25): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F2").WithArguments("default interface implementation", "8.0").WithLocation(5, 23),
+                // (6,25): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     internal static int F3;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F3").WithArguments("default interface implementation", "7.1").WithLocation(6, 25),
-                // (7,24): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F3").WithArguments("default interface implementation", "8.0").WithLocation(6, 25),
+                // (7,24): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     private static int F4;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F4").WithArguments("default interface implementation", "7.1").WithLocation(7, 24),
-                // (9,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F4").WithArguments("default interface implementation", "8.0").WithLocation(7, 24),
+                // (9,18): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public class TestHelper
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "TestHelper").WithArguments("default interface implementation", "7.1").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(9, 18)
                 );
 
             Validate1(compilation4.SourceModule);
@@ -29774,7 +29774,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
 
@@ -29826,34 +29826,34 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation2, expectedOutput: "124");
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation3, expectedOutput: "124");
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
 
             compilation4.VerifyDiagnostics(
-                // (4,25): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (4,25): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     static readonly int F1 = 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F1").WithArguments("default interface implementation", "7.1").WithLocation(4, 25),
-                // (5,32): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F1").WithArguments("default interface implementation", "8.0").WithLocation(4, 25),
+                // (5,32): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static readonly int F2 = 2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F2").WithArguments("default interface implementation", "7.1").WithLocation(5, 32),
-                // (6,34): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F2").WithArguments("default interface implementation", "8.0").WithLocation(5, 32),
+                // (6,34): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     internal static readonly int F3 = 3;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F3").WithArguments("default interface implementation", "7.1").WithLocation(6, 34),
-                // (7,33): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F3").WithArguments("default interface implementation", "8.0").WithLocation(6, 34),
+                // (7,33): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     private static readonly int F4 = 4;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F4").WithArguments("default interface implementation", "7.1").WithLocation(7, 33),
-                // (9,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F4").WithArguments("default interface implementation", "8.0").WithLocation(7, 33),
+                // (9,18): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public class TestHelper
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "TestHelper").WithArguments("default interface implementation", "7.1").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(9, 18)
                 );
 
             Validate1(compilation4.SourceModule);
@@ -29889,7 +29889,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
 
@@ -29936,34 +29936,34 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                         parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation2, expectedOutput: "124");
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                         parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation3, expectedOutput: "124");
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                         parseOptions: TestOptions.Regular7_3);
 
             compilation4.VerifyDiagnostics(
-                // (4,15): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (4,15): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     const int F1 = 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F1").WithArguments("default interface implementation", "7.1").WithLocation(4, 15),
-                // (5,22): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F1").WithArguments("default interface implementation", "8.0").WithLocation(4, 15),
+                // (5,22): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public const int F2 = 2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F2").WithArguments("default interface implementation", "7.1").WithLocation(5, 22),
-                // (6,24): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F2").WithArguments("default interface implementation", "8.0").WithLocation(5, 22),
+                // (6,24): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     internal const int F3 = 3;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F3").WithArguments("default interface implementation", "7.1").WithLocation(6, 24),
-                // (7,23): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F3").WithArguments("default interface implementation", "8.0").WithLocation(6, 24),
+                // (7,23): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     private const int F4 = 4;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F4").WithArguments("default interface implementation", "7.1").WithLocation(7, 23),
-                // (9,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F4").WithArguments("default interface implementation", "8.0").WithLocation(7, 23),
+                // (9,18): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public class TestHelper
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "TestHelper").WithArguments("default interface implementation", "7.1").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(9, 18)
                 );
 
             Validate1(compilation4.SourceModule);
@@ -29982,7 +29982,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             // From https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-05-17.md:
             // We allow initializers for static fields, but not an explicit static constructor. Can think about adding later.
@@ -30008,7 +30008,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
@@ -30062,7 +30062,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
 
@@ -30107,43 +30107,43 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation2, expectedOutput: "112244");
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation3, expectedOutput: "112244");
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
 
             compilation4.VerifyDiagnostics(
-                // (4,16): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (4,16): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     static int F1 {get; set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7.0", "7.1").WithLocation(4, 16),
-                // (5,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7.3", "8.0").WithLocation(4, 16),
+                // (5,23): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public static int F2 {get; set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7.0", "7.1").WithLocation(5, 23),
-                // (5,23): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7.3", "8.0").WithLocation(5, 23),
+                // (5,23): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public static int F2 {get; set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7.0", "7.1").WithLocation(5, 23),
-                // (6,25): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7.3", "8.0").WithLocation(5, 23),
+                // (6,25): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     internal static int F3 {get; set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7.0", "7.1").WithLocation(6, 25),
-                // (6,25): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7.3", "8.0").WithLocation(6, 25),
+                // (6,25): error CS8503: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     internal static int F3 {get; set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7.0", "7.1").WithLocation(6, 25),
-                // (7,24): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7.3", "8.0").WithLocation(6, 25),
+                // (7,24): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private static int F4 {get; set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("static", "7.0", "7.1").WithLocation(7, 24),
-                // (7,24): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("static", "7.3", "8.0").WithLocation(7, 24),
+                // (7,24): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private static int F4 {get; set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7.0", "7.1").WithLocation(7, 24),
-                // (9,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7.3", "8.0").WithLocation(7, 24),
+                // (9,18): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public class TestHelper
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "TestHelper").WithArguments("default interface implementation", "7.1").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(9, 18)
                 );
 
             Validate1(compilation4.SourceModule);
@@ -30179,7 +30179,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
 
@@ -30226,43 +30226,43 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation2, expectedOutput: "124");
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation3, expectedOutput: "124");
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
 
             compilation4.VerifyDiagnostics(
-                // (4,16): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (4,16): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     static int F1 {get;} = 1;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7.0", "7.1").WithLocation(4, 16),
-                // (5,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7.3", "8.0").WithLocation(4, 16),
+                // (5,23): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public static int F2 {get;} = 2;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7.0", "7.1").WithLocation(5, 23),
-                // (5,23): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7.3", "8.0").WithLocation(5, 23),
+                // (5,23): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public static int F2 {get;} = 2;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7.0", "7.1").WithLocation(5, 23),
-                // (6,25): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7.3", "8.0").WithLocation(5, 23),
+                // (6,25): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     internal static int F3 {get;} = 3;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7.0", "7.1").WithLocation(6, 25),
-                // (6,25): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7.3", "8.0").WithLocation(6, 25),
+                // (6,25): error CS8503: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     internal static int F3 {get;} = 3;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7.0", "7.1").WithLocation(6, 25),
-                // (7,24): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7.3", "8.0").WithLocation(6, 25),
+                // (7,24): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private static int F4 {get;} = 4;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("static", "7.0", "7.1").WithLocation(7, 24),
-                // (7,24): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("static", "7.3", "8.0").WithLocation(7, 24),
+                // (7,24): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private static int F4 {get;} = 4;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7.0", "7.1").WithLocation(7, 24),
-                // (9,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7.3", "8.0").WithLocation(7, 24),
+                // (9,18): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public class TestHelper
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "TestHelper").WithArguments("default interface implementation", "7.1").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(9, 18)
                 );
 
             Validate1(compilation4.SourceModule);
@@ -30300,7 +30300,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             compilation1.VerifyDiagnostics();
 
             void Validate1(ModuleSymbol m)
@@ -30343,46 +30343,46 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation2, expectedOutput: "1122");
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation3, expectedOutput: "1122");
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
 
             compilation4.VerifyDiagnostics(
-                // (4,16): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                // (4,16): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     static int F1 {get; private set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7.0", "7.1").WithLocation(4, 16),
-                // (4,33): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7.3", "8.0").WithLocation(4, 16),
+                // (4,33): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     static int F1 {get; private set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("private", "7.0", "7.1").WithLocation(4, 33),
-                // (5,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("private", "7.3", "8.0").WithLocation(4, 33),
+                // (5,23): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public static int F2 {get; private set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7.0", "7.1").WithLocation(5, 23),
-                // (5,23): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7.3", "8.0").WithLocation(5, 23),
+                // (5,23): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public static int F2 {get; private set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7.0", "7.1").WithLocation(5, 23),
-                // (5,40): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7.3", "8.0").WithLocation(5, 23),
+                // (5,40): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public static int F2 {get; private set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("private", "7.0", "7.1").WithLocation(5, 40),
-                // (6,25): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("private", "7.3", "8.0").WithLocation(5, 40),
+                // (6,25): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     internal static int F3 {get; private set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7.0", "7.1").WithLocation(6, 25),
-                // (6,25): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7.3", "8.0").WithLocation(6, 25),
+                // (6,25): error CS8503: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     internal static int F3 {get; private set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7.0", "7.1").WithLocation(6, 25),
-                // (6,42): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7.3", "8.0").WithLocation(6, 25),
+                // (6,42): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     internal static int F3 {get; private set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("private", "7.0", "7.1").WithLocation(6, 42),
-                // (8,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("private", "7.3", "8.0").WithLocation(6, 42),
+                // (8,18): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public class TestHelper
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "TestHelper").WithArguments("default interface implementation", "7.1").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(8, 18)
                 );
 
             Validate1(compilation4.SourceModule);
@@ -30400,7 +30400,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyEmitDiagnostics(
                 // (4,33): error CS0065: 'I1.F1': event property must have both add and remove accessors
@@ -30462,7 +30462,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
 
@@ -30507,43 +30507,43 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation2, expectedOutput: "112244");
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation3, expectedOutput: "112244");
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
 
             compilation4.VerifyDiagnostics(
-                // (9,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (9,18): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public class TestHelper
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "TestHelper").WithArguments("default interface implementation", "7.1").WithLocation(9, 18),
-                // (4,32): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(9, 18),
+                // (4,32): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     static event System.Action F1;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7.0", "7.1").WithLocation(4, 32),
-                // (5,39): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7.3", "8.0").WithLocation(4, 32),
+                // (5,39): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public static event System.Action F2;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7.0", "7.1").WithLocation(5, 39),
-                // (5,39): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7.3", "8.0").WithLocation(5, 39),
+                // (5,39): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public static event System.Action F2;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7.0", "7.1").WithLocation(5, 39),
-                // (6,41): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7.3", "8.0").WithLocation(5, 39),
+                // (6,41): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     internal static event System.Action F3;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7.0", "7.1").WithLocation(6, 41),
-                // (6,41): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7.3", "8.0").WithLocation(6, 41),
+                // (6,41): error CS8503: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     internal static event System.Action F3;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7.0", "7.1").WithLocation(6, 41),
-                // (7,40): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7.3", "8.0").WithLocation(6, 41),
+                // (7,40): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private static event System.Action F4;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("static", "7.0", "7.1").WithLocation(7, 40),
-                // (7,40): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("static", "7.3", "8.0").WithLocation(7, 40),
+                // (7,40): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private static event System.Action F4;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7.0", "7.1").WithLocation(7, 40)
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7.3", "8.0").WithLocation(7, 40)
                 );
 
             Validate1(compilation4.SourceModule);
@@ -30582,7 +30582,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
 
@@ -30624,43 +30624,43 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation2, expectedOutput: "1234");
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation3, expectedOutput: "1234");
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
 
             compilation4.VerifyDiagnostics(
-                // (9,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (9,18): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public class TestHelper
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "TestHelper").WithArguments("default interface implementation", "7.1").WithLocation(9, 18),
-                // (4,32): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(9, 18),
+                // (4,32): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     static event System.Action F1 = () => System.Console.Write(1);
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7.0", "7.1").WithLocation(4, 32),
-                // (5,39): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7.3", "8.0").WithLocation(4, 32),
+                // (5,39): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public static event System.Action F2 = () => System.Console.Write(2);
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7.0", "7.1").WithLocation(5, 39),
-                // (5,39): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7.3", "8.0").WithLocation(5, 39),
+                // (5,39): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public static event System.Action F2 = () => System.Console.Write(2);
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7.0", "7.1").WithLocation(5, 39),
-                // (6,41): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7.3", "8.0").WithLocation(5, 39),
+                // (6,41): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     internal static event System.Action F3 = () => System.Console.Write(3);
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7.0", "7.1").WithLocation(6, 41),
-                // (6,41): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7.3", "8.0").WithLocation(6, 41),
+                // (6,41): error CS8503: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     internal static event System.Action F3 = () => System.Console.Write(3);
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7.0", "7.1").WithLocation(6, 41),
-                // (7,40): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7.3", "8.0").WithLocation(6, 41),
+                // (7,40): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private static event System.Action F4 = () => System.Console.Write(4);
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("static", "7.0", "7.1").WithLocation(7, 40),
-                // (7,40): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("static", "7.3", "8.0").WithLocation(7, 40),
+                // (7,40): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private static event System.Action F4 = () => System.Console.Write(4);
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7.0", "7.1").WithLocation(7, 40)
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7.3", "8.0").WithLocation(7, 40)
                 );
 
             Validate1(compilation4.SourceModule);
@@ -30713,12 +30713,12 @@ public class Test1 : I1
 }
 ";
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation0.VerifyDiagnostics();
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                 parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -30772,7 +30772,7 @@ class Test4
                                          (comp0:compilation0.EmitToImageReference(), comp1:compilation1.EmitToImageReference()) })
             {
                 var compilation2 = CreateCompilation(source2, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                     parseOptions: TestOptions.Regular);
                 compilation2 = compilation2.AddReferences(refs.comp0);
 
                 CompileAndVerify(compilation2, expectedOutput:
@@ -30787,7 +30787,7 @@ M3
 ");
 
                 var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
+                                                     parseOptions: TestOptions.Regular,
                                                      targetFramework: TargetFramework.NetStandardLatest);
                 compilation3 = compilation3.AddReferences(refs.comp1);
 
@@ -30802,7 +30802,7 @@ M30
 ");
 
                 var compilation4 = CreateCompilation(source4, options: TestOptions.DebugExe, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                     parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                     parseOptions: TestOptions.Regular);
                 compilation4 = compilation4.AddReferences(refs.comp1);
                 Assert.False(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation4.VerifyDiagnostics(
@@ -30842,7 +30842,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation1, expectedOutput: "I1.Main");
         }
 
@@ -30867,7 +30867,7 @@ public interface I2
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMainTypeName("I2"),
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation1, expectedOutput: "I2.Main");
         }
 
@@ -31073,7 +31073,7 @@ true
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, expectedOutput: expectedOutput);
@@ -31082,162 +31082,162 @@ true
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
 
             var compilation6 = CreateCompilation(source1 + source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
 
             compilation6.VerifyDiagnostics(
-                // (4,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (4,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static I1 operator +(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "+").WithArguments("default interface implementation", "7.1").WithLocation(4, 31),
-                // (10,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "+").WithArguments("default interface implementation", "8.0").WithLocation(4, 31),
+                // (10,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static I1 operator -(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "-").WithArguments("default interface implementation", "7.1").WithLocation(10, 31),
-                // (16,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "-").WithArguments("default interface implementation", "8.0").WithLocation(10, 31),
+                // (16,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static I1 operator !(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "!").WithArguments("default interface implementation", "7.1").WithLocation(16, 31),
-                // (22,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "!").WithArguments("default interface implementation", "8.0").WithLocation(16, 31),
+                // (22,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static I1 operator ~(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "~").WithArguments("default interface implementation", "7.1").WithLocation(22, 31),
-                // (28,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "~").WithArguments("default interface implementation", "8.0").WithLocation(22, 31),
+                // (28,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static I1 operator ++(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "++").WithArguments("default interface implementation", "7.1").WithLocation(28, 31),
-                // (34,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "++").WithArguments("default interface implementation", "8.0").WithLocation(28, 31),
+                // (34,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static I1 operator --(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "--").WithArguments("default interface implementation", "7.1").WithLocation(34, 31),
-                // (40,33): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "--").WithArguments("default interface implementation", "8.0").WithLocation(34, 31),
+                // (40,33): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static bool operator true(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "true").WithArguments("default interface implementation", "7.1").WithLocation(40, 33),
-                // (46,33): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "true").WithArguments("default interface implementation", "8.0").WithLocation(40, 33),
+                // (46,33): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static bool operator false(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "false").WithArguments("default interface implementation", "7.1").WithLocation(46, 33),
-                // (52,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "false").WithArguments("default interface implementation", "8.0").WithLocation(46, 33),
+                // (52,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static I1 operator +(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "+").WithArguments("default interface implementation", "7.1").WithLocation(52, 31),
-                // (58,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "+").WithArguments("default interface implementation", "8.0").WithLocation(52, 31),
+                // (58,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static I1 operator -(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "-").WithArguments("default interface implementation", "7.1").WithLocation(58, 31),
-                // (64,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "-").WithArguments("default interface implementation", "8.0").WithLocation(58, 31),
+                // (64,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static I1 operator *(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "*").WithArguments("default interface implementation", "7.1").WithLocation(64, 31),
-                // (70,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "*").WithArguments("default interface implementation", "8.0").WithLocation(64, 31),
+                // (70,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static I1 operator /(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "/").WithArguments("default interface implementation", "7.1").WithLocation(70, 31),
-                // (76,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "/").WithArguments("default interface implementation", "8.0").WithLocation(70, 31),
+                // (76,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static I1 operator %(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "%").WithArguments("default interface implementation", "7.1").WithLocation(76, 31),
-                // (82,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "%").WithArguments("default interface implementation", "8.0").WithLocation(76, 31),
+                // (82,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static I1 operator &(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "&").WithArguments("default interface implementation", "7.1").WithLocation(82, 31),
-                // (88,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "&").WithArguments("default interface implementation", "8.0").WithLocation(82, 31),
+                // (88,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static I1 operator |(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "|").WithArguments("default interface implementation", "7.1").WithLocation(88, 31),
-                // (94,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "|").WithArguments("default interface implementation", "8.0").WithLocation(88, 31),
+                // (94,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static I1 operator ^(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "^").WithArguments("default interface implementation", "7.1").WithLocation(94, 31),
-                // (100,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "^").WithArguments("default interface implementation", "8.0").WithLocation(94, 31),
+                // (100,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static I1 operator <<(I1 x, int y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "<<").WithArguments("default interface implementation", "7.1").WithLocation(100, 31),
-                // (106,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "<<").WithArguments("default interface implementation", "8.0").WithLocation(100, 31),
+                // (106,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static I1 operator >>(I1 x, int y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, ">>").WithArguments("default interface implementation", "7.1").WithLocation(106, 31),
-                // (112,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, ">>").WithArguments("default interface implementation", "8.0").WithLocation(106, 31),
+                // (112,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static I1 operator >(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, ">").WithArguments("default interface implementation", "7.1").WithLocation(112, 31),
-                // (118,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, ">").WithArguments("default interface implementation", "8.0").WithLocation(112, 31),
+                // (118,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static I1 operator <(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "<").WithArguments("default interface implementation", "7.1").WithLocation(118, 31),
-                // (124,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "<").WithArguments("default interface implementation", "8.0").WithLocation(118, 31),
+                // (124,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static I1 operator >=(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, ">=").WithArguments("default interface implementation", "7.1").WithLocation(124, 31),
-                // (130,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, ">=").WithArguments("default interface implementation", "8.0").WithLocation(124, 31),
+                // (130,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public static I1 operator <=(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "<=").WithArguments("default interface implementation", "7.1").WithLocation(130, 31)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "<=").WithArguments("default interface implementation", "8.0").WithLocation(130, 31)
                 );
 
             var compilation7 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
 
             var expected7 = new DiagnosticDescription[]
             {
-                // (9,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (9,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         x = +x;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "+x").WithArguments("default interface implementation", "7.1").WithLocation(9, 13),
-                // (10,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "+x").WithArguments("default interface implementation", "8.0").WithLocation(9, 13),
+                // (10,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         x = -x;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "-x").WithArguments("default interface implementation", "7.1").WithLocation(10, 13),
-                // (11,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "-x").WithArguments("default interface implementation", "8.0").WithLocation(10, 13),
+                // (11,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         x = !x;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "!x").WithArguments("default interface implementation", "7.1").WithLocation(11, 13),
-                // (12,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "!x").WithArguments("default interface implementation", "8.0").WithLocation(11, 13),
+                // (12,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         x = ~x;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "~x").WithArguments("default interface implementation", "7.1").WithLocation(12, 13),
-                // (13,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "~x").WithArguments("default interface implementation", "8.0").WithLocation(12, 13),
+                // (13,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         x = ++x;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "++x").WithArguments("default interface implementation", "7.1").WithLocation(13, 13),
-                // (14,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "++x").WithArguments("default interface implementation", "8.0").WithLocation(13, 13),
+                // (14,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         x = x--;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x--").WithArguments("default interface implementation", "7.1").WithLocation(14, 13),
-                // (16,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x--").WithArguments("default interface implementation", "8.0").WithLocation(14, 13),
+                // (16,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         x = x + y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x + y").WithArguments("default interface implementation", "7.1").WithLocation(16, 13),
-                // (17,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x + y").WithArguments("default interface implementation", "8.0").WithLocation(16, 13),
+                // (17,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         x = x - y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x - y").WithArguments("default interface implementation", "7.1").WithLocation(17, 13),
-                // (18,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x - y").WithArguments("default interface implementation", "8.0").WithLocation(17, 13),
+                // (18,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         x = x * y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x * y").WithArguments("default interface implementation", "7.1").WithLocation(18, 13),
-                // (19,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x * y").WithArguments("default interface implementation", "8.0").WithLocation(18, 13),
+                // (19,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         x = x / y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x / y").WithArguments("default interface implementation", "7.1").WithLocation(19, 13),
-                // (20,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x / y").WithArguments("default interface implementation", "8.0").WithLocation(19, 13),
+                // (20,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         x = x % y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x % y").WithArguments("default interface implementation", "7.1").WithLocation(20, 13),
-                // (21,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x % y").WithArguments("default interface implementation", "8.0").WithLocation(20, 13),
+                // (21,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         if (x && y) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x && y").WithArguments("default interface implementation", "7.1").WithLocation(21, 13),
-                // (21,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x && y").WithArguments("default interface implementation", "8.0").WithLocation(21, 13),
+                // (21,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         if (x && y) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x && y").WithArguments("default interface implementation", "7.1").WithLocation(21, 13),
-                // (22,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x && y").WithArguments("default interface implementation", "8.0").WithLocation(21, 13),
+                // (22,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         x = x | y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x | y").WithArguments("default interface implementation", "7.1").WithLocation(22, 13),
-                // (23,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x | y").WithArguments("default interface implementation", "8.0").WithLocation(22, 13),
+                // (23,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         x = x ^ y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x ^ y").WithArguments("default interface implementation", "7.1").WithLocation(23, 13),
-                // (24,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x ^ y").WithArguments("default interface implementation", "8.0").WithLocation(23, 13),
+                // (24,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         x = x << 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x << 1").WithArguments("default interface implementation", "7.1").WithLocation(24, 13),
-                // (25,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x << 1").WithArguments("default interface implementation", "8.0").WithLocation(24, 13),
+                // (25,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         x = x >> 2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x >> 2").WithArguments("default interface implementation", "7.1").WithLocation(25, 13),
-                // (26,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x >> 2").WithArguments("default interface implementation", "8.0").WithLocation(25, 13),
+                // (26,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         x = x > y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x > y").WithArguments("default interface implementation", "7.1").WithLocation(26, 13),
-                // (27,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x > y").WithArguments("default interface implementation", "8.0").WithLocation(26, 13),
+                // (27,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         x = x < y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x < y").WithArguments("default interface implementation", "7.1").WithLocation(27, 13),
-                // (28,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x < y").WithArguments("default interface implementation", "8.0").WithLocation(27, 13),
+                // (28,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         x = x >= y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x >= y").WithArguments("default interface implementation", "7.1").WithLocation(28, 13),
-                // (29,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x >= y").WithArguments("default interface implementation", "8.0").WithLocation(28, 13),
+                // (29,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         x = x <= y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x <= y").WithArguments("default interface implementation", "7.1").WithLocation(29, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x <= y").WithArguments("default interface implementation", "8.0").WithLocation(29, 13)
             };
             compilation7.VerifyDiagnostics(expected7);
 
             var compilation8 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
 
             compilation8.VerifyDiagnostics(expected7);
 
@@ -31256,21 +31256,21 @@ class Test3 : I1
 ";
 
             var compilation9 = CreateCompilation(source3, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
 
             var expected9 = new DiagnosticDescription[]
             {
-                // (8,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // (8,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         if (x) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x").WithArguments("default interface implementation", "7.1").WithLocation(8, 13),
-                // (9,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x").WithArguments("default interface implementation", "8.0").WithLocation(8, 13),
+                // (9,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         x = x & y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x & y").WithArguments("default interface implementation", "7.1").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x & y").WithArguments("default interface implementation", "8.0").WithLocation(9, 13)
             };
             compilation9.VerifyDiagnostics(expected9);
 
             var compilation10 = CreateCompilation(source3, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                  parseOptions: TestOptions.Regular7_3);
 
             compilation10.VerifyDiagnostics(expected9);
         }
@@ -31343,7 +31343,7 @@ C1.-
             CompileAndVerify(compilation1, expectedOutput: expectedOutput);
 
             var compilation2 = CreateCompilation(source1 + source3, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
@@ -31386,7 +31386,7 @@ class Test2 : I1
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             compilation1.VerifyDiagnostics(
                 // (4,31): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
                 //     public static I1 operator ==(I1 x, I1 y)
@@ -31405,7 +31405,7 @@ class Test2 : I1
             CompilationReference compilationReference = compilation1.ToMetadataReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             compilation2.VerifyDiagnostics(
                 // (9,13): error CS0029: Cannot implicitly convert type 'bool' to 'I1'
                 //         x = x == y;
@@ -31518,7 +31518,7 @@ public interface I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
             compilation1.VerifyDiagnostics(
                 // (4,37): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
                 //     public static implicit operator int(I1 x)
@@ -31578,7 +31578,7 @@ class Test2 : I2
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, expectedOutput: expectedOutput);
@@ -31587,13 +31587,13 @@ class Test2 : I2
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
@@ -31612,7 +31612,7 @@ class Test2 : I2
 ";
 
             var compilation9 = CreateCompilation(source3, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
 
             var expected9 = new DiagnosticDescription[]
             {
@@ -31623,7 +31623,7 @@ class Test2 : I2
             compilation9.VerifyDiagnostics(expected9);
 
             var compilation10 = CreateCompilation(source3, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                  parseOptions: TestOptions.Regular7_3);
 
             compilation10.VerifyDiagnostics(expected9);
         }
@@ -31670,7 +31670,7 @@ I2.-
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, expectedOutput: expectedOutput);
@@ -31679,13 +31679,13 @@ I2.-
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
@@ -31746,7 +31746,7 @@ I4.-
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, expectedOutput: expectedOutput);
@@ -31755,13 +31755,13 @@ I4.-
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
@@ -31819,14 +31819,14 @@ class Test2 : I2
             };
 
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(expected);
 
             CompilationReference compilationReference = compilation1.ToMetadataReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics(expected);
         }
@@ -31876,7 +31876,7 @@ Test2.-
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, expectedOutput: expectedOutput);
@@ -31885,13 +31885,13 @@ Test2.-
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
@@ -31957,7 +31957,7 @@ I4.-
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, expectedOutput: expectedOutput);
@@ -31966,13 +31966,13 @@ I4.-
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
@@ -32032,7 +32032,7 @@ class Test2 : I3
             };
 
             var compilation0 = CreateCompilation(source0 + source1 + source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation0.VerifyDiagnostics();
 
@@ -32040,12 +32040,12 @@ class Test2 : I3
             MetadataReference metadataReference0 = compilation0.EmitToImageReference();
 
             var compilation1 = CreateCompilation(source3, new[] { compilationReference0 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(expected);
 
             var compilation2 = CreateCompilation(source3, new[] { metadataReference0 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics(expected);
 
@@ -32064,7 +32064,7 @@ public interface I2
 { }
 ";
             var compilation3 = CreateCompilation(source4 + source1 + source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
 
@@ -32072,12 +32072,12 @@ public interface I2
             MetadataReference metadataReference3 = compilation3.EmitToImageReference();
 
             var compilation4 = CreateCompilation(source3, new[] { compilationReference3 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation4.VerifyDiagnostics(expected);
 
             var compilation5 = CreateCompilation(source3, new[] { metadataReference3 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation5.VerifyDiagnostics(expected);
 
@@ -32093,7 +32093,7 @@ public interface I3 :  I1, I2
 }
 ";
             var compilation6 = CreateCompilation(source4 + source1 + source5, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation6.VerifyDiagnostics();
 
@@ -32101,12 +32101,12 @@ public interface I3 :  I1, I2
             MetadataReference metadataReference6 = compilation6.EmitToImageReference();
 
             var compilation7 = CreateCompilation(source3, new[] { compilationReference6 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation7.VerifyDiagnostics(expected);
 
             var compilation8 = CreateCompilation(source3, new[] { metadataReference6 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation8.VerifyDiagnostics(expected);
         }
@@ -32165,7 +32165,7 @@ class Test2 : I3
             };
 
             var compilation0 = CreateCompilation(source0 + source1 + source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation0.VerifyDiagnostics();
 
@@ -32173,12 +32173,12 @@ class Test2 : I3
             MetadataReference metadataReference0 = compilation0.EmitToImageReference();
 
             var compilation1 = CreateCompilation(source3, new[] { compilationReference0 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(expected);
 
             var compilation2 = CreateCompilation(source3, new[] { metadataReference0 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics(expected);
 
@@ -32197,7 +32197,7 @@ public interface I2
 { }
 ";
             var compilation3 = CreateCompilation(source4 + source1 + source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
 
@@ -32205,12 +32205,12 @@ public interface I2
             MetadataReference metadataReference3 = compilation3.EmitToImageReference();
 
             var compilation4 = CreateCompilation(source3, new[] { compilationReference3 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation4.VerifyDiagnostics(expected);
 
             var compilation5 = CreateCompilation(source3, new[] { metadataReference3 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation5.VerifyDiagnostics(expected);
 
@@ -32226,7 +32226,7 @@ public interface I3 :  I1, I2
 }
 ";
             var compilation6 = CreateCompilation(source4 + source1 + source5, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation6.VerifyDiagnostics();
 
@@ -32234,12 +32234,12 @@ public interface I3 :  I1, I2
             MetadataReference metadataReference6 = compilation6.EmitToImageReference();
 
             var compilation7 = CreateCompilation(source3, new[] { compilationReference6 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation7.VerifyDiagnostics(expected);
 
             var compilation8 = CreateCompilation(source3, new[] { metadataReference6 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation8.VerifyDiagnostics(expected);
         }
@@ -32293,7 +32293,7 @@ class Test2: I1, I2
             };
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
 
@@ -32301,12 +32301,12 @@ class Test2: I1, I2
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics(expected);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics(expected);
         }
@@ -32360,7 +32360,7 @@ class Test2 : I2
             };
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
 
@@ -32368,12 +32368,12 @@ class Test2 : I2
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics(expected);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics(expected);
         }
@@ -32435,7 +32435,7 @@ I2.+2
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, expectedOutput: expectedOutput);
@@ -32444,13 +32444,13 @@ I2.+2
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
@@ -32492,7 +32492,7 @@ I1.+
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, expectedOutput: expectedOutput);
@@ -32501,13 +32501,13 @@ I1.+
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
@@ -32559,7 +32559,7 @@ I1.+2
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, expectedOutput: expectedOutput);
@@ -32568,13 +32568,13 @@ I1.+2
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
@@ -32594,7 +32594,7 @@ class Test2 : I2
 ";
 
             var compilation9 = CreateCompilation(source3, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                 parseOptions: TestOptions.Regular7_3);
 
             var expected9 = new DiagnosticDescription[]
             {
@@ -32608,7 +32608,7 @@ class Test2 : I2
             compilation9.VerifyDiagnostics(expected9);
 
             var compilation10 = CreateCompilation(source3, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                  parseOptions: TestOptions.Regular7_3);
 
             compilation10.VerifyDiagnostics(expected9);
         }
@@ -32656,7 +32656,7 @@ I1.+
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, expectedOutput: expectedOutput);
@@ -32665,13 +32665,13 @@ I1.+
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
@@ -32726,7 +32726,7 @@ I1.+
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, expectedOutput: expectedOutput);
@@ -32735,13 +32735,13 @@ I1.+
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
@@ -32790,7 +32790,7 @@ I2.-
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, expectedOutput: expectedOutput);
@@ -32799,13 +32799,13 @@ I2.-
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
@@ -32869,7 +32869,7 @@ I2.-
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, expectedOutput: expectedOutput);
@@ -32878,13 +32878,13 @@ I2.-
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
@@ -32941,7 +32941,7 @@ I2.-
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, expectedOutput: expectedOutput);
@@ -32950,13 +32950,13 @@ I2.-
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
@@ -33014,7 +33014,7 @@ class Test2 : I3
             };
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
 
@@ -33022,12 +33022,12 @@ class Test2 : I3
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics(expected);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics(expected);
         }
@@ -33084,7 +33084,7 @@ class Test2 : I3
             };
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
 
@@ -33092,12 +33092,12 @@ class Test2 : I3
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics(expected);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics(expected);
         }
@@ -33154,14 +33154,14 @@ class Test2 : I2
             };
 
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(expected);
 
             CompilationReference compilationReference = compilation1.ToMetadataReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics(expected);
         }
@@ -33246,7 +33246,7 @@ I3.-2
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, expectedOutput: expectedOutput);
@@ -33255,13 +33255,13 @@ I3.-2
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
@@ -33312,7 +33312,7 @@ Test2.-
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, expectedOutput: expectedOutput);
@@ -33321,13 +33321,13 @@ Test2.-
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
@@ -33419,7 +33419,7 @@ I3.-1
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, expectedOutput: expectedOutput);
@@ -33428,13 +33428,13 @@ I3.-1
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
@@ -33473,7 +33473,7 @@ public interface I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(
                 // (4,31): error CS0562: The parameter of a unary operator must be the containing type
@@ -33574,7 +33574,7 @@ public interface I4
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics(
                 // (4,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
@@ -33653,7 +33653,7 @@ I2.-
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, expectedOutput: expectedOutput);
@@ -33662,13 +33662,13 @@ I2.-
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, expectedOutput: expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                                                 parseOptions: TestOptions.Regular);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);

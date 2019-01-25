@@ -416,9 +416,9 @@ struct Struct
                 // (3,27): error CS8107: Feature 'private protected' is not available in C# 7.0. Please use language version 7.2 or greater.
                 //     private protected int M();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M").WithArguments("private protected", "7.2").WithLocation(3, 27),
-                // (3,27): error CS8503: The modifier 'private protected' is not valid for this item in C# 7.0. Please use language version 7.1 or greater.
+                // (3,27): error CS8503: The modifier 'private protected' is not valid for this item in C# 7.0. Please use language version 8.0 or greater.
                 //     private protected int M();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M").WithArguments("private protected", "7.0", "7.1").WithLocation(3, 27)
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M").WithArguments("private protected", "7.0", "8.0").WithLocation(3, 27)
                 );
         }
 
