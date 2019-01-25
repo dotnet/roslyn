@@ -3445,9 +3445,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             (BoundExpression operand, Conversion conversion) = RemoveConversion(node, includeExplicitConversions: true);
             TypeSymbolWithAnnotations operandType = VisitRvalueWithResult(operand);
 
-            if (node.ConversionKind == ConversionKind.ExplicitNullable)
+            switch (node.ConversionKind)
             {
-                TrackNullableStateIfNullableConversion(node);
+                case ConversionKind.ImplicitNullable:
+                case ConversionKind.ExplicitNullable:
+                    TrackNullableStateIfNullableConversion(node);
+                    break;
             }
 
             _resultType = ApplyConversion(
@@ -3619,7 +3622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var convertedType = node.Type;
             if (AreNullableAndUnderlyingTypes(convertedType, operandType, out TypeSymbolWithAnnotations underlyingType))
             {
-                // Implicit conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
+                // Conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
                 int valueSlot = MakeSlot(operand);
                 if (valueSlot > 0)
                 {

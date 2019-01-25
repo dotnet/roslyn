@@ -40593,34 +40593,48 @@ class Program
     {
         S x = new S();
         S y = new S() { F = 1 };
-        (S?, S) t = (x, y);
-        (S? a, S? b) u = t;
-        S t1 = t.Item1.Value;
-        S t2 = t.Item2;
-        t1.F.ToString(); // 1
-        t2.F.ToString();
-        S u1 = u.a.Value;
-        S u2 = u.b.Value;
-        u1.F.ToString(); // 2
-        u2.F.ToString();
+        (S, S) t = (x, y);
+        (S? x, S? y) u = t;
+        (S?, S?) v = (x, y);
+        t.Item1.F.ToString(); // 1
+        t.Item2.F.ToString();
+        u.x.Value.F.ToString(); // 2
+        u.y.Value.F.ToString();
+        v.Item1.Value.F.ToString(); // 3
+        v.Item2.Value.F.ToString();
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/32599: Support implicit tuple conversions
-            // (should report warnings for // 1, 2 only).
+            // (should report warnings for // 1, 2, 3 only).
             comp.VerifyDiagnostics(
-                // (13,16): warning CS8629: Nullable value type may be null.
-                //         S t1 = t.Item1.Value;
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t.Item1.Value").WithLocation(13, 16),
+                // (14,9): warning CS8602: Possible dereference of a null reference.
+                //         t.Item1.F.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item1.F").WithLocation(14, 9),
+                // (16,9): warning CS8629: Nullable value type may be null.
+                //         u.x.Value.F.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "u.x.Value").WithLocation(16, 9),
                 // (16,9): warning CS8602: Possible dereference of a null reference.
-                //         t2.F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t2.F").WithLocation(16, 9),
-                // (17,16): warning CS8629: Nullable value type may be null.
-                //         S u1 = u.a.Value;
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "u.a.Value").WithLocation(17, 16),
-                // (18,16): warning CS8629: Nullable value type may be null.
-                //         S u2 = u.b.Value;
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "u.b.Value").WithLocation(18, 16));
+                //         u.x.Value.F.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u.x.Value.F").WithLocation(16, 9),
+                // (17,9): warning CS8629: Nullable value type may be null.
+                //         u.y.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "u.y.Value").WithLocation(17, 9),
+                // (17,9): warning CS8602: Possible dereference of a null reference.
+                //         u.y.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u.y.Value.F").WithLocation(17, 9),
+                // (18,9): warning CS8629: Nullable value type may be null.
+                //         v.Item1.Value.F.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "v.Item1.Value").WithLocation(18, 9),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         v.Item1.Value.F.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "v.Item1.Value.F").WithLocation(18, 9),
+                // (19,9): warning CS8629: Nullable value type may be null.
+                //         v.Item2.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "v.Item2.Value").WithLocation(19, 9),
+                // (19,9): warning CS8602: Possible dereference of a null reference.
+                //         v.Item2.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "v.Item2.Value.F").WithLocation(19, 9));
         }
 
         [Fact]
