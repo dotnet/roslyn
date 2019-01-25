@@ -193,20 +193,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     CancellationToken.None);
 
                 await fixer.RegisterCodeFixesAsync(context);
-                if (fixes.Count > 0)
-                {
-                    break;
-                }
             }
 
             var actions = fixes.SelectAsArray(f => f.Action);
-            if (actions.Length == 1)
-            {
-                if (actions[0] is TopLevelSuppressionCodeAction suppressionAction)
-                {
-                    actions = suppressionAction.NestedCodeActions;
-                }
-            }
+
+            actions = actions.SelectMany(a => a is TopLevelSuppressionCodeAction
+                ? a.NestedCodeActions
+                : ImmutableArray.Create(a)).ToImmutableArray();
 
             actions = MassageActions(actions);
 
