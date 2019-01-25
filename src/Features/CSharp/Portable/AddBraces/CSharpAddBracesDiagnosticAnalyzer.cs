@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             var cancellationToken = context.CancellationToken;
 
             var optionSet = context.Options.GetDocumentOptionSetAsync(statement.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
-
             if (optionSet == null)
             {
                 return;
