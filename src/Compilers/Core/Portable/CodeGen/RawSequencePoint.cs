@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// Represents a sequence point before translation by #line/ExternalSource directives.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal struct RawSequencePoint
+    internal readonly struct RawSequencePoint
     {
         internal readonly SyntaxTree SyntaxTree;
         internal readonly int ILMarker;

@@ -758,7 +758,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 {
                     var sequencePoints = symMethod.GetSequencePoints();
                     ilOffset = atLineNumber < 0
-                        ? sequencePoints.Where(sp => sp.StartLine != SequencePointList.HiddenSequencePointLine).Select(sp => sp.Offset).FirstOrDefault()
+                        ? sequencePoints.Where(sp => sp.StartLine != Cci.SequencePoint.HiddenLine).Select(sp => sp.Offset).FirstOrDefault()
                         : sequencePoints.First(sp => sp.StartLine == atLineNumber).Offset;
                 }
             }
