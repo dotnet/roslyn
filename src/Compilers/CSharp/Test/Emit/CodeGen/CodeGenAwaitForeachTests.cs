@@ -1218,7 +1218,6 @@ public class C
         await foreach (var i in new C())
         {
         }
-        _ = (new C()).GetAsyncEnumerator();
     }
     public sealed class Enumerator
     {
@@ -1235,6 +1234,46 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public definition for 'GetAsyncEnumerator'
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
+                );
+        }
+
+        [Fact]
+        public void TestGetAsyncEnumeratorPatternViaAmbiguousExtensions()
+        {
+            string source = @"
+public class C
+{
+    async System.Threading.Tasks.Task M()
+    {
+        await foreach (var i in new C())
+        {
+        }
+    }
+    public sealed class Enumerator
+    {
+    }
+}
+public static class Extensions1
+{
+    public static C.Enumerator GetAsyncEnumerator(this C c)
+    {
+        throw null;
+    }
+}
+public static class Extensions2
+{
+    public static C.Enumerator GetAsyncEnumerator(this C c)
+    {
+        throw null;
+    }
+}";
+
+            // Pattern-based lookup does not bind extension methods at the moment
+            var comp = CreateCompilationWithMscorlib46(source);
+            comp.VerifyDiagnostics(
+                // (6,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance definition for 'GetAsyncEnumerator'
                 //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
@@ -4403,10 +4442,10 @@ class C
     }
     public sealed class Enumerator
     {
-        public async System.Threading.Tasks.Task<bool> MoveNextAsync()
+        public async Task<bool> MoveNextAsync()
         {
             System.Console.Write(""MoveNextAsync"");
-            await System.Threading.Tasks.Task.Yield();
+            await Task.Yield();
             return false;
         }
         public int Current
@@ -4441,20 +4480,20 @@ class C
     }
     public sealed class Enumerator
     {
-        public async System.Threading.Tasks.Task<bool> MoveNextAsync()
+        public async Task<bool> MoveNextAsync()
         {
             System.Console.Write(""MoveNextAsync "");
-            await System.Threading.Tasks.Task.Yield();
+            await Task.Yield();
             return false;
         }
         public int Current
         {
             get => throw null;
         }
-        public async System.Threading.Tasks.ValueTask DisposeAsync()
+        public async Task DisposeAsync()
         {
             System.Console.Write(""DisposeAsync "");
-            await System.Threading.Tasks.Task.Yield();
+            await Task.Yield();
         }
     }
 }";
@@ -4484,22 +4523,22 @@ class C
     }
     public sealed class Enumerator
     {
-        public async System.Threading.Tasks.Task<bool> MoveNextAsync()
+        public async Task<bool> MoveNextAsync()
         {
             System.Console.Write(""MoveNextAsync "");
-            await System.Threading.Tasks.Task.Yield();
+            await Task.Yield();
             return false;
         }
         public int Current
         {
             get => throw null;
         }
-        public async System.Threading.Tasks.ValueTask DisposeAsync(int i = 0)
+        public async Task DisposeAsync(int i = 0)
         {
             System.Console.Write(""DisposeAsync "");
-            await System.Threading.Tasks.Task.Yield();
+            await Task.Yield();
         }
-        public System.Threading.Tasks.ValueTask DisposeAsync(params string[] s)
+        public Task DisposeAsync(params string[] s)
             => throw null;
     }
 }";
@@ -4529,10 +4568,10 @@ public class C
     }
     public sealed class Enumerator
     {
-        public async System.Threading.Tasks.Task<bool> MoveNextAsync()
+        public async Task<bool> MoveNextAsync()
         {
             System.Console.Write(""MoveNextAsync "");
-            await System.Threading.Tasks.Task.Yield();
+            await Task.Yield();
             return false;
         }
         public int Current
@@ -4543,7 +4582,7 @@ public class C
 }
 public static class Extension
 {
-    public static System.Threading.Tasks.ValueTask DisposeAsync(this C.Enumerator e) => throw null;
+    public static ValueTask DisposeAsync(this C.Enumerator e) => throw null;
 }";
             // extension methods do not contribute to pattern-based disposal
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
@@ -4572,10 +4611,10 @@ public class C
     }
     public sealed class Enumerator
     {
-        public async System.Threading.Tasks.Task<bool> MoveNextAsync()
+        public async Task<bool> MoveNextAsync()
         {
             System.Console.Write(""MoveNextAsync "");
-            await System.Threading.Tasks.Task.Yield();
+            await Task.Yield();
             return false;
         }
         public int Current
@@ -4586,11 +4625,11 @@ public class C
 }
 public static class Extension1
 {
-    public static System.Threading.Tasks.ValueTask DisposeAsync(this C c) => throw null;
+    public static ValueTask DisposeAsync(this C.Enumerator c) => throw null;
 }
 public static class Extension2
 {
-    public static System.Threading.Tasks.ValueTask DisposeAsync(this C c) => throw null;
+    public static ValueTask DisposeAsync(this C.Enumerator c) => throw null;
 }
 ";
             // extension methods do not contribute to pattern-based disposal
@@ -4620,22 +4659,22 @@ class C
     }
     public sealed class Enumerator : System.IAsyncDisposable
     {
-        public async System.Threading.Tasks.Task<bool> MoveNextAsync()
+        public async Task<bool> MoveNextAsync()
         {
             System.Console.Write(""MoveNextAsync "");
-            await System.Threading.Tasks.Task.Yield();
+            await Task.Yield();
             return false;
         }
         public int Current
         {
             get => throw null;
         }
-        async System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()
+        async ValueTask System.IAsyncDisposable.DisposeAsync()
         {
             System.Console.Write(""DisposeAsync "");
-            await System.Threading.Tasks.Task.Yield();
+            await Task.Yield();
         }
-        public System.Threading.Tasks.ValueTask DisposeAsync() => throw null;
+        public ValueTask DisposeAsync() => throw null;
     }
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
@@ -4661,7 +4700,7 @@ class C
         => throw null;
     public sealed class Enumerator
     {
-        public System.Threading.Tasks.Task<bool> MoveNextAsync()
+        public Task<bool> MoveNextAsync()
             => throw null;
         public int Current
         {
@@ -4699,9 +4738,9 @@ class C
     }
     public sealed class Enumerator
     {
-        public async System.Threading.Tasks.Task<bool> MoveNextAsync()
+        public async Task<bool> MoveNextAsync()
         {
-            await System.Threading.Tasks.Task.Yield();
+            await Task.Yield();
             return false;
         }
         public int Current
@@ -4743,10 +4782,10 @@ class C
     }
     public sealed class Enumerator
     {
-        public async System.Threading.Tasks.Task<bool> MoveNextAsync()
+        public async Task<bool> MoveNextAsync()
         {
             System.Console.Write(""MoveNextAsync "");
-            await System.Threading.Tasks.Task.Yield();
+            await Task.Yield();
             return false;
         }
         public int Current
@@ -4798,20 +4837,20 @@ class C
     }
     public sealed class Enumerator
     {
-        public async System.Threading.Tasks.Task<bool> MoveNextAsync()
+        public async Task<bool> MoveNextAsync()
         {
             System.Console.Write(""MoveNextAsync "");
-            await System.Threading.Tasks.Task.Yield();
+            await Task.Yield();
             return false;
         }
         public int Current
         {
             get => throw null;
         }
-        public async System.Threading.Tasks.Task DisposeAsync()
+        public async Task DisposeAsync()
         {
             System.Console.Write(""DisposeAsync "");
-            await System.Threading.Tasks.Task.Yield();
+            await Task.Yield();
         }
     }
 }
@@ -4842,20 +4881,20 @@ class C
     }
     public sealed class Enumerator
     {
-        public async System.Threading.Tasks.Task<bool> MoveNextAsync()
+        public async Task<bool> MoveNextAsync()
         {
             System.Console.Write(""MoveNextAsync "");
-            await System.Threading.Tasks.Task.Yield();
+            await Task.Yield();
             return false;
         }
         public int Current
         {
             get => throw null;
         }
-        public async System.Threading.Tasks.Task<int> DisposeAsync()
+        public async Task<int> DisposeAsync()
         {
             System.Console.Write(""DisposeAsync "");
-            await System.Threading.Tasks.Task.Yield();
+            await Task.Yield();
             return 1;
         }
     }

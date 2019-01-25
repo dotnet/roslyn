@@ -2088,37 +2088,6 @@ public struct C
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
-        public void TestPatternBasedDisposal_ReturnsTaskOfBool()
-        {
-            string source = @"
-public struct C
-{
-    public static async System.Threading.Tasks.Task<int> Main()
-    {
-        {
-            await using var x = new C();
-            System.Console.Write(""using "");
-        }
-        System.Console.Write(""return"");
-        return 1;
-    }
-    public async System.Threading.Tasks.Task<bool> DisposeAsync()
-    {
-        System.Console.Write($""dispose_start "");
-        await System.Threading.Tasks.Task.Yield();
-        System.Console.Write($""dispose_end "");
-        return true;
-    }
-}
-";
-            // it's okay to await `Task<bool>` even if we don't care about the result
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
-        }
-
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_ReturnsTaskOfInt()
         {
             string source = @"
