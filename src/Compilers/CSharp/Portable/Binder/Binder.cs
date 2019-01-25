@@ -202,7 +202,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// True if this is the top-level binder for a local function or lambda.
+        /// True if this is the top-level binder for a local function or lambda
+        /// (including implicit lambdas from query expressions).
         /// </summary>
         internal virtual bool IsNestedFunctionBinder => false;
 
