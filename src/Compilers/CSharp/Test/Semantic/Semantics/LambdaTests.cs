@@ -3259,6 +3259,59 @@ class Program
         }
 
         [Fact]
+        public void ShadowNames_Underscore_01()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System;
+class Program
+{
+    static void M()
+    {
+        Func<int, Func<int, int>> f = _ => _ => _;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (8,44): error CS0136: A local or parameter named '_' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         Func<int, Func<int, int>> f = _ => _ => _;
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "_").WithArguments("_").WithLocation(8, 44));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ShadowNames_Underscore_02()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System;
+class Program
+{
+    static void M()
+    {
+        Func<int, int, int> f = (_, _) => 0;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            verifyDiagnostics();
+
+            comp = CreateCompilation(source);
+            verifyDiagnostics();
+
+            void verifyDiagnostics()
+            {
+                comp.VerifyDiagnostics(
+                    // (8,37): error CS0100: The parameter name '_' is a duplicate
+                    //         Func<int, int, int> f = (_, _) => 0;
+                    Diagnostic(ErrorCode.ERR_DuplicateParamName, "_").WithArguments("_").WithLocation(8, 37));
+            }
+        }
+
+        [Fact]
         public void ShadowNames_Nested_01()
         {
             var source =
