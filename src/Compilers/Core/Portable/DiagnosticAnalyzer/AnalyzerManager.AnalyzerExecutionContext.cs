@@ -175,13 +175,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 memberSet.Add(member);
 
                                 // Ensure that we include symbols for both parts of partial methods.
-                                if (member is IMethodSymbol method)
+                                if (member is IMethodSymbol method &&
+                                    !(method.PartialImplementationPart is null))
                                 {
-                                    var otherPartOfPartialOpt = method.PartialDefinitionPart ?? method.PartialImplementationPart;
-                                    if (otherPartOfPartialOpt != null)
-                                    {
-                                        memberSet.Add(otherPartOfPartialOpt);
-                                    }
+                                    memberSet.Add(method.PartialImplementationPart);
                                 }
                             }
 
