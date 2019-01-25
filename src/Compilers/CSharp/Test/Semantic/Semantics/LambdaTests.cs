@@ -3105,6 +3105,118 @@ class Program
         }
 
         [Fact]
+        public void ShadowNames_Local_Delegate()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System;
+using System.Linq;
+class Program
+{
+    static void M()
+    {
+        object x = null;
+        Action a1 = delegate() { object x = 0; }; // local
+        Action<string> a2 = delegate(string x) { }; // parameter
+        Action a3 = delegate() { void x() { } }; // method
+        Action a4 = delegate() { _ = from x in new[] { 1, 2, 3 } select x; }; // range variable
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (10,41): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         Action a1 = delegate() { object x = 0; }; // local
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(10, 41),
+                // (11,45): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         Action<string> a2 = delegate(string x) { }; // parameter
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 45),
+                // (12,39): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         Action a3 = delegate() { void x() { } }; // method
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(12, 39),
+                // (13,43): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
+                //         Action a4 = delegate() { _ = from x in new[] { 1, 2, 3 } select x; }; // range variable
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(13, 43));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ShadowNames_Parameter_Delegate()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System;
+using System.Linq;
+class Program
+{
+    static Action<object> F = (object x) =>
+    {
+        Action a1 = delegate() { object x = 0; }; // local
+        Action<string> a2 = delegate(string x) { }; // parameter
+        Action a3 = delegate() { void x() { } }; // method
+        Action a4 = delegate() { _ = from x in new[] { 1, 2, 3 } select x; }; // range variable
+    };
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (9,41): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         Action a1 = delegate() { object x = 0; }; // local
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(9, 41),
+                // (10,45): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         Action<string> a2 = delegate(string x) { }; // parameter
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(10, 45),
+                // (12,43): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
+                //         Action a4 = delegate() { _ = from x in new[] { 1, 2, 3 } select x; }; // range variable
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(12, 43));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ShadowNames_TypeParameter_Delegate()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+using System;
+using System.Linq;
+class Program
+{
+    static void M<x>()
+    {
+        Action a1 = delegate() { object x = 0; }; // local
+        Action<string> a2 = delegate(string x) { }; // parameter
+        Action a3 = delegate() { void x() { } }; // method
+        Action a4 = delegate() { _ = from x in new[] { 1, 2, 3 } select x; }; // range variable
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (9,41): error CS0412: 'x': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //         Action a1 = delegate() { object x = 0; }; // local
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "x").WithArguments("x").WithLocation(9, 41),
+                // (10,45): error CS0412: 'x': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //         Action<string> a2 = delegate(string x) { }; // parameter
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "x").WithArguments("x").WithLocation(10, 45),
+                // (11,39): error CS0412: 'x': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //         Action a3 = delegate() { void x() { } }; // method
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "x").WithArguments("x").WithLocation(11, 39),
+                // (12,43): error CS1948: The range variable 'x' cannot have the same name as a method type parameter
+                //         Action a4 = delegate() { _ = from x in new[] { 1, 2, 3 } select x; }; // range variable
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableSameAsTypeParam, "x").WithArguments("x").WithLocation(12, 43));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void ShadowNames_LambdaInsideLambda()
         {
             var source =
