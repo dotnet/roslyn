@@ -3512,5 +3512,44 @@ class C
     }
 }");
         }
+
+        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithDeclarationWarning()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+#warning Declaration Warning
+        Func<int, string> [||]f = _ => null;
+
+        Method(f);
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+#warning Declaration Warning
+        string f(int _) => null;
+
+        Method((Func<int, string>)f);
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+}");
+        }
     }
 }
