@@ -173,7 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_Disposable = MessageBase + 12753,
         IDS_FeatureUsingDeclarations = MessageBase + 12754,
         IDS_FeatureStaticLocalFunctions = MessageBase + 12755,
-        IDS_FeatureUnmanagedConstructedTypes = MessageBase + 12756
+        IDS_FeatureNameShadowingInNestedFunctions = MessageBase + 12756,
+        IDS_FeatureUnmanagedConstructedTypes = MessageBase + 12757,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -253,6 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureRecursivePatterns:
                 case MessageID.IDS_FeatureUsingDeclarations:
                 case MessageID.IDS_FeatureStaticLocalFunctions:
+                case MessageID.IDS_FeatureNameShadowingInNestedFunctions:
                 case MessageID.IDS_FeatureUnmanagedConstructedTypes: // semantic check
                     return LanguageVersion.CSharp8;
 
