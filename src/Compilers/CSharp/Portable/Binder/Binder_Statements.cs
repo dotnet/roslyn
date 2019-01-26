@@ -1209,9 +1209,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
             }
 
-            if (elementType.IsManagedType)
+            if (CheckManagedAddr(elementType, initializerSyntax, diagnostics))
             {
-                Error(diagnostics, ErrorCode.ERR_ManagedAddr, initializerSyntax, elementType);
                 hasErrors = true;
             }
 
