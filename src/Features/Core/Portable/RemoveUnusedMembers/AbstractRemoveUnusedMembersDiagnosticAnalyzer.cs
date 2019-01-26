@@ -154,13 +154,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 Action<ISymbol, ValueUsageInfo> onSymbolUsageFound = OnSymbolUsage;
                 compilationStartContext.RegisterSymbolStartAction(symbolStartContext =>
                 {
-                    if (symbolStartContext.Symbol.GetAttributes().Any(a => a.AttributeClass == _structLayoutAttributeType))
-                    {
-                        // Bail out for types with 'StructLayoutAttribute' as the ordering of the members is critical,
-                        // and removal of unused members might break semantics.
-                        return;
-                    }
-
                     var hasInvalidOrDynamicOperation = false;
                     symbolStartContext.RegisterOperationAction(AnalyzeMemberReferenceOperation, OperationKind.FieldReference, OperationKind.MethodReference, OperationKind.PropertyReference, OperationKind.EventReference);
                     symbolStartContext.RegisterOperationAction(AnalyzeFieldInitializer, OperationKind.FieldInitializer);
@@ -348,6 +341,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 //  2. Dynamic operations, where we do not know the exact member being referenced at compile time.
                 if (hasInvalidOrDynamicOperation)
                 {
+                    return;
+                }
+
+                if (symbolEndContext.Symbol.GetAttributes().Any(a => a.AttributeClass == _structLayoutAttributeType))
+                {
+                    // Bail out for types with 'StructLayoutAttribute' as the ordering of the members is critical,
+                    // and removal of unused members might break semantics.
                     return;
                 }
 
