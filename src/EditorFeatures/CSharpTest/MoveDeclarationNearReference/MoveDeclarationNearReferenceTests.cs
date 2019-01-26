@@ -1328,5 +1328,132 @@ class Program
     public static void Out<T>(out T t) => t = default;
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMoveInsideSwitchSection()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case true:
+                int [||]x = 0;
+                System.Console.WriteLine();
+                System.Console.WriteLine(x);
+                break;
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case true:
+                System.Console.WriteLine();
+                int x = 0;
+                System.Console.WriteLine(x);
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMoveIntoSwitchSection()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int [||]x;
+        switch (true)
+        {
+            case true:
+                x = 0;
+                break;
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case true:
+                int x = 0;
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestUsedInMultipleSwitchSections_MoveToSwitchStatement()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int [||]x;
+        System.Console.WriteLine();
+        switch (true)
+        {
+            case true:
+                x = 0;
+                break;
+            case false:
+                x = 0;
+                break;
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        System.Console.WriteLine();
+        int x;
+        switch (true)
+        {
+            case true:
+                x = 0;
+                break;
+            case false:
+                x = 0;
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestUsedInMultipleSwitchSections_CannotMove()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int [||]x;
+        switch (true)
+        {
+            case true:
+                x = 0;
+                break;
+            case false:
+                x = 0;
+                break;
+        }
+    }
+}");
+        }
     }
 }

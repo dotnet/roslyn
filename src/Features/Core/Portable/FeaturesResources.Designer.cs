@@ -2341,6 +2341,42 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Merge with nested &apos;{0}&apos; statement.
+        /// </summary>
+        internal static string Merge_with_nested_0_statement {
+            get {
+                return ResourceManager.GetString("Merge_with_nested_0_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Merge with next &apos;{0}&apos; statement.
+        /// </summary>
+        internal static string Merge_with_next_0_statement {
+            get {
+                return ResourceManager.GetString("Merge_with_next_0_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Merge with outer &apos;{0}&apos; statement.
+        /// </summary>
+        internal static string Merge_with_outer_0_statement {
+            get {
+                return ResourceManager.GetString("Merge_with_outer_0_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Merge with previous &apos;{0}&apos; statement.
+        /// </summary>
+        internal static string Merge_with_previous_0_statement {
+            get {
+                return ResourceManager.GetString("Merge_with_previous_0_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to method.
         /// </summary>
         internal static string method {
@@ -3448,6 +3484,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Specified_file_not_found_colon_0 {
             get {
                 return ResourceManager.GetString("Specified_file_not_found_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Split into consecutive &apos;{0}&apos; statements.
+        /// </summary>
+        internal static string Split_into_consecutive_0_statements {
+            get {
+                return ResourceManager.GetString("Split_into_consecutive_0_statements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Split into nested &apos;{0}&apos; statements.
+        /// </summary>
+        internal static string Split_into_nested_0_statements {
+            get {
+                return ResourceManager.GetString("Split_into_nested_0_statements", resourceCulture);
             }
         }
         

@@ -1562,6 +1562,18 @@ This version used in: {2}</value>
   <data name="Fix_formatting" xml:space="preserve">
     <value>Fix formatting</value>
   </data>
+  <data name="Split_into_nested_0_statements" xml:space="preserve">
+    <value>Split into nested '{0}' statements</value>
+  </data>
+  <data name="Merge_with_outer_0_statement" xml:space="preserve">
+    <value>Merge with outer '{0}' statement</value>
+  </data>
+  <data name="Split_into_consecutive_0_statements" xml:space="preserve">
+    <value>Split into consecutive '{0}' statements</value>
+  </data>
+  <data name="Merge_with_previous_0_statement" xml:space="preserve">
+    <value>Merge with previous '{0}' statement</value>
+  </data>
   <data name="Indexing_can_be_simplified" xml:space="preserve">
     <value>Indexing can be simplified</value>
   </data>
@@ -1591,6 +1603,12 @@ This version used in: {2}</value>
   </data>
   <data name="Remove_unused_parameter_0_its_initial_value_is_never_used" xml:space="preserve">
     <value>Remove unused parameter '{0}', its initial value is never used</value>
+  </data>
+  <data name="Merge_with_nested_0_statement" xml:space="preserve">
+    <value>Merge with nested '{0}' statement</value>
+  </data>
+  <data name="Merge_with_next_0_statement" xml:space="preserve">
+    <value>Merge with next '{0}' statement</value>
   </data>
   <data name="Pull_0_up" xml:space="preserve">
     <value>Pull '{0}' up</value>
