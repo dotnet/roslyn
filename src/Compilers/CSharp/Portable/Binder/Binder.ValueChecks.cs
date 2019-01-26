@@ -2383,6 +2383,11 @@ moreArguments:
                     // just say it does not escape anywhere, so that we do not get false errors.
                     return scopeOfTheContainingExpression;
 
+                case BoundKind.DisposableValuePlaceholder:
+                    // Disposable value placeholder is only ever used to lookup a pattern dispose method
+                    // then immediately discarded. The actual expression will be generated during lowering 
+                    return scopeOfTheContainingExpression;
+
                 case BoundKind.PointerElementAccess:
                 case BoundKind.PointerIndirectionOperator:
                     // Unsafe code will always be allowed to escape.
