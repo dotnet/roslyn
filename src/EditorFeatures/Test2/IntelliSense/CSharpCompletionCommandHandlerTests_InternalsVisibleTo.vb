@@ -180,9 +180,7 @@ namespace A
                         Await state.AssertNoCompletionSession()
                         state.SendInvokeCompletionList()
                         Await state.WaitForAsynchronousOperationsAsync()
-                        Assert.True(
-                            state.CurrentCompletionPresenterSession Is Nothing OrElse
-                            Not state.CompletionItemsContainsAny({"ClassLibrary1"}))
+                        Await state.AssertSessionIsNothingOrNoCompletionItemLike("ClassLibrary1")
                     End Function
                 Await AssertNoCompletionAndCompletionDoesNotContainClassLibrary1()
                 state.SendTypeChars("["c)
