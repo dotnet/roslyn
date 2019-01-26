@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
@@ -218,13 +217,15 @@ End Module
 </code>)
         End Sub
 
+        ' The test verifies the integrated behavior which keeps the space '_'.
+        ' This corresponds to the actual VS behavior.
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Sub TestWithLineContinuation()
             Test(
 <code>
 Module M
     Sub Main()
-        Dim _
+        Dim _ 
             $$
     End Sub
 End Module
