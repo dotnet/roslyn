@@ -44,6 +44,7 @@ namespace Test.Utilities
         private static readonly MetadataReference s_systemDiagnosticsDebugReference = MetadataReference.CreateFromFile(typeof(Debug).Assembly.Location);
         private static readonly MetadataReference s_systemDataReference = MetadataReference.CreateFromFile(typeof(System.Data.DataSet).Assembly.Location);
         private static readonly MetadataReference s_systemWebReference = MetadataReference.CreateFromFile(typeof(System.Web.HttpRequest).Assembly.Location);
+        private static readonly MetadataReference s_systemRuntimeSerialization = MetadataReference.CreateFromFile(typeof(System.Runtime.Serialization.NetDataContractSerializer).Assembly.Location);
         private static readonly MetadataReference s_testReferenceAssembly = MetadataReference.CreateFromFile(typeof(OtherDll.OtherDllStaticMethods).Assembly.Location);
         private static readonly MetadataReference s_systemXmlLinq = MetadataReference.CreateFromFile(typeof(System.Xml.Linq.XAttribute).Assembly.Location);
         protected static readonly CompilationOptions s_CSharpDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
@@ -442,6 +443,7 @@ namespace Test.Utilities
                 .AddMetadataReference(projectId, s_systemDiagnosticsDebugReference)
                 .AddMetadataReference(projectId, s_systemWebReference)
                 .AddMetadataReference(projectId, s_systemXmlLinq)
+                .AddMetadataReference(projectId, s_systemRuntimeSerialization)
                 .WithProjectCompilationOptions(projectId, options)
                 .WithProjectParseOptions(projectId, parseOptions)
                 .GetProject(projectId);
