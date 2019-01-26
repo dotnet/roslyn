@@ -77,7 +77,7 @@ jobs:
         testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\Debug\*.xml'
         mergeTestResults: true
         testRunTitle: 'Windows Desktop Spanish'
-      condition: succeededOrFailed()
+      condition: always()
 
     - task: PublishBuildArtifacts@1
       inputs:
@@ -85,7 +85,7 @@ jobs:
         ArtifactName: 'Windows Desktop Spanish' 
         publishLocation: Container
       continueOnError: true
-      condition: failed()
+      condition: not(succeeded())
 
 - job: Windows_CoreClr_Unit_Tests
   pool: dotnet-external-temp
