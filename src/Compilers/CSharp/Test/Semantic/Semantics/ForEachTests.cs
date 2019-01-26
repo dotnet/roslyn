@@ -38,7 +38,6 @@ class C
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingType").WithArguments("MissingType"));
         }
 
-
         [Fact]
         public void TestErrorNullLiteralCollection()
         {
