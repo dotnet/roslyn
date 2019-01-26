@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpInitializeMemberFromParameterCodeRefactoringProvider)), Shared]
     [ExtensionOrder(Before = nameof(CSharpAddParameterCheckCodeRefactoringProvider))]
+    [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.Wrapping)]
     internal class CSharpInitializeMemberFromParameterCodeRefactoringProvider :
         AbstractInitializeMemberFromParameterCodeRefactoringProvider<
             ParameterSyntax,
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override Accessibility DetermineDefaultPropertyAccessibility()
             => Accessibility.Private;
 
-        protected override SyntaxNode GetBody(SyntaxNode functionDeclaration) 
+        protected override SyntaxNode GetBody(SyntaxNode functionDeclaration)
             => InitializeParameterHelpers.GetBody(functionDeclaration);
     }
 }

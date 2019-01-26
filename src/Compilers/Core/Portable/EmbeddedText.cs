@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis
         /// The path to the file to embed.
         /// </summary>
         /// <remarks>See remarks of <see cref="SyntaxTree.FilePath"/></remarks>
+        /// <remarks>Empty file paths are disallowed, as the debugger finds source by looking up files by their name (and then verifying their signature)</remarks>
         public string FilePath { get; }
 
         /// <summary>

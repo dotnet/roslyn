@@ -533,6 +533,9 @@
   <data name="if_statement_can_be_simplified" xml:space="preserve">
     <value>'if' statement can be simplified</value>
   </data>
+  <data name="Allow_unsafe_code_in_this_project" xml:space="preserve">
+    <value>Allow unsafe code in this project</value>
+  </data>
   <data name="Add_Obsolete" xml:space="preserve">
     <value>Add [Obsolete]</value>
   </data>

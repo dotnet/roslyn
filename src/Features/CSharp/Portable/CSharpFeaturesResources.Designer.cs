@@ -142,6 +142,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Allow unsafe code in this project.
+        /// </summary>
+        internal static string Allow_unsafe_code_in_this_project {
+            get {
+                return ResourceManager.GetString("Allow_unsafe_code_in_this_project", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to anonymous method.
         /// </summary>
         internal static string anonymous_method {

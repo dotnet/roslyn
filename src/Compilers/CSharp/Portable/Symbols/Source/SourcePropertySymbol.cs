@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var explicitInterfaceSpecifier = GetExplicitInterfaceSpecifier(this.CSharpSyntaxNode);
                 Debug.Assert(explicitInterfaceSpecifier != null);
-                _explicitInterfaceType.CheckAllConstraints(conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
+                _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
 
                 // Note: we delayed nullable-related checks that could pull on NonNullTypes
                 PropertySymbol overriddenOrImplementedProperty = null;
@@ -1382,7 +1382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     foreach (var parameter in this.Parameters)
                                     {
                                         parameter.ForceComplete(locationOpt, cancellationToken);
-                                        parameter.Type.CheckAllConstraints(conversions, parameter.Locations[0], diagnostics);
+                                        parameter.Type.CheckAllConstraints(DeclaringCompilation, conversions, parameter.Locations[0], diagnostics);
                                     }
 
                                     this.AddDeclarationDiagnostics(diagnostics);
@@ -1408,7 +1408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 var diagnostics = DiagnosticBag.GetInstance();
                                 var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
-                                this.Type.CheckAllConstraints(conversions, _location, diagnostics);
+                                this.Type.CheckAllConstraints(DeclaringCompilation, conversions, _location, diagnostics);
 
                                 var type = this.Type.TypeSymbol;
                                 if (type.IsRestrictedType(ignoreSpanLikeTypes: true))

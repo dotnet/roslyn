@@ -490,6 +490,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var strongNameProvider = default(StrongNameProvider);
             var delaySign = default(bool?);
             var checkOverflow = false;
+            var allowUnsafe = false;
             var outputKind = OutputKind.DynamicallyLinkedLibrary;
 
             if (compilationOptionsElement != null)
@@ -512,6 +513,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 if (checkOverflowAttribute != null)
                 {
                     checkOverflow = (bool)checkOverflowAttribute;
+                }
+
+                var allowUnsafeAttribute = compilationOptionsElement.Attribute(AllowUnsafeAttributeName);
+                if (allowUnsafeAttribute != null)
+                {
+                    allowUnsafe = (bool)allowUnsafeAttribute;
                 }
 
                 var reportDiagnosticAttribute = compilationOptionsElement.Attribute(ReportDiagnosticAttributeName);
@@ -560,7 +567,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                     // VB needs Compilation.ParseOptions set (we do the same at the VS layer)
                     return language == LanguageNames.CSharp
-                       ? (CompilationOptions)new CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata)
+                       ? (CompilationOptions)new CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata, allowUnsafe: allowUnsafe)
                        : new VisualBasicCompilationOptions(OutputKind.WindowsRuntimeMetadata).WithGlobalImports(globalImports).WithRootNamespace(rootNamespace)
                             .WithParseOptions((VisualBasicParseOptions)parseOptions ?? VisualBasicParseOptions.Default);
                 }
@@ -587,6 +594,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                                                    .WithStrongNameProvider(strongNameProvider)
                                                    .WithDelaySign(delaySign)
                                                    .WithOverflowChecks(checkOverflow);
+
+            if (language == LanguageNames.CSharp)
+            {
+                compilationOptions = ((CSharpCompilationOptions)compilationOptions).WithAllowUnsafe(allowUnsafe);
+            }
 
             if (language == LanguageNames.VisualBasic)
             {

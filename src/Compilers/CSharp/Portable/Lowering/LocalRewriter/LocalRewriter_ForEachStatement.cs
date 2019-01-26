@@ -182,8 +182,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors: false);
 
             BoundStatement result;
+            MethodSymbol disposeMethod = enumeratorInfo.DisposeMethod;
 
-            if (enumeratorInfo.NeedsDisposeMethod && TryGetDisposeMethod(forEachSyntax, enumeratorInfo, out MethodSymbol disposeMethod))
+            if (enumeratorInfo.NeedsDisposal && (!(disposeMethod is null) || TryGetDisposeMethod(forEachSyntax, enumeratorInfo, out disposeMethod)))
             {
                 BoundStatement tryFinally = WrapWithTryFinallyDispose(forEachSyntax, enumeratorInfo, enumeratorType, boundEnumeratorVar, whileLoop, disposeMethod);
 
@@ -241,22 +242,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var isImplicit = conversions.ClassifyImplicitConversionFromType(enumeratorType, idisposableTypeSymbol, ref useSiteDiagnostics).IsImplicit;
             _diagnostics.Add(forEachSyntax, useSiteDiagnostics);
+            var isExtension = disposeMethod?.IsExtensionMethod == true;
 
-            if (isImplicit)
+            if (isImplicit || isExtension)
             {
-                Debug.Assert(enumeratorInfo.NeedsDisposeMethod);
+                Debug.Assert(enumeratorInfo.NeedsDisposal);
 
                 Conversion receiverConversion = enumeratorType.IsStructType() ?
                     Conversion.Boxing :
                     Conversion.ImplicitReference;
 
+                BoundExpression receiver = isExtension || idisposableTypeSymbol.IsRefLikeType ?
+                    boundEnumeratorVar :
+                    ConvertReceiverForInvocation(forEachSyntax, boundEnumeratorVar, disposeMethod, receiverConversion, idisposableTypeSymbol);
+
                 // ((IDisposable)e).Dispose() or e.Dispose() or await ((IAsyncDisposable)e).DisposeAsync() or await e.DisposeAsync()
-                // Note: pattern-based async disposal is not allowed (cannot use ref structs in async methods), so the arguments are known to be empty even for async case
-                BoundExpression disposeCall = BoundCall.Synthesized(
+                BoundExpression disposeCall = MakeCallWithNoExplicitArgument(
                     forEachSyntax,
-                    ConvertReceiverForInvocation(forEachSyntax, boundEnumeratorVar, disposeMethod, receiverConversion, idisposableTypeSymbol),
-                    disposeMethod,
-                    ImmutableArray<BoundExpression>.Empty);
+                    receiver,
+                    disposeMethod);
+
                 BoundStatement disposeCallStatement;
                 if (disposeAwaitableInfoOpt != null)
                 {

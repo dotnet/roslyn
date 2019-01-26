@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Utilities
             return list[list.Count - 1];
         }
 
-        public static int IndexOf<T>(this IReadOnlyList<T> list, T value, int startIndex)
+        public static int IndexOf<T>(this IReadOnlyList<T> list, T value, int startIndex = 0)
         {
             for (var index = startIndex; index < list.Count; index++)
             {

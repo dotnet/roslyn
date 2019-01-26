@@ -32,6 +32,11 @@
         <target state="new">Add/remove braces for single-line control statements</target>
         <note />
       </trans-unit>
+      <trans-unit id="Allow_unsafe_code_in_this_project">
+        <source>Allow unsafe code in this project</source>
+        <target state="new">Allow unsafe code in this project</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_expression_block_body_preferences">
         <source>Apply expression/block body preferences</source>
         <target state="new">Apply expression/block body preferences</target>
