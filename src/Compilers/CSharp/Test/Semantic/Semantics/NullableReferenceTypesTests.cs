@@ -74823,7 +74823,7 @@ class C
 
         [WorkItem(32503, "https://github.com/dotnet/roslyn/issues/32503")]
         [Fact]
-        public void PatternDeclarationBreaksNullabeAnalysis()
+        public void PatternDeclarationBreaksNullableAnalysis()
         {
             var source = @"
 #nullable enable
