@@ -672,15 +672,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             Debug.Assert(CurrentBasicBlock != null);
             Debug.Assert(DataFlowAnalysisContext.PointsToAnalysisResultOpt != null);
-            var inputData = DataFlowAnalysisContext.PointsToAnalysisResultOpt[CurrentBasicBlock].InputData;
+            var inputData = DataFlowAnalysisContext.PointsToAnalysisResultOpt[CurrentBasicBlock].Data;
             return inputData.TryGetValue(analysisEntity, out pointsToAbstractValue);
         }
 
-        protected bool TryGetPointsToAbstractValueAtCurrentBlockExit(AnalysisEntity analysisEntity, out PointsToAbstractValue pointsToAbstractValue)
+        protected bool TryGetPointsToAbstractValueAtEntryBlockEnd(AnalysisEntity analysisEntity, out PointsToAbstractValue pointsToAbstractValue)
         {
             Debug.Assert(CurrentBasicBlock != null);
+            Debug.Assert(CurrentBasicBlock.Kind == BasicBlockKind.Entry);
             Debug.Assert(DataFlowAnalysisContext.PointsToAnalysisResultOpt != null);
-            var outputData = DataFlowAnalysisContext.PointsToAnalysisResultOpt[CurrentBasicBlock].OutputData;
+
+            var outputData = DataFlowAnalysisContext.PointsToAnalysisResultOpt.EntryBlockOutput.Data;
             return outputData.TryGetValue(analysisEntity, out pointsToAbstractValue);
         }
 
@@ -688,7 +690,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             Debug.Assert(CurrentBasicBlock != null);
             Debug.Assert(DataFlowAnalysisContext.PointsToAnalysisResultOpt != null);
-            var inputData = DataFlowAnalysisContext.PointsToAnalysisResultOpt[CurrentBasicBlock].InputData;
+            var inputData = DataFlowAnalysisContext.PointsToAnalysisResultOpt[CurrentBasicBlock].Data;
             if (inputData.TryGetValue(analysisEntity, out PointsToAbstractValue pointsToAbstractValue))
             {
                 nullAbstractValue = pointsToAbstractValue.NullState;
@@ -703,7 +705,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             Debug.Assert(CurrentBasicBlock != null);
             Debug.Assert(DataFlowAnalysisContext.PointsToAnalysisResultOpt != null);
-            var inputData = DataFlowAnalysisContext.PointsToAnalysisResultOpt.MergedStateForUnhandledThrowOperationsOpt?.InputData;
+            var inputData = DataFlowAnalysisContext.PointsToAnalysisResultOpt.MergedStateForUnhandledThrowOperationsOpt?.Data;
             if (inputData == null || !inputData.TryGetValue(analysisEntity, out PointsToAbstractValue pointsToAbstractValue))
             {
                 nullAbstractValue = NullAbstractValue.MaybeNull;
@@ -1432,7 +1434,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected abstract TAnalysisData GetClonedAnalysisData(TAnalysisData analysisData);
         protected TAnalysisData GetClonedCurrentAnalysisData() => GetClonedAnalysisData(CurrentAnalysisData);
         public abstract TAnalysisData GetEmptyAnalysisData();
-        protected abstract TAnalysisData GetAnalysisDataAtBlockEnd(TAnalysisResult analysisResult, BasicBlock block);
+        protected abstract TAnalysisData GetExitBlockOutputData(TAnalysisResult analysisResult);
         protected abstract bool Equals(TAnalysisData value1, TAnalysisData value2);
         protected static bool EqualsHelper<TKey, TValue>(IDictionary<TKey, TValue> dict1, IDictionary<TKey, TValue> dict2)
             => dict1.Count == dict2.Count &&
@@ -1562,7 +1564,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Update the current analysis data based on interprocedural analysis result.
             if (isContextSensitive)
             {
-                var resultData = GetAnalysisDataAtBlockEnd(analysisResult, cfg.GetExit());
+                var resultData = GetExitBlockOutputData(analysisResult);
                 ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction);
                 Debug.Assert(arguments.All(arg => !_pendingArgumentsToReset.Contains(arg)));
             }
@@ -1619,8 +1621,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 var invocationInstance = GetInvocationInstance();
                 var thisOrMeInstance = GetThisOrMeInstance();
                 var argumentValues = GetArgumentValues();
-                var pointsToValuesOpt = pointsToAnalysisResultOpt?[cfg.GetEntry()].InputData;
-                var copyValuesOpt = copyAnalysisResultOpt?[cfg.GetEntry()].InputData;
+                var pointsToValuesOpt = pointsToAnalysisResultOpt?[cfg.GetEntry()].Data;
+                var copyValuesOpt = copyAnalysisResultOpt?[cfg.GetEntry()].Data;
                 var initialAnalysisData = GetInitialInterproceduralAnalysisData(invokedMethod, invocationInstance,
                     thisOrMeInstance, argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction);
 

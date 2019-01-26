@@ -20,15 +20,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         private sealed class PointsToDataFlowOperationVisitor :
             AnalysisEntityDataFlowOperationVisitor<PointsToAnalysisData, PointsToAnalysisContext, PointsToAnalysisResult, PointsToAbstractValue>
         {
+            private readonly TrackedEntitiesBuilder _trackedEntitiesBuilder;
             private readonly DefaultPointsToValueGenerator _defaultPointsToValueGenerator;
             private readonly PointsToAnalysisDomain _pointsToAnalysisDomain;
 
             public PointsToDataFlowOperationVisitor(
+                TrackedEntitiesBuilder trackedEntitiesBuilder,
                 DefaultPointsToValueGenerator defaultPointsToValueGenerator,
                 PointsToAnalysisDomain pointsToAnalysisDomain,
                 PointsToAnalysisContext analysisContext)
                 : base(analysisContext)
             {
+                _trackedEntitiesBuilder = trackedEntitiesBuilder;
                 _defaultPointsToValueGenerator = defaultPointsToValueGenerator;
                 _pointsToAnalysisDomain = pointsToAnalysisDomain;
 
@@ -70,12 +73,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             protected override void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
             {
-                if (!forInterproceduralAnalysis)
+                foreach (var entity in _trackedEntitiesBuilder.AllEntities)
                 {
-                    _defaultPointsToValueGenerator.AddTrackedEntities(builder);
+                    if (CurrentAnalysisData.HasAbstractValue(entity) ||
+                        !forInterproceduralAnalysis && _defaultPointsToValueGenerator.IsTrackedEntity(entity))
+                    {
+                        builder.Add(entity);
+                    }
                 }
-
-                CurrentAnalysisData.AddTrackedEntities(builder);
             }
 
             protected override bool IsPointsToAnalysis => true;
@@ -127,6 +132,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     }
 
                     SetAbstractValueCore(CurrentAnalysisData, analysisEntity, value);
+                    _trackedEntitiesBuilder.AllEntities.Add(analysisEntity);
                 }
             }
 
@@ -438,8 +444,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 => (PointsToAnalysisData)analysisData.Clone();
             public override PointsToAnalysisData GetEmptyAnalysisData()
                 => new PointsToAnalysisData();
-            protected override PointsToAnalysisData GetAnalysisDataAtBlockEnd(PointsToAnalysisResult analysisResult, BasicBlock block)
-                => new PointsToAnalysisData(analysisResult[block].OutputData);
+            protected override PointsToAnalysisData GetExitBlockOutputData(PointsToAnalysisResult analysisResult)
+                => new PointsToAnalysisData(analysisResult.ExitBlockOutput.Data);
             protected override bool Equals(PointsToAnalysisData value1, PointsToAnalysisData value2)
                 => value1.Equals(value2);
 

@@ -204,8 +204,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 => GetClonedAnalysisDataHelper(CurrentAnalysisData);
             public override DisposeAnalysisData GetEmptyAnalysisData()
                 => GetEmptyAnalysisDataHelper();
-            protected override DisposeAnalysisData GetAnalysisDataAtBlockEnd(DisposeAnalysisResult analysisResult, BasicBlock block)
-                => GetClonedAnalysisDataHelper(analysisResult[block].OutputData);
+            protected override DisposeAnalysisData GetExitBlockOutputData(DisposeAnalysisResult analysisResult)
+                => GetClonedAnalysisDataHelper(analysisResult.ExitBlockOutput.Data);
             protected override bool Equals(DisposeAnalysisData value1, DisposeAnalysisData value2)
                 => EqualsHelper(value1, value2);
 

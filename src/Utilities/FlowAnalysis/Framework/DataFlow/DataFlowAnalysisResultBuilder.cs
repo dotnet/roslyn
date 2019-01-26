@@ -13,32 +13,36 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     internal sealed class DataFlowAnalysisResultBuilder<TAnalysisData> : IDisposable
         where TAnalysisData : AbstractAnalysisData
     {
-        private readonly PooledDictionary<BasicBlock, DataFlowAnalysisInfo<TAnalysisData>> _info;
+        private readonly PooledDictionary<BasicBlock, TAnalysisData> _info;
 
         public DataFlowAnalysisResultBuilder()
         {
-            _info = PooledDictionary<BasicBlock, DataFlowAnalysisInfo<TAnalysisData>>.GetInstance();
+            _info = PooledDictionary<BasicBlock, TAnalysisData>.GetInstance();
         }
 
-        public DataFlowAnalysisInfo<TAnalysisData> this[BasicBlock block] => _info[block];
+        public TAnalysisData this[BasicBlock block] => _info[block];
+        public TAnalysisData EntryBlockOutputData { get; set; }
+        public TAnalysisData ExitBlockOutputData { get; set; }
 
         internal void Add(BasicBlock block)
         {
-            _info.Add(block, new DataFlowAnalysisInfo<TAnalysisData>(null, null));
+            _info.Add(block, null);
         }
 
-        internal void Update(BasicBlock block, DataFlowAnalysisInfo<TAnalysisData> newData)
+        internal void Update(BasicBlock block, TAnalysisData newData)
         {
             _info[block] = newData;
         }
 
         public DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> ToResult<TBlockAnalysisResult, TAbstractAnalysisValue>(
-            Func<BasicBlock, DataFlowAnalysisInfo<TAnalysisData>, TBlockAnalysisResult> getResult,
+            Func<BasicBlock, TAnalysisData, TBlockAnalysisResult> getBlockResult,
             ImmutableDictionary<IOperation, TAbstractAnalysisValue> stateMap,
             ImmutableDictionary<IOperation, PredicateValueKind> predicateValueKindMap,
             (TAbstractAnalysisValue, PredicateValueKind)? returnValueAndPredicateKindOpt,
             ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>> interproceduralResultsMap,
-            DataFlowAnalysisInfo<TAnalysisData> mergedDataForUnhandledThrowOperationsOpt,
+            TAnalysisData entryBlockOutputData,
+            TAnalysisData exitBlockOutputData,
+            TAnalysisData mergedDataForUnhandledThrowOperationsOpt,
             ControlFlowGraph cfg,
             TAbstractAnalysisValue defaultUnknownValue)
             where TBlockAnalysisResult: AbstractBlockAnalysisResult
@@ -48,18 +52,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 var block = kvp.Key;
                 var blockAnalysisData = kvp.Value;
-                var result = getResult(block, blockAnalysisData);
+                var result = getBlockResult(block, blockAnalysisData);
                 resultBuilder.Add(block, result);
             }
 
             TBlockAnalysisResult mergedStateForUnhandledThrowOperationsOpt = null;
             if (mergedDataForUnhandledThrowOperationsOpt != null)
             {
-                mergedStateForUnhandledThrowOperationsOpt = getResult(cfg.GetExit(), mergedDataForUnhandledThrowOperationsOpt);
+                mergedStateForUnhandledThrowOperationsOpt = getBlockResult(cfg.GetExit(), mergedDataForUnhandledThrowOperationsOpt);
             }
 
+            var entryBlockOutputResult = getBlockResult(cfg.GetEntry(), entryBlockOutputData);
+            var exitBlockOutputResult = getBlockResult(cfg.GetExit(), exitBlockOutputData);
+
             return new DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>(resultBuilder.ToImmutableDictionaryAndFree(), stateMap,
-                predicateValueKindMap, returnValueAndPredicateKindOpt, interproceduralResultsMap, mergedStateForUnhandledThrowOperationsOpt, cfg, defaultUnknownValue);
+                predicateValueKindMap, returnValueAndPredicateKindOpt, interproceduralResultsMap,
+                entryBlockOutputResult, exitBlockOutputResult, mergedStateForUnhandledThrowOperationsOpt, cfg, defaultUnknownValue);
         }
 
         public void Dispose()

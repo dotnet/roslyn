@@ -71,11 +71,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
         private static PointsToAnalysisResult GetOrComputeResultForAnalysisContext(PointsToAnalysisContext analysisContext)
         {
-            var defaultPointsToValueGenerator = new DefaultPointsToValueGenerator();
-            var analysisDomain = new PointsToAnalysisDomain(defaultPointsToValueGenerator);
-            var operationVisitor = new PointsToDataFlowOperationVisitor(defaultPointsToValueGenerator, analysisDomain, analysisContext);
-            var pointsToAnalysis = new PointsToAnalysis(analysisDomain, operationVisitor);
-            return pointsToAnalysis.GetOrComputeResultCore(analysisContext, cacheResult: true);
+            using (var trackedEntitiesBuilder = new TrackedEntitiesBuilder())
+            {
+                var defaultPointsToValueGenerator = new DefaultPointsToValueGenerator(trackedEntitiesBuilder);
+                var analysisDomain = new PointsToAnalysisDomain(defaultPointsToValueGenerator);
+                var operationVisitor = new PointsToDataFlowOperationVisitor(trackedEntitiesBuilder, defaultPointsToValueGenerator, analysisDomain, analysisContext);
+                var pointsToAnalysis = new PointsToAnalysis(analysisDomain, operationVisitor);
+                return pointsToAnalysis.GetOrComputeResultCore(analysisContext, cacheResult: true);
+            }
         }
 
         public static bool ShouldBeTracked(ITypeSymbol typeSymbol) => typeSymbol.IsReferenceTypeOrNullableValueType();
@@ -91,7 +94,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
         internal override PointsToAnalysisResult ToResult(PointsToAnalysisContext analysisContext, PointsToAnalysisResult dataFlowAnalysisResult)
             => dataFlowAnalysisResult;
-        internal override PointsToBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, DataFlowAnalysisInfo<PointsToAnalysisData> blockAnalysisData)
+        internal override PointsToBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, PointsToAnalysisData blockAnalysisData)
             => new PointsToBlockAnalysisResult(basicBlock, blockAnalysisData);
     }
 }

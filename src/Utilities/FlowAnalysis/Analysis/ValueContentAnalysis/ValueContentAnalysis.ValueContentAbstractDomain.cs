@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
             public override ValueContentAbstractValue UnknownOrMayBeValue => ValueContentAbstractValue.MayBeContainsNonLiteralState;
 
-            public override int Compare(ValueContentAbstractValue oldValue, ValueContentAbstractValue newValue)
+            public override int Compare(ValueContentAbstractValue oldValue, ValueContentAbstractValue newValue, bool assertMonotonicity)
             {
                 Debug.Assert(oldValue != null);
                 Debug.Assert(newValue != null);
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                         }
                         else
                         {
-                            Debug.Fail("Non-monotonic Merge function");
+                            FireNonMonotonicAssertIfNeeded(assertMonotonicity);
                             return 1;
                         }
                     }
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 }
                 else
                 {
-                    Debug.Fail("Non-monotonic Merge function");
+                    FireNonMonotonicAssertIfNeeded(assertMonotonicity);
                     return 1;
                 }
             }

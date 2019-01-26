@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             public override NullAbstractValue UnknownOrMayBeValue => NullAbstractValue.MaybeNull;
 
-            public override int Compare(NullAbstractValue oldValue, NullAbstractValue newValue)
+            public override int Compare(NullAbstractValue oldValue, NullAbstractValue newValue, bool assertMonotonicitye)
             {
                 return Comparer<NullAbstractValue>.Default.Compare(oldValue, newValue);
             }

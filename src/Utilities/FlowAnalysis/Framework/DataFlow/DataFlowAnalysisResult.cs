@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ImmutableDictionary<IOperation, PredicateValueKind> predicateValueKindMap,
             (TAbstractAnalysisValue, PredicateValueKind)? returnValueAndPredicateKindOpt,
             ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>> interproceduralResultsMap,
+            TBlockAnalysisResult entryBlockOutput,
+            TBlockAnalysisResult exitBlockOutput,
             TBlockAnalysisResult mergedStateForUnhandledThrowOperationsOpt,
             ControlFlowGraph cfg,
             TAbstractAnalysisValue defaultUnknownValue)
@@ -37,12 +39,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(operationStateMap != null);
             Debug.Assert(predicateValueKindMap != null);
             Debug.Assert(interproceduralResultsMap != null);
+            Debug.Assert(entryBlockOutput != null);
+            Debug.Assert(exitBlockOutput != null);
 
             _basicBlockStateMap = basicBlockStateMap;
             _operationStateMap = operationStateMap;
             _predicateValueKindMap = predicateValueKindMap;
             ReturnValueAndPredicateKindOpt = returnValueAndPredicateKindOpt;
             _interproceduralResultsMap = interproceduralResultsMap;
+            EntryBlockOutput = entryBlockOutput;
+            ExitBlockOutput = exitBlockOutput;
             MergedStateForUnhandledThrowOperationsOpt = mergedStateForUnhandledThrowOperationsOpt;
             ControlFlowGraph = cfg;
             _defaultUnknownValue = defaultUnknownValue;
@@ -50,7 +56,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected DataFlowAnalysisResult(DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> other)
             : this(other._basicBlockStateMap, other._operationStateMap, other._predicateValueKindMap, other.ReturnValueAndPredicateKindOpt,
-                   other._interproceduralResultsMap, other.MergedStateForUnhandledThrowOperationsOpt, other.ControlFlowGraph, other._defaultUnknownValue)
+                   other._interproceduralResultsMap, other.EntryBlockOutput, other.ExitBlockOutput, other.MergedStateForUnhandledThrowOperationsOpt,
+                   other.ControlFlowGraph, other._defaultUnknownValue)
         {
         }
 
@@ -107,6 +114,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public ControlFlowGraph ControlFlowGraph { get; }
         public (TAbstractAnalysisValue Value, PredicateValueKind PredicateValueKind)? ReturnValueAndPredicateKindOpt { get; }
+        public TBlockAnalysisResult EntryBlockOutput { get; }
+        public TBlockAnalysisResult ExitBlockOutput { get; }
         public TBlockAnalysisResult MergedStateForUnhandledThrowOperationsOpt { get; }
         public PredicateValueKind GetPredicateKind(IOperation operation) => _predicateValueKindMap.TryGetValue(operation, out var valueKind) ? valueKind : PredicateValueKind.Unknown;
     }

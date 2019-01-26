@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             public override PointsToAbstractValue UnknownOrMayBeValue => PointsToAbstractValue.Unknown;
 
-            public override int Compare(PointsToAbstractValue oldValue, PointsToAbstractValue newValue)
+            public override int Compare(PointsToAbstractValue oldValue, PointsToAbstractValue newValue, bool assertMonotonicity)
             {
                 Debug.Assert(oldValue != null);
                 Debug.Assert(newValue != null);
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     var nullCompareResult = NullAbstractValueDomain.Default.Compare(oldValue.NullState, newValue.NullState);
                     if (locationsCompareResult > 0 || lValueCapturesCompareResult > 0 || nullCompareResult > 0)
                     {
-                        Debug.Fail("Non-monotonic Merge function");
+                        FireNonMonotonicAssertIfNeeded(assertMonotonicity);
                         return 1;
                     }
                     else if (locationsCompareResult < 0 || lValueCapturesCompareResult < 0 || nullCompareResult < 0)
@@ -55,12 +55,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 }
                 else if (oldValue.Kind < newValue.Kind)
                 {
-                    Debug.Assert(NullAbstractValueDomain.Default.Compare(oldValue.NullState, newValue.NullState) <= 0);
+#if DEBUG
+                    if (NullAbstractValueDomain.Default.Compare(oldValue.NullState, newValue.NullState) > 0)
+                    {
+                        FireNonMonotonicAssertIfNeeded(assertMonotonicity);
+                    }
+#endif
                     return -1;
                 }
                 else
                 {
-                    Debug.Fail("Non-monotonic Merge function");
+                    FireNonMonotonicAssertIfNeeded(assertMonotonicity);
                     return 1;
                 }
             }

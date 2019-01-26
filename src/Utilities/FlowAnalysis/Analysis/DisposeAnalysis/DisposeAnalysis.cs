@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             return new DisposeAnalysisResult(dataFlowAnalysisResult, trackedInstanceFieldPointsToMap);
         }
 
-        internal override DisposeBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, DataFlowAnalysisInfo<DictionaryAnalysisData<AbstractLocation, DisposeAbstractValue>> blockAnalysisData)
+        internal override DisposeBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, DictionaryAnalysisData<AbstractLocation, DisposeAbstractValue> blockAnalysisData)
             => new DisposeBlockAnalysisResult(basicBlock, blockAnalysisData);
     }
 }

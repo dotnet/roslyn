@@ -10,17 +10,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
     /// </summary>
     internal class ValueContentBlockAnalysisResult : AbstractBlockAnalysisResult
     {
-        public ValueContentBlockAnalysisResult(BasicBlock basicBlock, DataFlowAnalysisInfo<ValueContentAnalysisData> blockAnalysisData)
+        public ValueContentBlockAnalysisResult(BasicBlock basicBlock, ValueContentAnalysisData blockAnalysisData)
             : base(basicBlock)
         {
-            InputData = blockAnalysisData.Input?.CoreAnalysisData.ToImmutableDictionary() ?? ImmutableDictionary<AnalysisEntity, ValueContentAbstractValue>.Empty;
-            OutputData = blockAnalysisData.Output?.CoreAnalysisData.ToImmutableDictionary() ?? ImmutableDictionary<AnalysisEntity, ValueContentAbstractValue>.Empty;
-            IsReachable = blockAnalysisData.Input?.IsReachableBlockData ?? true;
+            Data = blockAnalysisData?.CoreAnalysisData.ToImmutableDictionary() ?? ImmutableDictionary<AnalysisEntity, ValueContentAbstractValue>.Empty;
+            IsReachable = blockAnalysisData?.IsReachableBlockData ?? true;
         }
 
-        public ImmutableDictionary<AnalysisEntity, ValueContentAbstractValue> InputData { get; }
-
-        public ImmutableDictionary<AnalysisEntity, ValueContentAbstractValue> OutputData { get; }
+        public ImmutableDictionary<AnalysisEntity, ValueContentAbstractValue> Data { get; }
         public bool IsReachable { get; }
     }
 }

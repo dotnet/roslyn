@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
 
             public override ParameterValidationAbstractValue UnknownOrMayBeValue => ParameterValidationAbstractValue.MayBeValidated;
 
-            public override int Compare(ParameterValidationAbstractValue oldValue, ParameterValidationAbstractValue newValue)
+            public override int Compare(ParameterValidationAbstractValue oldValue, ParameterValidationAbstractValue newValue, bool assertMonotonicity)
             {
                 return Comparer<ParameterValidationAbstractValue>.Default.Compare(oldValue, newValue);
             }

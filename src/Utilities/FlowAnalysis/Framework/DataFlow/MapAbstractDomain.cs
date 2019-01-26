@@ -28,6 +28,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// 3) 1, otherwise.
         /// </returns>
         public sealed override int Compare(DictionaryAnalysisData<TKey, TValue> oldValue, DictionaryAnalysisData<TKey, TValue> newValue)
+            => Compare(oldValue, newValue, assertMonotonicity: true);
+
+        public sealed override bool Equals(DictionaryAnalysisData<TKey, TValue> value1, DictionaryAnalysisData<TKey, TValue> value2)
+            => Compare(value1, value2, assertMonotonicity: false) == 0;
+
+        private int Compare(DictionaryAnalysisData<TKey, TValue> oldValue, DictionaryAnalysisData<TKey, TValue> newValue, bool assertMonotonicity)
         {
             Debug.Assert(oldValue != null);
             Debug.Assert(newValue != null);
@@ -46,15 +52,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 var value = kvp.Value;
                 if (!newValue.TryGetValue(key, out TValue otherValue))
                 {
-                    Debug.Fail("Non-monotonic Merge function");
+                    FireNonMonotonicAssertIfNeeded(assertMonotonicity);
                     return 1;
                 }
 
-                var result = ValueDomain.Compare(value, otherValue);
+                var result = ValueDomain.Compare(value, otherValue, assertMonotonicity);
 
                 if (result > 0)
                 {
-                    Debug.Fail("Non-monotonic Merge function");
+                    FireNonMonotonicAssertIfNeeded(assertMonotonicity);
                     return 1;
                 }
                 else if (result < 0)
@@ -69,6 +75,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             return newValueIsBigger ? -1 : 0;
+        }
+
+        [Conditional("DEBUG")]
+        private static void FireNonMonotonicAssertIfNeeded(bool assertMonotonicity)
+        {
+            if (assertMonotonicity)
+            {
+                Debug.Fail("Non-monotonic merge");
+            }
         }
 
         public override DictionaryAnalysisData<TKey, TValue> Merge(DictionaryAnalysisData<TKey, TValue> value1, DictionaryAnalysisData<TKey, TValue> value2)

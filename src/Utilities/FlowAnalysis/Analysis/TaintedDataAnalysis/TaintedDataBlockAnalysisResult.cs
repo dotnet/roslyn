@@ -11,16 +11,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// </summary>
     internal class TaintedDataBlockAnalysisResult : AbstractBlockAnalysisResult
     {
-        public ImmutableDictionary<AnalysisEntity, TaintedDataAbstractValue> InputData { get; }
-        public ImmutableDictionary<AnalysisEntity, TaintedDataAbstractValue> OutputData { get; }
-        public bool IsReachable { get; }
+        public ImmutableDictionary<AnalysisEntity, TaintedDataAbstractValue> Data { get; }
 
-        public TaintedDataBlockAnalysisResult(BasicBlock basicBlock, DataFlowAnalysisInfo<TaintedDataAnalysisData> blockAnalysisData)
+        public TaintedDataBlockAnalysisResult(BasicBlock basicBlock, TaintedDataAnalysisData blockAnalysisData)
             : base(basicBlock)
         {
-            InputData = blockAnalysisData.Input?.CoreAnalysisData.ToImmutableDictionary() ?? ImmutableDictionary<AnalysisEntity, TaintedDataAbstractValue>.Empty;
-            OutputData = blockAnalysisData.Output?.CoreAnalysisData.ToImmutableDictionary() ?? ImmutableDictionary<AnalysisEntity, TaintedDataAbstractValue>.Empty;
-            IsReachable = blockAnalysisData.Input?.IsReachableBlockData ?? true;
+            Data = blockAnalysisData?.CoreAnalysisData.ToImmutableDictionary() ?? ImmutableDictionary<AnalysisEntity, TaintedDataAbstractValue>.Empty;
         }
     }
 }

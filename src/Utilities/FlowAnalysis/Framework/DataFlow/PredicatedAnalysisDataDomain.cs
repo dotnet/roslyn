@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public override int Compare(TAnalysisData oldValue, TAnalysisData newValue) => oldValue.Compare(newValue, CoreDataAnalysisDomain);
 
+        public override bool Equals(TAnalysisData value1, TAnalysisData value2) => value1.Equals(value2);
+
         public override TAnalysisData Merge(TAnalysisData value1, TAnalysisData value2)
         {
             Debug.Assert(value1 != null);

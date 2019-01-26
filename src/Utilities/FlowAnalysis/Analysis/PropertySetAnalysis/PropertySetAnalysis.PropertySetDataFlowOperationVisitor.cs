@@ -74,8 +74,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 => GetClonedAnalysisDataHelper(analysisData);
             public override PropertySetAnalysisData GetEmptyAnalysisData()
                 => GetEmptyAnalysisDataHelper();
-            protected override PropertySetAnalysisData GetAnalysisDataAtBlockEnd(PropertySetAnalysisResult analysisResult, BasicBlock block)
-                => GetClonedAnalysisDataHelper(analysisResult[block].OutputData);
+            protected override PropertySetAnalysisData GetExitBlockOutputData(PropertySetAnalysisResult analysisResult)
+                => GetClonedAnalysisDataHelper(analysisResult.ExitBlockOutput.Data);
             protected override bool Equals(PropertySetAnalysisData value1, PropertySetAnalysisData value2)
                 => EqualsHelper(value1, value2);
 
