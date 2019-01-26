@@ -114,6 +114,33 @@ class C
                 EvalResult("P6", "6", "object {int}", "((B)c.o).P6", DkmEvaluationResultFlags.ReadOnly));
         }
 
+        [Fact]
+        public void HiddenMembers()
+        {
+            var source =
+@"using System.Diagnostics;
+abstract class A
+{
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public object P1;
+}
+class B : A
+{
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    new public object P1 => base.P1;
+}";
+            var assembly = GetAssembly(source);
+            var type = assembly.GetType("B");
+            var value = CreateDkmClrValue(
+                value: type.Instantiate(),
+                type: type,
+                evalFlags: DkmEvaluationResultFlags.None,
+                valueFlags: DkmClrValueFlags.Synthetic);
+            var evalResult = FormatResult("this", value);
+            Verify(evalResult,
+                EvalResult("this", "{B}", "B", "this", DkmEvaluationResultFlags.None));
+        }
+
         /// <summary>
         /// DkmClrDebuggerBrowsableAttributes are obtained from the
         /// containing type and associated with the member name. For
