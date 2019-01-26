@@ -450,8 +450,8 @@ BeginningOfLine,
 @"class C {
     void Goo() {
         var v = a &&
-                b &&
-                c;
+            b &&
+            c;
     }
 }");
         }
@@ -465,8 +465,8 @@ BeginningOfLine,
 }",
 @"class C {
     bool v = a &&
-             b &&
-             c;
+        b &&
+        c;
 }");
         }
 
@@ -482,9 +482,9 @@ BeginningOfLine,
 @"class C {
     void Bar() {
         var goo = ""now"" +
-                  ""is"" +
-                  ""the"" +
-                  ""time"";
+            ""is"" +
+            ""the"" +
+            ""time"";
     }
 }");
         }
@@ -501,9 +501,9 @@ BeginningOfLine,
 @"class C {
     void Bar() {
         var goo = ""now""
-                  + ""is""
-                  + ""the""
-                  + ""time"";
+            + ""is""
+            + ""the""
+            + ""time"";
     }
 }");
         }

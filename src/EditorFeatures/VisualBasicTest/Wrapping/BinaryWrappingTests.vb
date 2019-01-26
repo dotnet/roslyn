@@ -427,8 +427,8 @@ end class",
 "class C
     sub Goo()
         dim v = a andalso
-                b andalso
-                c
+            b andalso
+            c
     end sub
 end class")
         End Function
@@ -441,8 +441,8 @@ end class")
 end class",
 "class C
     dim v = a andalso
-            b andalso
-            c
+        b andalso
+        c
 end class")
         End Function
 
@@ -457,9 +457,9 @@ end class",
 "class C
     sub Bar()
         dim goo = ""now"" &
-                  ""is"" &
-                  ""the"" &
-                  ""time""
+            ""is"" &
+            ""the"" &
+            ""time""
     end sub
 end class")
         End Function
@@ -475,9 +475,9 @@ end class",
 "class C
     sub Bar()
         dim goo = ""now"" _
-                  & ""is"" _
-                  & ""the"" _
-                  & ""time""
+            & ""is"" _
+            & ""the"" _
+            & ""time""
     end sub
 end class")
         End Function

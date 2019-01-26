@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
     /// </summary>
     internal abstract partial class AbstractSyntaxWrapper : ISyntaxWrapper
     {
+        protected abstract IBlankLineIndentationService GetIndentationService();
+
         public abstract Task<ICodeActionComputer> TryCreateComputerAsync(Document document, int position, SyntaxNode node, CancellationToken cancellationToken);
 
         protected static async Task<bool> ContainsUnformattableContentAsync(

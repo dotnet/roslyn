@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
         {
             private readonly ImmutableArray<SyntaxNodeOrToken> _exprsAndOperators;
             private readonly OperatorPlacementWhenWrappingPreference _preference;
+            private readonly IBlankLineIndentationService _indentationService;
 
             private readonly SyntaxTriviaList _indentationTrivia;
             private readonly SyntaxTriviaList _newlineBeforeOperatorTrivia;
@@ -37,12 +38,12 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
                 _exprsAndOperators = exprsAndOperators;
                 _preference = options.GetOption(CodeStyleOptions.OperatorPlacementWhenWrapping);
 
-                var generator = SyntaxGenerator.GetGenerator(document);
-                var indentationString = OriginalSourceText.GetOffset(binaryExpression.Span.Start)
-                                                          .CreateIndentationString(UseTabs, TabSize);
-
-                _indentationTrivia = new SyntaxTriviaList(generator.Whitespace(indentationString));
+                _indentationService = service.GetIndentationService();
                 _newlineBeforeOperatorTrivia = service.GetNewLineBeforeOperatorTrivia(NewLineTrivia);
+
+                var generator = SyntaxGenerator.GetGenerator(document);
+                var indentationString = GetSingleIndentation();
+                _indentationTrivia = new SyntaxTriviaList(generator.Whitespace(indentationString));
             }
 
             protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
@@ -104,6 +105,55 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
                 }
 
                 return result.ToImmutableAndFree();
+            }
+
+            private string GetSingleIndentation()
+            {
+                var firstOperatorToken = _exprsAndOperators[1].AsToken();
+
+                SourceText newSourceText;
+                Document newDocument;
+                int lineNumberOffset;
+                IndentationResult desiredIndentation;
+                if (OriginalSourceText.AreOnSameLine(_exprsAndOperators[0].AsNode().GetLastToken(), firstOperatorToken))
+                {
+                    // Insert a newline before or after the first binary operator.  Then ask the
+                    // ISynchronousIndentationService where it thinks that the next line should be
+                    // indented.
+                    if (_preference == OperatorPlacementWhenWrappingPreference.BeginningOfLine)
+                    {
+                        newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(firstOperatorToken.Span.Start, 0), _newlineBeforeOperatorTrivia.ToFullString()));
+                    }
+                    else
+                    {
+                        newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(firstOperatorToken.Span.End, 0), NewLine));
+                    }
+
+                    newDocument = OriginalDocument.WithText(newSourceText);
+                    lineNumberOffset = 1;
+                }
+                else
+                {
+                    // The operator is already on its own line, so just get the desired indentation for that line
+                    newSourceText = OriginalSourceText;
+                    newDocument = OriginalDocument;
+                    lineNumberOffset = 1;
+                }
+
+                var originalLineNumber = OriginalSourceText.Lines.GetLineFromPosition(firstOperatorToken.Span.Start).LineNumber;
+                desiredIndentation = _indentationService.GetBlankLineIndentation(
+                    newDocument,
+                    originalLineNumber + lineNumberOffset,
+                    FormattingOptions.IndentStyle.Smart,
+                    CancellationToken);
+
+                var baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.BasePosition);
+                var baseOffsetInLine = desiredIndentation.BasePosition - baseLine.Start;
+
+                var indent = baseOffsetInLine + desiredIndentation.Offset;
+
+                var indentString = indent.CreateIndentationString(UseTabs, TabSize);
+                return indentString;
             }
         }
     }

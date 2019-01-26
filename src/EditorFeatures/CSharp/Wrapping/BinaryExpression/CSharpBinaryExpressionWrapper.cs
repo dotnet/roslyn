@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.BinaryExpression
@@ -12,6 +13,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.BinaryExpression
             : base(CSharpSyntaxFactsService.Instance, CSharpPrecedenceService.Instance)
         {
         }
+
+        protected override IBlankLineIndentationService GetIndentationService()
+            => new CSharpIndentationService();
 
         protected override SyntaxTriviaList GetNewLineBeforeOperatorTrivia(SyntaxTriviaList newLine)
             => newLine;
