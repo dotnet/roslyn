@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -61,12 +63,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Join(ref afterSwitchState, ref this.State);
             }
 
-            if (reachableLabels.Contains(node.BreakLabel))
+            if (reachableLabels.Contains(node.BreakLabel) || node.DefaultLabel == null && IsTraditionalSwitch(node))
             {
                 Join(ref afterSwitchState, ref initialState);
             }
 
             ResolveBreaks(afterSwitchState, node.BreakLabel);
+        }
+
+        /// <summary>
+        /// Is the switch statement one that could be interpreted as a C# 6 or earlier switch statement?
+        /// </summary>
+        private bool IsTraditionalSwitch(BoundSwitchStatement node)
+        {
+            // Before recursive patterns were introduced, we did not consider handling both 'true' and 'false' to
+            // completely handle all case of a switch on a bool unless there was some patterny syntax or semantics
+            // in the switch.  We had two different bound nodes and separate flow analysis handling for
+            // "traditional" switch statements and "pattern-based" switch statements.  We simulate that behavior
+            // by testing to see if this switch would have been handled under the old rules by the old compiler.
+
+            // If we are in a recent enough language version, we treat the switch as a fully pattern-based switch
+            // for the purposes of flow analysis.
+            if (((CSharpParseOptions)node.Syntax.SyntaxTree.Options).LanguageVersion >= MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
+            {
+                return false;
+            }
+
+            if (!node.Expression.Type.IsValidV6SwitchGoverningType())
+            {
+                return false;
+            }
+
+            foreach (var sectionSyntax in ((SwitchStatementSyntax)node.Syntax).Sections)
+            {
+                foreach (var label in sectionSyntax.Labels)
+                {
+                    if (label.Kind() == SyntaxKind.CasePatternSwitchLabel)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         protected virtual void VisitSwitchSection(BoundSwitchSection node, bool isLastSection)
