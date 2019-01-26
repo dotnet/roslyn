@@ -17,11 +17,11 @@ namespace Roslyn.Diagnostics.Analyzers
     {
         private sealed class ApiLine
         {
-            public string Text { get; private set; }
-            public TextSpan Span { get; private set; }
-            public SourceText SourceText { get; private set; }
-            public string Path { get; private set; }
-            public bool IsShippedApi { get; private set; }
+            public string Text { get; }
+            public TextSpan Span { get; }
+            public SourceText SourceText { get; }
+            public string Path { get; }
+            public bool IsShippedApi { get; }
 
             internal ApiLine(string text, TextSpan span, SourceText sourceText, string path, bool isShippedApi)
             {
@@ -34,11 +34,11 @@ namespace Roslyn.Diagnostics.Analyzers
         }
 
 #pragma warning disable CA1815 // Override equals and operator equals on value types
-        private struct RemovedApiLine
+        private readonly struct RemovedApiLine
 #pragma warning restore CA1815 // Override equals and operator equals on value types
         {
-            public string Text { get; private set; }
-            public ApiLine ApiLine { get; private set; }
+            public string Text { get; }
+            public ApiLine ApiLine { get; }
 
             internal RemovedApiLine(string text, ApiLine apiLine)
             {
@@ -48,11 +48,11 @@ namespace Roslyn.Diagnostics.Analyzers
         }
 
 #pragma warning disable CA1815 // Override equals and operator equals on value types
-        private struct ApiData
+        private readonly struct ApiData
 #pragma warning restore CA1815 // Override equals and operator equals on value types
         {
-            public ImmutableArray<ApiLine> ApiList { get; private set; }
-            public ImmutableArray<RemovedApiLine> RemovedApiList { get; private set; }
+            public ImmutableArray<ApiLine> ApiList { get; }
+            public ImmutableArray<RemovedApiLine> RemovedApiList { get; }
 
             internal ApiData(ImmutableArray<ApiLine> apiList, ImmutableArray<RemovedApiLine> removedApiList)
             {
