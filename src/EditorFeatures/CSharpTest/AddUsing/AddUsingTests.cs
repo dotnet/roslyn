@@ -2135,7 +2135,7 @@ class Program
         public async Task TestAttribute()
         {
             var input = @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ";
-            await TestActionCountAsync(input, 1);
+            await TestActionCountAsync(input, 2);
 
             await TestAsync(
 input,
