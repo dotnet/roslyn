@@ -277,10 +277,12 @@ unsafe class C<T>
 
             var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             compilation.VerifyDiagnostics(
-                // (8,7): error CS0306: The type 'int*' may not be used as a type argument
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*"),
-                // (9,7): error CS0306: The type 'int**' may not be used as a type argument
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int**").WithArguments("int**"),
+                // (8,13): error CS0306: The type 'int*' may not be used as a type argument
+                //     C<int*> f4;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "f4").WithArguments("int*").WithLocation(8, 13),
+                // (9,14): error CS0306: The type 'int**' may not be used as a type argument
+                //     C<int**> f5;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "f5").WithArguments("int**").WithLocation(9, 14),
 
                 // (4,10): warning CS0169: The field 'C<T>.f0' is never used
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "f0").WithArguments("C<T>.f0"),
@@ -3010,6 +3012,71 @@ public unsafe struct S
     partial void M(S *p);
 }";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void IsUnmanagedTypeSemanticModel()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+struct S1 { }
+struct S2 { public S1 F1; }
+struct S3 { public object F1; }
+struct S4<T> { public T F1; }
+struct S5<T> where T : unmanaged { public T F1; }
+enum E1 { }
+class C<T>
+{
+    unsafe void M<U>() where U : unmanaged
+    {
+        var s1 = new S1();
+        var s2 = new S2();
+        var s3 = new S3();
+        var s4 = new S4<int>();
+        var s5 = new S4<int>();
+        var i0 = 0;
+        var e1 = new E1();
+        var o1 = new object();
+        var c1 = new C<int>;
+        var t1 = default(T);
+        var u1 = default(U);
+        void* p1 = null;
+        var a1 = new { X = 0 };
+        var a2 = new int[1];
+        var t2 = (0, 0);
+    }
+}");
+            var comp = CreateCompilation(tree);
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetRoot();
+            // The spec states the following are unmanaged types:
+            // sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, decimal, or bool.
+            // Any enum_type.
+            // Any pointer_type.
+            // Any user-defined struct_type that is not a constructed type and contains fields of unmanaged_types only.
+            // A type parameter with an unmanaged constraint
+            Assert.True(getLocalType("s1").IsUnmanagedType);
+            Assert.True(getLocalType("s2").IsUnmanagedType);
+            Assert.False(getLocalType("s3").IsUnmanagedType);
+            Assert.False(getLocalType("s4").IsUnmanagedType);
+            Assert.False(getLocalType("s5").IsUnmanagedType);
+            Assert.True(getLocalType("i0").IsUnmanagedType);
+            Assert.True(getLocalType("e1").IsUnmanagedType);
+            Assert.False(getLocalType("o1").IsUnmanagedType);
+            Assert.False(getLocalType("c1").IsUnmanagedType);
+            Assert.False(getLocalType("t1").IsUnmanagedType);
+            Assert.True(getLocalType("u1").IsUnmanagedType);
+            Assert.True(getLocalType("p1").IsUnmanagedType);
+            Assert.False(getLocalType("a1").IsUnmanagedType);
+            Assert.False(getLocalType("a2").IsUnmanagedType);
+            Assert.False(getLocalType("t2").IsUnmanagedType);
+
+            ITypeSymbol getLocalType(string name)
+            {
+                var decl = root.DescendantNodes()
+                    .OfType<VariableDeclaratorSyntax>()
+                    .Single(n => n.Identifier.ValueText == name);
+                return ((ILocalSymbol)model.GetDeclaredSymbol(decl)).Type;
+            }
         }
 
         #endregion IsManagedType
@@ -7644,30 +7711,30 @@ unsafe class C
                 // (6,34): error CS1586: Array creation must have array size or array initializer
                 //         { int* p = stackalloc int[]; }
                 Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(6, 34),
-                // (8,34): error CS1586: Array creation must have array size or array initializer
-                //         { int* p = stackalloc int[][]; }
-                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(8, 34),
-                // (9,34): error CS1586: Array creation must have array size or array initializer
-                //         { int* p = stackalloc int[][1]; }
-                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(9, 34),
-                // (9,37): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         { int* p = stackalloc int[][1]; }
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1").WithLocation(9, 37),
-                // (11,38): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         { int* p = stackalloc int[1][1]; }
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1").WithLocation(11, 38),
                 // (7,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[1, 1]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1, 1]").WithLocation(7, 31),
+                // (8,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
+                //         { int* p = stackalloc int[][]; }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(8, 31),
                 // (8,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[][]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][]").WithLocation(8, 31),
+                // (9,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
+                //         { int* p = stackalloc int[][1]; }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(9, 31),
                 // (9,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[][1]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][1]").WithLocation(9, 31),
+                // (10,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
+                //         { int* p = stackalloc int[1][]; }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(10, 31),
                 // (10,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[1][]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1][]").WithLocation(10, 31),
+                // (11,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
+                //         { int* p = stackalloc int[1][1]; }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(11, 31),
                 // (11,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[1][1]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1][1]").WithLocation(11, 31)

@@ -807,4 +807,13 @@
   <data name="Parameter_preferences" xml:space="preserve">
     <value>Parameter preferences</value>
   </data>
+  <data name="Prefix_0_does_not_match_expected_prefix_1" xml:space="preserve">
+    <value>Prefix '{0}' does not match expected prefix '{1}'</value>
+  </data>
+  <data name="Prefix_0_is_not_expected" xml:space="preserve">
+    <value>Prefix '{0}' is not expected</value>
+  </data>
+  <data name="DateTimeKind_must_be_Utc" xml:space="preserve">
+    <value>DateTimeKind must be Utc</value>
+  </data>
 </root>

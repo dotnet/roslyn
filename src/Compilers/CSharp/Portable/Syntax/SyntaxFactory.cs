@@ -2069,12 +2069,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Gets the containing expression that is actually a language expression and not just typed
+        /// Gets the containing expression that is actually a language expression (or something that
+        /// GetSymbolInfo can be applied to) and not just typed
         /// as an ExpressionSyntax for convenience. For example, NameSyntax nodes on the right side
         /// of qualified names and member access expressions are not language expressions, yet the
         /// containing qualified names or member access expressions are indeed expressions.
         /// Similarly, if the input node is a cref part that is not independently meaningful, then
-        /// the result will be the full cref.
+        /// the result will be the full cref. Besides an expression, an input that is a NameSyntax
+        /// of a SubpatternSyntax, e.g. in `name: 3` may cause this method to return the enclosing
+        /// SubpatternSyntax.
         /// </summary>
         internal static CSharpSyntaxNode GetStandaloneNode(CSharpSyntaxNode node)
         {
@@ -2182,6 +2185,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (((StackAllocArrayCreationExpressionSyntax)parent).Type == node)
                     {
                         return parent;
+                    }
+
+                    break;
+
+                case SyntaxKind.NameColon:
+                    if (parent.Parent.IsKind(SyntaxKind.Subpattern))
+                    {
+                        return parent.Parent;
                     }
 
                     break;
@@ -2474,12 +2485,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semicolonToken: Token(SyntaxKind.SemicolonToken));
         }
 
-        /// <summary>Creates a new ArrayRankSpecifierSyntax instance.</summary>
-        public static ArrayRankSpecifierSyntax ArrayRankSpecifier(SyntaxToken openBracketToken, SeparatedSyntaxList<ExpressionSyntax> sizes, SyntaxToken closeBracketToken)
-        {
-            return ArrayRankSpecifier(openBracketToken, sizes, closeBracketToken, questionToken: default(SyntaxToken));
-        }
-
         /// <summary>Creates a new ClassOrStructConstraintSyntax instance.</summary>
         public static ClassOrStructConstraintSyntax ClassOrStructConstraint(SyntaxKind kind, SyntaxToken classOrStructKeyword)
         {
@@ -2495,5 +2500,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, default(BlockSyntax), expressionBody);
         public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
                 => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, keyword, default(BlockSyntax), expressionBody, semicolonToken);
+
+        /// <summary>Creates a new PragmaWarningDirectiveTriviaSyntax instance.</summary>
+        public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            return PragmaWarningDirectiveTrivia(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, nullableKeyword: default, errorCodes, endOfDirectiveToken, isActive);
+        }
+
+        /// <summary>Creates a new PragmaWarningDirectiveTriviaSyntax instance.</summary>
+        public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SyntaxToken nullableKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            return PragmaWarningDirectiveTrivia(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, nullableKeyword, errorCodes: default, endOfDirectiveToken, isActive);
+        }
     }
 }

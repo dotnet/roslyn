@@ -519,7 +519,10 @@ End Namespace
                          WellKnownType.System_Threading_Tasks_ValueTask_T,
                          WellKnownType.System_Threading_Tasks_ValueTask,
                          WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder,
-                         WellKnownType.System_Threading_CancellationToken
+                         WellKnownType.System_Threading_CancellationToken,
+                         WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute,
+                         WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -528,7 +531,8 @@ End Namespace
                     Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,
                          WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute
+                         WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_ITuple
                         ' Not always available.
                         Continue For
                 End Select
@@ -576,7 +580,10 @@ End Namespace
                          WellKnownType.System_Threading_Tasks_ValueTask_T,
                          WellKnownType.System_Threading_Tasks_ValueTask,
                          WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder,
-                         WellKnownType.System_Threading_CancellationToken
+                         WellKnownType.System_Threading_CancellationToken,
+                         WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute,
+                         WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -585,7 +592,8 @@ End Namespace
                     Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,
                          WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute
+                         WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_ITuple
                         ' Not always available.
                         Continue For
                 End Select
@@ -671,7 +679,12 @@ End Namespace
                          WellKnownMember.System_Range__All,
                          WellKnownMember.System_Range__Create,
                          WellKnownMember.System_Range__FromStart,
-                         WellKnownMember.System_Range__ToEnd
+                         WellKnownMember.System_Range__ToEnd,
+                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
+                         WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length,
+                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject
                         ' Not always available.
                         Continue For
                 End Select
@@ -803,7 +816,12 @@ End Namespace
                          WellKnownMember.System_Range__All,
                          WellKnownMember.System_Range__Create,
                          WellKnownMember.System_Range__FromStart,
-                         WellKnownMember.System_Range__ToEnd
+                         WellKnownMember.System_Range__ToEnd,
+                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
+                         WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length,
+                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject
                         ' Not always available.
                         Continue For
                 End Select

@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return from fileName in new[] { "mscorlib.dll", "System.dll", "System.Core.dll" }
                    let fullPath = FileUtilities.ResolveRelativePath(fileName, basePath: null, baseDirectory: null, searchPaths: searchPaths, fileExists: File.Exists)
                    where fullPath != null
-                   select manager.CreateMetadataReferenceSnapshot(fullPath, MetadataReferenceProperties.Assembly);
+                   select manager.CreateMetadataReference(fullPath, MetadataReferenceProperties.Assembly);
         }
 
         public int OnAfterAttributeChange(uint docCookie, uint grfAttribs)

@@ -5578,9 +5578,8 @@ public class C
         [Fact]
         public void UseSiteWarning()
         {
-            var signedDllOptions = TestOptions.ReleaseDll.
-                WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                WithStrongNameProvider(s_defaultDesktopProvider);
+            var signedDllOptions = TestOptions.SigningReleaseDll.
+                WithCryptoKeyFile(SigningTestHelpers.KeyPairFile);
 
             var libBTemplate = @"
 [assembly: System.Reflection.AssemblyVersion(""{0}.0.0.0"")]
@@ -6353,7 +6352,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void AssignDefaultToLocal()
         {
             var source = @"
@@ -6648,7 +6647,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void OutVarInExpression()
         {
             var source =
@@ -6686,8 +6685,7 @@ class C
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30436")]
-        [WorkItem(30436, "https://github.com/dotnet/roslyn/issues/30436")]
+        [Fact]
         public void IndexExpression()
         {
             var source = TestSources.Index + @"
@@ -6698,8 +6696,7 @@ class C
         var x = ^1;
     }
 }";
-            var langVersion = LanguageVersion.CSharp8;
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        2 (0x2)
   .maxstack  1
@@ -6708,7 +6705,7 @@ class C
   IL_0001:  ret
 }");
 
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Value", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Value").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -6718,7 +6715,7 @@ class C
   IL_0007:  ret
 }");
 
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "^2", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "^2").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        8 (0x8)
   .maxstack  2
@@ -6730,8 +6727,7 @@ class C
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30436")]
-        [WorkItem(30436, "https://github.com/dotnet/roslyn/issues/30436")]
+        [Fact]
         public void RangeExpression_None()
         {
             var source = TestSources.Index + TestSources.Range + @"
@@ -6742,8 +6738,7 @@ class C
         var x = ..;
     }
 }";
-            var langVersion = LanguageVersion.CSharp8;
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        2 (0x2)
   .maxstack  1
@@ -6752,7 +6747,7 @@ class C
   IL_0001:  ret
 }");
 
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Start.Value", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Start.Value").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       16 (0x10)
   .maxstack  1
@@ -6766,7 +6761,7 @@ class C
   IL_000f:  ret
 }");
 
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "..", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "..").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        6 (0x6)
   .maxstack  1
@@ -6776,8 +6771,7 @@ class C
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30436")]
-        [WorkItem(30436, "https://github.com/dotnet/roslyn/issues/30436")]
+        [Fact]
         public void RangeExpression_Left()
         {
             var source = TestSources.Index + TestSources.Range + @"
@@ -6788,8 +6782,7 @@ class C
         var x = 1..;
     }
 }";
-            var langVersion = LanguageVersion.CSharp8;
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        2 (0x2)
   .maxstack  1
@@ -6798,7 +6791,7 @@ class C
   IL_0001:  ret
 }");
 
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Start.Value", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Start.Value").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       16 (0x10)
   .maxstack  1
@@ -6812,7 +6805,7 @@ class C
   IL_000f:  ret
 }");
 
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "2..", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "2..").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       12 (0xc)
   .maxstack  1
@@ -6824,8 +6817,7 @@ class C
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30436")]
-        [WorkItem(30436, "https://github.com/dotnet/roslyn/issues/30436")]
+        [Fact]
         public void RangeExpression_Right()
         {
             var source = TestSources.Index + TestSources.Range + @"
@@ -6836,8 +6828,7 @@ class C
         var x = ..1;
     }
 }";
-            var langVersion = LanguageVersion.CSharp8;
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        2 (0x2)
   .maxstack  1
@@ -6846,7 +6837,7 @@ class C
   IL_0001:  ret
 }");
 
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Start.Value", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Start.Value").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       16 (0x10)
   .maxstack  1
@@ -6860,7 +6851,7 @@ class C
   IL_000f:  ret
 }");
 
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "..2", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "..2").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       12 (0xc)
   .maxstack  1
@@ -6872,8 +6863,7 @@ class C
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30436")]
-        [WorkItem(30436, "https://github.com/dotnet/roslyn/issues/30436")]
+        [Fact]
         public void RangeExpression_Both()
         {
             var source = TestSources.Index + TestSources.Range + @"
@@ -6884,8 +6874,7 @@ class C
         var x = 1..2;
     }
 }";
-            var langVersion = LanguageVersion.CSharp8;
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        2 (0x2)
   .maxstack  1
@@ -6894,7 +6883,7 @@ class C
   IL_0001:  ret
 }");
 
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Start.Value", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Start.Value").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       16 (0x10)
   .maxstack  1
@@ -6908,7 +6897,7 @@ class C
   IL_000f:  ret
 }");
 
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "3..4", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "3..4").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       18 (0x12)
   .maxstack  2

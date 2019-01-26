@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool _sawAwait;
         private bool _sawAwaitInExceptionHandler;
+        private bool _needsSpilling;
         private readonly DiagnosticBag _diagnostics;
         private readonly Instrumenter _instrumenter;
         private readonly BoundStatement _rootStatement;
@@ -94,10 +95,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, statement, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics,
                                                       dynamicInstrumenter != null ? new DebugInfoInjector(dynamicInstrumenter) : DebugInfoInjector.Singleton);
 
+                statement.CheckLocalsDefined();
                 var loweredStatement = (BoundStatement)localRewriter.Visit(statement);
+                loweredStatement.CheckLocalsDefined();
                 sawLambdas = localRewriter._sawLambdas;
                 sawLocalFunctions = localRewriter._sawLocalFunctions;
                 sawAwaitInExceptionHandler = localRewriter._sawAwaitInExceptionHandler;
+
+                if (localRewriter._needsSpilling && !loweredStatement.HasErrors)
+                {
+                    // Move spill sequences to a top-level statement. This handles "lifting" await and the switch expression.
+                    var spilledStatement = SpillSequenceSpiller.Rewrite(loweredStatement, method, compilationState, diagnostics);
+                    spilledStatement.CheckLocalsDefined();
+                    loweredStatement = spilledStatement;
+                }
+
                 if (dynamicInstrumenter != null)
                 {
                     dynamicAnalysisSpans = dynamicInstrumenter.DynamicAnalysisSpans;
@@ -538,8 +550,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeSymbol rawIndexType = node.Indices[0].Type;
-            if (!(TypeSymbol.Equals(rawIndexType, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything2) ||
-                  TypeSymbol.Equals(rawIndexType, _compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything2)))
+            if (!(TypeSymbol.Equals(rawIndexType, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything) ||
+                  TypeSymbol.Equals(rawIndexType, _compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything)))
             {
                 return base.VisitArrayAccess(node);
             }
@@ -558,11 +570,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var indexFromEndSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Index__FromEnd);
 
             BoundExpression resultExpr;
-            if (TypeSymbol.Equals(indexType, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything2))
+            if (TypeSymbol.Equals(indexType, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything))
             {
 
                 // array[Index] is translated to:
-                // index.FromEnd ? array[array.Length - index.Value] : array[index.Value]
+                // array[index.FromEnd ? array.Length - index.Value : index.Value]
 
                 var indexValueExpr = F.Property(indexLocal, indexValueSymbol);
 
@@ -573,17 +585,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray.Create<BoundExpression>(
                         indexAssign,
                         arrayAssign),
-                    F.Conditional(
-                        F.Property(indexLocal, indexFromEndSymbol),
-                        F.ArrayAccess(arrayLocal, ImmutableArray.Create<BoundExpression>(F.Binary(
-                            BinaryOperatorKind.Subtraction,
-                            F.SpecialType(SpecialType.System_Int32),
-                            F.ArrayLength(arrayLocal),
-                            indexValueExpr))),
-                        F.ArrayAccess(arrayLocal, ImmutableArray.Create(indexValueExpr)),
-                        node.Type));
+                    F.ArrayAccess(arrayLocal, ImmutableArray.Create(
+                        F.Conditional(
+                            F.Property(indexLocal, indexFromEndSymbol),
+                            F.Binary(
+                                BinaryOperatorKind.Subtraction,
+                                F.SpecialType(SpecialType.System_Int32),
+                                F.ArrayLength(arrayLocal),
+                                indexValueExpr),
+                            indexValueExpr,
+                            node.Type))));
             }
-            else if (TypeSymbol.Equals(indexType, _compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything2))
+            else if (TypeSymbol.Equals(indexType, _compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything))
             {
                 // array[Range] is translated to:
                 // var start = range.Start.FromEnd ? array.Length - range.Start.Value : range.Start.Value;
@@ -909,6 +922,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node)
             {
                 Fail(node);
                 return null;
