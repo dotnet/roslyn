@@ -422,9 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     var operand = conv.Operand;
                                     var operandType = operand.Type;
                                     var convertedType = conv.Type;
-                                    if (operandType?.IsNullableType() == true &&
-                                        convertedType?.IsNullableType() == false &&
-                                        operandType.GetNullableUnderlyingType().Equals(convertedType, TypeCompareKind.AllIgnoreOptions))
+                                    if (AreNullableAndUnderlyingTypes(operandType, convertedType, out _))
                                     {
                                         // Explicit conversion of Nullable<T> to T is equivalent to Nullable<T>.Value.
                                         // For instance, in the following, when evaluating `((A)a).B` we need to recognize
@@ -433,8 +431,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         //   struct B { }
                                         //   if (a?.B != null) _ = ((A)a).B.Value; // no warning
                                         int containingSlot = MakeSlot(operand);
-                                        return containingSlot < 0 ? -1 : GetNullableOfTValueSlot(operandType, containingSlot);
+                                        return containingSlot < 0 ? -1 : GetNullableOfTValueSlot(operandType, containingSlot, out _);
                                     }
+                                    else if (AreNullableAndUnderlyingTypes(convertedType, operandType, out _))
+                                    {
+                                        // Explicit conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
+                                        return getPlaceholderSlot(node);
+                                    }
+                                }
+                                break;
+                            case ConversionKind.ImplicitNullable:
+                                // Implicit conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
+                                if (AreNullableAndUnderlyingTypes(conv.Type, conv.Operand.Type, out _))
+                                {
+                                    return getPlaceholderSlot(node);
                                 }
                                 break;
                             case ConversionKind.Identity:
@@ -454,13 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.AnonymousObjectCreationExpression:
                 case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
-                    {
-                        if (_placeholderLocalsOpt != null && _placeholderLocalsOpt.TryGetValue(node, out ObjectCreationPlaceholderLocal placeholder))
-                        {
-                            return GetOrCreateSlot(placeholder);
-                        }
-                    }
-                    break;
+                    return getPlaceholderSlot(node);
                 case BoundKind.ConditionalReceiver:
                     {
                         int slot = _lastConditionalAccessSlot;
@@ -475,6 +479,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return -1;
+
+            int getPlaceholderSlot(BoundExpression expr)
+            {
+                if (_placeholderLocalsOpt != null && _placeholderLocalsOpt.TryGetValue(expr, out ObjectCreationPlaceholderLocal placeholder))
+                {
+                    return GetOrCreateSlot(placeholder);
+                }
+                return -1;
+            }
 
             MethodSymbol getTopLevelMethod(MethodSymbol method)
             {
@@ -500,9 +513,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case ConversionKind.Identity:
                     case ConversionKind.DefaultOrNullLiteral:
-                        return true;
                     case ConversionKind.ImplicitReference:
-                        return operandOpt?.IsLiteralNullOrDefault() == true;
+                        return true;
                     case ConversionKind.ImplicitTupleLiteral:
                         {
                             var arguments = ((BoundConvertedTupleLiteral)operandOpt).Arguments;
@@ -775,12 +787,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // }
                     // For now, we copy a limited set of BoundNode types that shouldn't contain cycles.
                     if ((value.Kind == BoundKind.ObjectCreationExpression || value.Kind == BoundKind.AnonymousObjectCreationExpression || value.Kind == BoundKind.DynamicObjectCreationExpression || targetType.TypeSymbol.IsAnonymousType) &&
-                        targetType.TypeSymbol.Equals(valueType.TypeSymbol, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)) // https://github.com/dotnet/roslyn/issues/29968 Allow assignment to base type.
+                        areEquivalentTypes(targetType, valueType)) // https://github.com/dotnet/roslyn/issues/29968 Allow assignment to base type.
                     {
                         if (valueSlot > 0)
                         {
                             InheritNullableStateOfTrackableType(targetSlot, valueSlot, isByRefTarget, slotWatermark: GetSlotWatermark());
                         }
+                    }
+                }
+                else if (targetType.IsNullableType())
+                {
+                    Debug.Assert(areEquivalentTypes(targetType, valueType));
+                    // Nullable<T> is handled here rather than in InheritNullableStateOfTrackableStruct since that
+                    // method only clones auto-properties (see https://github.com/dotnet/roslyn/issues/29619).
+                    // When that issue is fixed, Nullable<T> should be handled there instead.
+                    if (valueSlot > 0 && areEquivalentTypes(targetType, valueType))
+                    {
+                        InheritNullableStateOfTrackableType(targetSlot, valueSlot, isByRefTarget, slotWatermark: GetSlotWatermark());
                     }
                 }
                 else if (EmptyStructTypeCache.IsTrackableStructType(targetType.TypeSymbol) &&
@@ -789,6 +812,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, isDefaultValue: IsDefaultValue(value), isByRefTarget: IsByRefTarget(targetSlot), slotWatermark: GetSlotWatermark());
                 }
             }
+
+            bool areEquivalentTypes(TypeSymbolWithAnnotations t1, TypeSymbolWithAnnotations t2) =>
+                t1.TypeSymbol.Equals(t2.TypeSymbol, TypeCompareKind.AllIgnoreOptions);
         }
 
         private int GetSlotWatermark() => this.nextVariableSlot;
@@ -1851,7 +1877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (receiverType.IsNullableType())
                             {
-                                slot = GetNullableOfTValueSlot(receiverType, slot);
+                                slot = GetNullableOfTValueSlot(receiverType, slot, out _);
                             }
                         }
 
@@ -3433,6 +3459,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AssignmentKind.Assignment,
                 reportTopLevelWarnings: fromExplicitCast,
                 reportRemainingWarnings: true);
+
+            switch (node.ConversionKind)
+            {
+                case ConversionKind.ImplicitNullable:
+                case ConversionKind.ExplicitNullable:
+                    TrackNullableStateIfNullableConversion(node);
+                    break;
+            }
+
             return null;
         }
 
@@ -3456,7 +3491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Cannot implicitly convert type '...' to '...'. An explicit conversion exists ...".
             // Since an error was reported, we don't need to report nested warnings as well.
             bool reportNestedWarnings = !conversion.IsExplicit;
-            return ApplyConversion(
+            var resultType = ApplyConversion(
                 expr,
                 operand,
                 conversion,
@@ -3468,6 +3503,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 assignmentKind,
                 reportTopLevelWarnings: true,
                 reportRemainingWarnings: reportNestedWarnings);
+
+            var conv = expr as BoundConversion;
+            if (conv != null && conv.ConversionKind == ConversionKind.ImplicitNullable)
+            {
+                TrackNullableStateIfNullableConversion(conv);
+            }
+
+            return resultType;
+        }
+
+        private static bool AreNullableAndUnderlyingTypes(TypeSymbol nullableTypeOpt, TypeSymbol underlyingTypeOpt, out TypeSymbolWithAnnotations underlyingTypeWithAnnotations)
+        {
+            if (nullableTypeOpt?.IsNullableType() == true &&
+                underlyingTypeOpt?.IsNullableType() == false)
+            {
+                var typeArg = nullableTypeOpt.GetNullableUnderlyingTypeWithAnnotations();
+                if (typeArg.TypeSymbol.Equals(underlyingTypeOpt, TypeCompareKind.AllIgnoreOptions))
+                {
+                    underlyingTypeWithAnnotations = typeArg;
+                    return true;
+                }
+            }
+            underlyingTypeWithAnnotations = default;
+            return false;
         }
 
         public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
@@ -3542,6 +3601,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void trackState(BoundExpression value, FieldSymbol field, TypeSymbolWithAnnotations valueType) =>
                 TrackNullableStateForAssignment(value, field.Type, GetOrCreateSlot(field, slot), valueType, MakeSlot(value));
+        }
+
+        private void TrackNullableStateOfNullableValue(int containingSlot, TypeSymbol containingType, BoundExpression value, TypeSymbolWithAnnotations valueType, int valueSlot)
+        {
+            Debug.Assert(containingType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T);
+            Debug.Assert(containingSlot > 0);
+            Debug.Assert(valueSlot > 0);
+
+            int targetSlot = GetNullableOfTValueSlot(containingType, containingSlot, out Symbol symbol);
+            Debug.Assert(targetSlot > 0);
+            if (targetSlot > 0)
+            {
+                TrackNullableStateForAssignment(value, symbol.GetTypeOrReturnType(), targetSlot, valueType, valueSlot);
+            }
+        }
+
+        private void TrackNullableStateIfNullableConversion(BoundConversion node)
+        {
+            Debug.Assert(node.ConversionKind == ConversionKind.ImplicitNullable || node.ConversionKind == ConversionKind.ExplicitNullable);
+
+            var operand = node.Operand;
+            var operandType = operand.Type;
+            var convertedType = node.Type;
+            if (AreNullableAndUnderlyingTypes(convertedType, operandType, out TypeSymbolWithAnnotations underlyingType))
+            {
+                // Conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
+                int valueSlot = MakeSlot(operand);
+                if (valueSlot > 0)
+                {
+                    int containingSlot = GetOrCreateObjectCreationPlaceholderSlot(node);
+                    Debug.Assert(containingSlot > 0);
+                    TrackNullableStateOfNullableValue(containingSlot, convertedType, operand, underlyingType, valueSlot);
+                }
+            }
         }
 
         public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
@@ -4548,14 +4641,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private int GetNullableOfTValueSlot(TypeSymbol containingType, int containingSlot)
+        private int GetNullableOfTValueSlot(TypeSymbol containingType, int containingSlot, out Symbol valueProperty)
         {
             Debug.Assert(containingType.IsNullableType());
             Debug.Assert(TypeSymbol.Equals(GetSlotType(containingSlot), containingType, TypeCompareKind.ConsiderEverything2));
 
             var getValue = (MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value);
-            var member = getValue?.AsMember((NamedTypeSymbol)containingType)?.AssociatedSymbol;
-            return (member is null) ? -1 : GetOrCreateSlot(member, containingSlot);
+            valueProperty = getValue?.AsMember((NamedTypeSymbol)containingType)?.AssociatedSymbol;
+            return (valueProperty is null) ? -1 : GetOrCreateSlot(valueProperty, containingSlot);
         }
 
         protected override void VisitForEachExpression(BoundForEachStatement node)

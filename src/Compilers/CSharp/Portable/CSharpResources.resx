@@ -2981,16 +2981,16 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.</value>
   </data>
   <data name="ERR_NoConvToIDisp" xml:space="preserve">
-    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</value>
+    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.</value>
   </data>
   <data name="ERR_NoConvToIDispWrongAsync" xml:space="preserve">
-    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</value>
+    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</value>
   </data>
   <data name="ERR_NoConvToIAsyncDisp" xml:space="preserve">
-    <value>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'</value>
+    <value>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</value>
   </data>
   <data name="ERR_NoConvToIAsyncDispWrongAsync" xml:space="preserve">
-    <value>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'. Did you mean 'using' rather than 'await using'?</value>
+    <value>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</value>
   </data>
   <data name="ERR_BadParamRef" xml:space="preserve">
     <value>Parameter {0} must be declared with the '{1}' keyword</value>
@@ -5690,6 +5690,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureStaticLocalFunctions" xml:space="preserve">
     <value>static local functions</value>
+  </data>
+  <data name="IDS_FeatureNameShadowingInNestedFunctions" xml:space="preserve">
+    <value>name shadowing in nested functions</value>
   </data>
   <data name="ERR_BadDynamicAwaitForEach" xml:space="preserve">
     <value>Cannot use a collection of dynamic type in an asynchronous foreach</value>

@@ -193,13 +193,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
-        <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'. Did you mean 'using' rather than 'await using'?</source>
-        <target state="new">'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'. Did you mean 'using' rather than 'await using'?</target>
+        <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
+        <target state="new">'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
-        <target state="new">'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</target>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</source>
+        <target state="new">'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
@@ -410,6 +410,11 @@
       <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
         <source>indexing movable fixed buffers</source>
         <target state="new">indexing movable fixed buffers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
+        <source>name shadowing in nested functions</source>
+        <target state="new">name shadowing in nested functions</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
@@ -2564,12 +2569,12 @@
       </trans-unit>
       <trans-unit id="WRN_PatternBadSignature">
         <source>'{0}' does not implement the '{1}' pattern. '{2}' has the wrong signature.</source>
-        <target state="translated">'"{0}" не реализует шаблон "{1}". "{2}" имеет неправильную сигнатуру.</target>
+        <target state="needs-review-translation">'"{0}" не реализует шаблон "{1}". "{2}" имеет неправильную сигнатуру.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternBadSignature_Title">
         <source>Type does not implement the collection pattern; member has the wrong signature</source>
-        <target state="translated">Тип не реализует шаблон коллекции: член содержит неправильную подпись</target>
+        <target state="needs-review-translation">Тип не реализует шаблон коллекции: член содержит неправильную подпись</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
@@ -5571,7 +5576,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.</source>
         <target state="needs-review-translation">'{0}": тип, использованный в операторе using, должен иметь неявное преобразование в System.IDisposable.</target>
         <note />
       </trans-unit>
@@ -9452,8 +9457,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
-        <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'</source>
-        <target state="new">'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'</target>
+        <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
+        <target state="new">'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">
