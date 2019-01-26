@@ -5037,6 +5037,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PatternNullableType" xml:space="preserve">
     <value>It is not legal to use nullable type '{0}' in a pattern; use the underlying type '{1}' instead.</value>
   </data>
+  <data name="ERR_IsNullableType" xml:space="preserve">
+    <value>It is not legal to use nullable reference type '{0}?' in an is-type expression; use the underlying type '{0}' instead.</value>
+  </data>
+  <data name="ERR_AsNullableType" xml:space="preserve">
+    <value>It is not legal to use nullable reference type '{0}?' in an as expression; use the underlying type '{0}' instead.</value>
+  </data>
   <data name="ERR_BadPatternExpression" xml:space="preserve">
     <value>Invalid operand for pattern match; value required, but found '{0}'.</value>
   </data>
@@ -5690,6 +5696,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureStaticLocalFunctions" xml:space="preserve">
     <value>static local functions</value>
+  </data>
+  <data name="IDS_FeatureNameShadowingInNestedFunctions" xml:space="preserve">
+    <value>name shadowing in nested functions</value>
   </data>
   <data name="ERR_BadDynamicAwaitForEach" xml:space="preserve">
     <value>Cannot use a collection of dynamic type in an asynchronous foreach</value>

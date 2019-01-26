@@ -3454,7 +3454,7 @@ class C1
 }
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular);
-            Assert.Equal(false, tree.GetRoot().ContainsDiagnostics);
+            tree.GetDiagnostics().Verify();
         }
 
         [Fact]

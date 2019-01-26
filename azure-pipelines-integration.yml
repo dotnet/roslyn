@@ -4,6 +4,8 @@ trigger:
 - master-vs-deps
 - dev16.0-preview2
 - dev16.0-preview2-vs-deps
+- dev16.0-preview3
+- dev16.0-preview3-vs-deps
 - dev16.1-preview1
 - dev16.1-preview1-vs-deps
 
@@ -15,6 +17,8 @@ pr:
 - demos/*
 - dev16.0-preview2
 - dev16.0-preview2-vs-deps
+- dev16.0-preview3
+- dev16.0-preview3-vs-deps
 - dev16.1-preview1
 - dev16.1-preview1-vs-deps
 
