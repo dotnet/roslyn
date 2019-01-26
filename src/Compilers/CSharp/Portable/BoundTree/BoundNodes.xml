@@ -199,6 +199,9 @@
     identify the scenarios in which this property is populated.
     -->
     <Field Name="BoundContainingTypeOpt" Type="BoundTypeExpression" Null="allow"/>
+
+    <!-- The provided dimensions in an array type expression where dimensions were provided in error. -->
+    <Field Name="BoundDimensionsOpt" Type="ImmutableArray&lt;BoundExpression&gt;" Null="allow"/>
   </Node>
 
   <!-- 

@@ -2800,21 +2800,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundExpression> sizes = ArrayBuilder<BoundExpression>.GetInstance();
             foreach (var arg in node.Type.RankSpecifiers[0].Sizes)
             {
-                // These make the parse tree nicer, but they shouldn't actually appear in the bound tree.
-                if (arg.Kind() != SyntaxKind.OmittedArraySizeExpression)
-                {
-                    var size = BindValue(arg, diagnostics, BindValueKind.RValue);
-                    if (!size.HasAnyErrors)
-                    {
-                        size = ConvertToArrayIndex(size, node, diagnostics, allowIndexAndRange: false);
-                        if (IsNegativeConstantForArraySize(size))
-                        {
-                            Error(diagnostics, ErrorCode.ERR_NegativeArraySize, arg);
-                        }
-                    }
-
+                var size = BindArrayRankSpecifier(arg, node, diagnostics);
+                if (size != null)
                     sizes.Add(size);
-                }
             }
 
             ImmutableArray<BoundExpression> arraySizes = sizes.ToImmutableAndFree();
@@ -2822,6 +2810,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Initializer == null
                 ? new BoundArrayCreation(node, arraySizes, null, type)
                 : BindArrayCreationWithInitializer(diagnostics, node, node.Initializer, type, arraySizes);
+        }
+
+        private BoundExpression BindArrayRankSpecifier(ExpressionSyntax arrayRankSpecifier, SyntaxNode node, DiagnosticBag diagnostics)
+        {
+            // These make the parse tree nicer, but they shouldn't actually appear in the bound tree.
+            if (arrayRankSpecifier.Kind() != SyntaxKind.OmittedArraySizeExpression)
+            {
+                var size = BindValue(arrayRankSpecifier, diagnostics, BindValueKind.RValue);
+                if (!size.HasAnyErrors)
+                {
+                    size = ConvertToArrayIndex(size, node, diagnostics, allowIndexAndRange: false);
+                    if (IsNegativeConstantForArraySize(size))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_NegativeArraySize, arrayRankSpecifier);
+                    }
+                }
+
+                return size;
+            }
+            return null;
         }
 
         private BoundExpression BindImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax node, DiagnosticBag diagnostics)
@@ -6126,6 +6134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             aliasOpt: null,
                             inferredType: false,
                             boundContainingTypeOpt: left as BoundTypeExpression,
+                            boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
                             type: type);
                         break;
 

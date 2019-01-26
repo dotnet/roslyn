@@ -428,6 +428,9 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int[2, 3] a;')
   IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[2, 3] a')
+    Ignored Dimensions(2):
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
     Declarators:
         IVariableDeclaratorOperation (Symbol: System.Int32[,] a) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
@@ -466,6 +469,9 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int[2, 3] a, b;')
   IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[2, 3] a, b')
+    Ignored Dimensions(2):
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
     Declarators:
         IVariableDeclaratorOperation (Symbol: System.Int32[,] a) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
           Initializer: 
@@ -669,6 +675,126 @@ class C
             var compilation = CreateEmptyCompilation(source);
             (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
             Assert.Empty(operation.Children);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredDimensions_WithInitializer()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        /*<bind>*/int[10] x = { 1 };/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[10] x = { 1 }')
+  Ignored Dimensions(1):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32[] x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x = { 1 }')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= { 1 }')
+            IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsImplicit) (Syntax: '{ 1 }')
+              Dimension Sizes(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '{ 1 }')
+              Initializer: 
+                IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ 1 }')
+                  Element Values(1):
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  Initializer: 
+    null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(6,23): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         /*<bind>*/int[10] x = { 1 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "10").WithLocation(6, 23)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredDimensions_NoInitializer()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        /*<bind>*/int[10] x;/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[10] x')
+  Ignored Dimensions(1):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32[] x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+        Initializer: 
+          null
+  Initializer: 
+    null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(6,23): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         /*<bind>*/int[10] x/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "10").WithLocation(6, 23),
+                // file.cs(6,27): warning CS0168: The variable 'x' is declared but never used
+                //         /*<bind>*/int[10] x/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 27)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredDimensionsWithInitializer_VerifyChildren()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        /*<bind>*/int[10] x = { 1 }/*</bind>*/;
+    }
+}
+";
+
+            var compilation = CreateEmptyCompilation(source);
+            (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclarationSyntax>(compilation);
+            var declaration = (IVariableDeclarationOperation)operation;
+            Assert.Equal(2, declaration.Children.Count());
+            Assert.Equal(OperationKind.Literal, declaration.Children.First().Kind);
+            Assert.Equal(OperationKind.VariableDeclarator, declaration.Children.ElementAt(1).Kind);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredDimensions_VerifyChildren()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        /*<bind>*/int[10] x;/*</bind>*/
+    }
+}
+";
+
+            var compilation = CreateEmptyCompilation(source);
+            (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclarationSyntax>(compilation);
+            var declaration = (IVariableDeclarationOperation)operation;
+            Assert.Equal(2, declaration.Children.Count());
+            Assert.Equal(OperationKind.Literal, declaration.Children.First().Kind);
+            Assert.Equal(OperationKind.VariableDeclarator, declaration.Children.ElementAt(1).Kind);
         }
 
         #endregion

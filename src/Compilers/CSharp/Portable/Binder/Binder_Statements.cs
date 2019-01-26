@@ -1022,7 +1022,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             diagnostics.AddRangeAndFree(localDiagnostics);
-            var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declTypeOpt.TypeSymbol);
+
+            ImmutableArray<BoundExpression> dimensionsOpt;
+            if (typeSyntax is ArrayTypeSyntax arrayTypeSyntax && arrayTypeSyntax.RankSpecifiers.Count > 0)
+            {
+                var sizes = ArrayBuilder<BoundExpression>.GetInstance();
+                foreach (var expressionSyntax in arrayTypeSyntax.RankSpecifiers[0].Sizes)
+                {
+                    var size = BindArrayRankSpecifier(expressionSyntax, typeSyntax, diagnostics);
+                    if (size != null)
+                        sizes.Add(size);
+                }
+
+                dimensionsOpt = sizes.ToImmutableAndFree();
+
+            }
+            else
+            {
+                dimensionsOpt = ImmutableArray<BoundExpression>.Empty;
+            }
+
+            var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, dimensionsOpt, type: declTypeOpt.TypeSymbol);
             return new BoundLocalDeclaration(associatedSyntaxNode, localSymbol, boundDeclType, initializerOpt, arguments, hasErrors);
         }
 

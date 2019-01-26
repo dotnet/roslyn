@@ -1409,6 +1409,25 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return null;
         }
+
+        protected override ImmutableArray<IOperation> CreateIgnoredDimensions()
+        {
+            ImmutableArray<BoundExpression> dimensions;
+            switch (_localDeclaration.Kind)
+            {
+
+                case BoundKind.LocalDeclaration:
+                    dimensions = ((BoundLocalDeclaration)_localDeclaration).DeclaredType.BoundDimensionsOpt;
+                    break;
+                case BoundKind.MultipleLocalDeclarations:
+                    var declarations = ((BoundMultipleLocalDeclarations)_localDeclaration).LocalDeclarations;
+                    dimensions = declarations.Length > 0 ? declarations[0].DeclaredType.BoundDimensionsOpt : ImmutableArray<BoundExpression>.Empty;
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(_localDeclaration.Kind);
+            }
+            return _operationFactory.CreateFromArray<BoundExpression, IOperation>(dimensions);
+        }
     }
 
     internal sealed class CSharpLazyWhileLoopOperation : LazyWhileLoopOperation

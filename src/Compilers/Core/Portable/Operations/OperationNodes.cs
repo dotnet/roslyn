@@ -7281,15 +7281,21 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         public abstract IVariableInitializerOperation Initializer { get; }
 
+        public abstract ImmutableArray<IOperation> IgnoredDimensions { get; }
+
         public override IEnumerable<IOperation> Children
         {
             get
             {
+                foreach (var dimension in IgnoredDimensions)
+                {
+                    yield return dimension;
+                }
+
                 foreach (var declaration in Declarators)
                 {
                     yield return declaration;
                 }
-
                 if (Initializer != null)
                 {
                     yield return Initializer;
@@ -7310,22 +7316,24 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class VariableDeclarationOperation : BaseVariableDeclarationOperation
     {
-        public VariableDeclarationOperation(ImmutableArray<IVariableDeclaratorOperation> declarations, IVariableInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public VariableDeclarationOperation(ImmutableArray<IVariableDeclaratorOperation> declarations, IVariableInitializerOperation initializer, ImmutableArray<IOperation> ignoredDimensions, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             Declarators = SetParentOperation(declarations, this);
             Initializer = SetParentOperation(initializer, this);
+            IgnoredDimensions = SetParentOperation(ignoredDimensions, this);
         }
 
         public override ImmutableArray<IVariableDeclaratorOperation> Declarators { get; }
         public override IVariableInitializerOperation Initializer { get; }
+        public override ImmutableArray<IOperation> IgnoredDimensions { get; }
     }
 
     internal abstract class LazyVariableDeclarationOperation : BaseVariableDeclarationOperation
     {
         private ImmutableArray<IVariableDeclaratorOperation> _lazyDeclaratorsInterlocked;
         private IVariableInitializerOperation _lazyInitializerInterlocked = s_unsetVariableInitializer;
-
+        private ImmutableArray<IOperation> _lazyIgnoredDimensionsInterlocked;
         public LazyVariableDeclarationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
@@ -7333,6 +7341,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected abstract ImmutableArray<IVariableDeclaratorOperation> CreateDeclarators();
         protected abstract IVariableInitializerOperation CreateInitializer();
+        protected abstract ImmutableArray<IOperation> CreateIgnoredDimensions();
 
         public override ImmutableArray<IVariableDeclaratorOperation> Declarators
         {
@@ -7361,6 +7370,21 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
 
                 return _lazyInitializerInterlocked;
+            }
+        }
+
+        public override ImmutableArray<IOperation> IgnoredDimensions
+        {
+            get
+            {
+                if (_lazyIgnoredDimensionsInterlocked.IsDefault)
+                {
+                    ImmutableArray<IOperation> ignoredDimensions = CreateIgnoredDimensions();
+                    SetParentOperation(ignoredDimensions, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyIgnoredDimensionsInterlocked, ignoredDimensions, default);
+                }
+
+                return _lazyIgnoredDimensionsInterlocked;
             }
         }
     }
