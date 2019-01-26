@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -61,34 +62,38 @@ namespace Roslyn.Diagnostics.Analyzers
             }
         }
 
+        private readonly struct UnusedValue
+        {
+        }
+
         private sealed class Impl
         {
-            private static readonly HashSet<MethodKind> s_ignorableMethodKinds = new HashSet<MethodKind>
-            {
-                MethodKind.EventAdd,
-                MethodKind.EventRemove
-            };
+            private static readonly ImmutableArray<MethodKind> s_ignorableMethodKinds
+                = ImmutableArray.Create(MethodKind.EventAdd, MethodKind.EventRemove);
 
             private readonly Compilation _compilation;
             private readonly ApiData _unshippedData;
-            private readonly Dictionary<ITypeSymbol, bool> _typeCanBeExtendedCache = new Dictionary<ITypeSymbol, bool>();
-            private readonly HashSet<string> _visitedApiList = new HashSet<string>(StringComparer.Ordinal);
-            private readonly Dictionary<string, ApiLine> _publicApiMap = new Dictionary<string, ApiLine>(StringComparer.Ordinal);
+            private readonly ConcurrentDictionary<ITypeSymbol, bool> _typeCanBeExtendedCache = new ConcurrentDictionary<ITypeSymbol, bool>();
+            private readonly ConcurrentDictionary<string, UnusedValue> _visitedApiList = new ConcurrentDictionary<string, UnusedValue>(StringComparer.Ordinal);
+            private readonly IReadOnlyDictionary<string, ApiLine> _publicApiMap;
 
             internal Impl(Compilation compilation, ApiData shippedData, ApiData unshippedData)
             {
                 _compilation = compilation;
                 _unshippedData = unshippedData;
 
+                var publicApiMap = new Dictionary<string, ApiLine>(StringComparer.Ordinal);
                 foreach (ApiLine cur in shippedData.ApiList)
                 {
-                    _publicApiMap.Add(cur.Text, cur);
+                    publicApiMap.Add(cur.Text, cur);
                 }
 
                 foreach (ApiLine cur in unshippedData.ApiList)
                 {
-                    _publicApiMap.Add(cur.Text, cur);
+                    publicApiMap.Add(cur.Text, cur);
                 }
+
+                _publicApiMap = publicApiMap;
             }
 
             internal void OnSymbolAction(SymbolAnalysisContext symbolContext)
@@ -136,7 +141,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 Debug.Assert(IsPublicAPI(symbol));
 
                 string publicApiName = GetPublicApiName(symbol);
-                _visitedApiList.Add(publicApiName);
+                _visitedApiList.TryAdd(publicApiName, default);
 
                 List<Location> locationsToReport = new List<Location>();
 
@@ -489,7 +494,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 var list = new List<ApiLine>();
                 foreach (KeyValuePair<string, ApiLine> pair in _publicApiMap)
                 {
-                    if (_visitedApiList.Contains(pair.Key))
+                    if (_visitedApiList.ContainsKey(pair.Key))
                     {
                         continue;
                     }
@@ -543,20 +548,17 @@ namespace Roslyn.Diagnostics.Analyzers
 
             private bool CanTypeBeExtendedPublicly(ITypeSymbol type)
             {
-                if (_typeCanBeExtendedCache.TryGetValue(type, out bool result))
-                {
-                    return result;
-                }
+                return _typeCanBeExtendedCache.GetOrAdd(type, t => CanTypeBeExtendedPubliclyImpl(t));
+            }
 
+            private static bool CanTypeBeExtendedPubliclyImpl(ITypeSymbol type)
+            {
                 // a type can be extended publicly if (1) it isn't sealed, and (2) it has some constructor that is
                 // not internal, private or protected&internal
-                result = !type.IsSealed &&
+                return !type.IsSealed &&
                     type.GetMembers(WellKnownMemberNames.InstanceConstructorName).Any(
                         m => m.DeclaredAccessibility != Accessibility.Internal && m.DeclaredAccessibility != Accessibility.Private && m.DeclaredAccessibility != Accessibility.ProtectedAndInternal
                     );
-
-                _typeCanBeExtendedCache.Add(type, result);
-                return result;
             }
         }
     }
