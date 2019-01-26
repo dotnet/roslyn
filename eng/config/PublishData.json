@@ -14,6 +14,13 @@
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
             "channels": [ "dev16.0p2" ]
         },
+        "dev16.0-preview3-vs-deps": {
+            "nugetKind": ["Shipping", "NonShipping"],
+            "version": "3.0.*",
+            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+            "channels": [ "dev16.0p3" ]
+        },
         "master-vs-deps": {
             "nugetKind": ["Shipping", "NonShipping"],
             "version": "3.0.*",
