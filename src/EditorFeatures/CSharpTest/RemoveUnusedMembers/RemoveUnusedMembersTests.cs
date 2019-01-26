@@ -2085,6 +2085,26 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(32727, "https://github.com/dotnet/roslyn/issues/32727")]
+        public async Task NestedStructLayoutTypeWithReference()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System.Runtime.InteropServices;
+
+class Program
+{
+    private const int [|MAX_PATH|] = 260;
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct ProcessEntry32
+    {
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = MAX_PATH)]
+        public string szExeFile;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FixAllFields_Document()
         {
             await TestInRegularAndScriptAsync(
