@@ -11303,6 +11303,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to name shadowing in nested functions.
+        /// </summary>
+        internal static string IDS_FeatureNameShadowingInNestedFunctions {
+            get {
+                return ResourceManager.GetString("IDS_FeatureNameShadowingInNestedFunctions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to nullable types.
         /// </summary>
         internal static string IDS_FeatureNullable {
