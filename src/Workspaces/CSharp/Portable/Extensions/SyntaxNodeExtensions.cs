@@ -254,6 +254,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool ContainsInterleavedDirective(this SyntaxNode syntaxNode, CancellationToken cancellationToken)
             => CSharpSyntaxFactsService.Instance.ContainsInterleavedDirective(syntaxNode, cancellationToken);
 
+        /// <summary>
+        /// Similar to <see cref="ContainsInterleavedDirective(SyntaxNode, CancellationToken)"/> except that the span to check
+        /// for interleaved directives can be specified separately to the node passed in.
+        /// </summary>
+        public static bool ContainsInterleavedDirective(this SyntaxNode syntaxNode, TextSpan span, CancellationToken cancellationToken)
+            => CSharpSyntaxFactsService.Instance.ContainsInterleavedDirective(span, syntaxNode, cancellationToken);
+
         public static bool ContainsInterleavedDirective(
             this SyntaxToken token,
             TextSpan textSpan,
