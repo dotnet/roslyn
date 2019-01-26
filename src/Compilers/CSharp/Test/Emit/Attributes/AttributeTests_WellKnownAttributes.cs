@@ -5678,7 +5678,7 @@ class SelfReferenceInBase1 : IGoo<SelfReferenceInBase> {}
         }
 
         [Fact]
-        public void TestObsleteOnPropertyAccessorsoleteAttributeOnMembers()
+        public void TestObsoleteAttributeOnMembersAndAccessors()
         {
             var source = @"
 using System;
