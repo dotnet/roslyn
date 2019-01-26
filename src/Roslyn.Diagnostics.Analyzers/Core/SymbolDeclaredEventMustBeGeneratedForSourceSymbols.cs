@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -59,12 +59,16 @@ namespace Roslyn.Diagnostics.Analyzers
         protected abstract TSyntaxKind InvocationExpressionSyntaxKind { get; }
         protected abstract CompilationAnalyzer GetCompilationAnalyzer(Compilation compilation, INamedTypeSymbol symbolType);
 
+        private readonly struct UnusedValue
+        {
+        }
+
         protected abstract class CompilationAnalyzer
         {
             private readonly INamedTypeSymbol _symbolType;
             private readonly INamedTypeSymbol _compilationType;
-            private readonly HashSet<INamedTypeSymbol> _sourceSymbolsToCheck = new HashSet<INamedTypeSymbol>();
-            private readonly HashSet<INamedTypeSymbol> _typesWithSymbolDeclaredEventInvoked = new HashSet<INamedTypeSymbol>();
+            private readonly ConcurrentDictionary<INamedTypeSymbol, UnusedValue> _sourceSymbolsToCheck = new ConcurrentDictionary<INamedTypeSymbol, UnusedValue>();
+            private readonly ConcurrentDictionary<INamedTypeSymbol, UnusedValue> _typesWithSymbolDeclaredEventInvoked = new ConcurrentDictionary<INamedTypeSymbol, UnusedValue>();
             private readonly bool _hasMemberNamedSymbolDeclaredEvent;
 
             private const string SymbolDeclaredEventName = "SymbolDeclaredEvent";
@@ -90,7 +94,7 @@ namespace Roslyn.Diagnostics.Analyzers
             }
 
             protected abstract SyntaxNode GetFirstArgumentOfInvocation(SyntaxNode invocation);
-            protected abstract HashSet<string> SymbolTypesWithExpectedSymbolDeclaredEvent { get; }
+            protected abstract ImmutableHashSet<string> SymbolTypesWithExpectedSymbolDeclaredEvent { get; }
 
             internal void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
@@ -132,7 +136,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     var namedType = (INamedTypeSymbol)type;
                     if (namedType.AllInterfaces.Contains(_symbolType))
                     {
-                        _typesWithSymbolDeclaredEventInvoked.Add(namedType);
+                        _typesWithSymbolDeclaredEventInvoked.TryAdd(namedType, default);
                         return true;
                     }
                 }
@@ -149,7 +153,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     namedType.AllInterfaces.Contains(_symbolType) &&
                     namedType.GetBaseTypesAndThis().Any(b => SymbolTypesWithExpectedSymbolDeclaredEvent.Contains(b.Name, StringComparer.Ordinal)))
                 {
-                    _sourceSymbolsToCheck.Add(namedType);
+                    _sourceSymbolsToCheck.TryAdd(namedType, default);
                 }
             }
 
@@ -160,12 +164,12 @@ namespace Roslyn.Diagnostics.Analyzers
                     return;
                 }
 
-                foreach (INamedTypeSymbol sourceSymbol in _sourceSymbolsToCheck)
+                foreach ((INamedTypeSymbol sourceSymbol, _) in _sourceSymbolsToCheck)
                 {
                     var found = false;
                     foreach (INamedTypeSymbol type in sourceSymbol.GetBaseTypesAndThis())
                     {
-                        if (_typesWithSymbolDeclaredEventInvoked.Contains(type))
+                        if (_typesWithSymbolDeclaredEventInvoked.ContainsKey(type))
                         {
                             found = true;
                             break;

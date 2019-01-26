@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -40,8 +39,8 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
 
             Private ReadOnly _sourceModuleType As INamedTypeSymbol
 
-            Private Shared ReadOnly s_symbolTypesWithExpectedSymbolDeclaredEvent As HashSet(Of String) =
-                New HashSet(Of String) From {"SourceNamespaceSymbol", "SourceNamedTypeSymbol", "SourceEventSymbol", "SourceFieldSymbol", "SourceMethodSymbol", "SourcePropertySymbol"}
+            Private Shared ReadOnly s_symbolTypesWithExpectedSymbolDeclaredEvent As ImmutableHashSet(Of String) =
+                ImmutableHashSet.Create("SourceNamespaceSymbol", "SourceNamedTypeSymbol", "SourceEventSymbol", "SourceFieldSymbol", "SourceMethodSymbol", "SourcePropertySymbol")
             Private Const s_atomicSetFlagAndRaiseSymbolDeclaredEventName As String = "AtomicSetFlagAndRaiseSymbolDeclaredEvent"
 
             Public Sub New(symbolType As INamedTypeSymbol, compilationType As INamedTypeSymbol, sourceModuleSymbol As INamedTypeSymbol)
@@ -49,7 +48,7 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
                 Me._sourceModuleType = sourceModuleSymbol
             End Sub
 
-            Protected Overrides ReadOnly Property SymbolTypesWithExpectedSymbolDeclaredEvent As HashSet(Of String)
+            Protected Overrides ReadOnly Property SymbolTypesWithExpectedSymbolDeclaredEvent As ImmutableHashSet(Of String)
                 Get
                     Return s_symbolTypesWithExpectedSymbolDeclaredEvent
                 End Get

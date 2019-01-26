@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,8 +12,13 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpSymbolDeclaredEventAnalyzer : SymbolDeclaredEventAnalyzer<SyntaxKind>
     {
-        private static readonly HashSet<string> s_symbolTypesWithExpectedSymbolDeclaredEvent = new HashSet<string>(
-            new[] { "SourceNamespaceSymbol", "SourceNamedTypeSymbol", "SourceEventSymbol", "SourceFieldSymbol", "SourceMethodSymbol", "SourcePropertySymbol" });
+        private static readonly ImmutableHashSet<string> s_symbolTypesWithExpectedSymbolDeclaredEvent = ImmutableHashSet.Create(
+            "SourceNamespaceSymbol",
+            "SourceNamedTypeSymbol",
+            "SourceEventSymbol",
+            "SourceFieldSymbol",
+            "SourceMethodSymbol",
+            "SourcePropertySymbol");
 
         protected override CompilationAnalyzer GetCompilationAnalyzer(Compilation compilation, INamedTypeSymbol symbolType)
         {
@@ -34,7 +39,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
                 : base(symbolType, compilationType)
             { }
 
-            protected override HashSet<string> SymbolTypesWithExpectedSymbolDeclaredEvent => s_symbolTypesWithExpectedSymbolDeclaredEvent;
+            protected override ImmutableHashSet<string> SymbolTypesWithExpectedSymbolDeclaredEvent => s_symbolTypesWithExpectedSymbolDeclaredEvent;
 
             protected override SyntaxNode GetFirstArgumentOfInvocation(SyntaxNode node)
             {
