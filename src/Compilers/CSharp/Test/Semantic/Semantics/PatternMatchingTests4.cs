@@ -3096,5 +3096,119 @@ namespace System.Runtime.CompilerServices
             CompileAndVerify(compilation, expectedOutput: @"3
 SwitchExpressionException((1, 3, 3, 4, 5, 6, 7, 8, 9))");
         }
+
+        [Fact]
+        public void NullableArrayDeclarationPattern_Good_01()
+        {
+            var source =
+@"#nullable enable
+public class A
+{
+    static void M(object o, bool c)
+    {
+        if (o is A[]? c && c : c) { }    // ok 3 (for compat)
+        if (o is A[][]? c : c) { }       // ok 4 (for compat)
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void NullableArrayDeclarationPattern_Good_02()
+        {
+            var source =
+@"#nullable enable
+public class A
+{
+    static void M(object o, bool c)
+    {
+        if (o is A[]?[,] b3) { }
+        if (o is A[,]?[] b4 && c) { }
+        if (o is A[,]?[]?[] b5 && c) { }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableArrayDeclarationPattern_Bad_02()
+        {
+            var source =
+@"#nullable enable
+public class A
+{
+    public static bool b1, b2, b5, b6, b7, b8;
+    static void M(object o, bool c)
+    {
+        if (o is A?) { }              // error 1 (can't test for is nullable reference type)
+        if (o is A? b1) { }           // error 2 (missing :)
+        if (o is A? b2 && c) { }      // error 3 (missing :)
+        if (o is A[]? b5) { }         // error 4 (missing :)
+        if (o is A[]? b6 && c) { }    // error 5 (missing :)
+        if (o is A[][]? b7) { }       // error 6 (missing :)
+        if (o is A[][]? b8 && c) { }  // error 7 (missing :)
+        if (o is A? && c) { }         // error 8 (can't test for is nullable reference type)
+        _ = o is A[][]?;              // error 9 (can't test for is nullable reference type)
+        _ = o as A[][]?;              // error 10 (can't 'as' nullable reference type)
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (7,18): error CS8650: It is not legal to use nullable reference type 'A?' in an is-type expression; use the underlying type 'A' instead.
+                //         if (o is A?) { }              // error 1 (can't test for is nullable reference type)
+                Diagnostic(ErrorCode.ERR_IsNullableType, "A?").WithArguments("A").WithLocation(7, 18),
+                // (8,23): error CS1003: Syntax error, ':' expected
+                //         if (o is A? b1) { }           // error 2 (missing :)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(8, 23),
+                // (8,23): error CS1525: Invalid expression term ')'
+                //         if (o is A? b1) { }           // error 2 (missing :)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 23),
+                // (9,28): error CS1003: Syntax error, ':' expected
+                //         if (o is A? b2 && c) { }      // error 3 (missing :)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(9, 28),
+                // (9,28): error CS1525: Invalid expression term ')'
+                //         if (o is A? b2 && c) { }      // error 3 (missing :)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(9, 28),
+                // (10,25): error CS1003: Syntax error, ':' expected
+                //         if (o is A[]? b5) { }         // error 4 (missing :)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(10, 25),
+                // (10,25): error CS1525: Invalid expression term ')'
+                //         if (o is A[]? b5) { }         // error 4 (missing :)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(10, 25),
+                // (11,30): error CS1003: Syntax error, ':' expected
+                //         if (o is A[]? b6 && c) { }    // error 5 (missing :)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(11, 30),
+                // (11,30): error CS1525: Invalid expression term ')'
+                //         if (o is A[]? b6 && c) { }    // error 5 (missing :)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(11, 30),
+                // (12,27): error CS1003: Syntax error, ':' expected
+                //         if (o is A[][]? b7) { }       // error 6 (missing :)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(12, 27),
+                // (12,27): error CS1525: Invalid expression term ')'
+                //         if (o is A[][]? b7) { }       // error 6 (missing :)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 27),
+                // (13,32): error CS1003: Syntax error, ':' expected
+                //         if (o is A[][]? b8 && c) { }  // error 7 (missing :)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":", ")").WithLocation(13, 32),
+                // (13,32): error CS1525: Invalid expression term ')'
+                //         if (o is A[][]? b8 && c) { }  // error 7 (missing :)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(13, 32),
+                // (14,18): error CS8650: It is not legal to use nullable reference type 'A?' in an is-type expression; use the underlying type 'A' instead.
+                //         if (o is A? && c) { }         // error 8 (can't test for is nullable reference type)
+                Diagnostic(ErrorCode.ERR_IsNullableType, "A?").WithArguments("A").WithLocation(14, 18),
+                // (15,18): error CS8650: It is not legal to use nullable reference type 'A[][]?' in an is-type expression; use the underlying type 'A[][]' instead.
+                //         _ = o is A[][]?;              // error 9 (can't test for is nullable reference type)
+                Diagnostic(ErrorCode.ERR_IsNullableType, "A[][]?").WithArguments("A[][]").WithLocation(15, 18),
+                // (16,18): error CS8651: It is not legal to use nullable reference type 'A[][]?' in an as expression; use the underlying type 'A[][]' instead.
+                //         _ = o as A[][]?;              // error 10 (can't 'as' nullable reference type)
+                Diagnostic(ErrorCode.ERR_AsNullableType, "A[][]?").WithArguments("A[][]").WithLocation(16, 18)
+                );
+        }
     }
 }

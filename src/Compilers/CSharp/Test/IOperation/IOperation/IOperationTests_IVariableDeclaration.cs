@@ -436,14 +436,11 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
       null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         /*<bind>*/int[2, 3] a/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "2").WithLocation(6, 23),
-                // CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         /*<bind>*/int[2, 3] a/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "3").WithLocation(6, 26),
-                // CS0168: The variable 'a' is declared but never used
-                //         /*<bind>*/int[2, 3] a/*</bind>*/;
+                // file.cs(6,22): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         /*<bind>*/int[2, 3] a;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[2, 3]").WithLocation(6, 22),
+                // file.cs(6,29): warning CS0168: The variable 'a' is declared but never used
+                //         /*<bind>*/int[2, 3] a;/*</bind>*/
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "a").WithArguments("a").WithLocation(6, 29)
             };
 
@@ -477,17 +474,14 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
       null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         /*<bind>*/int[2, 3] a, b/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "2").WithLocation(6, 23),
-                // CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         /*<bind>*/int[2, 3] a, b/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "3").WithLocation(6, 26),
-                // CS0168: The variable 'a' is declared but never used
-                //         /*<bind>*/int[2, 3] a, b/*</bind>*/;
+                // file.cs(6,22): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         /*<bind>*/int[2, 3] a, b;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[2, 3]").WithLocation(6, 22),
+                // file.cs(6,29): warning CS0168: The variable 'a' is declared but never used
+                //         /*<bind>*/int[2, 3] a, b;/*</bind>*/
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "a").WithArguments("a").WithLocation(6, 29),
-                // CS0168: The variable 'b' is declared but never used
-                //         /*<bind>*/int[2, 3] a, b/*</bind>*/;
+                // file.cs(6,32): warning CS0168: The variable 'b' is declared but never used
+                //         /*<bind>*/int[2, 3] a, b;/*</bind>*/
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "b").WithArguments("b").WithLocation(6, 32)
             };
 
