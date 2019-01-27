@@ -694,12 +694,19 @@ class Test
                 // (8,14): error CS0306: The type 'S' may not be used as a type argument
                 //         Span<S> explicitError = default;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "S").WithArguments("S").WithLocation(8, 14),
+                // (9,67): error CS0611: Array elements cannot be of type 'S'
+                //         var implicitError = explicitError.Length > 0 ? stackalloc S[10] : stackalloc S[100];
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(9, 67),
                 // (9,67): error CS0306: The type 'S' may not be used as a type argument
                 //         var implicitError = explicitError.Length > 0 ? stackalloc S[10] : stackalloc S[100];
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "S[10]").WithArguments("S").WithLocation(9, 67),
+                // (9,86): error CS0611: Array elements cannot be of type 'S'
+                //         var implicitError = explicitError.Length > 0 ? stackalloc S[10] : stackalloc S[100];
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(9, 86),
                 // (9,86): error CS0306: The type 'S' may not be used as a type argument
                 //         var implicitError = explicitError.Length > 0 ? stackalloc S[10] : stackalloc S[100];
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S[100]").WithArguments("S").WithLocation(9, 86));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S[100]").WithArguments("S").WithLocation(9, 86)
+                );
         }
 
         [Fact]

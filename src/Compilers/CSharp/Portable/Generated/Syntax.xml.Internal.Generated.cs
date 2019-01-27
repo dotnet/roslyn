@@ -996,12 +996,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal readonly SyntaxToken openBracketToken;
     internal readonly GreenNode sizes;
     internal readonly SyntaxToken closeBracketToken;
-    internal readonly SyntaxToken questionToken;
 
-    internal ArrayRankSpecifierSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode sizes, SyntaxToken closeBracketToken, SyntaxToken questionToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal ArrayRankSpecifierSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode sizes, SyntaxToken closeBracketToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 4;
+        this.SlotCount = 3;
         this.AdjustFlagsAndWidth(openBracketToken);
         this.openBracketToken = openBracketToken;
         if (sizes != null)
@@ -1011,19 +1010,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
         this.AdjustFlagsAndWidth(closeBracketToken);
         this.closeBracketToken = closeBracketToken;
-        if (questionToken != null)
-        {
-            this.AdjustFlagsAndWidth(questionToken);
-            this.questionToken = questionToken;
-        }
     }
 
 
-    internal ArrayRankSpecifierSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode sizes, SyntaxToken closeBracketToken, SyntaxToken questionToken, SyntaxFactoryContext context)
+    internal ArrayRankSpecifierSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode sizes, SyntaxToken closeBracketToken, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 4;
+        this.SlotCount = 3;
         this.AdjustFlagsAndWidth(openBracketToken);
         this.openBracketToken = openBracketToken;
         if (sizes != null)
@@ -1033,18 +1027,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
         this.AdjustFlagsAndWidth(closeBracketToken);
         this.closeBracketToken = closeBracketToken;
-        if (questionToken != null)
-        {
-            this.AdjustFlagsAndWidth(questionToken);
-            this.questionToken = questionToken;
-        }
     }
 
 
-    internal ArrayRankSpecifierSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode sizes, SyntaxToken closeBracketToken, SyntaxToken questionToken)
+    internal ArrayRankSpecifierSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode sizes, SyntaxToken closeBracketToken)
         : base(kind)
     {
-        this.SlotCount = 4;
+        this.SlotCount = 3;
         this.AdjustFlagsAndWidth(openBracketToken);
         this.openBracketToken = openBracketToken;
         if (sizes != null)
@@ -1054,18 +1043,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
         this.AdjustFlagsAndWidth(closeBracketToken);
         this.closeBracketToken = closeBracketToken;
-        if (questionToken != null)
-        {
-            this.AdjustFlagsAndWidth(questionToken);
-            this.questionToken = questionToken;
-        }
     }
 
     public SyntaxToken OpenBracketToken { get { return this.openBracketToken; } }
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> Sizes { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.sizes)); } }
     public SyntaxToken CloseBracketToken { get { return this.closeBracketToken; } }
-    /// <summary>SyntaxToken representing the question mark.</summary>
-    public SyntaxToken QuestionToken { get { return this.questionToken; } }
 
     internal override GreenNode GetSlot(int index)
     {
@@ -1074,7 +1056,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             case 0: return this.openBracketToken;
             case 1: return this.sizes;
             case 2: return this.closeBracketToken;
-            case 3: return this.questionToken;
             default: return null;
         }
     }
@@ -1094,11 +1075,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         visitor.VisitArrayRankSpecifier(this);
     }
 
-    public ArrayRankSpecifierSyntax Update(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> sizes, SyntaxToken closeBracketToken, SyntaxToken questionToken)
+    public ArrayRankSpecifierSyntax Update(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> sizes, SyntaxToken closeBracketToken)
     {
-        if (openBracketToken != this.OpenBracketToken || sizes != this.Sizes || closeBracketToken != this.CloseBracketToken || questionToken != this.QuestionToken)
+        if (openBracketToken != this.OpenBracketToken || sizes != this.Sizes || closeBracketToken != this.CloseBracketToken)
         {
-            var newNode = SyntaxFactory.ArrayRankSpecifier(openBracketToken, sizes, closeBracketToken, questionToken);
+            var newNode = SyntaxFactory.ArrayRankSpecifier(openBracketToken, sizes, closeBracketToken);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -1113,18 +1094,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
     {
-         return new ArrayRankSpecifierSyntax(this.Kind, this.openBracketToken, this.sizes, this.closeBracketToken, this.questionToken, diagnostics, GetAnnotations());
+         return new ArrayRankSpecifierSyntax(this.Kind, this.openBracketToken, this.sizes, this.closeBracketToken, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new ArrayRankSpecifierSyntax(this.Kind, this.openBracketToken, this.sizes, this.closeBracketToken, this.questionToken, GetDiagnostics(), annotations);
+         return new ArrayRankSpecifierSyntax(this.Kind, this.openBracketToken, this.sizes, this.closeBracketToken, GetDiagnostics(), annotations);
     }
 
     internal ArrayRankSpecifierSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 4;
+      this.SlotCount = 3;
       var openBracketToken = (SyntaxToken)reader.ReadValue();
       if (openBracketToken != null)
       {
@@ -1143,12 +1124,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          AdjustFlagsAndWidth(closeBracketToken);
          this.closeBracketToken = closeBracketToken;
       }
-      var questionToken = (SyntaxToken)reader.ReadValue();
-      if (questionToken != null)
-      {
-         AdjustFlagsAndWidth(questionToken);
-         this.questionToken = questionToken;
-      }
     }
 
     internal override void WriteTo(ObjectWriter writer)
@@ -1157,7 +1132,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       writer.WriteValue(this.openBracketToken);
       writer.WriteValue(this.sizes);
       writer.WriteValue(this.closeBracketToken);
-      writer.WriteValue(this.questionToken);
     }
 
     static ArrayRankSpecifierSyntax()
@@ -37760,8 +37734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       var openBracketToken = (SyntaxToken)this.Visit(node.OpenBracketToken);
       var sizes = this.VisitList(node.Sizes);
       var closeBracketToken = (SyntaxToken)this.Visit(node.CloseBracketToken);
-      var questionToken = (SyntaxToken)this.Visit(node.QuestionToken);
-      return node.Update(openBracketToken, sizes, closeBracketToken, questionToken);
+      return node.Update(openBracketToken, sizes, closeBracketToken);
     }
 
     public override CSharpSyntaxNode VisitPointerType(PointerTypeSyntax node)
@@ -39779,7 +39752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public ArrayRankSpecifierSyntax ArrayRankSpecifier(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> sizes, SyntaxToken closeBracketToken, SyntaxToken questionToken)
+    public ArrayRankSpecifierSyntax ArrayRankSpecifier(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> sizes, SyntaxToken closeBracketToken)
     {
 #if DEBUG
       if (openBracketToken == null)
@@ -39800,20 +39773,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         default:
           throw new ArgumentException(nameof(closeBracketToken));
       }
-      if (questionToken != null)
-      {
-      switch (questionToken.Kind)
-      {
-        case SyntaxKind.QuestionToken:
-        case SyntaxKind.None:
-          break;
-        default:
-          throw new ArgumentException(nameof(questionToken));
-      }
-      }
 #endif
 
-      return new ArrayRankSpecifierSyntax(SyntaxKind.ArrayRankSpecifier, openBracketToken, sizes.Node, closeBracketToken, questionToken, this.context);
+      int hash;
+      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.ArrayRankSpecifier, openBracketToken, sizes.Node, closeBracketToken, this.context, out hash);
+      if (cached != null) return (ArrayRankSpecifierSyntax)cached;
+
+      var result = new ArrayRankSpecifierSyntax(SyntaxKind.ArrayRankSpecifier, openBracketToken, sizes.Node, closeBracketToken, this.context);
+      if (hash >= 0)
+      {
+          SyntaxNodeCache.AddNode(result, hash);
+      }
+
+      return result;
     }
 
     public PointerTypeSyntax PointerType(TypeSyntax elementType, SyntaxToken asteriskToken)
@@ -47110,7 +47082,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public static ArrayRankSpecifierSyntax ArrayRankSpecifier(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> sizes, SyntaxToken closeBracketToken, SyntaxToken questionToken)
+    public static ArrayRankSpecifierSyntax ArrayRankSpecifier(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> sizes, SyntaxToken closeBracketToken)
     {
 #if DEBUG
       if (openBracketToken == null)
@@ -47131,20 +47103,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         default:
           throw new ArgumentException(nameof(closeBracketToken));
       }
-      if (questionToken != null)
-      {
-      switch (questionToken.Kind)
-      {
-        case SyntaxKind.QuestionToken:
-        case SyntaxKind.None:
-          break;
-        default:
-          throw new ArgumentException(nameof(questionToken));
-      }
-      }
 #endif
 
-      return new ArrayRankSpecifierSyntax(SyntaxKind.ArrayRankSpecifier, openBracketToken, sizes.Node, closeBracketToken, questionToken);
+      int hash;
+      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ArrayRankSpecifier, openBracketToken, sizes.Node, closeBracketToken, out hash);
+      if (cached != null) return (ArrayRankSpecifierSyntax)cached;
+
+      var result = new ArrayRankSpecifierSyntax(SyntaxKind.ArrayRankSpecifier, openBracketToken, sizes.Node, closeBracketToken);
+      if (hash >= 0)
+      {
+          SyntaxNodeCache.AddNode(result, hash);
+      }
+
+      return result;
     }
 
     public static PointerTypeSyntax PointerType(TypeSyntax elementType, SyntaxToken asteriskToken)
