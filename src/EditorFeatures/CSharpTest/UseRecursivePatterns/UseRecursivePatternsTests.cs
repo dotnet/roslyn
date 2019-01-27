@@ -303,6 +303,105 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
         }
 
         [Fact]
+        public async Task Test16()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        switch (node)
+        {
+            case String s [||]when b && s.Length is int && c:
+                break;
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch (node)
+        {
+            case String
+            {
+                Length: int _
+            }
+
+            s when b && c:
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task Test17()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        switch (node)
+        {
+            case String s [||]when s.Length is int && b && c:
+                break;
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch (node)
+        {
+            case String
+            {
+                Length: int _
+            }
+
+            s when b && c:
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task Test18()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        switch (node)
+        {
+            case String s [||]when b && c && s.Length is int:
+                break;
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch (node)
+        {
+            case String
+            {
+                Length: int _
+            }
+
+            s when b && c:
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact]
         public async Task Test11()
         {
             await TestInRegularAndScriptAsync(

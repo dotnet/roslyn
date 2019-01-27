@@ -33,8 +33,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
         {
             public abstract NodeKind Kind { get; }
 
+            public virtual bool IsReduced { get; private set; }
+
+            public AnalyzedNode MarkAsReduced()
+            {
+                this.IsReduced = true;
+                return this;
+            }
+
             public virtual bool Contains(ExpressionSyntax e) => false;
-            public virtual bool CanReduce => false;
+
             public virtual AnalyzedNode Reduce() => this;
             public virtual void GetChildren(List<AnalyzedNode> nodes) => nodes.Add(this);
 
@@ -42,9 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             public virtual PatternSyntax AsPatternSyntax() => throw ExceptionUtilities.UnexpectedValue(this);
 
             public abstract override string ToString();
-
-            //public bool IsSameAs(AnalyzedNode other) => this.Kind == other.Kind && IsSameAsCore(other);
-            //public abstract bool IsSameAsCore(AnalyzedNode other);
         }
 
         private sealed class Conjunction : AnalyzedNode
@@ -53,6 +58,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             public readonly AnalyzedNode Right;
 
             public override NodeKind Kind => NodeKind.Conjunction;
+
+            public static Conjunction Create(AnalyzedNode left, AnalyzedNode right)
+            {
+                if (left is null || right is null)
+                    return null;
+
+                return new Conjunction(left, right);
+            }
 
             public Conjunction(AnalyzedNode left, AnalyzedNode right)
             {
@@ -65,6 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             public override string ToString() => $"{Left} AND {Right}";
 
             public override bool Contains(ExpressionSyntax e) => Left.Contains(e) || Right.Contains(e);
+
+            public override bool IsReduced => base.IsReduced || Left.IsReduced || Right.IsReduced;
 
             public override AnalyzedNode Reduce() => Intersection(Left.Reduce(), Right.Reduce());
 
@@ -89,19 +104,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             }
 
             public override ExpressionSyntax AsExpressionSyntax()
-            {
-                return BinaryExpression(
-                    SyntaxKind.LogicalAndExpression,
-                    Left.AsExpressionSyntax(),
-                    Right.AsExpressionSyntax());
-            }
+                => BinaryExpression(SyntaxKind.LogicalAndExpression,
+                    Left.AsExpressionSyntax(), Right.AsExpressionSyntax());
 
-            public CasePatternSwitchLabelSyntax AsCasePatternSwitchLabelSyntax()
-            {
-                return CasePatternSwitchLabel(AsPatternSyntax(out var children),
-                   children.OfType<Evaluation>().SingleOrDefault()?.AsWhenClauseSyntax(),
-                   Token(SyntaxKind.ColonToken));
-            }
+            public SyntaxNode AsCasePatternSwitchLabelSyntax()
+                => CasePatternSwitchLabel(AsPatternSyntax(out var children),
+                    children.OfType<Evaluation>().Select(x => x.Expression).ToArray() is var v && v.Length > 0
+                        ? WhenClause(v.Aggregate(
+                            (left, right) => BinaryExpression(SyntaxKind.LogicalAndExpression, left, right)))
+                        : null,
+                    Token(SyntaxKind.ColonToken));
 
             private static AnalyzedNode Intersection(AnalyzedNode left, AnalyzedNode right)
             {
@@ -112,8 +124,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 switch (left.Kind | right.Kind)
                 {
                     case NodeKind.Conjunction | NodeKind.Conjunction:
-                        var conjunction = (Conjunction)right;
-                        return Intersection(Intersection(left, conjunction.Left), conjunction.Right);
+                    case NodeKind.Conjunction | NodeKind.TypePattern:
+                    case NodeKind.Conjunction | NodeKind.VarPattern:
+                    case NodeKind.Conjunction | NodeKind.ConstantPattern:
+                    case NodeKind.Conjunction | NodeKind.PositionalPattern:
+                        return left.Kind == NodeKind.Conjunction
+                            ? IntersectionCore(right, (Conjunction)left)
+                            : IntersectionCore(left, (Conjunction)right);
 
                     case NodeKind.PatternMatch | NodeKind.PatternMatch:
                         return IntersectionCore((PatternMatch)left, (PatternMatch)right);
@@ -136,13 +153,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                             ? IntersectionCore((PositionalPattern)right, (PatternMatch)left)
                             : IntersectionCore((PositionalPattern)left, (PatternMatch)right);
 
+                    case NodeKind.Evaluation | NodeKind.ConstantPattern:
+                    case NodeKind.Evaluation | NodeKind.NotNullPattern:
+                    case NodeKind.Evaluation | NodeKind.TypePattern:
+                    case NodeKind.Evaluation | NodeKind.VarPattern:
+                    case NodeKind.Evaluation | NodeKind.DiscardPattern:
+                    case NodeKind.Evaluation | NodeKind.Conjunction:
+                    case NodeKind.Evaluation | NodeKind.PositionalPattern:
+                    case NodeKind.Evaluation | NodeKind.PatternMatch:
+                    case NodeKind.Evaluation | NodeKind.Evaluation:
                     case NodeKind.TypePattern | NodeKind.VarPattern:
                     case NodeKind.PatternMatch | NodeKind.TypePattern:
                     case NodeKind.NotNullPattern | NodeKind.VarPattern:
-                    case NodeKind.Conjunction | NodeKind.TypePattern:
-                    case NodeKind.Conjunction | NodeKind.VarPattern:
-                    case NodeKind.Evaluation | NodeKind.Conjunction:
-                    case NodeKind.Evaluation | NodeKind.PatternMatch:
+                    case NodeKind.PositionalPattern | NodeKind.VarPattern:
+                    case NodeKind.PositionalPattern | NodeKind.TypePattern:
                         return new Conjunction(left, right);
 
                     case NodeKind.DiscardPattern | NodeKind.Conjunction:
@@ -150,39 +174,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                     case NodeKind.DiscardPattern | NodeKind.PatternMatch:
                     case NodeKind.DiscardPattern | NodeKind.NotNullPattern:
                     case NodeKind.DiscardPattern | NodeKind.VarPattern:
-                    case NodeKind.DiscardPattern | NodeKind.DiscardPattern:
                     case NodeKind.DiscardPattern | NodeKind.ConstantPattern:
+                    case NodeKind.DiscardPattern | NodeKind.PositionalPattern:
                         return left.Kind == NodeKind.DiscardPattern ? right : left;
 
                     case NodeKind.NotNullPattern | NodeKind.Conjunction:
                     case NodeKind.NotNullPattern | NodeKind.TypePattern:
                     case NodeKind.NotNullPattern | NodeKind.PatternMatch:
                     case NodeKind.NotNullPattern | NodeKind.PositionalPattern:
-                    case NodeKind.NotNullPattern | NodeKind.NotNullPattern:
                         return left.Kind == NodeKind.NotNullPattern ? right : left;
 
-                    case NodeKind.PositionalPattern | NodeKind.Conjunction:
-                    case NodeKind.PositionalPattern | NodeKind.VarPattern:
-                    case NodeKind.PositionalPattern | NodeKind.TypePattern:
-                    case NodeKind.PositionalPattern | NodeKind.ConstantPattern:
-                    case NodeKind.PositionalPattern | NodeKind.Evaluation:
-                    case NodeKind.PositionalPattern | NodeKind.DiscardPattern:
-                        return null;
+                    case NodeKind.DiscardPattern | NodeKind.DiscardPattern:
+                    case NodeKind.NotNullPattern | NodeKind.NotNullPattern:
+                        return left;
 
-                    case NodeKind.ConstantPattern | NodeKind.Conjunction:
+                    case NodeKind.ConstantPattern | NodeKind.PositionalPattern:
                     case NodeKind.ConstantPattern | NodeKind.PatternMatch:
                     case NodeKind.ConstantPattern | NodeKind.TypePattern:
                     case NodeKind.ConstantPattern | NodeKind.ConstantPattern:
                     case NodeKind.ConstantPattern | NodeKind.VarPattern:
                     case NodeKind.ConstantPattern | NodeKind.NotNullPattern:
-                    case NodeKind.Evaluation | NodeKind.Evaluation:
-                    case NodeKind.Evaluation | NodeKind.ConstantPattern:
-                    case NodeKind.Evaluation | NodeKind.NotNullPattern:
-                    case NodeKind.Evaluation | NodeKind.TypePattern:
-                    case NodeKind.Evaluation | NodeKind.VarPattern:
                     case NodeKind.TypePattern | NodeKind.TypePattern:
                     case NodeKind.VarPattern | NodeKind.VarPattern:
-                    case NodeKind.Evaluation | NodeKind.DiscardPattern:
                         return null;
 
                     case var value:
@@ -190,16 +203,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 }
             }
 
+            private static AnalyzedNode IntersectionCore(AnalyzedNode node, Conjunction conjunction)
+            {
+                return Intersection(Intersection(node, conjunction.Left), conjunction.Right);
+            }
+
             private static AnalyzedNode IntersectionCore(Conjunction conjunction, PatternMatch match)
             {
                 if (conjunction.Left.Contains(match.Expression))
                 {
-                    return new Conjunction(Intersection(conjunction.Left, match), conjunction.Right);
+                    return Conjunction.Create(Intersection(conjunction.Left, match.MarkAsReduced()), conjunction.Right);
                 }
 
                 if (conjunction.Right.Contains(match.Expression))
                 {
-                    return new Conjunction(conjunction.Left, Intersection(conjunction.Right, match));
+                    return Conjunction.Create(conjunction.Left, Intersection(conjunction.Right, match.MarkAsReduced()));
                 }
 
                 return new Conjunction(conjunction, match);
@@ -229,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             {
                 if (var.Contains(match.Expression))
                 {
-                    return new Conjunction(var, match.Pattern);
+                    return new Conjunction(var.MarkAsReduced(), match.Pattern);
                 }
 
                 return new Conjunction(var, match);
@@ -275,13 +293,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             public override NodeKind Kind => NodeKind.PatternMatch;
 
-            public override bool CanReduce => throw new NotImplementedException();
+            public override bool IsReduced => base.IsReduced || Pattern.IsReduced;
 
-            public static PatternMatch Create(ExpressionSyntax expression, AnalyzedNode pattern)
+            public static AnalyzedNode Create(ExpressionSyntax expression, AnalyzedNode pattern)
             {
                 if (pattern is null)
                     return null;
-                return new PatternMatch(expression, pattern);
+                return new PatternMatch(expression, pattern).MarkAsReduced();
             }
 
             public PatternMatch(ExpressionSyntax expression, AnalyzedNode pattern)
@@ -312,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                         var conditionalAccess = (ConditionalAccessExpressionSyntax)expression;
                         var asExpression = (BinaryExpressionSyntax)conditionalAccess.Expression.WalkDownParentheses();
                         return MakePatternMatch(asExpression.Left,
-                            new Conjunction(new TypePattern((TypeSyntax)asExpression.Right),
+                            new Conjunction(new TypePattern((TypeSyntax)asExpression.Right).MarkAsReduced(),
                                 MakePatternMatch(conditionalAccess.WhenNotNull, pattern)));
 
                     case SyntaxKind.SimpleMemberAccessExpression:
@@ -442,8 +460,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             public override string ToString() => $"{Expression}";
 
             public override ExpressionSyntax AsExpressionSyntax() => Expression;
-
-            public WhenClauseSyntax AsWhenClauseSyntax() => WhenClause(Expression);
         }
 
         private sealed class PositionalPattern : AnalyzedNode

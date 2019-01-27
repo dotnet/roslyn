@@ -33,21 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             }
 
             var semanticModel = await context.Document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var analyzedNode = Analyzer.Analyze(node, semanticModel);
-            if (analyzedNode == null)
+            var analyzedNode = Analyzer.Analyze(node, semanticModel)?.Reduce();
+            if (analyzedNode is null)
             {
                 return;
             }
 
-            // TODO bail on trivial cases
-
-            //if (!analyzedNode.CanReduce)
-            //{
-            //    return;
-            //}
-
-            var reducedNode = analyzedNode.Reduce();
-            if (reducedNode == null)
+            if (!analyzedNode.IsReduced)
             {
                 return;
             }
@@ -55,8 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             context.RegisterRefactoring(new MyCodeAction(
                 c => document.ReplaceNodeAsync(node,
                     node.IsKind(SyntaxKind.CasePatternSwitchLabel)
-                        ? (SyntaxNode)((Conjunction)reducedNode).AsCasePatternSwitchLabelSyntax()
-                        : reducedNode.AsExpressionSyntax(), c)));
+                        ? ((Conjunction)analyzedNode).AsCasePatternSwitchLabelSyntax()
+                        : analyzedNode.AsExpressionSyntax(), c)));
         }
 
         private static SyntaxNode GetOutermostExpression(SyntaxNode node)
