@@ -74902,5 +74902,26 @@ class C
                 //         c1 ??= M2(c1);
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "c1").WithArguments("c1", "C C.M2(C c1)").WithLocation(6, 19));
         }
+
+        [WorkItem(32503, "https://github.com/dotnet/roslyn/issues/32503")]
+        [Fact]
+        public void PatternDeclarationBreaksNullableAnalysis()
+        {
+            var source = @"
+#nullable enable
+class A { }
+class B : A
+{
+    A M()
+    {
+        var s = new A();
+        if (s is B b) {}
+        return s; 
+    }
+} 
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
     }
 }
