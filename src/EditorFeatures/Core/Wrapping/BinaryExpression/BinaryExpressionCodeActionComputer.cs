@@ -52,14 +52,12 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
 
                 _newlineBeforeOperatorTrivia = service.GetNewLineBeforeOperatorTrivia(NewLineTrivia);
 
-                var indentAndAlignString = OriginalSourceText.GetOffset(binaryExpression.Span.Start)
-                                                             .CreateIndentationString(UseTabs, TabSize);
-                _indentAndAlignTrivia = new SyntaxTriviaList(generator.Whitespace(indentAndAlignString));
+                _indentAndAlignTrivia = new SyntaxTriviaList(generator.Whitespace(
+                    OriginalSourceText.GetOffset(binaryExpression.Span.Start)
+                                      .CreateIndentationString(UseTabs, TabSize)));
 
-                var smartTndentOffsetString = _preference == OperatorPlacementWhenWrappingPreference.BeginningOfLine
-                    ? this.GetSmartIndentationAfter(_exprsAndOperators[0])
-                    : this.GetSmartIndentationAfter(_exprsAndOperators[1]);
-                _smartIndentTrivia = new SyntaxTriviaList(generator.Whitespace(smartTndentOffsetString));
+                _smartIndentTrivia = new SyntaxTriviaList(generator.Whitespace(
+                    this.GetSmartIndentationAfter(_exprsAndOperators[1])));
             }
 
             protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()

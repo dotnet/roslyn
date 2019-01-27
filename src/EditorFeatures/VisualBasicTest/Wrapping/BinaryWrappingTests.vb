@@ -495,13 +495,6 @@ end class",
 BeginningOfLine,
 "class C
     sub Bar()
-        if (a _
-                andalso b)
-        end if
-    end sub
-end class",
-"class C
-    sub Bar()
         if (a andalso b)
         end if
     end sub
@@ -542,8 +535,8 @@ end class",
 BeginningOfLine,
 "class C
     dim v = a _
-    andalso b _
-    andalso c
+        andalso b _
+        andalso c
 end class",
 "class C
     dim v = a _
@@ -609,9 +602,9 @@ end class",
 "class C
     sub Bar()
         dim goo = ""now"" _
-        & ""is"" _
-        & ""the"" _
-        & ""time""
+            & ""is"" _
+            & ""the"" _
+            & ""time""
     end sub
 end class",
 "class C
