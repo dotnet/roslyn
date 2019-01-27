@@ -3188,7 +3188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var parameterTypes = leastOverriddenMember.GetParameterTypes();
                     for (int i = 0; i < parameterTypes.Length; i++)
                     {
-                        if (!parameterTypes[i].TypeSymbol.CheckAllConstraints(Conversions))
+                        if (!parameterTypes[i].TypeSymbol.CheckAllConstraints(Compilation, Conversions))
                         {
                             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.ConstructedParameterFailedConstraintsCheck(i));
                         }

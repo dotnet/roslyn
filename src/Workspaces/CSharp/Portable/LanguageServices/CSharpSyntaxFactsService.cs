@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsReturnStatement(SyntaxNode node)
             => node.Kind() == SyntaxKind.ReturnStatement;
 
-        public bool IsStatement(SyntaxNode node)
+        public bool IsExecutableStatement(SyntaxNode node)
             => node is StatementSyntax;
 
         public bool IsParameter(SyntaxNode node)
@@ -717,11 +717,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node)
         {
             return ((ParenthesizedExpressionSyntax)node).Expression;
-        }
-
-        public bool IsIfStatement(SyntaxNode node)
-        {
-            return (node.Kind() == SyntaxKind.IfStatement);
         }
 
         public bool IsAttribute(SyntaxNode node)
@@ -1886,14 +1881,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetValueOfEqualsValueClause(SyntaxNode node)
             => ((EqualsValueClauseSyntax)node)?.Value;
 
-        public bool IsExecutableBlock(SyntaxNode node)
+        public bool IsScopeBlock(SyntaxNode node)
             => node.IsKind(SyntaxKind.Block);
 
+        public bool IsExecutableBlock(SyntaxNode node)
+            => node.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection);
+
         public SyntaxList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node)
-            => ((BlockSyntax)node).Statements;
+        {
+            switch (node)
+            {
+                case BlockSyntax block:
+                    return block.Statements;
+                case SwitchSectionSyntax switchSection:
+                    return switchSection.Statements;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node);
+            }
+        }
 
         public SyntaxNode FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes)
-            => nodes.FindInnermostCommonBlock();
+            => nodes.FindInnermostCommonNode(node => IsExecutableBlock(node));
+
+        public bool IsStatementContainer(SyntaxNode node)
+            => IsExecutableBlock(node) || node.IsEmbeddedStatementOwner();
+
+        public IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode node)
+            => IsExecutableBlock(node)
+               ? GetExecutableBlockStatements(node)
+               : (IReadOnlyList<SyntaxNode>)ImmutableArray.Create<SyntaxNode>(node.GetEmbeddedStatement());
 
         public bool IsCastExpression(SyntaxNode node)
             => node is CastExpressionSyntax;
