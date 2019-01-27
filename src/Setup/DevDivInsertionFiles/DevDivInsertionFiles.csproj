@@ -35,13 +35,13 @@
 
   <!-- 
     List of dependencies that are expected to be inserted into VS by Roslyn Insertion Tool.
-    
+
     Metadata:
       - OptimizeAssemblies
         List of relative paths within the package of the implementation assemblies that should get IBC data embedded.
         Each of these assemblies is expected to be trained and have IBC data available.
         Note - optimizing Authenticode-signed 3rd party libraries invalidates their signature.
-           
+
       - UnsignAssemblies
         List of relative paths within the package of the implementation assemblies that need to be re-signed 
         This target only unsigns them, SignTool signs them as with other unsigned files.
@@ -52,7 +52,7 @@
     <ExpectedDependency Include="Microsoft.DiaSymReader"/>
     <ExpectedDependency Include="Microsoft.CodeAnalysis.Elfie"/>
     <ExpectedDependency Include="System.Buffers" />
-    <ExpectedDependency Include="System.Collections.Immutable" OptimizeAssemblies="lib/netstandard2.0/System.Collections.Immutable.dll" UnsignAssemblies="lib/netstandard1.3/System.Collections.Immutable.dll" />
+    <ExpectedDependency Include="System.Collections.Immutable" OptimizeAssemblies="lib/netstandard2.0/System.Collections.Immutable.dll" UnsignAssemblies="lib/netstandard1.0/System.Collections.Immutable.dll" />
     <ExpectedDependency Include="System.Reflection.Metadata" OptimizeAssemblies="lib/netstandard2.0/System.Reflection.Metadata.dll" UnsignAssemblies="lib/netstandard1.1/System.Reflection.Metadata.dll" />
     <ExpectedDependency Include="System.Memory"/>
     <ExpectedDependency Include="System.Runtime.CompilerServices.Unsafe" OptimizeAssemblies="lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll" />
@@ -138,7 +138,7 @@
     <ItemGroup>
       <_OptimizeAssembliesSplit Include="%(ExpectedDependency.OptimizeAssemblies)" DependencyName="%(ExpectedDependency.Identity)" Condition="'$(ApplyPartialNgenOptimization)' == 'true'" />
       <_UnsignAssembliesSplit Include="%(ExpectedDependency.UnsignAssemblies)" DependencyName="%(ExpectedDependency.Identity)"/>
-      
+
       <_DependenciesWithFullPaths Include="@(_Dependency->'%(Identity)')" Exclude="@(_OptimizeAssembliesSplit->'%(DependencyName)');@(_UnsignAssembliesSplit->'%(DependencyName)')"/>
       <_DependenciesWithFullPaths Include="%(_OptimizeAssembliesSplit.DependencyName)" OptimizeAssembliesFullPaths="$(_OptimizedDependenciesDir)%(_OptimizeAssembliesSplit.DependencyName)\%(_OptimizeAssembliesSplit.Identity)" />
       <_DependenciesWithFullPaths Include="%(_UnsignAssembliesSplit.DependencyName)" UnsignAssembliesFullPaths="$(_OptimizedDependenciesDir)%(_UnsignAssembliesSplit.DependencyName)\%(_UnsignAssembliesSplit.Identity)" />
@@ -203,7 +203,7 @@
     <MakeDir Directories="@(_PackageToRepack->'%(DestinationFolder)')"/>
     <Unzip SourceFiles="@(_PackageToRepack)" DestinationFolder="%(_PackageToRepack.UnpackDir)" />
   </Target>
-  
+
   <!--
     Copy NuGet packages to be inserted into VS by the insertion tool.
   -->
@@ -216,7 +216,7 @@
 
     <!-- Unsign assemblies that need to be unsigned but not optimized. -->
     <Microsoft.DotNet.Arcade.Sdk.Unsign FilePath="%(_UnsignAssembly.Identity)" />
-    
+
     <!-- Repack optimized dependencies -->
     <Roslyn.Tools.ReplacePackageParts SourcePackage="%(_PackageToRepack.Identity)"
                                       DestinationFolder="$(DevDivPackagesDir)"
