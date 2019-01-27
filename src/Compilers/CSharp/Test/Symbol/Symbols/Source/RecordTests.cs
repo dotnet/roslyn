@@ -91,6 +91,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var equals = (MethodSymbol)Assert.Single(
                 c.GetMembers("Equals"),
                 s => ((MethodSymbol)s).Parameters[0].Type.SpecialType == SpecialType.System_Object);
+            Assert.True(equals.IsVirtual);
+            Assert.True(equals.IsOverride);
+            Assert.Equal(
+                comp.GetSpecialTypeMember(SpecialMember.System_Object__Equals),
+                equals.OverriddenMethod);
             var param = Assert.Single(equals.Parameters);
             Assert.False(param.Type.IsNull);
         }
@@ -102,6 +107,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var c = comp.GlobalNamespace.GetTypeMember("C");
 
             var hashcode = c.GetMethod("GetHashCode");
+            Assert.True(hashcode.IsVirtual);
+            Assert.True(hashcode.IsOverride);
+            Assert.Equal(
+                comp.GetSpecialTypeMember(SpecialMember.System_Object__GetHashCode),
+                hashcode.OverriddenMethod);
             Assert.Empty(hashcode.Parameters);
             Assert.Equal(0, hashcode.ParameterCount);
             Assert.Equal(SpecialType.System_Int32, hashcode.ReturnType.SpecialType);
