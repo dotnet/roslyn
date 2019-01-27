@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             public override bool Contains(ExpressionSyntax e) => Left.Contains(e) || Right.Contains(e);
 
-            public override bool IsReduced => base.IsReduced || Left.IsReduced || Right.IsReduced;
+            public override bool IsReduced => Left.IsReduced || Right.IsReduced;
 
             public override AnalyzedNode Reduce() => Intersection(Left.Reduce(), Right.Reduce());
 
