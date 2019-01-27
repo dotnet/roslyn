@@ -7252,7 +7252,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in an async using statement must be implicitly convertible to &apos;System.IAsyncDisposable&apos;.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in an async using statement must be implicitly convertible to &apos;System.IAsyncDisposable&apos; or implement a suitable &apos;DisposeAsync&apos; method..
         /// </summary>
         internal static string ERR_NoConvToIAsyncDisp {
             get {
@@ -7261,7 +7261,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in an async using statement must be implicitly convertible to &apos;System.IAsyncDisposable&apos;. Did you mean &apos;using&apos; rather than &apos;await using&apos;?.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in an async using statement must be implicitly convertible to &apos;System.IAsyncDisposable&apos; or implement a suitable &apos;DisposeAsync&apos; method. Did you mean &apos;using&apos; rather than &apos;await using&apos;?.
         /// </summary>
         internal static string ERR_NoConvToIAsyncDispWrongAsync {
             get {
@@ -7270,7 +7270,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos;..
+        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos; or implement a suitable &apos;Dispose&apos; method..
         /// </summary>
         internal static string ERR_NoConvToIDisp {
             get {
@@ -7279,7 +7279,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos;. Did you mean &apos;await using&apos; rather than &apos;using&apos;?.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos; or implement a suitable &apos;Dispose&apos; method. Did you mean &apos;await using&apos; rather than &apos;using&apos;?.
         /// </summary>
         internal static string ERR_NoConvToIDispWrongAsync {
             get {

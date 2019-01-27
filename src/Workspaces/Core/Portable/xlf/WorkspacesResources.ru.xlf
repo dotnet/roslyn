@@ -72,6 +72,16 @@
         <target state="new">Parentheses preferences</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefix_0_does_not_match_expected_prefix_1">
+        <source>Prefix '{0}' does not match expected prefix '{1}'</source>
+        <target state="new">Prefix '{0}' does not match expected prefix '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefix_0_is_not_expected">
+        <source>Prefix '{0}' is not expected</source>
+        <target state="new">Prefix '{0}' is not expected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
         <target state="translated">Только рефакторинг</target>
