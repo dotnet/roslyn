@@ -73,9 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                     return (t.invocationOrCreation, additionalNodesToTrack.ToImmutableAndFree());
                 },
                 (_1, _2, _3) => true,
-                (semanticModel, currentRoot, t, currentNode) 
+                (semanticModel, currentRoot, t, currentNode)
                     => ReplaceIdentifierWithInlineDeclaration(
-                        options, semanticModel, currentRoot, t.declarator, 
+                        options, semanticModel, currentRoot, t.declarator,
                         t.identifier, t.invocationOrCreation, currentNode, declarationsToRemove),
                 cancellationToken).ConfigureAwait(false);
         }
