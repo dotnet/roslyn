@@ -57,14 +57,16 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeRefStruct
         }
 
         private static async Task<Document> FixCodeAsync(
-            Document document, 
-            StructDeclarationSyntax structDeclaration, 
+            Document document,
+            StructDeclarationSyntax structDeclaration,
             CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var gen = SyntaxGenerator.GetGenerator(document);
-            
-            var newStruct = gen.WithModifiers(structDeclaration, gen.GetModifiers(structDeclaration).WithIsRef(true));
+            var generator = SyntaxGenerator.GetGenerator(document);
+
+            var newStruct = generator.WithModifiers(
+                structDeclaration,
+                generator.GetModifiers(structDeclaration).WithIsRef(true));
             var newRoot = root.ReplaceNode(structDeclaration, newStruct);
 
             return document.WithSyntaxRoot(newRoot);
