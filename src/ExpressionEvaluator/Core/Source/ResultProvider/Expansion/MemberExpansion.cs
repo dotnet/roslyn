@@ -58,25 +58,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var expansions = ArrayBuilder<Expansion>.GetInstance();
 
+            // Expand members. TODO: Ideally, this would be done lazily (https://github.com/dotnet/roslyn/issues/32800)
             // From the members, collect the fields and properties,
             // separated into static and instance members.
             var staticMembers = ArrayBuilder<MemberAndDeclarationInfo>.GetInstance();
             var instanceMembers = ArrayBuilder<MemberAndDeclarationInfo>.GetInstance();
             var appDomain = value.Type.AppDomain;
 
-            // Expand members. (Ideally, this should be done lazily.)
             var allMembers = ArrayBuilder<MemberAndDeclarationInfo>.GetInstance();
             var includeInherited = (flags & ExpansionFlags.IncludeBaseMembers) == ExpansionFlags.IncludeBaseMembers;
             var hideNonPublic = (inspectionContext.EvaluationFlags & DkmEvaluationFlags.HideNonPublicMembers) == DkmEvaluationFlags.HideNonPublicMembers;
-            runtimeType.AppendTypeMembers(allMembers, predicate, declaredTypeAndInfo.Type, appDomain, includeInherited, hideNonPublic, isProxyType);
+            var includeCompilerGenerated = (inspectionContext.EvaluationFlags & DkmEvaluationFlags.ShowValueRaw) == DkmEvaluationFlags.ShowValueRaw;
+            runtimeType.AppendTypeMembers(allMembers, predicate, declaredTypeAndInfo.Type, appDomain, includeInherited, hideNonPublic, isProxyType, includeCompilerGenerated);
 
             foreach (var member in allMembers)
             {
-                var name = member.Name;
-                if (name.IsCompilerGenerated())
-                {
-                    continue;
-                }
                 if (member.IsStatic)
                 {
                     staticMembers.Add(member);
