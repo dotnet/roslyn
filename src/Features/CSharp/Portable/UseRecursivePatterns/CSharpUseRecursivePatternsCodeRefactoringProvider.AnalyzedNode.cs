@@ -319,27 +319,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             {
                 switch (expression.Kind())
                 {
-                    case SyntaxKind.IdentifierName:
+                    default:
                         return new PatternMatch(expression, pattern);
 
-                    case SyntaxKind.MemberBindingExpression:
-                        var memberBinding = (MemberBindingExpressionSyntax)expression;
-                        return new PatternMatch(memberBinding.Name, pattern);
+                    case SyntaxKind.ParenthesizedExpression:
+                        return MakePatternMatch(((ParenthesizedExpressionSyntax)expression).Expression, pattern);
 
-                    case SyntaxKind.ConditionalAccessExpression:
-                        var conditionalAccess = (ConditionalAccessExpressionSyntax)expression;
-                        var asExpression = (BinaryExpressionSyntax)conditionalAccess.Expression.WalkDownParentheses();
-                        return MakePatternMatch(asExpression.Left,
-                            new Conjunction(new TypePattern((TypeSyntax)asExpression.Right).MarkAsReduced(),
-                                MakePatternMatch(conditionalAccess.WhenNotNull, pattern)));
+                    case SyntaxKind.MemberBindingExpression
+                        when (MemberBindingExpressionSyntax)expression is var node && node.Name.IsKind(SyntaxKind.IdentifierName):
+                        return new PatternMatch(node.Name, pattern);
 
-                    case SyntaxKind.SimpleMemberAccessExpression:
-                        var memberAccess = (MemberAccessExpressionSyntax)expression;
-                        return MakePatternMatch(memberAccess.Expression,
-                            new PatternMatch(memberAccess.Name, pattern));
+                    case SyntaxKind.ConditionalAccessExpression
+                        when (ConditionalAccessExpressionSyntax)expression is var node &&
+                            node.WhenNotNull.IsKind(SyntaxKind.MemberBindingExpression,
+                                                    SyntaxKind.ConditionalAccessExpression,
+                                                    SyntaxKind.SimpleMemberAccessExpression):
+                        var expr = node.Expression.WalkDownParentheses();
+                        return expr.IsKind(SyntaxKind.AsExpression, out BinaryExpressionSyntax asExpression)
+                            ? MakePatternMatch(asExpression.Left,
+                                new Conjunction(new TypePattern((TypeSyntax)asExpression.Right).MarkAsReduced(),
+                                    MakePatternMatch(node.WhenNotNull, pattern)))
+                            : MakePatternMatch(expr, MakePatternMatch(node.WhenNotNull, pattern));
 
-                    case var value:
-                        throw ExceptionUtilities.UnexpectedValue(value);
+                    case SyntaxKind.SimpleMemberAccessExpression
+                        when (MemberAccessExpressionSyntax)expression is var node && node.Name.IsKind(SyntaxKind.IdentifierName):
+                        return MakePatternMatch(node.Expression,
+                            new PatternMatch(node.Name, pattern));
                 }
             }
 

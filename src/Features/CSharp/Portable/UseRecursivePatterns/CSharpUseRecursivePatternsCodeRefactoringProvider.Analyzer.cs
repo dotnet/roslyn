@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             public override AnalyzedNode VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node)
             {
-                if (node.WhenClause != null)
+                if (node.WhenClause is var whenClause && whenClause != null)
                 {
-                    return new Conjunction(Visit(node.Pattern), Visit(node.WhenClause.Condition));
+                    return new Conjunction(Visit(node.Pattern), Visit(whenClause.Condition));
                 }
 
                 return null;
@@ -41,19 +41,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 var right = node.Right;
                 switch (node.Kind())
                 {
-                    case SyntaxKind.EqualsExpression when AnalyzeLeftOfPatternMatch(left) && IsConstant(right):
+                    case SyntaxKind.EqualsExpression when IsConstant(right):
                         return new PatternMatch(left, new ConstantPattern(right));
 
-                    case SyntaxKind.EqualsExpression when AnalyzeLeftOfPatternMatch(right) && IsConstant(left):
+                    case SyntaxKind.EqualsExpression when IsConstant(left):
                         return new PatternMatch(right, new ConstantPattern(left));
 
-                    case SyntaxKind.NotEqualsExpression when AnalyzeLeftOfPatternMatch(left) && IsConstantNull(right):
+                    case SyntaxKind.NotEqualsExpression when IsConstantNull(right):
                         return new PatternMatch(left, NotNullPattern.Instance);
 
-                    case SyntaxKind.NotEqualsExpression when AnalyzeLeftOfPatternMatch(right) && IsConstantNull(left):
+                    case SyntaxKind.NotEqualsExpression when IsConstantNull(left):
                         return new PatternMatch(right, NotNullPattern.Instance);
 
-                    case SyntaxKind.IsExpression when AnalyzeLeftOfPatternMatch(left):
+                    case SyntaxKind.IsExpression:
                         return new PatternMatch(left,
                             IsLoweredToNullCheck(left, right)
                                 ? NotNullPattern.Instance
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                         return new Conjunction(analyzedLeft, analyzedRight);
                 }
 
-                return DefaultVisit(node);
+                return new Evaluation(node);
             }
 
             private bool IsLoweredToNullCheck(ExpressionSyntax e, ExpressionSyntax type)
@@ -85,32 +85,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             {
                 return true;
                 return _semanticModel.GetConstantValue(e).HasValue;
-            }
-
-            private static bool AnalyzeLeftOfPatternMatch(ExpressionSyntax node)
-            {
-                switch (node.Kind())
-                {
-                    case SyntaxKind.IdentifierName:
-                        return true;
-
-                    case SyntaxKind.MemberBindingExpression:
-                        var memberBinding = (MemberBindingExpressionSyntax)node;
-                        return memberBinding.Name.IsKind(SyntaxKind.IdentifierName);
-
-                    case SyntaxKind.ConditionalAccessExpression:
-                        var conditionalAccess = (ConditionalAccessExpressionSyntax)node;
-                        var expression = conditionalAccess.Expression.WalkDownParentheses();
-                        return expression.IsKind(SyntaxKind.AsExpression) &&
-                            AnalyzeLeftOfPatternMatch(conditionalAccess.WhenNotNull);
-
-                    case SyntaxKind.SimpleMemberAccessExpression:
-                        var memberAccess = (MemberAccessExpressionSyntax)node;
-                        return memberAccess.Name.IsKind(SyntaxKind.IdentifierName) &&
-                            AnalyzeLeftOfPatternMatch(memberAccess.Expression);
-                }
-
-                return false;
             }
 
             public override AnalyzedNode VisitIsPatternExpression(IsPatternExpressionSyntax node)
@@ -173,25 +147,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             public override AnalyzedNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
             {
-                if (AnalyzeLeftOfPatternMatch(node))
-                {
-                    return new PatternMatch(node,
-                        new ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)));
-                }
+                return new PatternMatch(node,
+                    new ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)));
+            }
 
-                return DefaultVisit(node);
+            private static bool IsValidPropertyPattern(ExpressionSyntax node)
+            {
+                switch(node.Kind())
+                {
+                    default:
+                        return false;
+                    case SyntaxKind.IdentifierName:
+                        return true;
+                    case SyntaxKind.ParenthesizedExpression:
+                        return IsValidPropertyPattern(((ParenthesizedExpressionSyntax)node).Expression);
+                    case SyntaxKind.SimpleMemberAccessExpression:
+                        return ((MemberAccessExpressionSyntax)node).Name.IsKind(SyntaxKind.IdentifierName);
+                    case SyntaxKind.ConditionalAccessExpression:
+                        return IsValidPropertyPattern(((ConditionalAccessExpressionSyntax)node).WhenNotNull);
+                }
             }
 
             public override AnalyzedNode VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
             {
                 if (node.IsKind(SyntaxKind.LogicalNotExpression) &&
-                    AnalyzeLeftOfPatternMatch(node.Operand))
+                    IsValidPropertyPattern(node.Operand))
                 {
                     return new PatternMatch(node.Operand,
                         new ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)));
                 }
 
-                return DefaultVisit(node);
+                return new Evaluation(node);
             }
 
             public override AnalyzedNode DefaultVisit(SyntaxNode node)
