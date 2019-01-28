@@ -87,5 +87,15 @@ $"Public Class C
     End Sub
 End Class")
         End Function
+
+        <WorkItem(32851, "https://github.com/dotnet/roslyn/issues/32851")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        Public Async Function Parameter_Unused_SpecialNames() As Task
+            Await TestDiagnosticMissingAsync(
+$"Class C
+    [|Sub M(_0 As Integer, _1 As Char, _3 As C)|]
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace
