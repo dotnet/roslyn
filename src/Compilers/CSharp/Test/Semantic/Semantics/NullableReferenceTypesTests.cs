@@ -74923,28 +74923,5 @@ class B : A
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
-
-        [WorkItem(28324, "https://github.com/dotnet/roslyn/issues/28324")]
-        [Fact]
-        public void CopyTypeCustomModifiersWithGenericOverriddenMethod()
-        {
-            var source = @"
-using System;
-
-#nullable enable
-
-class C<T> { }
-abstract class A
-{
-    internal abstract C<T> F<T>() where T : struct;
-}
-class B : A
-{
-    internal override C<T> F<T>() => throw null;
-}
-";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-        }
     }
 }

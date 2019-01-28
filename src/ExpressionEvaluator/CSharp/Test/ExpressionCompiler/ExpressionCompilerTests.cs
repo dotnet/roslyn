@@ -3786,7 +3786,6 @@ class C
     }
 }";
             var assemblyName = ExpressionCompilerUtilities.GenerateUniqueName();
-            // https://github.com/dotnet/roslyn/issues/30031: error CS0101: The namespace 'System.Runtime.CompilerServices' already contains a definition for 'NullableAttribute'
             var compilationN0 = CreateCompilation(
                 sourceN0,
                 options: TestOptions.DebugModule,
