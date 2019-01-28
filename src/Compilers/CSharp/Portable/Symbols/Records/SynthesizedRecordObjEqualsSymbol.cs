@@ -7,28 +7,29 @@ using Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SynthesizedRecordEqualsSymbol : SynthesizedInstanceMethodSymbol
+    internal sealed class SynthesizedRecordObjEqualsSymbol : SynthesizedInstanceMethodSymbol
     {
         private readonly NamedTypeSymbol _containingType;
-        private readonly ImmutableArray<SynthesizedRecordPropertySymbol> _properties;
+        private readonly MethodSymbol _overloadedEquals;
 
-        public SynthesizedRecordEqualsSymbol(
+        public SynthesizedRecordObjEqualsSymbol(
             NamedTypeSymbol containingType,
             SyntaxReference syntaxRef,
-            ImmutableArray<SynthesizedRecordPropertySymbol> properties)
+            MethodSymbol overloadedEquals)
         {
             _containingType = containingType;
             DeclaringSyntaxReferences = ImmutableArray.Create(syntaxRef);
-            _properties = properties;
+            _overloadedEquals = overloadedEquals;
+            var obj = _containingType.DeclaringCompilation.GetSpecialType(SpecialType.System_Object);
             Parameters = ImmutableArray.Create(SynthesizedParameterSymbol.Create(
                 this,
-                TypeSymbolWithAnnotations.Create(containingType),
+                TypeSymbolWithAnnotations.Create(obj),
                 ordinal: 0,
                 RefKind.None,
                 "value"));
         }
 
-        public override string Name => "Equals";
+        public override string Name => WellKnownMemberNames.ObjectEquals;
 
         internal override LexicalSortKey GetLexicalSortKey() => LexicalSortKey.NotInSource;
 
@@ -38,13 +39,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
             F.CurrentFunction = this;
-            BoundExpression expr = null;
-            foreach (var prop in _properties)
-            {
-                var eq = F.ObjectEqual(F.Property(F.This(), prop), F.Property(F.Parameter(Parameters[0]), prop));
-                expr = expr is null ? eq : F.LogicalAnd(expr, eq);
-            }
-            F.CloseMethod(F.Block(F.Return(expr)));
+            var temp = F.Local(F.SynthesizedLocal(_containingType));
+            var sequence =
+                F.Sequence(
+                    ImmutableArray.Create(temp.LocalSymbol),
+                    ImmutableArray<BoundExpression>.Empty,
+                    F.LogicalAnd(
+                        F.Is(F.Parameter(Parameters[0]), _containingType, temp),
+                        F.Call(F.This(), _overloadedEquals, temp)));
+            F.CloseMethod(F.Block(F.Return(sequence)));
         }
 
         public override MethodKind MethodKind => MethodKind.Ordinary;
@@ -88,9 +91,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsStatic => false;
 
-        public override bool IsVirtual => false;
+        public override bool IsVirtual => true;
 
-        public override bool IsOverride => false;
+        public override bool IsOverride => true;
 
         public override bool IsAbstract => false;
 
@@ -120,6 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges) => false;
 
-        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges) => false;
+        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges) => true;
     }
 }
