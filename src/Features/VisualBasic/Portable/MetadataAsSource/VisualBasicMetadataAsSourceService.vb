@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
         End Function
 
         Private Class FormattingRule
-            Inherits AbstractFormattingRule
+            Inherits AbstractMetadataFormattingRule
 
             Protected Overrides Function GetAdjustNewLinesOperationBetweenMembersAndUsings(token1 As SyntaxToken, token2 As SyntaxToken) As AdjustNewLinesOperation
                 If token1.Kind = SyntaxKind.None OrElse token2.Kind = SyntaxKind.None Then

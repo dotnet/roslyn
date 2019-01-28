@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
                 new CSharpParenthesesReducer(),
                 new CSharpDefaultExpressionReducer());
 
-        private class FormattingRule : AbstractFormattingRule
+        private class FormattingRule : AbstractMetadataFormattingRule
         {
             protected override AdjustNewLinesOperation GetAdjustNewLinesOperationBetweenMembersAndUsings(SyntaxToken token1, SyntaxToken token2)
             {
