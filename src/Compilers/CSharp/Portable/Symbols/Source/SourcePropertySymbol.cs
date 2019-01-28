@@ -1466,7 +1466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!this.IsNoMoreVisibleThan(param.TypeWithAnnotations, ref useSiteDiagnostics))
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadVisIndexerParam, Location, this, param.Type.Type);
+                    diagnostics.Add(ErrorCode.ERR_BadVisIndexerParam, Location, this, param.Type);
                 }
                 else if ((object)_setMethod != null && param.Name == ParameterSymbol.ValueParameterName)
                 {
