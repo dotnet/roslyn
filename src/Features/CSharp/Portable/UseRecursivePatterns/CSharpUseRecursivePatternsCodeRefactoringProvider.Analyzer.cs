@@ -150,27 +150,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                     new ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)));
             }
 
-            private static bool IsValidPropertyPattern(ExpressionSyntax node)
-            {
-                switch(node.Kind())
-                {
-                    default:
-                        return false;
-                    case SyntaxKind.IdentifierName:
-                        return true;
-                    case SyntaxKind.ParenthesizedExpression:
-                        return IsValidPropertyPattern(((ParenthesizedExpressionSyntax)node).Expression);
-                    case SyntaxKind.SimpleMemberAccessExpression:
-                        return ((MemberAccessExpressionSyntax)node).Name.IsKind(SyntaxKind.IdentifierName);
-                    case SyntaxKind.ConditionalAccessExpression:
-                        return IsValidPropertyPattern(((ConditionalAccessExpressionSyntax)node).WhenNotNull);
-                }
-            }
-
             public override AnalyzedNode VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
             {
                 if (node.IsKind(SyntaxKind.LogicalNotExpression) &&
-                    IsValidPropertyPattern(node.Operand))
+                    AnalyzeRightOfMemberAccess(node.Operand))
                 {
                     return new PatternMatch(node.Operand,
                         new ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)));
@@ -187,6 +170,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 }
 
                 return null;
+            }
+        }
+
+        private static bool AnalyzeRightOfMemberAccess(ExpressionSyntax node)
+        {
+            switch (node.Kind())
+            {
+                default:
+                    return false;
+                case SyntaxKind.IdentifierName:
+                    return true;
+                case SyntaxKind.MemberBindingExpression:
+                    return AnalyzeRightOfMemberAccess(((MemberBindingExpressionSyntax)node).Name);
+                case SyntaxKind.ParenthesizedExpression:
+                    return AnalyzeRightOfMemberAccess(((ParenthesizedExpressionSyntax)node).Expression);
+                case SyntaxKind.SimpleMemberAccessExpression:
+                    return AnalyzeRightOfMemberAccess(((MemberAccessExpressionSyntax)node).Name);
+                case SyntaxKind.ConditionalAccessExpression:
+                    return AnalyzeRightOfMemberAccess(((ConditionalAccessExpressionSyntax)node).WhenNotNull);
             }
         }
     }

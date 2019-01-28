@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -48,6 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
                     case NodeKind.PositionalPattern | NodeKind.PositionalPattern:
                         return IntersectionCore((PositionalPattern)left, (PositionalPattern)right);
+
+                    case NodeKind.TypePattern | NodeKind.TypePattern:
+                        return IntersectionCore((TypePattern)left, (TypePattern)right);
 
                     case NodeKind.Conjunction | NodeKind.PatternMatch:
                         return left.Kind == NodeKind.PatternMatch
@@ -105,13 +107,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                     case NodeKind.ConstantPattern | NodeKind.ConstantPattern:
                     case NodeKind.ConstantPattern | NodeKind.VarPattern:
                     case NodeKind.ConstantPattern | NodeKind.NotNullPattern:
-                    case NodeKind.TypePattern | NodeKind.TypePattern:
                     case NodeKind.VarPattern | NodeKind.VarPattern:
                         return null;
 
                     case var value:
                         throw ExceptionUtilities.UnexpectedValue(value);
                 }
+            }
+
+            private AnalyzedNode IntersectionCore(TypePattern left, TypePattern right)
+            {
+                if (AreEquivalent(left.Type, right.Type))
+                    return left;
+
+                return null;
             }
 
             private AnalyzedNode IntersectionCore(AnalyzedNode node, Conjunction conjunction)
@@ -222,29 +231,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                         return MakePatternMatch(((ParenthesizedExpressionSyntax)expression).Expression, pattern);
 
                     case SyntaxKind.MemberBindingExpression
-                        when (MemberBindingExpressionSyntax)expression is var node && node.Name.IsKind(SyntaxKind.IdentifierName):
+                        when (MemberBindingExpressionSyntax)expression is var node
+                            && AnalyzeRightOfMemberAccess(node.Name):
                         return new PatternMatch(node.Name, pattern);
 
                     case SyntaxKind.ConditionalAccessExpression
-                        when (ConditionalAccessExpressionSyntax)expression is var node &&
-                            node.WhenNotNull.IsKind(SyntaxKind.MemberBindingExpression,
-                                                    SyntaxKind.ConditionalAccessExpression,
-                                                    SyntaxKind.SimpleMemberAccessExpression):
-                        var expr = node.Expression.WalkDownParentheses();
-                        if (!expr.IsKind(SyntaxKind.AsExpression, out BinaryExpressionSyntax asExpression))
-                        {
-                            return MakePatternMatch(expr, MakePatternMatch(node.WhenNotNull, pattern));
-                        }
-
-                        _isNonTrivial = true;
-                        return MakePatternMatch(asExpression.Left,
-                            new Conjunction(new TypePattern((TypeSyntax)asExpression.Right),
-                            MakePatternMatch(node.WhenNotNull, pattern)));
+                        when (ConditionalAccessExpressionSyntax)expression is var node
+                            && AnalyzeRightOfMemberAccess(node.WhenNotNull):
+                        return MakePatternMatch(node.Expression, node.WhenNotNull, pattern)
+                            ?? MakePatternMatch(node.Expression, MakePatternMatch(node.WhenNotNull, pattern));
 
                     case SyntaxKind.SimpleMemberAccessExpression
-                        when (MemberAccessExpressionSyntax)expression is var node && node.Name.IsKind(SyntaxKind.IdentifierName):
+                        when (MemberAccessExpressionSyntax)expression is var node
+                            && AnalyzeRightOfMemberAccess(node.Name):
+                        return MakePatternMatch(node.Expression, node.Name, pattern)
+                            ?? MakePatternMatch(node.Expression, new PatternMatch(node.Name, pattern));
+                }
+            }
+
+            private PatternMatch MakePatternMatch(ExpressionSyntax left, ExpressionSyntax rest, AnalyzedNode pattern)
+            {
+                switch (left.Kind())
+                {
+                    default:
+                        return null;
+
+                    case SyntaxKind.ParenthesizedExpression when (ParenthesizedExpressionSyntax)left is var node:
+                        return MakePatternMatch(node.Expression, rest, pattern);
+
+                    case SyntaxKind.AsExpression when (BinaryExpressionSyntax)left is var node:
+                        _isNonTrivial = true;
+                        return MakePatternMatch(node.Left,
+                            new Conjunction(new TypePattern((TypeSyntax)node.Right), MakePatternMatch(rest, pattern)));
+
+                    case SyntaxKind.CastExpression when (CastExpressionSyntax)left is var node:
                         return MakePatternMatch(node.Expression,
-                            new PatternMatch(node.Name, pattern));
+                            new Conjunction(new TypePattern(node.Type), MakePatternMatch(rest, pattern)));
                 }
             }
         }
