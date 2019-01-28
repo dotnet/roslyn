@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                    editorOptionsFactoryService,
                    refactorNotifyServices,
                    new BlankLineInGeneratedMethodFormattingRule(),
-                   new EndRegionFormattingRule())
+                   EndRegionFormattingRule.Instance)
         {
         }
 
