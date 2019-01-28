@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping.SeparatedSyntaxList
         Private Class IndentationService
             Inherits VisualBasicIndentationService
 
-            Protected Overrides Function GetSpecializedIndentationFormattingRule() As IFormattingRule
+            Protected Overrides Function GetSpecializedIndentationFormattingRule() As AbstractFormattingRule
                 ' Override default indentation behavior.  The special indentation rule tries to 
                 ' align parameters.  But that's what we're actually trying to control, so we need
                 ' to remove this.

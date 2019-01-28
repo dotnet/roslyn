@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return visualStudioWorkspace?.TryGetContainedDocument(document.Id) != null;
             }
 
-            public IFormattingRule CreateRule(Document document, int position)
+            public AbstractFormattingRule CreateRule(Document document, int position)
             {
                 var visualStudioWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
                 if (visualStudioWorkspace == null)

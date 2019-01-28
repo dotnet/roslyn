@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         public AbstractFormatEngine(
             TreeData treeData,
             OptionSet optionSet,
-            IEnumerable<IFormattingRule> formattingRules,
+            IEnumerable<AbstractFormattingRule> formattingRules,
             SyntaxToken token1,
             SyntaxToken token2)
             : this(

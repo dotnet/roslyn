@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal class ChainedFormattingRules
     {
-        private readonly List<IFormattingRule> _formattingRules;
+        private readonly List<AbstractFormattingRule> _formattingRules;
         private readonly OptionSet _optionSet;
 
         // Operation func caches
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly OperationCache<AdjustNewLinesOperation> _newLinesFuncCache;
         private readonly OperationCache<AdjustSpacesOperation> _spaceFuncCache;
 
-        public ChainedFormattingRules(IEnumerable<IFormattingRule> formattingRules, OptionSet set)
+        public ChainedFormattingRules(IEnumerable<AbstractFormattingRule> formattingRules, OptionSet set)
         {
             Contract.ThrowIfNull(formattingRules);
             Contract.ThrowIfNull(set);

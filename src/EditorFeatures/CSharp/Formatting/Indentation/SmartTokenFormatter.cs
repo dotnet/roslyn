@@ -21,13 +21,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
     internal class SmartTokenFormatter : ISmartTokenFormatter
     {
         private readonly OptionSet _optionSet;
-        private readonly IEnumerable<IFormattingRule> _formattingRules;
+        private readonly IEnumerable<AbstractFormattingRule> _formattingRules;
 
         private readonly CompilationUnitSyntax _root;
 
         public SmartTokenFormatter(
             OptionSet optionSet,
-            IEnumerable<IFormattingRule> formattingRules,
+            IEnumerable<AbstractFormattingRule> formattingRules,
             CompilationUnitSyntax root)
         {
             Contract.ThrowIfNull(optionSet);

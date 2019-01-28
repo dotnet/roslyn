@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
     /// </summary>
     internal class MultiLineConditionalExpressionFormattingRule : AbstractFormattingRule
     {
-        public static readonly IFormattingRule Instance = new MultiLineConditionalExpressionFormattingRule();
+        public static readonly AbstractFormattingRule Instance = new MultiLineConditionalExpressionFormattingRule();
 
         private MultiLineConditionalExpressionFormattingRule()
         {

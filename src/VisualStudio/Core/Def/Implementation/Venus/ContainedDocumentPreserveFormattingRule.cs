@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
     internal class ContainedDocumentPreserveFormattingRule : AbstractFormattingRule
     {
-        public static readonly IFormattingRule Instance = new ContainedDocumentPreserveFormattingRule();
+        public static readonly AbstractFormattingRule Instance = new ContainedDocumentPreserveFormattingRule();
 
         private static readonly AdjustSpacesOperation s_preserveSpace = FormattingOperations.CreateAdjustSpacesOperation(0, AdjustSpacesOption.PreserveSpaces);
         private static readonly AdjustNewLinesOperation s_preserveLine = FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);

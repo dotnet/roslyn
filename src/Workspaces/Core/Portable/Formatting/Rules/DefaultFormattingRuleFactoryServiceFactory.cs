@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
                 return false;
             }
 
-            public IFormattingRule CreateRule(Document document, int position)
+            public AbstractFormattingRule CreateRule(Document document, int position)
             {
                 return NoOpFormattingRule.Instance;
             }
