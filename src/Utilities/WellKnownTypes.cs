@@ -505,6 +505,16 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName("System.Collections.Immutable.IImmutableStack`1");
         }
 
+        public static INamedTypeSymbol SystemIOFile(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.IO.File");
+        }
+
+        public static INamedTypeSymbol SystemReflectionAssembly(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Reflection.Assembly");
+        }
+
         public static ImmutableHashSet<INamedTypeSymbol> IImmutableInterfaces(Compilation compilation)
         {
             var builder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
