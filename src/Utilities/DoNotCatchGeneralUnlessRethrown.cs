@@ -11,20 +11,14 @@ namespace Analyzer.Utilities
     public abstract class DoNotCatchGeneralUnlessRethrownAnalyzer : DiagnosticAnalyzer
     {
         private readonly bool _shouldCheckLambdas;
+        private readonly string _enablingMethodAttributeFullyQualifiedName;
 
-        protected DoNotCatchGeneralUnlessRethrownAnalyzer(bool shouldCheckLambdas)
+        private bool RequiresAttributeOnMethod => !string.IsNullOrEmpty(_enablingMethodAttributeFullyQualifiedName);
+
+        protected DoNotCatchGeneralUnlessRethrownAnalyzer(bool shouldCheckLambdas, string enablingMethodAttributeFullyQualifiedName = null)
         {
             _shouldCheckLambdas = shouldCheckLambdas;
-        }
-
-        protected virtual bool ShouldCheckCompilationUnit(Compilation compilation)
-        {
-            return true;
-        }
-
-        protected virtual bool ShouldCheckMethod(Compilation compilation, IMethodSymbol method)
-        {
-            return true;
+            _enablingMethodAttributeFullyQualifiedName = enablingMethodAttributeFullyQualifiedName;
         }
 
         protected abstract Diagnostic CreateDiagnostic(IMethodSymbol containingMethod, SyntaxNode catchNode);
@@ -36,7 +30,8 @@ namespace Analyzer.Utilities
 
             analysisContext.RegisterCompilationStartAction(compilationStartAnalysisContext =>
             {
-                if (!ShouldCheckCompilationUnit(compilationStartAnalysisContext.Compilation))
+                INamedTypeSymbol requiredAttributeType = null;
+                if (RequiresAttributeOnMethod && (requiredAttributeType = GetRequiredAttributeType(compilationStartAnalysisContext.Compilation)) == null)
                 {
                     return;
                 }
@@ -52,7 +47,7 @@ namespace Analyzer.Utilities
 
                     var method = (IMethodSymbol)operationBlockAnalysisContext.OwningSymbol;
 
-                    if (!ShouldCheckMethod(operationBlockAnalysisContext.Compilation, method))
+                    if (RequiresAttributeOnMethod && !MethodHasAttribute(method, requiredAttributeType))
                     {
                         return;
                     }
@@ -69,6 +64,16 @@ namespace Analyzer.Utilities
                     }
                 });
             });
+        }
+
+        private INamedTypeSymbol GetRequiredAttributeType(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName(_enablingMethodAttributeFullyQualifiedName);
+        }
+
+        private bool MethodHasAttribute(IMethodSymbol method, INamedTypeSymbol attributeType)
+        {
+            return method.GetAttributes().Any(attribute => attribute.AttributeClass.Equals(attributeType));
         }
 
         private static ICollection<INamedTypeSymbol> GetDisallowedCatchTypes(Compilation compilation)
