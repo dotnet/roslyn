@@ -200,8 +200,7 @@
     Unpack dependent packages to a temp folder.
   -->
   <Target Name="_UnpackDependencies" Condition="'@(_PackageToRepack)' != ''">
-    <MakeDir Directories="@(_PackageToRepack->'%(DestinationFolder)')"/>
-    <Unzip SourceFiles="@(_PackageToRepack)" DestinationFolder="%(_PackageToRepack.UnpackDir)" />
+    <Unzip SourceFiles="%(_PackageToRepack.Identity)" DestinationFolder="%(_PackageToRepack.UnpackDir)" />
   </Target>
 
   <!--
