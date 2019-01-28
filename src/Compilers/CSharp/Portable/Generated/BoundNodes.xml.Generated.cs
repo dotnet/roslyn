@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         DeconstructValuePlaceholder,
         TupleOperandPlaceholder,
         AwaitableValuePlaceholder,
+        DisposableValuePlaceholder,
         Dup,
         PassByCopy,
         BadExpression,
@@ -520,6 +521,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundAwaitableValuePlaceholder(this.Syntax, type, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundDisposableValuePlaceholder : BoundValuePlaceholderBase
+    {
+        public BoundDisposableValuePlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.DisposableValuePlaceholder, syntax, type, hasErrors)
+        {
+
+            Debug.Assert((object)type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+        }
+
+        public BoundDisposableValuePlaceholder(SyntaxNode syntax, TypeSymbol type)
+            : base(BoundKind.DisposableValuePlaceholder, syntax, type)
+        {
+
+            Debug.Assert((object)type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+        }
+
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitDisposableValuePlaceholder(this);
+        }
+
+        public BoundDisposableValuePlaceholder Update(TypeSymbol type)
+        {
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundDisposableValuePlaceholder(this.Syntax, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -7493,6 +7530,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitTupleOperandPlaceholder(node as BoundTupleOperandPlaceholder, arg);
                 case BoundKind.AwaitableValuePlaceholder: 
                     return VisitAwaitableValuePlaceholder(node as BoundAwaitableValuePlaceholder, arg);
+                case BoundKind.DisposableValuePlaceholder: 
+                    return VisitDisposableValuePlaceholder(node as BoundDisposableValuePlaceholder, arg);
                 case BoundKind.Dup: 
                     return VisitDup(node as BoundDup, arg);
                 case BoundKind.PassByCopy: 
@@ -7874,6 +7913,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node, arg);
         }
         public virtual R VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
+        public virtual R VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -8602,6 +8645,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node)
         {
             return this.DefaultVisit(node);
         }
@@ -9334,6 +9381,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
         public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
+        {
+            return null;
+        }
+        public override BoundNode VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node)
         {
             return null;
         }
@@ -10285,6 +10336,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Update(type);
         }
         public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
+        {
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(type);
+        }
+        public override BoundNode VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node)
         {
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(type);
@@ -11402,6 +11458,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node, object arg)
         {
             return new TreeDumperNode("awaitableValuePlaceholder", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("type", node.Type, null)
+            }
+            );
+        }
+        public override TreeDumperNode VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node, object arg)
+        {
+            return new TreeDumperNode("disposableValuePlaceholder", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("type", node.Type, null)
             }

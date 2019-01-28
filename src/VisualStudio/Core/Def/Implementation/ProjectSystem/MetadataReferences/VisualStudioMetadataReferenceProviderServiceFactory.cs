@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
             {
-                return _manager.Value.CreateMetadataReferenceSnapshot(resolvedPath, properties);
+                return _manager.Value.CreateMetadataReference(resolvedPath, properties);
             }
         }
     }

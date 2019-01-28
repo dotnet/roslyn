@@ -4,11 +4,12 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    internal sealed partial class ThreadingContext
+    internal partial class TestExportJoinableTaskContext
     {
         /// <summary>
         /// Defines a <see cref="SynchronizationContext"/> for use in cases where the synchronization context should not

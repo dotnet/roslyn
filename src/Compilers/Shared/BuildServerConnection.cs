@@ -56,9 +56,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
     internal sealed class BuildServerConnection
     {
-        internal const string ServerNameDesktop = "VBCSCompiler.exe";
-        internal const string ServerNameCoreClr = "VBCSCompiler.dll";
-
         // Spend up to 1s connecting to existing process (existing processes should be always responsive).
         internal const int TimeOutMsExistingProcess = 1000;
 
@@ -374,31 +371,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static bool TryCreateServerCore(string clientDir, string pipeName)
         {
-            bool isRunningOnCoreClr = CoreClrShim.IsRunningOnCoreClr;
-            string expectedPath;
-            string processArguments;
-            if (isRunningOnCoreClr)
-            {
-                // The server should be in the same directory as the client
-                var expectedCompilerPath = Path.Combine(clientDir, ServerNameCoreClr);
-                expectedPath = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet";
-                processArguments = $@"""{expectedCompilerPath}"" ""-pipename:{pipeName}""";
+            var serverPathWithoutExtension = Path.Combine(clientDir, "VBCSCompiler");
+            var serverInfo = RuntimeHostInfo.GetProcessInfo(serverPathWithoutExtension, $"-pipename:{pipeName}");
 
-                if (!File.Exists(expectedCompilerPath))
-                {
-                    return false;
-                }
-            }
-            else
+            if (!File.Exists(serverInfo.toolFilePath))
             {
-                // The server should be in the same directory as the client
-                expectedPath = Path.Combine(clientDir, ServerNameDesktop);
-                processArguments = $@"""-pipename:{pipeName}""";
-
-                if (!File.Exists(expectedPath))
-                {
-                    return false;
-                }
+                return false;
             }
 
             if (PlatformInformation.IsWindows)
@@ -417,9 +395,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                 PROCESS_INFORMATION processInfo;
 
-                Log("Attempting to create process '{0}'", expectedPath);
+                Log("Attempting to create process '{0}'", serverInfo.processFilePath);
 
-                var builder = new StringBuilder($@"""{expectedPath}"" {processArguments}");
+                var builder = new StringBuilder($@"""{serverInfo.processFilePath}"" {serverInfo.commandLineArguments}");
 
                 bool success = CreateProcess(
                     lpApplicationName: null,
@@ -451,8 +429,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 {
                     var startInfo = new ProcessStartInfo()
                     {
-                        FileName = expectedPath,
-                        Arguments = processArguments,
+                        FileName = serverInfo.processFilePath,
+                        Arguments = serverInfo.commandLineArguments,
                         UseShellExecute = false,
                         WorkingDirectory = clientDir,
                         RedirectStandardInput = true,
