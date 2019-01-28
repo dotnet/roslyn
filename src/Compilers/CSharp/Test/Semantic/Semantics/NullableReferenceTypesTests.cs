@@ -74926,7 +74926,7 @@ class B : A
 
         [WorkItem(28324, "https://github.com/dotnet/roslyn/issues/28324")]
         [Fact]
-        public void CopyTypeCustomModifiersWithGenericOverridenMethod()
+        public void CopyTypeCustomModifiersWithGenericOverriddenMethod()
         {
             var source = @"
 using System;
