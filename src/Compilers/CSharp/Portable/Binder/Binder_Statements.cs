@@ -1080,15 +1080,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (typeSyntax is ArrayTypeSyntax arrayTypeSyntax && arrayTypeSyntax.RankSpecifiers.Count > 0)
             {
                 var sizes = ArrayBuilder<BoundExpression>.GetInstance();
+                // We don't want to report any errors from this, as the syntax is invalid anyway
+                var dummyDiagnostics = DiagnosticBag.GetInstance();
                 foreach (var expressionSyntax in arrayTypeSyntax.RankSpecifiers[0].Sizes)
                 {
-                    var size = BindArrayRankSpecifier(expressionSyntax, typeSyntax, diagnostics);
+                    var size = BindArrayRankSpecifier(expressionSyntax, typeSyntax, dummyDiagnostics);
                     if (size != null)
                         sizes.Add(size);
                 }
-
+                dummyDiagnostics.Free();
                 dimensionsOpt = sizes.ToImmutableAndFree();
-
             }
             else
             {

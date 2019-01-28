@@ -20668,12 +20668,6 @@ public class Cls
                 // (6,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[out var x1]").WithLocation(6, 12),
-                // (6,17): error CS0103: The name 'var' does not exist in the current context
-                //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 17),
-                // (6,21): error CS0103: The name 'x1' does not exist in the current context
-                //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 21),
                 // (7,13): error CS8112: 'b(out var)' is a local function and must therefore always have a body.
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
                 Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "b").WithArguments("b(out var)").WithLocation(7, 13),
