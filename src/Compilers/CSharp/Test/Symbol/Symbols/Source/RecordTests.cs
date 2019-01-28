@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("x", x.Name);
 
             var t = ctor.Parameters[1];
-            Assert.Equal(c.TypeParameters[0], t.Type.TypeSymbol);
+            Assert.Equal(c.TypeParameters[0], t.Type);
             Assert.Equal("t", t.Name);
         }
 
@@ -74,10 +74,45 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation("class C(int x, int y);");
             var c = comp.GlobalNamespace.GetTypeMember("C");
 
-            var eqs = c.GetMethod("Equals");
-            var param = Assert.Single(eqs.Parameters);
-            Assert.False(param.Type.IsNull);
-            Assert.Equal(c, param.Type.TypeSymbol);
+            var equals = (MethodSymbol)Assert.Single(
+                c.GetMembers("Equals"),
+                s => ((MethodSymbol)s).Parameters[0].Type.SpecialType != SpecialType.System_Object);
+            var param = Assert.Single(equals.Parameters);
+            Assert.Equal(c, param.Type);
+        }
+
+        [Fact]
+        public void GeneratedObjEqualsClass()
+        {
+            var comp = CreateCompilation("class C(int x, int y);");
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+
+            var equals = (MethodSymbol)Assert.Single(
+                c.GetMembers("Equals"),
+                s => ((MethodSymbol)s).Parameters[0].Type.SpecialType == SpecialType.System_Object);
+            Assert.True(equals.IsVirtual);
+            Assert.True(equals.IsOverride);
+            Assert.Equal(
+                comp.GetSpecialTypeMember(SpecialMember.System_Object__Equals),
+                equals.OverriddenMethod);
+            var param = Assert.Single(equals.Parameters);
+        }
+
+        [Fact]
+        public void GeneratedGetHashCodeClass()
+        {
+            var comp = CreateCompilation("class C(int x, int y);");
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+
+            var hashcode = c.GetMethod("GetHashCode");
+            Assert.True(hashcode.IsVirtual);
+            Assert.True(hashcode.IsOverride);
+            Assert.Equal(
+                comp.GetSpecialTypeMember(SpecialMember.System_Object__GetHashCode),
+                hashcode.OverriddenMethod);
+            Assert.Empty(hashcode.Parameters);
+            Assert.Equal(0, hashcode.ParameterCount);
+            Assert.Equal(SpecialType.System_Int32, hashcode.ReturnType.SpecialType);
         }
     }
 }

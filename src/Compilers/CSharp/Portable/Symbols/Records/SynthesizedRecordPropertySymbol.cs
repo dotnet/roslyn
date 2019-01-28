@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override RefKind RefKind => RefKind.None;
 
-        public override TypeSymbolWithAnnotations Type => _backingParameter.Type;
+        public override TypeWithAnnotations TypeWithAnnotations => _backingParameter.TypeWithAnnotations;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
@@ -124,9 +124,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override RefKind RefKind => RefKind.None;
 
-            public override TypeSymbolWithAnnotations ReturnType => _property.Type;
+            public override TypeWithAnnotations ReturnTypeWithAnnotations => _property.TypeWithAnnotations;
 
-            public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments => ImmutableArray<TypeSymbolWithAnnotations>.Empty;
+            public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations => ImmutableArray<TypeWithAnnotations>.Empty;
 
             public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
 
