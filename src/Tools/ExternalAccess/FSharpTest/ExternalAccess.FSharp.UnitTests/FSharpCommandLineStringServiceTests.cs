@@ -1,17 +1,8 @@
-﻿using System;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
-using Microsoft.VisualStudio.LanguageServices;
-using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.Composition.Reflection;
-using System.Collections.Generic;
-using System.Reflection;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests
 {
@@ -22,7 +13,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests
         [Fact]
         public void SetAndRetrieveCommandLineOptions_Success()
         {
-            using (var ws = new AdhocWorkspace(VisualStudioMefHostServices.Create(FSharpTestExportProvider.ExportProviderWithFSharp)))
+            using (var ws = new AdhocWorkspace(TestHostServices.CreateHostServices(FSharpTestExportProvider.ExportProviderWithFSharp)))
             {
                 // Nothing useful on string service, just check if it exists.
                 var stringService = ws.Services.GetLanguageServices(LanguageNames.FSharp).GetRequiredService<ICommandLineStringService>();

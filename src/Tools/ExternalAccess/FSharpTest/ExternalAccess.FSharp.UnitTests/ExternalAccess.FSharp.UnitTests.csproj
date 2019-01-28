@@ -13,6 +13,10 @@
     <ProjectReference Include="..\..\..\..\EditorFeatures\Core.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.csproj" />
     <ProjectReference Include="..\..\..\..\EditorFeatures\TestUtilities\Roslyn.Services.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\..\VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
+    <ProjectReference Include="..\..\..\..\VisualStudio\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj" />
+    <ProjectReference Include="..\..\..\..\VisualStudio\Core\Test.Next\Roslyn.VisualStudio.Next.UnitTests.csproj" />
+    <ProjectReference Include="..\..\..\..\VisualStudio\TestUtilities2\Microsoft.VisualStudio.LanguageServices.Test.Utilities2.vbproj" />
     <ProjectReference Include="..\..\..\..\Workspaces\CoreTestUtilities\Roslyn.Services.UnitTests.Utilities.csproj" />
     <ProjectReference Include="..\..\..\..\Workspaces\Core\Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.csproj" />
     <ProjectReference Include="..\..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
