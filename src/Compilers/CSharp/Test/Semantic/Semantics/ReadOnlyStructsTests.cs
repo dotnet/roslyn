@@ -265,6 +265,27 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics();
+            comp.GetMember<NamedTypeSymbol>("S").GetMember<MethodSymbol>("M"); // TODO: MethodSymbol.IsReadOnly
+        }
+
+        [Fact]
+        public void ReadOnlyClassMethod()
+        {
+            var csharp = @"
+public class C
+{
+    public int i;
+    public readonly int M()
+    {
+        return i;
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (5,25): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public readonly int M()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("readonly").WithLocation(5, 25));
         }
     }
 }
