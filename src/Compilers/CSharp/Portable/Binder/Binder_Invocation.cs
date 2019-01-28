@@ -238,12 +238,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Either we have a dynamic method group invocation "dyn.M(...)" or 
                 // a dynamic delegate invocation "dyn(...)" -- either way, bind it as a dynamic
                 // invocation and let the lowering pass sort it out.
-                reportSuppressionIfNeeded();
+                reportSuppressionIfPresent();
                 result = BindDynamicInvocation(node, boundExpression, analyzedArguments, ImmutableArray<MethodSymbol>.Empty, diagnostics, queryClause);
             }
             else if (boundExpression.Kind == BoundKind.MethodGroup)
             {
-                reportSuppressionIfNeeded();
+                reportSuppressionIfPresent();
                 result = BindMethodGroupInvocation(
                     node, expression, methodName, (BoundMethodGroup)boundExpression, analyzedArguments,
                     diagnostics, queryClause, allowUnexpandedForm: allowUnexpandedForm, anyApplicableCandidates: out _);
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return result;
 
-            void reportSuppressionIfNeeded()
+            void reportSuppressionIfPresent()
             {
                 if (boundExpression.IsSuppressed)
                 {
