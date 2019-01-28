@@ -265,7 +265,10 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics();
-            comp.GetMember<NamedTypeSymbol>("S").GetMember<MethodSymbol>("M"); // TODO: MethodSymbol.IsReadOnly
+
+            var method = (SourceMemberMethodSymbol)comp.GetMember<NamedTypeSymbol>("S").GetMember<MethodSymbol>("M");
+            // PROTOTYPE: add `public abstract bool IsReadOnly` to MethodSymbol and implement in subtypes?
+            Assert.True(method.IsReadOnly);
         }
 
         [Fact]
