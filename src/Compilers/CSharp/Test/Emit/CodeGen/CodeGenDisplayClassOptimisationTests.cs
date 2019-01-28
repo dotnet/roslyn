@@ -106,6 +106,73 @@ one");
   IL_00b3:  callvirt   ""void System.Action.Invoke()""
   IL_00b8:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public class [mscorlib]System.Collections.Generic.List`1<string> strings
+	.field public int32 i
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2115
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 x
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2115
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x211d
+		// Code size 42 (0x2a)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
+		IL_000b: ldarg.0
+		IL_000c: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0011: ldfld int32 Program/'<>c__DisplayClass0_0'::i
+		IL_0016: ldarg.0
+		IL_0017: ldfld int32 Program/'<>c__DisplayClass0_1'::x
+		IL_001c: sub
+		IL_001d: ldc.i4.1
+		IL_001e: sub
+		IL_001f: callvirt instance !0 class [mscorlib]System.Collections.Generic.List`1<string>::get_Item(int32)
+		IL_0024: call void [mscorlib]System.Console::WriteLine(string)
+		IL_0029: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -177,6 +244,65 @@ class C
   IL_0048:  blt.s      IL_0011
   IL_004a:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 x
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20a7
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 i
+	.field public class C/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20a7
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance int32 '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x20af
+		// Code size 19 (0x13)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 C/'<>c__DisplayClass0_1'::i
+		IL_0006: ldarg.0
+		IL_0007: ldfld class C/'<>c__DisplayClass0_0' C/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_000c: ldfld int32 C/'<>c__DisplayClass0_0'::x
+		IL_0011: add
+		IL_0012: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -245,6 +371,65 @@ class C
   IL_0042:  stloc.1
   IL_0043:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 x
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20a0
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 i
+	.field public class C/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20a0
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance int32 '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x20a8
+		// Code size 19 (0x13)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 C/'<>c__DisplayClass0_1'::i
+		IL_0006: ldarg.0
+		IL_0007: ldfld class C/'<>c__DisplayClass0_0' C/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_000c: ldfld int32 C/'<>c__DisplayClass0_0'::x
+		IL_0011: add
+		IL_0012: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -344,6 +529,73 @@ one");
   IL_00b3:  callvirt   ""void System.Action.Invoke()""
   IL_00b8:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public class [mscorlib]System.Collections.Generic.List`1<string> strings
+	.field public int32 i
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2115
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 x
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2115
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x211d
+		// Code size 42 (0x2a)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
+		IL_000b: ldarg.0
+		IL_000c: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0011: ldfld int32 Program/'<>c__DisplayClass0_0'::i
+		IL_0016: ldarg.0
+		IL_0017: ldfld int32 Program/'<>c__DisplayClass0_1'::x
+		IL_001c: sub
+		IL_001d: ldc.i4.1
+		IL_001e: sub
+		IL_001f: callvirt instance !0 class [mscorlib]System.Collections.Generic.List`1<string>::get_Item(int32)
+		IL_0024: call void [mscorlib]System.Console::WriteLine(string)
+		IL_0029: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -453,6 +705,70 @@ one");
   IL_00b1:  callvirt   ""void System.Action.Invoke()""
   IL_00b6:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public class [mscorlib]System.Collections.Generic.List`1<string> strings
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2124
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 i
+	.field public int32 x
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2124
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x212c
+		// Code size 35 (0x23)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
+		IL_000b: ldarg.0
+		IL_000c: ldfld int32 Program/'<>c__DisplayClass0_1'::i
+		IL_0011: ldarg.0
+		IL_0012: ldfld int32 Program/'<>c__DisplayClass0_1'::x
+		IL_0017: sub
+		IL_0018: callvirt instance !0 class [mscorlib]System.Collections.Generic.List`1<string>::get_Item(int32)
+		IL_001d: call void [mscorlib]System.Console::WriteLine(string)
+		IL_0022: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -559,6 +875,70 @@ one");
   IL_00b1:  callvirt   ""void System.Action.Invoke()""
   IL_00b6:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public class [mscorlib]System.Collections.Generic.List`1<string> strings
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2124
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 i
+	.field public int32 x
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2124
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x212c
+		// Code size 35 (0x23)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
+		IL_000b: ldarg.0
+		IL_000c: ldfld int32 Program/'<>c__DisplayClass0_1'::i
+		IL_0011: ldarg.0
+		IL_0012: ldfld int32 Program/'<>c__DisplayClass0_1'::x
+		IL_0017: sub
+		IL_0018: callvirt instance !0 class [mscorlib]System.Collections.Generic.List`1<string>::get_Item(int32)
+		IL_001d: call void [mscorlib]System.Console::WriteLine(string)
+		IL_0022: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [CompilerTrait(CompilerFeature.AsyncStreams)]
@@ -743,6 +1123,70 @@ public class Program
   IL_017e:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()""
   IL_0183:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public class [mscorlib]System.Collections.Generic.List`1<string> strings
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2053
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 i
+	.field public int32 x
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2053
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<M>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x20a0
+		// Code size 35 (0x23)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
+		IL_000b: ldarg.0
+		IL_000c: ldfld int32 Program/'<>c__DisplayClass0_1'::i
+		IL_0011: ldarg.0
+		IL_0012: ldfld int32 Program/'<>c__DisplayClass0_1'::x
+		IL_0017: sub
+		IL_0018: callvirt instance !0 class [mscorlib]System.Collections.Generic.List`1<string>::get_Item(int32)
+		IL_001d: call void [mscorlib]System.Console::WriteLine(string)
+		IL_0022: ret
+	} // end of method '<>c__DisplayClass0_1'::'<M>b__0'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -805,6 +1249,47 @@ public static class Program
   IL_004e:  callvirt   ""void System.Action.Invoke()""
   IL_0053:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public class [mscorlib]System.Collections.Generic.List`1<string> strings
+	.field public int32 i
+	.field public int32 x
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20b0
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x20b8
+		// Code size 30 (0x1e)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
+		IL_0006: ldarg.0
+		IL_0007: ldfld int32 Program/'<>c__DisplayClass0_0'::i
+		IL_000c: ldarg.0
+		IL_000d: ldfld int32 Program/'<>c__DisplayClass0_0'::x
+		IL_0012: add
+		IL_0013: callvirt instance !0 class [mscorlib]System.Collections.Generic.List`1<string>::get_Item(int32)
+		IL_0018: call void [mscorlib]System.Console::WriteLine(string)
+		IL_001d: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_0");
         }
 
         [Fact]
@@ -864,6 +1349,47 @@ public static class Program
   IL_004e:  callvirt   ""void System.Action.Invoke()""
   IL_0053:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public class [mscorlib]System.Collections.Generic.List`1<string> strings
+	.field public int32 i
+	.field public int32 x
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20b0
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x20b8
+		// Code size 30 (0x1e)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
+		IL_0006: ldarg.0
+		IL_0007: ldfld int32 Program/'<>c__DisplayClass0_0'::i
+		IL_000c: ldarg.0
+		IL_000d: ldfld int32 Program/'<>c__DisplayClass0_0'::x
+		IL_0012: add
+		IL_0013: callvirt instance !0 class [mscorlib]System.Collections.Generic.List`1<string>::get_Item(int32)
+		IL_0018: call void [mscorlib]System.Console::WriteLine(string)
+		IL_001d: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_0");
         }
 
         [Fact]
@@ -935,6 +1461,47 @@ public static class Program
   IL_006c:  callvirt   ""void System.Action.Invoke()""
   IL_0071:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public class [mscorlib]System.Collections.Generic.List`1<string> strings
+	.field public int32 i
+	.field public int32 x
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20ce
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x20d6
+		// Code size 30 (0x1e)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
+		IL_0006: ldarg.0
+		IL_0007: ldfld int32 Program/'<>c__DisplayClass0_0'::i
+		IL_000c: ldarg.0
+		IL_000d: ldfld int32 Program/'<>c__DisplayClass0_0'::x
+		IL_0012: add
+		IL_0013: callvirt instance !0 class [mscorlib]System.Collections.Generic.List`1<string>::get_Item(int32)
+		IL_0018: call void [mscorlib]System.Console::WriteLine(string)
+		IL_001d: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_0");
         }
 
         [Fact]
@@ -1016,6 +1583,48 @@ one");
   IL_0063:  callvirt   ""void System.Action.Invoke()""
   IL_0068:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public class [mscorlib]System.Collections.Generic.List`1<string> strings
+	.field public class Program/Disposable disposable
+	.field public int32 i
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20da
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x20e2
+		// Code size 39 (0x27)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/Disposable Program/'<>c__DisplayClass0_0'::disposable
+		IL_0006: callvirt instance string [mscorlib]System.Object::ToString()
+		IL_000b: call void [mscorlib]System.Console::WriteLine(string)
+		IL_0010: ldarg.0
+		IL_0011: ldfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
+		IL_0016: ldarg.0
+		IL_0017: ldfld int32 Program/'<>c__DisplayClass0_0'::i
+		IL_001c: callvirt instance !0 class [mscorlib]System.Collections.Generic.List`1<string>::get_Item(int32)
+		IL_0021: call void [mscorlib]System.Console::WriteLine(string)
+		IL_0026: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_0");
         }
 
         [Fact]
@@ -1095,6 +1704,48 @@ one");
   IL_0063:  callvirt   ""void System.Action.Invoke()""
   IL_0068:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public class [mscorlib]System.Collections.Generic.List`1<string> strings
+	.field public class Program/Disposable disposable
+	.field public int32 i
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20da
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x20e2
+		// Code size 39 (0x27)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/Disposable Program/'<>c__DisplayClass0_0'::disposable
+		IL_0006: callvirt instance string [mscorlib]System.Object::ToString()
+		IL_000b: call void [mscorlib]System.Console::WriteLine(string)
+		IL_0010: ldarg.0
+		IL_0011: ldfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
+		IL_0016: ldarg.0
+		IL_0017: ldfld int32 Program/'<>c__DisplayClass0_0'::i
+		IL_001c: callvirt instance !0 class [mscorlib]System.Collections.Generic.List`1<string>::get_Item(int32)
+		IL_0021: call void [mscorlib]System.Console::WriteLine(string)
+		IL_0026: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_0");
         }
 
         [Fact]
@@ -1265,6 +1916,110 @@ one");
   IL_0130:  callvirt   ""void System.Action.Invoke()""
   IL_0135:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public class [mscorlib]System.Collections.Generic.List`1<string> strings
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x21b2
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 i
+	.field public int32 j
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x21b2
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+} // end of class <>c__DisplayClass0_1");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_2", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_2'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public class Program/Disposable disposable
+	.field public int32 x
+	.field public int32 y
+	.field public class Program/'<>c__DisplayClass0_1' 'CS$<>8__locals2'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x21b2
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_2'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x21bc
+		// Code size 82 (0x52)
+		.maxstack 3
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/Disposable Program/'<>c__DisplayClass0_2'::disposable
+		IL_0006: callvirt instance string [mscorlib]System.Object::ToString()
+		IL_000b: call void [mscorlib]System.Console::WriteLine(string)
+		IL_0010: ldarg.0
+		IL_0011: ldfld class Program/'<>c__DisplayClass0_1' Program/'<>c__DisplayClass0_2'::'CS$<>8__locals2'
+		IL_0016: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_001b: ldfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
+		IL_0020: ldarg.0
+		IL_0021: ldfld class Program/'<>c__DisplayClass0_1' Program/'<>c__DisplayClass0_2'::'CS$<>8__locals2'
+		IL_0026: ldfld int32 Program/'<>c__DisplayClass0_1'::j
+		IL_002b: ldarg.0
+		IL_002c: ldfld int32 Program/'<>c__DisplayClass0_2'::x
+		IL_0031: sub
+		IL_0032: ldc.i4.1
+		IL_0033: sub
+		IL_0034: ldarg.0
+		IL_0035: ldfld class Program/'<>c__DisplayClass0_1' Program/'<>c__DisplayClass0_2'::'CS$<>8__locals2'
+		IL_003a: ldfld int32 Program/'<>c__DisplayClass0_1'::i
+		IL_003f: add
+		IL_0040: ldarg.0
+		IL_0041: ldfld int32 Program/'<>c__DisplayClass0_2'::y
+		IL_0046: add
+		IL_0047: callvirt instance !0 class [mscorlib]System.Collections.Generic.List`1<string>::get_Item(int32)
+		IL_004c: call void [mscorlib]System.Console::WriteLine(string)
+		IL_0051: ret
+	} // end of method '<>c__DisplayClass0_2'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_2");
         }
 
         [Fact]
@@ -1358,6 +2113,70 @@ three");
   IL_0090:  callvirt   ""void System.Action.Invoke()""
   IL_0095:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public class [mscorlib]System.Collections.Generic.List`1<string> strings
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20f2
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 j
+	.field public int32 x
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20f2
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x20fa
+		// Code size 35 (0x23)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
+		IL_000b: ldarg.0
+		IL_000c: ldfld int32 Program/'<>c__DisplayClass0_1'::j
+		IL_0011: ldarg.0
+		IL_0012: ldfld int32 Program/'<>c__DisplayClass0_1'::x
+		IL_0017: add
+		IL_0018: callvirt instance !0 class [mscorlib]System.Collections.Generic.List`1<string>::get_Item(int32)
+		IL_001d: call void [mscorlib]System.Console::WriteLine(string)
+		IL_0022: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -1447,6 +2266,73 @@ one");
   IL_0098:  callvirt   ""void System.Action.Invoke()""
   IL_009d:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public class [mscorlib]System.Collections.Generic.List`1<string> strings
+	.field public int32 i
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20fa
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 j
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20fa
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x2102
+		// Code size 42 (0x2a)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
+		IL_000b: ldarg.0
+		IL_000c: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0011: ldfld int32 Program/'<>c__DisplayClass0_0'::i
+		IL_0016: ldarg.0
+		IL_0017: ldfld int32 Program/'<>c__DisplayClass0_1'::j
+		IL_001c: sub
+		IL_001d: ldc.i4.1
+		IL_001e: sub
+		IL_001f: callvirt instance !0 class [mscorlib]System.Collections.Generic.List`1<string>::get_Item(int32)
+		IL_0024: call void [mscorlib]System.Console::WriteLine(string)
+		IL_0029: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -1526,6 +2412,73 @@ public static class Program
   IL_007d:  callvirt   ""void System.Action.Invoke()""
   IL_0082:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public class [mscorlib]System.Collections.Generic.List`1<string> strings
+	.field public int32 i
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20df
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 j
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20df
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x20e7
+		// Code size 42 (0x2a)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
+		IL_000b: ldarg.0
+		IL_000c: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0011: ldfld int32 Program/'<>c__DisplayClass0_0'::i
+		IL_0016: ldarg.0
+		IL_0017: ldfld int32 Program/'<>c__DisplayClass0_1'::j
+		IL_001c: sub
+		IL_001d: ldc.i4.1
+		IL_001e: sub
+		IL_001f: callvirt instance !0 class [mscorlib]System.Collections.Generic.List`1<string>::get_Item(int32)
+		IL_0024: call void [mscorlib]System.Console::WriteLine(string)
+		IL_0029: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -1589,6 +2542,71 @@ public static class Program
   IL_0053:  callvirt   ""void System.Action.Invoke()""
   IL_0058:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public class [mscorlib]System.Collections.Generic.List`1<string> strings
+	.field public int32 i
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20b5
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 j
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20b5
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x20bd
+		// Code size 40 (0x28)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
+		IL_000b: ldarg.0
+		IL_000c: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0011: ldfld int32 Program/'<>c__DisplayClass0_0'::i
+		IL_0016: ldarg.0
+		IL_0017: ldfld int32 Program/'<>c__DisplayClass0_1'::j
+		IL_001c: add
+		IL_001d: callvirt instance !0 class [mscorlib]System.Collections.Generic.List`1<string>::get_Item(int32)
+		IL_0022: call void [mscorlib]System.Console::WriteLine(string)
+		IL_0027: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -1653,6 +2671,72 @@ public static class Program
   IL_0053:  callvirt   ""void System.Action.Invoke()""
   IL_0058:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public class [mscorlib]System.Collections.Generic.List`1<string> strings
+	.field public int32 i
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20b5
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 j
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20b5
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x20bd
+		// Code size 40 (0x28)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
+		IL_000b: ldarg.0
+		IL_000c: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0011: ldfld int32 Program/'<>c__DisplayClass0_0'::i
+		IL_0016: ldarg.0
+		IL_0017: ldfld int32 Program/'<>c__DisplayClass0_1'::j
+		IL_001c: add
+		IL_001d: callvirt instance !0 class [mscorlib]System.Collections.Generic.List`1<string>::get_Item(int32)
+		IL_0022: call void [mscorlib]System.Console::WriteLine(string)
+		IL_0027: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_1
+");
         }
 
         [Fact]
@@ -1752,6 +2836,73 @@ one");
   IL_00a2:  callvirt   ""void System.Action.Invoke()""
   IL_00a7:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public class [mscorlib]System.Collections.Generic.List`1<string> strings
+	.field public int32 i
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2104
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 x
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2104
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x210c
+		// Code size 42 (0x2a)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
+		IL_000b: ldarg.0
+		IL_000c: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0011: ldfld int32 Program/'<>c__DisplayClass0_0'::i
+		IL_0016: ldarg.0
+		IL_0017: ldfld int32 Program/'<>c__DisplayClass0_1'::x
+		IL_001c: sub
+		IL_001d: ldc.i4.1
+		IL_001e: sub
+		IL_001f: callvirt instance !0 class [mscorlib]System.Collections.Generic.List`1<string>::get_Item(int32)
+		IL_0024: call void [mscorlib]System.Console::WriteLine(string)
+		IL_0029: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -1798,6 +2949,43 @@ public static class Program
   IL_0020:  callvirt   ""void System.Action.Invoke()""
   IL_0025:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 a
+	.field public int32 b
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2082
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x208a
+		// Code size 19 (0x13)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_0006: ldarg.0
+		IL_0007: ldfld int32 Program/'<>c__DisplayClass0_0'::b
+		IL_000c: add
+		IL_000d: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0012: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_0");
         }
 
         [Fact]
@@ -1835,6 +3023,43 @@ public static class Program
   IL_0008:  stfld      ""int Program.<>c__DisplayClass0_0.a""
   IL_000d:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 a
+	.field public int32 b
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x206a
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x2072
+		// Code size 19 (0x13)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_0006: ldarg.0
+		IL_0007: ldfld int32 Program/'<>c__DisplayClass0_0'::b
+		IL_000c: add
+		IL_000d: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0012: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_0");
         }
 
         [Fact]
@@ -1894,6 +3119,43 @@ public static class Program
   IL_002e:  callvirt   ""void System.Action.Invoke()""
   IL_0033:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 a
+	.field public int32 b
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2090
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x2098
+		// Code size 19 (0x13)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_0006: ldarg.0
+		IL_0007: ldfld int32 Program/'<>c__DisplayClass0_0'::b
+		IL_000c: add
+		IL_000d: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0012: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_0");
         }
 
         [Fact]
@@ -1952,6 +3214,43 @@ public static class Program
   IL_002e:  callvirt   ""void System.Action.Invoke()""
   IL_0033:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 a
+	.field public int32 b
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2090
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x2098
+		// Code size 19 (0x13)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_0006: ldarg.0
+		IL_0007: ldfld int32 Program/'<>c__DisplayClass0_0'::b
+		IL_000c: add
+		IL_000d: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0012: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_0");
         }
 
         [Fact]
@@ -2002,6 +3301,43 @@ public static class Program
   IL_0027:  callvirt   ""void System.Action.Invoke()""
   IL_002c:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 a
+	.field public int32 b
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2089
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x2091
+		// Code size 19 (0x13)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_0006: ldarg.0
+		IL_0007: ldfld int32 Program/'<>c__DisplayClass0_0'::b
+		IL_000c: add
+		IL_000d: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0012: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_0");
         }
 
         [Fact]
@@ -2052,6 +3388,43 @@ public static class Program
   IL_0028:  callvirt   ""void System.Action.Invoke()""
   IL_002d:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 a
+	.field public int32 b
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x208a
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x2092
+		// Code size 19 (0x13)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_0006: ldarg.0
+		IL_0007: ldfld int32 Program/'<>c__DisplayClass0_0'::b
+		IL_000c: add
+		IL_000d: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0012: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_0");
         }
 
         [Fact]
@@ -2103,6 +3476,43 @@ public static class Program
   IL_0020:  callvirt   ""void System.Action.Invoke()""
   IL_0025:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 a
+	.field public int32 b
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2082
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x208a
+		// Code size 19 (0x13)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_0006: ldarg.0
+		IL_0007: ldfld int32 Program/'<>c__DisplayClass0_0'::b
+		IL_000c: add
+		IL_000d: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0012: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_0");
         }
 
         [Fact]
@@ -2153,6 +3563,66 @@ public static class Program
   IL_002b:  callvirt   ""void System.Action.Invoke()""
   IL_0030:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 a
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x208d
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 b
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x208d
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x2095
+		// Code size 24 (0x18)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_000b: ldarg.0
+		IL_000c: ldfld int32 Program/'<>c__DisplayClass0_1'::b
+		IL_0011: add
+		IL_0012: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0017: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -2204,6 +3674,66 @@ public static class Program
   IL_002b:  callvirt   ""void System.Action.Invoke()""
   IL_0030:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 a
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x208d
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 b
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x208d
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x2095
+		// Code size 24 (0x18)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_000b: ldarg.0
+		IL_000c: ldfld int32 Program/'<>c__DisplayClass0_1'::b
+		IL_0011: add
+		IL_0012: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0017: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -2254,6 +3784,66 @@ public static class Program
   IL_002b:  callvirt   ""void System.Action.Invoke()""
   IL_0030:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 a
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x208d
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 b
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x208d
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x2095
+		// Code size 24 (0x18)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_000b: ldarg.0
+		IL_000c: ldfld int32 Program/'<>c__DisplayClass0_1'::b
+		IL_0011: add
+		IL_0012: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0017: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -2306,6 +3896,66 @@ public static class Program
   IL_002b:  callvirt   ""void System.Action.Invoke()""
   IL_0030:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 a
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x208d
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 b
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x208d
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x2095
+		// Code size 24 (0x18)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_000b: ldarg.0
+		IL_000c: ldfld int32 Program/'<>c__DisplayClass0_1'::b
+		IL_0011: add
+		IL_0012: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0017: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -2369,6 +4019,66 @@ public static class Program
   IL_0039:  callvirt   ""void System.Action.Invoke()""
   IL_003e:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 a
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x209b
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 b
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x209b
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x20a3
+		// Code size 24 (0x18)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_000b: ldarg.0
+		IL_000c: ldfld int32 Program/'<>c__DisplayClass0_1'::b
+		IL_0011: add
+		IL_0012: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0017: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -2425,6 +4135,66 @@ public static class Program
   IL_0032:  callvirt   ""void System.Action.Invoke()""
   IL_0037:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 a
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2094
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 b
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2094
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x209c
+		// Code size 24 (0x18)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_000b: ldarg.0
+		IL_000c: ldfld int32 Program/'<>c__DisplayClass0_1'::b
+		IL_0011: add
+		IL_0012: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0017: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -2472,6 +4242,77 @@ public static class Program
   IL_002b:  callvirt   ""void System.Action.Invoke()""
   IL_0030:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 a
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x208d
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x2095
+		// Code size 12 (0xc)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_0006: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_000b: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 b
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x208d
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__1' () cil managed 
+	{
+		// Method begins at RVA 0x20a2
+		// Code size 24 (0x18)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_000b: ldarg.0
+		IL_000c: ldfld int32 Program/'<>c__DisplayClass0_1'::b
+		IL_0011: add
+		IL_0012: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0017: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__1'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -2519,6 +4360,57 @@ public static class Program
   IL_0024:  pop
   IL_0025:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 a
+	.field public int32 b
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2077
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x207f
+		// Code size 19 (0x13)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_0006: ldarg.0
+		IL_0007: ldfld int32 Program/'<>c__DisplayClass0_0'::b
+		IL_000c: add
+		IL_000d: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0012: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
+	.method assembly hidebysig 
+		instance void '<Main>b__1' () cil managed 
+	{
+		// Method begins at RVA 0x207f
+		// Code size 19 (0x13)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_0006: ldarg.0
+		IL_0007: ldfld int32 Program/'<>c__DisplayClass0_0'::b
+		IL_000c: add
+		IL_000d: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0012: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__1'
+} // end of class <>c__DisplayClass0_0");
         }
 
         [Fact]
@@ -2561,6 +4453,54 @@ public static class Program
   IL_0024:  pop
   IL_0025:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 a
+	.field public int32 b
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2077
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x207f
+		// Code size 19 (0x13)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_0006: ldarg.0
+		IL_0007: ldfld int32 Program/'<>c__DisplayClass0_0'::b
+		IL_000c: add
+		IL_000d: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0012: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
+	.method assembly hidebysig 
+		instance void '<Main>b__1' () cil managed 
+	{
+		// Method begins at RVA 0x2093
+		// Code size 12 (0xc)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 Program/'<>c__DisplayClass0_0'::b
+		IL_0006: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_000b: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__1'
+} // end of class <>c__DisplayClass0_0");
         }
 
         [Fact]
@@ -2610,6 +4550,77 @@ public static class Program
   IL_0036:  pop
   IL_0037:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 a
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2094
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__1' () cil managed 
+	{
+		// Method begins at RVA 0x209c
+		// Code size 12 (0xc)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_0006: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_000b: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__1'
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 b
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2094
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x20a9
+		// Code size 24 (0x18)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_000b: ldarg.0
+		IL_000c: ldfld int32 Program/'<>c__DisplayClass0_1'::b
+		IL_0011: add
+		IL_0012: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0017: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -2672,6 +4683,82 @@ public static class Program
   IL_0044:  pop
   IL_0045:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 a
+	.field public int32 b
+	.field public int32 c
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20a2
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__1' () cil managed 
+	{
+		// Method begins at RVA 0x20aa
+		// Code size 19 (0x13)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_0006: ldarg.0
+		IL_0007: ldfld int32 Program/'<>c__DisplayClass0_0'::c
+		IL_000c: add
+		IL_000d: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0012: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__1'
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 d
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20a2
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x20be
+		// Code size 24 (0x18)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld int32 Program/'<>c__DisplayClass0_0'::b
+		IL_000b: ldarg.0
+		IL_000c: ldfld int32 Program/'<>c__DisplayClass0_1'::d
+		IL_0011: add
+		IL_0012: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0017: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -2728,6 +4815,97 @@ public static class Program
   IL_0038:  pop
   IL_0039:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 a
+	.field public int32 b
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2096
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x209e
+		// Code size 12 (0xc)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 Program/'<>c__DisplayClass0_0'::b
+		IL_0006: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_000b: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 c
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2096
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__1' () cil managed 
+	{
+		// Method begins at RVA 0x20ab
+		// Code size 24 (0x18)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_000b: ldarg.0
+		IL_000c: ldfld int32 Program/'<>c__DisplayClass0_1'::c
+		IL_0011: add
+		IL_0012: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0017: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__1'
+	.method assembly hidebysig 
+		instance void '<Main>b__2' () cil managed 
+	{
+		// Method begins at RVA 0x20c4
+		// Code size 36 (0x24)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_000b: ldarg.0
+		IL_000c: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0011: ldfld int32 Program/'<>c__DisplayClass0_0'::b
+		IL_0016: add
+		IL_0017: ldarg.0
+		IL_0018: ldfld int32 Program/'<>c__DisplayClass0_1'::c
+		IL_001d: add
+		IL_001e: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0023: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__2'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -2781,6 +4959,81 @@ public static class Program
   IL_0032:  callvirt   ""void System.Action.Invoke()""
   IL_0037:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 a
+	.field public int32 b
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2094
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x209c
+		// Code size 19 (0x13)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_0006: ldarg.0
+		IL_0007: ldfld int32 Program/'<>c__DisplayClass0_0'::b
+		IL_000c: add
+		IL_000d: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0012: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 c
+	.field public class Program/'<>c__DisplayClass0_0' 'CS$<>8__locals1'
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2094
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__1' () cil managed 
+	{
+		// Method begins at RVA 0x20b0
+		// Code size 24 (0x18)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_0006: ldfld int32 Program/'<>c__DisplayClass0_0'::b
+		IL_000b: ldarg.0
+		IL_000c: ldfld int32 Program/'<>c__DisplayClass0_1'::c
+		IL_0011: add
+		IL_0012: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0017: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__1'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -2830,6 +5083,76 @@ public static class Program
   IL_002f:  pop
   IL_0030:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 a
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2082
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x208a
+		// Code size 12 (0xc)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 Program/'<>c__DisplayClass0_0'::a
+		IL_0006: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_000b: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_0");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_1", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_1'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public int32 b
+	.field public int32 c
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2082
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_1'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__1' () cil managed 
+	{
+		// Method begins at RVA 0x2097
+		// Code size 19 (0x13)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 Program/'<>c__DisplayClass0_1'::b
+		IL_0006: ldarg.0
+		IL_0007: ldfld int32 Program/'<>c__DisplayClass0_1'::c
+		IL_000c: add
+		IL_000d: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0012: ret
+	} // end of method '<>c__DisplayClass0_1'::'<Main>b__1'
+} // end of class <>c__DisplayClass0_1");
         }
 
         [Fact]
@@ -2903,6 +5226,60 @@ public class Program
   IL_0061:  callvirt   ""void System.Action.Invoke()""
   IL_0066:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public class [mscorlib]System.Collections.Generic.List`1<class [mscorlib]System.Action> actions
+	.field public int32 a
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20c3
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>g__M|0' () cil managed 
+	{
+		// Method begins at RVA 0x20cc
+		// Code size 67 (0x43)
+		.maxstack 3
+		.locals init (
+			[0] class Program/'<>c__DisplayClass0_1'
+		)
+		IL_0000: newobj instance void Program/'<>c__DisplayClass0_1'::.ctor()
+		IL_0005: stloc.0
+		IL_0006: ldloc.0
+		IL_0007: ldarg.0
+		IL_0008: stfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_000d: ldloc.0
+		IL_000e: ldc.i4.0
+		IL_000f: stfld int32 Program/'<>c__DisplayClass0_1'::b
+		IL_0014: ldarg.0
+		IL_0015: ldfld class [mscorlib]System.Collections.Generic.List`1<class [mscorlib]System.Action> Program/'<>c__DisplayClass0_0'::actions
+		IL_001a: ldloc.0
+		IL_001b: ldftn instance void Program/'<>c__DisplayClass0_1'::'<Main>b__1'()
+		IL_0021: newobj instance void [mscorlib]System.Action::.ctor(object, native int)
+		IL_0026: callvirt instance void class [mscorlib]System.Collections.Generic.List`1<class [mscorlib]System.Action>::Add(!0)
+		IL_002b: ldarg.0
+		IL_002c: ldfld class [mscorlib]System.Collections.Generic.List`1<class [mscorlib]System.Action> Program/'<>c__DisplayClass0_0'::actions
+		IL_0031: ldloc.0
+		IL_0032: ldftn instance void Program/'<>c__DisplayClass0_1'::'<Main>b__2'()
+		IL_0038: newobj instance void [mscorlib]System.Action::.ctor(object, native int)
+		IL_003d: callvirt instance void class [mscorlib]System.Collections.Generic.List`1<class [mscorlib]System.Action>::Add(!0)
+		IL_0042: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>g__M|0'
+} // end of class <>c__DisplayClass0_0");
         }
 
         [Fact]
@@ -2978,6 +5355,60 @@ public class Program
   IL_006c:  callvirt   ""void System.Action.Invoke()""
   IL_0071:  ret
 }");
+
+            compilation.VerifyTypeIL("<>c__DisplayClass0_0", @"
+.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public class [mscorlib]System.Collections.Generic.List`1<class [mscorlib]System.Action> actions
+	.field public int32 a
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20ce
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c__DisplayClass0_0'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__0' () cil managed 
+	{
+		// Method begins at RVA 0x20d8
+		// Code size 67 (0x43)
+		.maxstack 3
+		.locals init (
+			[0] class Program/'<>c__DisplayClass0_1'
+		)
+		IL_0000: newobj instance void Program/'<>c__DisplayClass0_1'::.ctor()
+		IL_0005: stloc.0
+		IL_0006: ldloc.0
+		IL_0007: ldarg.0
+		IL_0008: stfld class Program/'<>c__DisplayClass0_0' Program/'<>c__DisplayClass0_1'::'CS$<>8__locals1'
+		IL_000d: ldloc.0
+		IL_000e: ldc.i4.0
+		IL_000f: stfld int32 Program/'<>c__DisplayClass0_1'::b
+		IL_0014: ldarg.0
+		IL_0015: ldfld class [mscorlib]System.Collections.Generic.List`1<class [mscorlib]System.Action> Program/'<>c__DisplayClass0_0'::actions
+		IL_001a: ldloc.0
+		IL_001b: ldftn instance void Program/'<>c__DisplayClass0_1'::'<Main>b__1'()
+		IL_0021: newobj instance void [mscorlib]System.Action::.ctor(object, native int)
+		IL_0026: callvirt instance void class [mscorlib]System.Collections.Generic.List`1<class [mscorlib]System.Action>::Add(!0)
+		IL_002b: ldarg.0
+		IL_002c: ldfld class [mscorlib]System.Collections.Generic.List`1<class [mscorlib]System.Action> Program/'<>c__DisplayClass0_0'::actions
+		IL_0031: ldloc.0
+		IL_0032: ldftn instance void Program/'<>c__DisplayClass0_1'::'<Main>b__2'()
+		IL_0038: newobj instance void [mscorlib]System.Action::.ctor(object, native int)
+		IL_003d: callvirt instance void class [mscorlib]System.Collections.Generic.List`1<class [mscorlib]System.Action>::Add(!0)
+		IL_0042: ret
+	} // end of method '<>c__DisplayClass0_0'::'<Main>b__0'
+} // end of class <>c__DisplayClass0_0");
         }
     }
 }
