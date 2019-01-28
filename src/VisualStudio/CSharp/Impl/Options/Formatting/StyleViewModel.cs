@@ -336,12 +336,10 @@ class C
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
-        switch (num)
+        return num switch
         {{
-            case 1:
-                return 1;
-            default:
-                return 2;
+            1 => 1,
+            _ => 2,
         }}
 //]
     }}
@@ -349,10 +347,12 @@ class C
     {{
 //[
         // {ServicesVSResources.Over_colon}
-        return num switch
+        switch (num)
         {{
-            1 => 1,
-            _ => 2,
+            case 1:
+                return 1;
+            default:
+                return 2;
         }}
 //]
     }}
