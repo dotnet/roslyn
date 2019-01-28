@@ -281,7 +281,10 @@ function Restore-OptProfData() {
 
     Exec-Console $dropToolPath "list --dropservice `"$dropServiceUrl`" $patAuth --pathPrefixFilter `"$dropNamePrefix`" --toJsonFile `"$dropsJsonPath`" --traceto `"$logFile`""
     $dropsJson = Get-Content -Raw -Path $dropsJsonPath | ConvertFrom-Json
-    $latestDrop = find-latest-drop($dropsJson)
+    
+    # Temporarily hardcoding the drop location to the last good Preview2 drop. The pipeline that generates new new OptProf drops is generating incomplete data.
+    # $latestDrop = find-latest-drop($dropsJson)
+    $latestDrop = "OptimizationData/dotnet/roslyn/master-vs-deps/75e3797e1105a4da4c10dddda76c3b9398f7725a/223453/935479/1"
     
     if ($latestDrop -eq $null) {
         Write-Host "No drop matching given name found: $dropServiceUrl/$dropNamePrefix/*" -ForegroundColor Red 
