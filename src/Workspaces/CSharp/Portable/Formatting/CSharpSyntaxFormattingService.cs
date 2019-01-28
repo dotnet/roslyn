@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 new AnchorIndentationFormattingRule(),
                 new QueryExpressionFormattingRule(),
                 new TokenBasedFormattingRule(),
-                new DefaultOperationProvider());
+                DefaultOperationProvider.Instance);
         }
 
         public override IEnumerable<IFormattingRule> GetDefaultFormattingRules()

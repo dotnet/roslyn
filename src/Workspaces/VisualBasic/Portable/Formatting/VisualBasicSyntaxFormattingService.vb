@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 New AdjustSpaceFormattingRule(),
                 New AlignTokensFormattingRule(),
                 New NodeBasedFormattingRule(),
-                New DefaultOperationProvider())
+                DefaultOperationProvider.Instance)
         End Sub
 
         Public Overrides Function GetDefaultFormattingRules() As IEnumerable(Of IFormattingRule)
