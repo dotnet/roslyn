@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         private sealed class Factory : IHostDependentFormattingRuleFactoryService
         {
-            private readonly IFormattingRule _singleton = new NoOpFormattingRule();
-
             public bool ShouldUseBaseIndentation(Document document)
             {
                 return false;
@@ -31,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
             public IFormattingRule CreateRule(Document document, int position)
             {
-                return _singleton;
+                return NoOpFormattingRule.Instance;
             }
 
             public IEnumerable<TextChange> FilterFormattedChanges(Document document, TextSpan span, IList<TextChange> changes)

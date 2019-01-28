@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             {
                 if (BaseIndentation == 0)
                 {
-                    return new NoOpFormattingRule();
+                    return NoOpFormattingRule.Instance;
                 }
 
                 var root = document.GetSyntaxRootAsync().Result;

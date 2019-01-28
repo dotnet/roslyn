@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping.SeparatedSyntaxList
                 ' Override default indentation behavior.  The special indentation rule tries to 
                 ' align parameters.  But that's what we're actually trying to control, so we need
                 ' to remove this.
-                Return New NoOpFormattingRule()
+                Return NoOpFormattingRule.Instance
             End Function
         End Class
     End Class
