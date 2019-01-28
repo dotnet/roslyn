@@ -238,7 +238,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 parameterType.NullableAnnotation.IsAnyNotNullable() &&
                 convertedExpression.ConstantValue?.IsNull == true &&
                 !suppressNullableWarning(convertedExpression) &&
-                !convertedExpression.IsSuppressed &&
                 DeclaringCompilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
             {
                 diagnostics.Add(ErrorCode.WRN_NullAsNonNullable, parameterSyntax.Default.Value.Location);
@@ -253,13 +252,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 while (true)
                 {
+                    if (expr.IsSuppressed)
+                    {
+                        return true;
+                    }
+
                     switch (expr.Kind)
                     {
                         case BoundKind.Conversion:
                             expr = ((BoundConversion)expr).Operand;
                             break;
                         default:
-                            return expr.IsSuppressed;
+                            return false;
                     }
                 }
             }

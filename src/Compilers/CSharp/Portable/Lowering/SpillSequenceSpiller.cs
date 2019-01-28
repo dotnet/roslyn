@@ -81,10 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            public override BoundExpression WithSuppressionCore()
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
+            protected override BoundExpression DefaultShallowClone()
+                => throw ExceptionUtilities.Unreachable;
 
             public void Free()
             {

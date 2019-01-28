@@ -154,7 +154,7 @@ class C
         }
 
         [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
-        public void SuppressNullableWarning_ExpressionTreeNotAllowed()
+        public void SuppressNullableWarning_ExpressionTree()
         {
             var comp = CreateCompilation(@"
 using System;
@@ -170,17 +170,7 @@ class C
     }
     string M2() => throw null;
 }");
-            comp.VerifyDiagnostics(
-                // (9,44): error CS8404: Expression tree cannot contain a suppression operator.
-                //         Expression<Func<string>> e = () => x!;
-                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainSuppressNullableWarning, "x").WithLocation(9, 44),
-                // (10,40): error CS8404: Expression tree cannot contain a suppression operator.
-                //         Expression<Func<string>> e2 = (() => x)!;
-                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainSuppressNullableWarning, "() => x").WithLocation(10, 40),
-                // (11,51): error CS8404: Expression tree cannot contain a suppression operator.
-                //         Expression<Func<Func<string>>> e3 = () => M2!;
-                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainSuppressNullableWarning, "M2").WithLocation(11, 51)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
@@ -1893,9 +1883,6 @@ class C
                 // (20,58): error CS0845: An expression tree lambda may not contain a coalescing operator with a null or default literal left-hand side
                 //         Expression<System.Func<object>> testExpr = () => null! ?? "hello"; // 13
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "null").WithLocation(20, 58),
-                // (20,58): error CS8404: Expression tree cannot contain a suppression operator.
-                //         Expression<System.Func<object>> testExpr = () => null! ?? "hello"; // 13
-                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainSuppressNullableWarning, "null").WithLocation(20, 58),
                 // (21,13): hidden CS8606: Result of the comparison is possibly always false.
                 //         _ = o == null;
                 Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "o == null").WithLocation(21, 13),

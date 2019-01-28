@@ -112,11 +112,6 @@
         <target state="new">Expression tree cannot contain value of ref struct or restricted type '{0}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeCantContainSuppressNullableWarning">
-        <source>Expression tree cannot contain a suppression operator.</source>
-        <target state="new">Expression tree cannot contain a suppression operator.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
         <source>An expression tree may not contain a switch expression.</source>
         <target state="new">An expression tree may not contain a switch expression.</target>

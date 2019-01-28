@@ -69,9 +69,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             );
         }
 
-        public BoundLambda WithSuppression()
+        protected override BoundExpression ShallowClone()
         {
-            var result = (BoundLambda)WithSuppressionCore();
+            var result = (BoundLambda)DefaultShallowClone();
             result.InferredReturnType = InferredReturnType;
             return result;
         }
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SuppressIfNeeded(Data.BindForReturnTypeInference(delegateType));
 
         private BoundLambda SuppressIfNeeded(BoundLambda lambda)
-            => this.IsSuppressed ? lambda.WithSuppression() : lambda;
+            => this.IsSuppressed ? (BoundLambda)lambda.WithSuppression() : lambda;
 
         public bool HasSignature { get { return Data.HasSignature; } }
         public bool HasExplicitlyTypedParameterList { get { return Data.HasExplicitlyTypedParameterList; } }

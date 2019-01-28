@@ -22,5 +22,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return SetInferredType(TypeSymbolWithAnnotations.Create(binder.CreateErrorType()), binder, success: false);
         }
+
+        protected override BoundExpression ShallowClone()
+        {
+            var result = new OutDeconstructVarPendingInference(this.Syntax, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            result.Placeholder = this.Placeholder;
+            return result;
+        }
     }
 }

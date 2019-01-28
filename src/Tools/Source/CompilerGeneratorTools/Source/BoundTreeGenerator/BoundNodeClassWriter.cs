@@ -900,10 +900,7 @@ namespace BoundTreeGenerator
                         if (node.Name != "BoundExpression" && IsDerivedType("BoundExpression", node.Name))
                         {
                             Blank();
-                            Write("public override BoundExpression WithSuppressionCore()", node.Name);
-                            Blank();
-                            Brace();
-                            Write("if (!this.IsSuppressed)");
+                            Write("protected override BoundExpression DefaultShallowClone()", node.Name);
                             Blank();
                             Brace();
                             Write("var result = new {0}", node.Name);
@@ -911,10 +908,8 @@ namespace BoundTreeGenerator
                             ParenList(fields);
                             WriteLine(";");
                             WriteLine("result.WasCompilerGenerated = this.WasCompilerGenerated;");
-                            WriteLine("result.IsSuppressed = true;");
+                            WriteLine("result.IsSuppressed = this.IsSuppressed;");
                             WriteLine("return result;");
-                            Unbrace();
-                            WriteLine("return this;");
                             Unbrace();
                         }
                         break;

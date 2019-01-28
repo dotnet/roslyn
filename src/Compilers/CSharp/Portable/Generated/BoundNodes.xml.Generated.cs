@@ -455,16 +455,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundDeconstructValuePlaceholder(this.Syntax, this.ValEscape, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundDeconstructValuePlaceholder(this.Syntax, this.ValEscape, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -504,16 +500,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundTupleOperandPlaceholder(this.Syntax, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundTupleOperandPlaceholder(this.Syntax, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -553,16 +545,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundAwaitableValuePlaceholder(this.Syntax, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundAwaitableValuePlaceholder(this.Syntax, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -602,16 +590,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundDisposableValuePlaceholder(this.Syntax, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundDisposableValuePlaceholder(this.Syntax, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -649,16 +633,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundDup(this.Syntax, this.RefKind, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundDup(this.Syntax, this.RefKind, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -693,16 +673,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundPassByCopy(this.Syntax, this.Expression, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundPassByCopy(this.Syntax, this.Expression, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -745,16 +721,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundBadExpression(this.Syntax, this.ResultKind, this.Symbols, this.ChildBoundNodes, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundBadExpression(this.Syntax, this.ResultKind, this.Symbols, this.ChildBoundNodes, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -857,16 +829,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundTypeExpression(this.Syntax, this.AliasOpt, this.InferredType, this.BoundContainingTypeOpt, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundTypeExpression(this.Syntax, this.AliasOpt, this.InferredType, this.BoundContainingTypeOpt, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -910,16 +878,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundTypeOrValueExpression(this.Syntax, this.Data, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundTypeOrValueExpression(this.Syntax, this.Data, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -967,16 +931,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundNamespaceExpression(this.Syntax, this.NamespaceSymbol, this.AliasOpt, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundNamespaceExpression(this.Syntax, this.NamespaceSymbol, this.AliasOpt, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -1025,16 +985,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundUnaryOperator(this.Syntax, this.OperatorKind, this.Operand, this.ConstantValueOpt, this.MethodOpt, this.ResultKind, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundUnaryOperator(this.Syntax, this.OperatorKind, this.Operand, this.ConstantValueOpt, this.MethodOpt, this.ResultKind, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -1086,16 +1042,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundIncrementOperator(this.Syntax, this.OperatorKind, this.Operand, this.MethodOpt, this.OperandConversion, this.ResultConversion, this.ResultKind, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundIncrementOperator(this.Syntax, this.OperatorKind, this.Operand, this.MethodOpt, this.OperandConversion, this.ResultConversion, this.ResultKind, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -1134,16 +1086,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundAddressOfOperator(this.Syntax, this.Operand, this.IsManaged, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundAddressOfOperator(this.Syntax, this.Operand, this.IsManaged, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -1179,16 +1127,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundPointerIndirectionOperator(this.Syntax, this.Operand, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundPointerIndirectionOperator(this.Syntax, this.Operand, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -1231,16 +1175,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundPointerElementAccess(this.Syntax, this.Expression, this.Index, this.Checked, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundPointerElementAccess(this.Syntax, this.Expression, this.Index, this.Checked, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -1279,16 +1219,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundRefTypeOperator(this.Syntax, this.Operand, this.GetTypeFromHandle, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundRefTypeOperator(this.Syntax, this.Operand, this.GetTypeFromHandle, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -1324,16 +1260,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundMakeRefOperator(this.Syntax, this.Operand, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundMakeRefOperator(this.Syntax, this.Operand, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -1369,16 +1301,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundRefValueOperator(this.Syntax, this.Operand, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundRefValueOperator(this.Syntax, this.Operand, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -1417,16 +1345,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundFromEndIndexExpression(this.Syntax, this.Operand, this.MethodOpt, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundFromEndIndexExpression(this.Syntax, this.Operand, this.MethodOpt, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -1467,16 +1391,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundRangeExpression(this.Syntax, this.LeftOperand, this.RightOperand, this.MethodOpt, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundRangeExpression(this.Syntax, this.LeftOperand, this.RightOperand, this.MethodOpt, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -1543,16 +1463,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundBinaryOperator(this.Syntax, this.OperatorKind, this.ConstantValueOpt, this.MethodOpt, this.ResultKind, this.Left, this.Right, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundBinaryOperator(this.Syntax, this.OperatorKind, this.ConstantValueOpt, this.MethodOpt, this.ResultKind, this.Left, this.Right, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -1607,16 +1523,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundTupleBinaryOperator(this.Syntax, this.Left, this.Right, this.ConvertedLeft, this.ConvertedRight, this.OperatorKind, this.Operators, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundTupleBinaryOperator(this.Syntax, this.Left, this.Right, this.ConvertedLeft, this.ConvertedRight, this.OperatorKind, this.Operators, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -1669,16 +1581,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundUserDefinedConditionalLogicalOperator(this.Syntax, this.OperatorKind, this.LogicalOperator, this.TrueOperator, this.FalseOperator, this.ResultKind, this.Left, this.Right, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundUserDefinedConditionalLogicalOperator(this.Syntax, this.OperatorKind, this.LogicalOperator, this.TrueOperator, this.FalseOperator, this.ResultKind, this.Left, this.Right, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -1731,16 +1639,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundCompoundAssignmentOperator(this.Syntax, this.Operator, this.Left, this.Right, this.LeftConversion, this.FinalConversion, this.ResultKind, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundCompoundAssignmentOperator(this.Syntax, this.Operator, this.Left, this.Right, this.LeftConversion, this.FinalConversion, this.ResultKind, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -1781,16 +1685,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundAssignmentOperator(this.Syntax, this.Left, this.Right, this.IsRef, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundAssignmentOperator(this.Syntax, this.Left, this.Right, this.IsRef, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -1833,16 +1733,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundDeconstructionAssignmentOperator(this.Syntax, this.Left, this.Right, this.IsUsed, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundDeconstructionAssignmentOperator(this.Syntax, this.Left, this.Right, this.IsUsed, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -1887,16 +1783,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundNullCoalescingOperator(this.Syntax, this.LeftOperand, this.RightOperand, this.LeftConversion, this.OperatorResultKind, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundNullCoalescingOperator(this.Syntax, this.LeftOperand, this.RightOperand, this.LeftConversion, this.OperatorResultKind, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -1935,16 +1827,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundNullCoalescingAssignmentOperator(this.Syntax, this.LeftOperand, this.RightOperand, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundNullCoalescingAssignmentOperator(this.Syntax, this.LeftOperand, this.RightOperand, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -1994,16 +1882,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundConditionalOperator(this.Syntax, this.IsRef, this.Condition, this.Consequence, this.Alternative, this.ConstantValueOpt, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundConditionalOperator(this.Syntax, this.IsRef, this.Condition, this.Consequence, this.Alternative, this.ConstantValueOpt, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -2043,16 +1927,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundArrayAccess(this.Syntax, this.Expression, this.Indices, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundArrayAccess(this.Syntax, this.Expression, this.Indices, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -2088,16 +1968,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundArrayLength(this.Syntax, this.Expression, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundArrayLength(this.Syntax, this.Expression, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -2137,16 +2013,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundAwaitExpression(this.Syntax, this.Expression, this.AwaitableInfo, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundAwaitExpression(this.Syntax, this.Expression, this.AwaitableInfo, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -2206,16 +2078,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundTypeOfOperator(this.Syntax, this.SourceType, this.GetTypeFromHandle, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundTypeOfOperator(this.Syntax, this.SourceType, this.GetTypeFromHandle, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -2261,16 +2129,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundMethodDefIndex(this.Syntax, this.Method, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundMethodDefIndex(this.Syntax, this.Method, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -2310,16 +2174,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundMaximumMethodDefIndex(this.Syntax, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundMaximumMethodDefIndex(this.Syntax, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -2363,16 +2223,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundInstrumentationPayloadRoot(this.Syntax, this.AnalysisKind, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundInstrumentationPayloadRoot(this.Syntax, this.AnalysisKind, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -2412,16 +2268,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundModuleVersionId(this.Syntax, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundModuleVersionId(this.Syntax, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -2461,16 +2313,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundModuleVersionIdString(this.Syntax, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundModuleVersionIdString(this.Syntax, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -2516,16 +2364,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundSourceDocumentIndex(this.Syntax, this.Document, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundSourceDocumentIndex(this.Syntax, this.Document, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -2575,16 +2419,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundMethodInfo(this.Syntax, this.Method, this.GetMethodFromHandle, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundMethodInfo(this.Syntax, this.Method, this.GetMethodFromHandle, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -2634,16 +2474,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundFieldInfo(this.Syntax, this.Field, this.GetFieldFromHandle, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundFieldInfo(this.Syntax, this.Field, this.GetFieldFromHandle, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -2681,16 +2517,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundDefaultExpression(this.Syntax, this.ConstantValueOpt, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundDefaultExpression(this.Syntax, this.ConstantValueOpt, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -2733,16 +2565,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundIsOperator(this.Syntax, this.Operand, this.TargetType, this.Conversion, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundIsOperator(this.Syntax, this.Operand, this.TargetType, this.Conversion, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -2785,16 +2613,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundAsOperator(this.Syntax, this.Operand, this.TargetType, this.Conversion, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundAsOperator(this.Syntax, this.Operand, this.TargetType, this.Conversion, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -2833,16 +2657,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundSizeOfOperator(this.Syntax, this.SourceType, this.ConstantValueOpt, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundSizeOfOperator(this.Syntax, this.SourceType, this.ConstantValueOpt, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -2896,16 +2716,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundConversion(this.Syntax, this.Operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConstantValueOpt, this.ConversionGroupOpt, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundConversion(this.Syntax, this.Operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConstantValueOpt, this.ConversionGroupOpt, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -2945,16 +2761,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundArgList(this.Syntax, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundArgList(this.Syntax, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -2992,16 +2804,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundArgListOperator(this.Syntax, this.Arguments, this.ArgumentRefKindsOpt, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundArgListOperator(this.Syntax, this.Arguments, this.ArgumentRefKindsOpt, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -3047,16 +2855,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundFixedLocalCollectionInitializer(this.Syntax, this.ElementPointerType, this.ElementPointerTypeConversion, this.Expression, this.GetPinnableOpt, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundFixedLocalCollectionInitializer(this.Syntax, this.ElementPointerType, this.ElementPointerTypeConversion, this.Expression, this.GetPinnableOpt, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -4295,16 +4099,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundLiteral(this.Syntax, this.ConstantValueOpt, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundLiteral(this.Syntax, this.ConstantValueOpt, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -4344,16 +4144,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundThisReference(this.Syntax, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundThisReference(this.Syntax, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -4393,16 +4189,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundPreviousSubmissionReference(this.Syntax, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundPreviousSubmissionReference(this.Syntax, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -4442,16 +4234,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundHostObjectMemberReference(this.Syntax, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundHostObjectMemberReference(this.Syntax, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -4485,16 +4273,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundBaseReference(this.Syntax, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundBaseReference(this.Syntax, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -4552,16 +4336,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundLocal(this.Syntax, this.LocalSymbol, this.DeclarationKind, this.ConstantValueOpt, this.IsNullableUnknown, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundLocal(this.Syntax, this.LocalSymbol, this.DeclarationKind, this.ConstantValueOpt, this.IsNullableUnknown, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -4613,16 +4393,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundPseudoVariable(this.Syntax, this.LocalSymbol, this.EmitExpressions, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundPseudoVariable(this.Syntax, this.LocalSymbol, this.EmitExpressions, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -4662,16 +4438,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundRangeVariable(this.Syntax, this.RangeVariableSymbol, this.Value, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundRangeVariable(this.Syntax, this.RangeVariableSymbol, this.Value, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -4717,16 +4489,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundParameter(this.Syntax, this.ParameterSymbol, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundParameter(this.Syntax, this.ParameterSymbol, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -4882,16 +4650,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundLabel(this.Syntax, this.Label, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundLabel(this.Syntax, this.Label, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -5018,16 +4782,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundSwitchExpression(this.Syntax, this.Expression, this.SwitchArms, this.DecisionDag, this.DefaultLabel, this.ReportedNotExhaustive, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundSwitchExpression(this.Syntax, this.Expression, this.SwitchArms, this.DecisionDag, this.DefaultLabel, this.ReportedNotExhaustive, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -5754,16 +5514,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundSequencePointExpression(this.Syntax, this.Expression, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundSequencePointExpression(this.Syntax, this.Expression, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -5807,16 +5563,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundSequence(this.Syntax, this.Locals, this.SideEffects, this.Value, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundSequence(this.Syntax, this.Locals, this.SideEffects, this.Value, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -5860,16 +5612,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundSpillSequence(this.Syntax, this.Locals, this.SideEffects, this.Value, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundSpillSequence(this.Syntax, this.Locals, this.SideEffects, this.Value, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -5918,16 +5666,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundDynamicMemberAccess(this.Syntax, this.Receiver, this.TypeArgumentsOpt, this.Name, this.Invoked, this.Indexed, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundDynamicMemberAccess(this.Syntax, this.Receiver, this.TypeArgumentsOpt, this.Name, this.Invoked, this.Indexed, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -5990,16 +5734,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundDynamicInvocation(this.Syntax, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.ApplicableMethods, this.Expression, this.Arguments, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundDynamicInvocation(this.Syntax, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.ApplicableMethods, this.Expression, this.Arguments, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -6039,16 +5779,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundConditionalAccess(this.Syntax, this.Receiver, this.AccessExpression, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundConditionalAccess(this.Syntax, this.Receiver, this.AccessExpression, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -6097,16 +5833,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundLoweredConditionalAccess(this.Syntax, this.Receiver, this.HasValueMethodOpt, this.WhenNotNull, this.WhenNullOpt, this.Id, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundLoweredConditionalAccess(this.Syntax, this.Receiver, this.HasValueMethodOpt, this.WhenNotNull, this.WhenNullOpt, this.Id, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -6150,16 +5882,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundConditionalReceiver(this.Syntax, this.Id, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundConditionalReceiver(this.Syntax, this.Id, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -6199,16 +5927,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundComplexConditionalReceiver(this.Syntax, this.ValueTypeReceiver, this.ReferenceTypeReceiver, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundComplexConditionalReceiver(this.Syntax, this.ValueTypeReceiver, this.ReferenceTypeReceiver, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -6259,16 +5983,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundMethodGroup(this.Syntax, this.TypeArgumentsOpt, this.Name, this.Methods, this.LookupSymbolOpt, this.LookupError, this.Flags, this.ReceiverOpt, this.ResultKind, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundMethodGroup(this.Syntax, this.TypeArgumentsOpt, this.Name, this.Methods, this.LookupSymbolOpt, this.LookupError, this.Flags, this.ReceiverOpt, this.ResultKind, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -6303,16 +6023,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundPropertyGroup(this.Syntax, this.Properties, this.ReceiverOpt, this.ResultKind, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundPropertyGroup(this.Syntax, this.Properties, this.ReceiverOpt, this.ResultKind, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -6380,16 +6096,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundCall(this.Syntax, this.ReceiverOpt, this.Method, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.IsDelegateCall, this.Expanded, this.InvokedAsExtensionMethod, this.ArgsToParamsOpt, this.ResultKind, this.BinderOpt, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundCall(this.Syntax, this.ReceiverOpt, this.Method, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.IsDelegateCall, this.Expanded, this.InvokedAsExtensionMethod, this.ArgsToParamsOpt, this.ResultKind, this.BinderOpt, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -6438,16 +6150,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundEventAssignmentOperator(this.Syntax, this.Event, this.IsAddition, this.IsDynamic, this.ReceiverOpt, this.Argument, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundEventAssignmentOperator(this.Syntax, this.Event, this.IsAddition, this.IsDynamic, this.ReceiverOpt, this.Argument, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -6497,16 +6205,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundAttribute(this.Syntax, this.Constructor, this.ConstructorArguments, this.ConstructorArgumentNamesOpt, this.NamedArguments, this.ResultKind, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundAttribute(this.Syntax, this.Constructor, this.ConstructorArguments, this.ConstructorArgumentNamesOpt, this.NamedArguments, this.ResultKind, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -6571,16 +6275,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundObjectCreationExpression(this.Syntax, this.Constructor, this.ConstructorsGroup, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Expanded, this.ArgsToParamsOpt, this.ConstantValueOpt, this.InitializerExpressionOpt, this.BinderOpt, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundObjectCreationExpression(this.Syntax, this.Constructor, this.ConstructorsGroup, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Expanded, this.ArgsToParamsOpt, this.ConstantValueOpt, this.InitializerExpressionOpt, this.BinderOpt, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -6633,16 +6333,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundTupleLiteral(this.Syntax, this.ArgumentNamesOpt, this.InferredNamesOpt, this.Arguments, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundTupleLiteral(this.Syntax, this.ArgumentNamesOpt, this.InferredNamesOpt, this.Arguments, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -6678,16 +6374,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundConvertedTupleLiteral(this.Syntax, this.NaturalTypeOpt, this.Arguments, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundConvertedTupleLiteral(this.Syntax, this.NaturalTypeOpt, this.Arguments, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -6740,16 +6432,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundDynamicObjectCreationExpression(this.Syntax, this.Name, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.InitializerExpressionOpt, this.ApplicableMethods, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundDynamicObjectCreationExpression(this.Syntax, this.Name, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.InitializerExpressionOpt, this.ApplicableMethods, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -6787,16 +6475,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundNoPiaObjectCreationExpression(this.Syntax, this.GuidString, this.InitializerExpressionOpt, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundNoPiaObjectCreationExpression(this.Syntax, this.GuidString, this.InitializerExpressionOpt, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -6845,16 +6529,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundObjectInitializerExpression(this.Syntax, this.Initializers, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundObjectInitializerExpression(this.Syntax, this.Initializers, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -6916,16 +6596,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundObjectInitializerMember(this.Syntax, this.MemberSymbol, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Expanded, this.ArgsToParamsOpt, this.ResultKind, this.ReceiverType, this.BinderOpt, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundObjectInitializerMember(this.Syntax, this.MemberSymbol, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Expanded, this.ArgsToParamsOpt, this.ResultKind, this.ReceiverType, this.BinderOpt, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -6977,16 +6653,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundDynamicObjectInitializerMember(this.Syntax, this.MemberName, this.ReceiverType, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundDynamicObjectInitializerMember(this.Syntax, this.MemberName, this.ReceiverType, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -7019,16 +6691,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundCollectionInitializerExpression(this.Syntax, this.Initializers, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundCollectionInitializerExpression(this.Syntax, this.Initializers, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -7087,16 +6755,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundCollectionElementInitializer(this.Syntax, this.AddMethod, this.Arguments, this.ImplicitReceiverOpt, this.Expanded, this.ArgsToParamsOpt, this.InvokedAsExtensionMethod, this.ResultKind, this.BinderOpt, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundCollectionElementInitializer(this.Syntax, this.AddMethod, this.Arguments, this.ImplicitReceiverOpt, this.Expanded, this.ArgsToParamsOpt, this.InvokedAsExtensionMethod, this.ResultKind, this.BinderOpt, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -7134,16 +6798,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundDynamicCollectionElementInitializer(this.Syntax, this.ApplicableMethods, this.Expression, this.Arguments, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundDynamicCollectionElementInitializer(this.Syntax, this.ApplicableMethods, this.Expression, this.Arguments, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -7183,16 +6843,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundImplicitReceiver(this.Syntax, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundImplicitReceiver(this.Syntax, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -7236,16 +6892,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundAnonymousObjectCreationExpression(this.Syntax, this.Constructor, this.Arguments, this.Declarations, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundAnonymousObjectCreationExpression(this.Syntax, this.Constructor, this.Arguments, this.Declarations, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -7291,16 +6943,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundAnonymousPropertyDeclaration(this.Syntax, this.Property, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundAnonymousPropertyDeclaration(this.Syntax, this.Property, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -7335,16 +6983,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundNewT(this.Syntax, this.InitializerExpressionOpt, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundNewT(this.Syntax, this.InitializerExpressionOpt, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -7386,16 +7030,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundDelegateCreationExpression(this.Syntax, this.Argument, this.MethodOpt, this.IsExtensionMethod, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundDelegateCreationExpression(this.Syntax, this.Argument, this.MethodOpt, this.IsExtensionMethod, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -7434,16 +7074,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundArrayCreation(this.Syntax, this.Bounds, this.InitializerOpt, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundArrayCreation(this.Syntax, this.Bounds, this.InitializerOpt, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -7478,16 +7114,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundArrayInitialization(this.Syntax, this.Initializers, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundArrayInitialization(this.Syntax, this.Initializers, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -7541,16 +7173,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundStackAllocArrayCreation(this.Syntax, this.ElementType, this.Count, this.InitializerOpt, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundStackAllocArrayCreation(this.Syntax, this.ElementType, this.Count, this.InitializerOpt, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -7584,16 +7212,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundConvertedStackAllocExpression(this.Syntax, this.ElementType, this.Count, this.InitializerOpt, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundConvertedStackAllocExpression(this.Syntax, this.ElementType, this.Count, this.InitializerOpt, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -7645,16 +7269,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundFieldAccess(this.Syntax, this.ReceiverOpt, this.FieldSymbol, this.ConstantValueOpt, this.ResultKind, this.IsByValue, this.IsDeclaration, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundFieldAccess(this.Syntax, this.ReceiverOpt, this.FieldSymbol, this.ConstantValueOpt, this.ResultKind, this.IsByValue, this.IsDeclaration, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -7700,16 +7320,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundHoistedFieldAccess(this.Syntax, this.FieldSymbol, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundHoistedFieldAccess(this.Syntax, this.FieldSymbol, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -7752,16 +7368,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundPropertyAccess(this.Syntax, this.ReceiverOpt, this.PropertySymbol, this.ResultKind, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundPropertyAccess(this.Syntax, this.ReceiverOpt, this.PropertySymbol, this.ResultKind, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -7807,16 +7419,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundEventAccess(this.Syntax, this.ReceiverOpt, this.EventSymbol, this.IsUsableAsField, this.ResultKind, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundEventAccess(this.Syntax, this.ReceiverOpt, this.EventSymbol, this.IsUsableAsField, this.ResultKind, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -7877,16 +7485,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundIndexerAccess(this.Syntax, this.ReceiverOpt, this.Indexer, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Expanded, this.ArgsToParamsOpt, this.BinderOpt, this.UseSetterForDefaultArgumentGeneration, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundIndexerAccess(this.Syntax, this.ReceiverOpt, this.Indexer, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Expanded, this.ArgsToParamsOpt, this.BinderOpt, this.UseSetterForDefaultArgumentGeneration, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -7935,16 +7539,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundDynamicIndexerAccess(this.Syntax, this.ReceiverOpt, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.ApplicableIndexers, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundDynamicIndexerAccess(this.Syntax, this.ReceiverOpt, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.ApplicableIndexers, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -7995,16 +7595,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundLambda(this.Syntax, this.UnboundLambda, this.Symbol, this.Body, this.Diagnostics, this.Binder, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundLambda(this.Syntax, this.UnboundLambda, this.Symbol, this.Body, this.Diagnostics, this.Binder, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -8048,16 +7644,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new UnboundLambda(this.Syntax, this.Data, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new UnboundLambda(this.Syntax, this.Data, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -8100,16 +7692,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundQueryClause(this.Syntax, this.Value, this.DefinedSymbol, this.Binder, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundQueryClause(this.Syntax, this.Value, this.DefinedSymbol, this.Binder, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -8177,16 +7765,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundNameOfOperator(this.Syntax, this.Argument, this.ConstantValueOpt, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundNameOfOperator(this.Syntax, this.Argument, this.ConstantValueOpt, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -8221,16 +7805,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundInterpolatedString(this.Syntax, this.Parts, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundInterpolatedString(this.Syntax, this.Parts, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -8271,16 +7851,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundStringInsert(this.Syntax, this.Value, this.Alignment, this.Format, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundStringInsert(this.Syntax, this.Value, this.Alignment, this.Format, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -8331,16 +7907,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundIsPatternExpression(this.Syntax, this.Expression, this.Pattern, this.DecisionDag, this.WhenTrueLabel, this.WhenFalseLabel, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundIsPatternExpression(this.Syntax, this.Expression, this.Pattern, this.DecisionDag, this.WhenTrueLabel, this.WhenFalseLabel, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -8630,16 +8202,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundDiscardExpression(this.Syntax, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundDiscardExpression(this.Syntax, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -8674,16 +8242,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundThrowExpression(this.Syntax, this.Expression, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundThrowExpression(this.Syntax, this.Expression, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -8733,16 +8297,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new OutVariablePendingInference(this.Syntax, this.VariableSymbol, this.ReceiverOpt, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new OutVariablePendingInference(this.Syntax, this.VariableSymbol, this.ReceiverOpt, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -8774,16 +8334,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new DeconstructionVariablePendingInference(this.Syntax, this.VariableSymbol, this.ReceiverOpt, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new DeconstructionVariablePendingInference(this.Syntax, this.VariableSymbol, this.ReceiverOpt, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -8810,16 +8366,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new OutDeconstructVarPendingInference(this.Syntax, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new OutDeconstructVarPendingInference(this.Syntax, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 
@@ -8931,16 +8483,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this;
         }
 
-        public override BoundExpression WithSuppressionCore()
+        protected override BoundExpression DefaultShallowClone()
         {
-            if (!this.IsSuppressed)
-            {
-                var result = new BoundExpressionWithNullability(this.Syntax, this.Expression, this.NullableAnnotation, this.Type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                result.IsSuppressed = true;
-                return result;
-            }
-            return this;
+            var result = new BoundExpressionWithNullability(this.Syntax, this.Expression, this.NullableAnnotation, this.Type, this.HasErrors);
+            result.WasCompilerGenerated = this.WasCompilerGenerated;
+            result.IsSuppressed = this.IsSuppressed;
+            return result;
         }
     }
 

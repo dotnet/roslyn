@@ -5315,10 +5315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
-                    if (!receiverOpt.IsSuppressed)
-                    {
-                        ReportSafetyDiagnostic(isValueType ? ErrorCode.WRN_NullableValueTypeMayBeNull : ErrorCode.WRN_NullReferenceReceiver, syntaxOpt ?? receiverOpt.Syntax);
-                    }
+                    ReportSafetyDiagnostic(isValueType ? ErrorCode.WRN_NullableValueTypeMayBeNull : ErrorCode.WRN_NullReferenceReceiver, syntaxOpt ?? receiverOpt.Syntax);
                 }
 
                 var slotBuilder = ArrayBuilder<int>.GetInstance();

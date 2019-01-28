@@ -10,7 +10,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundExpression
     {
-        public abstract BoundExpression WithSuppressionCore();
+        protected abstract BoundExpression DefaultShallowClone();
+
+        /// <summary>
+        /// The default/generated implementation of shallow clone logic.
+        /// Bound nodes with fields that aren't declared in BoundNodes.xml should override <see cref="ShallowClone"/>.
+        /// </summary>
+        protected virtual BoundExpression ShallowClone()
+            => DefaultShallowClone();
+
+        internal BoundExpression WithSuppression()
+        {
+            if (this.IsSuppressed)
+            {
+                return this;
+            }
+
+            var result = ShallowClone();
+            result.IsSuppressed = true;
+            return result;
+        }
 
         public virtual ConstantValue ConstantValue
         {

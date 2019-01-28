@@ -156,16 +156,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return (_attributes & BoundNodeAttributes.IsSuppressed) != 0;
             }
-            internal set
+            protected set
             {
-
+                Debug.Assert((_attributes & BoundNodeAttributes.IsSuppressed) == 0, "flag should not be set twice or reset");
                 if (value)
                 {
                     _attributes |= BoundNodeAttributes.IsSuppressed;
-                }
-                else
-                {
-                    Debug.Assert((_attributes & BoundNodeAttributes.IsSuppressed) == 0, "flag should not be reset");
                 }
             }
         }

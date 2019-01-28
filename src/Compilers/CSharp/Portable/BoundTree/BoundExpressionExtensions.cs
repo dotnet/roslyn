@@ -1,23 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CSharp.Binder;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static partial class BoundExpressionExtensions
     {
-        public static T WithSuppression<T>(this T node) where T : BoundExpression
-        {
-            return (T)node.WithSuppressionCore();
-        }
-
         /// <summary>
         /// Returns the RefKind if the expression represents a symbol
         /// that has a RefKind, or RefKind.None otherwise.

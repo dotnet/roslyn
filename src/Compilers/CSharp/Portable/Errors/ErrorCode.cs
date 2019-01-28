@@ -1584,7 +1584,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AltInterpolatedVerbatimStringsNotAvailable = 8401,
         WRN_DefaultLiteralConvertedToNullIsNotIntended = 8402,
         ERR_IteratorMustBeAsync = 8403,
-        ERR_ExpressionTreeCantContainSuppressNullableWarning = 8404,
 
         ERR_NoConvToIAsyncDisp = 8410,
         ERR_AwaitForEachMissingMember = 8411,
