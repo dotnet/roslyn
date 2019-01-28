@@ -140,16 +140,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             {
                 if (AreEquivalent(leftMatch.Expression, rightMatch.Expression))
                 {
+                    _isNonTrivial = true;
                     return PatternMatch.Create(leftMatch.Expression, Intersection(leftMatch.Pattern, rightMatch.Pattern));
                 }
 
                 if (leftMatch.Pattern.Contains(rightMatch.Expression))
                 {
+                    _isNonTrivial = true;
                     return PatternMatch.Create(leftMatch.Expression, Intersection(leftMatch.Pattern, rightMatch));
                 }
 
                 if (rightMatch.Pattern.Contains(leftMatch.Expression))
                 {
+                    _isNonTrivial = true;
                     return PatternMatch.Create(rightMatch.Expression, Intersection(rightMatch.Pattern, leftMatch));
                 }
 
@@ -228,11 +231,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                                                     SyntaxKind.ConditionalAccessExpression,
                                                     SyntaxKind.SimpleMemberAccessExpression):
                         var expr = node.Expression.WalkDownParentheses();
-                        return (_isNonTrivial |= expr.IsKind(SyntaxKind.AsExpression, out BinaryExpressionSyntax asExpression))
-                            ? MakePatternMatch(asExpression.Left,
-                                new Conjunction(new TypePattern((TypeSyntax)asExpression.Right),
-                                    MakePatternMatch(node.WhenNotNull, pattern)))
-                            : MakePatternMatch(expr, MakePatternMatch(node.WhenNotNull, pattern));
+                        if (!expr.IsKind(SyntaxKind.AsExpression, out BinaryExpressionSyntax asExpression))
+                        {
+                            return MakePatternMatch(expr, MakePatternMatch(node.WhenNotNull, pattern));
+                        }
+
+                        _isNonTrivial = true;
+                        return MakePatternMatch(asExpression.Left,
+                            new Conjunction(new TypePattern((TypeSyntax)asExpression.Right),
+                            MakePatternMatch(node.WhenNotNull, pattern)));
 
                     case SyntaxKind.SimpleMemberAccessExpression
                         when (MemberAccessExpressionSyntax)expression is var node && node.Name.IsKind(SyntaxKind.IdentifierName):

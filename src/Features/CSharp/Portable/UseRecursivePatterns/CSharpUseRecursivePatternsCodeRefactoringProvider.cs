@@ -32,12 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 return;
             }
 
-            var semanticModel = await context.Document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var analyzedNode = Analyzer.Analyze(node, semanticModel);
             if (analyzedNode is null)
             {
                 return;
             }
+
             var reducedNode = Reducer.Reduce(analyzedNode, out var isNonTrivial);
             if (reducedNode is null || !isNonTrivial)
             {
