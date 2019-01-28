@@ -709,5 +709,26 @@ public class C
     }
 }");
         }
+
+        [WorkItem(32864, "https://github.com/dotnet/roslyn/issues/32864")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestConcatenationWithNoStringLiterals()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        var v = 1 [||]+ (""string"");
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        var v = $""{1}{(""string"")}"";
+    }
+}");
+        }
     }
 }
