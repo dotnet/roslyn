@@ -1878,7 +1878,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
         }
 
-        public override void VisitFromEndIndexOperation(IFromEndIndexOperation operation)
+        internal override void VisitFromEndIndexOperation(IFromEndIndexOperation operation)
         {
             LogString(nameof(IFromEndIndexOperation));
 

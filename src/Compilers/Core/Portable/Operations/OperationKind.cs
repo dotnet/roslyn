@@ -226,8 +226,6 @@ namespace Microsoft.CodeAnalysis
         SuppressNullableWarning = 0x62,
         /// <summary>Indicates an <see cref="IRangeOperation"/>.</summary>
         Range = 0x63,
-        /// <summary>Indicates an <see cref="IFromEndIndexOperation"/>.</summary>
-        FromEndIndex = 0x64,
         /// <summary>Indicates an <see cref="IReDimOperation"/>.</summary>
         ReDim = 0x65,
         /// <summary>Indicates an <see cref="IReDimClauseOperation"/>.</summary>

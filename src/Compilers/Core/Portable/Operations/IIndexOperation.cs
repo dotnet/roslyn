@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to change it in the future.
     /// </remarks>
-    public interface IFromEndIndexOperation : IOperation
+    internal interface IFromEndIndexOperation : IOperation
     {
         /// <summary>
         /// The operand.

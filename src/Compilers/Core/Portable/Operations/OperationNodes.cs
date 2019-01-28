@@ -9401,7 +9401,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal abstract class BaseFromEndIndexOperation : Operation, IFromEndIndexOperation
     {
         protected BaseFromEndIndexOperation(bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol, bool isImplicit) :
-                    base(OperationKind.FromEndIndex, semanticModel, syntax, type, constantValue: default, isImplicit: isImplicit)
+                    base(OperationKind.None, semanticModel, syntax, type, constantValue: default, isImplicit: isImplicit)
         {
             IsLifted = isLifted;
             Symbol = symbol;
