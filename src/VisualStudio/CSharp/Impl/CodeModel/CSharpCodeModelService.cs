@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             : base(languageServiceProvider,
                    editorOptionsFactoryService,
                    refactorNotifyServices,
-                   new BlankLineInGeneratedMethodFormattingRule(),
+                   BlankLineInGeneratedMethodFormattingRule.Instance,
                    EndRegionFormattingRule.Instance)
         {
         }
