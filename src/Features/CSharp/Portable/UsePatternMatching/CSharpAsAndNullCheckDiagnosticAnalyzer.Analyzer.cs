@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 Debug.Assert(comparison != null);
                 Debug.Assert(operand != null);
                 Debug.Assert(localStatement.IsKind(SyntaxKind.LocalDeclarationStatement));
-                Debug.Assert(enclosingBlock.IsKind(SyntaxKind.Block));
+                Debug.Assert(enclosingBlock.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection));
 
                 _semanticModel = semanticModel;
                 _comparison = comparison;
