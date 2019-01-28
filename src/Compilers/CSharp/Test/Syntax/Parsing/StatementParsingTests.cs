@@ -3994,6 +3994,201 @@ System.Console.WriteLine(true)";
             EOF();
         }
 
+        [Fact]
+        public void ParseCreateNullableTuple_01()
+        {
+            UsingStatement("_ = new (int, int)? {};");
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.ObjectCreationExpression);
+                    {
+                        N(SyntaxKind.NewKeyword);
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                        N(SyntaxKind.ObjectInitializerExpression);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParseCreateNullableTuple_02()
+        {
+            UsingStatement("_ = new (int, int) ? (x) : (y);",
+                // (1,1): error CS1073: Unexpected token ':'
+                // _ = new (int, int) ? (x) : (y);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "_ = new (int, int) ? (x) ").WithArguments(":").WithLocation(1, 1),
+                // (1,26): error CS1002: ; expected
+                // _ = new (int, int) ? (x) : (y);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(1, 26)
+                );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.ObjectCreationExpression);
+                    {
+                        N(SyntaxKind.NewKeyword);
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParsePointerToArray()
+        {
+            UsingStatement("int []* p;",
+                // (1,7): error CS1001: Identifier expected
+                // int []* p;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "*").WithLocation(1, 7),
+                // (1,7): error CS1003: Syntax error, ',' expected
+                // int []* p;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "*").WithArguments(",", "*").WithLocation(1, 7)
+                );
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.ArrayType);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParseNewNullableWithInitializer()
+        {
+            UsingStatement("_ = new int? {};");
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.ObjectCreationExpression);
+                    {
+                        N(SyntaxKind.NewKeyword);
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                        N(SyntaxKind.ObjectInitializerExpression);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
         private sealed class TokenAndTriviaWalker : CSharpSyntaxWalker
         {
             public int Tokens;

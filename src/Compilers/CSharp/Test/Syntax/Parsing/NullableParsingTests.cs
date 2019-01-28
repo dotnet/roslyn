@@ -1608,5 +1608,69 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             EOF();
         }
+
+        [Fact]
+        public void CreateNullableArray_07()
+        {
+            UsingExpression("new object[1]?[2,3]?[]");
+            N(SyntaxKind.ArrayCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.ArrayType);
+                {
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.ArrayType);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.ArrayType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.ObjectKeyword);
+                                    }
+                                    N(SyntaxKind.ArrayRankSpecifier);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "1");
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                    N(SyntaxKind.ArrayRankSpecifier);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.OmittedArraySizeExpression);
+                        {
+                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+            }
+            EOF();
+        }
     }
 }
