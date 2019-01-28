@@ -181,44 +181,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             private AnalyzedNode IntersectionCore(PositionalPattern positional, PatternMatch match)
             {
-                var subpatterns = new List<(NameColonSyntax, AnalyzedNode)>(positional.Subpatterns.Length);
-                foreach (var sub in positional.Subpatterns)
+                var subpatterns = positional.Subpatterns;
+                for (var index = 0; index < subpatterns.Length; index++)
                 {
-                    if (!sub.Pattern.Contains(match.Expression))
+                    var subpattern = subpatterns[index];
+                    var pattern = subpattern.Pattern;
+                    if (pattern.Contains(match.Expression))
                     {
-                        subpatterns.Add(sub);
-                        continue;
+                        var intersection = Intersection(pattern, match.Pattern);
+                        if (intersection is null)
+                            return null;
+
+                        return new PositionalPattern(subpatterns.SetItem(index, (subpattern.NameColonOpt, intersection)));
                     }
-
-                    var newSub = Intersection(sub.Pattern, match.Pattern);
-                    if (newSub is null)
-                        return null;
-
-                    subpatterns.Add((sub.NameColonOpt, newSub));
                 }
 
-                return new PositionalPattern(subpatterns.ToImmutableArray());
+                return new Conjunction(positional, match);
             }
 
             private AnalyzedNode IntersectionCore(PositionalPattern left, PositionalPattern right)
             {
-                if (left.Subpatterns.Length == right.Subpatterns.Length)
+                var leftSubpatterns = left.Subpatterns;
+                var rightSubpatterns = right.Subpatterns;
+                if (leftSubpatterns.Length != rightSubpatterns.Length)
+                    return null;
+
+                var builder = new List<(NameColonSyntax, AnalyzedNode)>(leftSubpatterns.Length);
+                for (var index = 0; index < leftSubpatterns.Length; index++)
                 {
-                    return new PositionalPattern(left.Subpatterns.ZipAsArray(right.Subpatterns,
-                        (leftSub, rightSub) => (leftSub.NameColonOpt ?? rightSub.NameColonOpt, Intersection(leftSub.Pattern, rightSub.Pattern))));
+                    var leftSub = leftSubpatterns[index];
+                    var rightSub = rightSubpatterns[index];
+                    var intersection = Intersection(leftSub.Pattern, rightSub.Pattern);
+                    if (intersection is null)
+                        return null;
+
+                    builder.Add((leftSub.NameColonOpt ?? rightSub.NameColonOpt, intersection));
                 }
 
-                return null;
+                return new PositionalPattern(builder.ToImmutableArray());
             }
 
             public AnalyzedNode ReduceConjunction(Conjunction node)
                 => Intersection(Reduce(node.Left), Reduce(node.Right));
 
-            public AnalyzedNode Reduce(AnalyzedNode node)
-                => node.Reduce(this);
-
             public AnalyzedNode ReducePatternMatch(PatternMatch node)
                 => MakePatternMatch(node.Expression, Reduce(node.Pattern));
+
+            private AnalyzedNode Reduce(AnalyzedNode node)
+                => node.Reduce(this);
 
             private PatternMatch MakePatternMatch(ExpressionSyntax expression, AnalyzedNode pattern)
             {
