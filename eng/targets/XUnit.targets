@@ -24,4 +24,20 @@
       </None>
     </ItemGroup>
   </Target>
+
+  <!-- Add the debug flag to Mono -->
+  <Target Name="DebugMono" BeforeTargets="RunTests" Condition="'$(MonoTool)' != ''">
+
+    <!--
+        WORKAROUND:
+        Arcade's XUnit targets invokes the test runner (conceptually) as "$(MonoTool)" $(Args)
+        We need to hook into between the MonoTool and the Args.
+        This is achieved by quote abuse below. When MSBuild expands out the tool we'll end up closing the exe quotes,
+        adding our argument in, then having a second empty quoted argument before the real args. Hmmmmmm.
+    -->
+    <PropertyGroup>
+      <MonoTool>$(MonoTool)" --debug"</MonoTool>
+    </PropertyGroup>
+
+  </Target>
 </Project>
