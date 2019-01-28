@@ -198,6 +198,7 @@ class Program2
 </Workspace>");
         }
 
+        [WorkItem(32792, "https://github.com/dotnet/roslyn/issues/32792")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddFileBanner)]
         public async Task TestUpdateFileNameInComment()
         {
