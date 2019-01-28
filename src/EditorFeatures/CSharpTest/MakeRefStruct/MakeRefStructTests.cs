@@ -69,6 +69,7 @@ struct S
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
         public async Task FieldStaticInRefStruct()
         {
+            // Note: does not compile
             var text = CreateTestSource(@"
 ref struct S
 {
@@ -87,6 +88,7 @@ struct S
     static Span<int>[||] m;
 }
 ");
+            // Note: still does not compile after fix
             var expected = CreateTestSource(@"
 ref struct S
 {
@@ -117,6 +119,7 @@ ref struct S
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
         public async Task PropInNestedClassInsideNotRefStruct()
         {
+            // Note: does not compile
             var text = CreateTestSource(@"
 struct S
 {
@@ -132,6 +135,7 @@ struct S
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
         public async Task PropStaticInRefStruct()
         {
+            // Note: does not compile
             var text = CreateTestSource(@"
 ref struct S
 {
@@ -150,6 +154,7 @@ struct S
     static Span<int>[||] M { get; }
 }
 ");
+            // Note: still does not compile after fix
             var expected = CreateTestSource(@"
 ref struct S
 {
@@ -185,7 +190,7 @@ partial struct S
 
 partial struct S
 {
-    static Span<int>[||] M { get; }
+    Span<int>[||] M { get; }
 }
 ");
             var expected = CreateTestSource(@"
@@ -195,12 +200,12 @@ partial struct S
 
 ref partial struct S
 {
-    static Span<int>[||] M { get; }
+    Span<int>[||] M { get; }
 }
 ");
             await TestInRegularAndScriptAsync(text, expected, parseOptions: s_parseOptions);
         }
-        
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
         public async Task ReadonlyPartialStruct()
         {
@@ -211,7 +216,7 @@ partial struct S
 
 readonly partial struct S
 {
-    static Span<int>[||] M { get; }
+    Span<int>[||] M { get; }
 }
 ");
             var expected = CreateTestSource(@"
@@ -221,7 +226,7 @@ partial struct S
 
 readonly ref partial struct S
 {
-    static Span<int>[||] M { get; }
+    Span<int>[||] M { get; }
 }
 ");
             await TestInRegularAndScriptAsync(text, expected, parseOptions: s_parseOptions);
