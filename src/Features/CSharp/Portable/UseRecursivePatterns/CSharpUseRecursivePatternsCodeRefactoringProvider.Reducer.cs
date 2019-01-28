@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 return null;
             }
 
-            public AnalyzedNode ReduceConjuction(Conjunction node)
+            public AnalyzedNode ReduceConjunction(Conjunction node)
                 => Intersection(Reduce(node.Left), Reduce(node.Right));
 
             public AnalyzedNode Reduce(AnalyzedNode node)

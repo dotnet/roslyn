@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             public override bool Contains(ExpressionSyntax e) => Left.Contains(e) || Right.Contains(e);
 
-            public override AnalyzedNode Reduce(Reducer reducer) => reducer.ReduceConjuction(this);
+            public override AnalyzedNode Reduce(Reducer reducer) => reducer.ReduceConjunction(this);
 
             public override void GetChildren(List<AnalyzedNode> nodes)
             {
