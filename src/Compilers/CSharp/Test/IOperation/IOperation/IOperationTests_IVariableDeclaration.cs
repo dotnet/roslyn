@@ -703,9 +703,9 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
     null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(6,23): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         /*<bind>*/int[10] x = { 1 }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "10").WithLocation(6, 23)
+                // file.cs(6,22): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         /*<bind>*/int[10] x = { 1 };/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[10]").WithLocation(6, 22)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -736,11 +736,11 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
     null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(6,23): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         /*<bind>*/int[10] x/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "10").WithLocation(6, 23),
+                // file.cs(6,22): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         /*<bind>*/int[10] x;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[10]").WithLocation(6, 22),
                 // file.cs(6,27): warning CS0168: The variable 'x' is declared but never used
-                //         /*<bind>*/int[10] x/*</bind>*/;
+                //         /*<bind>*/int[10] x;/*</bind>*/
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 27)
             };
 
