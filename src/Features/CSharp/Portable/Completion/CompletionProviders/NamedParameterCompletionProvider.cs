@@ -256,7 +256,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             return Task.FromResult<TextChange?>(new TextChange(
                 selectedItem.Span,
-                selectedItem.DisplayText));
+                // Do not insert colon on <Tab> so that user can complete out a variable name that does not currently exist.
+                // ch == null is to support the old completion only.
+                // Do not insert an extra colon if colon has been explicitly typed.
+                (ch == null || ch == '\t' || ch == ':') ? selectedItem.DisplayText : selectedItem.GetEntireDisplayText()));
         }
     }
 }
