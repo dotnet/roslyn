@@ -5,6 +5,7 @@ using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers;
 using Test.Utilities;
 using Xunit;
@@ -64,7 +65,7 @@ class MyAnalyzer : DiagnosticAnalyzer
                 GetCSharpExpectedDiagnostic(38, 52, parameterName: "operationBlockContext", kind: StartActionKind.OperationBlockStartAction)
             };
 
-            VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: true, expected: expected);
+            VerifyCSharp(source, referenceFlags: ReferenceFlags.None, expected: expected);
         }
 
         [Fact]
@@ -114,7 +115,7 @@ End Class
                 GetBasicExpectedDiagnostic(34, 51, parameterName: "operationBlockContext", kind: StartActionKind.OperationBlockStartAction)
             };
 
-            VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: true, expected: expected);
+            VerifyBasic(source, referenceFlags: ReferenceFlags.None, expected: expected);
         }
 
         [Fact]
@@ -157,7 +158,7 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
     }
 }";
 
-            VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: true);
+            VerifyCSharp(source, referenceFlags: ReferenceFlags.None);
         }
 
         [Fact]
@@ -203,7 +204,7 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
     }
 }";
 
-            VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: true);
+            VerifyCSharp(source, referenceFlags: ReferenceFlags.None);
         }
 
         [Fact]
@@ -228,7 +229,7 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override void Initialize(AnalysisContext context)
     {
-        context.RegisterOperationAction(AnalyzeOperation, OperationKind.InvocationExpression);
+        context.RegisterOperationAction(AnalyzeOperation, OperationKind.Invocation);
     }
 
     private static void AnalyzeOperation(OperationAnalysisContext context)
@@ -256,7 +257,7 @@ class MyAnalyzer2 : DiagnosticAnalyzer
     {
     }
 }";
-            VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: false);
+            VerifyCSharp(source, referenceFlags: ReferenceFlags.RemoveCodeAnalysis);
         }
 
         [Fact]
@@ -291,7 +292,7 @@ class MyAnalyzer : DiagnosticAnalyzer
 
         context.RegisterCompilationStartAction(compilationContext =>
         {
-            compilationContext.RegisterOperationAction(AnalyzeOperation, OperationKind.InvocationExpression);
+            compilationContext.RegisterOperationAction(AnalyzeOperation, OperationKind.Invocation);
         });
 
         context.RegisterCompilationStartAction(compilationContext =>
@@ -310,13 +311,13 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     private static void AnalyzeOperationBlockStart(OperationBlockStartAnalysisContext context)
     {
-        context.RegisterOperationAction(AnalyzeOperation, OperationKind.InvocationExpression);
+        context.RegisterOperationAction(AnalyzeOperation, OperationKind.Invocation);
     }
 }";
 
-            VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: false);
+            VerifyCSharp(source, referenceFlags: ReferenceFlags.RemoveCodeAnalysis);
         }
-    
+
         [Fact]
         public void VisualBasic_NoDiagnosticCases()
         {
@@ -354,7 +355,7 @@ Class MyAnalyzer(Of T As Structure)
 End Class
 ";
 
-            VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: true);
+            VerifyBasic(source, referenceFlags: ReferenceFlags.None);
         }
 
         [Fact]
@@ -398,7 +399,7 @@ Class MyAnalyzer(Of T As Structure)
 End Class
 ";
 
-            VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: true);
+            VerifyBasic(source, referenceFlags: ReferenceFlags.None);
         }
 
         [Fact]
@@ -420,7 +421,7 @@ Class MyAnalyzer
 	End Property
 
 	Public Overrides Sub Initialize(context As AnalysisContext)
-		context.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.InvocationExpression)
+		context.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.Invocation)
 	End Sub
 
 	Private Shared Sub AnalyzeOperation(context As OperationAnalysisContext)
@@ -444,7 +445,7 @@ Class MyAnalyzer2
 	End Sub
 End Class
 ";
-            VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: false);
+            VerifyBasic(source, referenceFlags: ReferenceFlags.RemoveCodeAnalysis);
         }
 
         [Fact]
@@ -473,7 +474,7 @@ MustInherit Class MyAnalyzer
                                                End Function)
 
 		context.RegisterCompilationStartAction(Function(compilationContext) 
-		                                         compilationContext.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.InvocationExpression)
+		                                         compilationContext.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.Invocation)
                                                End Function)
 
 		context.RegisterCompilationStartAction(Function(compilationContext) 
@@ -488,12 +489,12 @@ MustInherit Class MyAnalyzer
 	End Sub
 
 	Private Shared Sub AnalyzeOperationBlockStart(context As OperationBlockStartAnalysisContext)
-		context.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.InvocationExpression)
+		context.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.Invocation)
 	End Sub
 End Class
 ";
 
-            VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: false);
+            VerifyBasic(source, referenceFlags: ReferenceFlags.RemoveCodeAnalysis);
         }
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()
@@ -528,7 +529,7 @@ End Class
 
         private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string parameterName, StartActionKind kind)
         {
-            string arg2;            
+            string arg2;
             switch (kind)
             {
                 case StartActionKind.CompilationStartAction:
@@ -541,22 +542,15 @@ End Class
                     break;
 
                 default:
-                    throw new ArgumentException("Unsupported action kind", "kind");
+                    throw new ArgumentException("Unsupported action kind", nameof(kind));
             }
 
             string message = string.Format(CodeAnalysisDiagnosticsResources.StartActionWithNoRegisteredActionsMessage, parameterName, arg2);
 
             string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult
-            {
-                Id = DiagnosticIds.StartActionWithNoRegisteredActionsRuleId,
-                Message = message,
-                Severity = DiagnosticHelpers.DefaultDiagnosticSeverity,
-                Locations = new[]
-                {
-                    new DiagnosticResultLocation(fileName, line, column)
-                }
-            };
+            return new DiagnosticResult(DiagnosticIds.StartActionWithNoRegisteredActionsRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+                .WithLocation(fileName, line, column)
+                .WithMessageFormat(message);
         }
 
         private enum StartActionKind

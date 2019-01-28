@@ -30,7 +30,7 @@ namespace Roslyn.Diagnostics.Analyzers
             messageFormat: RoslynDiagnosticsAnalyzersResources.DeclarePublicApiMessage,
             category: "ApiDesign",
             defaultSeverity: DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             description: RoslynDiagnosticsAnalyzersResources.DeclarePublicApiDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -40,7 +40,7 @@ namespace Roslyn.Diagnostics.Analyzers
             messageFormat: RoslynDiagnosticsAnalyzersResources.RemoveDeletedApiMessage,
             category: "ApiDesign",
             defaultSeverity: DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             description: RoslynDiagnosticsAnalyzersResources.RemoveDeletedApiDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -50,7 +50,7 @@ namespace Roslyn.Diagnostics.Analyzers
             messageFormat: RoslynDiagnosticsAnalyzersResources.ExposedNoninstantiableTypeMessage,
             category: "ApiDesign",
             defaultSeverity: DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         internal static readonly DiagnosticDescriptor PublicApiFilesInvalid = new DiagnosticDescriptor(
@@ -59,7 +59,7 @@ namespace Roslyn.Diagnostics.Analyzers
             messageFormat: RoslynDiagnosticsAnalyzersResources.PublicApiFilesInvalidMessage,
             category: "ApiDesign",
             defaultSeverity: DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         internal static readonly DiagnosticDescriptor DuplicateSymbolInApiFiles = new DiagnosticDescriptor(
@@ -68,7 +68,7 @@ namespace Roslyn.Diagnostics.Analyzers
             messageFormat: RoslynDiagnosticsAnalyzersResources.DuplicateSymbolsInPublicApiFilesMessage,
             category: "ApiDesign",
             defaultSeverity: DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         internal static readonly DiagnosticDescriptor AvoidMultipleOverloadsWithOptionalParameters = new DiagnosticDescriptor(
@@ -77,7 +77,7 @@ namespace Roslyn.Diagnostics.Analyzers
             messageFormat: RoslynDiagnosticsAnalyzersResources.AvoidMultipleOverloadsWithOptionalParametersMessage,
             category: "ApiDesign",
             defaultSeverity: DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             helpLinkUri: @"https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -87,7 +87,7 @@ namespace Roslyn.Diagnostics.Analyzers
             messageFormat: RoslynDiagnosticsAnalyzersResources.OverloadWithOptionalParametersShouldHaveMostParametersMessage,
             category: "ApiDesign",
             defaultSeverity: DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             helpLinkUri: @"https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -242,7 +242,7 @@ namespace Roslyn.Diagnostics.Analyzers
             return shippedText != null && unshippedText != null;
         }
 
-        private bool ValidateApiFiles(ApiData shippedData, ApiData unshippedData, out List<Diagnostic> errors)
+        private static bool ValidateApiFiles(ApiData shippedData, ApiData unshippedData, out List<Diagnostic> errors)
         {
             errors = new List<Diagnostic>();
             if (shippedData.RemovedApiList.Length > 0)

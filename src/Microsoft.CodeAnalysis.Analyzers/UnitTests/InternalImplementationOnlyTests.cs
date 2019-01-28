@@ -2,7 +2,9 @@
 
 using System.Diagnostics;
 using System.Linq;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
 using Xunit;
 
@@ -28,7 +30,7 @@ class Foo : IFoo { }
 ";
 
             // Verify no diagnostic since interface is in the same assembly.
-            VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: false);
+            VerifyCSharp(source, referenceFlags: ReferenceFlags.RemoveCodeAnalysis);
         }
 
         [Fact]
@@ -86,7 +88,21 @@ class Bar : Microsoft.CodeAnalysis.IAssemblySymbol { }
             DiagnosticResult[] expected = new[] { GetCSharpExpectedDiagnostic(3, 7, "Foo", "ISymbol"), GetCSharpExpectedDiagnostic(4, 7, "Bar", "ISymbol") };
 
             // Verify that ISymbol is not implementable.
-            VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: true, validationMode: TestValidationMode.AllowCompileErrors, expected: expected);
+            VerifyCSharp(source, referenceFlags: ReferenceFlags.None, validationMode: TestValidationMode.AllowCompileErrors, expected: expected);
+        }
+
+        [Fact]
+        public void CSharp_VerifyIOperation()
+        {
+            var source = @"
+// Causes many compile errors, because not all members are implemented.
+class Foo : Microsoft.CodeAnalysis.IOperation { }
+class Bar : Microsoft.CodeAnalysis.Operations.IInvocationOperation { }
+";
+            DiagnosticResult[] expected = new[] { GetCSharpExpectedDiagnostic(3, 7, "Foo", "IOperation"), GetCSharpExpectedDiagnostic(4, 7, "Bar", "IOperation") };
+
+            // Verify that IOperation is not implementable.
+            VerifyCSharp(source, referenceFlags: ReferenceFlags.None, validationMode: TestValidationMode.AllowCompileErrors, expected: expected);
         }
 
         private const string AttributeStringBasic = @"
@@ -112,7 +128,7 @@ End Class
 ";
 
             // Verify no diagnostic since interface is in the same assembly.
-            VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: false);
+            VerifyBasic(source, referenceFlags: ReferenceFlags.RemoveCodeAnalysis);
         }
 
         [Fact]
@@ -189,19 +205,37 @@ End Class
             DiagnosticResult[] expected = new[] { GetBasicExpectedDiagnostic(3, 7, "Foo", "ISymbol"), GetBasicExpectedDiagnostic(6, 7, "Bar", "ISymbol") };
 
             // Verify that ISymbol is not implementable.
-            VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: true, validationMode: TestValidationMode.AllowCompileErrors, expected: expected);
+            VerifyBasic(source, referenceFlags: ReferenceFlags.None, validationMode: TestValidationMode.AllowCompileErrors, expected: expected);
+        }
+
+        [Fact]
+        public void Basic_VerifyIOperation()
+        {
+            var source = @"
+' Causes many compile errors, because not all members are implemented.
+Class Foo 
+    Implements Microsoft.CodeAnalysis.IOperation
+End Class
+Class Bar
+    Implements Microsoft.CodeAnalysis.Operations.IInvocationOperation
+End Class
+";
+            DiagnosticResult[] expected = new[] { GetBasicExpectedDiagnostic(3, 7, "Foo", "IOperation"), GetBasicExpectedDiagnostic(6, 7, "Bar", "IOperation") };
+
+            // Verify that IOperation is not implementable.
+            VerifyBasic(source, referenceFlags: ReferenceFlags.None, validationMode: TestValidationMode.AllowCompileErrors, expected: expected);
         }
 
         private void VerifyAcrossTwoAssemblies(string source1, string source2, string language, params DiagnosticResult[] expected)
         {
             Debug.Assert(language == LanguageNames.CSharp || language == LanguageNames.VisualBasic);
 
-            Project project1 = CreateProject(new[] { source1 }, language: language, addLanguageSpecificCodeAnalysisReference: false);
-            Project project2 = CreateProject(new[] { source2 }, language: language, addLanguageSpecificCodeAnalysisReference: false, addToSolution: project1.Solution)
+            Project project1 = CreateProject(new[] { source1 }, language: language, referenceFlags: ReferenceFlags.RemoveCodeAnalysis);
+            Project project2 = CreateProject(new[] { source2 }, language: language, referenceFlags: ReferenceFlags.RemoveCodeAnalysis, addToSolution: project1.Solution)
                            .AddProjectReference(new ProjectReference(project1.Id));
 
             DiagnosticAnalyzer analyzer = language == LanguageNames.CSharp ? GetCSharpDiagnosticAnalyzer() : GetBasicDiagnosticAnalyzer();
-            GetSortedDiagnostics(analyzer, project2.Documents.ToArray()).Verify(analyzer, expected);
+            GetSortedDiagnostics(analyzer, project2.Documents.ToArray()).Verify(analyzer, GetDefaultPath(language), expected);
         }
 
         private void VerifyCSharpAcrossTwoAssemblies(string source1, string source2, params DiagnosticResult[] expected)
@@ -226,27 +260,20 @@ End Class
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string typeName, string interfaceName)
         {
-            return GetExpectedDiagnostic(LanguageNames.CSharp, line, column, typeName, interfaceName);
+            return GetExpectedDiagnostic(line, column, typeName, interfaceName);
         }
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string typeName, string interfaceName)
         {
-            return GetExpectedDiagnostic(LanguageNames.VisualBasic, line, column, typeName, interfaceName);
+            return GetExpectedDiagnostic(line, column, typeName, interfaceName);
         }
 
-        private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string typeName, string interfaceName)
+        private static DiagnosticResult GetExpectedDiagnostic(int line, int column, string typeName, string interfaceName)
         {
-            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult
-            {
-                Id = DiagnosticIds.InternalImplementationOnlyRuleId,
-                Message = string.Format(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyMessage, typeName, interfaceName),
-                Severity = DiagnosticSeverity.Error,
-                Locations = new[]
-                {
-                    new DiagnosticResultLocation(fileName, line, column)
-                }
-            };
+            return new DiagnosticResult(DiagnosticIds.InternalImplementationOnlyRuleId, DiagnosticSeverity.Error)
+                .WithLocation(line, column)
+                .WithMessageFormat(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyMessage)
+                .WithArguments(typeName, interfaceName);
         }
     }
 }

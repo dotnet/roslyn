@@ -1,0 +1,377 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ru" original="../CodeAnalysisDiagnosticsResources.resx">
+    <body>
+      <trans-unit id="MissingAttributeMessage">
+        <source>Missing '{0}' attribute.</source>
+        <target state="translated">Отсутствует атрибут {0}"".""</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingDiagnosticAnalyzerAttributeTitle">
+        <source>Missing diagnostic analyzer attribute.</source>
+        <target state="translated">Отсутствует атрибут диагностического анализатора.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingDiagnosticAnalyzerAttributeDescription">
+        <source>Non-abstract sub-types of DiagnosticAnalyzer should be marked with DiagnosticAnalyzerAttribute(s). The argument to this attribute(s), if any, determine the supported languages for the analyzer. Analyzer types without this attribute will be ignored by the analysis engine.</source>
+        <target state="translated">Неабстрактные подтипы DiagnosticAnalyzer нужно помечать с помощью атрибутов DiagnosticAnalyzerAttribute. Аргумент этих атрибутов (при его наличии) определяет поддерживаемые анализатором языки. Типы анализатора без такого атрибута будут проигнорированы модулем анализа.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddLanguageSupportToAnalyzerMessage">
+        <source>Diagnostic analyzer '{0}' may be able to support both C# and Visual Basic. Consider adding an argument to DiagnosticAnalyzerAttribute for '{1}' language support.</source>
+        <target state="translated">Диагностический анализатор "{0}" может поддерживать как C#, так и Visual Basic. Рекомендуется добавить в DiagnosticAnalyzerAttribute аргумент для поддержки языка "{1}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddLanguageSupportToAnalyzerTitle">
+        <source>Recommend adding language support to diagnostic analyzer.</source>
+        <target state="translated">Порекомендуйте добавить поддержку языка в диагностический анализатор.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddLanguageSupportToAnalyzerDescription">
+        <source>Diagnostic analyzer is marked as supporting only one language, but the analyzer assembly doesn't seem to refer to any language specific CodeAnalysis assemblies, and so is likely to work for more than one language. Consider adding an additional language argument to DiagnosticAnalyzerAttribute.</source>
+        <target state="translated">Для диагностического анализатора указана поддержка только одного языка, однако сборка анализатора не ссылается на какие-либо языковые сборки CodeAnalysis, поэтому, вероятнее всего, она будет работать с несколькими языками. Рекомендуется добавить в DiagnosticAnalyzerAttribute аргумент дополнительного языка.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ApplyDiagnosticAnalyzerAttribute_1">
+        <source>Apply DiagnosticAnalyzer attribute for '{0}'.</source>
+        <target state="translated">Примените атрибут DiagnosticAnalyzer для "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ApplyDiagnosticAnalyzerAttribute_2">
+        <source>Apply DiagnosticAnalyzer attribute for both '{0}' and '{1}'.</source>
+        <target state="translated">Примените атрибут DiagnosticAnalyzer для "{0}" и "{1}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingSymbolKindArgumentToRegisterActionMessage">
+        <source>Specify at least one SymbolKind of interest when registering a symbol analyzer action.</source>
+        <target state="translated">Укажите по меньшей мере один нужный SymbolKind при регистрации действия анализатора для символов.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingSyntaxKindArgumentToRegisterActionMessage">
+        <source>Specify at least one SyntaxKind of interest when registering a syntax node analyzer action.</source>
+        <target state="translated">Укажите по меньшей мере один нужный SyntaxKind при регистрации действия анализатора для синтаксических узлов.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingOperationKindArgumentToRegisterActionMessage">
+        <source>Specify at least one OperationKind of interest when registering an operation analyzer action.</source>
+        <target state="translated">Укажите по меньшей мере один нужный OperationKind при регистрации действия анализатора для операций.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingKindArgumentToRegisterActionTitle">
+        <source>Missing kind argument when registering an analyzer action.</source>
+        <target state="translated">Отсутствует аргумент типа при регистрации действия анализатора.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingKindArgumentToRegisterActionDescription">
+        <source>You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.</source>
+        <target state="translated">Вам следует указать по меньшей мере один вид синтаксиса, символа или операции при регистрации соответствующего действия анализатора. В противном случае зарегистрированное действие не будет вызвано во время анализа.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionMessage">
+        <source>SymbolKind '{0}' is not supported for symbol analyzer actions.</source>
+        <target state="translated">SymbolKind "{0}" не поддерживается для действий анализатора для символов.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionTitle">
+        <source>Unsupported SymbolKind argument when registering a symbol analyzer action.</source>
+        <target state="translated">Неподдерживаемый аргумент SymbolKind при регистрации действия анализатора для символов.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidReportDiagnosticMessage">
+        <source>ReportDiagnostic invoked with an unsupported DiagnosticDescriptor '{0}'.</source>
+        <target state="translated">ReportDiagnostic вызван с помощью неподдерживаемого DiagnosticDescriptor "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidReportDiagnosticTitle">
+        <source>ReportDiagnostic invoked with an unsupported DiagnosticDescriptor.</source>
+        <target state="translated">ReportDiagnostic вызван с помощью неподдерживаемого DiagnosticDescriptor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidReportDiagnosticDescription">
+        <source>ReportDiagnostic should only be invoked with supported DiagnosticDescriptors that are returned from DiagnosticAnalyzer.SupportedDiagnostics property. Otherwise, the reported diagnostic will be filtered out by the analysis engine.</source>
+        <target state="translated">ReportDiagnostic следует вызывать только с помощью поддерживаемых DiagnosticDescriptor, возвращаемых свойством DiagnosticAnalyzer.SupportedDiagnostics. В противном случае модуль анализа отфильтрует зарегистрированные данные диагностики.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidSyntaxKindTypeArgumentMessage">
+        <source>Type argument '{0}' for type parameter '{1}' of method '{2}' is not a SyntaxKind enum.</source>
+        <target state="translated">Аргумент типа "{0}" для параметра типа "{1}" метода "{2}" не является перечислением SyntaxKind.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidSyntaxKindTypeArgumentTitle">
+        <source>Invalid type argument for DiagnosticAnalyzer's Register method.</source>
+        <target state="translated">Недопустимый аргумент типа для метода Register DiagnosticAnalyzer.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidSyntaxKindTypeArgumentDescription">
+        <source>DiagnosticAnalyzer's language-specific Register methods, such as RegisterSyntaxNodeAction, RegisterCodeBlockStartAction and RegisterCodeBlockEndAction, expect a language-specific 'SyntaxKind' type argument for it's '{0}' type parameter. Otherwise, the registered analyzer action can never be invoked during analysis.</source>
+        <target state="translated">Языковые методы Register DiagnosticAnalyzer, такие как RegisterSyntaxNodeAction, RegisterCodeBlockStartAction и RegisterCodeBlockEndAction, ожидают языковой аргумент типа "SyntaxKind" для параметра типа "{0}". В противном случае зарегистрированное действие анализатора невозможно будет вызвать во время анализа.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartActionWithOnlyEndActionTitle">
+        <source>Start action has no registered non-end actions.</source>
+        <target state="translated">Начальное действие не содержит зарегистрированные неконечные действия.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartActionWithNoRegisteredActionsMessage">
+        <source>'{0}' does not register any analyzer actions. Consider moving actions registered in '{1}' that depend on this start action to '{0}'.</source>
+        <target state="translated">"{0}" не регистрирует никакие действия анализатора. Рекомендуется переместить действия, зарегистрированные в "{1}", которые зависят от этого начального действия, в "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartActionWithNoRegisteredActionsTitle">
+        <source>Start action has no registered actions.</source>
+        <target state="translated">Начальное действие не содержит зарегистрированные действия.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartActionWithOnlyEndActionMessage">
+        <source>'{0}' does not register any analyzer actions, except for a '{1}'. Consider replacing this start/end action pair with a '{2}' or moving actions registered in '{3}' that depend on this start action to '{0}'.</source>
+        <target state="translated">"{0}" не регистрирует никакие действия анализатора, кроме "{1}". Рекомендуется заменить это начальное/конечное действие на "{2}" или переместить действия, зарегистрированные в "{3}", которые зависят от этого начального действия, в "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StatefulAnalyzerRegisterActionsDescription">
+        <source>An analyzer start action enables performing stateful analysis over a given code unit, such as a code block, compilation, etc. Careful design is necessary to achieve efficient analyzer execution without memory leaks. Use the following guidelines for writing such analyzers:
+1. Define a new scope for the registered start action, possibly with a private nested type for analyzing each code unit.
+2. If required, define and initialize state in the start action.
+3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.
+4. If required, register an end action to report diagnostics based on the final state.
+</source>
+        <target state="translated">Начальное действие анализатора позволяет выполнить анализ с отслеживанием состояния для заданного модуля кода, например блока кода, компиляции и т. д. Чтобы обеспечить эффективное выполнение анализатора без утечек памяти, нужно тщательно все спроектировать. При создании подобных анализаторов используйте следующие рекомендации:
+1. Определите новую область для зарегистрированного начального действия, возможно, с закрытым вложенным типом, для анализа каждого из модулей кода.
+2. При необходимости определите и инициализируйте состояние в начальном действии.
+3. Зарегистрируйте по меньшей мере одно неконечное действие, ссылающееся на это состояние в начальном действии. Если подобное действие не требуется, рекомендуется заменить начальное действие неначальным. Например, CodeBlockStartAction без зарегистрированных действий или с единственным зарегистрированным действием CodeBlockEndAction следует заменить на CodeBlockAction.
+4. При необходимости зарегистрируйте конечное действие, чтобы предоставлять диагностические сведения на основе конечного состояния.
+</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseLocalizableStringsInDescriptorMessage">
+        <source>Consider providing localizable arguments of type '{0}' to diagnostic descriptor constructor to ensure the descriptor is localizable.</source>
+        <target state="translated">Рекомендуется предоставить конструктору дескриптора диагностики локализуемые аргументы типа "{0}", чтобы дескриптор можно было локализовать.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseLocalizableStringsInDescriptorTitle">
+        <source>Provide localizable arguments to diagnostic descriptor constructor.</source>
+        <target state="translated">Предоставьте конструктору дескриптора диагностики локализуемые аргументы.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseLocalizableStringsInDescriptorDescription">
+        <source>If your diagnostic analyzer and it's reported diagnostics need to be localizable, then the supported DiagnosticDescriptors used for constructing the diagnostics must also be localizable. If so, then localizable argument(s) must be provided for parameter 'title' (and optionally 'description') to the diagnostic descriptor constructor to ensure that the descriptor is localizable.</source>
+        <target state="translated">Чтобы предусмотреть возможность локализации для вашего диагностического анализатора и предоставляемых им сведений, нужно сделать локализуемыми и поддерживаемые DiagnosticDescriptor, используемые для создания диагностики. Для этого нужно предоставить локализуемые аргументы для параметра "title" (и дополнительно для "description") в конструкторе дескриптора диагностики, чтобы сделать дескриптор локализуемым.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotStorePerCompilationDataOntoFieldsMessage">
+        <source>Avoid storing per-compilation data of type '{0}' into the fields of a diagnostic analyzer.</source>
+        <target state="translated">Не храните данные типа "{0}" об отдельных компиляциях в полях диагностического анализатора.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotStorePerCompilationDataOntoFieldsTitle">
+        <source>Avoid storing per-compilation data into the fields of a diagnostic analyzer.</source>
+        <target state="translated">Не храните данные об отдельных компиляциях в полях диагностического анализатора.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotStorePerCompilationDataOntoFieldsDescription">
+        <source>Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiated in a compilation start action, registered using '{0}.{1}' API. An instance of this type will be created per-compilation and it won't outlive compilation's lifetime, hence avoiding memory leaks.</source>
+        <target state="translated">Экземпляр диагностического анализатора может сохраняться и после истечения времени существования компиляции. Поэтому хранение данных об отдельных компиляциях, например символов, в полях диагностического анализатора может привести к тому, что устаревшие компиляции останутся активными и вызовут утечки памяти.  Вместо этого такие данные следует хранить в отдельном типе, экземпляр которого создается в начальном действии компиляции, и зарегистрировать с помощью API "{0}.{1}". Экземпляр этого типа создается для каждой компиляции и прекращает действовать до истечения ее времени существования, что позволяет предотвратить утечки памяти.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalImplementationOnlyDescription">
+        <source>The author of this interface did not intend to have third party implementations of this interface and reserves the right to change it. Implementing this interface could therefore result in a source or binary compatibility issue with a future version of this interface.</source>
+        <target state="translated">Разработчик этого интерфейса не предусматривал его сторонние реализации и оставляет за собой право изменять его. Поэтому реализация этого интерфейса может привести к проблемам совместимости на уровне исходного или двоичного кода с последующими версиями интерфейса.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalImplementationOnlyMessage">
+        <source>Type {0} cannot implement interface {1} because {1} is not available for public implementation.</source>
+        <target state="translated">Тип {0} не может реализовать интерфейс {1}, так как {1} недоступен для общей реализации.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalImplementationOnlyTitle">
+        <source>Only internal implementations of this interface are allowed.</source>
+        <target state="translated">Разрешены только внутренние реализации этого интерфейса.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CodeActionNeedsEquivalenceKeyDescription">
+        <source>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</source>
+        <target state="translated">CodeFixProvider, намеревающемуся поддерживать случаи полного исправления, нужно классифицировать зарегистрированные действия кода по классам эквивалентности, назначив явный и отличный от NULL ключ эквивалентности, который является уникальным для всех видов действий кода, созданных этим исправлением. Это позволяет FixAllProvider исправить всю диагностику в требуемой области, применив действия кода из этого исправления, входящие в класс эквивалентности для действия кода триггера.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
+        <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer.</source>
+        <target state="translated">Укажите явный аргумент для необязательного параметра "{0}", который отличен от NULL и уникален для всех видов действий кода, созданных этим исправлением.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">
+        <source>Create code actions should have a unique EquivalenceKey for FixAll occurrences support.</source>
+        <target state="translated">Действия создания кода должны иметь уникальный EquivalenceKey, чтобы поддерживать полное исправление FixAll.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideCodeActionEquivalenceKeyMessage">
+        <source>'{0}' has the default value of 'null' for property '{1}'. Either override this property on '{0}' to return a non-null and unique value across all code actions per-fixer or use such an existing code action.</source>
+        <target state="translated">"{0}" имеет значение по умолчанию "Null" для свойства "{1}". Переопределите это свойство в "{0}", чтобы возвратить отличное от Null и уникальное значение для всех действий кода, относящихся к одному исправлению, или используйте уже существующее действие кода.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideCodeActionEquivalenceKeyTitle">
+        <source>Use code actions that have a unique EquivalenceKey for FixAll occurrences support.</source>
+        <target state="translated">Используйте действия кода, имеющие уникальный EquivalenceKey, чтобы поддерживать полное исправление FixAll.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationDescription">
+        <source>Many objects exposed by Roslyn are immutable. The return value from a method invocation on these objects should not be ignored.</source>
+        <target state="translated">Многие из предоставляемых Roslyn объектов являются неизменяемыми. Не игнорируйте значение, возвращаемое из вызова метода для этих объектов.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationMessage">
+        <source>'{0}' is immutable and '{1}' will not have any effect on it. Consider using the return value from '{1}'.</source>
+        <target state="translated">"{0}" является неизменяемым, поэтому "{1}" не окажет на него никакого влияния. Рекомендуется использовать значение, возвращаемое "{1}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationTitle">
+        <source>Do not ignore values returned by methods on immutable objects.</source>
+        <target state="translated">Не игнорируйте значения, возвращаемые методами для неизменяемых объектов.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideGetFixAllProviderTitle">
+        <source>Code fix providers should provide FixAll support.</source>
+        <target state="translated">Поставщики исправлений кода должны предоставлять поддержку FixAll.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideGetFixAllProviderMessage">
+        <source>'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</source>
+        <target state="translated">"{0}" регистрирует одно исправление кода или несколько, но не переопределяет метод "CodeFixProvider.GetFixAllProvider". Переопределите этот метод и предоставьте отличный от NULL FixAllProvider для обеспечения поддержки FixAll, возможно "WellKnownFixAllProviders.BatchFixer", либо задайте значение NULL, чтобы явно отключить поддержку FixAll.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideGetFixAllProviderDescription">
+        <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</source>
+        <target state="translated">CodeFixProvider должен предоставлять поддержку FixAll, чтобы пользователи могли исправить несколько экземпляров базовых диагностических данных с помощью одного исправления кода. Дополнительные сведения см. в документации по адресу https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">
+        <source>Override GetFixAllProvider.</source>
+        <target state="translated">Переопределите GetFixAllProvider.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideHelpUriInDescriptorMessage">
+        <source>Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list.</source>
+        <target state="translated">Рекомендуется предоставить конструктору дескриптора диагностики отличное от NULL значение "helpLinkUri", чтобы отображать информацию, когда эти диагностические данные появляются в списке ошибок.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideHelpUriInDescriptorTitle">
+        <source>Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor.</source>
+        <target state="translated">Предоставьте конструктору дескриптора диагностики значение "helpLinkUri", отличное от NULL.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideHelpUriInDescriptorDescription">
+        <source>The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</source>
+        <target state="translated">Значение "helpLinkUri" используется для отображения информации при появлении этих диагностических сведений в списке ошибок. Для каждого анализатора должен быть задан helpLinkUri, указывающий на страницу справки, которая не меняется с течением времени.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatTitle">
+        <source>DiagnosticId for analyzers must be in specified format.</source>
+        <target state="translated">Диагностический идентификатор для анализаторов должен иметь заданный формат.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatMessage">
+        <source>Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'.</source>
+        <target state="translated">Диагностический идентификатор "{0}", относящийся к категории "{1}", не соответствует требуемому диапазону и (или) формату "{2}", указанному в файле "{3}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatDescription">
+        <source>DiagnosticId for analyzers must be in specified format.</source>
+        <target state="translated">Диагностический идентификатор для анализаторов должен иметь заданный формат.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseUniqueDiagnosticIdTitle">
+        <source>DiagnosticId must be unique across analyzers.</source>
+        <target state="translated">Анализаторы должны иметь уникальный диагностический идентификатор.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseUniqueDiagnosticIdMessage">
+        <source>Diagnostic Id '{0}' is already used by analyzer '{1}'. Please use a different diagnostic ID.</source>
+        <target state="translated">Диагностический идентификатор "{0}" уже используется анализатором "{1}". Задайте другой идентификатор.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseUniqueDiagnosticIdDescription">
+        <source>DiagnosticId must be unique across analyzers.</source>
+        <target state="translated">Анализаторы должны иметь уникальный диагностический идентификатор.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseCategoriesFromSpecifiedRangeTitle">
+        <source>Category for analyzers must be from the specified values.</source>
+        <target state="translated">Категория для анализаторов должна иметь одно из заданных значений.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseCategoriesFromSpecifiedRangeMessage">
+        <source>Category '{0}' is not from the allowed categories specified in the file '{1}'.</source>
+        <target state="translated">Категория "{0}" не относится к разрешенным категориям, заданным в файле "{1}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseCategoriesFromSpecifiedRangeDescription">
+        <source>Category for analyzers must be from the specified values.</source>
+        <target state="translated">Категория для анализаторов должна иметь одно из заданных значений.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidTitle">
+        <source>Invalid entry in analyzer category and diagnostic ID range specification file.</source>
+        <target state="translated">Недопустимая запись в файле с категориями анализаторов и диапазоном диагностических идентификаторов.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidMessage">
+        <source>Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'.</source>
+        <target state="translated">Недопустимая запись "{0}" в файле "{1}" с категориями анализаторов и диапазоном диагностических идентификаторов.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidDescription">
+        <source>Invalid entry in analyzer category and diagnostic ID range specification file.</source>
+        <target state="translated">Недопустимая запись в файле с категориями анализаторов и диапазоном диагностических идентификаторов.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeAConstantTitle">
+        <source>DiagnosticId for analyzers must be a non-null constant.</source>
+        <target state="translated">Диагностический идентификатор для анализаторов должен быть константой, отличной от NULL.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeAConstantMessage">
+        <source>Diagnostic Id for rule '{0}' must be a non-null constant.</source>
+        <target state="translated">Диагностический идентификатор для правила "{0}" должен быть константой, отличной от NULL.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeAConstantDescription">
+        <source>DiagnosticId for analyzers must be a non-null constant.</source>
+        <target state="translated">Диагностический идентификатор для анализаторов должен быть константой, отличной от NULL.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseTypesFromAssemblyRuleDescription">
+        <source>Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.</source>
+        <target state="translated">Типы диагностического анализатора не должны использовать типы из сборок рабочих областей. Сборки рабочих областей доступны только при запуске анализатора в интерактивном анализе среды Visual Studio, но они недоступны во время сборки из командной строки. Ссылки на типы из сборок рабочих областей приведут к возникновению исключения в среде выполнения при запуске анализаторе в сборке командной строки.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseTypesFromAssemblyRuleTitle">
+        <source>Do not use types from Workspaces assembly in an analyzer</source>
+        <target state="translated">Не используйте в анализаторе типы из сборки рабочих областей</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseTypesFromAssemblyRuleIndirectMessage">
+        <source>Change diagnostic analyzer type '{0}' to remove all direct and/or indirect accesses to type(s) '{1}', which access type(s) '{2}'</source>
+        <target state="translated">Измените тип диагностического анализатора "{0}" и удалите из него все возможности прямого и непрямого доступа к типам "{1}", которые обращаются к типам "{2}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseTypesFromAssemblyRuleDirectMessage">
+        <source>Change diagnostic analyzer type '{0}' to remove all direct accesses to type(s) '{1}'</source>
+        <target state="translated">Измените тип диагностического анализатора "{0}" и удалите из него все возможности прямого доступа к типам "{1}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceDescription">
+        <source>MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</source>
+        <target state="translated">Класс MSBuildWorkspace перемещен в пакет NuGet Microsoft.CodeAnalysis.Workspaces.MSBuild, и в API внесены существенные изменения.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceMessage">
+        <source>Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</source>
+        <target state="translated">Обновите MSBuildWorkspace, добавив ссылку на пакет NuGet Microsoft.CodeAnalysis.Workspaces.MSBuild. Дополнительные сведения об использовании MSBuildWorkspace: https://go.microsoft.com/fwlink/?linkid=874285.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceTitle">
+        <source>Upgrade MSBuildWorkspace</source>
+        <target state="translated">Обновление MSBuildWorkspace</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

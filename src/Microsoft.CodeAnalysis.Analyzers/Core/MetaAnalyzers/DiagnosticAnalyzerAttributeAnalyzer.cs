@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId,
             s_localizableTitleMissingAttribute,
             s_localizableMessageMissingAttribute,
-            AnalyzerDiagnosticCategory.AnalyzerCorrectness,
+            DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             description: s_localizableDescriptionMissingAttribute,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticIds.AddLanguageSupportToAnalyzerRuleId,
             s_localizableTitleAddLanguageSupportToAnalyzer,
             s_localizableMessageAddLanguageSupportToAnalyzer,
-            AnalyzerDiagnosticCategory.AnalyzerCorrectness,
+            DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             description: s_localizableDescriptionAddLanguageSupportToAnalyzer,
             customTags: WellKnownDiagnosticTags.Telemetry);
 

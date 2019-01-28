@@ -22,9 +22,9 @@ namespace Roslyn.Diagnostics.Analyzers
             RoslynDiagnosticIds.DoNotUseCodeActionCreateRuleId,
             s_localizableTitle,
             s_localizableMessage,
-            "Performance",
+            DiagnosticCategory.RoslyDiagnosticsPerformance,
             DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DoNotUseCodeActionCreateRule);

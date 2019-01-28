@@ -1,0 +1,377 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="cs" original="../CodeAnalysisDiagnosticsResources.resx">
+    <body>
+      <trans-unit id="MissingAttributeMessage">
+        <source>Missing '{0}' attribute.</source>
+        <target state="translated">Chybí atribut {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingDiagnosticAnalyzerAttributeTitle">
+        <source>Missing diagnostic analyzer attribute.</source>
+        <target state="translated">Chybí atribut diagnostického analyzátoru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingDiagnosticAnalyzerAttributeDescription">
+        <source>Non-abstract sub-types of DiagnosticAnalyzer should be marked with DiagnosticAnalyzerAttribute(s). The argument to this attribute(s), if any, determine the supported languages for the analyzer. Analyzer types without this attribute will be ignored by the analysis engine.</source>
+        <target state="translated">Neabstraktní podtypy diagnostického analyzátoru musí být označeny atributy DiagnosticAnalyzerAttribute. Argument těchto atributů, pokud existuje, určuje podporované jazyky analyzátoru. Modul analýzy bude typy analyzátoru s tímto atributem ignorovat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddLanguageSupportToAnalyzerMessage">
+        <source>Diagnostic analyzer '{0}' may be able to support both C# and Visual Basic. Consider adding an argument to DiagnosticAnalyzerAttribute for '{1}' language support.</source>
+        <target state="translated">Je možné, že diagnostický analyzátor {0} bude podporovat jak C#, tak i Visual Basic. Zvažte přidání argumentu do atributu DiagnosticAnalyzerAttribute, aby bylo možné podporovat jazyk {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddLanguageSupportToAnalyzerTitle">
+        <source>Recommend adding language support to diagnostic analyzer.</source>
+        <target state="translated">Do diagnostického analyzátoru doporučujeme přidat podporu jazyků</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddLanguageSupportToAnalyzerDescription">
+        <source>Diagnostic analyzer is marked as supporting only one language, but the analyzer assembly doesn't seem to refer to any language specific CodeAnalysis assemblies, and so is likely to work for more than one language. Consider adding an additional language argument to DiagnosticAnalyzerAttribute.</source>
+        <target state="translated">Diagnostický analyzátor má podporovat pouze jeden jazyk, ale sestavení analyzátoru podle všeho neodkazuje na žádná sestavení CodeAnalysis pro konkrétní jazyk, a tak pravděpodobně bude fungovat pro více jazyků. Zvažte přidání argumentu pro další jazyk do atributu DiagnosticAnalyzerAttribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ApplyDiagnosticAnalyzerAttribute_1">
+        <source>Apply DiagnosticAnalyzer attribute for '{0}'.</source>
+        <target state="translated">Použijte atribut DiagnosticAnalyzer pro {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ApplyDiagnosticAnalyzerAttribute_2">
+        <source>Apply DiagnosticAnalyzer attribute for both '{0}' and '{1}'.</source>
+        <target state="translated">Použijte atribut DiagnosticAnalyzer jak pro {0}, tak i pro {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingSymbolKindArgumentToRegisterActionMessage">
+        <source>Specify at least one SymbolKind of interest when registering a symbol analyzer action.</source>
+        <target state="translated">Při registraci akce analyzátoru symbolů zadejte minimálně jeden požadovaný SymbolKind.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingSyntaxKindArgumentToRegisterActionMessage">
+        <source>Specify at least one SyntaxKind of interest when registering a syntax node analyzer action.</source>
+        <target state="translated">Při registraci akce analyzátoru uzlů syntaxe zadejte minimálně jeden požadovaný SyntaxKind.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingOperationKindArgumentToRegisterActionMessage">
+        <source>Specify at least one OperationKind of interest when registering an operation analyzer action.</source>
+        <target state="translated">Při registraci akce analyzátoru operací zadejte minimálně jeden požadovaný OperationKind.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingKindArgumentToRegisterActionTitle">
+        <source>Missing kind argument when registering an analyzer action.</source>
+        <target state="translated">Při registraci akce analyzátoru chybí argument druhu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingKindArgumentToRegisterActionDescription">
+        <source>You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.</source>
+        <target state="translated">Při registraci analyzátoru syntaxe, symbolů nebo operací musíte zadat minimálně jeden druh syntaxe, symbolu nebo operace. V opačném případě se registrovaná akce nikdy při analýze nevyvolá.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionMessage">
+        <source>SymbolKind '{0}' is not supported for symbol analyzer actions.</source>
+        <target state="translated">U akcí analyzátoru symbolů se SymbolKind {0} nepodporuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionTitle">
+        <source>Unsupported SymbolKind argument when registering a symbol analyzer action.</source>
+        <target state="translated">Při registraci akce analyzátoru symbolů byl zadán nepodporovaný argument SymbolKind.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidReportDiagnosticMessage">
+        <source>ReportDiagnostic invoked with an unsupported DiagnosticDescriptor '{0}'.</source>
+        <target state="translated">Funkce ReportDiagnostic vyvolala nepodporovaný DiagnosticDescriptor {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidReportDiagnosticTitle">
+        <source>ReportDiagnostic invoked with an unsupported DiagnosticDescriptor.</source>
+        <target state="translated">Funkce ReportDiagnostic vyvolala nepodporovaný DiagnosticDescriptor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidReportDiagnosticDescription">
+        <source>ReportDiagnostic should only be invoked with supported DiagnosticDescriptors that are returned from DiagnosticAnalyzer.SupportedDiagnostics property. Otherwise, the reported diagnostic will be filtered out by the analysis engine.</source>
+        <target state="translated">Funkce ReportDiagnostic by se měla volat jenom s podporovanými popisovači diagnostiky, které se vrací z vlastnosti DiagnosticAnalyzer.SupportedDiagnostics. V opačném případě modul analýzy reportovanou diagnostiku vyfiltruje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidSyntaxKindTypeArgumentMessage">
+        <source>Type argument '{0}' for type parameter '{1}' of method '{2}' is not a SyntaxKind enum.</source>
+        <target state="translated">Argument typu {0} pro parametr typu {1} metody{2} není výčtem SyntaxKind.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidSyntaxKindTypeArgumentTitle">
+        <source>Invalid type argument for DiagnosticAnalyzer's Register method.</source>
+        <target state="translated">Neplatný argument typu pro metodu registrace u diagnostického analyzátoru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidSyntaxKindTypeArgumentDescription">
+        <source>DiagnosticAnalyzer's language-specific Register methods, such as RegisterSyntaxNodeAction, RegisterCodeBlockStartAction and RegisterCodeBlockEndAction, expect a language-specific 'SyntaxKind' type argument for it's '{0}' type parameter. Otherwise, the registered analyzer action can never be invoked during analysis.</source>
+        <target state="translated">Metody registrace u diagnostického analyzátoru pro konkrétní jazyky, například RegisterSyntaxNodeAction, RegisterCodeBlockStartAction a RegisterCodeBlockEndAction, očekávají pro svůj parametr typu {0} argument typu SyntaxKind pro konkrétní jazyk. V opačném případě se registrovaná akce analyzátoru nikdy při analýze nevyvolá.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartActionWithOnlyEndActionTitle">
+        <source>Start action has no registered non-end actions.</source>
+        <target state="translated">Spouštěcí akce nemá žádné registrované neukončovací akce</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartActionWithNoRegisteredActionsMessage">
+        <source>'{0}' does not register any analyzer actions. Consider moving actions registered in '{1}' that depend on this start action to '{0}'.</source>
+        <target state="translated">{0} neregistruje žádné akce analyzátoru. Zvažte přesunutí akcí registrovaných v {1}, které závisí na této spouštěcí akci, do {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartActionWithNoRegisteredActionsTitle">
+        <source>Start action has no registered actions.</source>
+        <target state="translated">Spouštěcí akce nemá žádné registrované akce</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartActionWithOnlyEndActionMessage">
+        <source>'{0}' does not register any analyzer actions, except for a '{1}'. Consider replacing this start/end action pair with a '{2}' or moving actions registered in '{3}' that depend on this start action to '{0}'.</source>
+        <target state="translated">{0} neregistruje žádné akce analyzátoru s výjimkou {1}. Zvažte nahrazení této dvojice spouštěcí a ukončovací akce akcí {2} nebo přesunutí akcí zaregistrovaných v {3}, které závisí na této spouštěcí akci, do {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StatefulAnalyzerRegisterActionsDescription">
+        <source>An analyzer start action enables performing stateful analysis over a given code unit, such as a code block, compilation, etc. Careful design is necessary to achieve efficient analyzer execution without memory leaks. Use the following guidelines for writing such analyzers:
+1. Define a new scope for the registered start action, possibly with a private nested type for analyzing each code unit.
+2. If required, define and initialize state in the start action.
+3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.
+4. If required, register an end action to report diagnostics based on the final state.
+</source>
+        <target state="translated">Spouštěcí akce analyzátoru umožňuje provádět stavové analýzy u dané jednotky kódu, například u bloku kódu, kompilace atd. Uvážlivý návrh je nezbytný, aby bylo možné zajistit efektivní funkci analyzátoru a nedocházelo k nevracení paměti. Při psaní takových analyzátorů se řiďte následujícími pokyny:
+1. Pro registrovanou spouštěcí akci definujte nový obor, nejlépe s privátním vnořeným typem pro analýzu jednotlivých jednotek kódu.
+2. Pokud je to potřeba, definujte a inicializujte stav ve spouštěcí akci.
+3. Zaregistrujte alespoň jednu neukončovací akci, která odkazuje na tento stav ve spouštěcí akci. Pokud žádnou takovou akci nepotřebujete, zvažte nahrazení spouštěcí akce neukončovací akcí. Například akci CodeBlockStartAction bez registrovaných akcí nebo s pouze zaregistrovanou akcí CodeBlockEndAction byste měli nahradit akcí CodeBlockAction.
+4. Pokud je to potřeba, zaregistrujte ukončovací akci, která bude reportovat diagnostiku na základě koncového stavu.
+</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseLocalizableStringsInDescriptorMessage">
+        <source>Consider providing localizable arguments of type '{0}' to diagnostic descriptor constructor to ensure the descriptor is localizable.</source>
+        <target state="translated">Zvažte, že byste konstruktoru diagnostického popisovače poskytovali lokalizovatelné argumenty typu {0}, abyste zajistili možnost lokalizace popisovače.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseLocalizableStringsInDescriptorTitle">
+        <source>Provide localizable arguments to diagnostic descriptor constructor.</source>
+        <target state="translated">Poskytněte konstruktoru diagnostického popisovače lokalizovatelné argumenty</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseLocalizableStringsInDescriptorDescription">
+        <source>If your diagnostic analyzer and it's reported diagnostics need to be localizable, then the supported DiagnosticDescriptors used for constructing the diagnostics must also be localizable. If so, then localizable argument(s) must be provided for parameter 'title' (and optionally 'description') to the diagnostic descriptor constructor to ensure that the descriptor is localizable.</source>
+        <target state="translated">Pokud je třeba diagnostický analyzátor a jeho reportovanou diagnostiku lokalizovat, musí být lokalizovatelné také podporované popisovače diagnostiky, které byly použity pro vytvoření diagnostiky. V takovém případě je třeba konstruktoru popisovače diagnostiky poskytnout lokalizovatelné argumenty pro parametr title (a případně také description), aby se zajistila možnost lokalizace popisovače.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotStorePerCompilationDataOntoFieldsMessage">
+        <source>Avoid storing per-compilation data of type '{0}' into the fields of a diagnostic analyzer.</source>
+        <target state="translated">Neukládejte data typu {0} pro jednotlivé kompilace do polí diagnostického analyzátoru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotStorePerCompilationDataOntoFieldsTitle">
+        <source>Avoid storing per-compilation data into the fields of a diagnostic analyzer.</source>
+        <target state="translated">Neukládejte data pro jednotlivé kompilace do polí diagnostického analyzátoru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotStorePerCompilationDataOntoFieldsDescription">
+        <source>Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiated in a compilation start action, registered using '{0}.{1}' API. An instance of this type will be created per-compilation and it won't outlive compilation's lifetime, hence avoiding memory leaks.</source>
+        <target state="translated">Instance diagnostického analyzátoru by mohla překročit dobu života kompilace. Z tohoto důvodu může ukládání dat jednotlivých kompilací (třeba symbolů) do polí diagnostického analyzátoru způsobit, že zastaralé kompilace zůstanou aktivní a způsobí nevrácení paměti.  Tato data byste raději měli ukládat do samostatného typu, jehož instance se vytvoří ve spouštěcí akci kompilace zaregistrované pomocí rozhraní API {0}.{1}. Instance tohoto typu se vytvoří pro jednotlivé kompilace a nepřekročí dobu života kompilace, čímž se předejde nevracení paměti.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalImplementationOnlyDescription">
+        <source>The author of this interface did not intend to have third party implementations of this interface and reserves the right to change it. Implementing this interface could therefore result in a source or binary compatibility issue with a future version of this interface.</source>
+        <target state="translated">Autor tohoto rozhraní neměl v úmyslu využívat implementace od třetích stran a vyhrazuje si právo to změnit. Implementace tohoto rozhraní by tak mohla v budoucích verzích mít za následek problémy s kompatibilitou zdroje nebo binárního souboru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalImplementationOnlyMessage">
+        <source>Type {0} cannot implement interface {1} because {1} is not available for public implementation.</source>
+        <target state="translated">Typ {0} nemůže implementovat rozhraní {1}, protože {1} není k dispozici pro veřejnou implementaci.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalImplementationOnlyTitle">
+        <source>Only internal implementations of this interface are allowed.</source>
+        <target state="translated">Povoleny jsou pouze interní implementace tohoto rozhraní</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CodeActionNeedsEquivalenceKeyDescription">
+        <source>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</source>
+        <target state="translated">CodeFixProvider, jehož cílem je podpora oprav všech výskytů, musí klasifikovat zaregistrované akce kódu v odpovídajících třídách tak, že jim přiřadí explicitní nenulový ekvivalentní klíč, který je jedinečný pro každý druh akce kódu vytvořené tímto nástrojem pro opravy. To nástroji FixAllProvider umožní opravit veškerou diagnostiku v požadovaném rozsahu tak, že použije akce kódu z tohoto nástroje pro opravy, které se nachází v ekvivalentní třídě akce aktivace kódu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
+        <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer.</source>
+        <target state="translated">Zadejte explicitní argument pro volitelný parametr {0}, který není null a je jedinečný pro každý druh akce kódu vytvořené tímto nástrojem pro opravy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">
+        <source>Create code actions should have a unique EquivalenceKey for FixAll occurrences support.</source>
+        <target state="translated">Akce kódu pro vytvoření by měly mít jedinečný EquivalenceKey pro podporu oprav všech výskytů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideCodeActionEquivalenceKeyMessage">
+        <source>'{0}' has the default value of 'null' for property '{1}'. Either override this property on '{0}' to return a non-null and unique value across all code actions per-fixer or use such an existing code action.</source>
+        <target state="translated">{0} má u vlastnosti {1} výchozí hodnotu null. Buď přepište tuto vlastnost na {0}, aby se vracela nenulová a jedinečná hodnota napříč všemi akcemi kódu pro jednotlivé opravy, nebo použijte existující akci kódu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideCodeActionEquivalenceKeyTitle">
+        <source>Use code actions that have a unique EquivalenceKey for FixAll occurrences support.</source>
+        <target state="translated">Použijte akce kódu, které mají jedinečný EquivalenceKey pro podporu oprav všech výskytů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationDescription">
+        <source>Many objects exposed by Roslyn are immutable. The return value from a method invocation on these objects should not be ignored.</source>
+        <target state="translated">Mnoho objektů vystavených Roslynem je neměnných. Návratovou hodnotu z vyvolání metody u těchto objektů byste neměli ignorovat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationMessage">
+        <source>'{0}' is immutable and '{1}' will not have any effect on it. Consider using the return value from '{1}'.</source>
+        <target state="translated">Objekt {0} je neměnný a {1} na něj nebude mít žádný vliv. Zvažte použití návratové hodnoty z {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationTitle">
+        <source>Do not ignore values returned by methods on immutable objects.</source>
+        <target state="translated">Neignorujte hodnoty vrácené metodami u neměnných objektů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideGetFixAllProviderTitle">
+        <source>Code fix providers should provide FixAll support.</source>
+        <target state="translated">Zprostředkovatelé oprav kódu by měli poskytovat podporu pro FixAll.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideGetFixAllProviderMessage">
+        <source>'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</source>
+        <target state="translated">{0} registruje jednu nebo více oprav kódu, ale nepřepisuje metodu CodeFixProvider.GetFixAllProvider. Přepište tuto metodu a poskytněte nenulového zprostředkovatele FixAllProvider, který bude podporovat FixAll (například WellKnownFixAllProviders.BatchFixer), nebo zadejte hodnotu null, která podporu pro FixAll explicitně zakáže.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideGetFixAllProviderDescription">
+        <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</source>
+        <target state="translated">Zprostředkovatel CodeFixProvider by měl poskytovat podporu pro FixAll, aby mohli uživatelé opravit více instancí příslušné diagnostiky pomocí jedné opravy kódu. Další podrobnosti najdete v dokumentaci na adrese https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">
+        <source>Override GetFixAllProvider.</source>
+        <target state="translated">Přepište zprostředkovatele GetFixAllProvider.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideHelpUriInDescriptorMessage">
+        <source>Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list.</source>
+        <target state="translated">Zvažte možnost poskytnout konstruktoru popisovače diagnostiky nenulový parametr helpLinkUri, který umožní zobrazit další informace, když se tato diagnostika objeví v seznamu chyb.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideHelpUriInDescriptorTitle">
+        <source>Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor.</source>
+        <target state="translated">Poskytněte konstruktoru popisovače diagnostiky nenulový parametr helpLinkUri.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideHelpUriInDescriptorDescription">
+        <source>The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</source>
+        <target state="translated">Hodnota helpLinkUri se použije k zobrazení dalších informací, když se tato diagnostika objeví v seznamu chyb. Každý analyzátor by měl mít zadaný parametr helpLinkUri směřující na stránku nápovědy, která se v průběhu času nemění.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatTitle">
+        <source>DiagnosticId for analyzers must be in specified format.</source>
+        <target state="translated">DiagnosticId pro analyzátory musí být v zadaném formátu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatMessage">
+        <source>Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'.</source>
+        <target state="translated">ID diagnostiky {0}, které patří do kategorie {1}, není v požadovaném rozmezí a/nebo formátu {2} zadaném v souboru {3}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatDescription">
+        <source>DiagnosticId for analyzers must be in specified format.</source>
+        <target state="translated">DiagnosticId pro analyzátory musí být v zadaném formátu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseUniqueDiagnosticIdTitle">
+        <source>DiagnosticId must be unique across analyzers.</source>
+        <target state="translated">DiagnosticId musí být u každého analyzátoru jedinečné.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseUniqueDiagnosticIdMessage">
+        <source>Diagnostic Id '{0}' is already used by analyzer '{1}'. Please use a different diagnostic ID.</source>
+        <target state="translated">ID diagnostiky {0} už používá analyzátor {1}. Použijte prosím jiné ID diagnostiky.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseUniqueDiagnosticIdDescription">
+        <source>DiagnosticId must be unique across analyzers.</source>
+        <target state="translated">DiagnosticId musí být u každého analyzátoru jedinečné.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseCategoriesFromSpecifiedRangeTitle">
+        <source>Category for analyzers must be from the specified values.</source>
+        <target state="translated">Kategorie pro analyzátory musí být jedna ze zadaných hodnot.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseCategoriesFromSpecifiedRangeMessage">
+        <source>Category '{0}' is not from the allowed categories specified in the file '{1}'.</source>
+        <target state="translated">Kategorie {0} nepatří mezi povolené kategorie zadané v souboru {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseCategoriesFromSpecifiedRangeDescription">
+        <source>Category for analyzers must be from the specified values.</source>
+        <target state="translated">Kategorie pro analyzátory musí být jedna ze zadaných hodnot.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidTitle">
+        <source>Invalid entry in analyzer category and diagnostic ID range specification file.</source>
+        <target state="translated">V souboru specifikací kategorií analyzátorů a rozmezí ID diagnostiky je neplatná položka.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidMessage">
+        <source>Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'.</source>
+        <target state="translated">V souboru specifikací kategorií analyzátorů a rozmezí ID diagnostiky {1} je neplatná položka {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidDescription">
+        <source>Invalid entry in analyzer category and diagnostic ID range specification file.</source>
+        <target state="translated">V souboru specifikací kategorií analyzátorů a rozmezí ID diagnostiky je neplatná položka.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeAConstantTitle">
+        <source>DiagnosticId for analyzers must be a non-null constant.</source>
+        <target state="translated">DiagnosticId pro analyzátory musí být nenulová konstanta.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeAConstantMessage">
+        <source>Diagnostic Id for rule '{0}' must be a non-null constant.</source>
+        <target state="translated">ID diagnostiky pro pravidlo {0} musí být nenulová konstanta.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdMustBeAConstantDescription">
+        <source>DiagnosticId for analyzers must be a non-null constant.</source>
+        <target state="translated">DiagnosticId pro analyzátory musí být nenulová konstanta.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseTypesFromAssemblyRuleDescription">
+        <source>Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.</source>
+        <target state="translated">Typy diagnostických analyzátorů by neměly používat typy ze sestavení pracovních prostorů. Sestavení pracovních prostorů jsou dostupná jen při spuštění analyzátoru v živé analýze integrovaného vývojového prostředí Visual Studio, ale nejsou dostupná při sestavování z příkazového řádku. Odkazování na typy ze sestavení pracovních prostorů způsobí výjimku modulu runtime během spuštění analyzátoru při sestavení z příkazového řádku.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseTypesFromAssemblyRuleTitle">
+        <source>Do not use types from Workspaces assembly in an analyzer</source>
+        <target state="translated">Nepoužívejte v analyzátoru typy ze sestavení pracovních prostorů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseTypesFromAssemblyRuleIndirectMessage">
+        <source>Change diagnostic analyzer type '{0}' to remove all direct and/or indirect accesses to type(s) '{1}', which access type(s) '{2}'</source>
+        <target state="translated">Změnou typu diagnostického analyzátoru {0} odeberte všechny přímé a/nebo nepřímé přístupy k typům {1}, které mají přístup k typům {2}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseTypesFromAssemblyRuleDirectMessage">
+        <source>Change diagnostic analyzer type '{0}' to remove all direct accesses to type(s) '{1}'</source>
+        <target state="translated">Změnou typu diagnostického analyzátoru {0} odeberte všechny přímé přístupy k typům {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceDescription">
+        <source>MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</source>
+        <target state="translated">MSBuildWorkspace se přesunul do balíčku NuGet Microsoft.CodeAnalysis.Workspaces.MSBuild a v rozhraní API došlo ke změnám, které mohou způsobit nefunkčnost.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceMessage">
+        <source>Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</source>
+        <target state="translated">Upgradujte prosím MSBuildWorkspace přidáním odkazu na balíček do balíčku NuGet Microsoft.CodeAnalysis.Workspaces.MSBuild. Podrobnosti o úspěšném použití MSBuildWorkspace najdete zde: https://go.microsoft.com/fwlink/?linkid=874285.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceTitle">
+        <source>Upgrade MSBuildWorkspace</source>
+        <target state="translated">Upgradovat MSBuildWorkspace</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

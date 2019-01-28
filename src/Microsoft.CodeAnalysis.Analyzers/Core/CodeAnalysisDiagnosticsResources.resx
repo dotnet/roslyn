@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -209,6 +209,15 @@
   <data name="UseLocalizableStringsInDescriptorDescription" xml:space="preserve">
     <value>If your diagnostic analyzer and it's reported diagnostics need to be localizable, then the supported DiagnosticDescriptors used for constructing the diagnostics must also be localizable. If so, then localizable argument(s) must be provided for parameter 'title' (and optionally 'description') to the diagnostic descriptor constructor to ensure that the descriptor is localizable.</value>
   </data>
+  <data name="ProvideHelpUriInDescriptorMessage" xml:space="preserve">
+    <value>Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list.</value>
+  </data>
+  <data name="ProvideHelpUriInDescriptorTitle" xml:space="preserve">
+    <value>Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor.</value>
+  </data>
+  <data name="ProvideHelpUriInDescriptorDescription" xml:space="preserve">
+    <value>The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.</value>
+  </data>
   <data name="DoNotStorePerCompilationDataOntoFieldsMessage" xml:space="preserve">
     <value>Avoid storing per-compilation data of type '{0}' into the fields of a diagnostic analyzer.</value>
   </data>
@@ -228,10 +237,10 @@
     <value>Only internal implementations of this interface are allowed.</value>
   </data>
   <data name="CodeActionNeedsEquivalenceKeyDescription" xml:space="preserve">
-    <value>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique across all registered code actions by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</value>
+    <value>A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.</value>
   </data>
   <data name="CreateCodeActionWithEquivalenceKeyMessage" xml:space="preserve">
-    <value>Provide an explicit argument for optional parameter '{0}', which is non-null and unique across all code actions created by this fixer.</value>
+    <value>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer.</value>
   </data>
   <data name="CreateCodeActionWithEquivalenceKeyTitle" xml:space="preserve">
     <value>Create code actions should have a unique EquivalenceKey for FixAll occurrences support.</value>
@@ -242,6 +251,18 @@
   <data name="OverrideCodeActionEquivalenceKeyTitle" xml:space="preserve">
     <value>Use code actions that have a unique EquivalenceKey for FixAll occurrences support.</value>
   </data>
+  <data name="OverrideGetFixAllProviderTitle" xml:space="preserve">
+    <value>Code fix providers should provide FixAll support.</value>
+  </data>
+  <data name="OverrideGetFixAllProviderMessage" xml:space="preserve">
+    <value>'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</value>
+  </data>
+  <data name="OverrideGetFixAllProviderDescription" xml:space="preserve">
+    <value>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</value>
+  </data>
+  <data name="OverrideGetFixAllProviderCodeFixTitle" xml:space="preserve">
+    <value>Override GetFixAllProvider.</value>
+  </data>
   <data name="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationDescription" xml:space="preserve">
     <value>Many objects exposed by Roslyn are immutable. The return value from a method invocation on these objects should not be ignored.</value>
   </data>
@@ -250,5 +271,71 @@
   </data>
   <data name="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationTitle" xml:space="preserve">
     <value>Do not ignore values returned by methods on immutable objects.</value>
+  </data>
+  <data name="DiagnosticIdMustBeAConstantTitle" xml:space="preserve">
+    <value>DiagnosticId for analyzers must be a non-null constant.</value>
+  </data>
+  <data name="DiagnosticIdMustBeAConstantMessage" xml:space="preserve">
+    <value>Diagnostic Id for rule '{0}' must be a non-null constant.</value>
+  </data>
+  <data name="DiagnosticIdMustBeAConstantDescription" xml:space="preserve">
+    <value>DiagnosticId for analyzers must be a non-null constant.</value>
+  </data>
+  <data name="DiagnosticIdMustBeInSpecifiedFormatTitle" xml:space="preserve">
+    <value>DiagnosticId for analyzers must be in specified format.</value>
+  </data>
+  <data name="DiagnosticIdMustBeInSpecifiedFormatMessage" xml:space="preserve">
+    <value>Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'.</value>
+  </data>
+  <data name="DiagnosticIdMustBeInSpecifiedFormatDescription" xml:space="preserve">
+    <value>DiagnosticId for analyzers must be in specified format.</value>
+  </data>
+  <data name="UseUniqueDiagnosticIdTitle" xml:space="preserve">
+    <value>DiagnosticId must be unique across analyzers.</value>
+  </data>
+  <data name="UseUniqueDiagnosticIdMessage" xml:space="preserve">
+    <value>Diagnostic Id '{0}' is already used by analyzer '{1}'. Please use a different diagnostic ID.</value>
+  </data>
+  <data name="UseUniqueDiagnosticIdDescription" xml:space="preserve">
+    <value>DiagnosticId must be unique across analyzers.</value>
+  </data>
+  <data name="UseCategoriesFromSpecifiedRangeTitle" xml:space="preserve">
+    <value>Category for analyzers must be from the specified values.</value>
+  </data>
+  <data name="UseCategoriesFromSpecifiedRangeMessage" xml:space="preserve">
+    <value>Category '{0}' is not from the allowed categories specified in the file '{1}'.</value>
+  </data>
+  <data name="UseCategoriesFromSpecifiedRangeDescription" xml:space="preserve">
+    <value>Category for analyzers must be from the specified values.</value>
+  </data>
+  <data name="AnalyzerCategoryAndIdRangeFileInvalidTitle" xml:space="preserve">
+    <value>Invalid entry in analyzer category and diagnostic ID range specification file.</value>
+  </data>
+  <data name="AnalyzerCategoryAndIdRangeFileInvalidMessage" xml:space="preserve">
+    <value>Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'.</value>
+  </data>
+  <data name="AnalyzerCategoryAndIdRangeFileInvalidDescription" xml:space="preserve">
+    <value>Invalid entry in analyzer category and diagnostic ID range specification file.</value>
+  </data>
+  <data name="DoNotUseTypesFromAssemblyRuleDescription" xml:space="preserve">
+    <value>Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.</value>
+  </data>
+  <data name="DoNotUseTypesFromAssemblyRuleDirectMessage" xml:space="preserve">
+    <value>Change diagnostic analyzer type '{0}' to remove all direct accesses to type(s) '{1}'</value>
+  </data>
+  <data name="DoNotUseTypesFromAssemblyRuleIndirectMessage" xml:space="preserve">
+    <value>Change diagnostic analyzer type '{0}' to remove all direct and/or indirect accesses to type(s) '{1}', which access type(s) '{2}'</value>
+  </data>
+  <data name="DoNotUseTypesFromAssemblyRuleTitle" xml:space="preserve">
+    <value>Do not use types from Workspaces assembly in an analyzer</value>
+  </data>
+  <data name="UpgradeMSBuildWorkspaceDescription" xml:space="preserve">
+    <value>MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</value>
+  </data>
+  <data name="UpgradeMSBuildWorkspaceMessage" xml:space="preserve">
+    <value>Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</value>
+  </data>
+  <data name="UpgradeMSBuildWorkspaceTitle" xml:space="preserve">
+    <value>Upgrade MSBuildWorkspace</value>
   </data>
 </root>

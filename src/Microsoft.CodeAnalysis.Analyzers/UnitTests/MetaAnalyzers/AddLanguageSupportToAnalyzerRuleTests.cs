@@ -4,6 +4,7 @@ using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
 using Xunit;
 
@@ -38,10 +39,10 @@ class MyAnalyzer : DiagnosticAnalyzer
             DiagnosticResult expected = GetCSharpExpectedDiagnostic(7, 2, "MyAnalyzer", missingLanguageName: LanguageNames.VisualBasic);
 
             // Verify diagnostic if analyzer assembly doesn't reference C# code analysis assembly.
-            VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: false, expected: expected);
+            VerifyCSharp(source, referenceFlags: ReferenceFlags.RemoveCodeAnalysis, expected: expected);
 
             // Verify no diagnostic if analyzer assembly references C# code analysis assembly.
-            VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: true);
+            VerifyCSharp(source, referenceFlags: ReferenceFlags.None);
         }
 
         [Fact]
@@ -69,10 +70,10 @@ End Class
             DiagnosticResult expected = GetBasicExpectedDiagnostic(7, 2, "MyAnalyzer", missingLanguageName: LanguageNames.CSharp);
 
             // Verify diagnostic if analyzer assembly doesn't reference VB code analysis assembly.
-            VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: false, expected: expected);
+            VerifyBasic(source, referenceFlags: ReferenceFlags.RemoveCodeAnalysis, expected: expected);
 
             // Verify no diagnostic if analyzer assembly references VB code analysis assembly.
-            VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: true);
+            VerifyBasic(source, referenceFlags: ReferenceFlags.None);
         }
 
         [Fact]
@@ -121,8 +122,8 @@ public abstract class MyAbstractAnalyzer : DiagnosticAnalyzer
 {
 }
 ";
-            VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: false);
-            VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: true);
+            VerifyCSharp(source, referenceFlags: ReferenceFlags.RemoveCodeAnalysis);
+            VerifyCSharp(source, referenceFlags: ReferenceFlags.None);
         }
 
         [Fact]
@@ -165,8 +166,8 @@ Public MustInherit Class MyAbstractAnalyzer
 	Inherits DiagnosticAnalyzer
 End Class
 ";
-            VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: false);
-            VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: true);
+            VerifyBasic(source, referenceFlags: ReferenceFlags.RemoveCodeAnalysis);
+            VerifyBasic(source, referenceFlags: ReferenceFlags.None);
         }
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()
@@ -191,27 +192,20 @@ End Class
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string analyzerTypeName, string missingLanguageName)
         {
-            return GetExpectedDiagnostic(LanguageNames.CSharp, line, column, analyzerTypeName, missingLanguageName);
+            return GetExpectedDiagnostic(line, column, analyzerTypeName, missingLanguageName);
         }
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string analyzerTypeName, string missingLanguageName)
         {
-            return GetExpectedDiagnostic(LanguageNames.VisualBasic, line, column, analyzerTypeName, missingLanguageName);
+            return GetExpectedDiagnostic(line, column, analyzerTypeName, missingLanguageName);
         }
 
-        private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string analyzerTypeName, string missingLanguageName)
+        private static DiagnosticResult GetExpectedDiagnostic(int line, int column, string analyzerTypeName, string missingLanguageName)
         {
-            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult
-            {
-                Id = DiagnosticIds.AddLanguageSupportToAnalyzerRuleId,
-                Message = string.Format(CodeAnalysisDiagnosticsResources.AddLanguageSupportToAnalyzerMessage, analyzerTypeName, missingLanguageName),
-                Severity = DiagnosticHelpers.DefaultDiagnosticSeverity,
-                Locations = new[]
-                {
-                    new DiagnosticResultLocation(fileName, line, column)
-                }
-            };
+            return new DiagnosticResult(DiagnosticIds.AddLanguageSupportToAnalyzerRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+                .WithLocation(line, column)
+                .WithMessageFormat(CodeAnalysisDiagnosticsResources.AddLanguageSupportToAnalyzerMessage)
+                .WithArguments(analyzerTypeName, missingLanguageName);
         }
     }
 }

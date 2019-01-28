@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticIds.MissingKindArgumentToRegisterActionRuleId,
             s_localizableTitleMissingKindArgument,
             s_localizableMessageMissingSymbolKindArgument,
-            AnalyzerDiagnosticCategory.AnalyzerCorrectness,
+            DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             description: s_localizableDescriptionMissingKindArgument,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticIds.MissingKindArgumentToRegisterActionRuleId,
             s_localizableTitleMissingKindArgument,
             s_localizableMessageMissingSyntaxKindArgument,
-            AnalyzerDiagnosticCategory.AnalyzerCorrectness,
+            DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             description: s_localizableDescriptionMissingKindArgument,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -47,9 +47,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticIds.MissingKindArgumentToRegisterActionRuleId,
             s_localizableTitleMissingKindArgument,
             s_localizableMessageMissingOperationKindArgument,
-            AnalyzerDiagnosticCategory.AnalyzerCorrectness,
+            DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             description: s_localizableDescriptionMissingKindArgument,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticIds.UnsupportedSymbolKindArgumentRuleId,
             s_localizableTitleUnsupportedSymbolKindArgument,
             s_localizableMessageUnsupportedSymbolKindArgument,
-            AnalyzerDiagnosticCategory.AnalyzerCorrectness,
+            DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         private static readonly LocalizableString s_localizableTitleInvalidSyntaxKindTypeArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidSyntaxKindTypeArgumentTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
@@ -73,9 +73,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticIds.InvalidSyntaxKindTypeArgumentRuleId,
             s_localizableTitleInvalidSyntaxKindTypeArgument,
             s_localizableMessageInvalidSyntaxKindTypeArgument,
-            AnalyzerDiagnosticCategory.AnalyzerCorrectness,
+            DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             description: s_localizableDescriptionInvalidSyntaxKindTypeArgument,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -88,9 +88,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticIds.StartActionWithNoRegisteredActionsRuleId,
             s_localizableTitleStartActionWithNoRegisteredActions,
             s_localizableMessageStartActionWithNoRegisteredActions,
-            AnalyzerDiagnosticCategory.AnalyzerPerformance,
+            DiagnosticCategory.MicrosoftCodeAnalysisPerformance,
             DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             description: s_localizableDescriptionStatefulAnalyzerRegisterActionsDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -101,9 +101,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticIds.StartActionWithOnlyEndActionRuleId,
             s_localizableTitleStartActionWithOnlyEndAction,
             s_localizableMessageStartActionWithOnlyEndAction,
-            AnalyzerDiagnosticCategory.AnalyzerPerformance,
+            DiagnosticCategory.MicrosoftCodeAnalysisPerformance,
             DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             description: s_localizableDescriptionStatefulAnalyzerRegisterActionsDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -185,9 +185,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     nameof(SymbolKind.Method),
                     nameof(SymbolKind.NamedType),
                     nameof(SymbolKind.Namespace),
+                    nameof(SymbolKind.Parameter),
                     nameof(SymbolKind.Property));
 
+#pragma warning disable CA1815 // Override equals and operator equals on value types
             private struct NodeAndSymbol
+#pragma warning restore CA1815 // Override equals and operator equals on value types
             {
                 public TInvocationExpressionSyntax Invocation { get; set; }
                 public IMethodSymbol Method { get; set; }

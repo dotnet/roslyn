@@ -1,0 +1,31 @@
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NuspecPackageId>Microsoft.CodeAnalysis.Analyzers</NuspecPackageId>
+    <Description>Guidelines for using .NET Compiler Platform ("Roslyn") APIs.</Description>
+    <Summary>Analyzers for .NET Compiler Platform ("Roslyn")</Summary>
+    <ReleaseNotes>Diagnostic analyzers for the Microsoft .NET Compiler Platform (Roslyn)</ReleaseNotes>
+    <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics</PackageTags>
+
+    <!-- 
+      PackageId is used by Restore. If we set it to Microsoft.CodeAnalysis.Analyzers 
+      Restore would conclude that there is a cyclic dependency between Microsoft.CodeAnalysis and Microsoft.CodeAnalysis.Analyzers.
+    -->
+    <PackageId>*$(MSBuildProjectFullPath)*</PackageId>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.Analyzers.dll" />
+    <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
+    <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.VisualBasic.Analyzers.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Analyzers\Core\Microsoft.CodeAnalysis.Analyzers.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Analyzers\CSharp\Microsoft.CodeAnalysis.CSharp.Analyzers.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Analyzers\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Analyzers.vbproj" />
+  </ItemGroup>
+</Project>

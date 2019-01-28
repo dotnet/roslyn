@@ -1,39 +1,25 @@
 ﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project>
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\Analyzers.Settings.targets" />
-  </ImportGroup>
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
-    <TestProject>true</TestProject>
-    <AssemblyName>Microsoft.CodeAnalysis.Analyzers.Setup</AssemblyName>
+
+    <!-- 
+      PackageId is used by Restore. If we set it to Microsoft.CodeAnalysis.Analyzers 
+      Restore would conclude that there is a cyclic dependency between Microsoft.CodeAnalysis and Microsoft.CodeAnalysis.Analyzers.
+    -->
+    <PackageId>*$(MSBuildProjectFullPath)*</PackageId>
+  
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
-    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
+    <PublishWindowsPdb>false</PublishWindowsPdb>
   </PropertyGroup>
+  
   <ItemGroup>
-    <BootstrapperPackage Include=".NETFramework,Version=v4.5">
-      <Visible>False</Visible>
-      <ProductName>Microsoft .NET Framework 4.5 %28x86 and x64%29</ProductName>
-      <Install>true</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Analyzers.Core.csproj">
-      <Name>Microsoft.CodeAnalysis.Analyzers.Core</Name>
+    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Analyzers.csproj">
+      <Name>Microsoft.CodeAnalysis.Analyzers</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
@@ -51,7 +37,4 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\Analyzers.Imports.targets" />
-  </ImportGroup>
 </Project>

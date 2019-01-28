@@ -33,7 +33,9 @@ namespace Roslyn.Diagnostics.Analyzers
             }
         }
 
+#pragma warning disable CA1815 // Override equals and operator equals on value types
         private struct RemovedApiLine
+#pragma warning restore CA1815 // Override equals and operator equals on value types
         {
             public string Text { get; private set; }
             public ApiLine ApiLine { get; private set; }
@@ -45,7 +47,9 @@ namespace Roslyn.Diagnostics.Analyzers
             }
         }
 
+#pragma warning disable CA1815 // Override equals and operator equals on value types
         private struct ApiData
+#pragma warning restore CA1815 // Override equals and operator equals on value types
         {
             public ImmutableArray<ApiLine> ApiList { get; private set; }
             public ImmutableArray<RemovedApiLine> RemovedApiList { get; private set; }
@@ -264,7 +268,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     return GetSiblingNamesToRemoveFromUnshippedTextCore(symbol);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Debug.Assert(false, ex.Message);
                     return string.Empty;
@@ -390,7 +394,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     publicApiName += $" (forwarded, contained in {symbol.ContainingAssembly.Name})";
                 }
-    
+
                 return publicApiName;
             }
 
@@ -504,6 +508,13 @@ namespace Roslyn.Diagnostics.Analyzers
             private bool IsPublicAPI(ISymbol symbol)
             {
                 if (symbol is IMethodSymbol methodSymbol && s_ignorableMethodKinds.Contains(methodSymbol.MethodKind))
+                {
+                    return false;
+                }
+
+                // We don't consider properties to be public APIs. Instead, property getters and setters
+                // (which are IMethodSymbols) are considered as public APIs.
+                if (symbol is IPropertySymbol)
                 {
                     return false;
                 }

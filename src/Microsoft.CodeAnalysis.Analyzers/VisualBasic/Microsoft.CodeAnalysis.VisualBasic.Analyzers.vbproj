@@ -1,19 +1,12 @@
 ﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project>
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\Analyzers.Settings.targets" />
-  </ImportGroup>
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <PackageTargetFallback>portable-net45+win8+wp8+wpa81</PackageTargetFallback>
-    <AnalyzerProject>true</AnalyzerProject>
-    <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Analyzers</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Analyzer.Utilities\Analyzer.Utilities.csproj" />
-    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Analyzers.Core.csproj" />
+    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Analyzers.csproj" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\Analyzers.Imports.targets" />
-  </ImportGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Analyzers.UnitTests" />
+  </ItemGroup>
 </Project>

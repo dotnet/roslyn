@@ -117,7 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-
   <data name="UseSpecializedCollectionsEmptyEnumerableTitle" xml:space="preserve">
     <value>Use SpecializedCollections.EmptyEnumerable()</value>
   </data>
@@ -231,5 +230,41 @@
   </data>
   <data name="OverloadWithOptionalParametersShouldHaveMostParametersMessage" xml:space="preserve">
     <value>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</value>
+  </data>
+  <data name="DoNotMixAttributesFromDifferentVersionsOfMEFTitle" xml:space="preserve">
+    <value>Do not mix attributes from different versions of MEF</value>
+  </data>
+  <data name="DoNotMixAttributesFromDifferentVersionsOfMEFDescription" xml:space="preserve">
+    <value>Do not mix attributes from different versions of MEF</value>
+  </data>
+  <data name="DoNotMixAttributesFromDifferentVersionsOfMEFMessage" xml:space="preserve">
+    <value>Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'</value>
+  </data>
+  <data name="PartsExportedWithMEFv2MustBeMarkedAsSharedTitle" xml:space="preserve">
+    <value>Parts exported with MEFv2 must be marked as Shared</value>
+  </data>
+  <data name="PartsExportedWithMEFv2MustBeMarkedAsSharedDescription" xml:space="preserve">
+    <value>Part exported with MEFv2 must be marked with the Shared attribute.</value>
+  </data>
+  <data name="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage" xml:space="preserve">
+    <value>'{0}' is exported with MEFv2 and hence must be marked as Shared</value>
+  </data>
+  <data name="DuplicateBannedSymbolDescription" xml:space="preserve">
+    <value>The list of banned symbols contains a duplicate.</value>
+  </data>
+  <data name="DuplicateBannedSymbolMessage" xml:space="preserve">
+    <value>The symbol '{0}' is listed multiple times in the list of banned APIs</value>
+  </data>
+  <data name="DuplicateBannedSymbolTitle" xml:space="preserve">
+    <value>The list of banned symbols contains a duplicate</value>
+  </data>
+  <data name="SymbolIsBannedDescription" xml:space="preserve">
+    <value>The symbol has been marked as banned in this project, and an alternate should be used instead.</value>
+  </data>
+  <data name="SymbolIsBannedMessage" xml:space="preserve">
+    <value>The symbol '{0}' is banned in this project{1}</value>
+  </data>
+  <data name="SymbolIsBannedTitle" xml:space="preserve">
+    <value>Do not used banned APIs</value>
   </data>
 </root>

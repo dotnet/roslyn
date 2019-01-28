@@ -1,0 +1,257 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="tr" original="../RoslynDiagnosticsAnalyzersResources.resx">
+    <body>
+      <trans-unit id="DuplicateBannedSymbolDescription">
+        <source>The list of banned symbols contains a duplicate.</source>
+        <target state="translated">Yasak semboller listesi yinelenen bir giriş içeriyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DuplicateBannedSymbolMessage">
+        <source>The symbol '{0}' is listed multiple times in the list of banned APIs</source>
+        <target state="translated">Yasak API'ler listesinde '{0}' birden çok kez listelenmiş</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DuplicateBannedSymbolTitle">
+        <source>The list of banned symbols contains a duplicate</source>
+        <target state="translated">Yasak semboller listesi yinelenen bir giriş içeriyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedDescription">
+        <source>The symbol has been marked as banned in this project, and an alternate should be used instead.</source>
+        <target state="translated">Sembol bu projede yasak olarak işaretlenmiş ve bunun yerine bir alternatifin kullanılması gerekiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedMessage">
+        <source>The symbol '{0}' is banned in this project{1}</source>
+        <target state="translated">Bu projede '{0}' sembolü yasaklandı{1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolIsBannedTitle">
+        <source>Do not used banned APIs</source>
+        <target state="translated">Yasak API'leri kullanmayın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseSpecializedCollectionsEmptyEnumerableTitle">
+        <source>Use SpecializedCollections.EmptyEnumerable()</source>
+        <target state="translated">SpecializedCollections.EmptyEnumerable() kullanın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseSpecializedCollectionsEmptyEnumerableDescription">
+        <source>#N/A</source>
+        <target state="translated">#N/A</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseSpecializedCollectionsEmptyEnumerableMessage">
+        <source>Use SpecializedCollections.EmptyEnumerable()</source>
+        <target state="translated">SpecializedCollections.EmptyEnumerable() kullanın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseSpecializedCollectionsSingletonEnumerableTitle">
+        <source>Use SpecializedCollections.SingletonEnumerable()</source>
+        <target state="translated">SpecializedCollections.SingletonEnumerable() kullanın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseSpecializedCollectionsSingletonEnumerableDescription">
+        <source>#N/A</source>
+        <target state="translated">#N/A</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseSpecializedCollectionsSingletonEnumerableMessage">
+        <source>Use SpecializedCollections.SingletonEnumerable()</source>
+        <target state="translated">SpecializedCollections.SingletonEnumerable() kullanın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTitle">
+        <source>Invoke the correct property to ensure correct use site diagnostics.</source>
+        <target state="translated">Doğru site tanılamalarının kullanıldığından emin olmak için doğru özelliği çağırın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsDescription">
+        <source>#N/A</source>
+        <target state="translated">#N/A</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsMessage">
+        <source>Invoke the correct property to ensure correct use site diagnostics.</source>
+        <target state="translated">Doğru site tanılamalarının kullanıldığından emin olmak için doğru özelliği çağırın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionTitle">
+        <source>Do not use generic CodeAction.Create to create CodeAction</source>
+        <target state="translated">CodeAction oluşturmak için genel CodeAction.Create kullanmayın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionDescription">
+        <source>#N/A</source>
+        <target state="translated">#N/A</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionMessage">
+        <source>Do not use generic CodeAction.Create to create CodeAction</source>
+        <target state="translated">CodeAction oluşturmak için genel CodeAction.Create kullanmayın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableTitle">
+        <source>Override Object.Equals(object) when implementing Iequatable</source>
+        <target state="translated">Iequatable uygularken Object.Equals(object)’i geçersiz kılın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableDescription">
+        <source>#N/A</source>
+        <target state="translated">#N/A</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableMessage">
+        <source>Override Object.Equals(object) when implementing Iequatable</source>
+        <target state="translated">Iequatable uygularken Object.Equals(object)’i geçersiz kılın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotInvokeDiagnosticDescriptorTitle">
+        <source>Do not invoke Diagnostic.Descriptor</source>
+        <target state="translated">Diagnostic.Descriptor’ı çağırmayın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotInvokeDiagnosticDescriptorDescription">
+        <source>Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type.</source>
+        <target state="translated">Derleyici katmanında Tanılamanın Tanımlayıcı özelliğine erişmek, tanımlayıcının komut satırı derlemesinde kullanılmayan alanları için gereksiz dize ayırmalarına neden olabilir. Bu nedenle, burada derleyici tanılamalarının Tanımlayıcısına erişmekten kaçınmanız gerekir. Bunun yerine, bu özelliklere Tanılama türü dışında doğrudan erişmeniz gerekir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotInvokeDiagnosticDescriptorMessage">
+        <source>Do not invoke property '{0}' on type '{1}', instead directly access the required member{2} on '{1}'</source>
+        <target state="translated">'{1}' türü üzerinde '{0}' özelliğini çağırmayın, bunun yerine '{1}' üzerinde gerekli {2} üyesine doğrudan erişin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
+        <source>SymbolDeclaredEvent must be generated for source symbols</source>
+        <target state="translated">Kaynak semboller için SymbolDeclaredEvent oluşturulmalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsDescription">
+        <source>Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.</source>
+        <target state="translated">Tüm bildirilen kaynak semboller için sembolle bildirilen olaylar oluşturmak üzere derleme olay kuyruğu gereklidir. Bu nedenle, her kaynak sembol türünün veya temel türlerinden birinin sembolle bildirilen bir olay oluşturması gerekir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsMessage">
+        <source>SymbolDeclaredEvent must be generated for source symbols</source>
+        <target state="translated">Kaynak semboller için SymbolDeclaredEvent oluşturulmalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclarePublicApiTitle">
+        <source>Add public types and members to the declared API</source>
+        <target state="translated">Bildirilen API’ye ortak tür ve üyeler ekleyin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclarePublicApiMessage">
+        <source>Symbol '{0}' is not part of the declared API.</source>
+        <target state="translated">'{0}' sembolü bildirilen API’nin bir parçası değil.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclarePublicApiDescription">
+        <source>All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
+        <target state="translated">Tüm ortak türler ve üyeler PublicAPI.txt içinde bildirilmelidir. Bu, kod gözden geçirmeleri ve kaynak denetimi geçmişindeki API değişikliklerine dikkat çeker ve bozucu değişiklikleri önlemeye yardımcı olur.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDeletedApiTitle">
+        <source>Remove deleted types and members from the declared API</source>
+        <target state="translated">Silinen tür ve üyeleri bildirilen API’den kaldırın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDeletedApiMessage">
+        <source>Symbol '{0}' is part of the declared API, but is either not public or could not be found</source>
+        <target state="translated">'{0}' sembolü bildirilen API’nin bir parçası ancak ortak değil veya bulunamadı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDeletedApiDescription">
+        <source>When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
+        <target state="translated">Ortak bir tür veya üye kaldırılırken, PublicAPI.txt’de karşılık gelen girdi de kaldırılmalıdır. Bu, kod gözden geçirmeleri ve kaynak denetimi geçmişindeki API değişikliklerine dikkat çeker ve bozucu değişiklikleri önlemeye yardımcı olur.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExposedNoninstantiableTypeMessage">
+        <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</source>
+        <target state="translated">Oluşturucu devralınamayan temel sınıfını devralınabilir hale getirerek korumalı üyelerini açığa çıkarır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExposedNoninstantiableTypeTitle">
+        <source>Constructor make noninheritable base class inheritable</source>
+        <target state="translated">Oluşturucu, devralınamayan temel sınıfı devralınabilir hale getirir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFilesInvalidTitle">
+        <source>The contents of the public API files are invalid</source>
+        <target state="translated">Ortak API dosyalarının içerikleri geçersiz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFilesInvalidMessage">
+        <source>The contents of the public API files are invalid: {0}</source>
+        <target state="translated">Ortak API dosyalarının içerikleri geçersiz: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DuplicateSymbolsInPublicApiFilesTitle">
+        <source>Do not duplicate symbols in public API files</source>
+        <target state="translated">Ortak API dosyalarında sembolleri yinelemeyin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DuplicateSymbolsInPublicApiFilesMessage">
+        <source>The symbol '{0}' appears more than once in the public API files.</source>
+        <target state="translated">'{0}' sembolü ortak API dosyalarında birden çok kez görünüyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicImplicitConstructorErrorMessageName">
+        <source>implicit constructor for {0}</source>
+        <target state="translated">{0} için örtülü oluşturucu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersTitle">
+        <source>Do not add multiple public overloads with optional parameters</source>
+        <target state="translated">İsteğe bağlı parametreler içeren birden çok ortak aşırı yükü eklemeyin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersMessage">
+        <source>Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</source>
+        <target state="translated">'{0}' sembolü geriye dönük uyumluluk gereksinimini ihlal ediyor: 'İsteğe bağlı parametre içeren birden çok aşırı yük eklemeyin'. Ayrıntılar için bkz. '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
+        <source>Public API with optional parameter(s) should have the most parameters amongst its public overloads.</source>
+        <target state="translated">İsteğe bağlı parametreler içeren ortak API’lerin ortak aşırı yüklerinde en fazla parametre olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
+        <source>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</source>
+        <target state="translated">'{0}' sembolü geriye dönük uyumluluk gereksinimini ihlal ediyor: 'İsteğe bağlı parametreler içeren ortak API’lerin ortak aşırı yüklerinde en fazla parametre olmalıdır'. Ayrıntılar için bkz. '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFTitle">
+        <source>Do not mix attributes from different versions of MEF</source>
+        <target state="translated">Farklı MEF sürümlerine ait öznitelikleri karışık kullanmayın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFDescription">
+        <source>Do not mix attributes from different versions of MEF</source>
+        <target state="translated">Farklı MEF sürümlerine ait öznitelikleri karışık kullanmayın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFMessage">
+        <source>Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'</source>
+        <target state="translated">'{0}' özniteliği, '{1}' üzerindeki dışarı aktarma özniteliğinden farklı bir MEF sürümüne ait</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedTitle">
+        <source>Parts exported with MEFv2 must be marked as Shared</source>
+        <target state="translated">MEFv2 ile dışarı aktarılan parçalar Shared olarak işaretlenmelidir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedDescription">
+        <source>Part exported with MEFv2 must be marked with the Shared attribute.</source>
+        <target state="translated">MEFv2 ile dışarı aktarılan parçalar Shared özniteliğiyle işaretlenmelidir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
+        <source>'{0}' is exported with MEFv2 and hence must be marked as Shared</source>
+        <target state="translated">'{0}' MEFv2 ile dışarı aktarıldığından, Shared olarak işaretlenmelidir</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

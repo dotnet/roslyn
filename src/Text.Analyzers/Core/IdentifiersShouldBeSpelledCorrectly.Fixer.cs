@@ -24,7 +24,7 @@ namespace Text.Analyzers
         {
             // Fixer not yet implemented.
             return Task.CompletedTask;
-            
+
         }
     }
 }

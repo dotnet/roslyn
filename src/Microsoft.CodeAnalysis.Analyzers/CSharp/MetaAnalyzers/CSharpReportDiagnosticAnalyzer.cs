@@ -33,6 +33,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
 
                 return null;
             }
+
+            protected override SyntaxNode GetPropertyGetterBlockSyntax(SyntaxNode declaringSyntaxRefNode)
+            {
+                if (declaringSyntaxRefNode is AccessorDeclarationSyntax accessor &&
+                    accessor.Body == null &&
+                    accessor.ExpressionBody == null)
+                {
+                    // Walk up to the property initializer.
+                    var propertyDecl = accessor.FirstAncestorOrSelf<PropertyDeclarationSyntax>();
+                    if (propertyDecl?.Initializer != null)
+                    {
+                        return propertyDecl.Initializer;
+                    }
+                }
+
+                return base.GetPropertyGetterBlockSyntax(declaringSyntaxRefNode);
+            }
         }
     }
 }

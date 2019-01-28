@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
             DiagnosticIds.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocation,
             s_localizableTitle,
             s_localizableMessage,
-            AnalyzerDiagnosticCategory.AnalyzerCorrectness,
+            DiagnosticCategory.MicrosoftCodeAnalysisCorrectness,
             DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             description: s_localizableDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
             });
         }
 
-        public void AnalyzeInvocationForIgnoredReturnValue(SyntaxNodeAnalysisContext context, ImmutableArray<INamedTypeSymbol> immutableTypeSymbols)
+        public static void AnalyzeInvocationForIgnoredReturnValue(SyntaxNodeAnalysisContext context, ImmutableArray<INamedTypeSymbol> immutableTypeSymbols)
         {
             SemanticModel model = context.SemanticModel;
             var candidateInvocation = (InvocationExpressionSyntax)context.Node;

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -21,10 +22,10 @@ namespace Microsoft.CodeAnalysis.Analyzers
                                                         DiagnosticIds.InternalImplementationOnlyRuleId,
                                                         s_localizableTitle,
                                                         s_localizableMessageFormat,
-                                                        AnalyzerDiagnosticCategory.Compatibility,
+                                                        DiagnosticCategory.MicrosoftCodeAnalysisCompatibility,
                                                         DiagnosticSeverity.Error,
-                                                        true,
-                                                        s_localizableDescription);
+                                                        isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
+                                                        description: s_localizableDescription);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 

@@ -26,9 +26,9 @@ namespace Roslyn.Diagnostics.Analyzers
             RoslynDiagnosticIds.UseEmptyEnumerableRuleId,
             s_localizableTitleUseEmptyEnumerable,
             s_localizableMessageUseEmptyEnumerable,
-            "Performance",
+            DiagnosticCategory.RoslyDiagnosticsPerformance,
             DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         private static readonly LocalizableString s_localizableTitleUseSingletonEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.UseSpecializedCollectionsSingletonEnumerableTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
@@ -38,9 +38,9 @@ namespace Roslyn.Diagnostics.Analyzers
             RoslynDiagnosticIds.UseSingletonEnumerableRuleId,
             s_localizableTitleUseSingletonEnumerable,
             s_localizableMessageUseSingletonEnumerable,
-            "Performance",
+            DiagnosticCategory.RoslyDiagnosticsPerformance,
             DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(UseEmptyEnumerableRule, UseSingletonEnumerableRule);
@@ -116,16 +116,16 @@ namespace Roslyn.Diagnostics.Analyzers
 
         protected abstract class AbstractSyntaxAnalyzer
         {
-            protected INamedTypeSymbol genericEnumerableSymbol;
+            protected INamedTypeSymbol GenericEnumerableSymbol { get; }
             private readonly IMethodSymbol _genericEmptyEnumerableSymbol;
 
             public AbstractSyntaxAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol)
             {
-                this.genericEnumerableSymbol = genericEnumerableSymbol;
+                this.GenericEnumerableSymbol = genericEnumerableSymbol;
                 _genericEmptyEnumerableSymbol = genericEmptyEnumerableSymbol;
             }
 
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(UseEmptyEnumerableRule, UseSingletonEnumerableRule);
+            public static ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(UseEmptyEnumerableRule, UseSingletonEnumerableRule);
 
             protected bool ShouldAnalyzeArrayCreationExpression(SyntaxNode expression, SemanticModel semanticModel)
             {
@@ -133,7 +133,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 var arrayType = typeInfo.Type as IArrayTypeSymbol;
 
                 return typeInfo.ConvertedType != null &&
-                    typeInfo.ConvertedType.OriginalDefinition == genericEnumerableSymbol &&
+                    typeInfo.ConvertedType.OriginalDefinition == GenericEnumerableSymbol &&
                     arrayType != null &&
                     arrayType.Rank == 1;
             }
