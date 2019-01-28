@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var ignoreElastic = option.IsMaskOn(SuppressOption.IgnoreElasticWrapping) || 
+            var ignoreElastic = option.IsMaskOn(SuppressOption.IgnoreElasticWrapping) ||
                                 !operation.ContainsElasticTrivia(_tokenStream);
 
             var data = new SuppressWrappingData(operation.TextSpan, ignoreElastic: ignoreElastic);
