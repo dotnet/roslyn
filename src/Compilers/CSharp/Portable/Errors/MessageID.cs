@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUsingDeclarations = MessageBase + 12754,
         IDS_FeatureStaticLocalFunctions = MessageBase + 12755,
         IDS_FeatureNameShadowingInNestedFunctions = MessageBase + 12756,
-        IDS_FeatureUnmanagedConstructedTypes = MessageBase + 12757
+        IDS_FeatureUnmanagedConstructedTypes = MessageBase + 12757,
     }
 
     // Message IDs may refer to strings that need to be localized.
