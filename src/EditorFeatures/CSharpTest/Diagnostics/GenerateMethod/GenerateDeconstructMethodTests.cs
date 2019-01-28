@@ -296,5 +296,24 @@ class D
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestDeconstructionAssignment_InvalidDeclaration()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+
+class C
+{
+    void Method()
+    {
+        var stuff = new Dictionary<string, string>();
+        foreach ((key, value) in [|stuff|]) // Invalid variable declarator syntax
+        {
+        }
+    }
+}");
+        }
     }
 }

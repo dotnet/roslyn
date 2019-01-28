@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
                     throw ExceptionUtilities.Unreachable;
             }
 
-            if (type.Kind != SymbolKind.NamedType)
+            if (type == null || type.Kind != SymbolKind.NamedType)
             {
                 return;
             }
