@@ -74,7 +74,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 pszEventHandlerName,
                 itemidInsertionPoint,
                 useHandlesClause:=True,
-                additionalFormattingRule:=New LineAdjustmentFormattingRule(),
+                additionalFormattingRule:=LineAdjustmentFormattingRule.Instance,
                 cancellationToken:=Nothing)
 
             pbstrUniqueMemberID = idBodyAndInsertionPoint.Item1
