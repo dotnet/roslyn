@@ -10,6 +10,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class IndexAndRangeTests : CompilingTestBase
     {
+        private const string CreateSignature = "System.Range System.Range.Create(System.Index start, System.Index end)";
+
         [Fact]
         [WorkItem(31889, "https://github.com/dotnet/roslyn/issues/31889")]
         public void ArrayRangeIllegalRef()
@@ -442,14 +444,25 @@ class Test
 }").VerifyDiagnostics(
                 // (16,17): error CS0656: Missing compiler required member 'System.Range.Create'
                 //         var a = 1..2;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..2").WithArguments("System.Range", "Create").WithLocation(16, 17));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..2").WithArguments("System.Range", "Create").WithLocation(16, 17),
+                // (17,17): error CS0656: Missing compiler required member 'System.Range.Create'
+                //         var b = 1..;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..").WithArguments("System.Range", "Create").WithLocation(17, 17),
+                // (18,17): error CS0656: Missing compiler required member 'System.Range.Create'
+                //         var c = ..2;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "..2").WithArguments("System.Range", "Create").WithLocation(18, 17),
+                // (19,17): error CS0656: Missing compiler required member 'System.Range.Create'
+                //         var d = ..;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "..").WithArguments("System.Range", "Create").WithLocation(19, 17));
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
 
-            var expression = tree.GetRoot().DescendantNodes().OfType<RangeExpressionSyntax>().ElementAt(0);
-            Assert.Equal("System.Range", model.GetTypeInfo(expression).Type.ToTestDisplayString());
-            Assert.Null(model.GetSymbolInfo(expression).Symbol);
+            foreach (var node in tree.GetRoot().DescendantNodes().OfType<RangeExpressionSyntax>())
+            {
+                Assert.Equal("System.Range", model.GetTypeInfo(node).Type.ToTestDisplayString());
+                Assert.Null(model.GetSymbolInfo(node).Symbol);
+            }
         }
 
         [Fact]
@@ -552,17 +565,14 @@ class Test
         var c = ..2;
         var d = ..;
     }
-}").VerifyDiagnostics(
-                // (17,17): error CS0656: Missing compiler required member 'System.Range.FromStart'
-                //         var b = 1..;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..").WithArguments("System.Range", "FromStart").WithLocation(17, 17));
+}").VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
 
             var expression = tree.GetRoot().DescendantNodes().OfType<RangeExpressionSyntax>().ElementAt(1);
             Assert.Equal("System.Range", model.GetTypeInfo(expression).Type.ToTestDisplayString());
-            Assert.Null(model.GetSymbolInfo(expression).Symbol);
+            Assert.Equal(CreateSignature, model.GetSymbolInfo(expression).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -588,17 +598,14 @@ class Test
         var c = ..2;
         var d = ..;
     }
-}").VerifyDiagnostics(
-                // (18,17): error CS0656: Missing compiler required member 'System.Range.ToEnd'
-                //         var c = ..2;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "..2").WithArguments("System.Range", "ToEnd").WithLocation(18, 17));
+}").VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
 
             var expression = tree.GetRoot().DescendantNodes().OfType<RangeExpressionSyntax>().ElementAt(2);
             Assert.Equal("System.Range", model.GetTypeInfo(expression).Type.ToTestDisplayString());
-            Assert.Null(model.GetSymbolInfo(expression).Symbol);
+            Assert.Equal(CreateSignature, model.GetSymbolInfo(expression).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -624,17 +631,14 @@ class Test
         var c = ..2;
         var d = ..;
     }
-}").VerifyDiagnostics(
-                // (19,17): error CS0656: Missing compiler required member 'System.Range.All'
-                //         var d = ..;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "..").WithArguments("System.Range", "All").WithLocation(19, 17));
+}").VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
 
             var expression = tree.GetRoot().DescendantNodes().OfType<RangeExpressionSyntax>().ElementAt(3);
             Assert.Equal("System.Range", model.GetTypeInfo(expression).Type.ToTestDisplayString());
-            Assert.Null(model.GetSymbolInfo(expression).Symbol);
+            Assert.Equal(CreateSignature, model.GetSymbolInfo(expression).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -660,22 +664,22 @@ class Test
             Assert.Equal(4, expressions.Length);
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[0]).Type.ToTestDisplayString());
-            Assert.Equal("System.Range System.Range.Create(System.Index start, System.Index end)", model.GetSymbolInfo(expressions[0]).Symbol.ToTestDisplayString());
+            Assert.Equal(CreateSignature, model.GetSymbolInfo(expressions[0]).Symbol.ToTestDisplayString());
             Assert.Equal("System.Index", model.GetTypeInfo(expressions[0].RightOperand).Type.ToTestDisplayString());
             Assert.Equal("System.Index", model.GetTypeInfo(expressions[0].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[1]).Type.ToTestDisplayString());
-            Assert.Equal("System.Range System.Range.FromStart(System.Index start)", model.GetSymbolInfo(expressions[1]).Symbol.ToTestDisplayString());
+            Assert.Equal(CreateSignature, model.GetSymbolInfo(expressions[1]).Symbol.ToTestDisplayString());
             Assert.Null(expressions[1].RightOperand);
             Assert.Equal("System.Index", model.GetTypeInfo(expressions[1].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[2]).Type.ToTestDisplayString());
-            Assert.Equal("System.Range System.Range.ToEnd(System.Index end)", model.GetSymbolInfo(expressions[2]).Symbol.ToTestDisplayString());
+            Assert.Equal(CreateSignature, model.GetSymbolInfo(expressions[2]).Symbol.ToTestDisplayString());
             Assert.Equal("System.Index", model.GetTypeInfo(expressions[2].RightOperand).Type.ToTestDisplayString());
             Assert.Null(expressions[2].LeftOperand);
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[3]).Type.ToTestDisplayString());
-            Assert.Equal("System.Range System.Range.All()", model.GetSymbolInfo(expressions[3]).Symbol.ToTestDisplayString());
+            Assert.Equal(CreateSignature, model.GetSymbolInfo(expressions[3]).Symbol.ToTestDisplayString());
             Assert.Null(expressions[3].RightOperand);
             Assert.Null(expressions[3].LeftOperand);
         }
@@ -703,22 +707,22 @@ class Test
             Assert.Equal(4, expressions.Length);
 
             Assert.Equal("System.Range?", model.GetTypeInfo(expressions[0]).Type.ToTestDisplayString());
-            Assert.Equal("System.Range System.Range.Create(System.Index start, System.Index end)", model.GetSymbolInfo(expressions[0]).Symbol.ToTestDisplayString());
+            Assert.Equal(CreateSignature, model.GetSymbolInfo(expressions[0]).Symbol.ToTestDisplayString());
             Assert.Equal("System.Index?", model.GetTypeInfo(expressions[0].RightOperand).Type.ToTestDisplayString());
             Assert.Equal("System.Index?", model.GetTypeInfo(expressions[0].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range?", model.GetTypeInfo(expressions[1]).Type.ToTestDisplayString());
-            Assert.Equal("System.Range System.Range.FromStart(System.Index start)", model.GetSymbolInfo(expressions[1]).Symbol.ToTestDisplayString());
+            Assert.Equal(CreateSignature, model.GetSymbolInfo(expressions[1]).Symbol.ToTestDisplayString());
             Assert.Null(expressions[1].RightOperand);
             Assert.Equal("System.Index?", model.GetTypeInfo(expressions[1].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range?", model.GetTypeInfo(expressions[2]).Type.ToTestDisplayString());
-            Assert.Equal("System.Range System.Range.ToEnd(System.Index end)", model.GetSymbolInfo(expressions[2]).Symbol.ToTestDisplayString());
+            Assert.Equal(CreateSignature, model.GetSymbolInfo(expressions[2]).Symbol.ToTestDisplayString());
             Assert.Equal("System.Index?", model.GetTypeInfo(expressions[2].RightOperand).Type.ToTestDisplayString());
             Assert.Null(expressions[2].LeftOperand);
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[3]).Type.ToTestDisplayString());
-            Assert.Equal("System.Range System.Range.All()", model.GetSymbolInfo(expressions[3]).Symbol.ToTestDisplayString());
+            Assert.Equal(CreateSignature, model.GetSymbolInfo(expressions[3]).Symbol.ToTestDisplayString());
             Assert.Null(expressions[3].RightOperand);
             Assert.Null(expressions[3].LeftOperand);
         }
