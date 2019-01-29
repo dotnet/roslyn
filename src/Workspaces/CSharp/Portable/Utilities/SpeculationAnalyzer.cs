@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             var originalParamType = this.OriginalSemanticModel.GetDeclaredSymbol(originalParam).Type;
             var replacedParamType = this.SpeculativeSemanticModel.GetDeclaredSymbol(replacedParam).Type;
-            return originalParamType == replacedParamType;
+            return Equals(originalParamType, replacedParamType);
         }
 
         private bool ReplacementChangesSemanticsForNodes(
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var originalCaseType = this.OriginalSemanticModel.GetTypeInfo(previousOriginalNode, this.CancellationToken).Type;
                 var newCaseType = this.SpeculativeSemanticModel.GetTypeInfo(previousReplacedNode, this.CancellationToken).Type;
 
-                if (originalCaseType == newCaseType)
+                if (Equals(originalCaseType, newCaseType))
                     return false;
 
                 var oldSwitchStatement = (SwitchStatementSyntax)originalCaseSwitchLabel.Parent.Parent;
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private bool ReplacementBreaksBoxingInConditionalExpression(TypeInfo originalExpressionTypeInfo, TypeInfo newExpressionTypeInfo, ExpressionSyntax previousOriginalNode, ExpressionSyntax previousReplacedNode)
         {
             // If the resultant types are different and it is boxing to the converted type then semantics could be changing.
-            if (originalExpressionTypeInfo.Type != newExpressionTypeInfo.Type)
+            if (!Equals(originalExpressionTypeInfo.Type, newExpressionTypeInfo.Type))
             {
                 var originalConvertedTypeConversion = this.OriginalSemanticModel.ClassifyConversion(previousOriginalNode, originalExpressionTypeInfo.ConvertedType);
                 var newExpressionConvertedTypeConversion = this.SpeculativeSemanticModel.ClassifyConversion(previousReplacedNode, newExpressionTypeInfo.ConvertedType);
