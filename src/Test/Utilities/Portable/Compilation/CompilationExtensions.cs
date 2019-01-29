@@ -48,7 +48,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     options = (options ?? EmitOptions.Default).WithDebugInformationFormat(DebugInformationFormat.PortablePdb);
                 }
 
-                pdbStream = new MemoryStream();
+                var discretePdb = (object)options != null && options.DebugInformationFormat != DebugInformationFormat.Embedded;
+                pdbStream = discretePdb ? new MemoryStream() : null;
             }
 
             var emitResult = compilation.Emit(
