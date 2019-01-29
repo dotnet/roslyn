@@ -2013,21 +2013,70 @@ class Program
 
         [WorkItem(26640, "https://github.com/dotnet/roslyn/issues/26640")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNumericCastInObjectCast()
+        public async Task DontRemoveNumericImplicitConstantCastInObjectCast()
         {
-
+            //return b ? [|(byte)1 : (byte)0|];
+            //return [|(byte)1|];
+            /*int tr = 1;
+            int fr = 0;
+            return [|b ? (byte)tr : (byte)fr|];
+             */
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    public object M1(bool b)
-        {
-            return b ? [|(byte)1 : (byte)0|];
+    object M1(bool b)
+    {
+        return [|b ? (byte)1 : (byte)0|];
+    }
+}");
         }
 
-        public byte M2()
+        [WorkItem(26640, "https://github.com/dotnet/roslyn/issues/26640")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveNumericImplicitNumericCastInObjectCast()
         {
-            return (byte) M1(true);
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    object M1(bool b)
+    {
+        return [|b ? 1 : (double)0|];
+    }
+}");
         }
+
+        [WorkItem(26640, "https://github.com/dotnet/roslyn/issues/26640")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveNumericImplicitCharCastWithSameReturnTypeInObjectCast()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    object M1(bool b)
+    {
+        return [|b ? '1' : (uint)'0'|];
+    }
+}");
+        }
+
+        [WorkItem(26640, "https://github.com/dotnet/roslyn/issues/26640")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveUnnecessaryNumericCastToSameTypeInConditionalExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    object M1(bool b)
+    {
+        return [|b ? (int)1 : 0|];
+    }
+}",
+@"class C
+{
+    object M1(bool b)
+    {
+        return b ? 1 : 0;
+    }
 }");
         }
 
