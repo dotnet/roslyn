@@ -227,9 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                             return CheckStatement(statement);
                     }
 
-                    // We shouldn't normally get here but if we do, it's
-                    // either an error in the code or an unhandled case.
-                    Debug.Assert(false, "unhandled case.");
+                    // Bail out for error cases and unhandled cases.
                     break;
                 }
 

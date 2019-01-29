@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsAddImport = "CodeActions.AddImport";
             public const string CodeActionsAddMissingReference = "CodeActions.AddMissingReference";
             public const string CodeActionsAddNew = "CodeActions.AddNew";
+            public const string CodeActionsAddObsoleteAttribute = "CodeActions.AddObsoleteAttribute";
             public const string CodeActionsAddOverload = "CodeActions.AddOverloads";
             public const string CodeActionsAddParameter = "CodeActions.AddParameter";
             public const string CodeActionsAddParenthesesAroundConditionalExpressionInInterpolatedString = "CodeActions.AddParenthesesAroundConditionalExpressionInInterpolatedString";

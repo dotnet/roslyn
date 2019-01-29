@@ -112,6 +112,7 @@
             </GroupBox>
         </StackPanel>
         <GroupBox x:Uid="MemberSelectionGroupBox"
+                  x:Name="MemberSelectionGroupBox"
                   Margin="0, 9, 0, 0"
                   Grid.Row="1"
                   Header="{Binding ElementName=dialog, Path=SelectPublicMembersToFormInterface}">
@@ -122,6 +123,7 @@
                 </Grid.ColumnDefinitions>
                 <u:AutomationDelegatingListView x:Uid="MemberSelectionList"
                           x:Name="Members"
+                          AutomationProperties.LabeledBy="{Binding ElementName=MemberSelectionGroupBox}"
                           Grid.Column="0"
                           Margin="9"
                           SelectionMode="Extended"

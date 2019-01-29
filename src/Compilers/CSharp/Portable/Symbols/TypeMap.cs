@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal TypeMap WithAlphaRename(NamedTypeSymbol oldOwner, NamedTypeSymbol newOwner, out ImmutableArray<TypeParameterSymbol> newTypeParameters)
         {
-            Debug.Assert(oldOwner.ConstructedFrom == oldOwner);
+            Debug.Assert(TypeSymbol.Equals(oldOwner.ConstructedFrom, oldOwner, TypeCompareKind.ConsiderEverything2));
             return WithAlphaRename(oldOwner.OriginalDefinition.TypeParameters, newOwner, out newTypeParameters);
         }
 

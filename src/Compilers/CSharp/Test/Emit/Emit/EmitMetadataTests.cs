@@ -1345,7 +1345,7 @@ class C : B<string>
             Assert.Equal(field.ConstantValue, value);
 
             var sourceType = type as SourceNamedTypeSymbol;
-            if (sourceType != null)
+            if ((object)sourceType != null)
             {
                 var fieldDefinition = (Microsoft.Cci.IFieldDefinition)field;
                 Assert.False(fieldDefinition.IsSpecialName);
@@ -1366,7 +1366,7 @@ class C : B<string>
             Assert.Null(field);
 
             var sourceType = type as SourceNamedTypeSymbol;
-            if (sourceType != null)
+            if ((object)sourceType != null)
             {
                 field = sourceType.EnumValueField;
                 Assert.NotNull(field);

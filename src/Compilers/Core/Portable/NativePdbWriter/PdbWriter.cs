@@ -117,8 +117,8 @@ namespace Microsoft.Cci
                     methodToken,
                     MetadataTokens.GetToken(_metadataWriter.GetMethodHandle(asyncMoveNextInfo.KickoffMethod)),
                     asyncMoveNextInfo.CatchHandlerOffset,
-                    ImmutableInt32ArrayInterop.DangerousGetUnderlyingArray(asyncMoveNextInfo.YieldOffsets),
-                    ImmutableInt32ArrayInterop.DangerousGetUnderlyingArray(asyncMoveNextInfo.ResumeOffsets));
+                    asyncMoveNextInfo.YieldOffsets.AsSpan(),
+                    asyncMoveNextInfo.ResumeOffsets.AsSpan());
             }
 
             var compilationOptions = Context.Module.CommonCompilation.Options;
@@ -573,14 +573,14 @@ namespace Microsoft.Cci
             }
 
             Guid algorithmId;
-            byte[] checksum;
-            byte[] embeddedSource;
+            ReadOnlySpan<byte> checksum;
+            ReadOnlySpan<byte> embeddedSource;
 
             DebugSourceInfo info = document.GetSourceInfo();
             if (!info.Checksum.IsDefault)
             {
                 algorithmId = info.ChecksumAlgorithmId;
-                checksum = ImmutableByteArrayInterop.DangerousGetUnderlyingArray(info.Checksum);
+                checksum = info.Checksum.AsSpan();
             }
             else
             {
@@ -590,7 +590,7 @@ namespace Microsoft.Cci
 
             if (!info.EmbeddedTextBlob.IsDefault)
             {
-                embeddedSource = ImmutableByteArrayInterop.DangerousGetUnderlyingArray(info.EmbeddedTextBlob);
+                embeddedSource = info.EmbeddedTextBlob.AsSpan();
             }
             else
             {

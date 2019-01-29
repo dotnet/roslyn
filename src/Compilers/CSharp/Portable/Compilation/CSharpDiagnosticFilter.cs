@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="nullableOption">Whether Nullable Reference Types feature is enabled globally</param>
         /// <param name="specificDiagnosticOptions">How specific diagnostics should be reported</param>
         /// <returns>A diagnostic updated to reflect the options, or null if it has been filtered out</returns>
-        public static Diagnostic Filter(Diagnostic d, int warningLevelOption, bool nullableOption, ReportDiagnostic generalDiagnosticOption, IDictionary<string, ReportDiagnostic> specificDiagnosticOptions)
+        public static Diagnostic Filter(Diagnostic d, int warningLevelOption, NullableContextOptions nullableOption, ReportDiagnostic generalDiagnosticOption, IDictionary<string, ReportDiagnostic> specificDiagnosticOptions)
         {
             if (d == null)
             {
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Location location,
             string category,
             int warningLevelOption,
-            bool nullableOption,
+            NullableContextOptions nullableOption,
             ReportDiagnostic generalDiagnosticOption,
             IDictionary<string, ReportDiagnostic> specificDiagnosticOptions,
             out bool hasPragmaSuppression)
@@ -122,10 +122,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ReportDiagnostic.Suppress;
             }
 
-            bool isNullableFlowAnalysisWarning = ErrorFacts.NullableFlowAnalysisWarnings.Contains(id);
+            bool isNullableFlowAnalysisSafetyWarning = ErrorFacts.NullableFlowAnalysisSafetyWarnings.Contains(id);
+            bool isNullableFlowAnalysisNonSafetyWarning = ErrorFacts.NullableFlowAnalysisNonSafetyWarnings.Contains(id);
+            Debug.Assert(!isNullableFlowAnalysisSafetyWarning || !isNullableFlowAnalysisNonSafetyWarning);
 
             if (report == ReportDiagnostic.Suppress && // check options (/nowarn)
-                !isNullableFlowAnalysisWarning)
+                !isNullableFlowAnalysisSafetyWarning && !isNullableFlowAnalysisNonSafetyWarning)
             {
                 return ReportDiagnostic.Suppress;
             }
@@ -175,9 +177,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Nullable flow analysis warnings cannot be turned on by specific diagnostic options.
             // They can be turned on by nullable options and specific diagnostic options
             // can either turn them off, or adjust the way they are reported.
-            if (isNullableFlowAnalysisWarning && !nullableOption)
+            switch (nullableOption)
             {
-                return ReportDiagnostic.Suppress;
+                case NullableContextOptions.Disable:
+                    if (isNullableFlowAnalysisSafetyWarning || isNullableFlowAnalysisNonSafetyWarning)
+                    {
+                        return ReportDiagnostic.Suppress;
+                    }
+                    break;
+
+                case NullableContextOptions.SafeOnly:
+                case NullableContextOptions.SafeOnlyWarnings:
+                    if (isNullableFlowAnalysisNonSafetyWarning)
+                    {
+                        return ReportDiagnostic.Suppress;
+                    }
+                    break;
+
+                case NullableContextOptions.Enable:
+                case NullableContextOptions.Warnings:
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(nullableOption);
             }
 
             // Unless specific warning options are defined (/warnaserror[+|-]:<n> or /nowarn:<n>, 

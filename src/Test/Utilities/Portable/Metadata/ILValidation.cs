@@ -90,7 +90,7 @@ namespace Roslyn.Test.Utilities
                     // RSA parameters start after the public key offset
                     byte[] publicKeyParams = new byte[publicKeyBlob.Length - CryptoBlobParser.s_publicKeyHeaderSize];
                     publicKeyBlob.CopyTo(CryptoBlobParser.s_publicKeyHeaderSize, publicKeyParams, 0, publicKeyParams.Length);
-                    var snKey = publicKeyParams.ToRSAParameters(includePrivateParameters: false);
+                    var snKey = CryptoBlobParser.ToRSAParameters(publicKeyParams.AsSpan(), includePrivateParameters: false);
 
                     using (var rsa = RSA.Create())
                     {

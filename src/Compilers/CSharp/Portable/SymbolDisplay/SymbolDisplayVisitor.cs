@@ -209,7 +209,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddSpace();
             }
 
-            builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, symbol.Name));
+            if (symbol.IsConst)
+            {
+                builder.Add(CreatePart(SymbolDisplayPartKind.ConstantName, symbol, symbol.Name));
+            }
+            else
+            {
+                builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, symbol.Name));
+            }
 
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeConstantValue) &&
                 symbol.IsConst &&

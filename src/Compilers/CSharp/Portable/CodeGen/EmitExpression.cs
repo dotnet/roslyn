@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (!nullCheckOnCopy)
             {
                 Debug.Assert(receiverTemp == null);
-                // receiver may be used as target of a struct call (if T happens to be a sruct)
+                // receiver may be used as target of a struct call (if T happens to be a struct)
                 receiverTemp = EmitReceiverRef(receiver, AddressKind.Constrained);
                 Debug.Assert(receiverTemp == null || receiver.IsDefaultValue());
             }
@@ -1460,7 +1460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (method.IsDefaultValueTypeConstructor())
             {
                 Debug.Assert(method.IsImplicitlyDeclared);
-                Debug.Assert(method.ContainingType == receiver.Type);
+                Debug.Assert(TypeSymbol.Equals(method.ContainingType, receiver.Type, TypeCompareKind.ConsiderEverything2));
                 Debug.Assert(receiver.Kind == BoundKind.ThisReference);
 
                 tempOpt = EmitReceiverRef(receiver, AddressKind.Writeable);
@@ -1516,7 +1516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             //       otherwise we should not use direct 'call' and must use constrained call;
 
                             // calling a method defined in a value type
-                            Debug.Assert(receiverType == methodContainingType);
+                            Debug.Assert(TypeSymbol.Equals(receiverType, methodContainingType, TypeCompareKind.ConsiderEverything2));
                             tempOpt = EmitReceiverRef(receiver, receiverAddresskind);
                             callKind = CallKind.Call;
                         }
@@ -3061,7 +3061,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             EmitSymbolToken(getMethod, node.Syntax, null);
-            if (node.Type != getMethod.ReturnType.TypeSymbol)
+            if (!TypeSymbol.Equals(node.Type, getMethod.ReturnType.TypeSymbol, TypeCompareKind.ConsiderEverything2))
             {
                 _builder.EmitOpCode(ILOpCode.Castclass);
                 EmitSymbolToken(node.Type, node.Syntax);
@@ -3088,7 +3088,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             EmitSymbolToken(getField, node.Syntax, null);
-            if (node.Type != getField.ReturnType.TypeSymbol)
+            if (!TypeSymbol.Equals(node.Type, getField.ReturnType.TypeSymbol, TypeCompareKind.ConsiderEverything2))
             {
                 _builder.EmitOpCode(ILOpCode.Castclass);
                 EmitSymbolToken(node.Type, node.Syntax);
@@ -3145,7 +3145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitStaticCast(expr.Type, expr.Syntax);
                     mergeTypeOfAlternative = expr.Type;
                 }
-                else if (expr.Type.IsInterfaceType() && expr.Type != mergeTypeOfAlternative)
+                else if (expr.Type.IsInterfaceType() && !TypeSymbol.Equals(expr.Type, mergeTypeOfAlternative, TypeCompareKind.ConsiderEverything2))
                 {
                     EmitStaticCast(expr.Type, expr.Syntax);
                 }
@@ -3169,7 +3169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitStaticCast(expr.Type, expr.Syntax);
                     mergeTypeOfConsequence = expr.Type;
                 }
-                else if (expr.Type.IsInterfaceType() && expr.Type != mergeTypeOfConsequence)
+                else if (expr.Type.IsInterfaceType() && !TypeSymbol.Equals(expr.Type, mergeTypeOfConsequence, TypeCompareKind.ConsiderEverything2))
                 {
                     EmitStaticCast(expr.Type, expr.Syntax);
                 }
@@ -3206,7 +3206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitStaticCast(expr.Type, expr.Syntax);
                     mergeTypeOfLeftValue = expr.Type;
                 }
-                else if (expr.Type.IsInterfaceType() && expr.Type != mergeTypeOfLeftValue)
+                else if (expr.Type.IsInterfaceType() && !TypeSymbol.Equals(expr.Type, mergeTypeOfLeftValue, TypeCompareKind.ConsiderEverything2))
                 {
                     EmitStaticCast(expr.Type, expr.Syntax);
                 }
@@ -3315,7 +3315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // the same page with what type should be tracked.
         private static bool IsVarianceCast(TypeSymbol to, TypeSymbol from)
         {
-            if (to == from)
+            if (TypeSymbol.Equals(to, from, TypeCompareKind.ConsiderEverything2))
             {
                 return false;
             }
@@ -3333,8 +3333,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return IsVarianceCast(((ArrayTypeSymbol)to).ElementType.TypeSymbol, ((ArrayTypeSymbol)from).ElementType.TypeSymbol);
             }
 
-            return (to.IsDelegateType() && to != from) ||
-                   (to.IsInterfaceType() && from.IsInterfaceType() && !from.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains((NamedTypeSymbol)to));
+            return (to.IsDelegateType() && !TypeSymbol.Equals(to, from, TypeCompareKind.ConsiderEverything2)) ||
+                   (to.IsInterfaceType() && from.IsInterfaceType() && !from.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.ContainsKey((NamedTypeSymbol)to));
         }
 
         private void EmitStaticCast(TypeSymbol to, SyntaxNode syntax)

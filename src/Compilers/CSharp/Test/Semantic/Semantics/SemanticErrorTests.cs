@@ -3779,7 +3779,7 @@ class Test
         {
             // See comments in NameCollisionTests for thoughts on this error.
 
-            CreateCompilation(
+            string text =
 @"class C
 {
     static void M(object x)
@@ -3811,13 +3811,33 @@ class Test
     {
         System.Func<int, int> f = q=>q; // 0136
     }
-}
-")
-                .VerifyDiagnostics(
-                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(5, 16),
-                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y").WithArguments("y").WithLocation(9, 17),
-                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(24, 17),
-                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "q").WithArguments("q").WithLocation(30, 35));
+}";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (5,16): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         string x = null; // CS0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(5, 16),
+                // (9,17): error CS0136: A local or parameter named 'y' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             int y = 0; // CS0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y").WithArguments("y").WithLocation(9, 17),
+                // (24,17): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             int value = 0; // CS0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(24, 17),
+                // (30,35): error CS0136: A local or parameter named 'q' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         System.Func<int, int> f = q=>q; // 0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "q").WithArguments("q").WithLocation(30, 35));
+
+            comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (5,16): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         string x = null; // CS0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(5, 16),
+                // (9,17): error CS0136: A local or parameter named 'y' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             int y = 0; // CS0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y").WithArguments("y").WithLocation(9, 17),
+                // (24,17): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             int value = 0; // CS0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(24, 17));
         }
 
         [Fact]
@@ -15725,9 +15745,9 @@ class C
             CreateCompilation(text).VerifyDiagnostics(
                 // (7,22): warning CS0642: Possible mistaken empty statement
                 Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"),
-                // (6,16): error CS1674: 'int': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (6,16): error CS1674: 'int': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "int a = 0").WithArguments("int"),
-                // (7,20): error CS1674: 'int': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (7,20): error CS1674: 'int': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "a").WithArguments("int"));
         }
 
@@ -20179,8 +20199,11 @@ class Test
    }
 }
 ";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.WRN_GotoCaseShouldConvert, Line = 13, Column = 13, IsWarning = true } });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (13,13): warning CS0469: The 'goto case' value is not implicitly convertible to type 'char'
+                //             goto case 127;   // CS0469
+                Diagnostic(ErrorCode.WRN_GotoCaseShouldConvert, "goto case 127;").WithArguments("char").WithLocation(13, 13)
+                );
         }
 
         [Fact, WorkItem(663, "https://github.com/dotnet/roslyn/issues/663")]
@@ -23990,6 +24013,28 @@ class B : System.Attribute {
                 // (2,2): error CS8355: Cannot use attribute constructor 'A.A(in int)' because it is has 'in' parameters.
                 // [A(1)]
                 Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "A(1)").WithArguments("A.A(in int)").WithLocation(2, 2)
+                );
+        }
+
+        [Fact]
+        public void ERR_ExpressionTreeContainsSwitchExpression()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+
+public class C
+{
+    public int Test()
+    {
+        Expression<Func<int, int>> e = a => a switch { 0 => 1, _ => 2 }; // CS8411
+        return 1;
+    }
+}";
+            CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+                // (9,45): error CS8411: An expression tree may not contain a switch expression.
+                //         Expression<Func<int, int>> e = a => a switch { 0 => 1, _ => 2 }; // CS8411
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsSwitchExpression, "a switch { 0 => 1, _ => 2 }").WithLocation(9, 45)
                 );
         }
     }

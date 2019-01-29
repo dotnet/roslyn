@@ -299,9 +299,6 @@ class MyDeconstructable
                 // (6,26): error CS0121: The call is ambiguous between the following methods or properties: 'MyDeconstructable.Deconstruct(out int, out int)' and 'MyDeconstructable.Deconstruct(out long, out long)'
                 //         (var a, var b) = o;
                 Diagnostic(ErrorCode.ERR_AmbigCall, "o").WithArguments("MyDeconstructable.Deconstruct(out int, out int)", "MyDeconstructable.Deconstruct(out long, out long)").WithLocation(6, 26),
-                // (6,26): error CS8129: No suitable Deconstruct instance or extension method was found for type 'MyDeconstructable', with 2 out parameters and a void return type.
-                //         (var a, var b) = o;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "o").WithArguments("MyDeconstructable", "2").WithLocation(6, 26),
                 // (6,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'a'.
                 //         (var a, var b) = o;
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "a").WithArguments("a").WithLocation(6, 14),

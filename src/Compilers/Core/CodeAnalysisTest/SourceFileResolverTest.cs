@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     ImmutableArray.Create(KeyValuePairUtil.Create<string, string>("key", "value")));
                 AssertEx.Fail("Didn't throw");
             }
-            catch (ArgumentException argExeption)
+            catch (ArgumentException argException)
             {
-                Assert.Equal(new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, "baseDirectory").Message, argExeption.Message);
+                Assert.Equal(new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, "baseDirectory").Message, argException.Message);
             }
         }
     }

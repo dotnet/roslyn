@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     syntax,
                     submissionLocal,
                     initializer);
-                Debug.Assert(initializeResult.Type == _returnType.TypeSymbol);
+                Debug.Assert(TypeSymbol.Equals(initializeResult.Type, _returnType.TypeSymbol, TypeCompareKind.ConsiderEverything2));
                 var returnStatement = new BoundReturnStatement(
                     syntax,
                     RefKind.None,

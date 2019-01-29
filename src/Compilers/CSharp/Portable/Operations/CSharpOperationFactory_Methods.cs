@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return ImmutableArray.Create(statement);
         }
 
-        private IInstanceReferenceOperation CreateImplicitReciever(SyntaxNode syntax, ITypeSymbol type) =>
+        private IInstanceReferenceOperation CreateImplicitReceiver(SyntaxNode syntax, ITypeSymbol type) =>
             new InstanceReferenceOperation(InstanceReferenceKind.ImplicitReceiver, _semanticModel, syntax, type, constantValue: default, isImplicit: true);
 
         internal IArgumentOperation CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, BoundExpression expression)

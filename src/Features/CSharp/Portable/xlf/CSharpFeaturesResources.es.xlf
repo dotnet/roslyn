@@ -7,6 +7,11 @@
         <target state="new">Add await and ConfigureAwait(false)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_Obsolete">
+        <source>Add [Obsolete]</source>
+        <target state="new">Add [Obsolete]</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
         <source>Add accessibility modifiers</source>
         <target state="new">Add accessibility modifiers</target>

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -17,6 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
         private readonly IServiceProvider _serviceProvider;
+
         private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
@@ -46,6 +48,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
 
             return projectCodeModel;
+        }
+
+        public IEnumerable<ProjectCodeModel> GetAllProjectCodeModels()
+        {
+            return _projectCodeModels.Values;
         }
 
         internal void OnProjectClosed(ProjectId projectId)

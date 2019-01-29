@@ -1114,7 +1114,7 @@ class C
                     AssertNoNullableAttribute(property.GetAttributes());
                     var method = property.GetMethod;
                     // https://github.com/dotnet/roslyn/issues/30010: No synthesized attributes for this
-                    // case which is inconsisten with IEnumerable<object?[]> in test below.
+                    // case which is inconsistent with IEnumerable<object?[]> in test below.
                     AssertNoNullableAttribute(method.GetReturnTypeAttributes());
                     AssertAttributes(method.GetAttributes(), "System.Diagnostics.DebuggerHiddenAttribute");
                 });

@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis.CSharp {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CSharp.CSharpFeaturesResources", typeof(CSharpFeaturesResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CSharp.CSharpFeaturesResources", typeof(CSharpFeaturesResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -103,6 +102,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Add_missing_usings {
             get {
                 return ResourceManager.GetString("Add_missing_usings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add [Obsolete].
+        /// </summary>
+        internal static string Add_Obsolete {
+            get {
+                return ResourceManager.GetString("Add_Obsolete", resourceCulture);
             }
         }
         

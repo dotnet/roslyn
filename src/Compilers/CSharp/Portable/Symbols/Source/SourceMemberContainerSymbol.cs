@@ -705,7 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsByRefLikeType
+        public sealed override bool IsRefLikeType
         {
             get
             {
@@ -1404,7 +1404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForUnmatchedOperators(diagnostics);
 
             var location = Locations[0];
-            if (this.IsByRefLikeType)
+            if (this.IsRefLikeType)
             {
                 this.DeclaringCompilation.EnsureIsByRefLikeAttributeExists(diagnostics, location, modifyCompilation: true);
             }
@@ -2095,7 +2095,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (instanceMap.TryGetValue(tOriginal, out oldInstance))
             {
                 // short circuit when we find a cycle, but only return true when the cycle contains the top struct
-                return (oldInstance != t) && ReferenceEquals(tOriginal, top);
+                return (!TypeSymbol.Equals(oldInstance, t, TypeCompareKind.ConsiderEverything2)) && ReferenceEquals(tOriginal, top);
             }
             else
             {

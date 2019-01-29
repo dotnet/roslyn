@@ -1131,7 +1131,7 @@ tryAgain:
                 throw new UnsupportedSignatureContent();
             }
 
-            fixed (byte* ptr = ImmutableByteArrayInterop.DangerousGetUnderlyingArray(signature))
+            fixed (byte* ptr = signature.AsSpan())
             {
                 var blobReader = new BlobReader(ptr, signature.Length);
                 var info = DecodeLocalVariableOrThrow(ref blobReader);

@@ -533,6 +533,9 @@
   <data name="if_statement_can_be_simplified" xml:space="preserve">
     <value>'if' statement can be simplified</value>
   </data>
+  <data name="Add_Obsolete" xml:space="preserve">
+    <value>Add [Obsolete]</value>
+  </data>
   <data name="Convert_to_method" xml:space="preserve">
     <value>Convert to method</value>
   </data>

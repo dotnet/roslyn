@@ -357,5 +357,19 @@ $"Class C
     End Function
 End Class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        Public Async Function UsedAssignment_ConditionalPreprocessorDirective() As Task
+            Await TestMissingInRegularAndScriptAsync(
+$"Class C
+    Function M() As Integer
+        Dim [|p|] = 0
+#If DEBUG Then
+        p = 1
+#End If
+        Return p
+    End Function
+End Class")
+        End Function
     End Class
 End Namespace

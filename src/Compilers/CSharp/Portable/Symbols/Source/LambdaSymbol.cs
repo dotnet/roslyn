@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (object)lambda != null
                 && lambda._syntax == _syntax
                 && lambda._refKind == _refKind
-                && lambda.ReturnType.TypeSymbol == this.ReturnType.TypeSymbol
+                && TypeSymbol.Equals(lambda.ReturnType.TypeSymbol, this.ReturnType.TypeSymbol, TypeCompareKind.ConsiderEverything2)
                 && System.Linq.ImmutableArrayExtensions.SequenceEqual(lambda.ParameterTypes, this.ParameterTypes, (p1, p2) => p1.TypeSymbol.Equals(p2.TypeSymbol))
                 && Equals(lambda.ContainingSymbol, this.ContainingSymbol);
         }

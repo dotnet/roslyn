@@ -3239,7 +3239,7 @@ class C
             var model = comp.GetSemanticModel(tree);
 
             var operators = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.AdditionOperatorName).Cast<MethodSymbol>();
-            var operatorSymbol = operators.Where(method => method.Parameters[0].Type.TypeSymbol == method.Parameters[1].Type.TypeSymbol).Single();
+            var operatorSymbol = operators.Where(method => TypeSymbol.Equals(method.Parameters[0].Type.TypeSymbol, method.Parameters[1].Type.TypeSymbol, TypeCompareKind.ConsiderEverything2)).Single();
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.NotNull(expr);

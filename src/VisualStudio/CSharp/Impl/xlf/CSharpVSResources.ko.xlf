@@ -537,6 +537,11 @@
         <target state="translated">다른 곳</target>
         <note />
       </trans-unit>
+      <trans-unit id="When_on_multiple_lines">
+        <source>When on multiple lines</source>
+        <target state="new">When on multiple lines</target>
+        <note />
+      </trans-unit>
       <trans-unit id="When_variable_type_is_apparent">
         <source>When variable type is apparent</source>
         <target state="translated">변수 형식이 명백한 경우</target>

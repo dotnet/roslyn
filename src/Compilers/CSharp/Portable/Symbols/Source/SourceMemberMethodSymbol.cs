@@ -714,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             set
             {
-                Debug.Assert((object)_iteratorElementType == null || _iteratorElementType == value);
+                Debug.Assert((object)_iteratorElementType == null || TypeSymbol.Equals(_iteratorElementType, value, TypeCompareKind.ConsiderEverything2));
                 Interlocked.CompareExchange(ref _iteratorElementType, value, null);
             }
         }

@@ -8,7 +8,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class LocalDataFlowPass<TLocalState>
     {
-        [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         internal struct VariableIdentifier : IEquatable<VariableIdentifier>
         {
             public readonly Symbol Symbol;
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return !left.Equals(right);
             }
 
-            internal string GetDebuggerDisplay()
+            public override string ToString()
             {
                 return $"ContainingSlot={ContainingSlot}, Symbol={Symbol.GetDebuggerDisplay()}";
             }

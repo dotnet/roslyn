@@ -8350,7 +8350,7 @@
                                   (hex).
 -checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file
                                   checksum stored in PDB. Supported values are:
-                                  SHA1 (default) or SHA256.
+                                  SHA1 or SHA256 (default).
 -codepage:&lt;number&gt;                Specifies the codepage to use when opening
                                   source files.
 -delaysign[+|-]                   Delay-sign the assembly using only the public
@@ -9079,12 +9079,12 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
-        <target state="translated">Il nome dell'algoritmo hash non è valido: '{0}'</target>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_InterpolatedStrings">
         <source>interpolated strings</source>
-        <target state="translated">stringhe interpolate</target>
+        <target state="new">interpolated strings</target>
         <note />
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">

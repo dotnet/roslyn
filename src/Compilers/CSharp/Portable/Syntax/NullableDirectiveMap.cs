@@ -4,14 +4,15 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     internal sealed class NullableDirectiveMap
     {
-        private static readonly NullableDirectiveMap Empty = new NullableDirectiveMap(ImmutableArray<(int Position, bool State)>.Empty);
+        private static readonly NullableDirectiveMap Empty = new NullableDirectiveMap(ImmutableArray<(int Position, bool? State)>.Empty);
 
-        private readonly ImmutableArray<(int Position, bool State)> _directives;
+        private readonly ImmutableArray<(int Position, bool? State)> _directives;
 
         internal static NullableDirectiveMap Create(SyntaxTree tree)
         {
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return directives.IsEmpty ? Empty : new NullableDirectiveMap(directives);
         }
 
-        private NullableDirectiveMap(ImmutableArray<(int Position, bool State)> directives)
+        private NullableDirectiveMap(ImmutableArray<(int Position, bool? State)> directives)
         {
 #if DEBUG
             for (int i = 1; i < directives.Length; i++)
@@ -32,7 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         /// <summary>
         /// Returns true if the `#nullable` directive preceding the position is
-        /// `enable`, false if `disable`, and null if no preceding directive.
+        /// `enable` or `safeonly`, false if `disable`, and null if no preceding directive,
+        /// or directive preceding the position is `restore`.
         /// </summary>
         internal bool? GetDirectiveState(int position)
         {
@@ -52,9 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return _directives[index].State;
         }
 
-        private static ImmutableArray<(int Position, bool State)> GetDirectives(SyntaxTree tree)
+        private static ImmutableArray<(int Position, bool? State)> GetDirectives(SyntaxTree tree)
         {
-            var builder = ArrayBuilder<(int Position, bool State)>.GetInstance();
+            var builder = ArrayBuilder<(int Position, bool? State)>.GetInstance();
             foreach (var d in tree.GetRoot().GetDirectives())
             {
                 if (d.Kind() != SyntaxKind.NullableDirectiveTrivia)
@@ -66,16 +68,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 {
                     continue;
                 }
-                builder.Add((nn.Location.SourceSpan.End, nn.SettingToken.Kind() == SyntaxKind.EnableKeyword));
+
+                bool? state;
+                switch (nn.SettingToken.Kind())
+                {
+                    case SyntaxKind.EnableKeyword:
+                    case SyntaxKind.SafeOnlyKeyword:
+                        state = true;
+                        break;
+                    case SyntaxKind.RestoreKeyword:
+                        state = null;
+                        break;
+                    case SyntaxKind.DisableKeyword:
+                        state = false;
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(nn.SettingToken.Kind());
+                }
+
+                builder.Add((nn.Location.SourceSpan.End, state));
             }
             return builder.ToImmutableAndFree();
         }
 
-        private sealed class PositionComparer : IComparer<(int Position, bool State)>
+        private sealed class PositionComparer : IComparer<(int Position, bool? State)>
         {
             internal static readonly PositionComparer Instance = new PositionComparer();
 
-            public int Compare((int Position, bool State) x, (int Position, bool State) y)
+            public int Compare((int Position, bool? State) x, (int Position, bool? State) y)
             {
                 return x.Position.CompareTo(y.Position);
             }

@@ -654,7 +654,7 @@ namespace BoundTreeGenerator
                             if (isROArray)
                                 WriteLine("Debug.Assert(!{0}.IsDefault, \"Field '{0}' cannot be null (use Null=\\\"allow\\\" in BoundNodes.xml to remove this check)\");", ToCamelCase(field.Name));
                             else
-                                WriteLine("Debug.Assert({0} != null, \"Field '{0}' cannot be null (use Null=\\\"allow\\\" in BoundNodes.xml to remove this check)\");", ToCamelCase(field.Name));
+                                WriteLine("Debug.Assert((object){0} != null, \"Field '{0}' cannot be null (use Null=\\\"allow\\\" in BoundNodes.xml to remove this check)\");", ToCamelCase(field.Name));
                             break;
 
                         case TargetLanguage.VB:
@@ -912,7 +912,7 @@ namespace BoundTreeGenerator
                             Write("if ");
                             Paren();
                             Or(AllSpecifiableFields(node),
-                                field => string.Format("{0} != this.{1}", ToCamelCase(field.Name), field.Name));
+                                field => wasUpdatedCheck(field));
                             UnParen();
                             Blank();
                             Brace();
@@ -972,6 +972,12 @@ namespace BoundTreeGenerator
 
                 default:
                     throw new ArgumentException("Unexpected target language", nameof(_targetLang));
+            }
+
+            string wasUpdatedCheck(Field field)
+            {
+                var format = field.Type.EndsWith("TypeSymbol") ? "!TypeSymbol.Equals({0}, this.{1}, TypeCompareKind.ConsiderEverything)" : "{0} != this.{1}";
+                return string.Format(format, ToCamelCase(field.Name), field.Name);
             }
         }
 

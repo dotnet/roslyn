@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Filter out methods with the wrong return type, since overload resolution won't catch these.
             sortedSymbols = sortedSymbols.WhereAsArray(symbol =>
-                symbol.Kind != SymbolKind.Method || ((MethodSymbol)symbol).ReturnType.TypeSymbol == returnType);
+                symbol.Kind != SymbolKind.Method || TypeSymbol.Equals(((MethodSymbol)symbol).ReturnType.TypeSymbol, returnType, TypeCompareKind.ConsiderEverything2));
 
             if (!sortedSymbols.Any())
             {
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // constructor (unless the type is generic, the cref is on/in the type (but not 
                             // on/in a nested type), and there were no parens after the member name).
 
-                            if (containerType.Name == memberName && (hasParameterList || containerType.Arity == 0 || this.ContainingType != containerType.OriginalDefinition))
+                            if (containerType.Name == memberName && (hasParameterList || containerType.Arity == 0 || !TypeSymbol.Equals(this.ContainingType, containerType.OriginalDefinition, TypeCompareKind.ConsiderEverything2)))
                             {
                                 constructorType = containerType;
                             }

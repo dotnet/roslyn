@@ -1435,7 +1435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Global code is the entry point, ignore all other Mains.
                     var scriptClass = this.ScriptClass;
-                    if (scriptClass != null)
+                    if ((object)scriptClass != null)
                     {
                         // CONSIDER: we could use the symbol instead of just the name.
                         diagnostics.Add(ErrorCode.WRN_MainIgnored, NoLocation.Singleton, mainTypeName);
@@ -1468,7 +1468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Global code is the entry point, ignore all other Mains.
                     var scriptClass = this.ScriptClass;
-                    if (scriptClass != null)
+                    if ((object)scriptClass != null)
                     {
                         foreach (var main in entryPointCandidates)
                         {
@@ -1640,8 +1640,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Early bail so we only even check things that are System.Threading.Tasks.Task(<T>)
-            if (!(namedType.ConstructedFrom == GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) ||
-                  namedType.ConstructedFrom == GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)))
+            if (!(TypeSymbol.Equals(namedType.ConstructedFrom, GetWellKnownType(WellKnownType.System_Threading_Tasks_Task), TypeCompareKind.ConsiderEverything2) ||
+                  TypeSymbol.Equals(namedType.ConstructedFrom, GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T), TypeCompareKind.ConsiderEverything2)))
             {
                 return false;
             }
@@ -2219,11 +2219,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckAssemblyName(builder);
                 builder.AddRange(Options.Errors);
 
-                if (Options.Nullable && LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() &&
+                if (Options.NullableContextOptions != NullableContextOptions.Disable && LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() &&
                     _syntaxAndDeclarations.ExternalSyntaxTrees.Any())
                 {
                     builder.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NullableOptionNotAvailable,
-                                                 nameof(Options.Nullable), Options.Nullable, LanguageVersion.ToDisplayString(),
+                                                 nameof(Options.NullableContextOptions), Options.NullableContextOptions, LanguageVersion.ToDisplayString(),
                                                  new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())), Location.None));
                 }
 
@@ -2352,7 +2352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (syntaxTree is null)
             {
                 // Don't freeze the compilation if we're getting
-                // diagnositcs for a single tree
+                // diagnostics for a single tree
                 _declarationDiagnosticsFrozen = true;
 
                 // Also freeze generated attribute flags.
@@ -3427,7 +3427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     var sourceType = symbol as SourceMemberContainerTypeSymbol;
-                    if (sourceType != null)
+                    if ((object)sourceType != null)
                     {
                         _cache[sourceType.MergedDeclaration] = sourceType;
                     }

@@ -327,11 +327,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Creates a new syntax tree from a syntax node with text that should correspond to the syntax node.
         /// </summary>
         /// <remarks>This is used by the ExpressionEvaluator.</remarks>
-        internal static SyntaxTree CreateForDebugger(CSharpSyntaxNode root, SourceText text)
+        internal static SyntaxTree CreateForDebugger(CSharpSyntaxNode root, SourceText text, CSharpParseOptions options)
         {
             Debug.Assert(root != null);
 
-            return new DebuggerSyntaxTree(root, text);
+            return new DebuggerSyntaxTree(root, text, options);
         }
 
         /// <summary>
@@ -595,7 +595,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns true if the `#nullable` directive preceding the position is
-        /// `enable`, false if `disable`, and null if no preceding directive.
+        /// `enable` or `safeonly`, false if `disable`, and null if no preceding directive,
+        /// or directive preceding the position is `restore`.
         /// </summary>
         internal bool? GetNullableDirectiveState(int position)
         {

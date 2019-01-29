@@ -267,7 +267,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleWithDifferentNames()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     [|(int a, string b) i;
@@ -276,6 +276,17 @@ index: 1);
     public Program((int e, string f) i)
     {
         this.i = i;
+    }
+}",
+@"class Program
+{
+    [|(int a, string b) i;
+    (string c, int d) s;|]
+
+    public Program((int e, string f) i, (string c, int d) s)
+    {
+        this.i = i;
+        this.s = s;
     }
 }");
         }
@@ -424,7 +435,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleOptionalWithDifferentNames()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     [|(int a, string b) i;
@@ -434,7 +445,18 @@ index: 1);
     {
         this.i = i;
     }
-}");
+}",
+@"class Program
+{
+    [|(int a, string b) i;
+    (string c, int d) s;|]
+
+    public Program((int e, string f) i, (string c, int d) s = default((string c, int d)))
+    {
+        this.i = i;
+        this.s = s;
+    }
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
@@ -489,6 +511,136 @@ index: 1);
         this.s = s;
     }
 }");
+        }
+
+        [WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestAddParamtersToConstructorBySelectOneMember()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int i;
+    [|(List<byte>, List<long>) s;|]
+    int j;
+
+    public C(int i, int j)
+    {
+        this.i = i;
+        this.j = j;
+    }
+}",
+@"
+class C
+{
+    int i;
+    (List<byte>, List<long>) s;
+    int j;
+
+    public C(int i, int j, (List<byte>, List<long>) s)
+    {
+        this.i = i;
+        this.j = j;
+        this.s = s;
+    }
+}");
+        }
+
+        [WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestParametersAreStillRightIfMembersAreOutOfOrder()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    [|int i;
+    int k;
+    int j;|]
+
+    public C(int i, int j)
+    {
+        this.i = i;
+        this.j = j;
+    }
+}",
+@"
+class C
+{
+    int i;
+    int k;
+    int j;
+
+    public C(int i, int j, int k)
+    {
+        this.i = i;
+        this.j = j;
+        this.k = k;
+    }
+}");
+        }
+
+        [WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestMissingIfFieldsAlreadyExistingInConstructor()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    [|string _barBar;
+    int fooFoo;|]
+    public C(string barBar, int fooFoo)
+    {
+    }
+}"
+            );
+        }
+
+        [WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestMissingIfPropertyAlreadyExistingInConstructor()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    [|string bar;
+    int HelloWorld { get; set; }|]
+    public C(string bar, int helloWorld)
+    {
+    }
+}"
+            );
+
+        }
+
+        [WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestNormalProperty()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    [|int i;
+    int Hello { get; set; }|]
+    public C(int i)
+    {
+    }
+}",
+@"
+class C
+{
+    int i;
+    int Hello { get; set; }
+    public C(int i, int hello)
+    {
+        Hello = hello;
+    }
+}"
+            );
         }
     }
 }

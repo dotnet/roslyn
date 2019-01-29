@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<TypeSymbolWithAnnotations> _formalParameterTypes;
         private readonly ImmutableArray<RefKind> _formalParameterRefKinds;
         private readonly ImmutableArray<BoundExpression> _arguments;
-        private readonly Func<BoundExpression, NullableAnnotation> _getNullableAnnotationOpt;
+        private readonly Func<BoundExpression, TypeSymbolWithAnnotations> _getTypeWithAnnotationOpt;
 
         private readonly TypeSymbolWithAnnotations[] _fixedResults;
         private readonly HashSet<TypeSymbolWithAnnotations>[] _exactBounds;
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                       // no arguments per se we cons up some fake arguments.
             out bool hadNullabilityMismatch,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            Func<BoundExpression, NullableAnnotation> getNullableAnnotationOpt = null)
+            Func<BoundExpression, TypeSymbolWithAnnotations> getTypeWithAnnotationOpt = null)
         {
             Debug.Assert(!methodTypeParameters.IsDefault);
             Debug.Assert(methodTypeParameters.Length > 0);
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 formalParameterTypes,
                 formalParameterRefKinds,
                 arguments,
-                getNullableAnnotationOpt);
+                getTypeWithAnnotationOpt);
             return inferrer.InferTypeArgs(binder, out hadNullabilityMismatch, ref useSiteDiagnostics);
         }
 
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeSymbolWithAnnotations> formalParameterTypes,
             ImmutableArray<RefKind> formalParameterRefKinds,
             ImmutableArray<BoundExpression> arguments,
-            Func<BoundExpression, NullableAnnotation> getNullableAnnotationOpt)
+            Func<BoundExpression, TypeSymbolWithAnnotations> getTypeWithAnnotationOpt)
         {
             _conversions = conversions;
             _methodTypeParameters = methodTypeParameters;
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _formalParameterTypes = formalParameterTypes;
             _formalParameterRefKinds = formalParameterRefKinds;
             _arguments = arguments;
-            _getNullableAnnotationOpt = getNullableAnnotationOpt;
+            _getTypeWithAnnotationOpt = getTypeWithAnnotationOpt;
             _fixedResults = new TypeSymbolWithAnnotations[methodTypeParameters.Length];
             _exactBounds = new HashSet<TypeSymbolWithAnnotations>[methodTypeParameters.Length];
             _upperBounds = new HashSet<TypeSymbolWithAnnotations>[methodTypeParameters.Length];
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeParameterSymbol typeParameter = (TypeParameterSymbol)type.TypeSymbol;
             int ordinal = typeParameter.Ordinal;
             return ValidIndex(ordinal) &&
-                typeParameter == _methodTypeParameters[ordinal] &&
+                TypeSymbol.Equals(typeParameter, _methodTypeParameters[ordinal], TypeCompareKind.ConsiderEverything2) &&
                 IsUnfixed(ordinal);
         }
 
@@ -444,6 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void AddBound(TypeSymbolWithAnnotations addedBound, HashSet<TypeSymbolWithAnnotations>[] collectedBounds, TypeSymbolWithAnnotations methodTypeParameterWithAnnotations)
         {
             Debug.Assert(IsUnfixedTypeParameter(methodTypeParameterWithAnnotations));
+            Debug.Assert(addedBound.NullableAnnotation.IsSpeakable());
 
             var methodTypeParameter = (TypeParameterSymbol)methodTypeParameterWithAnnotations.TypeSymbol;
             int methodTypeParameterIndex = methodTypeParameter.Ordinal;
@@ -541,8 +542,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // SPEC: * Otherwise, no inference is made for this argument
 
-            var source = argument.Type;
-
             if (argument.Kind == BoundKind.UnboundLambda)
             {
                 ExplicitParameterTypeInference(argument, target, ref useSiteDiagnostics);
@@ -551,10 +550,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, kind, ref useSiteDiagnostics))
             {
                 // Either the argument is not a tuple literal, or we were unable to do the inference from its elements, let's try to infer from argument type
-                if (IsReallyAType(source))
+                if (IsReallyAType(argument.Type))
                 {
-                    var annotation = GetNullableAnnotation(argument);
-                    ExactOrBoundsInference(kind, TypeSymbolWithAnnotations.Create(source, annotation), target, ref useSiteDiagnostics);
+                    ExactOrBoundsInference(kind, GetTypeWithAnnotations(argument), target, ref useSiteDiagnostics);
                 }
             }
         }
@@ -745,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var destination = (NamedTypeSymbol)formalType.TypeSymbol;
 
-            Debug.Assert(argument.Type == null, "should not need to dig into elements if tuple has natural type");
+            Debug.Assert((object)argument.Type == null, "should not need to dig into elements if tuple has natural type");
             var sourceArguments = argument.Arguments;
 
             // check if the type is actually compatible type for a tuple of given cardinality
@@ -1197,7 +1195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             // SPEC: * Otherwise, if E is an expression with type U then a lower-bound
             // SPEC:   inference is made from U to T.
-            var sourceType = TypeSymbolWithAnnotations.Create(expression.Type, GetNullableAnnotation(expression));
+            var sourceType = GetTypeWithAnnotations(expression);
             if (!sourceType.IsNull)
             {
                 LowerBoundInference(sourceType, target, ref useSiteDiagnostics);
@@ -1514,7 +1512,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
 
             // True if the type is nullable but not an unconstrained type parameter.
-            bool isNullableOnly(TypeSymbolWithAnnotations type) => type.NullableAnnotation.IsAnyNullable() && !type.TypeSymbol.IsUnconstrainedTypeParameter();
+            bool isNullableOnly(TypeSymbolWithAnnotations type)
+                => type.NullableAnnotation.IsAnyNullable() && !type.TypeSymbol.IsTypeParameterDisallowingAnnotation();
         }
 
         private bool ExactNullableInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -1570,7 +1569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (namedSource.OriginalDefinition != namedTarget.OriginalDefinition)
+            if (!TypeSymbol.Equals(namedSource.OriginalDefinition, namedTarget.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
             {
                 return false;
             }
@@ -1594,7 +1593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)target != null);
-            Debug.Assert(source.OriginalDefinition == target.OriginalDefinition);
+            Debug.Assert(TypeSymbol.Equals(source.OriginalDefinition, target.OriginalDefinition, TypeCompareKind.ConsiderEverything2));
 
             var sourceTypeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
             var targetTypeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
@@ -1822,7 +1821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var constructedSource = source as NamedTypeSymbol;
             if ((object)constructedSource != null &&
-                constructedSource.OriginalDefinition == constructedTarget.OriginalDefinition)
+                TypeSymbol.Equals(constructedSource.OriginalDefinition, constructedTarget.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
             {
                 if (constructedSource.IsInterface || constructedSource.IsDelegateType())
                 {
@@ -1894,7 +1893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             while ((object)sourceBase != null)
             {
-                if (sourceBase.OriginalDefinition == target.OriginalDefinition)
+                if (TypeSymbol.Equals(sourceBase.OriginalDefinition, target.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
                 {
                     ExactTypeArgumentInference(sourceBase, target, ref useSiteDiagnostics);
                     return true;
@@ -1964,7 +1963,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)source != null);
             Debug.Assert((object)target != null);
-            Debug.Assert(source.OriginalDefinition == target.OriginalDefinition);
+            Debug.Assert(TypeSymbol.Equals(source.OriginalDefinition, target.OriginalDefinition, TypeCompareKind.ConsiderEverything2));
 
             var typeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance();
             var sourceTypeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
@@ -2144,7 +2143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var constructedTarget = target as NamedTypeSymbol;
 
             if ((object)constructedTarget != null &&
-                constructedSource.OriginalDefinition == target.OriginalDefinition)
+                TypeSymbol.Equals(constructedSource.OriginalDefinition, target.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
             {
                 if (constructedTarget.IsInterface || constructedTarget.IsDelegateType())
                 {
@@ -2195,7 +2194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var targetBase = target.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
             while ((object)targetBase != null)
             {
-                if (targetBase.OriginalDefinition == source.OriginalDefinition)
+                if (TypeSymbol.Equals(targetBase.OriginalDefinition, source.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
                 {
                     ExactTypeArgumentInference(source, targetBase, ref useSiteDiagnostics);
                     return true;
@@ -2256,7 +2255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)source != null);
             Debug.Assert((object)target != null);
-            Debug.Assert(source.OriginalDefinition == target.OriginalDefinition);
+            Debug.Assert(TypeSymbol.Equals(source.OriginalDefinition, target.OriginalDefinition, TypeCompareKind.ConsiderEverything2));
 
             var typeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance();
             var sourceTypeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
@@ -2443,13 +2442,13 @@ OuterBreak:
             return best;
         }
 
-        private NullableAnnotation GetNullableAnnotation(BoundExpression expr)
+        private TypeSymbolWithAnnotations GetTypeWithAnnotations(BoundExpression expr)
         {
-            if (!_conversions.IncludeNullability)
+            if (_conversions.IncludeNullability && _getTypeWithAnnotationOpt != null)
             {
-                return NullableAnnotation.Unknown;
+                return _getTypeWithAnnotationOpt(expr);
             }
-            return _getNullableAnnotationOpt?.Invoke(expr) ?? NullableAnnotation.Unknown;
+            return TypeSymbolWithAnnotations.Create(expr.Type);
         }
 
         internal static TypeSymbolWithAnnotations Merge(TypeSymbolWithAnnotations first, TypeSymbolWithAnnotations second, VarianceKind variance, ConversionsBase conversions, out bool hadNullabilityMismatch)
@@ -2644,13 +2643,13 @@ OuterBreak:
             NamedTypeSymbol matchingInterface = null;
             foreach (var currentInterface in interfaces)
             {
-                if (currentInterface.OriginalDefinition == target.OriginalDefinition)
+                if (TypeSymbol.Equals(currentInterface.OriginalDefinition, target.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
                 {
                     if ((object)matchingInterface == null)
                     {
                         matchingInterface = currentInterface;
                     }
-                    else if (matchingInterface != currentInterface)
+                    else if (!TypeSymbol.Equals(matchingInterface, currentInterface, TypeCompareKind.ConsiderEverything2))
                     {
                         // Not unique. Bail out.
                         return default;
@@ -2712,7 +2711,7 @@ OuterBreak:
                 constructedFromMethod.GetParameterTypes(),
                 constructedFromMethod.ParameterRefKinds,
                 arguments,
-                getNullableAnnotationOpt: null);
+                getTypeWithAnnotationOpt: null);
 
             if (!inferrer.InferTypeArgumentsFromFirstArgument(ref useSiteDiagnostics))
             {
@@ -2738,8 +2737,7 @@ OuterBreak:
             {
                 return false;
             }
-            var annotation = GetNullableAnnotation(argument);
-            LowerBoundInference(TypeSymbolWithAnnotations.Create(source, annotation), dest, ref useSiteDiagnostics);
+            LowerBoundInference(GetTypeWithAnnotations(argument), dest, ref useSiteDiagnostics);
             // Now check to see that every type parameter used by the first
             // formal parameter type was successfully inferred.
             for (int iParam = 0; iParam < _methodTypeParameters.Length; ++iParam)

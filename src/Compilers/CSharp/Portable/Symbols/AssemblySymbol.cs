@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                Debug.Assert(candidate != result);
+                Debug.Assert(!TypeSymbol.Equals(candidate, result, TypeCompareKind.ConsiderEverything2));
 
                 if ((object)result != null)
                 {

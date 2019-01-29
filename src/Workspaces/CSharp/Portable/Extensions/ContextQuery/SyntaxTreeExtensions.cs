@@ -1100,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        public static bool IsParameterTypeContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition)
+        public static bool IsParameterTypeContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken = default)
         {
             var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
@@ -2557,9 +2557,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        public static bool IsIsOrAsContext(
-            this SyntaxTree syntaxTree, SemanticModel semanticModel,
-            int position, SyntaxToken tokenOnLeftOfPosition,
+        public static bool IsIsOrAsOrSwitchExpressionContext(
+            this SyntaxTree syntaxTree,
+            SemanticModel semanticModel,
+            int position,
+            SyntaxToken tokenOnLeftOfPosition,
             CancellationToken cancellationToken)
         {
             // cases:
@@ -2574,7 +2576,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return false;
             }
 
-            if (token.GetAncestor<BlockSyntax>() == null)
+            if (token.GetAncestor<BlockSyntax>() == null &&
+                token.GetAncestor<ArrowExpressionClauseSyntax>() == null)
             {
                 return false;
             }

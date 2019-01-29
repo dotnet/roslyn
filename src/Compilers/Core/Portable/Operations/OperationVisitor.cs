@@ -510,6 +510,11 @@ namespace Microsoft.CodeAnalysis.Operations
             DefaultVisit(operation);
         }
 
+        public virtual void VisitRecursivePattern(IRecursivePatternOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitPatternCaseClause(IPatternCaseClauseOperation operation)
         {
             DefaultVisit(operation);
@@ -545,6 +550,21 @@ namespace Microsoft.CodeAnalysis.Operations
             DefaultVisit(operation);
         }
 
+        public virtual void VisitDiscardPattern(IDiscardPatternOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitSwitchExpression(ISwitchExpressionOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitSwitchExpressionArm(ISwitchExpressionArmOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitFlowCapture(IFlowCaptureOperation operation)
         {
             DefaultVisit(operation);
@@ -576,6 +596,11 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public virtual void VisitRangeOperation(IRangeOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitSuppressNullableWarningOperation(ISuppressNullableWarningOperation operation)
         {
             DefaultVisit(operation);
         }
@@ -780,11 +805,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public virtual TResult VisitArrayElementReference(IArrayElementReferenceOperation operation, TArgument argument)
-        {
-            return DefaultVisit(operation, argument);
-        }
-
-        public virtual TResult VisitSuppressNullableWarningExpression(ISuppressNullableWarningOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -1103,6 +1123,11 @@ namespace Microsoft.CodeAnalysis.Operations
             return DefaultVisit(operation, argument);
         }
 
+        public virtual TResult VisitRecursivePattern(IRecursivePatternOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
         public virtual TResult VisitPatternCaseClause(IPatternCaseClauseOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
@@ -1138,6 +1163,21 @@ namespace Microsoft.CodeAnalysis.Operations
             return DefaultVisit(operation, argument);
         }
 
+        public virtual TResult VisitDiscardPattern(IDiscardPatternOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitSwitchExpression(ISwitchExpressionOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitSwitchExpressionArm(ISwitchExpressionArmOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
         public virtual TResult VisitFlowCapture(IFlowCaptureOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
@@ -1169,6 +1209,11 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public virtual TResult VisitRangeOperation(IRangeOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitSuppressNullableWarningOperation(ISuppressNullableWarningOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

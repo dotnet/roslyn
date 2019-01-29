@@ -1151,7 +1151,7 @@ IL_0005:  ret
         /// Intrinsic methods assembly should not be dropped.
         /// </summary>
         [WorkItem(4140, "https://github.com/dotnet/roslyn/issues/4140")]
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void IntrinsicMethods()
         {
             var sourceA =
@@ -1315,8 +1315,7 @@ namespace System
     {
     }
 }";
-                // https://github.com/dotnet/roslyn/issues/30030: C#8 projects require System.Attribute.
-                var comp = CreateEmptyCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7, references: new[] { refLib, AssemblyMetadata.Create(module).GetReference() });
+                var comp = CreateEmptyCompilation(source, options: TestOptions.DebugDll, references: new[] { refLib, AssemblyMetadata.Create(module).GetReference() });
                 comp.VerifyDiagnostics();
 
                 using (var runtime = RuntimeInstance.Create(new[] { comp.ToModuleInstance(), moduleInstance }))

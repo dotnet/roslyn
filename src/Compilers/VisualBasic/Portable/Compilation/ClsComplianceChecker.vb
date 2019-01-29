@@ -487,7 +487,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If symbol.Kind <> SymbolKind.Namespace Then
                 Dim type As NamedTypeSymbol = DirectCast(symbol, NamedTypeSymbol)
-                For Each [interface] In type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics
+                For Each [interface] In type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys
                     If Not IsAccessibleOutsideAssembly([interface]) Then
                         Continue For
                     End If

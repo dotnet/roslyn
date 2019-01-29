@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // way up.  Similarly, hitting a 'case' label will already have been taken care
                     // of.  So in this case, we just set the bp on the "switch(expr)" itself.
                     var switchStatement = (SwitchStatementSyntax)statement;
-                    return CreateSpan(switchStatement, switchStatement.CloseParenToken);
+                    return CreateSpan(switchStatement, (switchStatement.CloseParenToken != default) ? switchStatement.CloseParenToken : switchStatement.Expression.GetLastToken());
 
                 case SyntaxKind.TryStatement:
                     // Note: if the user was in the body of the 'try', then we would have hit its nested
