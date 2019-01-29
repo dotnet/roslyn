@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using static TestReferences;
@@ -157,25 +158,64 @@ namespace Roslyn.Test.Utilities
                 }
             }
 
-            string getName(MetadataReference m)
-            {
-                if (m is PortableExecutableReference p &&
-                    p.GetMetadata() is AssemblyMetadata assemblyMetadata)
-                {
-                    try
-                    {
-                        var identity = assemblyMetadata.GetAssembly().Identity;
-                        return identity?.Name;
-                    }
-                    catch (BadImageFormatException)
-                    {
-                        // Happens when a native image is incorrectly passed as a PE.
-                        return null;
-                    }
-                }
+            string getName(MetadataReference m) => GetAssemblyIdentity(m)?.Name;
+        }
 
-                return null;
+        /// <summary>
+        /// Verification only succeeds when the cor library is named exactly mscorlib. This function will calculate the 
+        /// best default for <see cref="Verification"/> based on the framework / references that we are targeting. If there
+        /// is no mscorlib then the assumption is that verification will fail.
+        /// </summary>
+        public static Verification GetVerification(TargetFramework tf, IEnumerable<MetadataReference> additionalReferences)
+        {
+            switch (tf)
+            {
+                case TargetFramework.Empty:
+                    return additionalReferences.Any(x => GetAssemblyIdentity(x)?.Name == "mscorlib")
+                        ? Verification.Passes
+                        : Verification.Fails;
+                case TargetFramework.Mscorlib40:
+                case TargetFramework.Mscorlib40Extended:
+                case TargetFramework.Mscorlib40AndSystemCore:
+                case TargetFramework.Mscorlib40AndVBRuntime:
+                case TargetFramework.Mscorlib45:
+                case TargetFramework.Mscorlib45Extended:
+                case TargetFramework.Mscorlib45AndCSharp:
+                case TargetFramework.Mscorlib45AndVBRuntime:
+                case TargetFramework.Mscorlib46:
+                case TargetFramework.Mscorlib46Extended:
+                case TargetFramework.Mscorlib461:
+                case TargetFramework.Mscorlib461Extended:
+                case TargetFramework.NetStandard20:
+                case TargetFramework.WinRT:
+                case TargetFramework.DefaultVb:
+                    return Verification.Passes;
+                case TargetFramework.Standard:
+                case TargetFramework.StandardAndCSharp:
+                case TargetFramework.StandardAndVBRuntime:
+                case TargetFramework.StandardCompat:
+                    return Verification.Fails;
+                default: throw new InvalidOperationException($"Unexpected target framework {tf}");
             }
+        }
+
+        private static AssemblyIdentity GetAssemblyIdentity(MetadataReference m)
+        {
+            if (m is PortableExecutableReference p &&
+                p.GetMetadata() is AssemblyMetadata assemblyMetadata)
+            {
+                try
+                {
+                    return assemblyMetadata.GetAssembly().Identity;
+                }
+                catch (BadImageFormatException)
+                {
+                    // Happens when a native image is incorrectly passed as a PE.
+                    return null;
+                }
+            }
+
+            return null;
         }
     }
 }

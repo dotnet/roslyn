@@ -150,7 +150,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Verification verify)
         {
             var verifier = new CompilationVerifier(compilation, VisualizeRealIL, dependencies);
-
             verifier.Emit(expectedOutput, expectedReturnCode, args, manifestResources, emitOptions, verify, expectedSignatures);
 
             if (assemblyValidator != null || symbolValidator != null)
