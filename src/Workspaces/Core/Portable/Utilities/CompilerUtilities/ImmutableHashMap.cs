@@ -964,20 +964,8 @@ namespace Roslyn.Collections.Immutable
             private int ComputeLogicalSlot(int hc)
             {
                 uint uc = unchecked((uint)hc);
-                uint rotated = RotateRight(uc, _hashRoll);
+                uint rotated = BitOps.RotateRight(uc, _hashRoll);
                 return unchecked((int)(rotated & 31));
-            }
-
-            [Pure]
-            private static uint RotateRight(uint v, int n)
-            {
-                Debug.Assert(n >= 0 && n < 32);
-                if (n == 0)
-                {
-                    return v;
-                }
-
-                return v >> n | (v << (32 - n));
             }
 
             private int ComputePhysicalSlot(int logicalSlot)
