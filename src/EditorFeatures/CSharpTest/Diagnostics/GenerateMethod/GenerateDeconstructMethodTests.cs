@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateDeconstructMethod
@@ -293,6 +294,26 @@ class D
     internal void Deconstruct(out int x, out int y)
     {
         throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(32510, "https://github.com/dotnet/roslyn/issues/32510")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestDeconstructionAssignment_InvalidDeclaration()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+
+class C
+{
+    void Method()
+    {
+        var stuff = new Dictionary<string, string>();
+        foreach ((key, value) in [|stuff|]) // Invalid variable declarator syntax
+        {
+        }
     }
 }");
         }

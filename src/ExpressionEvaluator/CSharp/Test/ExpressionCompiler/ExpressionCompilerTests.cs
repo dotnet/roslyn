@@ -3786,43 +3786,35 @@ class C
     }
 }";
             var assemblyName = ExpressionCompilerUtilities.GenerateUniqueName();
-            // https://github.com/dotnet/roslyn/issues/30031: error CS0101: The namespace 'System.Runtime.CompilerServices' already contains a definition for 'NullableAttribute'
-            var parseOptions = TestOptions.Regular7;
             var compilationN0 = CreateCompilation(
                 sourceN0,
-                parseOptions: parseOptions,
                 options: TestOptions.DebugModule,
                 assemblyName: assemblyName + "_N0");
             var referenceN0 = ModuleMetadata.CreateFromImage(compilationN0.EmitToArray()).GetReference(display: assemblyName + "_N0");
             var compilationN1 = CreateCompilation(
                 sourceN1,
-                parseOptions: parseOptions,
                 options: TestOptions.DebugModule,
                 assemblyName: assemblyName + "_N0"); // Note: "_N0" not "_N1"
             var referenceN1 = ModuleMetadata.CreateFromImage(compilationN1.EmitToArray()).GetReference(display: assemblyName + "_N0");
             var compilationN2 = CreateCompilation(
                 sourceN2,
-                parseOptions: parseOptions,
                 options: TestOptions.DebugModule,
                 assemblyName: assemblyName + "_N2");
             var referenceN2 = ModuleMetadata.CreateFromImage(compilationN2.EmitToArray()).GetReference(display: assemblyName + "_N2");
             var compilationD0 = CreateCompilation(
                 sourceD0,
-                parseOptions: parseOptions,
                 options: TestOptions.DebugDll,
                 assemblyName: assemblyName + "_D0",
                 references: new MetadataReference[] { referenceN0 });
             var referenceD0 = AssemblyMetadata.CreateFromImage(compilationD0.EmitToArray()).GetReference(display: assemblyName + "_D0");
             var compilationD1 = CreateCompilation(
                 sourceD1,
-                parseOptions: parseOptions,
                 options: TestOptions.DebugDll,
                 assemblyName: assemblyName + "_D1",
                 references: new MetadataReference[] { referenceN0 });
             var referenceD1 = AssemblyMetadata.CreateFromImage(compilationD1.EmitToArray()).GetReference(display: assemblyName + "_D1");
             var compilation = CreateCompilation(
                 source,
-                parseOptions: parseOptions,
                 options: TestOptions.DebugDll,
                 assemblyName: assemblyName,
                 references: new MetadataReference[] { referenceN1, referenceN2, referenceD0, referenceD1 });
@@ -6541,7 +6533,7 @@ public class Test
     {
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.Main");
@@ -6590,7 +6582,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.G");
