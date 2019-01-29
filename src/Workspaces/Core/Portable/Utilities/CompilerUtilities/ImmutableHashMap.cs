@@ -902,7 +902,7 @@ namespace Roslyn.Collections.Immutable
                 {
                     int physicalSlot = ComputePhysicalSlot(logicalSlot);
                     var newBuckets = _buckets.InsertAt(physicalSlot, bucket);
-                    var newUsed = BitOps.InsertBit((uint)logicalSlot, (int)_used);
+                    var newUsed = BitOps.InsertBit(_used, logicalSlot);
                     return new HashBucket(_hashRoll, newUsed, newBuckets, _count + bucket.Count);
                 }
             }
@@ -927,7 +927,7 @@ namespace Roslyn.Collections.Immutable
                         }
                         else
                         {
-                            return new HashBucket(_hashRoll, BitOps.ClearBit((uint)logicalSlot, (int)_used), _buckets.RemoveAt(physicalSlot), _count - existing.Count);
+                            return new HashBucket(_hashRoll, BitOps.ClearBit(_used, logicalSlot), _buckets.RemoveAt(physicalSlot), _count - existing.Count);
                         }
                     }
                     else if (_buckets[physicalSlot] != result)
