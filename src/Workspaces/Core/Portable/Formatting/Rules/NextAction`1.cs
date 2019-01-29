@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
     {
         private readonly int _index;
         private readonly SyntaxNode _node;
-        private readonly IActionHolder<TArgument> _actionCache;
+        private readonly ActionCache<TArgument> _actionCache;
 
-        public NextAction(int index, SyntaxNode node, IActionHolder<TArgument> actionCache)
+        public NextAction(int index, SyntaxNode node, ActionCache<TArgument> actionCache)
         {
             _index = index;
             _node = node;

@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return GetContinuedOperations(0, previousToken, currentToken, _spaceFuncCache);
         }
 
-        private void AddContinuedOperations<TArg1>(int index, List<TArg1> arg1, SyntaxNode node, IActionHolder<TArg1> actionCache)
+        private void AddContinuedOperations<TArg1>(int index, List<TArg1> arg1, SyntaxNode node, ActionCache<TArg1> actionCache)
         {
             // If we have no remaining handlers to execute, then we'll execute our last handler
             if (index >= _formattingRules.Count)
