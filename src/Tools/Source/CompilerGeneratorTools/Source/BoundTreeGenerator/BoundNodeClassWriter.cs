@@ -1636,7 +1636,7 @@ namespace BoundTreeGenerator
 
         private static bool SkipShallowClone(Node n)
         {
-            return n.SkipShallowClone != null && string.Compare(n.SkipShallowClone, "true", true) == 0;
+            return string.Compare(n.SkipShallowClone, "true", true) == 0;
         }
 
         private string ToCamelCase(string name)
