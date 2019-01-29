@@ -2,6 +2,7 @@
 
 namespace Microsoft.CodeAnalysis
 {
+    // PROTOTYPE(nullable-api): Doc comment
     public enum Nullability
     {
         NotApplicable,

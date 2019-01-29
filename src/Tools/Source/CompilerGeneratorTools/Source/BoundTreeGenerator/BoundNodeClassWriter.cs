@@ -1084,7 +1084,7 @@ namespace BoundTreeGenerator
                     {
                         WriteLine("Case BoundKind.{0}: ", FixKeyword(StripBound(node.Name)));
                         Indent();
-                        WriteLine(GetVisitFunctionDeclaration(node.Name, isOverride: false));
+                        WriteLine("Return Visit{0}(CType(node, {1}), arg)", StripBound(node.Name), node.Name);
                         Outdent();
                     }
                     Outdent();
@@ -1483,39 +1483,39 @@ namespace BoundTreeGenerator
                             {
                                 WriteLine($"{node.Name} updatedNode;");
                                 Blank();
-                                WriteNullabilityCheck(inverted: false);
+                                writeNullabilityCheck(inverted: false);
                                 Brace();
-                                WriteTypeSymbolRetreival();
-                                WriteUpdate(decl: false, updatedType: true);
-                                WriteNullabilityUpdate();
+                                writeTypeSymbolRetrieval();
+                                writeUpdate(decl: false, updatedType: true);
+                                writeNullabilityUpdate();
                                 Unbrace();
                                 WriteLine("else");
                                 Brace();
-                                WriteUpdate(decl: false, updatedType: false);
+                                writeUpdate(decl: false, updatedType: false);
                                 Unbrace();
                                 WriteLine("return updatedNode;");
                             }
                             else
                             {
-                                WriteNullabilityCheck(inverted: true);
+                                writeNullabilityCheck(inverted: true);
                                 Brace();
                                 WriteLine("return node;");
                                 Unbrace();
                                 Blank();
-                                WriteTypeSymbolRetreival();
-                                WriteUpdate(decl: true, updatedType: true);
-                                WriteNullabilityUpdate();
+                                writeTypeSymbolRetrieval();
+                                writeUpdate(decl: true, updatedType: true);
+                                writeNullabilityUpdate();
                                 WriteLine("return updatedNode;");
                             }
                             Unbrace();
 
-                            void WriteNullabilityCheck(bool inverted) =>
+                            void writeNullabilityCheck(bool inverted) =>
                                 WriteLine($"if ({(inverted ? "!" : "")}{topLevelNullabilities}.ContainsKey(node))");
 
-                            void WriteTypeSymbolRetreival() =>
+                            void writeTypeSymbolRetrieval() =>
                                 WriteLine($"TypeSymbol type = {topLevelNullabilities}[node].TypeSymbol;");
 
-                            void WriteUpdate(bool decl, bool updatedType)
+                            void writeUpdate(bool decl, bool updatedType)
                             {
                                 Write($"{(decl ? $"{node.Name} " : "")}updatedNode = node.Update");
                                 ParenList(
@@ -1526,9 +1526,9 @@ namespace BoundTreeGenerator
                                 WriteLine(";");
                             }
 
-                            void WriteNullabilityUpdate()
+                            void writeNullabilityUpdate()
                             {
-                                WriteLine($"updatedNode.TopLevelNullability = {topLevelNullabilities}[node].NullableAnnotation;");
+                                WriteLine($"updatedNode.SetTopLevelNullableAnnotation({topLevelNullabilities}[node].NullableAnnotation);");
                             }
                         }
                         Unbrace();

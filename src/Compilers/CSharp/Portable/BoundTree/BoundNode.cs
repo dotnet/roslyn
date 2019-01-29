@@ -20,20 +20,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Flags()]
         private enum BoundNodeAttributes : byte
         {
-            HasErrors = 0b0001,
-            CompilerGenerated = 0b0010,
-            TopLevelNullableUnset = 0b0000,
-            TopLevelNullable = 0b0100,
-            TopLevelNonNullable = 0b1000,
-            TopLevelUnknown = 0b1100,
-            TopLevelNullabilityMask = 0b1100,
+            HasErrors = 1 << 0,
+            CompilerGenerated = 1 << 1,
+            TopLevelNullableUnset = 0,
+            TopLevelNullable = 1 << 2,
+            TopLevelNonNullable = 1 << 3,
+            TopLevelUnknown = TopLevelNullable | TopLevelNonNullable,
+            TopLevelNullabilityMask = TopLevelUnknown,
 #if DEBUG
             /// <summary>
             /// Captures the fact that consumers of the node already checked the state of the WasCompilerGenerated bit.
             /// Allows to assert on attempts to set WasCompilerGenerated bit after that.
             /// </summary>
-            WasCompilerGeneratedIsChecked = 0b010000,
-            WasTopLevelNullabilityChecked = 0b100000
+            WasCompilerGeneratedIsChecked = 1 << 4,
+            WasTopLevelNullabilityChecked = 1 << 5,
 #endif
         }
 
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Top level nullability for the node. This should not be used by flow analysis: it
         /// is lossy, and loses the distinction between NotAnnotated and NotNullable.
         /// </summary>
-        protected NullableAnnotation TopLevelNullability
+        protected NullableAnnotation TopLevelNullableAnnotation
         {
             get
             {
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((_attributes & BoundNodeAttributes.WasTopLevelNullabilityChecked) == 0,
                     "bound node nullability should not be set after reading it");
 #endif
-                // TODO: Will likely need to handle generics specially in this conversion
+                // PROTOTYPE(nullable-api): Will likely need to handle generics specially in this conversion
                 _attributes &= ~BoundNodeAttributes.TopLevelNullabilityMask;
                 switch (value)
                 {

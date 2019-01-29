@@ -49,10 +49,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public new NullableAnnotation TopLevelNullability
+        public Nullability TopLevelNullability
         {
-            get => base.TopLevelNullability;
-            set => base.TopLevelNullability = value;
+            get => base.TopLevelNullableAnnotation.ConvertToPublicNullability(this.Type);
+        }
+
+        public void SetTopLevelNullableAnnotation(NullableAnnotation annotation)
+        {
+            base.TopLevelNullableAnnotation = annotation;
         }
     }
 
