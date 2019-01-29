@@ -121,8 +121,7 @@ namespace Analyzer.Utilities
 
                 bool seenRethrow = _seenRethrowInCatchClauses.Pop();
 
-                // If an exception filter is specified, take it as a sign that exceptions are being handled selectively/deliberately.
-                if (operation.Filter == null && IsCaughtTypeDisallowed(operation.ExceptionType) && !seenRethrow)
+                if (!seenRethrow && IsCatchTooGeneral(operation) && !MightBeFilteringBasedOnTheCaughtException(operation))
                 {
                     CatchClausesForDisallowedTypesWithoutRethrow.Add(operation);
                 }
@@ -139,9 +138,19 @@ namespace Analyzer.Utilities
                 base.VisitThrow(operation);
             }
 
-            private bool IsCaughtTypeDisallowed(ITypeSymbol caughtType)
+            private bool IsCatchTooGeneral(ICatchClauseOperation operation)
             {
-                return caughtType == null || _disallowedCatchTypes.Any(type => caughtType.Equals(type));
+                return IsGenericCatch(operation) || _disallowedCatchTypes.Any(type => operation.ExceptionType.Equals(type));
+            }
+
+            private bool IsGenericCatch(ICatchClauseOperation operation)
+            {
+                return operation.ExceptionType == null;
+            }
+
+            private bool MightBeFilteringBasedOnTheCaughtException(ICatchClauseOperation operation)
+            {
+                return operation.ExceptionDeclarationOrExpression != null && operation.Filter != null;
             }
         }
     }
