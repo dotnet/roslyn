@@ -830,7 +830,7 @@ namespace Roslyn.Collections.Immutable
             private HashBucket(int hashRoll, uint used, Bucket[] buckets, int count)
             {
                 Debug.Assert(buckets != null);
-                Debug.Assert(buckets.Length == CountBits(used));
+                Debug.Assert(buckets.Length == (int)BitOps.PopCount(used));
 
                 _hashRoll = hashRoll & 31;
                 _used = used;
@@ -902,7 +902,7 @@ namespace Roslyn.Collections.Immutable
                 {
                     int physicalSlot = ComputePhysicalSlot(logicalSlot);
                     var newBuckets = _buckets.InsertAt(physicalSlot, bucket);
-                    var newUsed = InsertBit(logicalSlot, _used);
+                    var newUsed = BitOps.InsertBit((uint)logicalSlot, (int)_used);
                     return new HashBucket(_hashRoll, newUsed, newBuckets, _count + bucket.Count);
                 }
             }
@@ -927,7 +927,7 @@ namespace Roslyn.Collections.Immutable
                         }
                         else
                         {
-                            return new HashBucket(_hashRoll, RemoveBit(logicalSlot, _used), _buckets.RemoveAt(physicalSlot), _count - existing.Count);
+                            return new HashBucket(_hashRoll, BitOps.ClearBit((uint)logicalSlot, (int)_used), _buckets.RemoveAt(physicalSlot), _count - existing.Count);
                         }
                     }
                     else if (_buckets[physicalSlot] != result)
@@ -983,32 +983,7 @@ namespace Roslyn.Collections.Immutable
                 }
 
                 uint mask = uint.MaxValue >> (32 - logicalSlot); // only count the bits up to the logical slot #
-                return CountBits(_used & mask);
-            }
-
-            [Pure]
-            private static int CountBits(uint v)
-            {
-                unchecked
-                {
-                    v = v - ((v >> 1) & 0x55555555u);
-                    v = (v & 0x33333333u) + ((v >> 2) & 0x33333333u);
-                    return (int)((v + (v >> 4) & 0xF0F0F0Fu) * 0x1010101u) >> 24;
-                }
-            }
-
-            [Pure]
-            private static uint InsertBit(int position, uint bits)
-            {
-                Debug.Assert(0 == (bits & (1u << position)));
-                return bits | (1u << position);
-            }
-
-            [Pure]
-            private static uint RemoveBit(int position, uint bits)
-            {
-                Debug.Assert(0 != (bits & (1u << position)));
-                return bits & ~(1u << position);
+                return (int)BitOps.PopCount(_used & mask);
             }
         }
 
