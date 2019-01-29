@@ -9,16 +9,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     {
         public static int CountOfBitsSet(long v)
         {
-            // http://graphics.stanford.edu/~seander/bithacks.htm
-            int c = 0;
-            while (v != 0)
-            {
-                // clear the least significant bit set
-                v &= unchecked(v - 1);
-                c++;
-            }
-
-            return c;
+            return (int)BitOps.PopCount(v);
         }
 
         public static bool HasOneBitSet(IComparable value)
@@ -44,14 +35,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         public static int LogBase2(long v)
         {
-            var log = 0;
-
-            while ((v >>= 1) != 0)
-            {
-                log++;
-            }
-
-            return log;
+            return (int)PopCount.LogBase2(v);
         }
 
         /// <summary>
