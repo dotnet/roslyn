@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void CopyAttributes(BoundNode original)
         {
-            if (this.WasCompilerGenerated)
+            if (original.WasCompilerGenerated)
             {
                 this.WasCompilerGenerated = original.WasCompilerGenerated;
             }
