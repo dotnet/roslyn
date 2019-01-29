@@ -159,6 +159,13 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
                     }
 
                     var formattedDocument = await Formatter.FormatAsync(document, documentOptions, cancellationToken).ConfigureAwait(false);
+                    var formattedSourceText = await formattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    if (formattedSourceText.ContentEquals(await document.GetTextAsync(cancellationToken).ConfigureAwait(false)))
+                    {
+                        // Avoid touching files that didn't actually change
+                        return null;
+                    }
+
                     return await formattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 }, cancellationToken);
 
