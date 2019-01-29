@@ -31,6 +31,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         private WellKnownTypeProvider WellKnownTypeProvider { get; }
 
+#pragma warning disable CA1721 // Property names should not match get methods
+
         /// <summary>
         /// Mapping of sink kind to source symbol map.
         /// </summary>
@@ -45,6 +47,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Mapping of sink kind to sink symbol map.
         /// </summary>
         private Dictionary<SinkKind, Lazy<TaintedDataSymbolMap<SinkInfo>>> SinkSymbolMap { get; }
+
+#pragma warning restore CA1721 // Property names should not match get methods
 
         /// <summary>
         /// Gets a cached <see cref="TaintedDataConfig"/> for <paramref name="compilation"/>.

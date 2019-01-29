@@ -2,6 +2,8 @@
 
 using System.Collections.Immutable;
 
+#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
+
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     internal abstract partial class AbstractIndex

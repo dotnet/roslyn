@@ -20,7 +20,7 @@ namespace Analyzer.Utilities
         /// </summary>
         private class Entry
         {
-            public TValue Value;
+            public TValue Value { get; set; }
         }
 
         /// <summary>

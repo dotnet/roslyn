@@ -33,7 +33,9 @@ namespace Roslyn.Diagnostics.Analyzers
             }
         }
 
+#pragma warning disable CA1815 // Override equals and operator equals on value types
         private struct RemovedApiLine
+#pragma warning restore CA1815 // Override equals and operator equals on value types
         {
             public string Text { get; private set; }
             public ApiLine ApiLine { get; private set; }
@@ -45,7 +47,9 @@ namespace Roslyn.Diagnostics.Analyzers
             }
         }
 
+#pragma warning disable CA1815 // Override equals and operator equals on value types
         private struct ApiData
+#pragma warning restore CA1815 // Override equals and operator equals on value types
         {
             public ImmutableArray<ApiLine> ApiList { get; private set; }
             public ImmutableArray<RemovedApiLine> RemovedApiList { get; private set; }

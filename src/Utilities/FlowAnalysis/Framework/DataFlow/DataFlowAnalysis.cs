@@ -506,6 +506,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
+#pragma warning disable CA1000 // Do not declare static members on generic types
         public static TAnalysisData Flow(DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue> operationVisitor, BasicBlock block, TAnalysisData data)
         {
             operationVisitor.OnStartBlockAnalysis(block, data);
@@ -519,6 +520,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             return data;
         }
+#pragma warning restore CA1000 // Do not declare static members on generic types
 
         internal abstract TAnalysisResult ToResult(TAnalysisContext analysisContext, DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> dataFlowAnalysisResult);
         internal abstract TBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, TAnalysisData blockAnalysisData);

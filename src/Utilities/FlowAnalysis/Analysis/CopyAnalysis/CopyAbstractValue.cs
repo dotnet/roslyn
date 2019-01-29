@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities;
 
+#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T> - CacheBasedEquatable handles equality
+
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 {
     /// <summary>
