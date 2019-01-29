@@ -8,12 +8,15 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal readonly struct ActionCache<TArgument>
     {
-        public Action<int, List<TArgument>, SyntaxNode, NextAction<TArgument>> NextOperation { get; }
-        public Action<int, List<TArgument>, SyntaxNode, ActionCache<TArgument>> Continuation { get; }
+        public delegate void NextOperationAction(int index, List<TArgument> list, SyntaxNode node, ref NextAction<TArgument> next);
+        public delegate void ContinuationAction(int index, List<TArgument> list, SyntaxNode node, in ActionCache<TArgument> actionCache);
+
+        public NextOperationAction NextOperation { get; }
+        public ContinuationAction Continuation { get; }
 
         public ActionCache(
-            Action<int, List<TArgument>, SyntaxNode, NextAction<TArgument>> nextOperation,
-            Action<int, List<TArgument>, SyntaxNode, ActionCache<TArgument>> continuation)
+            NextOperationAction nextOperation,
+            ContinuationAction continuation)
         {
             this.NextOperation = nextOperation;
             this.Continuation = continuation;

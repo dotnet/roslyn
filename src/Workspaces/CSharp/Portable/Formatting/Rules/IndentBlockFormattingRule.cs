@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp IndentBlock Formatting Rule";
 
-        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<IndentBlockOperation> nextOperation)
+        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<IndentBlockOperation> nextOperation)
         {
             nextOperation.Invoke(list);
 

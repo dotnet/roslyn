@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
                 Return FormattingOperations.CreateAdjustNewLinesOperation(GetNumberOfLines(triviaList) + 1, AdjustNewLinesOption.ForceLines)
             End Function
 
-            Public Overrides Sub AddAnchorIndentationOperations(list As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of AnchorIndentationOperation))
+            Public Overrides Sub AddAnchorIndentationOperations(list As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextAction(Of AnchorIndentationOperation))
                 Return
             End Sub
 

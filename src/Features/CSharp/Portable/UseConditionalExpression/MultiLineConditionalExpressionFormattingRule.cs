@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         }
 
         public override void AddIndentBlockOperations(
-            List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<IndentBlockOperation> nextOperation)
+            List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<IndentBlockOperation> nextOperation)
         {
             if (node.HasAnnotation(SpecializedFormattingAnnotation) &&
                 node is ConditionalExpressionSyntax conditional)

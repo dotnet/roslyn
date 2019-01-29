@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
     {
         public readonly static TypingFormattingRule Instance = new TypingFormattingRule();
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<SuppressOperation> nextOperation)
         {
             if (TryAddSuppressionOnMissingCloseBraceCase(list, node, optionSet))
             {
                 return;
             }
 
-            base.AddSuppressOperations(list, node, optionSet, nextOperation);
+            base.AddSuppressOperations(list, node, optionSet, ref nextOperation);
         }
 
         private bool TryAddSuppressionOnMissingCloseBraceCase(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet)

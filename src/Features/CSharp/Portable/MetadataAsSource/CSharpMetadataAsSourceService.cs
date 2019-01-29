@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
                 return FormattingOperations.CreateAdjustNewLinesOperation(GetNumberOfLines(triviaList) + 1, AdjustNewLinesOption.ForceLines);
             }
 
-            public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<AnchorIndentationOperation> nextOperation)
+            public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<AnchorIndentationOperation> nextOperation)
             {
                 return;
             }

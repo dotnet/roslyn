@@ -19,16 +19,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Private Sub New()
         End Sub
 
-        Public Overrides Sub AddSuppressOperations(operations As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, nextAction As NextAction(Of SuppressOperation))
+        Public Overrides Sub AddSuppressOperations(operations As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextAction(Of SuppressOperation))
         End Sub
 
-        Public Overrides Sub AddAnchorIndentationOperations(operations As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, nextAction As NextAction(Of AnchorIndentationOperation))
+        Public Overrides Sub AddAnchorIndentationOperations(operations As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextAction(Of AnchorIndentationOperation))
         End Sub
 
-        Public Overrides Sub AddIndentBlockOperations(operations As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, nextAction As NextAction(Of IndentBlockOperation))
+        Public Overrides Sub AddIndentBlockOperations(operations As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextAction(Of IndentBlockOperation))
         End Sub
 
-        Public Overrides Sub AddAlignTokensOperations(operations As List(Of AlignTokensOperation), node As SyntaxNode, optionSet As OptionSet, nextAction As NextAction(Of AlignTokensOperation))
+        Public Overrides Sub AddAlignTokensOperations(operations As List(Of AlignTokensOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextAction(Of AlignTokensOperation))
         End Sub
 
         Public Overrides Function GetAdjustNewLinesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextOperation(Of AdjustNewLinesOperation)) As AdjustNewLinesOperation

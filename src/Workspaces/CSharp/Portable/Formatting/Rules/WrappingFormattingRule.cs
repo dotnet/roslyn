@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal class WrappingFormattingRule : BaseFormattingRule
     {
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<SuppressOperation> nextOperation)
         {
             nextOperation.Invoke(list);
 

@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal class IndentUserSettingsFormattingRule : BaseFormattingRule
     {
-        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<IndentBlockOperation> nextOperation)
+        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<IndentBlockOperation> nextOperation)
         {
             nextOperation.Invoke(list);
 

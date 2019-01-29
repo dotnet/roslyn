@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp Query Expressions Formatting Rule";
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<SuppressOperation> nextOperation)
         {
             nextOperation.Invoke(list);
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             AddIndentBlockOperation(list, baseToken, startToken, endToken);
         }
 
-        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<IndentBlockOperation> nextOperation)
+        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<IndentBlockOperation> nextOperation)
         {
             nextOperation.Invoke(list);
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<AnchorIndentationOperation> nextOperation)
+        public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<AnchorIndentationOperation> nextOperation)
         {
             nextOperation.Invoke(list);
             switch (node)

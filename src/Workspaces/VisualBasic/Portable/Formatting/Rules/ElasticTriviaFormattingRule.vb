@@ -13,11 +13,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Public Overrides Sub AddSuppressOperations(list As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of SuppressOperation))
+        Public Overrides Sub AddSuppressOperations(list As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextAction(Of SuppressOperation))
             nextOperation.Invoke(list)
         End Sub
 
-        Public Overrides Sub AddIndentBlockOperations(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of IndentBlockOperation))
+        Public Overrides Sub AddIndentBlockOperations(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextAction(Of IndentBlockOperation))
             nextOperation.Invoke(list)
 
             If node.Kind = SyntaxKind.ObjectMemberInitializer Then
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Overrides Sub AddAlignTokensOperations(list As List(Of AlignTokensOperation),
                                                       node As SyntaxNode,
                                                       optionSet As OptionSet,
-                                                      nextOperation As NextAction(Of AlignTokensOperation))
+                                                      ByRef nextOperation As NextAction(Of AlignTokensOperation))
             nextOperation.Invoke(list)
 
             If node.Kind = SyntaxKind.ObjectMemberInitializer Then

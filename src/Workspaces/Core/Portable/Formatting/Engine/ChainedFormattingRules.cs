@@ -37,19 +37,19 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // cache all funcs to reduce heap allocations
             _suppressWrappingFuncCache = new ActionCache<SuppressOperation>(
-                (index, list, node, next) => _formattingRules[index].AddSuppressOperations(list, node, _optionSet, next),
+                (int index, List<SuppressOperation> list, SyntaxNode node, ref NextAction<SuppressOperation> next) => _formattingRules[index].AddSuppressOperations(list, node, _optionSet, ref next),
                 this.AddContinuedOperations);
 
             _anchorFuncCache = new ActionCache<AnchorIndentationOperation>(
-                (index, list, node, next) => _formattingRules[index].AddAnchorIndentationOperations(list, node, _optionSet, next),
+                (int index, List<AnchorIndentationOperation> list, SyntaxNode node, ref NextAction<AnchorIndentationOperation> next) => _formattingRules[index].AddAnchorIndentationOperations(list, node, _optionSet, ref next),
                 this.AddContinuedOperations);
 
             _indentFuncCache = new ActionCache<IndentBlockOperation>(
-                (index, list, node, next) => _formattingRules[index].AddIndentBlockOperations(list, node, _optionSet, next),
+                (int index, List<IndentBlockOperation> list, SyntaxNode node, ref NextAction<IndentBlockOperation> next) => _formattingRules[index].AddIndentBlockOperations(list, node, _optionSet, ref next),
                 this.AddContinuedOperations);
 
             _alignFuncCache = new ActionCache<AlignTokensOperation>(
-                (index, list, node, next) => _formattingRules[index].AddAlignTokensOperations(list, node, _optionSet, next),
+                (int index, List<AlignTokensOperation> list, SyntaxNode node, ref NextAction<AlignTokensOperation> next) => _formattingRules[index].AddAlignTokensOperations(list, node, _optionSet, ref next),
                 this.AddContinuedOperations);
 
             _newLinesFuncCache = new OperationCache<AdjustNewLinesOperation>(
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return GetContinuedOperations(0, previousToken, currentToken, _spaceFuncCache);
         }
 
-        private void AddContinuedOperations<TArg1>(int index, List<TArg1> arg1, SyntaxNode node, ActionCache<TArg1> actionCache)
+        private void AddContinuedOperations<TArg1>(int index, List<TArg1> arg1, SyntaxNode node, in ActionCache<TArg1> actionCache)
         {
             // If we have no remaining handlers to execute, then we'll execute our last handler
             if (index >= _formattingRules.Count)
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 // Call the handler at the index, passing a continuation that will come back to here with index + 1
                 var continuation = new NextAction<TArg1>(index + 1, node, actionCache);
-                actionCache.NextOperation(index, arg1, node, continuation);
+                actionCache.NextOperation(index, arg1, node, ref continuation);
                 return;
             }
         }

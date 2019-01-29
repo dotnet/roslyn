@@ -7,13 +7,13 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
     /// <summary>
     /// Represents a next operation to run in a continuation style chaining.
     /// </summary>
-    internal struct NextAction<TArgument>
+    internal readonly struct NextAction<TArgument>
     {
         private readonly int _index;
         private readonly SyntaxNode _node;
         private readonly ActionCache<TArgument> _actionCache;
 
-        public NextAction(int index, SyntaxNode node, ActionCache<TArgument> actionCache)
+        public NextAction(int index, SyntaxNode node, in ActionCache<TArgument> actionCache)
         {
             _index = index;
             _node = node;

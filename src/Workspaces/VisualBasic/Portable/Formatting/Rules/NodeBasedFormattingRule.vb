@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Overrides Sub AddAnchorIndentationOperations(operations As List(Of AnchorIndentationOperation),
                                                             node As SyntaxNode,
                                                             optionSet As OptionSet,
-                                                            nextOperation As NextAction(Of AnchorIndentationOperation))
+                                                            ByRef nextOperation As NextAction(Of AnchorIndentationOperation))
             nextOperation.Invoke(operations)
 
             If TypeOf node Is StatementSyntax AndAlso Not IsBlockSyntax(node) Then
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Overrides Sub AddIndentBlockOperations(operations As List(Of IndentBlockOperation),
                                                       node As SyntaxNode,
                                                       optionSet As OptionSet,
-                                                      nextOperation As NextAction(Of IndentBlockOperation))
+                                                      ByRef nextOperation As NextAction(Of IndentBlockOperation))
             nextOperation.Invoke(operations)
 
             Dim xmlDocument = TryCast(node, XmlDocumentSyntax)

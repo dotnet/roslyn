@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
         Public Sub New()
         End Sub
 
-        Public Overrides Sub AddSuppressOperations(list As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of SuppressOperation))
+        Public Overrides Sub AddSuppressOperations(list As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextAction(Of SuppressOperation))
             ' don't suppress anything
         End Sub
 
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             Return spaceOperation
         End Function
 
-        Public Overrides Sub AddIndentBlockOperations(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of IndentBlockOperation))
+        Public Overrides Sub AddIndentBlockOperations(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextAction(Of IndentBlockOperation))
             nextOperation.Invoke(list)
 
             Dim singleLineLambdaFunction = TryCast(node, SingleLineLambdaExpressionSyntax)
@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             Next
         End Sub
 
-        Public Overrides Sub AddAlignTokensOperations(operations As List(Of AlignTokensOperation), node As SyntaxNode, optionSet As OptionSet, nextAction As NextAction(Of AlignTokensOperation))
+        Public Overrides Sub AddAlignTokensOperations(operations As List(Of AlignTokensOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextAction(Of AlignTokensOperation))
             MyBase.AddAlignTokensOperations(operations, node, optionSet, nextAction)
 
             ' Smart token formatting off: No token alignment

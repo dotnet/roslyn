@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
 
         private class FormattingRule : AbstractFormattingRule
         {
-            public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<IndentBlockOperation> nextOperation)
+            public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<IndentBlockOperation> nextOperation)
             {
                 // these nodes should be from syntax tree from ITextSnapshot.
                 Debug.Assert(node.SyntaxTree != null);
