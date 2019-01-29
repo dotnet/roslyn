@@ -216,6 +216,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
             public override void VisitLocalReference(ILocalReferenceOperation operation)
             {
+                if (operation.Local.IsRef)
+                {
+                    // Bail out for ref locals.
+                    // We need points to analysis for analyzing writes to ref locals, which is currently not supported.
+                    return;
+                }
+
                 OnReferenceFound(operation.Local, operation);
             }
 
