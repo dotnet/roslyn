@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             public override AnalyzedNode VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node)
             {
+                // Attempt to combine the pattern on the left and the condition of the when-clause.
                 if (node.WhenClause is var whenClause && whenClause != null)
                 {
                     return new Conjunction(Visit(node.Pattern), Visit(whenClause.Condition));
@@ -40,12 +41,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 var right = node.Right;
                 switch (node.Kind())
                 {
+                    // Yield a pattern-match for an equality comparison if either side is a constant.
                     case SyntaxKind.EqualsExpression when IsConstant(right):
                         return new PatternMatch(left, new ConstantPattern(right));
 
                     case SyntaxKind.EqualsExpression when IsConstant(left):
                         return new PatternMatch(right, new ConstantPattern(left));
 
+                    // Yield a not-null pattern-match for an inequality comparison if either side is the constant null.
                     case SyntaxKind.NotEqualsExpression when IsConstantNull(right):
                         return new PatternMatch(left, NotNullPattern.Instance);
 
@@ -58,23 +61,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                                 ? NotNullPattern.Instance
                                 : new TypePattern((TypeSyntax)right));
 
+                    // Analyze and combine both operands of an &&-operator.
                     case SyntaxKind.LogicalAndExpression
                         when Visit(left) is var analyzedLeft && analyzedLeft != null &&
                             Visit(right) is var analyzedRight && analyzedRight != null:
                         return new Conjunction(analyzedLeft, analyzedRight);
                 }
 
+                // Otherwise, yield as an evaluation node.
                 return new Evaluation(node);
             }
 
             private bool IsLoweredToNullCheck(ExpressionSyntax e, ExpressionSyntax type)
             {
+                // Check if the type-check has an implicit reference or identity conversion.
                 return _semanticModel.ClassifyConversion(e,
                     _semanticModel.GetTypeInfo(type).Type).IsIdentityOrImplicitReference();
             }
 
             private bool IsConstantNull(ExpressionSyntax e)
             {
+                // TODO to ease testing we only check for null literal.
                 return e.IsKind(SyntaxKind.NullLiteralExpression);
                 var constant = _semanticModel.GetConstantValue(e);
                 return constant.HasValue && constant.Value is null;
@@ -82,6 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             private bool IsConstant(ExpressionSyntax e)
             {
+                // TODO to ease testing we don't check for constants.
                 return true;
                 return _semanticModel.GetConstantValue(e).HasValue;
             }
@@ -146,14 +154,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             public override AnalyzedNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
             {
-                return new PatternMatch(node,
-                    new ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)));
+                if (IsIdentifierOrSimpleMemberAccess(node))
+                {
+                    // An expression of the form `(e.Property)` can be rewritten as a pattern-match `e is {Property: true}`
+                    return new PatternMatch(node,
+                        new ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)));
+                }
+
+                return new Evaluation(node);
             }
 
             public override AnalyzedNode VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
             {
+                // An expression of the form `!(e.Property)` can be rewritten as a pattern-match `e is {Property: false}`
                 if (node.IsKind(SyntaxKind.LogicalNotExpression) &&
-                    AnalyzeRightOfMemberAccess(node.Operand))
+                    IsIdentifierOrSimpleMemberAccess(node.Operand))
                 {
                     return new PatternMatch(node.Operand,
                         new ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)));
@@ -164,6 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             public override AnalyzedNode DefaultVisit(SyntaxNode node)
             {
+                // In all other cases we yield an evaluation node to concatenate to the resultant pattern-match(es).
                 if (node is ExpressionSyntax expression)
                 {
                     return new Evaluation(expression);
@@ -173,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             }
         }
 
-        private static bool AnalyzeRightOfMemberAccess(ExpressionSyntax node)
+        private static bool IsIdentifierOrSimpleMemberAccess(ExpressionSyntax node)
         {
             switch (node.Kind())
             {
@@ -182,13 +198,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 case SyntaxKind.IdentifierName:
                     return true;
                 case SyntaxKind.MemberBindingExpression:
-                    return AnalyzeRightOfMemberAccess(((MemberBindingExpressionSyntax)node).Name);
+                    return IsIdentifierOrSimpleMemberAccess(((MemberBindingExpressionSyntax)node).Name);
                 case SyntaxKind.ParenthesizedExpression:
-                    return AnalyzeRightOfMemberAccess(((ParenthesizedExpressionSyntax)node).Expression);
+                    return IsIdentifierOrSimpleMemberAccess(((ParenthesizedExpressionSyntax)node).Expression);
                 case SyntaxKind.SimpleMemberAccessExpression:
-                    return AnalyzeRightOfMemberAccess(((MemberAccessExpressionSyntax)node).Name);
+                    return IsIdentifierOrSimpleMemberAccess(((MemberAccessExpressionSyntax)node).Name);
                 case SyntaxKind.ConditionalAccessExpression:
-                    return AnalyzeRightOfMemberAccess(((ConditionalAccessExpressionSyntax)node).WhenNotNull);
+                    return IsIdentifierOrSimpleMemberAccess(((ConditionalAccessExpressionSyntax)node).WhenNotNull);
             }
         }
     }

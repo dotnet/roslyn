@@ -18,14 +18,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
         [Flags]
         private enum NodeKind
         {
+            // Represents a combination of either
+            //      two operands of the &&-operator.
+            //      two patterns against the same expression.
             Conjunction = 1,
+
+            // Represents the var-pattern
             VarPattern = 1 << 1,
+
+            // Represents a type-check either via an as-expression or a direct cast.
             TypePattern = 1 << 2,
+
+            // Represents a negative null comparison.
             NotNullPattern = 1 << 3,
+
+            // Represents a constant pattern or expression.
             ConstantPattern = 1 << 4,
+
+            // Represents an equality comparison or an is-expression.
             PatternMatch = 1 << 5,
+
+            // Represents an arbitrary expression or side-effect.
             Evaluation = 1 << 6,
+
+            // Represents a positional pattern.
             PositionalPattern = 1 << 7,
+
+            // Represents as discard pattern.
             DiscardPattern = 1 << 8,
         }
 
@@ -37,10 +56,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             public virtual bool Contains(ExpressionSyntax e) => false;
             public virtual void GetChildren(List<AnalyzedNode> nodes) => nodes.Add(this);
 
-            public virtual ExpressionSyntax AsExpressionSyntax() => throw ExceptionUtilities.UnexpectedValue(this);
-            public virtual PatternSyntax AsPatternSyntax() => throw ExceptionUtilities.UnexpectedValue(this);
+            public virtual ExpressionSyntax AsExpressionSyntax() => throw ExceptionUtilities.UnexpectedValue(this.Kind);
+            public virtual PatternSyntax AsPatternSyntax() => throw ExceptionUtilities.UnexpectedValue(this.Kind);
 
-            public abstract override string ToString();
+#if DEBUG
+            public sealed override string ToString()
+            {
+                switch (this)
+                {
+                    case VarPattern n: return $"V:{n.Identifier}";
+                    case Evaluation n: return $"E:{n.Expression}";
+                    case Conjunction n: return $"{n.Left} AND {n.Right}";
+                    case TypePattern n: return $"T:{n.Type}";
+                    case PatternMatch n: return $"{n.Expression} is ({n.Pattern})";
+                    case DiscardPattern n: return "_";
+                    case NotNullPattern n: return "{}";
+                    case ConstantPattern n: return $"C:{n.Expression}";
+                    case PositionalPattern n: return $"P:({string.Join(", ", n.Subpatterns.Select(p => p.Pattern))})";
+                    default: return null;
+                }
+            }
+#endif
         }
 
         private sealed class Conjunction : AnalyzedNode
@@ -65,8 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 Left = left;
                 Right = right;
             }
-
-            public override string ToString() => $"{Left} AND {Right}";
 
             public override bool Contains(ExpressionSyntax e) => Left.Contains(e) || Right.Contains(e);
 
@@ -127,8 +161,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 Pattern = pattern;
             }
 
-            public override string ToString() => $"{Expression} is ({Pattern})";
-
             public override bool Contains(ExpressionSyntax e)
                 => AreEquivalent(this.Expression, e) || Pattern.Contains(e);
 
@@ -156,8 +188,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 Expression = expression;
             }
 
-            public override string ToString() => Expression.ToString();
-
             public override PatternSyntax AsPatternSyntax()
                 => ConstantPattern(Expression);
         }
@@ -170,8 +200,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             private NotNullPattern() { }
 
-            public override string ToString() => "{}";
-
             public override PatternSyntax AsPatternSyntax()
                 => RecursivePattern(null, null, PropertyPatternClause(SeparatedList<SubpatternSyntax>()), null);
         }
@@ -183,8 +211,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             public override NodeKind Kind => NodeKind.DiscardPattern;
 
             private DiscardPattern() { }
-
-            public override string ToString() => "_";
 
             public override PatternSyntax AsPatternSyntax()
                 => DiscardPattern();
@@ -202,8 +228,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 Type = type;
             }
 
-            public override string ToString() => Type.ToString();
-
             public override PatternSyntax AsPatternSyntax()
                 => DeclarationPattern(Type, DiscardDesignation());
         }
@@ -219,8 +243,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 Debug.Assert(!identifier.IsKind(SyntaxKind.None));
                 Identifier = identifier;
             }
-
-            public override string ToString() => $"var {Identifier}";
 
             public override bool Contains(ExpressionSyntax e)
                 => e.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax name) &&
@@ -245,8 +267,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 Expression = expression;
             }
 
-            public override string ToString() => $"{Expression}";
-
             public override ExpressionSyntax AsExpressionSyntax() => Expression;
         }
 
@@ -260,8 +280,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             {
                 Subpatterns = subpatterns;
             }
-
-            public override string ToString() => $"({string.Join(", ", this.Subpatterns)})";
 
             public override bool Contains(ExpressionSyntax e)
                 => Subpatterns.Any(sub => sub.Pattern.Contains(e));

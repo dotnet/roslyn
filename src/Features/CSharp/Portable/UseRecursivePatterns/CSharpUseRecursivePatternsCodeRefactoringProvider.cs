@@ -27,18 +27,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var node = GetOutermostExpression(root.FindToken(textSpan.Start).Parent);
-            if (node == null)
+            if (node is null)
             {
                 return;
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            // First, we make a tree of comparisons and pattern-matches from source.
             var analyzedNode = Analyzer.Analyze(node, semanticModel);
             if (analyzedNode is null)
             {
                 return;
             }
 
+            // Then, we try to combine common expressions to rewrite matches as a recursive-pattern.
             var reducedNode = Reducer.Reduce(analyzedNode, out var isNonTrivial);
             if (reducedNode is null || !isNonTrivial)
             {
