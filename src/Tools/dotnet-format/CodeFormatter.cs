@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
 {
     internal static class CodeFormatter
     {
-        const int MaxLoggedWorkspaceWarnings = 5;
+        private const int MaxLoggedWorkspaceWarnings = 5;
 
         public static async Task<int> FormatWorkspaceAsync(ILogger logger, string solutionOrProjectPath, bool isSolution, bool logAllWorkspaceWarnings, CancellationToken cancellationToken)
         {
