@@ -3771,7 +3771,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         For Each [interface] In keySetPair.Value
                             If other IsNot [interface] Then
                                 Debug.Assert(EqualsIgnoringComparer.InstanceIgnoringTupleNames.Equals([interface], other))
-                                Debug.Assert([interface] <> other)
+                                Debug.Assert(Not TypeSymbol.Equals([interface], other, TypeCompareKind.ConsiderEverything))
 
                                 ReportDuplicateInterfaceWithDifferentTupleNames(diagnostics, [interface], other)
                             End If
