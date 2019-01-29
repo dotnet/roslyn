@@ -53,11 +53,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 this.AddContinuedOperations);
 
             _newLinesFuncCache = new OperationCache<AdjustNewLinesOperation>(
-                (index, token1, token2, next) => _formattingRules[index].GetAdjustNewLinesOperation(token1, token2, _optionSet, next),
+                (int index, SyntaxToken token1, SyntaxToken token2, ref NextOperation<AdjustNewLinesOperation> next) => _formattingRules[index].GetAdjustNewLinesOperation(token1, token2, _optionSet, ref next),
                 this.GetContinuedOperations);
 
             _spaceFuncCache = new OperationCache<AdjustSpacesOperation>(
-                (index, token1, token2, next) => _formattingRules[index].GetAdjustSpacesOperation(token1, token2, _optionSet, next),
+                (int index, SyntaxToken token1, SyntaxToken token2, ref NextOperation<AdjustSpacesOperation> next) => _formattingRules[index].GetAdjustSpacesOperation(token1, token2, _optionSet, ref next),
                 this.GetContinuedOperations);
         }
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        private TResult GetContinuedOperations<TResult>(int index, SyntaxToken token1, SyntaxToken token2, OperationCache<TResult> funcCache)
+        private TResult GetContinuedOperations<TResult>(int index, SyntaxToken token1, SyntaxToken token2, in OperationCache<TResult> funcCache)
         {
             // If we have no remaining handlers to execute, then we'll execute our last handler
             if (index >= _formattingRules.Count)
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 // Call the handler at the index, passing a continuation that will come back to here with index + 1
                 var continuation = new NextOperation<TResult>(index + 1, token1, token2, funcCache);
-                return funcCache.NextOperation(index, token1, token2, continuation);
+                return funcCache.NextOperation(index, token1, token2, ref continuation);
             }
         }
     }

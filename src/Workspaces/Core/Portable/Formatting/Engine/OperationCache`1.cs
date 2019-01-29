@@ -10,15 +10,18 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// </summary>
     internal readonly struct OperationCache<TResult>
     {
+        public delegate TResult NextOperationFunc(int index, SyntaxToken token1, SyntaxToken token2, ref NextOperation<TResult> next);
+        public delegate TResult ContinuationFunc(int index, SyntaxToken token1, SyntaxToken token2, in OperationCache<TResult> operationCache);
+
         public OperationCache(
-            Func<int, SyntaxToken, SyntaxToken, NextOperation<TResult>, TResult> nextOperation,
-            Func<int, SyntaxToken, SyntaxToken, OperationCache<TResult>, TResult> continuation)
+            NextOperationFunc nextOperation,
+            ContinuationFunc continuation)
         {
             this.NextOperation = nextOperation;
             this.Continuation = continuation;
         }
 
-        public Func<int, SyntaxToken, SyntaxToken, NextOperation<TResult>, TResult> NextOperation { get; }
-        public Func<int, SyntaxToken, SyntaxToken, OperationCache<TResult>, TResult> Continuation { get; }
+        public NextOperationFunc NextOperation { get; }
+        public ContinuationFunc Continuation { get; }
     }
 }
