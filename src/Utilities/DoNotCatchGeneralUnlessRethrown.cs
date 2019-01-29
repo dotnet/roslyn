@@ -114,20 +114,17 @@ namespace Analyzer.Utilities
 
             public override void VisitCatchClause(ICatchClauseOperation operation)
             {
-                // No diagnostic if an exception filter is specified
-                if (operation.Filter == null)
+                _seenRethrowInCatchClauses.Push(false);
+
+                Visit(operation.Filter);
+                Visit(operation.Handler);
+
+                bool seenRethrow = _seenRethrowInCatchClauses.Pop();
+
+                // If an exception filter is specified, take it as a sign that exceptions are being handled selectively/deliberately.
+                if (operation.Filter == null && IsCaughtTypeDisallowed(operation.ExceptionType) && !seenRethrow)
                 {
-                    _seenRethrowInCatchClauses.Push(false);
-
-                    Visit(operation.Filter);
-                    Visit(operation.Handler);
-
-                    bool seenRethrow = _seenRethrowInCatchClauses.Pop();
-
-                    if (IsCaughtTypeDisallowed(operation.ExceptionType) && !seenRethrow)
-                    {
-                        CatchClausesForDisallowedTypesWithoutRethrow.Add(operation);
-                    }
+                    CatchClausesForDisallowedTypesWithoutRethrow.Add(operation);
                 }
             }
 
