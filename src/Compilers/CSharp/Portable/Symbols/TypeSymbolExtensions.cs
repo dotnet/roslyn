@@ -993,7 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // SPEC:    The governing type of a switch statement is established by the switch expression.
             // SPEC:    1) If the type of the switch expression is sbyte, byte, short, ushort, int, uint,
-            // SPEC:       long, ulong, bool, char, bool, string, or an enum-type, or if it is the nullable type
+            // SPEC:       long, ulong, bool, char, string, or an enum-type, or if it is the nullable type
             // SPEC:       corresponding to one of these types, then that is the governing type of the switch statement. 
             // SPEC:    2) Otherwise, exactly one user-defined implicit conversion must exist from the
             // SPEC:       type of the switch expression to one of the following possible governing types:
