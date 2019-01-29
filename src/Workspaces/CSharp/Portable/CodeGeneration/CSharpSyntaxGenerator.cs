@@ -4255,6 +4255,75 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments)
             => SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(arguments.Select(AsArgument)));
 
+        internal override SyntaxNode RemoveAllComments(SyntaxNode node)
+        {
+            var modifiedNode = RemoveLeadingAndTrailingComments(node);
+
+            if (modifiedNode is TypeDeclarationSyntax declarationSyntax)
+            {
+                return declarationSyntax.WithOpenBraceToken(RemoveLeadingAndTrailingComments(declarationSyntax.OpenBraceToken))
+                    .WithCloseBraceToken(RemoveLeadingAndTrailingComments(declarationSyntax.CloseBraceToken));
+            }
+
+            return modifiedNode;
+        }
+
+        internal override SyntaxTriviaList RemoveCommentLines(SyntaxTriviaList syntaxTriviaList)
+        {
+            IEnumerable<SyntaxTrivia> removeComments()
+            {
+                var start = 0;
+                var inComment = false;
+                var sameLine = true;
+                for (var i = start; i < syntaxTriviaList.Count; i++)
+                {
+                    var trivia = syntaxTriviaList[i];
+
+                    if (trivia.IsRegularOrDocComment())
+                    {
+                        inComment = true;
+                    }
+                    else if (sameLine && trivia.IsEndOfLine())
+                    {
+                        sameLine = false;
+                    }
+
+                    if (!sameLine && inComment)
+                    {
+                        // End of line was reached and a comment was detected, remove the line
+                        start = i + 1;
+                        sameLine = true;
+                        inComment = false;
+                        continue;
+                    }
+                    else if (!sameLine)
+                    {
+                        // End of line is reached and no comment was detected, yield the line
+                        for (var j = start; j <= i; j++)
+                        {
+                            yield return syntaxTriviaList[j];
+                        }
+
+                        inComment = false;
+                        sameLine = true;
+                        start = i + 1;
+                    }
+                }
+
+                if (inComment)
+                {
+                    // If we ended in the context of a comment don't yield the remaining trivia
+                    yield break;
+                }
+
+                while (start < syntaxTriviaList.Count)
+                {
+                    yield return syntaxTriviaList[start++];
+                }
+            }
+
+            return new SyntaxTriviaList(removeComments());
+        }
         #endregion
 
         #region Patterns

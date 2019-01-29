@@ -864,11 +864,25 @@ namespace Microsoft.CodeAnalysis.Editing
         public SyntaxNode RemoveAllAttributes(SyntaxNode declaration)
             => this.RemoveNodes(declaration, this.GetAttributes(declaration).Concat(this.GetReturnAttributes(declaration)));
 
-        internal SyntaxNode RemoveAllComments(SyntaxNode declaration)
+        /// <summary>
+        /// Removes comments from leading and trailing trivia, as well
+        /// as potentially removing comments from opening and closing tokens.
+        /// </summary>
+        internal abstract SyntaxNode RemoveAllComments(SyntaxNode node);
+
+        internal SyntaxNode RemoveLeadingAndTrailingComments(SyntaxNode node)
         {
-            return declaration.WithLeadingTrivia(declaration.GetLeadingTrivia().Where(t => !IsRegularOrDocComment(t)))
-                              .WithTrailingTrivia(declaration.GetTrailingTrivia().Where(t => !IsRegularOrDocComment(t)));
+            return node.WithLeadingTrivia(RemoveCommentLines(node.GetLeadingTrivia()))
+                .WithTrailingTrivia(RemoveCommentLines(node.GetTrailingTrivia()));
         }
+
+        internal SyntaxToken RemoveLeadingAndTrailingComments(SyntaxToken token)
+        {
+            return token.WithLeadingTrivia(RemoveCommentLines(token.LeadingTrivia))
+                .WithTrailingTrivia(RemoveCommentLines(token.TrailingTrivia));
+        }
+
+        internal abstract SyntaxTriviaList RemoveCommentLines(SyntaxTriviaList syntaxTriviaList);
 
         internal abstract bool IsRegularOrDocComment(SyntaxTrivia trivia);
 

@@ -4166,6 +4166,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return trivia.IsRegularOrDocComment()
         End Function
 
+        Friend Overrides Function RemoveAllComments(node As SyntaxNode) As SyntaxNode
+            Return RemoveLeadingAndTrailingComments(node)
+        End Function
+
+        Friend Overrides Function RemoveCommentLines(syntaxList As SyntaxTriviaList) As SyntaxTriviaList
+            Return syntaxList.Where(Function(s) Not IsRegularOrDocComment(s)).ToSyntaxTriviaList()
+        End Function
 #End Region
 
 #Region "Patterns"
