@@ -26,6 +26,7 @@ efforts behind them.
 | [stackalloc in nested contexts](https://github.com/dotnet/csharplang/issues/1412) | [nested-stackalloc](https://github.com/dotnet/roslyn/tree/features/nested-stackalloc) | [In Progress](https://github.com/dotnet/roslyn/issues/28968) | [gafter](https://github.com/gafter) | - | [gafter](https://github.com/gafter)
 | [Unmanaged generic structs](https://github.com/dotnet/csharplang/issues/1744) | master | [Merged to dev16.1 preview1](https://github.com/dotnet/roslyn/issues/31374) | [RikkiGibson](https://github.com/RikkiGibson) | - | [jaredpar](https://github.com/jaredpar) |
 | [Static local functions](https://github.com/dotnet/csharplang/issues/1565) | master | [Merged in dev16.0 preview2](https://github.com/dotnet/roslyn/issues/32069) | [cston](https://github.com/cston) | [jaredpar](https://github.com/jaredpar) | [jcouv](https://github.com/jcouv)
+| [Readonly members](https://github.com/dotnet/csharplang/issues/1710) | [readonly-members](https://github.com/dotnet/roslyn/tree/features/readonly-members) | [Prototype](https://github.com/dotnet/roslyn/issues/32911) | [RikkiGibson](https://github.com/RikkiGibson) | TBD | [jaredpar](https://github.com/jaredpar)
 
 # VB 16.0
 
