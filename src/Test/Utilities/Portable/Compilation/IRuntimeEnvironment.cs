@@ -6,6 +6,9 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -42,7 +45,33 @@ namespace Roslyn.Test.Utilities
         internal EmitOutput(ImmutableArray<byte> assembly, ImmutableArray<byte> pdb)
         {
             Assembly = assembly;
+
+            if (pdb.IsDefault)
+            {
+                // We didn't emit a discrete PDB file, so we'll look for an embedded PDB instead.
+                using (var peReader = new PEReader(Assembly))
+                {
+                    DebugDirectoryEntry portablePdbEntry = peReader.ReadDebugDirectory().FirstOrDefault(e => e.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+                    if (portablePdbEntry.DataSize != 0)
+                    {
+                        using (var embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(portablePdbEntry))
+                        {
+                            var mdReader = embeddedMetadataProvider.GetMetadataReader();
+                            pdb = readMetadata(mdReader);
+                        }
+                    }
+                }
+            }
+
             Pdb = pdb;
+
+            unsafe ImmutableArray<byte> readMetadata(MetadataReader mdReader)
+            {
+                var length = mdReader.MetadataLength;
+                var bytes = new byte[length];
+                Marshal.Copy((IntPtr)mdReader.MetadataPointer, bytes, 0, length);
+                return ImmutableArray.Create(bytes);
+            }
         }
     }
 
@@ -202,11 +231,22 @@ namespace Roslyn.Test.Utilities
             EmitOptions emitOptions
         )
         {
+            if (emitOptions is null)
+            {
+                emitOptions = EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded);
+            }
+
             using (var executableStream = new MemoryStream())
             {
                 var pdb = default(ImmutableArray<byte>);
                 var assembly = default(ImmutableArray<byte>);
-                var pdbStream = new MemoryStream();
+                var pdbStream = (emitOptions.DebugInformationFormat != DebugInformationFormat.Embedded) ? new MemoryStream() : null;
+
+                var embeddedTexts = compilation.SyntaxTrees
+                    .Select(t => (filePath: t.FilePath, text: t.GetText()))
+                    .Where(t => t.text.CanBeEmbedded && !string.IsNullOrEmpty(t.filePath))
+                    .Select(t => EmbeddedText.FromSource(t.filePath, t.text))
+                    .ToImmutableArray();
 
                 EmitResult result;
                 try
@@ -221,9 +261,9 @@ namespace Roslyn.Test.Utilities
                         options: emitOptions,
                         debugEntryPoint: null,
                         sourceLinkStream: null,
-                        embeddedTexts: null,
+                        embeddedTexts,
                         testData: testData,
-                        cancellationToken: default(CancellationToken));
+                        cancellationToken: default);
                 }
                 finally
                 {
