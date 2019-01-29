@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Private Sub New()
         End Sub
 
-        Public Overrides Sub AddSuppressOperationsSlow(operations As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextAction(Of SuppressOperation))
+        Public Overrides Sub AddSuppressOperationsSlow(operations As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextSuppressOperationAction)
         End Sub
 
         Public Overrides Sub AddAnchorIndentationOperationsSlow(operations As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextAction(Of AnchorIndentationOperation))

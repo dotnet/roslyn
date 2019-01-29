@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
             [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
             [EditorBrowsable(EditorBrowsableState.Never)]
-            public override sealed void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextAction<SuppressOperation> nextOperation)
+            public override sealed void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
             {
                 var nextOperationCopy = nextOperation;
                 AddSuppressOperationsSlow(list, node, optionSet, ref nextOperationCopy);
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             /// Returns SuppressWrappingIfOnSingleLineOperations under a node either by itself or by
             /// filtering/replacing operations returned by NextOperation
             /// </summary>
-            public virtual void AddSuppressOperationsSlow(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<SuppressOperation> nextOperation)
+            public virtual void AddSuppressOperationsSlow(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, ref NextSuppressOperationAction nextOperation)
             {
                 base.AddSuppressOperations(list, node, optionSet, in nextOperation);
             }

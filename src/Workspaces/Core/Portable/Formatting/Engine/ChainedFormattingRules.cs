@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
@@ -10,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal class ChainedFormattingRules
     {
-        private readonly List<AbstractFormattingRule> _formattingRules;
+        private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
         private readonly OptionSet _optionSet;
 
         // Operation func caches
@@ -20,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         //
         // each of these operations will be called hundreds of thousands times during formatting,
         // make sure it doesn't allocate any memory during invocations.
-        private readonly ActionCache<SuppressOperation> _suppressWrappingFuncCache;
         private readonly ActionCache<AnchorIndentationOperation> _anchorFuncCache;
         private readonly ActionCache<IndentBlockOperation> _indentFuncCache;
         private readonly ActionCache<AlignTokensOperation> _alignFuncCache;
@@ -32,14 +32,10 @@ namespace Microsoft.CodeAnalysis.Formatting
             Contract.ThrowIfNull(formattingRules);
             Contract.ThrowIfNull(set);
 
-            _formattingRules = formattingRules.ToList();
+            _formattingRules = formattingRules.ToImmutableArray();
             _optionSet = set;
 
             // cache all funcs to reduce heap allocations
-            _suppressWrappingFuncCache = new ActionCache<SuppressOperation>(
-                (int index, List<SuppressOperation> list, SyntaxNode node, in NextAction<SuppressOperation> next) => _formattingRules[index].AddSuppressOperations(list, node, _optionSet, in next),
-                this.AddContinuedOperations);
-
             _anchorFuncCache = new ActionCache<AnchorIndentationOperation>(
                 (int index, List<AnchorIndentationOperation> list, SyntaxNode node, in NextAction<AnchorIndentationOperation> next) => _formattingRules[index].AddAnchorIndentationOperations(list, node, _optionSet, in next),
                 this.AddContinuedOperations);
@@ -63,7 +59,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode currentNode)
         {
-            AddContinuedOperations(0, list, currentNode, _suppressWrappingFuncCache);
+            var action = new NextSuppressOperationAction(_formattingRules, index: 0, currentNode, _optionSet, list);
+            action.Invoke();
         }
 
         public void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode currentNode)
@@ -94,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private void AddContinuedOperations<TArg1>(int index, List<TArg1> arg1, SyntaxNode node, in ActionCache<TArg1> actionCache)
         {
             // If we have no remaining handlers to execute, then we'll execute our last handler
-            if (index >= _formattingRules.Count)
+            if (index >= _formattingRules.Length)
             {
                 return;
             }
@@ -110,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private TResult GetContinuedOperations<TResult>(int index, SyntaxToken token1, SyntaxToken token2, in OperationCache<TResult> funcCache)
         {
             // If we have no remaining handlers to execute, then we'll execute our last handler
-            if (index >= _formattingRules.Count)
+            if (index >= _formattingRules.Length)
             {
                 return default;
             }

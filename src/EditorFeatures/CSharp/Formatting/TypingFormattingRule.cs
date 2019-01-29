@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
     {
         public readonly static TypingFormattingRule Instance = new TypingFormattingRule();
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextAction<SuppressOperation> nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
         {
             if (TryAddSuppressionOnMissingCloseBraceCase(list, node, optionSet))
             {
