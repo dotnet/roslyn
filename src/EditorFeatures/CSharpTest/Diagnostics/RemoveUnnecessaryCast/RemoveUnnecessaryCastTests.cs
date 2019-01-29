@@ -2027,6 +2027,27 @@ class Program
 
         [WorkItem(26640, "https://github.com/dotnet/roslyn/issues/26640")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveCastToDoubleFromIntWithTwoInConditionalExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    object M1(bool b)
+    {
+        return [|b ? (double)1 : (double)0|];
+    }
+}",
+@"class C
+{
+    object M1(bool b)
+    {
+        return b ? 1 : (double)0;
+    }
+}");
+        }
+
+        [WorkItem(26640, "https://github.com/dotnet/roslyn/issues/26640")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastToDoubleFromIntInConditionalExpression()
         {
             await TestMissingInRegularAndScriptAsync(
