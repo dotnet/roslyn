@@ -97,8 +97,12 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\AbstractFormattingRule.cs" Link="Formatting\Rules\AbstractFormattingRule.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\BaseIndentationFormattingRule.cs" Link="Formatting\Rules\BaseIndentationFormattingRule.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\CompatAbstractFormattingRule.cs" Link="Formatting\Rules\CompatAbstractFormattingRule.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NextAction`1.cs" Link="Formatting\Rules\NextAction`1.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NextOperation`1.cs" Link="Formatting\Rules\NextOperation`1.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NextAlignTokensOperationAction.cs" Link="Formatting\Rules\NextAlignTokensOperationAction.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NextAnchorIndentationOperationAction.cs" Link="Formatting\Rules\NextAnchorIndentationOperationAction.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NextGetAdjustNewLinesOperation.cs" Link="Formatting\Rules\NextGetAdjustNewLinesOperation.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NextGetAdjustSpacesOperation.cs" Link="Formatting\Rules\NextGetAdjustSpacesOperation.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NextIndentBlockOperationAction.cs" Link="Formatting\Rules\NextIndentBlockOperationAction.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NextSuppressOperationAction.cs" Link="Formatting\Rules\NextSuppressOperationAction.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NoOpFormattingRule.cs" Link="Formatting\Rules\NoOpFormattingRule.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\Operations\AdjustNewLinesOperation.cs" Link="Formatting\Rules\Operations\AdjustNewLinesOperation.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\Operations\AdjustNewLinesOption.cs" Link="Formatting\Rules\Operations\AdjustNewLinesOption.cs" />
