@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -60,10 +61,6 @@ namespace Roslyn.Diagnostics.Analyzers
                 ApiList = apiList;
                 RemovedApiList = removedApiList;
             }
-        }
-
-        private readonly struct UnusedValue
-        {
         }
 
         private sealed class Impl

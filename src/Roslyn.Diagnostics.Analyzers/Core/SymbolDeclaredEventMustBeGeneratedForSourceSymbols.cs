@@ -59,10 +59,6 @@ namespace Roslyn.Diagnostics.Analyzers
         protected abstract TSyntaxKind InvocationExpressionSyntaxKind { get; }
         protected abstract CompilationAnalyzer GetCompilationAnalyzer(Compilation compilation, INamedTypeSymbol symbolType);
 
-        private readonly struct UnusedValue
-        {
-        }
-
         protected abstract class CompilationAnalyzer
         {
             private readonly INamedTypeSymbol _symbolType;
