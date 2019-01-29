@@ -1543,6 +1543,8 @@ class ClassA
 }
 ";
             await VerifyItemIsAbsentAsync(markup, "classB");
+            await VerifyItemExistsAsync(markup, "classB1", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
         [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
@@ -1561,11 +1563,13 @@ class ClassA
 }
 ";
             await VerifyItemIsAbsentAsync(markup, "classB");
+            await VerifyItemExistsAsync(markup, "classB1", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
         [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestCompletionDoesNotUsePropertyName()
+        public async Task TestCompletionCanUsePropertyName()
         {
             var markup = @"
 class ClassA
@@ -1580,12 +1584,13 @@ class ClassA
     }
 }
 ";
-            await VerifyItemIsAbsentAsync(markup, "classB");
+            await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
         [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestCompletionDoesNotUseFieldName()
+        public async Task TestCompletionCanUseFieldName()
         {
             var markup = @"
 class ClassA
@@ -1600,12 +1605,13 @@ class ClassA
     }
 }
 ";
-            await VerifyItemIsAbsentAsync(markup, "classB");
+            await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
         [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestCompletionDoesNotLocalName()
+        public async Task TestCompletionDoesNotUseLocalName()
         {
             var markup = @"
 class ClassA
@@ -1620,6 +1626,8 @@ class ClassA
 }
 ";
             await VerifyItemIsAbsentAsync(markup, "classB");
+            await VerifyItemExistsAsync(markup, "classB1", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
         [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
