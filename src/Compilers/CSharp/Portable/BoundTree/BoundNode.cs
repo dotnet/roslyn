@@ -102,16 +102,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void CopyAttributes(BoundNode original)
         {
-            if (original.WasCompilerGenerated)
-            {
-                this.WasCompilerGenerated = original.WasCompilerGenerated;
-            }
+            this.WasCompilerGenerated = original.WasCompilerGenerated;
 
             Debug.Assert(original is BoundExpression || !original.IsSuppressed);
-            if (original.IsSuppressed)
-            {
-                this.IsSuppressed = original.IsSuppressed;
-            }
+            this.IsSuppressed = original.IsSuppressed;
         }
 
         /// <remarks>

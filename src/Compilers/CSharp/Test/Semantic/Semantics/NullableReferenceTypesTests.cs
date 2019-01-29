@@ -354,6 +354,7 @@ namespace NS
             _ = NS.C!.field; // 4
             _ = nameof(C!.M); // 5
             _ = nameof(C.M!); // 6
+            _ = nameof(missing!); // 7
         }
     }
     public class Base { public virtual void M() { } }
@@ -361,8 +362,8 @@ namespace NS
     {
         public override void M()
         {
-            _ = this!.ToString(); // 7
-            _ = base!.ToString(); // 8
+            _ = this!.ToString(); // 8
+            _ = base!.ToString(); // 9
         }
     }
 }");
@@ -396,9 +397,12 @@ namespace NS
                 // (13,24): error CS8081: Expression does not have a name.
                 //             _ = nameof(C.M!); // 6
                 Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "C.M!").WithLocation(13, 24),
-                // (22,17): error CS0175: Use of keyword 'base' is not valid in this context
-                //             _ = base!.ToString(); // 8
-                Diagnostic(ErrorCode.ERR_BaseIllegal, "base").WithLocation(22, 17)
+                // (14,24): error CS0103: The name 'missing' does not exist in the current context
+                //             _ = nameof(missing!); // 7
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "missing").WithArguments("missing").WithLocation(14, 24),
+                // (23,17): error CS0175: Use of keyword 'base' is not valid in this context
+                //             _ = base!.ToString(); // 9
+                Diagnostic(ErrorCode.ERR_BaseIllegal, "base").WithLocation(23, 17)
                 );
         }
 
