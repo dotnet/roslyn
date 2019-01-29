@@ -885,14 +885,19 @@ namespace BoundTreeGenerator
             {
                 WriteAccept(node.Name);
                 WriteUpdateMethod(node as Node);
-                WriteWithSuppressionMethod(node as Node);
+                WriteWithSuppressionMethodIfNeeded(node as Node);
             }
 
             WriteClassFooter(node);
         }
 
-        private void WriteWithSuppressionMethod(Node node)
+        private void WriteWithSuppressionMethodIfNeeded(Node node)
         {
+            if (SkipShallowClone(node))
+            {
+                return;
+            }
+
             switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
@@ -900,7 +905,7 @@ namespace BoundTreeGenerator
                         if (node.Name != "BoundExpression" && IsDerivedType("BoundExpression", node.Name))
                         {
                             Blank();
-                            Write("protected override BoundExpression DefaultShallowClone()", node.Name);
+                            Write("protected override BoundExpression ShallowClone()", node.Name);
                             Blank();
                             Brace();
                             Write("var result = new {0}", node.Name);
@@ -1638,6 +1643,11 @@ namespace BoundTreeGenerator
         private static bool SkipInVisitor(Field f)
         {
             return f.SkipInVisitor != null && string.Compare(f.SkipInVisitor, "true", true) == 0;
+        }
+
+        private static bool SkipShallowClone(Node n)
+        {
+            return n.SkipShallowClone != null && string.Compare(n.SkipShallowClone, "true", true) == 0;
         }
 
         private string ToCamelCase(string name)

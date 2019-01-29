@@ -10,14 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundExpression
     {
-        protected abstract BoundExpression DefaultShallowClone();
-
         /// <summary>
-        /// The default/generated implementation of shallow clone logic.
-        /// Bound nodes with fields that aren't declared in BoundNodes.xml should override <see cref="ShallowClone"/>.
+        /// Bound nodes with fields that aren't declared in BoundNodes.xml should use `SkipShallowClone="true"` and override <see cref="ShallowClone"/>.
+        /// Note that ShallowClone is not fully implemented (it throws for some nodes at the moment).
         /// </summary>
-        protected virtual BoundExpression ShallowClone()
-            => DefaultShallowClone();
+        protected abstract BoundExpression ShallowClone();
 
         internal BoundExpression WithSuppression()
         {

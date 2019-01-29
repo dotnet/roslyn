@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -24,12 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected override BoundExpression ShallowClone()
-        {
-            var result = new OutDeconstructVarPendingInference(this.Syntax, this.HasErrors);
-            result.WasCompilerGenerated = this.WasCompilerGenerated;
-            result.IsSuppressed = this.IsSuppressed;
-            result.Placeholder = this.Placeholder;
-            return result;
-        }
+            => throw ExceptionUtilities.Unreachable;
     }
 }
