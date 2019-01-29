@@ -24,8 +24,8 @@ efforts behind them.
 | [Null-coalescing Assignment](https://github.com/dotnet/csharplang/issues/34) | master | [Merged to dev16 preview1](https://github.com/dotnet/roslyn/issues/29168) | [333fred](https://github.com/333fred) | [cston](https://github.com/cston) | [gafter](https://github.com/gafter)
 | [Alternative interpolated verbatim strings](https://github.com/dotnet/csharplang/issues/1630) | master | Merged to dev16 preview1 | [jcouv](https://github.com/jcouv) | [cston](https://github.com/cston) | [jcouv](https://github.com/jcouv)
 | [stackalloc in nested contexts](https://github.com/dotnet/csharplang/issues/1412) | [nested-stackalloc](https://github.com/dotnet/roslyn/tree/features/nested-stackalloc) | [In Progress](https://github.com/dotnet/roslyn/issues/28968) | [gafter](https://github.com/gafter) | - | [gafter](https://github.com/gafter)
-| [Unmanaged generic structs](https://github.com/dotnet/csharplang/issues/1744) | master | [In Progress](https://github.com/dotnet/roslyn/issues/31374) | [RikkiGibson](https://github.com/RikkiGibson) | - | [jaredpar](https://github.com/jaredpar) |
-| [Static local functions](https://github.com/dotnet/csharplang/issues/1565) | master | [Implemented](https://github.com/dotnet/roslyn/issues/32069) | [cston](https://github.com/cston) | [jaredpar](https://github.com/jaredpar) | [jcouv](https://github.com/jcouv)
+| [Unmanaged generic structs](https://github.com/dotnet/csharplang/issues/1744) | master | [Merged to dev16.1 preview1](https://github.com/dotnet/roslyn/issues/31374) | [RikkiGibson](https://github.com/RikkiGibson) | - | [jaredpar](https://github.com/jaredpar) |
+| [Static local functions](https://github.com/dotnet/csharplang/issues/1565) | master | [Merged in dev16 preview2](https://github.com/dotnet/roslyn/issues/32069) | [cston](https://github.com/cston) | [jaredpar](https://github.com/jaredpar) | [jcouv](https://github.com/jcouv)
 
 # VB 16.0
 
