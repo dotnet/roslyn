@@ -20,14 +20,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Flags()]
         private enum BoundNodeAttributes : byte
         {
-            HasErrors = 1 << 0,
-            CompilerGenerated = 1 << 1,
+            HasErrors = 0b0001,
+            CompilerGenerated = 0b0010,
+            TopLevelNullableUnset = 0b0000,
+            TopLevelNullable = 0b0100,
+            TopLevelNonNullable = 0b1000,
+            TopLevelUnknown = 0b1100,
+            TopLevelNullabilityMask = 0b1100,
 #if DEBUG
             /// <summary>
             /// Captures the fact that consumers of the node already checked the state of the WasCompilerGenerated bit.
             /// Allows to assert on attempts to set WasCompilerGenerated bit after that.
             /// </summary>
-            WasCompilerGeneratedIsChecked = 1 << 2,
+            WasCompilerGeneratedIsChecked = 0b010000,
+            WasTopLevelNullabilityChecked = 0b100000
 #endif
         }
 
@@ -149,6 +155,64 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Top level nullability for the node. This should not be used by flow analysis: it
+        /// is lossy, and loses the distinction between NotAnnotated and NotNullable.
+        /// </summary>
+        protected NullableAnnotation TopLevelNullability
+        {
+            get
+            {
+#if DEBUG
+                _attributes |= BoundNodeAttributes.WasTopLevelNullabilityChecked;
+#endif
+                switch (_attributes & BoundNodeAttributes.TopLevelNullabilityMask)
+                {
+                    case BoundNodeAttributes.TopLevelNullable:
+                        return NullableAnnotation.Nullable;
+
+                    case BoundNodeAttributes.TopLevelNonNullable:
+                        return NullableAnnotation.NotNullable;
+
+                    case BoundNodeAttributes.TopLevelUnknown:
+                        return NullableAnnotation.Unknown;
+
+                    case BoundNodeAttributes.TopLevelNullableUnset:
+                        return NullableAnnotation.NotComputed;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(_attributes);
+                }
+            }
+            set
+            {
+#if DEBUG
+                Debug.Assert((_attributes & BoundNodeAttributes.WasTopLevelNullabilityChecked) == 0,
+                    "bound node nullability should not be set after reading it");
+#endif
+                // TODO: Will likely need to handle generics specially in this conversion
+                _attributes &= ~BoundNodeAttributes.TopLevelNullabilityMask;
+                switch (value)
+                {
+                    case NullableAnnotation.Annotated:
+                    case NullableAnnotation.Nullable:
+                        _attributes |= BoundNodeAttributes.TopLevelNullable;
+                        break;
+
+                    case NullableAnnotation.NotAnnotated:
+                    case NullableAnnotation.NotNullable:
+                        _attributes |= BoundNodeAttributes.TopLevelNonNullable;
+                        break;
+
+                    case NullableAnnotation.Unknown:
+                        _attributes |= BoundNodeAttributes.TopLevelUnknown;
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(value);
+                }
+            }
+        }
 
         public BoundKind Kind
         {

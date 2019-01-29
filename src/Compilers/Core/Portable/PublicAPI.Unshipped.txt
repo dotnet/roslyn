@@ -2,6 +2,12 @@
 Microsoft.CodeAnalysis.IFieldSymbol.IsFixedSizeBuffer.get -> bool
 Microsoft.CodeAnalysis.ITypeSymbol.IsRefLikeType.get -> bool
 Microsoft.CodeAnalysis.ITypeSymbol.IsUnmanagedType.get -> bool
+Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.Nullability.MayBeNull = 4 -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.Nullability.NotApplicable = 0 -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.Nullability.NotComputed = 1 -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.Nullability.NotNull = 3 -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.Nullability.Unknown = 2 -> Microsoft.CodeAnalysis.Nullability
 Microsoft.CodeAnalysis.OperationKind.Binary = 32 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.ConstructorBody = 89 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.DiscardPattern = 104 -> Microsoft.CodeAnalysis.OperationKind

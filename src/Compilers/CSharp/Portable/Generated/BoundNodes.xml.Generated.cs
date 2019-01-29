@@ -11391,6 +11391,1929 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class NullabilityRewriter : BoundTreeRewriter
+    {
+        private readonly ImmutableDictionary<BoundExpression, TypeSymbolWithAnnotations> _topLevelNullabilities;
+
+        public NullabilityRewriter(ImmutableDictionary<BoundExpression, TypeSymbolWithAnnotations> topLevelNullabilities)
+        {
+            _topLevelNullabilities = topLevelNullabilities;
+        }
+
+        public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundDeconstructValuePlaceholder updatedNode = node.Update(node.ValEscape, type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundTupleOperandPlaceholder updatedNode = node.Update(type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundAwaitableValuePlaceholder updatedNode = node.Update(type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitDup(BoundDup node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundDup updatedNode = node.Update(node.RefKind, type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitPassByCopy(BoundPassByCopy node)
+        {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            BoundPassByCopy updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(expression, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(expression, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitBadExpression(BoundBadExpression node)
+        {
+            ImmutableArray<BoundExpression> childBoundNodes = (ImmutableArray<BoundExpression>)this.VisitList(node.ChildBoundNodes);
+            BoundBadExpression updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.ResultKind, node.Symbols, childBoundNodes, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.ResultKind, node.Symbols, childBoundNodes, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitTypeExpression(BoundTypeExpression node)
+        {
+            BoundTypeExpression boundContainingTypeOpt = (BoundTypeExpression)this.Visit(node.BoundContainingTypeOpt);
+            BoundTypeExpression updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.AliasOpt, node.InferredType, boundContainingTypeOpt, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.AliasOpt, node.InferredType, boundContainingTypeOpt, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitTypeOrValueExpression(BoundTypeOrValueExpression node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundTypeOrValueExpression updatedNode = node.Update(node.Data, type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitNamespaceExpression(BoundNamespaceExpression node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundNamespaceExpression updatedNode = node.Update(node.NamespaceSymbol, node.AliasOpt);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitUnaryOperator(BoundUnaryOperator node)
+        {
+            BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
+            BoundUnaryOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitSuppressNullableWarningExpression(BoundSuppressNullableWarningExpression node)
+        {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            BoundSuppressNullableWarningExpression updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(expression, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(expression, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitIncrementOperator(BoundIncrementOperator node)
+        {
+            BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
+            BoundIncrementOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.OperatorKind, operand, node.MethodOpt, node.OperandConversion, node.ResultConversion, node.ResultKind, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.OperatorKind, operand, node.MethodOpt, node.OperandConversion, node.ResultConversion, node.ResultKind, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitAddressOfOperator(BoundAddressOfOperator node)
+        {
+            BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
+            BoundAddressOfOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(operand, node.IsManaged, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(operand, node.IsManaged, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
+        {
+            BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
+            BoundPointerIndirectionOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(operand, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(operand, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitPointerElementAccess(BoundPointerElementAccess node)
+        {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            BoundExpression index = (BoundExpression)this.Visit(node.Index);
+            BoundPointerElementAccess updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(expression, index, node.Checked, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(expression, index, node.Checked, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitRefTypeOperator(BoundRefTypeOperator node)
+        {
+            BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
+            BoundRefTypeOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(operand, node.GetTypeFromHandle, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(operand, node.GetTypeFromHandle, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitMakeRefOperator(BoundMakeRefOperator node)
+        {
+            BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
+            BoundMakeRefOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(operand, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(operand, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitRefValueOperator(BoundRefValueOperator node)
+        {
+            BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
+            BoundRefValueOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(operand, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(operand, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitFromEndIndexExpression(BoundFromEndIndexExpression node)
+        {
+            BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
+            BoundFromEndIndexExpression updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(operand, node.MethodOpt, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(operand, node.MethodOpt, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitRangeExpression(BoundRangeExpression node)
+        {
+            BoundExpression leftOperand = (BoundExpression)this.Visit(node.LeftOperand);
+            BoundExpression rightOperand = (BoundExpression)this.Visit(node.RightOperand);
+            BoundRangeExpression updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(leftOperand, rightOperand, node.MethodOpt, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(leftOperand, rightOperand, node.MethodOpt, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
+        {
+            BoundExpression left = (BoundExpression)this.Visit(node.Left);
+            BoundExpression right = (BoundExpression)this.Visit(node.Right);
+            BoundBinaryOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.OperatorKind, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, left, right, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.OperatorKind, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, left, right, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
+        {
+            BoundExpression left = (BoundExpression)this.Visit(node.Left);
+            BoundExpression right = (BoundExpression)this.Visit(node.Right);
+            BoundExpression convertedLeft = node.ConvertedLeft;
+            BoundExpression convertedRight = node.ConvertedRight;
+            BoundTupleBinaryOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(left, right, convertedLeft, convertedRight, node.OperatorKind, node.Operators, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(left, right, convertedLeft, convertedRight, node.OperatorKind, node.Operators, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator node)
+        {
+            BoundExpression left = (BoundExpression)this.Visit(node.Left);
+            BoundExpression right = (BoundExpression)this.Visit(node.Right);
+            BoundUserDefinedConditionalLogicalOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.OperatorKind, node.LogicalOperator, node.TrueOperator, node.FalseOperator, node.ResultKind, left, right, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.OperatorKind, node.LogicalOperator, node.TrueOperator, node.FalseOperator, node.ResultKind, left, right, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
+        {
+            BoundExpression left = (BoundExpression)this.Visit(node.Left);
+            BoundExpression right = (BoundExpression)this.Visit(node.Right);
+            BoundCompoundAssignmentOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.Operator, left, right, node.LeftConversion, node.FinalConversion, node.ResultKind, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.Operator, left, right, node.LeftConversion, node.FinalConversion, node.ResultKind, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
+        {
+            BoundExpression left = (BoundExpression)this.Visit(node.Left);
+            BoundExpression right = (BoundExpression)this.Visit(node.Right);
+            BoundAssignmentOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(left, right, node.IsRef, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(left, right, node.IsRef, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
+        {
+            BoundTupleExpression left = (BoundTupleExpression)this.Visit(node.Left);
+            BoundConversion right = (BoundConversion)this.Visit(node.Right);
+            BoundDeconstructionAssignmentOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(left, right, node.IsUsed, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(left, right, node.IsUsed, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
+        {
+            BoundExpression leftOperand = (BoundExpression)this.Visit(node.LeftOperand);
+            BoundExpression rightOperand = (BoundExpression)this.Visit(node.RightOperand);
+            BoundNullCoalescingOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(leftOperand, rightOperand, node.LeftConversion, node.OperatorResultKind, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(leftOperand, rightOperand, node.LeftConversion, node.OperatorResultKind, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
+        {
+            BoundExpression leftOperand = (BoundExpression)this.Visit(node.LeftOperand);
+            BoundExpression rightOperand = (BoundExpression)this.Visit(node.RightOperand);
+            BoundNullCoalescingAssignmentOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(leftOperand, rightOperand, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(leftOperand, rightOperand, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
+        {
+            BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
+            BoundExpression consequence = (BoundExpression)this.Visit(node.Consequence);
+            BoundExpression alternative = (BoundExpression)this.Visit(node.Alternative);
+            BoundConditionalOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitArrayAccess(BoundArrayAccess node)
+        {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            ImmutableArray<BoundExpression> indices = (ImmutableArray<BoundExpression>)this.VisitList(node.Indices);
+            BoundArrayAccess updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(expression, indices, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(expression, indices, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitArrayLength(BoundArrayLength node)
+        {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            BoundArrayLength updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(expression, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(expression, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
+        {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            BoundAwaitExpression updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(expression, node.AwaitableInfo, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(expression, node.AwaitableInfo, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitTypeOfOperator(BoundTypeOfOperator node)
+        {
+            BoundTypeExpression sourceType = (BoundTypeExpression)this.Visit(node.SourceType);
+            BoundTypeOfOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(sourceType, node.GetTypeFromHandle, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(sourceType, node.GetTypeFromHandle, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitMethodDefIndex(BoundMethodDefIndex node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundMethodDefIndex updatedNode = node.Update(node.Method, type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitMaximumMethodDefIndex(BoundMaximumMethodDefIndex node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundMaximumMethodDefIndex updatedNode = node.Update(type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitInstrumentationPayloadRoot(BoundInstrumentationPayloadRoot node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundInstrumentationPayloadRoot updatedNode = node.Update(node.AnalysisKind, type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitModuleVersionId(BoundModuleVersionId node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundModuleVersionId updatedNode = node.Update(type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitModuleVersionIdString(BoundModuleVersionIdString node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundModuleVersionIdString updatedNode = node.Update(type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitSourceDocumentIndex(BoundSourceDocumentIndex node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundSourceDocumentIndex updatedNode = node.Update(node.Document, type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitMethodInfo(BoundMethodInfo node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundMethodInfo updatedNode = node.Update(node.Method, node.GetMethodFromHandle, type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitFieldInfo(BoundFieldInfo node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundFieldInfo updatedNode = node.Update(node.Field, node.GetFieldFromHandle, type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitDefaultExpression(BoundDefaultExpression node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundDefaultExpression updatedNode = node.Update(node.ConstantValueOpt, type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitIsOperator(BoundIsOperator node)
+        {
+            BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
+            BoundTypeExpression targetType = (BoundTypeExpression)this.Visit(node.TargetType);
+            BoundIsOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(operand, targetType, node.Conversion, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(operand, targetType, node.Conversion, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitAsOperator(BoundAsOperator node)
+        {
+            BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
+            BoundTypeExpression targetType = (BoundTypeExpression)this.Visit(node.TargetType);
+            BoundAsOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(operand, targetType, node.Conversion, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(operand, targetType, node.Conversion, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitSizeOfOperator(BoundSizeOfOperator node)
+        {
+            BoundTypeExpression sourceType = (BoundTypeExpression)this.Visit(node.SourceType);
+            BoundSizeOfOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(sourceType, node.ConstantValueOpt, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(sourceType, node.ConstantValueOpt, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitConversion(BoundConversion node)
+        {
+            BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
+            BoundConversion updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(operand, node.Conversion, node.IsBaseConversion, node.Checked, node.ExplicitCastInCode, node.ConstantValueOpt, node.ConversionGroupOpt, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(operand, node.Conversion, node.IsBaseConversion, node.Checked, node.ExplicitCastInCode, node.ConstantValueOpt, node.ConversionGroupOpt, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitArgList(BoundArgList node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundArgList updatedNode = node.Update(type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitArgListOperator(BoundArgListOperator node)
+        {
+            ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
+            BoundArgListOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(arguments, node.ArgumentRefKindsOpt, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(arguments, node.ArgumentRefKindsOpt, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitFixedLocalCollectionInitializer(BoundFixedLocalCollectionInitializer node)
+        {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            BoundFixedLocalCollectionInitializer updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.ElementPointerType, node.ElementPointerTypeConversion, expression, node.GetPinnableOpt, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.ElementPointerType, node.ElementPointerTypeConversion, expression, node.GetPinnableOpt, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitLiteral(BoundLiteral node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundLiteral updatedNode = node.Update(node.ConstantValueOpt, type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitThisReference(BoundThisReference node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundThisReference updatedNode = node.Update(type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitPreviousSubmissionReference(BoundPreviousSubmissionReference node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundPreviousSubmissionReference updatedNode = node.Update(type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitHostObjectMemberReference(BoundHostObjectMemberReference node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundHostObjectMemberReference updatedNode = node.Update(type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitBaseReference(BoundBaseReference node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundBaseReference updatedNode = node.Update(type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitLocal(BoundLocal node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundLocal updatedNode = node.Update(node.LocalSymbol, node.DeclarationKind, node.ConstantValueOpt, node.IsNullableUnknown, type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitPseudoVariable(BoundPseudoVariable node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundPseudoVariable updatedNode = node.Update(node.LocalSymbol, node.EmitExpressions, type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitRangeVariable(BoundRangeVariable node)
+        {
+            BoundExpression value = (BoundExpression)this.Visit(node.Value);
+            BoundRangeVariable updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.RangeVariableSymbol, value, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.RangeVariableSymbol, value, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitParameter(BoundParameter node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundParameter updatedNode = node.Update(node.ParameterSymbol, type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitLabel(BoundLabel node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundLabel updatedNode = node.Update(node.Label, type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
+        {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            ImmutableArray<BoundSwitchExpressionArm> switchArms = (ImmutableArray<BoundSwitchExpressionArm>)this.VisitList(node.SwitchArms);
+            BoundDecisionDag decisionDag = node.DecisionDag;
+            BoundSwitchExpression updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitSequencePointExpression(BoundSequencePointExpression node)
+        {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            BoundSequencePointExpression updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(expression, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(expression, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitSequence(BoundSequence node)
+        {
+            ImmutableArray<BoundExpression> sideEffects = (ImmutableArray<BoundExpression>)this.VisitList(node.SideEffects);
+            BoundExpression value = (BoundExpression)this.Visit(node.Value);
+            BoundSequence updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.Locals, sideEffects, value, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.Locals, sideEffects, value, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitSpillSequence(BoundSpillSequence node)
+        {
+            ImmutableArray<BoundStatement> sideEffects = (ImmutableArray<BoundStatement>)this.VisitList(node.SideEffects);
+            BoundExpression value = (BoundExpression)this.Visit(node.Value);
+            BoundSpillSequence updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.Locals, sideEffects, value, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.Locals, sideEffects, value, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitDynamicMemberAccess(BoundDynamicMemberAccess node)
+        {
+            BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
+            BoundDynamicMemberAccess updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(receiver, node.TypeArgumentsOpt, node.Name, node.Invoked, node.Indexed, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(receiver, node.TypeArgumentsOpt, node.Name, node.Invoked, node.Indexed, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitDynamicInvocation(BoundDynamicInvocation node)
+        {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
+            BoundDynamicInvocation updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.ApplicableMethods, expression, arguments, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.ApplicableMethods, expression, arguments, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitConditionalAccess(BoundConditionalAccess node)
+        {
+            BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
+            BoundExpression accessExpression = (BoundExpression)this.Visit(node.AccessExpression);
+            BoundConditionalAccess updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(receiver, accessExpression, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(receiver, accessExpression, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
+        {
+            BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
+            BoundExpression whenNotNull = (BoundExpression)this.Visit(node.WhenNotNull);
+            BoundExpression whenNullOpt = (BoundExpression)this.Visit(node.WhenNullOpt);
+            BoundLoweredConditionalAccess updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(receiver, node.HasValueMethodOpt, whenNotNull, whenNullOpt, node.Id, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(receiver, node.HasValueMethodOpt, whenNotNull, whenNullOpt, node.Id, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundConditionalReceiver updatedNode = node.Update(node.Id, type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node)
+        {
+            BoundExpression valueTypeReceiver = (BoundExpression)this.Visit(node.ValueTypeReceiver);
+            BoundExpression referenceTypeReceiver = (BoundExpression)this.Visit(node.ReferenceTypeReceiver);
+            BoundComplexConditionalReceiver updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(valueTypeReceiver, referenceTypeReceiver, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(valueTypeReceiver, referenceTypeReceiver, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitMethodGroup(BoundMethodGroup node)
+        {
+            BoundExpression receiverOpt = (BoundExpression)this.Visit(node.ReceiverOpt);
+            BoundMethodGroup updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.TypeArgumentsOpt, node.Name, node.Methods, node.LookupSymbolOpt, node.LookupError, node.Flags, receiverOpt, node.ResultKind);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.TypeArgumentsOpt, node.Name, node.Methods, node.LookupSymbolOpt, node.LookupError, node.Flags, receiverOpt, node.ResultKind);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitPropertyGroup(BoundPropertyGroup node)
+        {
+            BoundExpression receiverOpt = (BoundExpression)this.Visit(node.ReceiverOpt);
+            BoundPropertyGroup updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.Properties, receiverOpt, node.ResultKind);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.Properties, receiverOpt, node.ResultKind);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitCall(BoundCall node)
+        {
+            BoundExpression receiverOpt = (BoundExpression)this.Visit(node.ReceiverOpt);
+            ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
+            BoundCall updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(receiverOpt, node.Method, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.ResultKind, node.BinderOpt, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(receiverOpt, node.Method, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.ResultKind, node.BinderOpt, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
+        {
+            BoundExpression receiverOpt = (BoundExpression)this.Visit(node.ReceiverOpt);
+            BoundExpression argument = (BoundExpression)this.Visit(node.Argument);
+            BoundEventAssignmentOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.Event, node.IsAddition, node.IsDynamic, receiverOpt, argument, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.Event, node.IsAddition, node.IsDynamic, receiverOpt, argument, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitAttribute(BoundAttribute node)
+        {
+            ImmutableArray<BoundExpression> constructorArguments = (ImmutableArray<BoundExpression>)this.VisitList(node.ConstructorArguments);
+            ImmutableArray<BoundExpression> namedArguments = (ImmutableArray<BoundExpression>)this.VisitList(node.NamedArguments);
+            BoundAttribute updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.Constructor, constructorArguments, node.ConstructorArgumentNamesOpt, namedArguments, node.ResultKind, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.Constructor, constructorArguments, node.ConstructorArgumentNamesOpt, namedArguments, node.ResultKind, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
+        {
+            ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
+            BoundObjectInitializerExpressionBase initializerExpressionOpt = (BoundObjectInitializerExpressionBase)this.Visit(node.InitializerExpressionOpt);
+            BoundObjectCreationExpression updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.Constructor, node.ConstructorsGroup, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, initializerExpressionOpt, node.BinderOpt, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.Constructor, node.ConstructorsGroup, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, initializerExpressionOpt, node.BinderOpt, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
+        {
+            ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
+            BoundTupleLiteral updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.ArgumentNamesOpt, node.InferredNamesOpt, arguments, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.ArgumentNamesOpt, node.InferredNamesOpt, arguments, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)
+        {
+            ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
+            BoundConvertedTupleLiteral updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.NaturalTypeOpt, arguments, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.NaturalTypeOpt, arguments, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
+        {
+            ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
+            BoundObjectInitializerExpressionBase initializerExpressionOpt = (BoundObjectInitializerExpressionBase)this.Visit(node.InitializerExpressionOpt);
+            BoundDynamicObjectCreationExpression updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.Name, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, initializerExpressionOpt, node.ApplicableMethods, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.Name, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, initializerExpressionOpt, node.ApplicableMethods, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)
+        {
+            BoundObjectInitializerExpressionBase initializerExpressionOpt = (BoundObjectInitializerExpressionBase)this.Visit(node.InitializerExpressionOpt);
+            BoundNoPiaObjectCreationExpression updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.GuidString, initializerExpressionOpt, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.GuidString, initializerExpressionOpt, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitObjectInitializerExpression(BoundObjectInitializerExpression node)
+        {
+            ImmutableArray<BoundExpression> initializers = (ImmutableArray<BoundExpression>)this.VisitList(node.Initializers);
+            BoundObjectInitializerExpression updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(initializers, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(initializers, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitObjectInitializerMember(BoundObjectInitializerMember node)
+        {
+            ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
+            BoundObjectInitializerMember updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.MemberSymbol, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, node.ReceiverType, node.BinderOpt, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.MemberSymbol, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, node.ReceiverType, node.BinderOpt, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitDynamicObjectInitializerMember(BoundDynamicObjectInitializerMember node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundDynamicObjectInitializerMember updatedNode = node.Update(node.MemberName, node.ReceiverType, type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitCollectionInitializerExpression(BoundCollectionInitializerExpression node)
+        {
+            ImmutableArray<BoundExpression> initializers = (ImmutableArray<BoundExpression>)this.VisitList(node.Initializers);
+            BoundCollectionInitializerExpression updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(initializers, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(initializers, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitCollectionElementInitializer(BoundCollectionElementInitializer node)
+        {
+            ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
+            BoundExpression implicitReceiverOpt = (BoundExpression)this.Visit(node.ImplicitReceiverOpt);
+            BoundCollectionElementInitializer updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.AddMethod, arguments, implicitReceiverOpt, node.Expanded, node.ArgsToParamsOpt, node.InvokedAsExtensionMethod, node.ResultKind, node.BinderOpt, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.AddMethod, arguments, implicitReceiverOpt, node.Expanded, node.ArgsToParamsOpt, node.InvokedAsExtensionMethod, node.ResultKind, node.BinderOpt, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitDynamicCollectionElementInitializer(BoundDynamicCollectionElementInitializer node)
+        {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
+            BoundDynamicCollectionElementInitializer updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.ApplicableMethods, expression, arguments, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.ApplicableMethods, expression, arguments, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitImplicitReceiver(BoundImplicitReceiver node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundImplicitReceiver updatedNode = node.Update(type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitAnonymousObjectCreationExpression(BoundAnonymousObjectCreationExpression node)
+        {
+            ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
+            ImmutableArray<BoundAnonymousPropertyDeclaration> declarations = (ImmutableArray<BoundAnonymousPropertyDeclaration>)this.VisitList(node.Declarations);
+            BoundAnonymousObjectCreationExpression updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.Constructor, arguments, declarations, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.Constructor, arguments, declarations, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitAnonymousPropertyDeclaration(BoundAnonymousPropertyDeclaration node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundAnonymousPropertyDeclaration updatedNode = node.Update(node.Property, type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitNewT(BoundNewT node)
+        {
+            BoundObjectInitializerExpressionBase initializerExpressionOpt = (BoundObjectInitializerExpressionBase)this.Visit(node.InitializerExpressionOpt);
+            BoundNewT updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(initializerExpressionOpt, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(initializerExpressionOpt, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
+        {
+            BoundExpression argument = (BoundExpression)this.Visit(node.Argument);
+            BoundDelegateCreationExpression updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(argument, node.MethodOpt, node.IsExtensionMethod, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(argument, node.MethodOpt, node.IsExtensionMethod, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitArrayCreation(BoundArrayCreation node)
+        {
+            ImmutableArray<BoundExpression> bounds = (ImmutableArray<BoundExpression>)this.VisitList(node.Bounds);
+            BoundArrayInitialization initializerOpt = (BoundArrayInitialization)this.Visit(node.InitializerOpt);
+            BoundArrayCreation updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(bounds, initializerOpt, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(bounds, initializerOpt, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitArrayInitialization(BoundArrayInitialization node)
+        {
+            ImmutableArray<BoundExpression> initializers = (ImmutableArray<BoundExpression>)this.VisitList(node.Initializers);
+            BoundArrayInitialization updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(initializers);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(initializers);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
+        {
+            BoundExpression count = (BoundExpression)this.Visit(node.Count);
+            BoundArrayInitialization initializerOpt = (BoundArrayInitialization)this.Visit(node.InitializerOpt);
+            BoundStackAllocArrayCreation updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.ElementType, count, initializerOpt, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.ElementType, count, initializerOpt, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
+        {
+            BoundExpression count = (BoundExpression)this.Visit(node.Count);
+            BoundArrayInitialization initializerOpt = (BoundArrayInitialization)this.Visit(node.InitializerOpt);
+            BoundConvertedStackAllocExpression updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.ElementType, count, initializerOpt, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.ElementType, count, initializerOpt, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitFieldAccess(BoundFieldAccess node)
+        {
+            BoundExpression receiverOpt = (BoundExpression)this.Visit(node.ReceiverOpt);
+            BoundFieldAccess updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(receiverOpt, node.FieldSymbol, node.ConstantValueOpt, node.ResultKind, node.IsByValue, node.IsDeclaration, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(receiverOpt, node.FieldSymbol, node.ConstantValueOpt, node.ResultKind, node.IsByValue, node.IsDeclaration, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitHoistedFieldAccess(BoundHoistedFieldAccess node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundHoistedFieldAccess updatedNode = node.Update(node.FieldSymbol, type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
+        {
+            BoundExpression receiverOpt = (BoundExpression)this.Visit(node.ReceiverOpt);
+            BoundPropertyAccess updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(receiverOpt, node.PropertySymbol, node.ResultKind, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(receiverOpt, node.PropertySymbol, node.ResultKind, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitEventAccess(BoundEventAccess node)
+        {
+            BoundExpression receiverOpt = (BoundExpression)this.Visit(node.ReceiverOpt);
+            BoundEventAccess updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(receiverOpt, node.EventSymbol, node.IsUsableAsField, node.ResultKind, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(receiverOpt, node.EventSymbol, node.IsUsableAsField, node.ResultKind, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitIndexerAccess(BoundIndexerAccess node)
+        {
+            BoundExpression receiverOpt = (BoundExpression)this.Visit(node.ReceiverOpt);
+            ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
+            BoundIndexerAccess updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(receiverOpt, node.Indexer, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.BinderOpt, node.UseSetterForDefaultArgumentGeneration, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(receiverOpt, node.Indexer, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.BinderOpt, node.UseSetterForDefaultArgumentGeneration, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
+        {
+            BoundExpression receiverOpt = (BoundExpression)this.Visit(node.ReceiverOpt);
+            ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
+            BoundDynamicIndexerAccess updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(receiverOpt, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.ApplicableIndexers, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(receiverOpt, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.ApplicableIndexers, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitLambda(BoundLambda node)
+        {
+            UnboundLambda unboundLambda = node.UnboundLambda;
+            BoundBlock body = (BoundBlock)this.Visit(node.Body);
+            BoundLambda updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(unboundLambda, node.Symbol, body, node.Diagnostics, node.Binder, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(unboundLambda, node.Symbol, body, node.Diagnostics, node.Binder, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitUnboundLambda(UnboundLambda node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            UnboundLambda updatedNode = node.Update(node.Data);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitQueryClause(BoundQueryClause node)
+        {
+            BoundExpression value = (BoundExpression)this.Visit(node.Value);
+            BoundQueryClause updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(value, node.DefinedSymbol, node.Binder, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(value, node.DefinedSymbol, node.Binder, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitNameOfOperator(BoundNameOfOperator node)
+        {
+            BoundExpression argument = (BoundExpression)this.Visit(node.Argument);
+            BoundNameOfOperator updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(argument, node.ConstantValueOpt, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(argument, node.ConstantValueOpt, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
+        {
+            ImmutableArray<BoundExpression> parts = (ImmutableArray<BoundExpression>)this.VisitList(node.Parts);
+            BoundInterpolatedString updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(parts, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(parts, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitStringInsert(BoundStringInsert node)
+        {
+            BoundExpression value = (BoundExpression)this.Visit(node.Value);
+            BoundExpression alignment = (BoundExpression)this.Visit(node.Alignment);
+            BoundLiteral format = (BoundLiteral)this.Visit(node.Format);
+            BoundStringInsert updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(value, alignment, format, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(value, alignment, format, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
+        {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            BoundPattern pattern = (BoundPattern)this.Visit(node.Pattern);
+            BoundDecisionDag decisionDag = node.DecisionDag;
+            BoundIsPatternExpression updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(expression, pattern, decisionDag, node.WhenTrueLabel, node.WhenFalseLabel, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(expression, pattern, decisionDag, node.WhenTrueLabel, node.WhenFalseLabel, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitDiscardExpression(BoundDiscardExpression node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            BoundDiscardExpression updatedNode = node.Update(type);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitThrowExpression(BoundThrowExpression node)
+        {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            BoundThrowExpression updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(expression, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(expression, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitOutVariablePendingInference(OutVariablePendingInference node)
+        {
+            BoundExpression receiverOpt = (BoundExpression)this.Visit(node.ReceiverOpt);
+            OutVariablePendingInference updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.VariableSymbol, receiverOpt);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.VariableSymbol, receiverOpt);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitDeconstructionVariablePendingInference(DeconstructionVariablePendingInference node)
+        {
+            BoundExpression receiverOpt = (BoundExpression)this.Visit(node.ReceiverOpt);
+            DeconstructionVariablePendingInference updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(node.VariableSymbol, receiverOpt);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(node.VariableSymbol, receiverOpt);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
+        {
+            if (!_topLevelNullabilities.ContainsKey(node))
+            {
+                return node;
+            }
+
+            TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+            OutDeconstructVarPendingInference updatedNode = node.Update();
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            return updatedNode;
+        }
+
+        public override BoundNode VisitExpressionWithNullability(BoundExpressionWithNullability node)
+        {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            BoundExpressionWithNullability updatedNode;
+
+            if (_topLevelNullabilities.ContainsKey(node))
+            {
+                TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
+                updatedNode = node.Update(expression, node.NullableAnnotation, type);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation;
+            }
+            else
+            {
+                updatedNode = node.Update(expression, node.NullableAnnotation, node.Type);
+            }
+            return updatedNode;
+        }
+    }
+
     internal sealed class BoundTreeDumperNodeProducer : BoundTreeVisitor<object, TreeDumperNode>
     {
         private BoundTreeDumperNodeProducer()
