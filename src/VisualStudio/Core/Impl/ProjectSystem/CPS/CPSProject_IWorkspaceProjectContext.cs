@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private readonly IProjectCodeModel _projectCodeModel;
         private readonly ProjectExternalErrorReporter _externalErrorReporterOpt;
         private readonly EditAndContinue.VsENCRebuildableProjectImpl _editAndContinueProject;
-        private readonly bool _hasCommandLineStringService;
+        private readonly bool _hasCommandLineString;
 
         public string DisplayName
         {
@@ -66,10 +66,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             // If we have a command line parser service for this language, also set up our ability to process options if they come in
             if (visualStudioWorkspace.Services.GetLanguageServices(visualStudioProject.Language).GetService<ICommandLineParserService>() != null)
             {
+                _hasCommandLineString = false;
                 _visualStudioProjectOptionsProcessor = new VisualStudioProjectOptionsProcessor(_visualStudioProject, visualStudioWorkspace.Services);
             }
-
-            _hasCommandLineStringService = visualStudioWorkspace.Services.GetLanguageServices(visualStudioProject.Language).GetService<ICommandLineStringService>() != null;
+            else
+            {
+                _hasCommandLineString = true;
+            }
 
             // We don't have a SVsShellDebugger service in unit tests, in that case we can't implement ENC. We're OK
             // leaving the field null in that case.
@@ -135,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 _visualStudioProjectOptionsProcessor.CommandLine = commandLineForOptions;
             }
 
-            if (_hasCommandLineStringService)
+            if (_hasCommandLineString)
             {
                 _visualStudioProject.CommandLineOptions = commandLineForOptions;
             }

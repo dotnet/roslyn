@@ -130,7 +130,6 @@
     <InternalsVisibleTo Include="FSharp.LanguageService" Key="$(FSharpKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ManagedEditAndContinueService.vsdconfigxml" />
