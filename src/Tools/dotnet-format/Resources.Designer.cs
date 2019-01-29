@@ -118,6 +118,15 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Format files, but do not save changes to disk..
+        /// </summary>
+        internal static string Format_files_but_do_not_save_changes_to_disk {
+            get {
+                return ResourceManager.GetString("Format_files_but_do_not_save_changes_to_disk", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Formatting code file &apos;{0}&apos;..
         /// </summary>
         internal static string Formatting_code_file_0 {

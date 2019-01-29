@@ -180,4 +180,7 @@
   <data name="Maximum_number_of_workspace_warnings_to_log_has_been_reached_Set_the_verbosity_option_to_the_diagnostic_level_to_see_all_warnings" xml:space="preserve">
     <value>Maximum number of workspace warnings to log has been reached. Set the --verbosity option to the 'diagnostic' level to see all warnings.</value>
   </data>
+  <data name="Format_files_but_do_not_save_changes_to_disk" xml:space="preserve">
+    <value>Format files, but do not save changes to disk.</value>
+  </data>
 </root>
