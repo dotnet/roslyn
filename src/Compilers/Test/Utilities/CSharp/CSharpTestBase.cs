@@ -2032,6 +2032,22 @@ namespace System
         }
         #endregion
 
+        #region Theory Helpers
+
+        public static IEnumerable<object[]> NonNullTypesTrueAndFalse
+        {
+            get
+            {
+                return new List<object[]>()
+                {
+                    new object[] { WithNonNullTypesTrue() },
+                    new object[] { WithNonNullTypesFalse() }
+                };
+            }
+        }
+        #endregion
+
+
         protected static readonly string s_IAsyncEnumerable = @"
 namespace System.Collections.Generic
 {
