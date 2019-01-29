@@ -29,7 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private readonly IProjectCodeModel _projectCodeModel;
         private readonly ProjectExternalErrorReporter _externalErrorReporterOpt;
         private readonly EditAndContinue.VsENCRebuildableProjectImpl _editAndContinueProject;
-        private readonly bool _hasCommandLineString;
 
         public string DisplayName
         {
@@ -66,12 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             // If we have a command line parser service for this language, also set up our ability to process options if they come in
             if (visualStudioWorkspace.Services.GetLanguageServices(visualStudioProject.Language).GetService<ICommandLineParserService>() != null)
             {
-                _hasCommandLineString = false;
                 _visualStudioProjectOptionsProcessor = new VisualStudioProjectOptionsProcessor(_visualStudioProject, visualStudioWorkspace.Services);
-            }
-            else
-            {
-                _hasCommandLineString = true;
             }
 
             // We don't have a SVsShellDebugger service in unit tests, in that case we can't implement ENC. We're OK
@@ -137,9 +131,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             {
                 _visualStudioProjectOptionsProcessor.CommandLine = commandLineForOptions;
             }
-
-            if (_hasCommandLineString)
+            else
             {
+                // This is only used for F# right now.
                 _visualStudioProject.CommandLineOptions = commandLineForOptions;
             }
         }
