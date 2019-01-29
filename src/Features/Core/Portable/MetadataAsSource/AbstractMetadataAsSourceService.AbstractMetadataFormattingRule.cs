@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             protected abstract bool IsNewLine(char c);
 
             public override AdjustNewLinesOperation GetAdjustNewLinesOperation(
-                    SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextOperation<AdjustNewLinesOperation> nextOperation)
+                    SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 if (previousToken.RawKind == 0 || currentToken.RawKind == 0)
                 {

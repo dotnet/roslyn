@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
             [EditorBrowsable(EditorBrowsableState.Never)]
-            public override sealed AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextOperation<AdjustNewLinesOperation> nextOperation)
+            public override sealed AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 var nextOperationCopy = nextOperation;
                 return GetAdjustNewLinesOperationSlow(previousToken, currentToken, optionSet, ref nextOperationCopy);
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
             [EditorBrowsable(EditorBrowsableState.Never)]
-            public override sealed AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextOperation<AdjustSpacesOperation> nextOperation)
+            public override sealed AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustSpacesOperation nextOperation)
             {
                 var nextOperationCopy = nextOperation;
                 return GetAdjustSpacesOperationSlow(previousToken, currentToken, optionSet, ref nextOperationCopy);
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             /// <summary>
             /// returns AdjustNewLinesOperation between two tokens either by itself or by filtering/replacing a operation returned by NextOperation
             /// </summary>
-            public virtual AdjustNewLinesOperation GetAdjustNewLinesOperationSlow(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, ref NextOperation<AdjustNewLinesOperation> nextOperation)
+            public virtual AdjustNewLinesOperation GetAdjustNewLinesOperationSlow(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, ref NextGetAdjustNewLinesOperation nextOperation)
             {
                 return base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, in nextOperation);
             }
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             /// <summary>
             /// returns AdjustSpacesOperation between two tokens either by itself or by filtering/replacing a operation returned by NextOperation
             /// </summary>
-            public virtual AdjustSpacesOperation GetAdjustSpacesOperationSlow(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, ref NextOperation<AdjustSpacesOperation> nextOperation)
+            public virtual AdjustSpacesOperation GetAdjustSpacesOperationSlow(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, ref NextGetAdjustSpacesOperation nextOperation)
             {
                 return base.GetAdjustSpacesOperation(previousToken, currentToken, optionSet, in nextOperation);
             }
