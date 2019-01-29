@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             _vbHelperFormattingRule = vbHelperFormattingRule;
         }
 
-        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextAction<IndentBlockOperation> nextOperation)
+        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextIndentBlockOperationAction nextOperation)
         {
             // for the common node itself, return absolute indentation
             if (_commonNode == node)
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             AdjustIndentBlockOperation(list);
         }
 
-        private void AddNextIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextAction<IndentBlockOperation> nextOperation)
+        private void AddNextIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextIndentBlockOperationAction nextOperation)
         {
             if (_vbHelperFormattingRule == null)
             {

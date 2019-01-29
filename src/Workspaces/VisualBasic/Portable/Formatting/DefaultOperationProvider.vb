@@ -22,13 +22,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Overrides Sub AddSuppressOperationsSlow(operations As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextSuppressOperationAction)
         End Sub
 
-        Public Overrides Sub AddAnchorIndentationOperationsSlow(operations As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextAction(Of AnchorIndentationOperation))
+        Public Overrides Sub AddAnchorIndentationOperationsSlow(operations As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextAnchorIndentationOperationAction)
         End Sub
 
-        Public Overrides Sub AddIndentBlockOperationsSlow(operations As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextAction(Of IndentBlockOperation))
+        Public Overrides Sub AddIndentBlockOperationsSlow(operations As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextIndentBlockOperationAction)
         End Sub
 
-        Public Overrides Sub AddAlignTokensOperationsSlow(operations As List(Of AlignTokensOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextAction(Of AlignTokensOperation))
+        Public Overrides Sub AddAlignTokensOperationsSlow(operations As List(Of AlignTokensOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextAlignTokensOperationAction)
         End Sub
 
         Public Overrides Function GetAdjustNewLinesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextOperation(Of AdjustNewLinesOperation)) As AdjustNewLinesOperation

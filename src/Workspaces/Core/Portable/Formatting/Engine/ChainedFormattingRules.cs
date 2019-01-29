@@ -21,9 +21,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         //
         // each of these operations will be called hundreds of thousands times during formatting,
         // make sure it doesn't allocate any memory during invocations.
-        private readonly ActionCache<AnchorIndentationOperation> _anchorFuncCache;
-        private readonly ActionCache<IndentBlockOperation> _indentFuncCache;
-        private readonly ActionCache<AlignTokensOperation> _alignFuncCache;
         private readonly OperationCache<AdjustNewLinesOperation> _newLinesFuncCache;
         private readonly OperationCache<AdjustSpacesOperation> _spaceFuncCache;
 
@@ -36,18 +33,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             _optionSet = set;
 
             // cache all funcs to reduce heap allocations
-            _anchorFuncCache = new ActionCache<AnchorIndentationOperation>(
-                (int index, List<AnchorIndentationOperation> list, SyntaxNode node, in NextAction<AnchorIndentationOperation> next) => _formattingRules[index].AddAnchorIndentationOperations(list, node, _optionSet, in next),
-                this.AddContinuedOperations);
-
-            _indentFuncCache = new ActionCache<IndentBlockOperation>(
-                (int index, List<IndentBlockOperation> list, SyntaxNode node, in NextAction<IndentBlockOperation> next) => _formattingRules[index].AddIndentBlockOperations(list, node, _optionSet, in next),
-                this.AddContinuedOperations);
-
-            _alignFuncCache = new ActionCache<AlignTokensOperation>(
-                (int index, List<AlignTokensOperation> list, SyntaxNode node, in NextAction<AlignTokensOperation> next) => _formattingRules[index].AddAlignTokensOperations(list, node, _optionSet, in next),
-                this.AddContinuedOperations);
-
             _newLinesFuncCache = new OperationCache<AdjustNewLinesOperation>(
                 (int index, SyntaxToken token1, SyntaxToken token2, in NextOperation<AdjustNewLinesOperation> next) => _formattingRules[index].GetAdjustNewLinesOperation(token1, token2, _optionSet, in next),
                 this.GetContinuedOperations);
@@ -65,17 +50,20 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode currentNode)
         {
-            AddContinuedOperations(0, list, currentNode, _anchorFuncCache);
+            var action = new NextAnchorIndentationOperationAction(_formattingRules, index: 0, currentNode, _optionSet, list);
+            action.Invoke();
         }
 
         public void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode currentNode)
         {
-            AddContinuedOperations(0, list, currentNode, _indentFuncCache);
+            var action = new NextIndentBlockOperationAction(_formattingRules, index: 0, currentNode, _optionSet, list);
+            action.Invoke();
         }
 
         public void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode currentNode)
         {
-            AddContinuedOperations(0, list, currentNode, _alignFuncCache);
+            var action = new NextAlignTokensOperationAction(_formattingRules, index: 0, currentNode, _optionSet, list);
+            action.Invoke();
         }
 
         public AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
@@ -86,22 +74,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         public AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
         {
             return GetContinuedOperations(0, previousToken, currentToken, _spaceFuncCache);
-        }
-
-        private void AddContinuedOperations<TArg1>(int index, List<TArg1> arg1, SyntaxNode node, in ActionCache<TArg1> actionCache)
-        {
-            // If we have no remaining handlers to execute, then we'll execute our last handler
-            if (index >= _formattingRules.Length)
-            {
-                return;
-            }
-            else
-            {
-                // Call the handler at the index, passing a continuation that will come back to here with index + 1
-                var continuation = new NextAction<TArg1>(index + 1, node, actionCache);
-                actionCache.NextOperation(index, arg1, node, in continuation);
-                return;
-            }
         }
 
         private TResult GetContinuedOperations<TResult>(int index, SyntaxToken token1, SyntaxToken token2, in OperationCache<TResult> funcCache)

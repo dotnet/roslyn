@@ -9,8 +9,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
     Friend NotInheritable Class ChangeSignatureFormattingRule
         Inherits BaseFormattingRule
 
-        Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextAction(Of IndentBlockOperation))
-            nextOperation.Invoke(list)
+        Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextIndentBlockOperationAction)
+            nextOperation.Invoke()
 
             If node.IsKind(SyntaxKind.ParameterList) OrElse node.IsKind(SyntaxKind.ArgumentList) Then
 

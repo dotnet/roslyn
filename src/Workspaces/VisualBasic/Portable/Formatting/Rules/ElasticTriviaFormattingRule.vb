@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             nextOperation.Invoke()
         End Sub
 
-        Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextAction(Of IndentBlockOperation))
-            nextOperation.Invoke(list)
+        Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextIndentBlockOperationAction)
+            nextOperation.Invoke()
 
             If node.Kind = SyntaxKind.ObjectMemberInitializer Then
                 Dim initializer = DirectCast(node, ObjectMemberInitializerSyntax)
@@ -58,8 +58,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Overrides Sub AddAlignTokensOperationsSlow(list As List(Of AlignTokensOperation),
                                                       node As SyntaxNode,
                                                       optionSet As OptionSet,
-                                                      ByRef nextOperation As NextAction(Of AlignTokensOperation))
-            nextOperation.Invoke(list)
+                                                      ByRef nextOperation As NextAlignTokensOperationAction)
+            nextOperation.Invoke()
 
             If node.Kind = SyntaxKind.ObjectMemberInitializer Then
                 Dim initializer = DirectCast(node, ObjectMemberInitializerSyntax)

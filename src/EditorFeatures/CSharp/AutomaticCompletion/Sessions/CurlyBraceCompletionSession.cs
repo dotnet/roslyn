@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 return base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, in nextOperation);
             }
 
-            public override void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, OptionSet optionSet, in NextAction<AlignTokensOperation> nextOperation)
+            public override void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, OptionSet optionSet, in NextAlignTokensOperationAction nextOperation)
             {
                 base.AddAlignTokensOperations(list, node, optionSet, in nextOperation);
                 if (optionSet.GetOption(SmartIndent, node.Language) == IndentStyle.Block)

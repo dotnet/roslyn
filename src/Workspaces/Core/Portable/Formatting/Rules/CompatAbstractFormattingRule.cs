@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public override sealed void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, in NextAction<AnchorIndentationOperation> nextOperation)
+        public override sealed void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, in NextAnchorIndentationOperationAction nextOperation)
         {
             var nextOperationCopy = nextOperation;
             AddAnchorIndentationOperationsSlow(list, node, optionSet, ref nextOperationCopy);
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public override sealed void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextAction<IndentBlockOperation> nextOperation)
+        public override sealed void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextIndentBlockOperationAction nextOperation)
         {
             var nextOperationCopy = nextOperation;
             AddIndentBlockOperationsSlow(list, node, optionSet, ref nextOperationCopy);
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public override sealed void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, OptionSet optionSet, in NextAction<AlignTokensOperation> nextOperation)
+        public override sealed void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, OptionSet optionSet, in NextAlignTokensOperationAction nextOperation)
         {
             var nextOperationCopy = nextOperation;
             AddAlignTokensOperationsSlow(list, node, optionSet, ref nextOperationCopy);
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// returns AnchorIndentationOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddAnchorIndentationOperationsSlow(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<AnchorIndentationOperation> nextOperation)
+        public virtual void AddAnchorIndentationOperationsSlow(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAnchorIndentationOperationAction nextOperation)
         {
             base.AddAnchorIndentationOperations(list, node, optionSet, in nextOperation);
         }
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// returns IndentBlockOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddIndentBlockOperationsSlow(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<IndentBlockOperation> nextOperation)
+        public virtual void AddIndentBlockOperationsSlow(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, ref NextIndentBlockOperationAction nextOperation)
         {
             base.AddIndentBlockOperations(list, node, optionSet, in nextOperation);
         }
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// returns AlignTokensOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddAlignTokensOperationsSlow(List<AlignTokensOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<AlignTokensOperation> nextOperation)
+        public virtual void AddAlignTokensOperationsSlow(List<AlignTokensOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAlignTokensOperationAction nextOperation)
         {
             base.AddAlignTokensOperations(list, node, optionSet, in nextOperation);
         }

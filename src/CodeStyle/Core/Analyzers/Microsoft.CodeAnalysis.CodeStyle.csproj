@@ -75,7 +75,6 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractTriviaDataFactory.FormattedWhitespace.cs" Link="Formatting\Engine\AbstractTriviaDataFactory.FormattedWhitespace.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractTriviaDataFactory.ModifiedWhitespace.cs" Link="Formatting\Engine\AbstractTriviaDataFactory.ModifiedWhitespace.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractTriviaDataFactory.Whitespace.cs" Link="Formatting\Engine\AbstractTriviaDataFactory.Whitespace.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\ActionCache`1.cs" Link="Formatting\Engine\ActionCache`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\ChainedFormattingRules.cs" Link="Formatting\Engine\ChainedFormattingRules.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\NodeOperations.cs" Link="Formatting\Engine\NodeOperations.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\OperationCache`1.cs" Link="Formatting\Engine\OperationCache`1.cs" />
