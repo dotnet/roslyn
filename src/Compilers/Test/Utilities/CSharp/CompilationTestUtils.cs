@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 string toDisplayString(SyntaxNode syntaxOpt)
                 {
                     // We don't support VerifyTypes on suppressions at the moment
-                    Debug.Assert(syntaxOpt.Kind() != SyntaxKind.SuppressNullableWarningExpression);
+                    Assert.NotEqual(syntaxOpt.Kind(), SyntaxKind.SuppressNullableWarningExpression);
 
                     return (syntaxOpt != null) && dictionary.TryGetValue(syntaxOpt, out var type)
                         ? (type.IsNull ? "<null>" : type.ToDisplayString(TypeSymbolWithAnnotations.TestDisplayFormat))

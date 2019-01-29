@@ -100,6 +100,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        protected void CopyAttributes(BoundNode original)
+        {
+            if (this.WasCompilerGenerated)
+            {
+                this.WasCompilerGenerated = original.WasCompilerGenerated;
+            }
+
+            Debug.Assert(original is BoundExpression || !original.IsSuppressed);
+            if (original.IsSuppressed)
+            {
+                this.IsSuppressed = original.IsSuppressed;
+            }
+        }
+
         /// <remarks>
         /// NOTE: not generally set in rewriters.
         /// </remarks>

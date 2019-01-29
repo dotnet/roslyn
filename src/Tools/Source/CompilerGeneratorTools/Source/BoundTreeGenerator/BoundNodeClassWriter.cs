@@ -885,13 +885,13 @@ namespace BoundTreeGenerator
             {
                 WriteAccept(node.Name);
                 WriteUpdateMethod(node as Node);
-                WriteWithSuppressionMethodIfNeeded(node as Node);
+                WriteShallowCloneMethodIfNeeded(node as Node);
             }
 
             WriteClassFooter(node);
         }
 
-        private void WriteWithSuppressionMethodIfNeeded(Node node)
+        private void WriteShallowCloneMethodIfNeeded(Node node)
         {
             if (SkipShallowClone(node))
             {
@@ -912,8 +912,7 @@ namespace BoundTreeGenerator
                             var fields = new[] { "this.Syntax" }.Concat(AllSpecifiableFields(node).Select(f => $"this.{f.Name}")).Concat(new[] { "this.HasErrors" });
                             ParenList(fields);
                             WriteLine(";");
-                            WriteLine("result.WasCompilerGenerated = this.WasCompilerGenerated;");
-                            WriteLine("result.IsSuppressed = this.IsSuppressed;");
+                            WriteLine("result.CopyAttributes(this);");
                             WriteLine("return result;");
                             Unbrace();
                         }
@@ -958,11 +957,7 @@ namespace BoundTreeGenerator
                             var fields = new[] { "this.Syntax" }.Concat(AllSpecifiableFields(node).Select(f => ToCamelCase(f.Name))).Concat(new[] { "this.HasErrors" });
                             ParenList(fields);
                             WriteLine(";");
-                            WriteLine("result.WasCompilerGenerated = this.WasCompilerGenerated;");
-                            if (IsDerivedType("BoundExpression", node.Name))
-                            {
-                                WriteLine("result.IsSuppressed = this.IsSuppressed;");
-                            }
+                            WriteLine("result.CopyAttributes(this);");
                             WriteLine("return result;");
                             Unbrace();
                         }
@@ -994,13 +989,7 @@ namespace BoundTreeGenerator
                             var fields = new[] { "Me.Syntax" }.Concat(AllSpecifiableFields(node).Select(f => ToCamelCase(f.Name))).Concat(new[] { "Me.HasErrors" });
                             ParenList(fields);
                             WriteLine("");
-                            WriteLine("");
-                            WriteLine("If Me.WasCompilerGenerated Then");
-                            Indent();
-                            WriteLine("result.SetWasCompilerGenerated()");
-                            Outdent();
-                            WriteLine("End If");
-                            WriteLine("");
+                            WriteLine("result.CopyAttributes(Me)");
                             WriteLine("Return result");
                             Outdent();
                             WriteLine("End If");
@@ -1632,17 +1621,17 @@ namespace BoundTreeGenerator
 
         private static bool IsNew(Field f)
         {
-            return f.New != null && string.Compare(f.New, "true", true) == 0;
+            return string.Compare(f.New, "true", true) == 0;
         }
 
         private static bool IsPropertyOverrides(Field f)
         {
-            return f.PropertyOverrides != null && string.Compare(f.PropertyOverrides, "true", true) == 0;
+            return string.Compare(f.PropertyOverrides, "true", true) == 0;
         }
 
         private static bool SkipInVisitor(Field f)
         {
-            return f.SkipInVisitor != null && string.Compare(f.SkipInVisitor, "true", true) == 0;
+            return string.Compare(f.SkipInVisitor, "true", true) == 0;
         }
 
         private static bool SkipShallowClone(Node n)

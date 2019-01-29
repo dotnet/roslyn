@@ -1493,6 +1493,25 @@ class C
         }
 
         [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_VoidInvocation()
+        {
+            var src = @"
+class C
+{
+    void M()
+    {
+        _ = M()!;
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8209: A value of type 'void' may not be assigned.
+                //         _ = M()!;
+                Diagnostic(ErrorCode.ERR_VoidAssignment, "_").WithLocation(6, 9)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
         public void CS0023ERR_BadUnaryOp_lambdaExpression()
         {
             var text = @"
@@ -1507,8 +1526,13 @@ class X
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(arg => { arg = 2; return arg; } !).ToString").WithArguments(".", "lambda expression"),
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(delegate { } !).ToString").WithArguments(".", "anonymous method"));
+                // (6,35): error CS0023: Operator '.' cannot be applied to operand of type 'lambda expression'
+                //         System.Func<int, int> f = (arg => { arg = 2; return arg; } !).ToString();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(arg => { arg = 2; return arg; } !).ToString").WithArguments(".", "lambda expression").WithLocation(6, 35),
+                // (8,17): error CS0023: Operator '.' cannot be applied to operand of type 'anonymous method'
+                //         var x = (delegate { } !).ToString();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(delegate { } !).ToString").WithArguments(".", "anonymous method").WithLocation(8, 17)
+                );
         }
 
         [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
@@ -1517,45 +1541,20 @@ class X
             var text = @"
 class Program
 {
-    public int P1
-    {
-        set { }
-    }
-
-    public void V() { }
-
     static void Main(string[] args)
     {
-        var x = 123 ?.ToString();
-
-        var p = new Program();
-        var x1 = p.P1 ?.ToString();
-        var x2 = p.V() ?.ToString();
-        var x3 = p.V ?.ToString();
         var x4 = (()=> { return 1; } !) ?.ToString();
     }
 }
 ";
 
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (13,21): error CS0023: Operator '?' cannot be applied to operand of type 'int'
-                //         var x = 123 ?.ToString();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "int").WithLocation(13, 21),
-                // (16,18): error CS0154: The property or indexer 'Program.P1' cannot be used in this context because it lacks the get accessor
-                //         var x1 = p.P1 ?.ToString();
-                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "p.P1").WithArguments("Program.P1").WithLocation(16, 18),
-                // (17,24): error CS0023: Operator '?' cannot be applied to operand of type 'void'
-                //         var x2 = p.V() ?.ToString();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "void").WithLocation(17, 24),
-                // (18,20): error CS0119: 'Program.V()' is a method, which is not valid in the given context
-                //         var x3 = p.V ?.ToString();
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "V").WithArguments("Program.V()", "method").WithLocation(18, 20),
-                // (19,18): error CS0023: Operator '?' cannot be applied to operand of type 'lambda expression'
+                // (6,18): error CS0023: Operator '?' cannot be applied to operand of type 'lambda expression'
                 //         var x4 = (()=> { return 1; } !) ?.ToString();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(()=> { return 1; } !) ?.ToString()").WithArguments("?", "lambda expression").WithLocation(19, 18),
-                // (19,18): error CS0023: Operator '?' cannot be applied to operand of type 'lambda expression'
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(()=> { return 1; } !) ?.ToString()").WithArguments("?", "lambda expression").WithLocation(6, 18),
+                // (6,18): error CS0023: Operator '?' cannot be applied to operand of type 'lambda expression'
                 //         var x4 = (()=> { return 1; } !) ?.ToString();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(()=> { return 1; } !) ?.ToString()").WithArguments("?", "lambda expression").WithLocation(19, 18)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(()=> { return 1; } !) ?.ToString()").WithArguments("?", "lambda expression").WithLocation(6, 18)
                 );
         }
 
@@ -1910,10 +1909,10 @@ class C
         _ = i ?? default!;
     }
     void M2(object o)
-    /*<bind>*/{
+    {
         _ = o == default; // 7
         _ = o == default!; // 8
-    }/*</bind>*/
+    }
 }";
             // Should `!` be disallowed on arguments to dynamic (line // 1) ?
             // See https://github.com/dotnet/roslyn/issues/32364

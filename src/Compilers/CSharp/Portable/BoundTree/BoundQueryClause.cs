@@ -62,8 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override BoundExpression ShallowClone()
         {
             var result = new BoundQueryClause(this.Syntax, this.Value, this.DefinedSymbol, this.Operation, this.Cast, this.Binder, this.UnoptimizedForm, this.Type, this.HasErrors);
-            result.WasCompilerGenerated = this.WasCompilerGenerated;
-            result.IsSuppressed = this.IsSuppressed;
+            result.CopyAttributes(this);
             return result;
         }
     }
