@@ -39,19 +39,19 @@ class Program
 
 
             var s1 = comp.GetTypeByMetadataName("Program+S1");
-            Assert.False(s1.IsByRefLikeType);
+            Assert.False(s1.IsRefLikeType);
             Assert.True(s1.IsReadOnly);
             Assert.Equal(Accessibility.Private, s1.DeclaredAccessibility);
             Assert.Equal(TypeKind.Struct, s1.TypeKind);
 
             var s2 = comp.GetTypeByMetadataName("Program+S2");
-            Assert.False(s2.IsByRefLikeType);
+            Assert.False(s2.IsRefLikeType);
             Assert.True(s2.IsReadOnly);
             Assert.Equal(Accessibility.Public, s2.DeclaredAccessibility);
             Assert.Equal(TypeKind.Struct, s2.TypeKind);
 
             var s3 = comp.GetTypeByMetadataName("Program+S3");
-            Assert.False(s3.IsByRefLikeType);
+            Assert.False(s3.IsRefLikeType);
             Assert.True(s3.IsReadOnly);
             Assert.Equal(Accessibility.Public, s3.DeclaredAccessibility);
             Assert.Equal(TypeKind.Struct, s3.TypeKind);
@@ -113,19 +113,19 @@ class Program
             );
 
             var s1 = comp.GetTypeByMetadataName("Program+S1");
-            Assert.False(s1.IsByRefLikeType);
+            Assert.False(s1.IsRefLikeType);
             Assert.False(s1.IsReadOnly);
             Assert.Equal(Accessibility.Private, s1.DeclaredAccessibility);
             Assert.Equal(TypeKind.Class, s1.TypeKind);
 
             var s2 = comp.GetTypeByMetadataName("Program+S2");
-            Assert.False(s2.IsByRefLikeType);
+            Assert.False(s2.IsRefLikeType);
             Assert.False(s2.IsReadOnly);
             Assert.Equal(Accessibility.Public, s2.DeclaredAccessibility);
             Assert.Equal(TypeKind.Delegate, s2.TypeKind);
 
             var s3 = comp.GetTypeByMetadataName("Program+S3");
-            Assert.False(s3.IsByRefLikeType);
+            Assert.False(s3.IsRefLikeType);
             Assert.False(s3.IsReadOnly);
             Assert.Equal(Accessibility.Public, s3.DeclaredAccessibility);
             Assert.Equal(TypeKind.Interface, s3.TypeKind);
@@ -148,13 +148,13 @@ class Program
             );
 
             var s1 = comp.GetTypeByMetadataName("Program+S1");
-            Assert.True(s1.IsByRefLikeType);
+            Assert.True(s1.IsRefLikeType);
             Assert.True(s1.IsReadOnly);
             Assert.Equal(Accessibility.Private, s1.DeclaredAccessibility);
             Assert.Equal(TypeKind.Struct, s1.TypeKind);
 
             var s2 = comp.GetTypeByMetadataName("Program+S2");
-            Assert.True(s2.IsByRefLikeType);
+            Assert.True(s2.IsRefLikeType);
             Assert.True(s2.IsReadOnly);
             Assert.Equal(Accessibility.Public, s2.DeclaredAccessibility);
             Assert.Equal(TypeKind.Struct, s2.TypeKind);
@@ -181,11 +181,11 @@ class Program
             );
 
             var s1 = comp.GetTypeByMetadataName("Program+S1");
-            Assert.False(s1.IsByRefLikeType);
+            Assert.False(s1.IsRefLikeType);
             Assert.True(s1.IsReadOnly);
 
             var s2 = comp.GetTypeByMetadataName("Program+S2");
-            Assert.True(s2.IsByRefLikeType);
+            Assert.True(s2.IsRefLikeType);
             Assert.True(s2.IsReadOnly);
         }
 
@@ -215,15 +215,15 @@ class Program
             );
 
             var s1 = comp.GetTypeByMetadataName("Program+S1");
-            Assert.True(s1.IsByRefLikeType);
+            Assert.True(s1.IsRefLikeType);
             Assert.True(s1.IsReadOnly);
 
             var s2 = comp.GetTypeByMetadataName("Program+S2");
-            Assert.False(s2.IsByRefLikeType);
+            Assert.False(s2.IsRefLikeType);
             Assert.True(s2.IsReadOnly);
 
             var s3 = comp.GetTypeByMetadataName("Program+S3");
-            Assert.True(s3.IsByRefLikeType);
+            Assert.True(s3.IsRefLikeType);
             Assert.True(s3.IsReadOnly);
         }
     }

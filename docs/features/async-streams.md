@@ -67,14 +67,16 @@ An asynchronous `using` is lowered just like a regular `using`, except that `Dis
 ### Detailed design for `await foreach` statement
 
 An `await foreach` is lowered just like a regular `foreach`, except that:
-- `GetEnumerator()` is replaced with `await GetAsyncEnumerator(default)`
+- `GetEnumerator()` is replaced with `await GetAsyncEnumerator()`
 - `MoveNext()` is replaced with `await MoveNextAsync()`
 - `Dispose()` is replaced with `await DisposeAsync()`
+
+Note that pattern-based lookup for `GetAsyncEnumerator` and `MoveNextAsync` do not place particular requirements on those methods,
+as long as they could be invoked without arguments.
 
 Asynchronous foreach loops are disallowed on collections of type dynamic,
 as there is no asynchronous equivalent of the non-generic `IEnumerable` interface.
 
-The `CancellationToken` is always passed as `default` by the `await foreach` statement.
 But wrapper types can pass non-default values (see `.WithCancellation(CancellationToken)` extension method),
 thereby allowing consumers of async-streams to control cancellation.
 A producer of async-streams can make use of the cancellation token by writing an
@@ -99,7 +101,7 @@ finally
 ### Detailed design for async-iterator methods
 
 An async-iterator method is replaced by a kick-off method, which initializes a state machine. It does not start running the state machine (unlike kick-off methods for regular async method).
-The kick-off method method is marked with both `AsyncStateMachineAttribute` and `IteratorStateMachineAttribute`.
+The kick-off method method is marked with `AsyncIteratorStateMachineAttribute`.
 
 The state machine for an enumerable async-iterator method primarily implements `IAsyncEnumerable<T>` and `IAsyncEnumerator<T>`.
 For an enumerator async-iterator, it only implements `IAsyncEnumerator<T>`.
@@ -308,7 +310,7 @@ But if the suspension was a `yield return` (-N), you could also call DisposeAsyn
 
 When in dispose mode, MoveNext continues to suspend (N) and resume (-1) until the end of the method is reached (-2).
 
-The result of invoking `DisposeAsync` from states -1 or N is unspecified. This compiler throws `NotSupportException` for those cases.
+The result of invoking `DisposeAsync` from states -1 or N is unspecified. This compiler generates `throw new NotSupportException()` for those cases.
 
 ```
         DisposeAsync                              await

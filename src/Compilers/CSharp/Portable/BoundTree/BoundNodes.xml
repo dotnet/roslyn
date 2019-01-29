@@ -104,6 +104,13 @@
   <Node Name="BoundAwaitableValuePlaceholder" Base="BoundValuePlaceholderBase">
   </Node>
 
+  <!--
+  This node is used to represent an expression of a certain type, when attempting to bind its pattern dispose method
+  It does not survive past initial binding.
+  -->
+  <Node Name="BoundDisposableValuePlaceholder" Base="BoundValuePlaceholderBase">
+  </Node>
+
   <!-- only used by codegen -->
   <Node Name="BoundDup" Base="BoundExpression">
     <!-- when duplicating a local or parameter, must remember original ref kind -->
@@ -781,7 +788,13 @@
   <Node Name="BoundMultipleLocalDeclarations" Base="BoundStatement">
     <Field Name="LocalDeclarations" Type="ImmutableArray&lt;BoundLocalDeclaration&gt;"/>
   </Node>
- 
+
+  <Node Name="BoundUsingLocalDeclarations" Base="BoundMultipleLocalDeclarations">
+    <Field Name="DisposeMethodOpt" Type="MethodSymbol" Null="Allow"/>
+    <Field Name="IDisposableConversion" Type="Conversion"/>
+    <Field Name="AwaitOpt" Type="AwaitableInfo" Null="allow"/>
+  </Node>
+
   <!-- 
   Bound node that represents a local function declaration:
     void Foo() { }
@@ -947,6 +960,7 @@
     <Field Name="IDisposableConversion" Type="Conversion" />
     <Field Name="Body" Type="BoundStatement"/>
     <Field Name="AwaitOpt" Type="AwaitableInfo" Null="allow"/>
+    <Field Name="DisposeMethodOpt" Type="MethodSymbol" Null="allow"/>
   </Node>
 
   <Node Name="BoundFixedStatement" Base="BoundStatement">

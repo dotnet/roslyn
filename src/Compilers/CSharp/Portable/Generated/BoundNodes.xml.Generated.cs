@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         DeconstructValuePlaceholder,
         TupleOperandPlaceholder,
         AwaitableValuePlaceholder,
+        DisposableValuePlaceholder,
         Dup,
         PassByCopy,
         BadExpression,
@@ -82,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         StateMachineScope,
         LocalDeclaration,
         MultipleLocalDeclarations,
+        UsingLocalDeclarations,
         LocalFunctionStatement,
         NoOpStatement,
         ReturnStatement,
@@ -519,6 +521,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundAwaitableValuePlaceholder(this.Syntax, type, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundDisposableValuePlaceholder : BoundValuePlaceholderBase
+    {
+        public BoundDisposableValuePlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.DisposableValuePlaceholder, syntax, type, hasErrors)
+        {
+
+            Debug.Assert((object)type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+        }
+
+        public BoundDisposableValuePlaceholder(SyntaxNode syntax, TypeSymbol type)
+            : base(BoundKind.DisposableValuePlaceholder, syntax, type)
+        {
+
+            Debug.Assert((object)type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+        }
+
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitDisposableValuePlaceholder(this);
+        }
+
+        public BoundDisposableValuePlaceholder Update(TypeSymbol type)
+        {
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundDisposableValuePlaceholder(this.Syntax, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -2634,8 +2672,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundMultipleLocalDeclarations : BoundStatement
+    internal partial class BoundMultipleLocalDeclarations : BoundStatement
     {
+        protected BoundMultipleLocalDeclarations(BoundKind kind, SyntaxNode syntax, ImmutableArray<BoundLocalDeclaration> localDeclarations, bool hasErrors = false)
+            : base(kind, syntax, hasErrors)
+        {
+
+            Debug.Assert(!localDeclarations.IsDefault, "Field 'localDeclarations' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.LocalDeclarations = localDeclarations;
+        }
+
         public BoundMultipleLocalDeclarations(SyntaxNode syntax, ImmutableArray<BoundLocalDeclaration> localDeclarations, bool hasErrors = false)
             : base(BoundKind.MultipleLocalDeclarations, syntax, hasErrors || localDeclarations.HasErrors())
         {
@@ -2658,6 +2705,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (localDeclarations != this.LocalDeclarations)
             {
                 var result = new BoundMultipleLocalDeclarations(this.Syntax, localDeclarations, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundUsingLocalDeclarations : BoundMultipleLocalDeclarations
+    {
+        public BoundUsingLocalDeclarations(SyntaxNode syntax, MethodSymbol disposeMethodOpt, Conversion iDisposableConversion, AwaitableInfo awaitOpt, ImmutableArray<BoundLocalDeclaration> localDeclarations, bool hasErrors = false)
+            : base(BoundKind.UsingLocalDeclarations, syntax, localDeclarations, hasErrors || localDeclarations.HasErrors())
+        {
+
+            Debug.Assert(!localDeclarations.IsDefault, "Field 'localDeclarations' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.DisposeMethodOpt = disposeMethodOpt;
+            this.IDisposableConversion = iDisposableConversion;
+            this.AwaitOpt = awaitOpt;
+        }
+
+
+        public MethodSymbol DisposeMethodOpt { get; }
+
+        public Conversion IDisposableConversion { get; }
+
+        public AwaitableInfo AwaitOpt { get; }
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitUsingLocalDeclarations(this);
+        }
+
+        public BoundUsingLocalDeclarations Update(MethodSymbol disposeMethodOpt, Conversion iDisposableConversion, AwaitableInfo awaitOpt, ImmutableArray<BoundLocalDeclaration> localDeclarations)
+        {
+            if (disposeMethodOpt != this.DisposeMethodOpt || iDisposableConversion != this.IDisposableConversion || awaitOpt != this.AwaitOpt || localDeclarations != this.LocalDeclarations)
+            {
+                var result = new BoundUsingLocalDeclarations(this.Syntax, disposeMethodOpt, iDisposableConversion, awaitOpt, localDeclarations, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -3359,7 +3443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUsingStatement : BoundStatement
     {
-        public BoundUsingStatement(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundMultipleLocalDeclarations declarationsOpt, BoundExpression expressionOpt, Conversion iDisposableConversion, BoundStatement body, AwaitableInfo awaitOpt, bool hasErrors = false)
+        public BoundUsingStatement(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundMultipleLocalDeclarations declarationsOpt, BoundExpression expressionOpt, Conversion iDisposableConversion, BoundStatement body, AwaitableInfo awaitOpt, MethodSymbol disposeMethodOpt, bool hasErrors = false)
             : base(BoundKind.UsingStatement, syntax, hasErrors || declarationsOpt.HasErrors() || expressionOpt.HasErrors() || body.HasErrors())
         {
 
@@ -3372,6 +3456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.IDisposableConversion = iDisposableConversion;
             this.Body = body;
             this.AwaitOpt = awaitOpt;
+            this.DisposeMethodOpt = disposeMethodOpt;
         }
 
 
@@ -3387,16 +3472,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public AwaitableInfo AwaitOpt { get; }
 
+        public MethodSymbol DisposeMethodOpt { get; }
+
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitUsingStatement(this);
         }
 
-        public BoundUsingStatement Update(ImmutableArray<LocalSymbol> locals, BoundMultipleLocalDeclarations declarationsOpt, BoundExpression expressionOpt, Conversion iDisposableConversion, BoundStatement body, AwaitableInfo awaitOpt)
+        public BoundUsingStatement Update(ImmutableArray<LocalSymbol> locals, BoundMultipleLocalDeclarations declarationsOpt, BoundExpression expressionOpt, Conversion iDisposableConversion, BoundStatement body, AwaitableInfo awaitOpt, MethodSymbol disposeMethodOpt)
         {
-            if (locals != this.Locals || declarationsOpt != this.DeclarationsOpt || expressionOpt != this.ExpressionOpt || iDisposableConversion != this.IDisposableConversion || body != this.Body || awaitOpt != this.AwaitOpt)
+            if (locals != this.Locals || declarationsOpt != this.DeclarationsOpt || expressionOpt != this.ExpressionOpt || iDisposableConversion != this.IDisposableConversion || body != this.Body || awaitOpt != this.AwaitOpt || disposeMethodOpt != this.DisposeMethodOpt)
             {
-                var result = new BoundUsingStatement(this.Syntax, locals, declarationsOpt, expressionOpt, iDisposableConversion, body, awaitOpt, this.HasErrors);
+                var result = new BoundUsingStatement(this.Syntax, locals, declarationsOpt, expressionOpt, iDisposableConversion, body, awaitOpt, disposeMethodOpt, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -7443,6 +7530,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitTupleOperandPlaceholder(node as BoundTupleOperandPlaceholder, arg);
                 case BoundKind.AwaitableValuePlaceholder: 
                     return VisitAwaitableValuePlaceholder(node as BoundAwaitableValuePlaceholder, arg);
+                case BoundKind.DisposableValuePlaceholder: 
+                    return VisitDisposableValuePlaceholder(node as BoundDisposableValuePlaceholder, arg);
                 case BoundKind.Dup: 
                     return VisitDup(node as BoundDup, arg);
                 case BoundKind.PassByCopy: 
@@ -7553,6 +7642,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitLocalDeclaration(node as BoundLocalDeclaration, arg);
                 case BoundKind.MultipleLocalDeclarations: 
                     return VisitMultipleLocalDeclarations(node as BoundMultipleLocalDeclarations, arg);
+                case BoundKind.UsingLocalDeclarations: 
+                    return VisitUsingLocalDeclarations(node as BoundUsingLocalDeclarations, arg);
                 case BoundKind.LocalFunctionStatement: 
                     return VisitLocalFunctionStatement(node as BoundLocalFunctionStatement, arg);
                 case BoundKind.NoOpStatement: 
@@ -7825,6 +7916,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node, arg);
         }
+        public virtual R VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
         public virtual R VisitDup(BoundDup node, A arg)
         {
             return this.DefaultVisit(node, arg);
@@ -8042,6 +8137,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node, arg);
         }
         public virtual R VisitMultipleLocalDeclarations(BoundMultipleLocalDeclarations node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
+        public virtual R VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -8549,6 +8648,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node);
         }
+        public virtual BoundNode VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node)
+        {
+            return this.DefaultVisit(node);
+        }
         public virtual BoundNode VisitDup(BoundDup node)
         {
             return this.DefaultVisit(node);
@@ -8766,6 +8869,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitMultipleLocalDeclarations(BoundMultipleLocalDeclarations node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node)
         {
             return this.DefaultVisit(node);
         }
@@ -9277,6 +9384,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return null;
         }
+        public override BoundNode VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node)
+        {
+            return null;
+        }
         public override BoundNode VisitDup(BoundDup node)
         {
             return null;
@@ -9552,6 +9663,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
         public override BoundNode VisitMultipleLocalDeclarations(BoundMultipleLocalDeclarations node)
+        {
+            this.VisitList(node.LocalDeclarations);
+            return null;
+        }
+        public override BoundNode VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node)
         {
             this.VisitList(node.LocalDeclarations);
             return null;
@@ -10224,6 +10340,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(type);
         }
+        public override BoundNode VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node)
+        {
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(type);
+        }
         public override BoundNode VisitDup(BoundDup node)
         {
             TypeSymbol type = this.VisitType(node.Type);
@@ -10552,6 +10673,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundLocalDeclaration> localDeclarations = (ImmutableArray<BoundLocalDeclaration>)this.VisitList(node.LocalDeclarations);
             return node.Update(localDeclarations);
         }
+        public override BoundNode VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node)
+        {
+            ImmutableArray<BoundLocalDeclaration> localDeclarations = (ImmutableArray<BoundLocalDeclaration>)this.VisitList(node.LocalDeclarations);
+            return node.Update(node.DisposeMethodOpt, node.IDisposableConversion, node.AwaitOpt, localDeclarations);
+        }
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             BoundBlock blockBody = (BoundBlock)this.Visit(node.BlockBody);
@@ -10654,7 +10780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundMultipleLocalDeclarations declarationsOpt = (BoundMultipleLocalDeclarations)this.Visit(node.DeclarationsOpt);
             BoundExpression expressionOpt = (BoundExpression)this.Visit(node.ExpressionOpt);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
-            return node.Update(node.Locals, declarationsOpt, expressionOpt, node.IDisposableConversion, body, node.AwaitOpt);
+            return node.Update(node.Locals, declarationsOpt, expressionOpt, node.IDisposableConversion, body, node.AwaitOpt, node.DisposeMethodOpt);
         }
         public override BoundNode VisitFixedStatement(BoundFixedStatement node)
         {
@@ -11337,6 +11463,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             );
         }
+        public override TreeDumperNode VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node, object arg)
+        {
+            return new TreeDumperNode("disposableValuePlaceholder", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("type", node.Type, null)
+            }
+            );
+        }
         public override TreeDumperNode VisitDup(BoundDup node, object arg)
         {
             return new TreeDumperNode("dup", null, new TreeDumperNode[]
@@ -11901,6 +12035,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             );
         }
+        public override TreeDumperNode VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node, object arg)
+        {
+            return new TreeDumperNode("usingLocalDeclarations", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("disposeMethodOpt", node.DisposeMethodOpt, null),
+                new TreeDumperNode("iDisposableConversion", node.IDisposableConversion, null),
+                new TreeDumperNode("awaitOpt", node.AwaitOpt, null),
+                new TreeDumperNode("localDeclarations", null, from x in node.LocalDeclarations select Visit(x, null))
+            }
+            );
+        }
         public override TreeDumperNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node, object arg)
         {
             return new TreeDumperNode("localFunctionStatement", null, new TreeDumperNode[]
@@ -12084,7 +12229,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("expressionOpt", null, new TreeDumperNode[] { Visit(node.ExpressionOpt, null) }),
                 new TreeDumperNode("iDisposableConversion", node.IDisposableConversion, null),
                 new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
-                new TreeDumperNode("awaitOpt", node.AwaitOpt, null)
+                new TreeDumperNode("awaitOpt", node.AwaitOpt, null),
+                new TreeDumperNode("disposeMethodOpt", node.DisposeMethodOpt, null)
             }
             );
         }

@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         RecursivePattern = 9020,
         PropertyPatternClause = 9021,
         Subpattern = 9022,
-        DeconstructionPatternClause = 9023,
+        PositionalPatternClause = 9023,
         DiscardPattern = 9024,
         SwitchExpression = 9025,
         SwitchExpressionArm = 9026,
