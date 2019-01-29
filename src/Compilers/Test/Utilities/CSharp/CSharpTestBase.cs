@@ -2034,14 +2034,26 @@ namespace System
 
         #region Theory Helpers
 
-        public static IEnumerable<object[]> NonNullTypesTrueAndFalse
+        public static IEnumerable<object[]> NonNullTypesTrueAndFalseDebugDll
         {
             get
             {
                 return new List<object[]>()
                 {
-                    new object[] { WithNonNullTypesTrue() },
-                    new object[] { WithNonNullTypesFalse() }
+                    new object[] { WithNonNullTypesTrue(TestOptions.DebugDll) },
+                    new object[] { WithNonNullTypesFalse(TestOptions.DebugDll) }
+                };
+            }
+        }
+
+        public static IEnumerable<object[]> NonNullTypesTrueAndFalseReleaseDll
+        {
+            get
+            {
+                return new List<object[]>()
+                {
+                    new object[] { WithNonNullTypesTrue(TestOptions.ReleaseDll) },
+                    new object[] { WithNonNullTypesFalse(TestOptions.ReleaseDll) }
                 };
             }
         }
