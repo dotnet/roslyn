@@ -59316,6 +59316,8 @@ interface I2
             var compilation2 = CreateEmptyCompilation(source2, options: WithNonNullTypesTrue(TestOptions.ReleaseDll), references: new[] { compilation1.EmitToImageReference(), MinCorlibRef });
 
             compilation2.VerifyEmitDiagnostics();
+
+            // Verification against a corlib not named exactly mscorlib is expected to fail.
             CompileAndVerify(compilation2, verify: Verification.Fails);
 
             Assert.Equal(TypeKind.Struct, compilation2.GetTypeByMetadataName("A").TypeKind);

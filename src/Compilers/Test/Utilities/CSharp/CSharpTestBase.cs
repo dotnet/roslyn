@@ -2059,7 +2059,6 @@ namespace System
         }
         #endregion
 
-
         protected static readonly string s_IAsyncEnumerable = @"
 namespace System.Collections.Generic
 {
