@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Public Overrides Sub AddAlignTokensOperations(operations As List(Of AlignTokensOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextAction(Of AlignTokensOperation))
+        Public Overrides Sub AddAlignTokensOperationsSlow(operations As List(Of AlignTokensOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextAction(Of AlignTokensOperation))
             nextOperation.Invoke(operations)
 
             Dim queryExpression = TryCast(node, QueryExpressionSyntax)

@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
         End Function
 
         Private Class FormattingRule
-            Inherits AbstractMetadataFormattingRule
+            Inherits CompatAbstractMetadataFormattingRule
 
             Protected Overrides Function GetAdjustNewLinesOperationBetweenMembersAndUsings(token1 As SyntaxToken, token2 As SyntaxToken) As AdjustNewLinesOperation
                 If token1.Kind = SyntaxKind.None OrElse token2.Kind = SyntaxKind.None Then
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
                 Return FormattingOperations.CreateAdjustNewLinesOperation(GetNumberOfLines(triviaList) + 1, AdjustNewLinesOption.ForceLines)
             End Function
 
-            Public Overrides Sub AddAnchorIndentationOperations(list As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextAction(Of AnchorIndentationOperation))
+            Public Overrides Sub AddAnchorIndentationOperationsSlow(list As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextAction(Of AnchorIndentationOperation))
                 Return
             End Sub
 

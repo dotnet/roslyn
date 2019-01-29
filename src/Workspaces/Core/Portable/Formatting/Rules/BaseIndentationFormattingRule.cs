@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             _vbHelperFormattingRule = vbHelperFormattingRule;
         }
 
-        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<IndentBlockOperation> nextOperation)
+        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextAction<IndentBlockOperation> nextOperation)
         {
             // for the common node itself, return absolute indentation
             if (_commonNode == node)
@@ -44,21 +44,21 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             }
 
             // Add everything to the list.
-            AddNextIndentBlockOperations(list, node, optionSet, ref nextOperation);
+            AddNextIndentBlockOperations(list, node, optionSet, in nextOperation);
 
             // Filter out everything that encompasses our span.
             AdjustIndentBlockOperation(list);
         }
 
-        private void AddNextIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<IndentBlockOperation> nextOperation)
+        private void AddNextIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextAction<IndentBlockOperation> nextOperation)
         {
             if (_vbHelperFormattingRule == null)
             {
-                base.AddIndentBlockOperations(list, node, optionSet, ref nextOperation);
+                base.AddIndentBlockOperations(list, node, optionSet, in nextOperation);
                 return;
             }
 
-            _vbHelperFormattingRule.AddIndentBlockOperations(list, node, optionSet, ref nextOperation);
+            _vbHelperFormattingRule.AddIndentBlockOperations(list, node, optionSet, in nextOperation);
         }
 
         private void AdjustIndentBlockOperation(List<IndentBlockOperation> list)

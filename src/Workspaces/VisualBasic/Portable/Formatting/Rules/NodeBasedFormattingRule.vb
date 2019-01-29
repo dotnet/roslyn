@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Inherits BaseFormattingRule
         Friend Const Name As String = "VisualBasic Node Based Formatting Rule"
 
-        Public Overrides Sub AddAnchorIndentationOperations(operations As List(Of AnchorIndentationOperation),
+        Public Overrides Sub AddAnchorIndentationOperationsSlow(operations As List(Of AnchorIndentationOperation),
                                                             node As SyntaxNode,
                                                             optionSet As OptionSet,
                                                             ByRef nextOperation As NextAction(Of AnchorIndentationOperation))
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return True
         End Function
 
-        Public Overrides Sub AddIndentBlockOperations(operations As List(Of IndentBlockOperation),
+        Public Overrides Sub AddIndentBlockOperationsSlow(operations As List(Of IndentBlockOperation),
                                                       node As SyntaxNode,
                                                       optionSet As OptionSet,
                                                       ByRef nextOperation As NextAction(Of IndentBlockOperation))

@@ -224,9 +224,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 return base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, in nextOperation);
             }
 
-            public override void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<AlignTokensOperation> nextOperation)
+            public override void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, OptionSet optionSet, in NextAction<AlignTokensOperation> nextOperation)
             {
-                base.AddAlignTokensOperations(list, node, optionSet, ref nextOperation);
+                base.AddAlignTokensOperations(list, node, optionSet, in nextOperation);
                 if (optionSet.GetOption(SmartIndent, node.Language) == IndentStyle.Block)
                 {
                     var bracePair = node.GetBracePair();
@@ -237,9 +237,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 }
             }
 
-            public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<SuppressOperation> nextOperation)
+            public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextAction<SuppressOperation> nextOperation)
             {
-                base.AddSuppressOperations(list, node, optionSet, ref nextOperation);
+                base.AddSuppressOperations(list, node, optionSet, in nextOperation);
 
                 // remove suppression rules for array and collection initializer
                 if (node.IsInitializerForArrayOrCollectionCreationExpression())

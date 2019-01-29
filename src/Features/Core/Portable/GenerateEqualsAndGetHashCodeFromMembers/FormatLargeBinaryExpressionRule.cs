@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             ///        ...
             /// </summary>
             public override void AddIndentBlockOperations(
-                List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<IndentBlockOperation> nextOperation)
+                List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextAction<IndentBlockOperation> nextOperation)
             {
                 if (_syntaxFacts.IsReturnStatement(node))
                 {

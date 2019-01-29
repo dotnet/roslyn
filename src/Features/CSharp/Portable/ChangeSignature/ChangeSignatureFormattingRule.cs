@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.BracketedArgumentList,
             SyntaxKind.AttributeArgumentList);
 
-        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<IndentBlockOperation> nextOperation)
+        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextAction<IndentBlockOperation> nextOperation)
         {
             nextOperation.Invoke(list);
 

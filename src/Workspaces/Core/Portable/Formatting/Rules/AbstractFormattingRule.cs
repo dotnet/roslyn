@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// Returns SuppressWrappingIfOnSingleLineOperations under a node either by itself or by
         /// filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<SuppressOperation> nextOperation)
+        public virtual void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextAction<SuppressOperation> nextOperation)
         {
             nextOperation.Invoke(list);
         }
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// returns AnchorIndentationOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<AnchorIndentationOperation> nextOperation)
+        public virtual void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, in NextAction<AnchorIndentationOperation> nextOperation)
         {
             nextOperation.Invoke(list);
         }
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// returns IndentBlockOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<IndentBlockOperation> nextOperation)
+        public virtual void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextAction<IndentBlockOperation> nextOperation)
         {
             nextOperation.Invoke(list);
         }
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// returns AlignTokensOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, OptionSet optionSet, ref NextAction<AlignTokensOperation> nextOperation)
+        public virtual void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, OptionSet optionSet, in NextAction<AlignTokensOperation> nextOperation)
         {
             nextOperation.Invoke(list);
         }

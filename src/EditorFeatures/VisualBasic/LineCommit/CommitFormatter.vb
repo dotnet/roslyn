@@ -254,9 +254,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Function
 
         Private Class NoAnchorFormatterRule
-            Inherits AbstractFormattingRule
+            Inherits CompatAbstractFormattingRule
 
-            Public Overrides Sub AddAnchorIndentationOperations(list As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextAction(Of AnchorIndentationOperation))
+            Public Overrides Sub AddAnchorIndentationOperationsSlow(list As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextAction(Of AnchorIndentationOperation))
                 ' no anchor/relative formatting
                 Return
             End Sub
