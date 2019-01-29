@@ -902,7 +902,7 @@ namespace Roslyn.Collections.Immutable
                 {
                     int physicalSlot = ComputePhysicalSlot(logicalSlot);
                     var newBuckets = _buckets.InsertAt(physicalSlot, bucket);
-                    var newUsed = BitOps.InsertBit(_used, logicalSlot);
+                    var newUsed = InsertBit(logicalSlot, _used);
                     return new HashBucket(_hashRoll, newUsed, newBuckets, _count + bucket.Count);
                 }
             }
@@ -927,7 +927,7 @@ namespace Roslyn.Collections.Immutable
                         }
                         else
                         {
-                            return new HashBucket(_hashRoll, BitOps.ClearBit(_used, logicalSlot), _buckets.RemoveAt(physicalSlot), _count - existing.Count);
+                            return new HashBucket(_hashRoll, RemoveBit(logicalSlot, _used), _buckets.RemoveAt(physicalSlot), _count - existing.Count);
                         }
                     }
                     else if (_buckets[physicalSlot] != result)
@@ -964,8 +964,15 @@ namespace Roslyn.Collections.Immutable
             private int ComputeLogicalSlot(int hc)
             {
                 uint uc = unchecked((uint)hc);
-                uint rotated = BitOps.RotateRight(uc, _hashRoll);
+                uint rotated = RotateRight(uc, _hashRoll);
                 return unchecked((int)(rotated & 31));
+            }
+
+            [Pure]
+            private static uint RotateRight(uint v, int n)
+            {
+                Debug.Assert(n >= 0 && n < 32);
+                return BitOps.RotateRight(uc, n);
             }
 
             private int ComputePhysicalSlot(int logicalSlot)
@@ -984,6 +991,20 @@ namespace Roslyn.Collections.Immutable
 
                 uint mask = uint.MaxValue >> (32 - logicalSlot); // only count the bits up to the logical slot #
                 return (int)BitOps.PopCount(_used & mask);
+            }
+
+            [Pure]
+            private static uint InsertBit(int position, uint bits)
+            {
+                Debug.Assert(0 == (bits & (1u << position)));
+                return BitOps.InsertBit(bits, position);
+            }
+
+            [Pure]
+            private static uint RemoveBit(int position, uint bits)
+            {
+                Debug.Assert(0 != (bits & (1u << position)));
+                return BitOps.ClearBit(bits, position);
             }
         }
 
