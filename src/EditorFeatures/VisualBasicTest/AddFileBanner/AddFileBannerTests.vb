@@ -114,9 +114,9 @@ class Program1
     end sub
 end class
         </Document>
-        <Document FilePath=""Bar.vb"">' This is the banner in Bar.cs
-' It goes over multiple lines.  This line has Baz.cs
-' The last line includes Bar.cs
+        <Document FilePath=""Bar.vb"">' This is the banner in Bar.vb
+' It goes over multiple lines.  This line has Baz.vb
+' The last line includes Bar.vb
 
 class Program2
 end class
@@ -126,9 +126,9 @@ end class
 "
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""Goo.vb"">' This is the banner in Goo.cs
-' It goes over multiple lines.  This line has Baz.cs
-' The last line includes Goo.cs
+        <Document FilePath=""Goo.vb"">' This is the banner in Goo.vb
+' It goes over multiple lines.  This line has Baz.vb
+' The last line includes Goo.vb
 
 Imports System
 
@@ -137,9 +137,9 @@ class Program1
     end sub
 end class
         </Document>
-        <Document FilePath=""Bar.vb"">' This is the banner in Bar.cs
-' It goes over multiple lines.  This line has Baz.cs
-' The last line includes Bar.cs
+        <Document FilePath=""Bar.vb"">' This is the banner in Bar.vb
+' It goes over multiple lines.  This line has Baz.vb
+' The last line includes Bar.vb
 
 class Program2
 end class
