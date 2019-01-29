@@ -329,10 +329,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Operator
 
         Public Overloads Shared Function Equals(left As TypeSymbol, right As TypeSymbol, comparison As TypeCompareKind) As Boolean
-            If left Is Nothing Then
-                Return right Is Nothing
-            End If
-
             Return left.IsSameType(right, comparison)
         End Function
 
