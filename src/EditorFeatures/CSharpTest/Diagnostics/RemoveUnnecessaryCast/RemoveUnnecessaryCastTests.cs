@@ -2013,14 +2013,8 @@ class Program
 
         [WorkItem(26640, "https://github.com/dotnet/roslyn/issues/26640")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNumericImplicitConstantCastInObjectCast()
+        public async Task DontRemoveCastToByteFromIntInConditionalExpression()
         {
-            //return b ? [|(byte)1 : (byte)0|];
-            //return [|(byte)1|];
-            /*int tr = 1;
-            int fr = 0;
-            return [|b ? (byte)tr : (byte)fr|];
-             */
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
@@ -2033,7 +2027,7 @@ class Program
 
         [WorkItem(26640, "https://github.com/dotnet/roslyn/issues/26640")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNumericImplicitNumericCastInObjectCast()
+        public async Task DontRemoveCastToDoubleFromIntInConditionalExpression()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -2047,7 +2041,7 @@ class Program
 
         [WorkItem(26640, "https://github.com/dotnet/roslyn/issues/26640")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontRemoveNumericImplicitCharCastWithSameReturnTypeInObjectCast()
+        public async Task DontRemoveCastToUIntFromCharInConditionalExpression()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
