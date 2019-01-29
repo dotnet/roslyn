@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     public abstract class CSharpTestBase : CommonTestBase
     {
+        #region Source Definitions Helpers 
+
         protected const string NullableAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
@@ -409,6 +411,8 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
+        #endregion
+
         protected static CSharpCompilationOptions WithNonNullTypesTrue(CSharpCompilationOptions options = null)
         {
             return WithNonNullTypes(options, NullableContextOptions.Enable);
@@ -454,7 +458,7 @@ namespace System.Runtime.CompilerServices
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) =>
+            Verification? verify = null) =>
             CompileAndVerify(
                 source,
                 references,
@@ -488,7 +492,7 @@ namespace System.Runtime.CompilerServices
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) =>
+            Verification? verify = null) =>
             CompileAndVerify(
                 source,
                 references,
@@ -523,7 +527,7 @@ namespace System.Runtime.CompilerServices
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes)
+            Verification? verify = null)
         {
             options = options ?? TestOptions.ReleaseDll.WithOutputKind((expectedOutput != null) ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary);
             var compilation = CreateExperimentalCompilationWithMscorlib45(source, feature, references, options, parseOptions, assemblyName: GetUniqueName());
@@ -562,7 +566,7 @@ namespace System.Runtime.CompilerServices
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) =>
+            Verification? verify = null) =>
             CompileAndVerify(
                 source,
                 references,
@@ -596,7 +600,7 @@ namespace System.Runtime.CompilerServices
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) =>
+            Verification? verify = null) =>
             CompileAndVerify(
                 source,
                 references,
@@ -631,9 +635,10 @@ namespace System.Runtime.CompilerServices
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
             TargetFramework targetFramework = TargetFramework.Standard,
-            Verification verify = Verification.Passes)
+            Verification? verify = null)
         {
             options = options ?? TestOptions.ReleaseDll.WithOutputKind((expectedOutput != null) ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary);
+            verify = verify ?? TargetFrameworkUtil.GetVerification(targetFramework, references);
             var compilation = CreateCompilation(source, references, options, parseOptions, targetFramework, assemblyName: GetUniqueName());
             return CompileAndVerify(
                 compilation,
@@ -647,7 +652,7 @@ namespace System.Runtime.CompilerServices
                 expectedReturnCode,
                 args,
                 emitOptions,
-                verify);
+                verify.Value);
         }
 
         internal CompilationVerifier CompileAndVerify(
