@@ -44,14 +44,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
         }
 
-        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, ref NextOperation<AdjustNewLinesOperation> nextOperation)
+        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextOperation<AdjustNewLinesOperation> nextOperation)
         {
             if (previousToken.Kind() == SyntaxKind.CommaToken && s_allowableKinds.Contains(previousToken.Parent.Kind()))
             {
                 return FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
             }
 
-            return base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, ref nextOperation);
+            return base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, in nextOperation);
         }
     }
 }

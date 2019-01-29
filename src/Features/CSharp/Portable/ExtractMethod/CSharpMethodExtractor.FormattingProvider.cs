@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
             }
 
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, ref NextOperation<AdjustNewLinesOperation> nextOperation)
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextOperation<AdjustNewLinesOperation> nextOperation)
             {
                 // for extract method case, for a hybrid case, don't force rule, but preserve user style
-                var operation = base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, ref nextOperation);
+                var operation = base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, in nextOperation);
                 if (operation == null)
                 {
                     return null;

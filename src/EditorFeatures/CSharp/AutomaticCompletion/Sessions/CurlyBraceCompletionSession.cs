@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
 
             public static readonly AbstractFormattingRule Instance = new BraceCompletionFormattingRule();
 
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, ref NextOperation<AdjustNewLinesOperation> nextOperation)
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextOperation<AdjustNewLinesOperation> nextOperation)
             {
                 // Eg Cases -
                 // new MyObject {
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                     }
                 }
 
-                return base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, ref nextOperation);
+                return base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, in nextOperation);
             }
 
             public override void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<AlignTokensOperation> nextOperation)

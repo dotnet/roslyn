@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
     ''' i.e. both branches will be on a newline, indented once from the parent indentation.
     ''' </summary>
     Friend Class MultiLineConditionalExpressionFormattingRule
-        Inherits AbstractFormattingRule
+        Inherits CompatAbstractFormattingRule
 
         Public Shared ReadOnly Instance As New MultiLineConditionalExpressionFormattingRule()
 
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
             Return False
         End Function
 
-        Public Overrides Function GetAdjustNewLinesOperation(
+        Public Overrides Function GetAdjustNewLinesOperationSlow(
                 previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextOperation(Of AdjustNewLinesOperation)) As AdjustNewLinesOperation
             If IsCommaOfNewConditional(previousToken) Then
                 ' We want to force the expressions after the commas to be put on the 

@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 
     Friend Class SpecialFormattingRule
-        Inherits AbstractFormattingRule
+        Inherits CompatAbstractFormattingRule
 
         Public Sub New()
         End Sub
@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             ' don't suppress anything
         End Sub
 
-        Public Overrides Function GetAdjustNewLinesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextOperation(Of AdjustNewLinesOperation)) As AdjustNewLinesOperation
+        Public Overrides Function GetAdjustNewLinesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextOperation(Of AdjustNewLinesOperation)) As AdjustNewLinesOperation
 
             ' unlike regular one. force position of attribute
             Dim attributeNode = TryCast(previousToken.Parent, AttributeListSyntax)
@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             End If
 
             ' no line operation. no line changes what so ever
-            Dim lineOperation = MyBase.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, nextOperation)
+            Dim lineOperation = MyBase.GetAdjustNewLinesOperationSlow(previousToken, currentToken, optionSet, nextOperation)
             If lineOperation IsNot Nothing Then
                 ' basically means don't ever put new line if there isn't already one, but do
                 ' indentation.
@@ -38,8 +38,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             Return Nothing
         End Function
 
-        Public Overrides Function GetAdjustSpacesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextOperation(Of AdjustSpacesOperation)) As AdjustSpacesOperation
-            Dim spaceOperation = MyBase.GetAdjustSpacesOperation(previousToken, currentToken, optionSet, nextOperation)
+        Public Overrides Function GetAdjustSpacesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextOperation(Of AdjustSpacesOperation)) As AdjustSpacesOperation
+            Dim spaceOperation = MyBase.GetAdjustSpacesOperationSlow(previousToken, currentToken, optionSet, nextOperation)
 
             ' if there is force space operation, convert it to ForceSpaceIfSingleLine operation.
             ' (force space basically means remove all line breaks)

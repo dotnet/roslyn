@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
         End Sub
 
-        Public Overrides Function GetAdjustSpacesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As Rules.NextOperation(Of AdjustSpacesOperation)) As AdjustSpacesOperation
+        Public Overrides Function GetAdjustSpacesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As Rules.NextOperation(Of AdjustSpacesOperation)) As AdjustSpacesOperation
             ' if it doesn't have elastic trivia, pass it through
             If Not CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken) Then
                 Return nextOperation.Invoke()
@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return operation
         End Function
 
-        Public Overrides Function GetAdjustNewLinesOperation(
+        Public Overrides Function GetAdjustNewLinesOperationSlow(
                 previousToken As SyntaxToken,
                 currentToken As SyntaxToken,
                 optionSet As OptionSet,

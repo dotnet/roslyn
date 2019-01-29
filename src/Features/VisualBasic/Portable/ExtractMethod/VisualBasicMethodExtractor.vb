@@ -113,9 +113,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         End Function
 
         Private Class FormattingRule
-            Inherits AbstractFormattingRule
+            Inherits CompatAbstractFormattingRule
 
-            Public Overrides Function GetAdjustNewLinesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextOperation(Of AdjustNewLinesOperation)) As AdjustNewLinesOperation
+            Public Overrides Function GetAdjustNewLinesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextOperation(Of AdjustNewLinesOperation)) As AdjustNewLinesOperation
                 If Not previousToken.IsLastTokenOfStatement() Then
                     Return nextOperation.Invoke()
                 End If

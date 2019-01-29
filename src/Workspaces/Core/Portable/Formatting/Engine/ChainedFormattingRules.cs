@@ -53,11 +53,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 this.AddContinuedOperations);
 
             _newLinesFuncCache = new OperationCache<AdjustNewLinesOperation>(
-                (int index, SyntaxToken token1, SyntaxToken token2, ref NextOperation<AdjustNewLinesOperation> next) => _formattingRules[index].GetAdjustNewLinesOperation(token1, token2, _optionSet, ref next),
+                (int index, SyntaxToken token1, SyntaxToken token2, in NextOperation<AdjustNewLinesOperation> next) => _formattingRules[index].GetAdjustNewLinesOperation(token1, token2, _optionSet, in next),
                 this.GetContinuedOperations);
 
             _spaceFuncCache = new OperationCache<AdjustSpacesOperation>(
-                (int index, SyntaxToken token1, SyntaxToken token2, ref NextOperation<AdjustSpacesOperation> next) => _formattingRules[index].GetAdjustSpacesOperation(token1, token2, _optionSet, ref next),
+                (int index, SyntaxToken token1, SyntaxToken token2, in NextOperation<AdjustSpacesOperation> next) => _formattingRules[index].GetAdjustSpacesOperation(token1, token2, _optionSet, in next),
                 this.GetContinuedOperations);
         }
 
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 // Call the handler at the index, passing a continuation that will come back to here with index + 1
                 var continuation = new NextOperation<TResult>(index + 1, token1, token2, funcCache);
-                return funcCache.NextOperation(index, token1, token2, ref continuation);
+                return funcCache.NextOperation(index, token1, token2, in continuation);
             }
         }
     }

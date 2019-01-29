@@ -8,14 +8,14 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
     Friend NotInheritable Class LineAdjustmentFormattingRule
-        Inherits AbstractFormattingRule
+        Inherits CompatAbstractFormattingRule
 
         Public Shared ReadOnly Instance As New LineAdjustmentFormattingRule()
 
         Private Sub New()
         End Sub
 
-        Public Overrides Function GetAdjustNewLinesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextOperation(Of AdjustNewLinesOperation)) As AdjustNewLinesOperation
+        Public Overrides Function GetAdjustNewLinesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextOperation(Of AdjustNewLinesOperation)) As AdjustNewLinesOperation
             If Not CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken) Then
                 Return nextOperation.Invoke()
             End If

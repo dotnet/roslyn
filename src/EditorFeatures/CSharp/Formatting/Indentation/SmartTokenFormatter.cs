@@ -118,10 +118,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
 
         private class NoLineChangeFormattingRule : AbstractFormattingRule
         {
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, ref NextOperation<AdjustNewLinesOperation> nextOperation)
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextOperation<AdjustNewLinesOperation> nextOperation)
             {
                 // no line operation. no line changes what so ever
-                var lineOperation = base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, ref nextOperation);
+                var lineOperation = base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, in nextOperation);
                 if (lineOperation != null)
                 {
                     // ignore force if same line option
@@ -146,9 +146,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 // don't suppress anything
             }
 
-            public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, ref NextOperation<AdjustSpacesOperation> nextOperation)
+            public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextOperation<AdjustSpacesOperation> nextOperation)
             {
-                var spaceOperation = base.GetAdjustSpacesOperation(previousToken, currentToken, optionSet, ref nextOperation);
+                var spaceOperation = base.GetAdjustSpacesOperation(previousToken, currentToken, optionSet, in nextOperation);
 
                 // if there is force space operation, convert it to ForceSpaceIfSingleLine operation.
                 // (force space basically means remove all line breaks)
