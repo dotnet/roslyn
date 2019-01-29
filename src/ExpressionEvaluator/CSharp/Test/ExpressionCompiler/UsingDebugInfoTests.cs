@@ -227,8 +227,7 @@ namespace B
     }
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/30030: C#8 projects require System.Attribute.
-            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib", parseOptions: TestOptions.Regular7).EmitToImageReference(aliases: ImmutableArray.Create("A"));
+            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib").EmitToImageReference(aliases: ImmutableArray.Create("A"));
             var comp = CreateCompilation(source, new[] { aliasedRef });
             WithRuntimeInstance(comp, runtime =>
             {
@@ -330,8 +329,7 @@ namespace D
     }
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/30030: C#8 projects require System.Attribute.
-            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib", parseOptions: TestOptions.Regular7).EmitToImageReference(aliases: ImmutableArray.Create("A"));
+            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib").EmitToImageReference(aliases: ImmutableArray.Create("A"));
             var comp = CreateCompilation(source, new[] { aliasedRef });
 
             WithRuntimeInstance(comp, runtime =>
