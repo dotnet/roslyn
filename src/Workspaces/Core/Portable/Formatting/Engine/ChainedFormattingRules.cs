@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -16,6 +17,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal class ChainedFormattingRules
     {
+        private static readonly ConcurrentDictionary<(Type type, string name), Type> s_typeImplementingMethod = new ConcurrentDictionary<(Type type, string name), Type>();
+
         private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
         private readonly OptionSet _optionSet;
 
@@ -103,7 +106,9 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private static Type GetTypeImplementingMethod(object obj, string name)
         {
-            return obj.GetType().GetRuntimeMethods().FirstOrDefault(method => method.Name == name)?.DeclaringType;
+            return s_typeImplementingMethod.GetOrAdd(
+                (obj.GetType(), name),
+                key => key.type.GetRuntimeMethods().FirstOrDefault(method => method.Name == key.name)?.DeclaringType);
         }
     }
 }
