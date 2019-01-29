@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy;
+using Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks;
+using static Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CodeModelTestHelpers;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests
 {

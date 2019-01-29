@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Host;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
+using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests
 {
