@@ -3029,8 +3029,9 @@ class C
             });
         }
 
-        [Fact]
-        public void EvaluateCapturedLocalsOutsideLambda()
+        [Theory]
+        [MemberData(nameof(NonNullTypesTrueAndFalseDebugDll))]
+        public void EvaluateCapturedLocalsOutsideLambda(CSharpCompilationOptions options)
         {
             var source =
 @"class A
@@ -3067,7 +3068,7 @@ class B : A
         }
     }
 }";
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: options);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
