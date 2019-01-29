@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         public static bool HasOneBitSet(long v)
         {
-            return CountOfBitsSet(v) == 1;
+            return BitOps.PopCount(v) == 1u;
         }
 
         public static int LogBase2(long v)
