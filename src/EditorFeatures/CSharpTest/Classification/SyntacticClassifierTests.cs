@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -2551,6 +2552,12 @@ namespace MyNamespace
         private void method(params object[] args)
         {
         }
+
+        private string aMethod(object o) => o switch
+        {
+            int => string.Empty,
+            _ when true => throw new System.Exception()
+        };
     }
 
     interface Bar
@@ -2558,6 +2565,7 @@ namespace MyNamespace
     }
 }
 #endregion TaoRegion",
+                new[] { new CSharpParseOptions(LanguageVersion.CSharp8) },
                 Keyword("using"),
                 Identifier("System"),
                 Punctuation.Semicolon,
@@ -3022,6 +3030,36 @@ namespace MyNamespace
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
+                Keyword("private"),
+                Keyword("string"),
+                Method("aMethod"),
+                Punctuation.OpenParen,
+                Keyword("object"),
+                Parameter("o"),
+                Punctuation.CloseParen,
+                Operators.EqualsGreaterThan,
+                Identifier("o"),
+                ControlKeyword("switch"),
+                Punctuation.OpenCurly,
+                Keyword("int"),
+                Operators.EqualsGreaterThan,
+                Keyword("string"),
+                Operators.Dot,
+                Identifier("Empty"),
+                Punctuation.Comma,
+                Keyword("_"),
+                ControlKeyword("when"),
+                Keyword("true"),
+                Operators.EqualsGreaterThan,
+                ControlKeyword("throw"),
+                Keyword("new"),
+                Identifier("System"),
+                Operators.Dot,
+                Identifier("Exception"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.CloseCurly,
+                Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Keyword("interface"),
                 Interface("Bar"),
