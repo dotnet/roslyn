@@ -1632,6 +1632,29 @@ class ClassA
 
         [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionDoesNotUseLocalNameMultiple()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+
+    void M()
+    {
+        ClassB classB = new ClassB();
+        ClassB classB1 = new ClassB();
+        ClassB $$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "classB");
+            await VerifyItemIsAbsentAsync(markup, "classB1");
+            await VerifyItemExistsAsync(markup, "classB2", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestCompletionCanUseClassName()
         {
             var markup = @"
