@@ -141,7 +141,7 @@ namespace Analyzer.Utilities
 
             private bool IsCaughtTypeDisallowed(ITypeSymbol caughtType)
             {
-                return caughtType == null || _disallowedCatchTypes.Any(type => caughtType == type);
+                return caughtType == null || _disallowedCatchTypes.Any(type => caughtType.Equals(type));
             }
         }
     }
