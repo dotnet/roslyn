@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
                         return null;
                     }
 
-                    return await formattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                     return formattedSourceText;
                 }, cancellationToken);
 
                 formattedDocuments.Add((documentId, formatTask));
