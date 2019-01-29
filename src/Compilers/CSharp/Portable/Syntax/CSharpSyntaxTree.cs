@@ -334,11 +334,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Creates a new syntax tree from a syntax node with text that should correspond to the syntax node.
         /// </summary>
         /// <remarks>This is used by the ExpressionEvaluator.</remarks>
-        internal static SyntaxTree CreateForDebugger(CSharpSyntaxNode root, SourceText text)
+        internal static SyntaxTree CreateForDebugger(CSharpSyntaxNode root, SourceText text, CSharpParseOptions options)
         {
             Debug.Assert(root != null);
 
-            return new DebuggerSyntaxTree(root, text);
+            return new DebuggerSyntaxTree(root, text, options);
         }
 
         /// <summary>

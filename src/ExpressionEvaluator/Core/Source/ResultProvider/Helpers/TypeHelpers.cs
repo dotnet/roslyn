@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmClrAppDomain appDomain,
             bool includeInherited,
             bool hideNonPublic,
-            bool isProxyType)
+            bool isProxyType,
+            bool includeCompilerGenerated)
         {
             Debug.Assert(!type.IsInterface);
 
@@ -65,9 +66,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 foreach (var member in type.GetMembers(MemberBindingFlags))
                 {
+                    var memberName = member.Name;
+                    if (!includeCompilerGenerated && memberName.IsCompilerGenerated())
+                    {
+                        continue;
+                    }
+
                     // The native EE shows proxy members regardless of accessibility if they have a
                     // DebuggerBrowsable attribute of any value. Match that behaviour here.
-                    if (!isProxyType || browsableState == null || !browsableState.ContainsKey(member.Name))
+                    if (!isProxyType || browsableState == null || !browsableState.ContainsKey(memberName))
                     {
                         if (!predicate(member))
                         {
@@ -75,7 +82,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         }
                     }
 
-                    var memberName = member.Name;
                     // This represents information about the immediately preceding (more derived)
                     // declaration with the same name as the current member.
                     var previousDeclaration = DeclarationInfo.None;

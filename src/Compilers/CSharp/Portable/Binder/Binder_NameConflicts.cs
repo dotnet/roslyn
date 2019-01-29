@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            bool allowShadowing = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticLocalFunctions);
+            bool allowShadowing = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions);
 
             for (Binder binder = this; binder != null; binder = binder.Next)
             {
@@ -114,14 +114,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                // If shadowing is enabled, avoid checking for conflicts outside of local functions.
-                if (allowShadowing)
+                // If shadowing is enabled, avoid checking for conflicts outside of local functions or lambdas.
+                if (allowShadowing && binder.IsNestedFunctionBinder)
                 {
-                    var containingMethod = (binder as InMethodBinder)?.ContainingMemberOrLambda as MethodSymbol;
-                    if (containingMethod?.MethodKind == MethodKind.LocalFunction)
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
 
