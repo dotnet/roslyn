@@ -1222,15 +1222,15 @@ End Class
             Assert.Same(symbol1.ContainingSymbol, symbol1.Parameters(0).Type)
 
             Dim match As Integer = 0
-            If TypeSymbol.Equals(TryCast(symbol1.ContainingSymbol, TypeSymbol), symbol1.ReturnType, TypeCompareKind.ConsiderEverything) Then
+            If TypeSymbol.Equals(symbol1.ContainingType, symbol1.ReturnType, TypeCompareKind.ConsiderEverything) Then
                 match += 1
             End If
 
-            If TypeSymbol.Equals(TryCast(symbol1.ContainingSymbol, TypeSymbol), symbol1.Parameters(0).Type, TypeCompareKind.ConsiderEverything) Then
+            If TypeSymbol.Equals(symbol1.ContainingType, symbol1.Parameters(0).Type, TypeCompareKind.ConsiderEverything) Then
                 match += 1
             End If
 
-            If TypeSymbol.Equals(TryCast(symbol1.ContainingSymbol, TypeSymbol), symbol1.Parameters(1).Type, TypeCompareKind.ConsiderEverything) Then
+            If TypeSymbol.Equals(symbol1.ContainingType, symbol1.Parameters(1).Type, TypeCompareKind.ConsiderEverything) Then
                 match += 1
             End If
 

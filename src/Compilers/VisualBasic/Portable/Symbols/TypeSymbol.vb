@@ -298,32 +298,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return other.Is(Me)
         End Function
 
-        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSybmol, TypeCompareKind) method.", True)>
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind) method.", True)>
         Public Overloads Shared Operator =(left As TypeSymbol, right As TypeSymbol) As Boolean
             Throw ExceptionUtilities.Unreachable
         End Operator
 
-        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSybmol, TypeCompareKind) method.", True)>
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind) method.", True)>
         Public Overloads Shared Operator <>(left As TypeSymbol, right As TypeSymbol) As Boolean
             Throw ExceptionUtilities.Unreachable
         End Operator
 
-        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSybmol, TypeCompareKind) method.", True)>
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind) method.", True)>
         Public Overloads Shared Operator =(left As Symbol, right As TypeSymbol) As Boolean
             Throw ExceptionUtilities.Unreachable
         End Operator
 
-        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSybmol, TypeCompareKind) method.", True)>
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind) method.", True)>
         Public Overloads Shared Operator <>(left As Symbol, right As TypeSymbol) As Boolean
             Throw ExceptionUtilities.Unreachable
         End Operator
 
-        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSybmol, TypeCompareKind) method.", True)>
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind) method.", True)>
         Public Overloads Shared Operator =(left As TypeSymbol, right As Symbol) As Boolean
             Throw ExceptionUtilities.Unreachable
         End Operator
 
-        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSybmol, TypeCompareKind) method.", True)>
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind) method.", True)>
         Public Overloads Shared Operator <>(left As TypeSymbol, right As Symbol) As Boolean
             Throw ExceptionUtilities.Unreachable
         End Operator

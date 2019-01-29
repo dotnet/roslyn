@@ -243,12 +243,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function IsSameType(t1 As TypeSymbol, t2 As TypeSymbol, compareKind As TypeCompareKind) As Boolean
             Debug.Assert((compareKind And Not (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)) = 0)
 
-            If compareKind = TypeCompareKind.ConsiderEverything Then
-                Return t1.Equals(t2)
-            End If
-
             If t1 Is t2 Then
                 Return True
+            ElseIf t1 Is Nothing OrElse t2 Is Nothing Then
+                Return False
+            End If
+
+            If compareKind = TypeCompareKind.ConsiderEverything Then
+                Return t1.Equals(t2)
             End If
 
             Dim kind = t1.Kind
@@ -291,7 +293,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If Not (t1IsDefinition AndAlso t2IsDefinition) Then ' This is a generic instantiation case
 
-                    If Not TypeSymbol.Equals(t1.OriginalDefinition, t2.OriginalDefinition, TypeCompareKind.ConsiderEverything) Then
+                    If Not t1.OriginalDefinition.Equals(t2.OriginalDefinition) Then
                         Return False ' different definition
                     End If
 
@@ -336,7 +338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            Return (TypeSymbol.Equals(t1, t2, TypeCompareKind.ConsiderEverything))
+            Return t1.Equals(t2)
         End Function
 
         Private Function HasSameTypeArgumentCustomModifiers(type1 As NamedTypeSymbol, type2 As NamedTypeSymbol) As Boolean

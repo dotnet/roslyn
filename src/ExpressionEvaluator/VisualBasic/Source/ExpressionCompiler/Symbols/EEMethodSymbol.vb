@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             generateMethodBody As GenerateMethodBody)
 
             Debug.Assert(sourceMethod.IsDefinition)
-            Debug.Assert(TypeSymbol.Equals(TryCast(sourceMethod.ContainingSymbol, TypeSymbol), container.SubstitutedSourceType.OriginalDefinition, TypeCompareKind.ConsiderEverything))
+            Debug.Assert(TypeSymbol.Equals(sourceMethod.ContainingType, container.SubstitutedSourceType.OriginalDefinition, TypeCompareKind.ConsiderEverything))
             Debug.Assert(sourceLocals.All(Function(l) l.ContainingSymbol = sourceMethod))
 
             _compilation = compilation
