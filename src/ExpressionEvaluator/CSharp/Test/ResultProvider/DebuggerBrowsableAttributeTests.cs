@@ -115,7 +115,7 @@ class C
         }
 
         [Fact]
-        public void HiddenMembers()
+        public void DuplicateAttributes()
         {
             var source =
 @"using System.Diagnostics;
@@ -123,11 +123,15 @@ abstract class A
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public object P1;
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    internal virtual object P2 { get { return 0; } }
 }
 class B : A
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     new public object P1 => base.P1;
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    internal override object P2 { get { return 0; } }
 }";
             var assembly = GetAssembly(source);
             var type = assembly.GetType("B");

@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
         /// because an actual VS <see cref="GetEvalAttributes(Type)"/> may return attributes from base types.
         /// Therefore, we do not check here for <see cref="BindingFlags.DeclaredOnly"/>.
         /// </summary>
-        internal const BindingFlags MemberBindingFlags = BindingFlags.Public |
+        private const BindingFlags MemberBindingFlags = BindingFlags.Public |
                                                          BindingFlags.NonPublic |
                                                          BindingFlags.Instance |
                                                          BindingFlags.Static;
