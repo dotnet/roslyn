@@ -143,12 +143,12 @@ namespace Analyzer.Utilities
                 return IsGenericCatch(operation) || _disallowedCatchTypes.Any(type => operation.ExceptionType.Equals(type));
             }
 
-            private bool IsGenericCatch(ICatchClauseOperation operation)
+            private static bool IsGenericCatch(ICatchClauseOperation operation)
             {
                 return operation.ExceptionType == null;
             }
 
-            private bool MightBeFilteringBasedOnTheCaughtException(ICatchClauseOperation operation)
+            private static bool MightBeFilteringBasedOnTheCaughtException(ICatchClauseOperation operation)
             {
                 return operation.ExceptionDeclarationOrExpression != null && operation.Filter != null;
             }
