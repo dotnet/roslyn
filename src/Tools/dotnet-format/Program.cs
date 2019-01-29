@@ -65,7 +65,11 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
                 MSBuildCoreLoader.LoadDotnetInstance(workspaceDirectory);
 
                 return await CodeFormatter.FormatWorkspaceAsync(
-                    logger, workspacePath, isSolution, logAllWorkspaceWarnings: logLevel == LogLevel.Trace, cancellationTokenSource.Token).ConfigureAwait(false);
+                    logger,
+                    workspacePath,
+                    isSolution,
+                    logAllWorkspaceWarnings: logLevel == LogLevel.Trace,
+                    cancellationTokenSource.Token).ConfigureAwait(false);
             }
             catch (FileNotFoundException fex)
             {
