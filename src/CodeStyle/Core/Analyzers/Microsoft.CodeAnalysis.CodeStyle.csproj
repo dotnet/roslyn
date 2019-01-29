@@ -99,7 +99,6 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\AbstractFormattingRule.cs" Link="Formatting\Rules\AbstractFormattingRule.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\BaseIndentationFormattingRule.cs" Link="Formatting\Rules\BaseIndentationFormattingRule.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\IActionHolder`1.cs" Link="Formatting\Rules\IActionHolder`1.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\IOperationHolder`1.cs" Link="Formatting\Rules\IOperationHolder`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NextAction`1.cs" Link="Formatting\Rules\NextAction`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NextOperation`1.cs" Link="Formatting\Rules\NextOperation`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Rules\NoOpFormattingRule.cs" Link="Formatting\Rules\NoOpFormattingRule.cs" />

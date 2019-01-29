@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        private TResult GetContinuedOperations<TResult>(int index, SyntaxToken token1, SyntaxToken token2, IOperationHolder<TResult> funcCache)
+        private TResult GetContinuedOperations<TResult>(int index, SyntaxToken token1, SyntaxToken token2, OperationCache<TResult> funcCache)
         {
             // If we have no remaining handlers to execute, then we'll execute our last handler
             if (index >= _formattingRules.Count)

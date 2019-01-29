@@ -8,17 +8,17 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// <summary>
     /// a delegate cache for a continuation style chaining
     /// </summary>
-    internal class OperationCache<TResult> : IOperationHolder<TResult>
+    internal readonly struct OperationCache<TResult>
     {
         public OperationCache(
             Func<int, SyntaxToken, SyntaxToken, NextOperation<TResult>, TResult> nextOperation,
-            Func<int, SyntaxToken, SyntaxToken, IOperationHolder<TResult>, TResult> continuation)
+            Func<int, SyntaxToken, SyntaxToken, OperationCache<TResult>, TResult> continuation)
         {
             this.NextOperation = nextOperation;
             this.Continuation = continuation;
         }
 
         public Func<int, SyntaxToken, SyntaxToken, NextOperation<TResult>, TResult> NextOperation { get; }
-        public Func<int, SyntaxToken, SyntaxToken, IOperationHolder<TResult>, TResult> Continuation { get; }
+        public Func<int, SyntaxToken, SyntaxToken, OperationCache<TResult>, TResult> Continuation { get; }
     }
 }
