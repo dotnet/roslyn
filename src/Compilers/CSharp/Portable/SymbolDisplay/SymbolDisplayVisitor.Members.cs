@@ -391,18 +391,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var name = format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) || symbol.ContainingType == null || symbol.ContainingType.IsAnonymousType
                         ? symbol.Name
                         : symbol.ContainingType.Name;
-                    builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, name));
+
+                    // In the case that symbol.containingType is null (which should never be the case here) we will fallback to the MethodName symbol part
+                    var displayPartKind = SymbolDisplayPartKind.MethodName;
+                    if (symbol.ContainingType != null)
+                    {
+                        displayPartKind = symbol.ContainingType.TypeKind == TypeKind.Class
+                            ? SymbolDisplayPartKind.ClassName
+                            : SymbolDisplayPartKind.StructName;
+                    }
+
+                    builder.Add(CreatePart(displayPartKind, symbol, name));
                     break;
                 case MethodKind.Destructor:
+                    // In the case that symbol.containingType is null (which should never be the case here) we will fallback to the MethodName symbol part
+                    var partKind = SymbolDisplayPartKind.MethodName;
+                    if (symbol.ContainingType != null)
+                    {
+                        partKind = symbol.ContainingType.TypeKind == TypeKind.Class
+                            ? SymbolDisplayPartKind.ClassName
+                            : SymbolDisplayPartKind.StructName;
+                    }
+
                     // Note: we are using the metadata name also in the case that symbol.containingType is null, which should never be the case here.
                     if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) || symbol.ContainingType == null)
                     {
-                        builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name));
+                        builder.Add(CreatePart(partKind, symbol, symbol.Name));
                     }
                     else
                     {
                         AddPunctuation(SyntaxKind.TildeToken);
-                        builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.ContainingType.Name));
+                        builder.Add(CreatePart(partKind, symbol, symbol.ContainingType.Name));
                     }
                     break;
                 case MethodKind.ExplicitInterfaceImplementation:

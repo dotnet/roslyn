@@ -257,6 +257,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
         private static string GetClassificationForMethod(IMethodSymbol methodSymbol)
         {
+            if (methodSymbol.MethodKind == MethodKind.Constructor)
+            {
+                return methodSymbol.ContainingType.TypeKind == TypeKind.Class
+                    ? ClassificationTypeNames.ClassName
+                    : ClassificationTypeNames.StructName;
+            }
+
             // Note: We only classify an extension method if it is in reduced form.
             // If an extension method is called as a static method invocation (e.g. Enumerable.Select(...)),
             // it is classified as an ordinary method.
