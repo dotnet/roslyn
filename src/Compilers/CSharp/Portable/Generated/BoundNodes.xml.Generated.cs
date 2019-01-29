@@ -11409,7 +11409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundDeconstructValuePlaceholder updatedNode = node.Update(node.ValEscape, type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -11422,7 +11422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundTupleOperandPlaceholder updatedNode = node.Update(type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -11435,7 +11435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundAwaitableValuePlaceholder updatedNode = node.Update(type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -11448,7 +11448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundDup updatedNode = node.Update(node.RefKind, type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -11461,7 +11461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(expression, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11479,7 +11479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.ResultKind, node.Symbols, childBoundNodes, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11497,7 +11497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.AliasOpt, node.InferredType, boundContainingTypeOpt, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11515,7 +11515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundTypeOrValueExpression updatedNode = node.Update(node.Data, type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -11528,7 +11528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundNamespaceExpression updatedNode = node.Update(node.NamespaceSymbol, node.AliasOpt);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -11541,7 +11541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11559,7 +11559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(expression, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11577,7 +11577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.OperatorKind, operand, node.MethodOpt, node.OperandConversion, node.ResultConversion, node.ResultKind, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11595,7 +11595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(operand, node.IsManaged, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11613,7 +11613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(operand, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11632,7 +11632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(expression, index, node.Checked, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11650,7 +11650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(operand, node.GetTypeFromHandle, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11668,7 +11668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(operand, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11686,7 +11686,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(operand, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11704,7 +11704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(operand, node.MethodOpt, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11723,7 +11723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(leftOperand, rightOperand, node.MethodOpt, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11742,7 +11742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.OperatorKind, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, left, right, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11763,7 +11763,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(left, right, convertedLeft, convertedRight, node.OperatorKind, node.Operators, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11782,7 +11782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.OperatorKind, node.LogicalOperator, node.TrueOperator, node.FalseOperator, node.ResultKind, left, right, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11801,7 +11801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.Operator, left, right, node.LeftConversion, node.FinalConversion, node.ResultKind, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11820,7 +11820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(left, right, node.IsRef, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11839,7 +11839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(left, right, node.IsUsed, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11858,7 +11858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(leftOperand, rightOperand, node.LeftConversion, node.OperatorResultKind, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11877,7 +11877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(leftOperand, rightOperand, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11897,7 +11897,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11916,7 +11916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(expression, indices, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11934,7 +11934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(expression, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11952,7 +11952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(expression, node.AwaitableInfo, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11970,7 +11970,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(sourceType, node.GetTypeFromHandle, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -11988,7 +11988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundMethodDefIndex updatedNode = node.Update(node.Method, type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12001,7 +12001,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundMaximumMethodDefIndex updatedNode = node.Update(type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12014,7 +12014,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundInstrumentationPayloadRoot updatedNode = node.Update(node.AnalysisKind, type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12027,7 +12027,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundModuleVersionId updatedNode = node.Update(type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12040,7 +12040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundModuleVersionIdString updatedNode = node.Update(type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12053,7 +12053,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundSourceDocumentIndex updatedNode = node.Update(node.Document, type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12066,7 +12066,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundMethodInfo updatedNode = node.Update(node.Method, node.GetMethodFromHandle, type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12079,7 +12079,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundFieldInfo updatedNode = node.Update(node.Field, node.GetFieldFromHandle, type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12092,7 +12092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundDefaultExpression updatedNode = node.Update(node.ConstantValueOpt, type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12106,7 +12106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(operand, targetType, node.Conversion, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12125,7 +12125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(operand, targetType, node.Conversion, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12143,7 +12143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(sourceType, node.ConstantValueOpt, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12161,7 +12161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(operand, node.Conversion, node.IsBaseConversion, node.Checked, node.ExplicitCastInCode, node.ConstantValueOpt, node.ConversionGroupOpt, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12179,7 +12179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundArgList updatedNode = node.Update(type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12192,7 +12192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(arguments, node.ArgumentRefKindsOpt, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12210,7 +12210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.ElementPointerType, node.ElementPointerTypeConversion, expression, node.GetPinnableOpt, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12228,7 +12228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundLiteral updatedNode = node.Update(node.ConstantValueOpt, type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12241,7 +12241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundThisReference updatedNode = node.Update(type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12254,7 +12254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundPreviousSubmissionReference updatedNode = node.Update(type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12267,7 +12267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundHostObjectMemberReference updatedNode = node.Update(type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12280,7 +12280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundBaseReference updatedNode = node.Update(type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12293,7 +12293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundLocal updatedNode = node.Update(node.LocalSymbol, node.DeclarationKind, node.ConstantValueOpt, node.IsNullableUnknown, type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12306,7 +12306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundPseudoVariable updatedNode = node.Update(node.LocalSymbol, node.EmitExpressions, type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12319,7 +12319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.RangeVariableSymbol, value, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12337,7 +12337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundParameter updatedNode = node.Update(node.ParameterSymbol, type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12350,7 +12350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundLabel updatedNode = node.Update(node.Label, type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12365,7 +12365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12383,7 +12383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(expression, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12402,7 +12402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.Locals, sideEffects, value, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12421,7 +12421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.Locals, sideEffects, value, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12439,7 +12439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(receiver, node.TypeArgumentsOpt, node.Name, node.Invoked, node.Indexed, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12458,7 +12458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.ApplicableMethods, expression, arguments, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12477,7 +12477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(receiver, accessExpression, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12497,7 +12497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(receiver, node.HasValueMethodOpt, whenNotNull, whenNullOpt, node.Id, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12515,7 +12515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundConditionalReceiver updatedNode = node.Update(node.Id, type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12529,7 +12529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(valueTypeReceiver, referenceTypeReceiver, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12547,7 +12547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.TypeArgumentsOpt, node.Name, node.Methods, node.LookupSymbolOpt, node.LookupError, node.Flags, receiverOpt, node.ResultKind);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12565,7 +12565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.Properties, receiverOpt, node.ResultKind);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12584,7 +12584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(receiverOpt, node.Method, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.ResultKind, node.BinderOpt, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12603,7 +12603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.Event, node.IsAddition, node.IsDynamic, receiverOpt, argument, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12622,7 +12622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.Constructor, constructorArguments, node.ConstructorArgumentNamesOpt, namedArguments, node.ResultKind, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12641,7 +12641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.Constructor, node.ConstructorsGroup, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, initializerExpressionOpt, node.BinderOpt, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12659,7 +12659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.ArgumentNamesOpt, node.InferredNamesOpt, arguments, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12677,7 +12677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.NaturalTypeOpt, arguments, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12696,7 +12696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.Name, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, initializerExpressionOpt, node.ApplicableMethods, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12714,7 +12714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.GuidString, initializerExpressionOpt, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12732,7 +12732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(initializers, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12750,7 +12750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.MemberSymbol, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, node.ReceiverType, node.BinderOpt, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12768,7 +12768,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundDynamicObjectInitializerMember updatedNode = node.Update(node.MemberName, node.ReceiverType, type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12781,7 +12781,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(initializers, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12800,7 +12800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.AddMethod, arguments, implicitReceiverOpt, node.Expanded, node.ArgsToParamsOpt, node.InvokedAsExtensionMethod, node.ResultKind, node.BinderOpt, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12819,7 +12819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.ApplicableMethods, expression, arguments, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12837,7 +12837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundImplicitReceiver updatedNode = node.Update(type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12851,7 +12851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.Constructor, arguments, declarations, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12869,7 +12869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundAnonymousPropertyDeclaration updatedNode = node.Update(node.Property, type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -12882,7 +12882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(initializerExpressionOpt, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12900,7 +12900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(argument, node.MethodOpt, node.IsExtensionMethod, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12919,7 +12919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(bounds, initializerOpt, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12937,7 +12937,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(initializers);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12956,7 +12956,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.ElementType, count, initializerOpt, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12975,7 +12975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.ElementType, count, initializerOpt, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -12993,7 +12993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(receiverOpt, node.FieldSymbol, node.ConstantValueOpt, node.ResultKind, node.IsByValue, node.IsDeclaration, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -13011,7 +13011,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundHoistedFieldAccess updatedNode = node.Update(node.FieldSymbol, type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -13024,7 +13024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(receiverOpt, node.PropertySymbol, node.ResultKind, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -13042,7 +13042,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(receiverOpt, node.EventSymbol, node.IsUsableAsField, node.ResultKind, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -13061,7 +13061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(receiverOpt, node.Indexer, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.BinderOpt, node.UseSetterForDefaultArgumentGeneration, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -13080,7 +13080,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(receiverOpt, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.ApplicableIndexers, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -13099,7 +13099,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(unboundLambda, node.Symbol, body, node.Diagnostics, node.Binder, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -13117,7 +13117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             UnboundLambda updatedNode = node.Update(node.Data);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -13130,7 +13130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(value, node.DefinedSymbol, node.Binder, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -13148,7 +13148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(argument, node.ConstantValueOpt, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -13166,7 +13166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(parts, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -13186,7 +13186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(value, alignment, format, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -13206,7 +13206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(expression, pattern, decisionDag, node.WhenTrueLabel, node.WhenFalseLabel, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -13224,7 +13224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             BoundDiscardExpression updatedNode = node.Update(type);
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -13237,7 +13237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(expression, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -13255,7 +13255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.VariableSymbol, receiverOpt);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -13273,7 +13273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(node.VariableSymbol, receiverOpt);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {
@@ -13291,7 +13291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
             OutDeconstructVarPendingInference updatedNode = node.Update();
-            updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+            updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             return updatedNode;
         }
 
@@ -13304,7 +13304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = _topLevelNullabilities[node].TypeSymbol;
                 updatedNode = node.Update(expression, node.NullableAnnotation, type);
-                updatedNode.SetTopLevelNullableAnnotation(_topLevelNullabilities[node].NullableAnnotation);
+                updatedNode.TopLevelNullability = _topLevelNullabilities[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
             }
             else
             {

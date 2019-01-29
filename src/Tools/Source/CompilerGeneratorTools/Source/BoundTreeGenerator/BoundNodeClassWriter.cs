@@ -1528,7 +1528,7 @@ namespace BoundTreeGenerator
 
                             void writeNullabilityUpdate()
                             {
-                                WriteLine($"updatedNode.SetTopLevelNullableAnnotation({topLevelNullabilities}[node].NullableAnnotation);");
+                                WriteLine($"updatedNode.TopLevelNullability = {topLevelNullabilities}[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);");
                             }
                         }
                         Unbrace();

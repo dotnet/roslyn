@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Annotated,    // Type is annotated - string?, T? where T : class; and for int?, T? where T : struct.
         NotNullable,  // Explicitly set by flow analysis
         Nullable,     // Explicitly set by flow analysis
-        NotComputed,  // Used for the public API only
     }
 
     internal static class NullableAnnotationExtensions
@@ -104,7 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static NullableAnnotation JoinForFlowAnalysisBranches<T>(this NullableAnnotation selfAnnotation, NullableAnnotation otherAnnotation, T type, Func<T, bool> isPossiblyNullableReferenceTypeTypeParameter)
         {
-            Debug.Assert(selfAnnotation != NullableAnnotation.NotComputed && otherAnnotation != NullableAnnotation.NotComputed);
             if (selfAnnotation == otherAnnotation)
             {
                 return selfAnnotation;
@@ -309,9 +307,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 case NullableAnnotation.Unknown:
                     return Nullability.Unknown;
-
-                case NullableAnnotation.NotComputed:
-                    return Nullability.NotComputed;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(annotation);

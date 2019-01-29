@@ -156,10 +156,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Top level nullability for the node. This should not be used by flow analysis: it
-        /// is lossy, and loses the distinction between NotAnnotated and NotNullable.
+        /// Top level nullability for the node. This should not be used by flow analysis.
         /// </summary>
-        protected NullableAnnotation TopLevelNullableAnnotation
+        protected Nullability TopLevelNullability
         {
             get
             {
@@ -169,16 +168,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (_attributes & BoundNodeAttributes.TopLevelNullabilityMask)
                 {
                     case BoundNodeAttributes.TopLevelNullable:
-                        return NullableAnnotation.Nullable;
+                        return Nullability.MayBeNull;
 
                     case BoundNodeAttributes.TopLevelNonNullable:
-                        return NullableAnnotation.NotNullable;
+                        return Nullability.NotNull;
 
                     case BoundNodeAttributes.TopLevelUnknown:
-                        return NullableAnnotation.Unknown;
+                        return Nullability.Unknown;
 
                     case BoundNodeAttributes.TopLevelNullableUnset:
-                        return NullableAnnotation.NotComputed;
+                        return Nullability.NotComputed;
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(_attributes);
@@ -190,21 +189,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((_attributes & BoundNodeAttributes.WasTopLevelNullabilityChecked) == 0,
                     "bound node nullability should not be set after reading it");
 #endif
-                // PROTOTYPE(nullable-api): Will likely need to handle generics specially in this conversion
                 _attributes &= ~BoundNodeAttributes.TopLevelNullabilityMask;
                 switch (value)
                 {
-                    case NullableAnnotation.Annotated:
-                    case NullableAnnotation.Nullable:
+                    case Nullability.MayBeNull:
                         _attributes |= BoundNodeAttributes.TopLevelNullable;
                         break;
 
-                    case NullableAnnotation.NotAnnotated:
-                    case NullableAnnotation.NotNullable:
+                    case Nullability.NotNull:
                         _attributes |= BoundNodeAttributes.TopLevelNonNullable;
                         break;
 
-                    case NullableAnnotation.Unknown:
+                    case Nullability.Unknown:
                         _attributes |= BoundNodeAttributes.TopLevelUnknown;
                         break;
 
