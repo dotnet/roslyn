@@ -162,7 +162,8 @@
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
     <StreamJsonRpcVersion>1.3.23</StreamJsonRpcVersion>
     <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
-    <SystemCommandLineExperimentalVersion>0.1.0-alpha-63227-01</SystemCommandLineExperimentalVersion>
+    <SystemCommandLineExperimentalVersion>0.1.0-alpha-63729-01</SystemCommandLineExperimentalVersion>
+    <SystemCommandLineRenderingVersion>0.1.0-alpha-63729-01</SystemCommandLineRenderingVersion>
     <SystemDrawingCommonVersion>4.5.0</SystemDrawingCommonVersion>
     <SystemIOFileSystemVersion>4.3.0</SystemIOFileSystemVersion>
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
