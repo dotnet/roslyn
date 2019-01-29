@@ -253,5 +253,60 @@ class Program2
     </Project>
 </Workspace>");
         }
+
+        [WorkItem(32792, "https://github.com/dotnet/roslyn/issues/32792")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddFileBanner)]
+        public async Task TestUpdateFileNameInComment2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""Goo.cs"">[||]using System;
+
+class Program1
+{
+    static void Main()
+    {
+    }
+}
+        </Document>
+        <Document FilePath=""Bar.cs"">/* This is the banner in Bar.cs
+ It goes over multiple lines.  This line has Baz.cs
+ The last line includes Bar.cs */
+
+class Program2
+{
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""Goo.cs"">/* This is the banner in Goo.cs
+ It goes over multiple lines.  This line has Baz.cs
+ The last line includes Goo.cs */
+
+using System;
+
+class Program1
+{
+    static void Main()
+    {
+    }
+}
+        </Document>
+        <Document FilePath=""Bar.cs"">/* This is the banner in Bar.cs
+ It goes over multiple lines.  This line has Baz.cs
+ The last line includes Bar.cs */
+
+class Program2
+{
+}
+        </Document>
+    </Project>
+</Workspace>");
+        }
     }
 }
