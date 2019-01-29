@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -76,13 +77,14 @@ namespace Analyzer.Utilities
             return method.GetAttributes().Any(attribute => attribute.AttributeClass.Equals(attributeType));
         }
 
-        private static ICollection<INamedTypeSymbol> GetDisallowedCatchTypes(Compilation compilation)
+        private static IReadOnlyCollection<INamedTypeSymbol> GetDisallowedCatchTypes(Compilation compilation)
         {
-            var disallowed = new List<INamedTypeSymbol>();
-            disallowed.Add(WellKnownTypes.Object(compilation));
-            disallowed.Add(WellKnownTypes.Exception(compilation));
-            disallowed.Add(WellKnownTypes.SystemException(compilation));
-            return disallowed;
+            return ImmutableHashSet.CreateRange(
+                new[] {
+                    WellKnownTypes.Object(compilation),
+                    WellKnownTypes.Exception(compilation),
+                    WellKnownTypes.SystemException(compilation)
+                }.Where(x => x != null));
         }
 
         /// <summary>
@@ -90,13 +92,13 @@ namespace Analyzer.Utilities
         /// </summary>
         private class DisallowGeneralCatchUnlessRethrowWalker : OperationWalker
         {
-            private readonly ICollection<INamedTypeSymbol> _disallowedCatchTypes;
+            private readonly IReadOnlyCollection<INamedTypeSymbol> _disallowedCatchTypes;
             private readonly bool _checkAnonymousFunctions;
             private readonly Stack<bool> _seenRethrowInCatchClauses = new Stack<bool>();
 
             public ISet<ICatchClauseOperation> CatchClausesForDisallowedTypesWithoutRethrow { get; } = new HashSet<ICatchClauseOperation>();
 
-            public DisallowGeneralCatchUnlessRethrowWalker(ICollection<INamedTypeSymbol> disallowedCatchTypes, bool checkAnonymousFunctions)
+            public DisallowGeneralCatchUnlessRethrowWalker(IReadOnlyCollection<INamedTypeSymbol> disallowedCatchTypes, bool checkAnonymousFunctions)
             {
                 _disallowedCatchTypes = disallowedCatchTypes;
                 _checkAnonymousFunctions = checkAnonymousFunctions;
