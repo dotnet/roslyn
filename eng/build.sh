@@ -242,7 +242,7 @@ function BuildSolution {
 
     test=true
     test_runtime="/p:TestRuntime=Mono"
-    mono_path=`command -v mono`
+    mono_path="$scriptroot/InvokeMono.sh"
     mono_tool="/p:MonoTool=\"$mono_path\""
   elif [[ "$test_core_clr" == true ]]; then
     test=true
