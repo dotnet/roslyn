@@ -7,13 +7,10 @@ namespace Test.Utilities
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
     public class WorkItemAttribute : Attribute
     {
-        private readonly int _id;
-        private readonly string _source;
-
+#pragma warning disable IDE0060 // Remove unused parameter
+#pragma warning disable CA1801 // Remove unused parameter
         public WorkItemAttribute(int id, string source)
         {
-            _id = id;
-            _source = source;
         }
     }
 }

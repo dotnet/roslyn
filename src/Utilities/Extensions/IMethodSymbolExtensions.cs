@@ -143,9 +143,8 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsImplementationOfInterfaceMethod(this IMethodSymbol method, ITypeSymbol typeArgument, INamedTypeSymbol interfaceType, string interfaceMethodName)
         {
             INamedTypeSymbol constructedInterface = typeArgument != null ? interfaceType?.Construct(typeArgument) : interfaceType;
-            var interfaceMethod = constructedInterface?.GetMembers(interfaceMethodName).Single() as IMethodSymbol;
 
-            return interfaceMethod != null && method.Equals(method.ContainingType.FindImplementationForInterfaceMember(interfaceMethod));
+            return constructedInterface?.GetMembers(interfaceMethodName).Single() is IMethodSymbol interfaceMethod && method.Equals(method.ContainingType.FindImplementationForInterfaceMember(interfaceMethod));
         }
 
         /// <summary>
