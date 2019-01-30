@@ -251,14 +251,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     throw new ArgumentNullException(nameof(value));
                 }
 
-                if (_activeBatchScopes > 0)
-                {
-                    _commandLineOptions = value;
-                }
-                else
-                {
-                    ChangeProjectProperty(ref _commandLineOptions, value, s => s.WithProjectCommandLineOptions(Id, value), w => w.OnProjectCommandLineOptionsChanged(Id, value));
-                }
+                ChangeProjectProperty(ref _commandLineOptions, value, s => s.WithProjectCommandLineOptions(Id, value), w => w.OnProjectCommandLineOptionsChanged(Id, value));
             }
         }
 
