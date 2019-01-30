@@ -263,6 +263,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 return options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Value;
             }
 
+            if (!options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent).Value)
+            {
+                return false;
+            }
             // If they want "var" whenever possible, then use "var".
             return options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible).Value;
         }
