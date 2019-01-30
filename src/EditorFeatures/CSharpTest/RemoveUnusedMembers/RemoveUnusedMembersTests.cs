@@ -2291,5 +2291,28 @@ static partial class B
     </Project>
 </Workspace>");
         }
+
+        [Fact, WorkItem(32842, "https://github.com/dotnet/roslyn/issues/32842")]
+        public async Task FieldIsRead_NullCoalesceAssignment()
+        {
+            await TestDiagnosticMissingAsync(@"
+public class MyClass
+{
+    private MyClass [|_field|];
+    public MyClass Property => _field ??= new MyClass();
+}", new TestParameters(retainNonFixableDiagnostics: true, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
+        }
+
+        [Fact, WorkItem(32842, "https://github.com/dotnet/roslyn/issues/32842")]
+        public async Task FieldIsNotRead_NullCoalesceAssignment()
+        {
+            await TestDiagnosticsAsync(@"
+public class MyClass
+{
+    private MyClass [|_field|];
+    public void M() => _field ??= new MyClass();
+}", new TestParameters(retainNonFixableDiagnostics: true, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)),
+    expected: Diagnostic("IDE0052"));
+        }
     }
 }

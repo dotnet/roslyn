@@ -266,11 +266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(arguments As ImmutableArray(Of TypeSymbol)) As BoundTypeArguments
             If arguments <> Me.Arguments Then
                 Dim result = New BoundTypeArguments(Me.Syntax, arguments, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -296,11 +292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(type As TypeSymbol) As BoundOmittedArgument
             If type IsNot Me.Type Then
                 Dim result = New BoundOmittedArgument(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -358,11 +350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(underlyingLValue As BoundExpression, type As TypeSymbol) As BoundLValueToRValueWrapper
             If underlyingLValue IsNot Me.UnderlyingLValue OrElse type IsNot Me.Type Then
                 Dim result = New BoundLValueToRValueWrapper(Me.Syntax, underlyingLValue, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -432,11 +420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(type As TypeSymbol) As BoundWithLValueExpressionPlaceholder
             If type IsNot Me.Type Then
                 Dim result = New BoundWithLValueExpressionPlaceholder(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -468,11 +452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(type As TypeSymbol) As BoundWithRValueExpressionPlaceholder
             If type IsNot Me.Type Then
                 Dim result = New BoundWithRValueExpressionPlaceholder(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -511,11 +491,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(type As TypeSymbol) As BoundRValuePlaceholder
             If type IsNot Me.Type Then
                 Dim result = New BoundRValuePlaceholder(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -554,11 +530,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(type As TypeSymbol) As BoundLValuePlaceholder
             If type IsNot Me.Type Then
                 Dim result = New BoundLValuePlaceholder(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -593,11 +565,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(isReference As Boolean, type As TypeSymbol) As BoundDup
             If isReference <> Me.IsReference OrElse type IsNot Me.Type Then
                 Dim result = New BoundDup(Me.Syntax, isReference, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -652,11 +620,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(resultKind As LookupResultKind, symbols As ImmutableArray(Of Symbol), childBoundNodes As ImmutableArray(Of BoundExpression), type As TypeSymbol) As BoundBadExpression
             If resultKind <> Me.ResultKind OrElse symbols <> Me.Symbols OrElse childBoundNodes <> Me.ChildBoundNodes OrElse type IsNot Me.Type Then
                 Dim result = New BoundBadExpression(Me.Syntax, resultKind, symbols, childBoundNodes, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -689,11 +653,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(childBoundNodes As ImmutableArray(Of BoundNode)) As BoundBadStatement
             If childBoundNodes <> Me.ChildBoundNodes Then
                 Dim result = New BoundBadStatement(Me.Syntax, childBoundNodes, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -731,11 +691,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(expression As BoundExpression, type As TypeSymbol) As BoundParenthesized
             If expression IsNot Me.Expression OrElse type IsNot Me.Type Then
                 Dim result = New BoundParenthesized(Me.Syntax, expression, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -776,11 +732,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(expression As BoundExpression, isLValue As Boolean, type As TypeSymbol) As BoundBadVariable
             If expression IsNot Me.Expression OrElse isLValue <> Me.IsLValue OrElse type IsNot Me.Type Then
                 Dim result = New BoundBadVariable(Me.Syntax, expression, isLValue, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -836,11 +788,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(expression As BoundExpression, indices As ImmutableArray(Of BoundExpression), isLValue As Boolean, type As TypeSymbol) As BoundArrayAccess
             If expression IsNot Me.Expression OrElse indices <> Me.Indices OrElse isLValue <> Me.IsLValue OrElse type IsNot Me.Type Then
                 Dim result = New BoundArrayAccess(Me.Syntax, expression, indices, isLValue, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -874,11 +822,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(expression As BoundExpression, type As TypeSymbol) As BoundArrayLength
             If expression IsNot Me.Expression OrElse type IsNot Me.Type Then
                 Dim result = New BoundArrayLength(Me.Syntax, expression, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -912,11 +856,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(sourceType As BoundTypeExpression, type As TypeSymbol) As BoundGetType
             If sourceType IsNot Me.SourceType OrElse type IsNot Me.Type Then
                 Dim result = New BoundGetType(Me.Syntax, sourceType, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -959,11 +899,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(field As FieldSymbol, type As TypeSymbol) As BoundFieldInfo
             If field IsNot Me.Field OrElse type IsNot Me.Type Then
                 Dim result = New BoundFieldInfo(Me.Syntax, field, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -1006,11 +942,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(method As MethodSymbol, type As TypeSymbol) As BoundMethodInfo
             If method IsNot Me.Method OrElse type IsNot Me.Type Then
                 Dim result = New BoundMethodInfo(Me.Syntax, method, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -1051,11 +983,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(unevaluatedReceiverOpt As BoundExpression, aliasOpt As AliasSymbol, type As TypeSymbol) As BoundTypeExpression
             If unevaluatedReceiverOpt IsNot Me.UnevaluatedReceiverOpt OrElse aliasOpt IsNot Me.AliasOpt OrElse type IsNot Me.Type Then
                 Dim result = New BoundTypeExpression(Me.Syntax, unevaluatedReceiverOpt, aliasOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -1096,11 +1024,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(data As BoundTypeOrValueData, type As TypeSymbol) As BoundTypeOrValueExpression
             If data <> Me.Data OrElse type IsNot Me.Type Then
                 Dim result = New BoundTypeOrValueExpression(Me.Syntax, data, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -1154,11 +1078,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(unevaluatedReceiverOpt As BoundExpression, aliasOpt As AliasSymbol, namespaceSymbol As NamespaceSymbol) As BoundNamespaceExpression
             If unevaluatedReceiverOpt IsNot Me.UnevaluatedReceiverOpt OrElse aliasOpt IsNot Me.AliasOpt OrElse namespaceSymbol IsNot Me.NamespaceSymbol Then
                 Dim result = New BoundNamespaceExpression(Me.Syntax, unevaluatedReceiverOpt, aliasOpt, namespaceSymbol, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -1201,11 +1121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(method As MethodSymbol, type As TypeSymbol) As BoundMethodDefIndex
             If method IsNot Me.Method OrElse type IsNot Me.Type Then
                 Dim result = New BoundMethodDefIndex(Me.Syntax, method, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -1237,11 +1153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(type As TypeSymbol) As BoundMaximumMethodDefIndex
             If type IsNot Me.Type Then
                 Dim result = New BoundMaximumMethodDefIndex(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -1291,11 +1203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(analysisKind As Integer, isLValue As Boolean, type As TypeSymbol) As BoundInstrumentationPayloadRoot
             If analysisKind <> Me.AnalysisKind OrElse isLValue <> Me.IsLValue OrElse type IsNot Me.Type Then
                 Dim result = New BoundInstrumentationPayloadRoot(Me.Syntax, analysisKind, isLValue, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -1336,11 +1244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(isLValue As Boolean, type As TypeSymbol) As BoundModuleVersionId
             If isLValue <> Me.IsLValue OrElse type IsNot Me.Type Then
                 Dim result = New BoundModuleVersionId(Me.Syntax, isLValue, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -1372,11 +1276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(type As TypeSymbol) As BoundModuleVersionIdString
             If type IsNot Me.Type Then
                 Dim result = New BoundModuleVersionIdString(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -1419,11 +1319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(document As Cci.DebugSourceDocument, type As TypeSymbol) As BoundSourceDocumentIndex
             If document IsNot Me.Document OrElse type IsNot Me.Type Then
                 Dim result = New BoundSourceDocumentIndex(Me.Syntax, document, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -1486,11 +1382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(operatorKind As UnaryOperatorKind, operand As BoundExpression, checked As Boolean, constantValueOpt As ConstantValue, type As TypeSymbol) As BoundUnaryOperator
             If operatorKind <> Me.OperatorKind OrElse operand IsNot Me.Operand OrElse checked <> Me.Checked OrElse constantValueOpt IsNot Me.ConstantValueOpt OrElse type IsNot Me.Type Then
                 Dim result = New BoundUnaryOperator(Me.Syntax, operatorKind, operand, checked, constantValueOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -1537,11 +1429,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(operatorKind As UnaryOperatorKind, underlyingExpression As BoundExpression, type As TypeSymbol) As BoundUserDefinedUnaryOperator
             If operatorKind <> Me.OperatorKind OrElse underlyingExpression IsNot Me.UnderlyingExpression OrElse type IsNot Me.Type Then
                 Dim result = New BoundUserDefinedUnaryOperator(Me.Syntax, operatorKind, underlyingExpression, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -1580,11 +1468,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(operand As BoundExpression, type As TypeSymbol) As BoundNullableIsTrueOperator
             If operand IsNot Me.Operand OrElse type IsNot Me.Type Then
                 Dim result = New BoundNullableIsTrueOperator(Me.Syntax, operand, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -1656,11 +1540,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(operatorKind As BinaryOperatorKind, left As BoundExpression, right As BoundExpression, checked As Boolean, constantValueOpt As ConstantValue, type As TypeSymbol) As BoundBinaryOperator
             If operatorKind <> Me.OperatorKind OrElse left IsNot Me.Left OrElse right IsNot Me.Right OrElse checked <> Me.Checked OrElse constantValueOpt IsNot Me.ConstantValueOpt OrElse type IsNot Me.Type Then
                 Dim result = New BoundBinaryOperator(Me.Syntax, operatorKind, left, right, checked, constantValueOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -1715,11 +1595,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(operatorKind As BinaryOperatorKind, underlyingExpression As BoundExpression, checked As Boolean, type As TypeSymbol) As BoundUserDefinedBinaryOperator
             If operatorKind <> Me.OperatorKind OrElse underlyingExpression IsNot Me.UnderlyingExpression OrElse checked <> Me.Checked OrElse type IsNot Me.Type Then
                 Dim result = New BoundUserDefinedBinaryOperator(Me.Syntax, operatorKind, underlyingExpression, checked, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -1782,11 +1658,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(leftOperand As BoundExpression, leftOperandPlaceholder As BoundRValuePlaceholder, leftTest As BoundExpression, bitwiseOperator As BoundUserDefinedBinaryOperator, type As TypeSymbol) As BoundUserDefinedShortCircuitingOperator
             If leftOperand IsNot Me.LeftOperand OrElse leftOperandPlaceholder IsNot Me.LeftOperandPlaceholder OrElse leftTest IsNot Me.LeftTest OrElse bitwiseOperator IsNot Me.BitwiseOperator OrElse type IsNot Me.Type Then
                 Dim result = New BoundUserDefinedShortCircuitingOperator(Me.Syntax, leftOperand, leftOperandPlaceholder, leftTest, bitwiseOperator, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -1818,11 +1690,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(type As TypeSymbol) As BoundCompoundAssignmentTargetPlaceholder
             If type IsNot Me.Type Then
                 Dim result = New BoundCompoundAssignmentTargetPlaceholder(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -1886,11 +1754,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(left As BoundExpression, leftOnTheRightOpt As BoundCompoundAssignmentTargetPlaceholder, right As BoundExpression, suppressObjectClone As Boolean, type As TypeSymbol) As BoundAssignmentOperator
             If left IsNot Me.Left OrElse leftOnTheRightOpt IsNot Me.LeftOnTheRightOpt OrElse right IsNot Me.Right OrElse suppressObjectClone <> Me.SuppressObjectClone OrElse type IsNot Me.Type Then
                 Dim result = New BoundAssignmentOperator(Me.Syntax, left, leftOnTheRightOpt, right, suppressObjectClone, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -1945,11 +1809,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(byRefLocal As BoundLocal, lValue As BoundExpression, isLValue As Boolean, type As TypeSymbol) As BoundReferenceAssignment
             If byRefLocal IsNot Me.ByRefLocal OrElse lValue IsNot Me.LValue OrElse isLValue <> Me.IsLValue OrElse type IsNot Me.Type Then
                 Dim result = New BoundReferenceAssignment(Me.Syntax, byRefLocal, lValue, isLValue, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -1991,11 +1851,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(binder As Binder, methodGroup As BoundMethodGroup) As BoundAddressOfOperator
             If binder IsNot Me.Binder OrElse methodGroup IsNot Me.MethodGroup Then
                 Dim result = New BoundAddressOfOperator(Me.Syntax, binder, methodGroup, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -2060,11 +1916,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(condition As BoundExpression, whenTrue As BoundExpression, whenFalse As BoundExpression, constantValueOpt As ConstantValue, type As TypeSymbol) As BoundTernaryConditionalExpression
             If condition IsNot Me.Condition OrElse whenTrue IsNot Me.WhenTrue OrElse whenFalse IsNot Me.WhenFalse OrElse constantValueOpt IsNot Me.ConstantValueOpt OrElse type IsNot Me.Type Then
                 Dim result = New BoundTernaryConditionalExpression(Me.Syntax, condition, whenTrue, whenFalse, constantValueOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -2136,11 +1988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(testExpression As BoundExpression, convertedTestExpression As BoundExpression, testExpressionPlaceholder As BoundRValuePlaceholder, elseExpression As BoundExpression, constantValueOpt As ConstantValue, type As TypeSymbol) As BoundBinaryConditionalExpression
             If testExpression IsNot Me.TestExpression OrElse convertedTestExpression IsNot Me.ConvertedTestExpression OrElse testExpressionPlaceholder IsNot Me.TestExpressionPlaceholder OrElse elseExpression IsNot Me.ElseExpression OrElse constantValueOpt IsNot Me.ConstantValueOpt OrElse type IsNot Me.Type Then
                 Dim result = New BoundBinaryConditionalExpression(Me.Syntax, testExpression, convertedTestExpression, testExpressionPlaceholder, elseExpression, constantValueOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -2238,11 +2086,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(operand As BoundExpression, conversionKind As ConversionKind, checked As Boolean, explicitCastInCode As Boolean, constantValueOpt As ConstantValue, extendedInfoOpt As BoundExtendedConversionInfo, type As TypeSymbol) As BoundConversion
             If operand IsNot Me.Operand OrElse conversionKind <> Me.ConversionKind OrElse checked <> Me.Checked OrElse explicitCastInCode <> Me.ExplicitCastInCode OrElse constantValueOpt IsNot Me.ConstantValueOpt OrElse extendedInfoOpt IsNot Me.ExtendedInfoOpt OrElse type IsNot Me.Type Then
                 Dim result = New BoundConversion(Me.Syntax, operand, conversionKind, checked, explicitCastInCode, constantValueOpt, extendedInfoOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -2296,11 +2140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(lambda As BoundLambda, receiverPlaceholderOpt As BoundRValuePlaceholder) As BoundRelaxationLambda
             If lambda IsNot Me.Lambda OrElse receiverPlaceholderOpt IsNot Me.ReceiverPlaceholderOpt Then
                 Dim result = New BoundRelaxationLambda(Me.Syntax, lambda, receiverPlaceholderOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -2347,11 +2187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(elementPlaceholders As ImmutableArray(Of BoundRValuePlaceholder), convertedElements As ImmutableArray(Of BoundExpression)) As BoundConvertedTupleElements
             If elementPlaceholders <> Me.ElementPlaceholders OrElse convertedElements <> Me.ConvertedElements Then
                 Dim result = New BoundConvertedTupleElements(Me.Syntax, elementPlaceholders, convertedElements, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -2398,11 +2234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(underlyingExpression As BoundExpression, inOutConversionFlags As Byte, type As TypeSymbol) As BoundUserDefinedConversion
             If underlyingExpression IsNot Me.UnderlyingExpression OrElse inOutConversionFlags <> Me.InOutConversionFlags OrElse type IsNot Me.Type Then
                 Dim result = New BoundUserDefinedConversion(Me.Syntax, underlyingExpression, inOutConversionFlags, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -2473,11 +2305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(operand As BoundExpression, conversionKind As ConversionKind, suppressVirtualCalls As Boolean, constantValueOpt As ConstantValue, relaxationLambdaOpt As BoundLambda, type As TypeSymbol) As BoundDirectCast
             If operand IsNot Me.Operand OrElse conversionKind <> Me.ConversionKind OrElse suppressVirtualCalls <> Me.SuppressVirtualCalls OrElse constantValueOpt IsNot Me.ConstantValueOpt OrElse relaxationLambdaOpt IsNot Me.RelaxationLambdaOpt OrElse type IsNot Me.Type Then
                 Dim result = New BoundDirectCast(Me.Syntax, operand, conversionKind, suppressVirtualCalls, constantValueOpt, relaxationLambdaOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -2540,11 +2368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(operand As BoundExpression, conversionKind As ConversionKind, constantValueOpt As ConstantValue, relaxationLambdaOpt As BoundLambda, type As TypeSymbol) As BoundTryCast
             If operand IsNot Me.Operand OrElse conversionKind <> Me.ConversionKind OrElse constantValueOpt IsNot Me.ConstantValueOpt OrElse relaxationLambdaOpt IsNot Me.RelaxationLambdaOpt OrElse type IsNot Me.Type Then
                 Dim result = New BoundTryCast(Me.Syntax, operand, conversionKind, constantValueOpt, relaxationLambdaOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -2595,11 +2419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(operand As BoundExpression, isTypeOfIsNotExpression As Boolean, targetType As TypeSymbol, type As TypeSymbol) As BoundTypeOf
             If operand IsNot Me.Operand OrElse isTypeOfIsNotExpression <> Me.IsTypeOfIsNotExpression OrElse targetType IsNot Me.TargetType OrElse type IsNot Me.Type Then
                 Dim result = New BoundTypeOf(Me.Syntax, operand, isTypeOfIsNotExpression, targetType, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -2642,11 +2462,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(statementOpt As BoundStatement) As BoundSequencePoint
             If statementOpt IsNot Me.StatementOpt Then
                 Dim result = New BoundSequencePoint(Me.Syntax, statementOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -2679,11 +2495,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(expression As BoundExpression, type As TypeSymbol) As BoundSequencePointExpression
             If expression IsNot Me.Expression OrElse type IsNot Me.Type Then
                 Dim result = New BoundSequencePointExpression(Me.Syntax, expression, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -2721,11 +2533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(statementOpt As BoundStatement, span As TextSpan) As BoundSequencePointWithSpan
             If statementOpt IsNot Me.StatementOpt OrElse span <> Me.Span Then
                 Dim result = New BoundSequencePointWithSpan(Me.Syntax, statementOpt, span, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -2760,11 +2568,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(flavor As NoOpStatementFlavor) As BoundNoOpStatement
             If flavor <> Me.Flavor Then
                 Dim result = New BoundNoOpStatement(Me.Syntax, flavor, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -2846,11 +2650,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(typeArgumentsOpt As BoundTypeArguments, methods As ImmutableArray(Of MethodSymbol), pendingExtensionMethodsOpt As ExtensionMethodGroup, resultKind As LookupResultKind, receiverOpt As BoundExpression, qualificationKind As QualificationKind) As BoundMethodGroup
             If typeArgumentsOpt IsNot Me.TypeArgumentsOpt OrElse methods <> Me.Methods OrElse pendingExtensionMethodsOpt IsNot Me.PendingExtensionMethodsOpt OrElse resultKind <> Me.ResultKind OrElse receiverOpt IsNot Me.ReceiverOpt OrElse qualificationKind <> Me.QualificationKind Then
                 Dim result = New BoundMethodGroup(Me.Syntax, typeArgumentsOpt, methods, pendingExtensionMethodsOpt, resultKind, receiverOpt, qualificationKind, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -2891,11 +2691,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(properties As ImmutableArray(Of PropertySymbol), resultKind As LookupResultKind, receiverOpt As BoundExpression, qualificationKind As QualificationKind) As BoundPropertyGroup
             If properties <> Me.Properties OrElse resultKind <> Me.ResultKind OrElse receiverOpt IsNot Me.ReceiverOpt OrElse qualificationKind <> Me.QualificationKind Then
                 Dim result = New BoundPropertyGroup(Me.Syntax, properties, resultKind, receiverOpt, qualificationKind, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -2946,11 +2742,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(expressionOpt As BoundExpression, functionLocalOpt As LocalSymbol, exitLabelOpt As LabelSymbol) As BoundReturnStatement
             If expressionOpt IsNot Me.ExpressionOpt OrElse functionLocalOpt IsNot Me.FunctionLocalOpt OrElse exitLabelOpt IsNot Me.ExitLabelOpt Then
                 Dim result = New BoundReturnStatement(Me.Syntax, expressionOpt, functionLocalOpt, exitLabelOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -2988,11 +2780,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(expression As BoundExpression) As BoundYieldStatement
             If expression IsNot Me.Expression Then
                 Dim result = New BoundYieldStatement(Me.Syntax, expression, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -3022,11 +2810,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(expressionOpt As BoundExpression) As BoundThrowStatement
             If expressionOpt IsNot Me.ExpressionOpt Then
                 Dim result = New BoundThrowStatement(Me.Syntax, expressionOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -3059,11 +2843,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(clauses As ImmutableArray(Of BoundRedimClause)) As BoundRedimStatement
             If clauses <> Me.Clauses Then
                 Dim result = New BoundRedimStatement(Me.Syntax, clauses, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -3126,11 +2906,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(operand As BoundExpression, indices As ImmutableArray(Of BoundExpression), arrayTypeOpt As ArrayTypeSymbol, preserve As Boolean) As BoundRedimClause
             If operand IsNot Me.Operand OrElse indices <> Me.Indices OrElse arrayTypeOpt IsNot Me.ArrayTypeOpt OrElse preserve <> Me.Preserve Then
                 Dim result = New BoundRedimClause(Me.Syntax, operand, indices, arrayTypeOpt, preserve, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -3163,11 +2939,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(clauses As ImmutableArray(Of BoundAssignmentOperator)) As BoundEraseStatement
             If clauses <> Me.Clauses Then
                 Dim result = New BoundEraseStatement(Me.Syntax, clauses, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -3263,11 +3035,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(method As MethodSymbol, methodGroupOpt As BoundMethodGroup, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), defaultArguments As BitVector, constantValueOpt As ConstantValue, isLValue As Boolean, suppressObjectClone As Boolean, type As TypeSymbol) As BoundCall
             If method IsNot Me.Method OrElse methodGroupOpt IsNot Me.MethodGroupOpt OrElse receiverOpt IsNot Me.ReceiverOpt OrElse arguments <> Me.Arguments OrElse defaultArguments <> Me.DefaultArguments OrElse constantValueOpt IsNot Me.ConstantValueOpt OrElse isLValue <> Me.IsLValue OrElse suppressObjectClone <> Me.SuppressObjectClone OrElse type IsNot Me.Type Then
                 Dim result = New BoundCall(Me.Syntax, method, methodGroupOpt, receiverOpt, arguments, defaultArguments, constantValueOpt, isLValue, suppressObjectClone, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -3326,11 +3094,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(constructor As MethodSymbol, constructorArguments As ImmutableArray(Of BoundExpression), namedArguments As ImmutableArray(Of BoundExpression), resultKind As LookupResultKind, type As TypeSymbol) As BoundAttribute
             If constructor IsNot Me.Constructor OrElse constructorArguments <> Me.ConstructorArguments OrElse namedArguments <> Me.NamedArguments OrElse resultKind <> Me.ResultKind OrElse type IsNot Me.Type Then
                 Dim result = New BoundAttribute(Me.Syntax, constructor, constructorArguments, namedArguments, resultKind, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -3400,11 +3164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(nameOpt As String, containerTypeOpt As TypeSymbol, receiverOpt As BoundExpression, typeArgumentsOpt As BoundTypeArguments, accessKind As LateBoundAccessKind, type As TypeSymbol) As BoundLateMemberAccess
             If nameOpt IsNot Me.NameOpt OrElse containerTypeOpt IsNot Me.ContainerTypeOpt OrElse receiverOpt IsNot Me.ReceiverOpt OrElse typeArgumentsOpt IsNot Me.TypeArgumentsOpt OrElse accessKind <> Me.AccessKind OrElse type IsNot Me.Type Then
                 Dim result = New BoundLateMemberAccess(Me.Syntax, nameOpt, containerTypeOpt, receiverOpt, typeArgumentsOpt, accessKind, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -3475,11 +3235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(member As BoundExpression, argumentsOpt As ImmutableArray(Of BoundExpression), argumentNamesOpt As ImmutableArray(Of string), accessKind As LateBoundAccessKind, methodOrPropertyGroupOpt As BoundMethodOrPropertyGroup, type As TypeSymbol) As BoundLateInvocation
             If member IsNot Me.Member OrElse argumentsOpt <> Me.ArgumentsOpt OrElse argumentNamesOpt <> Me.ArgumentNamesOpt OrElse accessKind <> Me.AccessKind OrElse methodOrPropertyGroupOpt IsNot Me.MethodOrPropertyGroupOpt OrElse type IsNot Me.Type Then
                 Dim result = New BoundLateInvocation(Me.Syntax, member, argumentsOpt, argumentNamesOpt, accessKind, methodOrPropertyGroupOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -3521,11 +3277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(binder As Binder, memberAccess As BoundLateMemberAccess, type As TypeSymbol) As BoundLateAddressOfOperator
             If binder IsNot Me.Binder OrElse memberAccess IsNot Me.MemberAccess OrElse type IsNot Me.Type Then
                 Dim result = New BoundLateAddressOfOperator(Me.Syntax, binder, memberAccess, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -3594,11 +3346,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(inferredType As TupleTypeSymbol, argumentNamesOpt As ImmutableArray(Of String), inferredNamesOpt As ImmutableArray(Of Boolean), arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol) As BoundTupleLiteral
             If inferredType IsNot Me.InferredType OrElse argumentNamesOpt <> Me.ArgumentNamesOpt OrElse inferredNamesOpt <> Me.InferredNamesOpt OrElse arguments <> Me.Arguments OrElse type IsNot Me.Type Then
                 Dim result = New BoundTupleLiteral(Me.Syntax, inferredType, argumentNamesOpt, inferredNamesOpt, arguments, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -3632,11 +3380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(naturalTypeOpt As TypeSymbol, arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol) As BoundConvertedTupleLiteral
             If naturalTypeOpt IsNot Me.NaturalTypeOpt OrElse arguments <> Me.Arguments OrElse type IsNot Me.Type Then
                 Dim result = New BoundConvertedTupleLiteral(Me.Syntax, naturalTypeOpt, arguments, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -3724,11 +3468,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(constructorOpt As MethodSymbol, methodGroupOpt As BoundMethodGroup, arguments As ImmutableArray(Of BoundExpression), defaultArguments As BitVector, initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol) As BoundObjectCreationExpression
             If constructorOpt IsNot Me.ConstructorOpt OrElse methodGroupOpt IsNot Me.MethodGroupOpt OrElse arguments <> Me.Arguments OrElse defaultArguments <> Me.DefaultArguments OrElse initializerOpt IsNot Me.InitializerOpt OrElse type IsNot Me.Type Then
                 Dim result = New BoundObjectCreationExpression(Me.Syntax, constructorOpt, methodGroupOpt, arguments, defaultArguments, initializerOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -3761,11 +3501,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(guidString As string, initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol) As BoundNoPiaObjectCreationExpression
             If guidString IsNot Me.GuidString OrElse initializerOpt IsNot Me.InitializerOpt OrElse type IsNot Me.Type Then
                 Dim result = New BoundNoPiaObjectCreationExpression(Me.Syntax, guidString, initializerOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -3815,11 +3551,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(binderOpt As Binder.AnonymousTypeCreationBinder, declarations As ImmutableArray(Of BoundAnonymousTypePropertyAccess), arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol) As BoundAnonymousTypeCreationExpression
             If binderOpt IsNot Me.BinderOpt OrElse declarations <> Me.Declarations OrElse arguments <> Me.Arguments OrElse type IsNot Me.Type Then
                 Dim result = New BoundAnonymousTypeCreationExpression(Me.Syntax, binderOpt, declarations, arguments, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -3869,11 +3601,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(binder As Binder.AnonymousTypeCreationBinder, propertyIndex As Integer, type As TypeSymbol) As BoundAnonymousTypePropertyAccess
             If binder IsNot Me.Binder OrElse propertyIndex <> Me.PropertyIndex OrElse type IsNot Me.Type Then
                 Dim result = New BoundAnonymousTypePropertyAccess(Me.Syntax, binder, propertyIndex, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -3915,11 +3643,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(binder As Binder.AnonymousTypeFieldInitializerBinder, value As BoundExpression, type As TypeSymbol) As BoundAnonymousTypeFieldInitializer
             If binder IsNot Me.Binder OrElse value IsNot Me.Value OrElse type IsNot Me.Type Then
                 Dim result = New BoundAnonymousTypeFieldInitializer(Me.Syntax, binder, value, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -3994,11 +3718,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(createTemporaryLocalForInitialization As Boolean, binder As Binder, placeholderOpt As BoundWithLValueExpressionPlaceholder, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol) As BoundObjectInitializerExpression
             If createTemporaryLocalForInitialization <> Me.CreateTemporaryLocalForInitialization OrElse binder IsNot Me.Binder OrElse placeholderOpt IsNot Me.PlaceholderOpt OrElse initializers <> Me.Initializers OrElse type IsNot Me.Type Then
                 Dim result = New BoundObjectInitializerExpression(Me.Syntax, createTemporaryLocalForInitialization, binder, placeholderOpt, initializers, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -4028,11 +3748,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(placeholderOpt As BoundWithLValueExpressionPlaceholder, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol) As BoundCollectionInitializerExpression
             If placeholderOpt IsNot Me.PlaceholderOpt OrElse initializers <> Me.Initializers OrElse type IsNot Me.Type Then
                 Dim result = New BoundCollectionInitializerExpression(Me.Syntax, placeholderOpt, initializers, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -4062,11 +3778,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol) As BoundNewT
             If initializerOpt IsNot Me.InitializerOpt OrElse type IsNot Me.Type Then
                 Dim result = New BoundNewT(Me.Syntax, initializerOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -4132,11 +3844,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(receiverOpt As BoundExpression, method As MethodSymbol, relaxationLambdaOpt As BoundLambda, relaxationReceiverPlaceholderOpt As BoundRValuePlaceholder, methodGroupOpt As BoundMethodGroup, type As TypeSymbol) As BoundDelegateCreationExpression
             If receiverOpt IsNot Me.ReceiverOpt OrElse method IsNot Me.Method OrElse relaxationLambdaOpt IsNot Me.RelaxationLambdaOpt OrElse relaxationReceiverPlaceholderOpt IsNot Me.RelaxationReceiverPlaceholderOpt OrElse methodGroupOpt IsNot Me.MethodGroupOpt OrElse type IsNot Me.Type Then
                 Dim result = New BoundDelegateCreationExpression(Me.Syntax, receiverOpt, method, relaxationLambdaOpt, relaxationReceiverPlaceholderOpt, methodGroupOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -4207,11 +3915,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(isParamArrayArgument As Boolean, bounds As ImmutableArray(Of BoundExpression), initializerOpt As BoundArrayInitialization, arrayLiteralOpt As BoundArrayLiteral, arrayLiteralConversion As ConversionKind, type As TypeSymbol) As BoundArrayCreation
             If isParamArrayArgument <> Me.IsParamArrayArgument OrElse bounds <> Me.Bounds OrElse initializerOpt IsNot Me.InitializerOpt OrElse arrayLiteralOpt IsNot Me.ArrayLiteralOpt OrElse arrayLiteralConversion <> Me.ArrayLiteralConversion OrElse type IsNot Me.Type Then
                 Dim result = New BoundArrayCreation(Me.Syntax, isParamArrayArgument, bounds, initializerOpt, arrayLiteralOpt, arrayLiteralConversion, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -4287,11 +3991,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(hasDominantType As Boolean, numberOfCandidates As Integer, inferredType As ArrayTypeSymbol, bounds As ImmutableArray(Of BoundExpression), initializer As BoundArrayInitialization, binder As Binder) As BoundArrayLiteral
             If hasDominantType <> Me.HasDominantType OrElse numberOfCandidates <> Me.NumberOfCandidates OrElse inferredType IsNot Me.InferredType OrElse bounds <> Me.Bounds OrElse initializer IsNot Me.Initializer OrElse binder IsNot Me.Binder Then
                 Dim result = New BoundArrayLiteral(Me.Syntax, hasDominantType, numberOfCandidates, inferredType, bounds, initializer, binder, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -4324,11 +4024,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol) As BoundArrayInitialization
             If initializers <> Me.Initializers OrElse type IsNot Me.Type Then
                 Dim result = New BoundArrayInitialization(Me.Syntax, initializers, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -4399,11 +4095,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(receiverOpt As BoundExpression, fieldSymbol As FieldSymbol, isLValue As Boolean, suppressVirtualCalls As Boolean, constantsInProgressOpt As SymbolsInProgress(Of FieldSymbol), type As TypeSymbol) As BoundFieldAccess
             If receiverOpt IsNot Me.ReceiverOpt OrElse fieldSymbol IsNot Me.FieldSymbol OrElse isLValue <> Me.IsLValue OrElse suppressVirtualCalls <> Me.SuppressVirtualCalls OrElse constantsInProgressOpt IsNot Me.ConstantsInProgressOpt OrElse type IsNot Me.Type Then
                 Dim result = New BoundFieldAccess(Me.Syntax, receiverOpt, fieldSymbol, isLValue, suppressVirtualCalls, constantsInProgressOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -4499,11 +4191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(propertySymbol As PropertySymbol, propertyGroupOpt As BoundPropertyGroup, accessKind As PropertyAccessKind, isWriteable As Boolean, isLValue As Boolean, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), defaultArguments As BitVector, type As TypeSymbol) As BoundPropertyAccess
             If propertySymbol IsNot Me.PropertySymbol OrElse propertyGroupOpt IsNot Me.PropertyGroupOpt OrElse accessKind <> Me.AccessKind OrElse isWriteable <> Me.IsWriteable OrElse isLValue <> Me.IsLValue OrElse receiverOpt IsNot Me.ReceiverOpt OrElse arguments <> Me.Arguments OrElse defaultArguments <> Me.DefaultArguments OrElse type IsNot Me.Type Then
                 Dim result = New BoundPropertyAccess(Me.Syntax, propertySymbol, propertyGroupOpt, accessKind, isWriteable, isLValue, receiverOpt, arguments, defaultArguments, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -4545,11 +4233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(receiverOpt As BoundExpression, eventSymbol As EventSymbol, type As TypeSymbol) As BoundEventAccess
             If receiverOpt IsNot Me.ReceiverOpt OrElse eventSymbol IsNot Me.EventSymbol OrElse type IsNot Me.Type Then
                 Dim result = New BoundEventAccess(Me.Syntax, receiverOpt, eventSymbol, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -4599,11 +4283,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(statementListSyntax As SyntaxList(Of StatementSyntax), locals As ImmutableArray(Of LocalSymbol), statements As ImmutableArray(Of BoundStatement)) As BoundBlock
             If statementListSyntax <> Me.StatementListSyntax OrElse locals <> Me.Locals OrElse statements <> Me.Statements Then
                 Dim result = New BoundBlock(Me.Syntax, statementListSyntax, locals, statements, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -4645,11 +4325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(fields As ImmutableArray(Of FieldSymbol), statement As BoundStatement) As BoundStateMachineScope
             If fields <> Me.Fields OrElse statement IsNot Me.Statement Then
                 Dim result = New BoundStateMachineScope(Me.Syntax, fields, statement, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -4724,11 +4400,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(localSymbol As LocalSymbol, declarationInitializerOpt As BoundExpression, identifierInitializerOpt As BoundArrayCreation, initializedByAsNew As Boolean) As BoundLocalDeclaration
             If localSymbol IsNot Me.LocalSymbol OrElse declarationInitializerOpt IsNot Me.DeclarationInitializerOpt OrElse identifierInitializerOpt IsNot Me.IdentifierInitializerOpt OrElse initializedByAsNew <> Me.InitializedByAsNew Then
                 Dim result = New BoundLocalDeclaration(Me.Syntax, localSymbol, declarationInitializerOpt, identifierInitializerOpt, initializedByAsNew, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -4770,11 +4442,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(localDeclarations As ImmutableArray(Of BoundLocalDeclaration), initializer As BoundExpression) As BoundAsNewLocalDeclarations
             If localDeclarations <> Me.LocalDeclarations OrElse initializer IsNot Me.Initializer Then
                 Dim result = New BoundAsNewLocalDeclarations(Me.Syntax, localDeclarations, initializer, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -4815,11 +4483,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(localDeclarations As ImmutableArray(Of BoundLocalDeclarationBase), initializerOpt As BoundExpression) As BoundDimStatement
             If localDeclarations <> Me.LocalDeclarations OrElse initializerOpt IsNot Me.InitializerOpt Then
                 Dim result = New BoundDimStatement(Me.Syntax, localDeclarations, initializerOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -4906,11 +4570,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(initializedFields As ImmutableArray(Of FieldSymbol), memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression) As BoundFieldInitializer
             If initializedFields <> Me.InitializedFields OrElse memberAccessExpressionOpt IsNot Me.MemberAccessExpressionOpt OrElse initialValue IsNot Me.InitialValue Then
                 Dim result = New BoundFieldInitializer(Me.Syntax, initializedFields, memberAccessExpressionOpt, initialValue, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -4944,11 +4604,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(initializedProperties As ImmutableArray(Of PropertySymbol), memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression) As BoundPropertyInitializer
             If initializedProperties <> Me.InitializedProperties OrElse memberAccessExpressionOpt IsNot Me.MemberAccessExpressionOpt OrElse initialValue IsNot Me.InitialValue Then
                 Dim result = New BoundPropertyInitializer(Me.Syntax, initializedProperties, memberAccessExpressionOpt, initialValue, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -4990,11 +4646,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(parameter As ParameterSymbol, value As BoundExpression) As BoundParameterEqualsValue
             If parameter IsNot Me.Parameter OrElse value IsNot Me.Value Then
                 Dim result = New BoundParameterEqualsValue(Me.Syntax, parameter, value, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -5027,11 +4679,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(statement As BoundStatement) As BoundGlobalStatementInitializer
             If statement IsNot Me.Statement Then
                 Dim result = New BoundGlobalStatementInitializer(Me.Syntax, statement, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -5087,11 +4735,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(locals As ImmutableArray(Of LocalSymbol), sideEffects As ImmutableArray(Of BoundExpression), valueOpt As BoundExpression, type As TypeSymbol) As BoundSequence
             If locals <> Me.Locals OrElse sideEffects <> Me.SideEffects OrElse valueOpt IsNot Me.ValueOpt OrElse type IsNot Me.Type Then
                 Dim result = New BoundSequence(Me.Syntax, locals, sideEffects, valueOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -5124,11 +4768,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(expression As BoundExpression) As BoundExpressionStatement
             If expression IsNot Me.Expression Then
                 Dim result = New BoundExpressionStatement(Me.Syntax, expression, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -5178,11 +4818,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(condition As BoundExpression, consequence As BoundStatement, alternativeOpt As BoundStatement) As BoundIfStatement
             If condition IsNot Me.Condition OrElse consequence IsNot Me.Consequence OrElse alternativeOpt IsNot Me.AlternativeOpt Then
                 Dim result = New BoundIfStatement(Me.Syntax, condition, consequence, alternativeOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -5249,11 +4885,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(expressionStatement As BoundExpressionStatement, exprPlaceholderOpt As BoundRValuePlaceholder, caseBlocks As ImmutableArray(Of BoundCaseBlock), recommendSwitchTable As Boolean, exitLabel As LabelSymbol) As BoundSelectStatement
             If expressionStatement IsNot Me.ExpressionStatement OrElse exprPlaceholderOpt IsNot Me.ExprPlaceholderOpt OrElse caseBlocks <> Me.CaseBlocks OrElse recommendSwitchTable <> Me.RecommendSwitchTable OrElse exitLabel IsNot Me.ExitLabel Then
                 Dim result = New BoundSelectStatement(Me.Syntax, expressionStatement, exprPlaceholderOpt, caseBlocks, recommendSwitchTable, exitLabel, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -5295,11 +4927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(caseStatement As BoundCaseStatement, body As BoundBlock) As BoundCaseBlock
             If caseStatement IsNot Me.CaseStatement OrElse body IsNot Me.Body Then
                 Dim result = New BoundCaseBlock(Me.Syntax, caseStatement, body, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -5340,11 +4968,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(caseClauses As ImmutableArray(Of BoundCaseClause), conditionOpt As BoundExpression) As BoundCaseStatement
             If caseClauses <> Me.CaseClauses OrElse conditionOpt IsNot Me.ConditionOpt Then
                 Dim result = New BoundCaseStatement(Me.Syntax, caseClauses, conditionOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -5409,11 +5033,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(valueOpt As BoundExpression, conditionOpt As BoundExpression) As BoundSimpleCaseClause
             If valueOpt IsNot Me.ValueOpt OrElse conditionOpt IsNot Me.ConditionOpt Then
                 Dim result = New BoundSimpleCaseClause(Me.Syntax, valueOpt, conditionOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -5472,11 +5092,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(lowerBoundOpt As BoundExpression, upperBoundOpt As BoundExpression, lowerBoundConditionOpt As BoundExpression, upperBoundConditionOpt As BoundExpression) As BoundRangeCaseClause
             If lowerBoundOpt IsNot Me.LowerBoundOpt OrElse upperBoundOpt IsNot Me.UpperBoundOpt OrElse lowerBoundConditionOpt IsNot Me.LowerBoundConditionOpt OrElse upperBoundConditionOpt IsNot Me.UpperBoundConditionOpt Then
                 Dim result = New BoundRangeCaseClause(Me.Syntax, lowerBoundOpt, upperBoundOpt, lowerBoundConditionOpt, upperBoundConditionOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -5511,11 +5127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(operatorKind As BinaryOperatorKind, valueOpt As BoundExpression, conditionOpt As BoundExpression) As BoundRelationalCaseClause
             If operatorKind <> Me.OperatorKind OrElse valueOpt IsNot Me.ValueOpt OrElse conditionOpt IsNot Me.ConditionOpt Then
                 Dim result = New BoundRelationalCaseClause(Me.Syntax, operatorKind, valueOpt, conditionOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -5621,11 +5233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(topConditionOpt As BoundExpression, bottomConditionOpt As BoundExpression, topConditionIsUntil As Boolean, bottomConditionIsUntil As Boolean, body As BoundStatement, continueLabel As LabelSymbol, exitLabel As LabelSymbol) As BoundDoLoopStatement
             If topConditionOpt IsNot Me.TopConditionOpt OrElse bottomConditionOpt IsNot Me.BottomConditionOpt OrElse topConditionIsUntil <> Me.TopConditionIsUntil OrElse bottomConditionIsUntil <> Me.BottomConditionIsUntil OrElse body IsNot Me.Body OrElse continueLabel IsNot Me.ContinueLabel OrElse exitLabel IsNot Me.ExitLabel Then
                 Dim result = New BoundDoLoopStatement(Me.Syntax, topConditionOpt, bottomConditionOpt, topConditionIsUntil, bottomConditionIsUntil, body, continueLabel, exitLabel, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -5669,11 +5277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(condition As BoundExpression, body As BoundStatement, continueLabel As LabelSymbol, exitLabel As LabelSymbol) As BoundWhileStatement
             If condition IsNot Me.Condition OrElse body IsNot Me.Body OrElse continueLabel IsNot Me.ContinueLabel OrElse exitLabel IsNot Me.ExitLabel Then
                 Dim result = New BoundWhileStatement(Me.Syntax, condition, body, continueLabel, exitLabel, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -5803,11 +5407,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(leftOperandPlaceholder As BoundRValuePlaceholder, rightOperandPlaceholder As BoundRValuePlaceholder, addition As BoundUserDefinedBinaryOperator, subtraction As BoundUserDefinedBinaryOperator, lessThanOrEqual As BoundExpression, greaterThanOrEqual As BoundExpression) As BoundForToUserDefinedOperators
             If leftOperandPlaceholder IsNot Me.LeftOperandPlaceholder OrElse rightOperandPlaceholder IsNot Me.RightOperandPlaceholder OrElse addition IsNot Me.Addition OrElse subtraction IsNot Me.Subtraction OrElse lessThanOrEqual IsNot Me.LessThanOrEqual OrElse greaterThanOrEqual IsNot Me.GreaterThanOrEqual Then
                 Dim result = New BoundForToUserDefinedOperators(Me.Syntax, leftOperandPlaceholder, rightOperandPlaceholder, addition, subtraction, lessThanOrEqual, greaterThanOrEqual, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -5878,11 +5478,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(initialValue As BoundExpression, limitValue As BoundExpression, stepValue As BoundExpression, checked As Boolean, operatorsOpt As BoundForToUserDefinedOperators, declaredOrInferredLocalOpt As LocalSymbol, controlVariable As BoundExpression, body As BoundStatement, nextVariablesOpt As ImmutableArray(Of BoundExpression), continueLabel As LabelSymbol, exitLabel As LabelSymbol) As BoundForToStatement
             If initialValue IsNot Me.InitialValue OrElse limitValue IsNot Me.LimitValue OrElse stepValue IsNot Me.StepValue OrElse checked <> Me.Checked OrElse operatorsOpt IsNot Me.OperatorsOpt OrElse declaredOrInferredLocalOpt IsNot Me.DeclaredOrInferredLocalOpt OrElse controlVariable IsNot Me.ControlVariable OrElse body IsNot Me.Body OrElse nextVariablesOpt <> Me.NextVariablesOpt OrElse continueLabel IsNot Me.ContinueLabel OrElse exitLabel IsNot Me.ExitLabel Then
                 Dim result = New BoundForToStatement(Me.Syntax, initialValue, limitValue, stepValue, checked, operatorsOpt, declaredOrInferredLocalOpt, controlVariable, body, nextVariablesOpt, continueLabel, exitLabel, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -5928,11 +5524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(collection As BoundExpression, enumeratorInfo As ForEachEnumeratorInfo, declaredOrInferredLocalOpt As LocalSymbol, controlVariable As BoundExpression, body As BoundStatement, nextVariablesOpt As ImmutableArray(Of BoundExpression), continueLabel As LabelSymbol, exitLabel As LabelSymbol) As BoundForEachStatement
             If collection IsNot Me.Collection OrElse enumeratorInfo IsNot Me.EnumeratorInfo OrElse declaredOrInferredLocalOpt IsNot Me.DeclaredOrInferredLocalOpt OrElse controlVariable IsNot Me.ControlVariable OrElse body IsNot Me.Body OrElse nextVariablesOpt <> Me.NextVariablesOpt OrElse continueLabel IsNot Me.ContinueLabel OrElse exitLabel IsNot Me.ExitLabel Then
                 Dim result = New BoundForEachStatement(Me.Syntax, collection, enumeratorInfo, declaredOrInferredLocalOpt, controlVariable, body, nextVariablesOpt, continueLabel, exitLabel, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -5973,11 +5565,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(label As LabelSymbol) As BoundExitStatement
             If label IsNot Me.Label Then
                 Dim result = New BoundExitStatement(Me.Syntax, label, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -6018,11 +5606,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(label As LabelSymbol) As BoundContinueStatement
             If label IsNot Me.Label Then
                 Dim result = New BoundContinueStatement(Me.Syntax, label, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -6080,11 +5664,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(tryBlock As BoundBlock, catchBlocks As ImmutableArray(Of BoundCatchBlock), finallyBlockOpt As BoundBlock, exitLabelOpt As LabelSymbol) As BoundTryStatement
             If tryBlock IsNot Me.TryBlock OrElse catchBlocks <> Me.CatchBlocks OrElse finallyBlockOpt IsNot Me.FinallyBlockOpt OrElse exitLabelOpt IsNot Me.ExitLabelOpt Then
                 Dim result = New BoundTryStatement(Me.Syntax, tryBlock, catchBlocks, finallyBlockOpt, exitLabelOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -6157,11 +5737,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(localOpt As LocalSymbol, exceptionSourceOpt As BoundExpression, errorLineNumberOpt As BoundExpression, exceptionFilterOpt As BoundExpression, body As BoundBlock, isSynthesizedAsyncCatchAll As Boolean) As BoundCatchBlock
             If localOpt IsNot Me.LocalOpt OrElse exceptionSourceOpt IsNot Me.ExceptionSourceOpt OrElse errorLineNumberOpt IsNot Me.ErrorLineNumberOpt OrElse exceptionFilterOpt IsNot Me.ExceptionFilterOpt OrElse body IsNot Me.Body OrElse isSynthesizedAsyncCatchAll <> Me.IsSynthesizedAsyncCatchAll Then
                 Dim result = New BoundCatchBlock(Me.Syntax, localOpt, exceptionSourceOpt, errorLineNumberOpt, exceptionFilterOpt, body, isSynthesizedAsyncCatchAll, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -6209,11 +5785,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(value As ConstantValue, type As TypeSymbol) As BoundLiteral
             If value IsNot Me.Value OrElse type IsNot Me.Type Then
                 Dim result = New BoundLiteral(Me.Syntax, value, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -6245,11 +5817,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(type As TypeSymbol) As BoundMeReference
             If type IsNot Me.Type Then
                 Dim result = New BoundMeReference(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -6288,11 +5856,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(type As TypeSymbol) As BoundValueTypeMeReference
             If type IsNot Me.Type Then
                 Dim result = New BoundValueTypeMeReference(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -6324,11 +5888,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(type As TypeSymbol) As BoundMyBaseReference
             If type IsNot Me.Type Then
                 Dim result = New BoundMyBaseReference(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -6360,11 +5920,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(type As TypeSymbol) As BoundMyClassReference
             If type IsNot Me.Type Then
                 Dim result = New BoundMyClassReference(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -6407,11 +5963,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(sourceType As NamedTypeSymbol, type As TypeSymbol) As BoundPreviousSubmissionReference
             If sourceType IsNot Me.SourceType OrElse type IsNot Me.Type Then
                 Dim result = New BoundPreviousSubmissionReference(Me.Syntax, sourceType, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -6443,11 +5995,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(type As TypeSymbol) As BoundHostObjectMemberReference
             If type IsNot Me.Type Then
                 Dim result = New BoundHostObjectMemberReference(Me.Syntax, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -6506,11 +6054,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(localSymbol As LocalSymbol, isLValue As Boolean, type As TypeSymbol) As BoundLocal
             If localSymbol IsNot Me.LocalSymbol OrElse isLValue <> Me.IsLValue OrElse type IsNot Me.Type Then
                 Dim result = New BoundLocal(Me.Syntax, localSymbol, isLValue, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -6573,11 +6117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(localSymbol As LocalSymbol, isLValue As Boolean, emitExpressions As PseudoVariableExpressions, type As TypeSymbol) As BoundPseudoVariable
             If localSymbol IsNot Me.LocalSymbol OrElse isLValue <> Me.IsLValue OrElse emitExpressions IsNot Me.EmitExpressions OrElse type IsNot Me.Type Then
                 Dim result = New BoundPseudoVariable(Me.Syntax, localSymbol, isLValue, emitExpressions, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -6638,11 +6178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(parameterSymbol As ParameterSymbol, isLValue As Boolean, suppressVirtualCalls As Boolean, type As TypeSymbol) As BoundParameter
             If parameterSymbol IsNot Me.ParameterSymbol OrElse isLValue <> Me.IsLValue OrElse suppressVirtualCalls <> Me.SuppressVirtualCalls OrElse type IsNot Me.Type Then
                 Dim result = New BoundParameter(Me.Syntax, parameterSymbol, isLValue, suppressVirtualCalls, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -6683,11 +6219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(isOut As Boolean, type As TypeSymbol) As BoundByRefArgumentPlaceholder
             If isOut <> Me.IsOut OrElse type IsNot Me.Type Then
                 Dim result = New BoundByRefArgumentPlaceholder(Me.Syntax, isOut, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -6761,11 +6293,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(originalArgument As BoundExpression, inConversion As BoundExpression, inPlaceholder As BoundByRefArgumentPlaceholder, outConversion As BoundExpression, outPlaceholder As BoundRValuePlaceholder, type As TypeSymbol) As BoundByRefArgumentWithCopyBack
             If originalArgument IsNot Me.OriginalArgument OrElse inConversion IsNot Me.InConversion OrElse inPlaceholder IsNot Me.InPlaceholder OrElse outConversion IsNot Me.OutConversion OrElse outPlaceholder IsNot Me.OutPlaceholder OrElse type IsNot Me.Type Then
                 Dim result = New BoundByRefArgumentWithCopyBack(Me.Syntax, originalArgument, inConversion, inPlaceholder, outConversion, outPlaceholder, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -6812,11 +6340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(originalArgument As BoundExpression, localSymbol As SynthesizedLocal, type As TypeSymbol) As BoundLateBoundArgumentSupportingAssignmentWithCapture
             If originalArgument IsNot Me.OriginalArgument OrElse localSymbol IsNot Me.LocalSymbol OrElse type IsNot Me.Type Then
                 Dim result = New BoundLateBoundArgumentSupportingAssignmentWithCapture(Me.Syntax, originalArgument, localSymbol, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -6857,11 +6381,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(label As LabelSymbol) As BoundLabelStatement
             If label IsNot Me.Label Then
                 Dim result = New BoundLabelStatement(Me.Syntax, label, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -6902,11 +6422,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(label As LabelSymbol, type As TypeSymbol) As BoundLabel
             If label IsNot Me.Label OrElse type IsNot Me.Type Then
                 Dim result = New BoundLabel(Me.Syntax, label, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -6947,11 +6463,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(label As LabelSymbol, labelExpressionOpt As BoundLabel) As BoundGotoStatement
             If label IsNot Me.Label OrElse labelExpressionOpt IsNot Me.LabelExpressionOpt Then
                 Dim result = New BoundGotoStatement(Me.Syntax, label, labelExpressionOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -6984,11 +6496,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(statements As ImmutableArray(Of BoundStatement)) As BoundStatementList
             If statements <> Me.Statements Then
                 Dim result = New BoundStatementList(Me.Syntax, statements, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -7038,11 +6546,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(condition As BoundExpression, jumpIfTrue As Boolean, label As LabelSymbol) As BoundConditionalGoto
             If condition IsNot Me.Condition OrElse jumpIfTrue <> Me.JumpIfTrue OrElse label IsNot Me.Label Then
                 Dim result = New BoundConditionalGoto(Me.Syntax, condition, jumpIfTrue, label, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -7093,11 +6597,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(originalExpression As BoundExpression, body As BoundBlock, binder As WithBlockBinder) As BoundWithStatement
             If originalExpression IsNot Me.OriginalExpression OrElse body IsNot Me.Body OrElse binder IsNot Me.Binder Then
                 Dim result = New BoundWithStatement(Me.Syntax, originalExpression, body, binder, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -7185,11 +6685,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(binder As Binder, flags As SourceMemberFlags, parameters As ImmutableArray(Of ParameterSymbol), returnType As TypeSymbol, bindingCache As UnboundLambda.UnboundLambdaBindingCache) As UnboundLambda
             If binder IsNot Me.Binder OrElse flags <> Me.Flags OrElse parameters <> Me.Parameters OrElse returnType IsNot Me.ReturnType OrElse bindingCache IsNot Me.BindingCache Then
                 Dim result = New UnboundLambda(Me.Syntax, binder, flags, parameters, returnType, bindingCache, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -7269,11 +6765,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(lambdaSymbol As LambdaSymbol, body As BoundBlock, diagnostics As ImmutableArray(Of Microsoft.CodeAnalysis.Diagnostic), lambdaBinderOpt As LambdaBodyBinder, delegateRelaxation As ConversionKind, methodConversionKind As MethodConversionKind) As BoundLambda
             If lambdaSymbol IsNot Me.LambdaSymbol OrElse body IsNot Me.Body OrElse diagnostics <> Me.Diagnostics OrElse lambdaBinderOpt IsNot Me.LambdaBinderOpt OrElse delegateRelaxation <> Me.DelegateRelaxation OrElse methodConversionKind <> Me.MethodConversionKind Then
                 Dim result = New BoundLambda(Me.Syntax, lambdaSymbol, body, diagnostics, lambdaBinderOpt, delegateRelaxation, methodConversionKind, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -7307,11 +6799,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(lastOperator As BoundQueryClauseBase, type As TypeSymbol) As BoundQueryExpression
             If lastOperator IsNot Me.LastOperator OrElse type IsNot Me.Type Then
                 Dim result = New BoundQueryExpression(Me.Syntax, lastOperator, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -7364,11 +6852,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(expression As BoundExpression, type As TypeSymbol) As BoundQuerySource
             If expression IsNot Me.Expression OrElse type IsNot Me.Type Then
                 Dim result = New BoundQuerySource(Me.Syntax, expression, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -7402,11 +6886,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(conversionCall As BoundCall, type As TypeSymbol) As BoundToQueryableCollectionConversion
             If conversionCall IsNot Me.ConversionCall OrElse type IsNot Me.Type Then
                 Dim result = New BoundToQueryableCollectionConversion(Me.Syntax, conversionCall, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -7508,11 +6988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(source As BoundQueryPart, rangeVariableOpt As RangeVariableSymbol, rangeVariables As ImmutableArray(Of RangeVariableSymbol), compoundVariableType As TypeSymbol, binders As ImmutableArray(Of Binder), type As TypeSymbol) As BoundQueryableSource
             If source IsNot Me.Source OrElse rangeVariableOpt IsNot Me.RangeVariableOpt OrElse rangeVariables <> Me.RangeVariables OrElse compoundVariableType IsNot Me.CompoundVariableType OrElse binders <> Me.Binders OrElse type IsNot Me.Type Then
                 Dim result = New BoundQueryableSource(Me.Syntax, source, rangeVariableOpt, rangeVariables, compoundVariableType, binders, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -7549,11 +7025,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(underlyingExpression As BoundExpression, rangeVariables As ImmutableArray(Of RangeVariableSymbol), compoundVariableType As TypeSymbol, binders As ImmutableArray(Of Binder), type As TypeSymbol) As BoundQueryClause
             If underlyingExpression IsNot Me.UnderlyingExpression OrElse rangeVariables <> Me.RangeVariables OrElse compoundVariableType IsNot Me.CompoundVariableType OrElse binders <> Me.Binders OrElse type IsNot Me.Type Then
                 Dim result = New BoundQueryClause(Me.Syntax, underlyingExpression, rangeVariables, compoundVariableType, binders, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -7587,11 +7059,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(underlyingExpression As BoundExpression, type As TypeSymbol) As BoundOrdering
             If underlyingExpression IsNot Me.UnderlyingExpression OrElse type IsNot Me.Type Then
                 Dim result = New BoundOrdering(Me.Syntax, underlyingExpression, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -7650,11 +7118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(lambdaSymbol As SynthesizedLambdaSymbol, rangeVariables As ImmutableArray(Of RangeVariableSymbol), expression As BoundExpression, exprIsOperandOfConditionalBranch As Boolean) As BoundQueryLambda
             If lambdaSymbol IsNot Me.LambdaSymbol OrElse rangeVariables <> Me.RangeVariables OrElse expression IsNot Me.Expression OrElse exprIsOperandOfConditionalBranch <> Me.ExprIsOperandOfConditionalBranch Then
                 Dim result = New BoundQueryLambda(Me.Syntax, lambdaSymbol, rangeVariables, expression, exprIsOperandOfConditionalBranch, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -7697,11 +7161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(rangeVariable As RangeVariableSymbol, value As BoundExpression, type As TypeSymbol) As BoundRangeVariableAssignment
             If rangeVariable IsNot Me.RangeVariable OrElse value IsNot Me.Value OrElse type IsNot Me.Type Then
                 Dim result = New BoundRangeVariableAssignment(Me.Syntax, rangeVariable, value, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -7764,11 +7224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(binder As Binder, parameters As ImmutableArray(Of ParameterSymbol), compilation As VisualBasicCompilation) As GroupTypeInferenceLambda
             If binder IsNot Me.Binder OrElse parameters <> Me.Parameters OrElse compilation IsNot Me.Compilation Then
                 Dim result = New GroupTypeInferenceLambda(Me.Syntax, binder, parameters, compilation, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -7821,11 +7277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(capturedGroupOpt As BoundQueryClauseBase, groupPlaceholderOpt As BoundRValuePlaceholder, underlyingExpression As BoundExpression, rangeVariables As ImmutableArray(Of RangeVariableSymbol), compoundVariableType As TypeSymbol, binders As ImmutableArray(Of Binder), type As TypeSymbol) As BoundAggregateClause
             If capturedGroupOpt IsNot Me.CapturedGroupOpt OrElse groupPlaceholderOpt IsNot Me.GroupPlaceholderOpt OrElse underlyingExpression IsNot Me.UnderlyingExpression OrElse rangeVariables <> Me.RangeVariables OrElse compoundVariableType IsNot Me.CompoundVariableType OrElse binders <> Me.Binders OrElse type IsNot Me.Type Then
                 Dim result = New BoundAggregateClause(Me.Syntax, capturedGroupOpt, groupPlaceholderOpt, underlyingExpression, rangeVariables, compoundVariableType, binders, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -7859,11 +7311,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(group As BoundExpression, type As TypeSymbol) As BoundGroupAggregation
             If group IsNot Me.Group OrElse type IsNot Me.Type Then
                 Dim result = New BoundGroupAggregation(Me.Syntax, group, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -7906,11 +7354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(rangeVariable As RangeVariableSymbol, type As TypeSymbol) As BoundRangeVariable
             If rangeVariable IsNot Me.RangeVariable OrElse type IsNot Me.Type Then
                 Dim result = New BoundRangeVariable(Me.Syntax, rangeVariable, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -7965,11 +7409,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(eventAccess As BoundExpression, handler As BoundExpression) As BoundAddHandlerStatement
             If eventAccess IsNot Me.EventAccess OrElse handler IsNot Me.Handler Then
                 Dim result = New BoundAddHandlerStatement(Me.Syntax, eventAccess, handler, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -7995,11 +7435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(eventAccess As BoundExpression, handler As BoundExpression) As BoundRemoveHandlerStatement
             If eventAccess IsNot Me.EventAccess OrElse handler IsNot Me.Handler Then
                 Dim result = New BoundRemoveHandlerStatement(Me.Syntax, eventAccess, handler, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -8041,11 +7477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(eventSymbol As EventSymbol, eventInvocation As BoundExpression) As BoundRaiseEventStatement
             If eventSymbol IsNot Me.EventSymbol OrElse eventInvocation IsNot Me.EventInvocation Then
                 Dim result = New BoundRaiseEventStatement(Me.Syntax, eventSymbol, eventInvocation, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -8112,11 +7544,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(resourceList As ImmutableArray(Of BoundLocalDeclarationBase), resourceExpressionOpt As BoundExpression, body As BoundBlock, usingInfo As UsingInfo, locals As ImmutableArray(Of LocalSymbol)) As BoundUsingStatement
             If resourceList <> Me.ResourceList OrElse resourceExpressionOpt IsNot Me.ResourceExpressionOpt OrElse body IsNot Me.Body OrElse usingInfo IsNot Me.UsingInfo OrElse locals <> Me.Locals Then
                 Dim result = New BoundUsingStatement(Me.Syntax, resourceList, resourceExpressionOpt, body, usingInfo, locals, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -8158,11 +7586,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(lockExpression As BoundExpression, body As BoundBlock) As BoundSyncLockStatement
             If lockExpression IsNot Me.LockExpression OrElse body IsNot Me.Body Then
                 Dim result = New BoundSyncLockStatement(Me.Syntax, lockExpression, body, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -8214,11 +7638,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(xmlNamespace As BoundExpression, localName As BoundExpression, objectCreation As BoundExpression, type As TypeSymbol) As BoundXmlName
             If xmlNamespace IsNot Me.XmlNamespace OrElse localName IsNot Me.LocalName OrElse objectCreation IsNot Me.ObjectCreation OrElse type IsNot Me.Type Then
                 Dim result = New BoundXmlName(Me.Syntax, xmlNamespace, localName, objectCreation, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -8261,11 +7681,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(xmlNamespace As BoundExpression, objectCreation As BoundExpression, type As TypeSymbol) As BoundXmlNamespace
             If xmlNamespace IsNot Me.XmlNamespace OrElse objectCreation IsNot Me.ObjectCreation OrElse type IsNot Me.Type Then
                 Dim result = New BoundXmlNamespace(Me.Syntax, xmlNamespace, objectCreation, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -8317,11 +7733,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(declaration As BoundExpression, childNodes As ImmutableArray(Of BoundExpression), rewriterInfo As BoundXmlContainerRewriterInfo, type As TypeSymbol) As BoundXmlDocument
             If declaration IsNot Me.Declaration OrElse childNodes <> Me.ChildNodes OrElse rewriterInfo IsNot Me.RewriterInfo OrElse type IsNot Me.Type Then
                 Dim result = New BoundXmlDocument(Me.Syntax, declaration, childNodes, rewriterInfo, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -8379,11 +7791,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(version As BoundExpression, encoding As BoundExpression, standalone As BoundExpression, objectCreation As BoundExpression, type As TypeSymbol) As BoundXmlDeclaration
             If version IsNot Me.Version OrElse encoding IsNot Me.Encoding OrElse standalone IsNot Me.Standalone OrElse objectCreation IsNot Me.ObjectCreation OrElse type IsNot Me.Type Then
                 Dim result = New BoundXmlDeclaration(Me.Syntax, version, encoding, standalone, objectCreation, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -8435,11 +7843,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(target As BoundExpression, data As BoundExpression, objectCreation As BoundExpression, type As TypeSymbol) As BoundXmlProcessingInstruction
             If target IsNot Me.Target OrElse data IsNot Me.Data OrElse objectCreation IsNot Me.ObjectCreation OrElse type IsNot Me.Type Then
                 Dim result = New BoundXmlProcessingInstruction(Me.Syntax, target, data, objectCreation, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -8482,11 +7886,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(value As BoundExpression, objectCreation As BoundExpression, type As TypeSymbol) As BoundXmlComment
             If value IsNot Me.Value OrElse objectCreation IsNot Me.ObjectCreation OrElse type IsNot Me.Type Then
                 Dim result = New BoundXmlComment(Me.Syntax, value, objectCreation, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -8551,11 +7951,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(name As BoundExpression, value As BoundExpression, matchesImport As Boolean, objectCreation As BoundExpression, type As TypeSymbol) As BoundXmlAttribute
             If name IsNot Me.Name OrElse value IsNot Me.Value OrElse matchesImport <> Me.MatchesImport OrElse objectCreation IsNot Me.ObjectCreation OrElse type IsNot Me.Type Then
                 Dim result = New BoundXmlAttribute(Me.Syntax, name, value, matchesImport, objectCreation, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -8607,11 +8003,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(argument As BoundExpression, childNodes As ImmutableArray(Of BoundExpression), rewriterInfo As BoundXmlContainerRewriterInfo, type As TypeSymbol) As BoundXmlElement
             If argument IsNot Me.Argument OrElse childNodes <> Me.ChildNodes OrElse rewriterInfo IsNot Me.RewriterInfo OrElse type IsNot Me.Type Then
                 Dim result = New BoundXmlElement(Me.Syntax, argument, childNodes, rewriterInfo, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -8645,11 +8037,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(memberAccess As BoundExpression, type As TypeSymbol) As BoundXmlMemberAccess
             If memberAccess IsNot Me.MemberAccess OrElse type IsNot Me.Type Then
                 Dim result = New BoundXmlMemberAccess(Me.Syntax, memberAccess, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -8683,11 +8071,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(expression As BoundExpression, type As TypeSymbol) As BoundXmlEmbeddedExpression
             If expression IsNot Me.Expression OrElse type IsNot Me.Type Then
                 Dim result = New BoundXmlEmbeddedExpression(Me.Syntax, expression, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -8730,11 +8114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(value As BoundLiteral, objectCreation As BoundExpression, type As TypeSymbol) As BoundXmlCData
             If value IsNot Me.Value OrElse objectCreation IsNot Me.ObjectCreation OrElse type IsNot Me.Type Then
                 Dim result = New BoundXmlCData(Me.Syntax, value, objectCreation, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -8785,11 +8165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(resumeKind As ResumeStatementKind, labelOpt As LabelSymbol, labelExpressionOpt As BoundExpression) As BoundResumeStatement
             If resumeKind <> Me.ResumeKind OrElse labelOpt IsNot Me.LabelOpt OrElse labelExpressionOpt IsNot Me.LabelExpressionOpt Then
                 Dim result = New BoundResumeStatement(Me.Syntax, resumeKind, labelOpt, labelExpressionOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -8840,11 +8216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(onErrorKind As OnErrorStatementKind, labelOpt As LabelSymbol, labelExpressionOpt As BoundExpression) As BoundOnErrorStatement
             If onErrorKind <> Me.OnErrorKind OrElse labelOpt IsNot Me.LabelOpt OrElse labelExpressionOpt IsNot Me.LabelExpressionOpt Then
                 Dim result = New BoundOnErrorStatement(Me.Syntax, onErrorKind, labelOpt, labelExpressionOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -8914,11 +8286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(containsOnError As Boolean, containsResume As Boolean, resumeWithoutLabelOpt As StatementSyntax, trackLineNumber As Boolean, body As BoundBlock) As BoundUnstructuredExceptionHandlingStatement
             If containsOnError <> Me.ContainsOnError OrElse containsResume <> Me.ContainsResume OrElse resumeWithoutLabelOpt IsNot Me.ResumeWithoutLabelOpt OrElse trackLineNumber <> Me.TrackLineNumber OrElse body IsNot Me.Body Then
                 Dim result = New BoundUnstructuredExceptionHandlingStatement(Me.Syntax, containsOnError, containsResume, resumeWithoutLabelOpt, trackLineNumber, body, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -8966,11 +8334,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(activeHandlerLocal As BoundLocal, resumeTargetLocal As BoundLocal, type As TypeSymbol) As BoundUnstructuredExceptionHandlingCatchFilter
             If activeHandlerLocal IsNot Me.ActiveHandlerLocal OrElse resumeTargetLocal IsNot Me.ResumeTargetLocal OrElse type IsNot Me.Type Then
                 Dim result = New BoundUnstructuredExceptionHandlingCatchFilter(Me.Syntax, activeHandlerLocal, resumeTargetLocal, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -9017,11 +8381,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(value As BoundExpression, jumps As ImmutableArray(Of BoundGotoStatement)) As BoundUnstructuredExceptionOnErrorSwitch
             If value IsNot Me.Value OrElse jumps <> Me.Jumps Then
                 Dim result = New BoundUnstructuredExceptionOnErrorSwitch(Me.Syntax, value, jumps, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -9086,11 +8446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(resumeTargetTemporary As BoundLocal, resumeLabel As BoundLabelStatement, resumeNextLabel As BoundLabelStatement, jumps As ImmutableArray(Of BoundGotoStatement)) As BoundUnstructuredExceptionResumeSwitch
             If resumeTargetTemporary IsNot Me.ResumeTargetTemporary OrElse resumeLabel IsNot Me.ResumeLabel OrElse resumeNextLabel IsNot Me.ResumeNextLabel OrElse jumps <> Me.Jumps Then
                 Dim result = New BoundUnstructuredExceptionResumeSwitch(Me.Syntax, resumeTargetTemporary, resumeLabel, resumeNextLabel, jumps, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -9174,11 +8530,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(operand As BoundExpression, awaitableInstancePlaceholder As BoundRValuePlaceholder, getAwaiter As BoundExpression, awaiterInstancePlaceholder As BoundLValuePlaceholder, isCompleted As BoundExpression, getResult As BoundExpression, type As TypeSymbol) As BoundAwaitOperator
             If operand IsNot Me.Operand OrElse awaitableInstancePlaceholder IsNot Me.AwaitableInstancePlaceholder OrElse getAwaiter IsNot Me.GetAwaiter OrElse awaiterInstancePlaceholder IsNot Me.AwaiterInstancePlaceholder OrElse isCompleted IsNot Me.IsCompleted OrElse getResult IsNot Me.GetResult OrElse type IsNot Me.Type Then
                 Dim result = New BoundAwaitOperator(Me.Syntax, operand, awaitableInstancePlaceholder, getAwaiter, awaiterInstancePlaceholder, isCompleted, getResult, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -9242,11 +8594,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(locals As ImmutableArray(Of LocalSymbol), spillFields As ImmutableArray(Of FieldSymbol), statements As ImmutableArray(Of BoundStatement), valueOpt As BoundExpression, type As TypeSymbol) As BoundSpillSequence
             If locals <> Me.Locals OrElse spillFields <> Me.SpillFields OrElse statements <> Me.Statements OrElse valueOpt IsNot Me.ValueOpt OrElse type IsNot Me.Type Then
                 Dim result = New BoundSpillSequence(Me.Syntax, locals, spillFields, statements, valueOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -9345,11 +8693,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(original As BoundExpression, start As BoundExpression, lengthOpt As BoundExpression, source As BoundExpression, type As TypeSymbol) As BoundMidResult
             If original IsNot Me.Original OrElse start IsNot Me.Start OrElse lengthOpt IsNot Me.LengthOpt OrElse source IsNot Me.Source OrElse type IsNot Me.Type Then
                 Dim result = New BoundMidResult(Me.Syntax, original, start, lengthOpt, source, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -9400,11 +8744,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(receiver As BoundExpression, placeholder As BoundRValuePlaceholder, accessExpression As BoundExpression, type As TypeSymbol) As BoundConditionalAccess
             If receiver IsNot Me.Receiver OrElse placeholder IsNot Me.Placeholder OrElse accessExpression IsNot Me.AccessExpression OrElse type IsNot Me.Type Then
                 Dim result = New BoundConditionalAccess(Me.Syntax, receiver, placeholder, accessExpression, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -9452,11 +8792,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(placeholderId As Integer, type As TypeSymbol) As BoundConditionalAccessReceiverPlaceholder
             If placeholderId <> Me.PlaceholderId OrElse type IsNot Me.Type Then
                 Dim result = New BoundConditionalAccessReceiverPlaceholder(Me.Syntax, placeholderId, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -9528,11 +8864,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(receiverOrCondition As BoundExpression, captureReceiver As Boolean, placeholderId As Integer, whenNotNull As BoundExpression, whenNullOpt As BoundExpression, type As TypeSymbol) As BoundLoweredConditionalAccess
             If receiverOrCondition IsNot Me.ReceiverOrCondition OrElse captureReceiver <> Me.CaptureReceiver OrElse placeholderId <> Me.PlaceholderId OrElse whenNotNull IsNot Me.WhenNotNull OrElse whenNullOpt IsNot Me.WhenNullOpt OrElse type IsNot Me.Type Then
                 Dim result = New BoundLoweredConditionalAccess(Me.Syntax, receiverOrCondition, captureReceiver, placeholderId, whenNotNull, whenNullOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -9580,11 +8912,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(valueTypeReceiver As BoundExpression, referenceTypeReceiver As BoundExpression, type As TypeSymbol) As BoundComplexConditionalAccessReceiver
             If valueTypeReceiver IsNot Me.ValueTypeReceiver OrElse referenceTypeReceiver IsNot Me.ReferenceTypeReceiver OrElse type IsNot Me.Type Then
                 Dim result = New BoundComplexConditionalAccessReceiver(Me.Syntax, valueTypeReceiver, referenceTypeReceiver, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -9631,11 +8959,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(argument As BoundExpression, constantValueOpt As ConstantValue, type As TypeSymbol) As BoundNameOfOperator
             If argument IsNot Me.Argument OrElse constantValueOpt IsNot Me.ConstantValueOpt OrElse type IsNot Me.Type Then
                 Dim result = New BoundNameOfOperator(Me.Syntax, argument, constantValueOpt, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -9674,11 +8998,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(expression As BoundTypeExpression, type As TypeSymbol) As BoundTypeAsValueExpression
             If expression IsNot Me.Expression OrElse type IsNot Me.Type Then
                 Dim result = New BoundTypeAsValueExpression(Me.Syntax, expression, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -9726,11 +9046,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(contents As ImmutableArray(Of BoundNode), binder As Binder, type As TypeSymbol) As BoundInterpolatedStringExpression
             If contents <> Me.Contents OrElse binder IsNot Me.Binder OrElse type IsNot Me.Type Then
                 Dim result = New BoundInterpolatedStringExpression(Me.Syntax, contents, binder, type, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me
@@ -9779,11 +9095,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(expression As BoundExpression, alignmentOpt As BoundExpression, formatStringOpt As BoundLiteral) As BoundInterpolation
             If expression IsNot Me.Expression OrElse alignmentOpt IsNot Me.AlignmentOpt OrElse formatStringOpt IsNot Me.FormatStringOpt Then
                 Dim result = New BoundInterpolation(Me.Syntax, expression, alignmentOpt, formatStringOpt, Me.HasErrors)
-                
-                If Me.WasCompilerGenerated Then
-                    result.SetWasCompilerGenerated()
-                End If
-                
+                result.CopyAttributes(Me)
                 Return result
             End If
             Return Me

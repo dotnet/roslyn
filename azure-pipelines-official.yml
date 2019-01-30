@@ -20,7 +20,6 @@ jobs:
 
   variables:
     VisualStudio.MajorVersion: 16
-    VisualStudio.BranchName: 'lab/d16.0stg'
     VisualStudio.ChannelName: 'int.d16.0stg'
     VisualStudio.DropName: Products/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)
 
@@ -66,8 +65,7 @@ jobs:
               -officialBuildId $(Build.BuildNumber)
               -officialSkipTests $(SkipTests)
               -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
-              -vsDropName $(VisualStudio.DropName) 
-              -vsBranch $(VisualStudio.BranchName)
+              -vsDropName $(VisualStudio.DropName)
               -vsDropAccessToken $(System.AccessToken)
               /p:DotNetSignType=$(SignType)
               /p:DotNetPublishToBlobFeed=true
@@ -126,15 +124,6 @@ jobs:
       ArtifactName: MicroBuildOutputs
       ArtifactType: Container
     displayName: 'OptProf - Publish Artifact: MicroBuildOutputs'
-    condition: succeeded()
-
-  # Publish scripts to get the branch of VS that this inserts into
-  - task: PublishBuildArtifacts@1
-    inputs:
-      PathtoPublish: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\BranchInfo'
-      ArtifactName: BranchInfo
-      ArtifactType: Container
-    displayName: 'OptProf - Publish Artifact: BranchInfo'
     condition: succeeded()
 
   - task: PublishBuildArtifacts@1
@@ -197,6 +186,13 @@ jobs:
     inputs:
       PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/$(BuildConfiguration)/AssetManifest'
       ArtifactName: AssetManifests
+    condition: succeeded()
+
+  # Tag the build at the very end when we know it's been successful.
+  - task: colinsalmcorner.colinsalmcorner-buildtasks.tag-build-task.tagBuildOrRelease@0
+    displayName: Tag build as ready for optimization training
+    inputs:
+      tags: 'ready-for-training'
     condition: succeeded()
 
   - task: ms-vseng.MicroBuildTasks.521a94ea-9e68-468a-8167-6dcf361ea776.MicroBuildCleanup@1

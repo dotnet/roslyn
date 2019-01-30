@@ -621,11 +621,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var unwrappedValue = SkipReferenceConversions(value);
-            if (unwrappedValue.Kind == BoundKind.SuppressNullableWarningExpression)
+            if (unwrappedValue.IsSuppressed)
             {
                 return false;
             }
-
             if (reportNullLiteralAssignmentIfNecessary(value))
             {
                 return true;
@@ -1239,6 +1238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             _resultType = _invalidType;
             var result = base.VisitExpressionWithoutStackGuard(node);
+
 #if DEBUG
             // Verify Visit method set _result.
             TypeSymbolWithAnnotations resultType = _resultType;
@@ -1248,6 +1248,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_callbackOpt != null)
             {
                 _callbackOpt(node, _resultType);
+            }
+
+            if (node.IsSuppressed && !_resultType.IsNull)
+            {
+                _resultType = _resultType.WithTopLevelNonNullability();
             }
             return result;
         }
@@ -1852,9 +1857,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int slot;
                 switch (operand.Kind)
                 {
-                    case BoundKind.SuppressNullableWarningExpression:
-                        operand = ((BoundSuppressNullableWarningExpression)operand).Expression;
-                        continue;
                     case BoundKind.Conversion:
                         // https://github.com/dotnet/roslyn/issues/29953 Detect when conversion has a nullable operand
                         operand = ((BoundConversion)operand).Operand;
@@ -2954,7 +2956,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.Ref:
                     {
                         bool reportedWarning = false;
-                        if (argument.Kind != BoundKind.SuppressNullableWarningExpression)
+                        if (!argument.IsSuppressed)
                         {
                             // Effect of this call is likely not observable due to https://github.com/dotnet/roslyn/issues/30946.
                             // See unit test NullabilityOfTypeParameters_080 for an attempt to see the effect.
@@ -3765,18 +3767,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableAnnotation resultAnnotation = NullableAnnotation.Unknown;
             bool forceOperandAnnotationForResult = false;
             bool canConvertNestedNullability = true;
+            bool isSuppressed = false;
 
-            if (operandOpt?.Kind == BoundKind.SuppressNullableWarningExpression)
+            if (operandOpt?.IsSuppressed == true)
             {
                 reportTopLevelWarnings = false;
                 reportRemainingWarnings = false;
+                isSuppressed = true;
             }
 
             TypeSymbol targetType = targetTypeWithNullability.TypeSymbol;
             switch (conversion.Kind)
             {
                 case ConversionKind.MethodGroup:
-                    if (!fromExplicitCast)
+                    if (reportRemainingWarnings)
                     {
                         ReportNullabilityMismatchWithTargetDelegate(node.Syntax, targetType.GetDelegateType(), conversion.Method);
                     }
@@ -3793,7 +3797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Analyze(compilation, lambda, Diagnostics, delegateInvokeMethod: delegateType?.DelegateInvokeMethod, returnTypes: null, initialState: variableState);
                         var unboundLambda = GetUnboundLambda(lambda, variableState);
                         var boundLambda = unboundLambda.Bind(delegateType);
-                        if (!fromExplicitCast)
+                        if (reportRemainingWarnings)
                         {
                             ReportNullabilityMismatchWithTargetDelegate(node.Syntax, delegateType, unboundLambda);
                         }
@@ -4076,6 +4080,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     Debug.Assert(targetType.IsValueType);
                     break;
+            }
+
+            if (isSuppressed)
+            {
+                resultAnnotation = NullableAnnotation.NotNullable;
             }
 
             var resultType = TypeSymbolWithAnnotations.Create(targetType, resultAnnotation);
@@ -5053,18 +5062,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitSuppressNullableWarningExpression(BoundSuppressNullableWarningExpression node)
-        {
-            base.VisitSuppressNullableWarningExpression(node);
-
-            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
-            {
-                _resultType = _resultType.IsNull ? default : _resultType.WithTopLevelNonNullability();
-            }
-
-            return null;
-        }
-
         public override BoundNode VisitSizeOfOperator(BoundSizeOfOperator node)
         {
             var result = base.VisitSizeOfOperator(node);
@@ -5317,6 +5314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return;
                     }
+
                     ReportSafetyDiagnostic(isValueType ? ErrorCode.WRN_NullableValueTypeMayBeNull : ErrorCode.WRN_NullReferenceReceiver, syntaxOpt ?? receiverOpt.Syntax);
                 }
 

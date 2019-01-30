@@ -152,7 +152,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public void VerifyTypeIL(string typeName, string expected)
+        /// <summary>
+		/// Asserts that the emited IL for a type is the same as the expected IL
+		/// </summary>
+		/// <param name="typeName">The non-fully-qualified name of the type</param>
+		/// <param name="expected">The expected IL</param>
+		/// <param name="normalize">Normalize the expected and actual strings to ignore differences between output for .Net Core and .Net Framework</param>
+        public void VerifyTypeIL(string typeName, string expected, bool normalize = true)
         {
             var output = new ICSharpCode.Decompiler.PlainTextOutput();
             using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
@@ -180,7 +186,36 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     Assert.True(found, "Could not find type named " + typeName);
                 }
             }
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, output.ToString(), escapeQuotes: false);
+
+            var outputString = output.ToString();
+            if (normalize)
+            {
+                expected = NormalizePlatformSpecificCode(expected);
+                outputString = NormalizePlatformSpecificCode(outputString);
+            }
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, outputString, escapeQuotes: false);
+        }
+
+        /// <summary>
+        /// Used by <see cref="NormalizePlatformSpecificCode(string)"/>
+        /// </summary>
+        private static readonly (string toReplace, string replaceWith)[] PlatformSpecificNormalizations =
+        {
+            ("[mscorlib]", "[netstandard]")
+        };
+
+        /// <summary>
+        /// Attempts to replace .Net Framework specific emitted IL with its .Net Core equivalent
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        private string NormalizePlatformSpecificCode(string str)
+        {
+            foreach (var (toReplace, replaceWith) in PlatformSpecificNormalizations)
+            {
+                str = str.Replace(toReplace, replaceWith);
+            }
+			return str;
         }
 
         public void Emit(string expectedOutput, int? expectedReturnCode, string[] args, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, Verification peVerify, SignatureDescription[] expectedSignatures)
