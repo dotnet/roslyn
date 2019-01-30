@@ -82,8 +82,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        public HostWorkspaceServices WorkspaceServices => _workspaceServices;
-
         private void ReparseCommandLine_NoLock()
         {
             var arguments = CommandLineParser.SplitCommandLineIntoArguments(_commandLine, removeHashComments: false);
@@ -114,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var sourceSearchPaths = ImmutableArray<string>.Empty;
 
             var referenceResolver = new WorkspaceMetadataFileReferenceResolver(
-                    WorkspaceServices.GetRequiredService<IMetadataService>(),
+                    _workspaceServices.GetRequiredService<IMetadataService>(),
                     new RelativePathResolver(referenceSearchPaths, _commandLineArgumentsForCommandLine.BaseDirectory));
 
             var compilationOptions = _commandLineArgumentsForCommandLine.CompilationOptions
