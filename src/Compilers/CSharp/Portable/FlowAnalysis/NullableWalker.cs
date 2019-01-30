@@ -17,15 +17,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed partial class BoundExpressionWithNullability : BoundExpression
-    {
-        public override bool IsSuppressed
-        {
-            get => Expression.IsSuppressed;
-            protected set => throw ExceptionUtilities.Unreachable;
-        }
-    }
-
     /// <summary>
     /// Nullability flow analysis.
     /// </summary>
@@ -741,9 +732,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void ReportNullabilityMismtachInAssignment(SyntaxNode syntaxNode, params object[] arguments)
+        private void ReportNullabilityMismtachInAssignment(SyntaxNode syntaxNode, object sourceType, object destinationType)
         {
-            ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, syntaxNode, arguments);
+            ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, syntaxNode, sourceType, destinationType);
         }
 
         /// <summary>
@@ -2462,6 +2453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expr :
                 new BoundExpressionWithNullability(expr.Syntax, expr, type.NullableAnnotation, type.TypeSymbol);
         }
+
         public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
         {
             var result = base.VisitConditionalReceiver(node);
