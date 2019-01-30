@@ -224,8 +224,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         internal void RemoveDocument(IVisualStudioHostDocument document)
         {
-            var shimDocument = (DocumentProvider.ShimDocument)document;
-
             var containedDocument = ContainedDocument.TryGetContainedDocument(document.Id);
             if (containedDocument != null)
             {
@@ -234,6 +232,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
             else
             {
+                var shimDocument = (DocumentProvider.ShimDocument)document;
                 VisualStudioProject.RemoveSourceFile(shimDocument.FilePath);
             }
         }

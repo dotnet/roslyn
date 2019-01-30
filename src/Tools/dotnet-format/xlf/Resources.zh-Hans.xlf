@@ -32,6 +32,11 @@
         <target state="new">Format complete in {0}ms.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Format_files_but_do_not_save_changes_to_disk">
+        <source>Format files, but do not save changes to disk.</source>
+        <target state="new">Format files, but do not save changes to disk.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Formatting_code_file_0">
         <source>Formatting code file '{0}'.</source>
         <target state="new">Formatting code file '{0}'.</target>

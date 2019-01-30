@@ -649,19 +649,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ArrayRankSpecifierSyntax)this.Green).closeBracketToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
-    /// <summary>SyntaxToken representing the question mark.</summary>
-    public SyntaxToken QuestionToken 
-    {
-        get
-        {
-            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ArrayRankSpecifierSyntax)this.Green).questionToken;
-            if (slot != null)
-                return new SyntaxToken(this, slot, this.GetChildPosition(3), this.GetChildIndex(3));
-
-            return default(SyntaxToken);
-        }
-    }
-
     internal override SyntaxNode GetNodeSlot(int index)
     {
         switch (index)
@@ -689,11 +676,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitArrayRankSpecifier(this);
     }
 
-    public ArrayRankSpecifierSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<ExpressionSyntax> sizes, SyntaxToken closeBracketToken, SyntaxToken questionToken)
+    public ArrayRankSpecifierSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<ExpressionSyntax> sizes, SyntaxToken closeBracketToken)
     {
-        if (openBracketToken != this.OpenBracketToken || sizes != this.Sizes || closeBracketToken != this.CloseBracketToken || questionToken != this.QuestionToken)
+        if (openBracketToken != this.OpenBracketToken || sizes != this.Sizes || closeBracketToken != this.CloseBracketToken)
         {
-            var newNode = SyntaxFactory.ArrayRankSpecifier(openBracketToken, sizes, closeBracketToken, questionToken);
+            var newNode = SyntaxFactory.ArrayRankSpecifier(openBracketToken, sizes, closeBracketToken);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -705,22 +692,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public ArrayRankSpecifierSyntax WithOpenBracketToken(SyntaxToken openBracketToken)
     {
-        return this.Update(openBracketToken, this.Sizes, this.CloseBracketToken, this.QuestionToken);
+        return this.Update(openBracketToken, this.Sizes, this.CloseBracketToken);
     }
 
     public ArrayRankSpecifierSyntax WithSizes(SeparatedSyntaxList<ExpressionSyntax> sizes)
     {
-        return this.Update(this.OpenBracketToken, sizes, this.CloseBracketToken, this.QuestionToken);
+        return this.Update(this.OpenBracketToken, sizes, this.CloseBracketToken);
     }
 
     public ArrayRankSpecifierSyntax WithCloseBracketToken(SyntaxToken closeBracketToken)
     {
-        return this.Update(this.OpenBracketToken, this.Sizes, closeBracketToken, this.QuestionToken);
-    }
-
-    public ArrayRankSpecifierSyntax WithQuestionToken(SyntaxToken questionToken)
-    {
-        return this.Update(this.OpenBracketToken, this.Sizes, this.CloseBracketToken, questionToken);
+        return this.Update(this.OpenBracketToken, this.Sizes, closeBracketToken);
     }
 
     public ArrayRankSpecifierSyntax AddSizes(params ExpressionSyntax[] items)

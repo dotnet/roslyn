@@ -1156,7 +1156,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.RecursivePattern, operation.Kind);
             VisitPatternCommon(operation);
             Assert.NotNull(operation.MatchedType);
-            _ = operation.DeconstructSymbol;
+            switch (operation.DeconstructSymbol)
+            {
+                case IErrorTypeSymbol error:
+                case null: // OK: indicates deconstruction of a tuple, or an error case
+                    break;
+                case IMethodSymbol method:
+                    // when we have a method, it is a `Deconstruct` method
+                    Assert.Equal("Deconstruct", method.Name);
+                    break;
+                case ITypeSymbol type:
+                    // when we have a type, it is the type "ITuple"
+                    Assert.Equal("ITuple", type.Name);
+                    break;
+                default:
+                    Assert.True(false, $"Unexpected symbol {operation.DeconstructSymbol}");
+                    break;
+            }
 
             var designation = (operation.Syntax as CSharp.Syntax.RecursivePatternSyntax)?.Designation;
             if (designation.IsKind(CSharp.SyntaxKind.SingleVariableDesignation))
@@ -1166,6 +1182,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             else
             {
                 Assert.Null(operation.DeclaredSymbol);
+            }
+
+            foreach (var subpat in operation.PropertySubpatterns)
+            {
+                var (symbol, pattern) = subpat;
+                switch (symbol)
+                {
+                    case null: // error case
+                        break;
+                    case IFieldSymbol field:
+                    case IPropertySymbol prop:
+                    case IErrorTypeSymbol error:
+                        break;
+                    default:
+                        Assert.True(false, $"Unexpected symbol {symbol}");
+                        break;
+                }
             }
 
             IEnumerable<IOperation> children = operation.DeconstructionSubpatterns.Cast<IOperation>();
@@ -1413,13 +1446,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             Assert.Equal(index, children.Length);
-        }
-
-        public override void VisitSuppressNullableWarningOperation(ISuppressNullableWarningOperation operation)
-        {
-            Assert.Equal(OperationKind.SuppressNullableWarning, operation.Kind);
-            Assert.NotNull(operation.Expression);
-            Assert.Same(operation.Expression, operation.Children.Single());
         }
 
         public override void VisitReDim(IReDimOperation operation)

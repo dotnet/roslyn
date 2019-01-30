@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -60,25 +61,32 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var pieces = new List<SyntaxNode>();
             CollectPiecesDown(syntaxFacts, pieces, top, semanticModel, cancellationToken);
 
+            var stringLiterals = pieces.Where(syntaxFacts.IsStringLiteralExpression).ToImmutableArray();
+
             // If the entire expression is just concatenated strings, then don't offer to
             // make an interpolated string.  The user likely manually split this for
             // readability.
-            if (pieces.All(syntaxFacts.IsStringLiteralExpression))
+            if (stringLiterals.Length == pieces.Count)
             {
                 return;
             }
 
-            // Make sure that all the string tokens we're concatenating are the same type
-            // of string literal.  i.e. if we have an expression like: @" "" " + " \r\n "
-            // then we don't merge this.  We don't want to be munging different types of
-            // escape sequences in these strings, so we only support combining the string
-            // tokens if they're all the same type.
-            var firstStringToken = pieces.First(syntaxFacts.IsStringLiteralExpression).GetFirstToken();
-            var isVerbatimStringLiteral = syntaxFacts.IsVerbatimStringLiteral(firstStringToken);
-            if (pieces.Where(syntaxFacts.IsStringLiteralExpression).Any(
-                    lit => isVerbatimStringLiteral != syntaxFacts.IsVerbatimStringLiteral(lit.GetFirstToken())))
+            var isVerbatimStringLiteral = false;
+            if (stringLiterals.Length > 0)
             {
-                return;
+
+                // Make sure that all the string tokens we're concatenating are the same type
+                // of string literal.  i.e. if we have an expression like: @" "" " + " \r\n "
+                // then we don't merge this.  We don't want to be munging different types of
+                // escape sequences in these strings, so we only support combining the string
+                // tokens if they're all the same type.
+                var firstStringToken = stringLiterals[0].GetFirstToken();
+                isVerbatimStringLiteral = syntaxFacts.IsVerbatimStringLiteral(firstStringToken);
+                if (stringLiterals.Any(
+                        lit => isVerbatimStringLiteral != syntaxFacts.IsVerbatimStringLiteral(lit.GetFirstToken())))
+                {
+                    return;
+                }
             }
 
             var interpolatedString = CreateInterpolatedString(document, isVerbatimStringLiteral, pieces);

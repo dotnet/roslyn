@@ -104,6 +104,13 @@
   <Node Name="BoundAwaitableValuePlaceholder" Base="BoundValuePlaceholderBase">
   </Node>
 
+  <!--
+  This node is used to represent an expression of a certain type, when attempting to bind its pattern dispose method
+  It does not survive past initial binding.
+  -->
+  <Node Name="BoundDisposableValuePlaceholder" Base="BoundValuePlaceholderBase">
+  </Node>
+
   <!-- only used by codegen -->
   <Node Name="BoundDup" Base="BoundExpression">
     <!-- when duplicating a local or parameter, must remember original ref kind -->
@@ -263,11 +270,6 @@
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
     <Field Name="MethodOpt" Type="MethodSymbol" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
-  </Node>
-
-  <Node Name="BoundSuppressNullableWarningExpression" Base="BoundExpression">
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
-    <Field Name="Expression" Type="BoundExpression"/>
   </Node>
 
   <Node Name="BoundIncrementOperator" Base="BoundExpression">
@@ -1745,7 +1747,7 @@
     <Field Name="ApplicableIndexers" Type="ImmutableArray&lt;PropertySymbol&gt;" />
   </Node>
 
-  <Node Name="BoundLambda" Base="BoundExpression">
+  <Node Name="BoundLambda" Base="BoundExpression" SkipShallowClone="true">
     <Field Name="UnboundLambda" Type="UnboundLambda" Null="disallow" SkipInVisitor="true"/>
     <!-- LambdaSymbol may differ from Binder.MemberSymbol after rewriting. -->
     <Field Name="Symbol" Type="LambdaSymbol" Null="disallow"/>
@@ -1761,7 +1763,7 @@
     <Field Name="Data" Type="UnboundLambdaState" Null="disallow"/>
   </Node>
 
-  <Node Name="BoundQueryClause" Base="BoundExpression">
+  <Node Name="BoundQueryClause" Base="BoundExpression" SkipShallowClone="true">
     <!-- Equal to Value.Type. -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <!-- The value computed for this query clause. -->
@@ -1893,7 +1895,7 @@
   <Node Name="DeconstructionVariablePendingInference" Base="VariablePendingInference" />
 
   <!-- The node is transformed into BoundDeconstructValuePlaceholder after inference -->
-  <Node Name="OutDeconstructVarPendingInference" Base="BoundExpression">
+  <Node Name="OutDeconstructVarPendingInference" Base="BoundExpression" SkipShallowClone="true">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
   </Node>

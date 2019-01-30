@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GroupItemsBy" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
   <UsingTask TaskName="Microsoft.NET.Build.Tasks.JoinItems" AssemblyFile="$(MicrosoftNETBuildTasksAssembly)" />
   <UsingTask TaskName="Roslyn.Tools.ReplacePackageParts" AssemblyFile="$(_NuGetRepackAssembly)" />
 
@@ -33,32 +34,32 @@
 
   <!-- 
     List of dependencies that are expected to be inserted into VS by Roslyn Insertion Tool.
-    DevEnvLib is the relative path within the package of the binary that's used by devenv process.
-    This binary will get IBC data embedded if OverwriteNgenOptimizationData is true.
+    OptimizeAssemblies is a list of relative paths within the package of the implementation assemblies that are deployed to VS installation and should get IBC data embedded.
     Note - optimizing Authenticode-signed 3rd party libraries would invalidate their signature.
   -->
   <ItemGroup>
-    <ExpectedDependency Include="Humanizer.Core" DevEnvLib="lib/netstandard2.0/Humanizer.dll"/>
-    <ExpectedDependency Include="ICSharpCode.Decompiler" DevEnvLib="lib/netstandard2.0/ICSharpCode.Decompiler.dll"/>
-    <ExpectedDependency Include="Microsoft.DiaSymReader" DevEnvLib="lib/netstandard1.1/Microsoft.DiaSymReader.dll"/>
-    <ExpectedDependency Include="Microsoft.CodeAnalysis.Elfie" DevEnvLib="lib/net46/Microsoft.CodeAnalysis.Elfie.dll"/>
-    <ExpectedDependency Include="System.Buffers" DevEnvLib="lib/netstandard2.0/System.Buffers.dll"/>
-    <ExpectedDependency Include="System.Collections.Immutable" DevEnvLib="lib/netstandard2.0/System.Collections.Immutable.dll" OverwriteNgenOptimizationData="true"/>
-    <ExpectedDependency Include="System.Reflection.Metadata" DevEnvLib="lib/netstandard2.0/System.Reflection.Metadata.dll" OverwriteNgenOptimizationData="true"/>
-    <ExpectedDependency Include="System.Memory" DevEnvLib="lib/netstandard2.0/System.Memory.dll"/>
-    <ExpectedDependency Include="System.Runtime.CompilerServices.Unsafe" DevEnvLib="lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll" OverwriteNgenOptimizationData="true"/>
-    <ExpectedDependency Include="System.Text.Encoding.CodePages" DevEnvLib="lib/netstandard2.0/System.Text.Encoding.CodePages.dll" OverwriteNgenOptimizationData="true"/>
-    <ExpectedDependency Include="System.Numerics.Vectors" DevEnvLib="lib/netstandard2.0/System.Numerics.Vectors.dll"/>
+    <ExpectedDependency Include="Humanizer.Core"/>
+    <ExpectedDependency Include="ICSharpCode.Decompiler"/>
+    <ExpectedDependency Include="Microsoft.DiaSymReader"/>
+    <ExpectedDependency Include="Microsoft.CodeAnalysis.Elfie"/>
+    <ExpectedDependency Include="System.Buffers" />
+    <ExpectedDependency Include="System.Collections.Immutable" OptimizeAssemblies="lib/netstandard2.0/System.Collections.Immutable.dll;lib/netstandard1.0/System.Collections.Immutable.dll" />
+    <ExpectedDependency Include="System.Reflection.Metadata" OptimizeAssemblies="lib/netstandard2.0/System.Reflection.Metadata.dll;lib/netstandard1.1/System.Reflection.Metadata.dll" />
+    <ExpectedDependency Include="System.Memory"/>
+    <ExpectedDependency Include="System.Runtime.CompilerServices.Unsafe" OptimizeAssemblies="lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll" />
+    <ExpectedDependency Include="System.Text.Encoding.CodePages" OptimizeAssemblies="lib/netstandard2.0/System.Text.Encoding.CodePages.dll" />
+    <ExpectedDependency Include="System.Numerics.Vectors"/>
 
-    <!-- 
+    <!--
       Do not overwrite optimization data for this binary for now.
       This assembly is signed by Open key in CoreFX and MicroBuild does not support this key.
       Arcade SignTool doesn't support signing directly at this point either.
       https://github.com/dotnet/arcade/issues/1204
+      TODO: add OptimizeAssemblies="lib/netstandard2.0/System.Threading.Tasks.Extensions.dll"
     -->
-    <ExpectedDependency Include="System.Threading.Tasks.Extensions" DevEnvLib="lib/netstandard2.0/System.Threading.Tasks.Extensions.dll"/>
+    <ExpectedDependency Include="System.Threading.Tasks.Extensions" />
   </ItemGroup>
-  
+
   <Target Name="_CalculateDependenciesToInsert" DependsOnTargets="ResolveAssemblyReferences">
     <ItemGroup>
       <!-- Take all resolved non-framework dependencies of this project that originate from a NuGet package -->
@@ -120,24 +121,40 @@
     <Error Text="Missing dependencies expected to be inserted -- update ExpectedDependency list: @(_UninsertedExpectedDependency)" Condition="'@(_UninsertedExpectedDependency)' != ''"/>
 
     <!-- 
-      Determine which dependencies to embed optimization data to and calculate information needed for repacking them. 
+      We need to calculate a full path of the corresponding optimized assembly for each relative path listed in ExpectedDependency.OptimizeAssemblies.
+      First we split the list in OptimizeAssemblies, then prepend the directory path, group them back to _AssembliesFullPathsGrouped and finally join back to ExpectedDependency item group.
     -->
-    <JoinItems Left="@(_Dependency)" LeftMetadata="*" Right="@(ExpectedDependency)" RightMetadata="*">
+    <ItemGroup>
+      <_AssembliesSplit Include="%(ExpectedDependency.OptimizeAssemblies)" DependencyName="%(ExpectedDependency.Identity)" />
+      <_AssembliesFullPaths Include="%(_AssembliesSplit.DependencyName)" OptimizeAssembliesFullPaths="$(_OptimizedDependenciesDir)%(_AssembliesSplit.DependencyName)\%(_AssembliesSplit.Identity)" />
+    </ItemGroup>
+
+    <Microsoft.DotNet.Arcade.Sdk.GroupItemsBy Items="@(_AssembliesFullPaths)" GroupMetadata="OptimizeAssembliesFullPaths">
+      <Output TaskParameter="GroupedItems" ItemName="_AssembliesFullPathsGrouped" />
+    </Microsoft.DotNet.Arcade.Sdk.GroupItemsBy>
+
+    <JoinItems Left="@(ExpectedDependency)" LeftMetadata="*" Right="@(_AssembliesFullPathsGrouped)" RightMetadata="OptimizeAssembliesFullPaths">
+      <Output TaskParameter="JoinResult" ItemName="_ExpectedDependencyWithFullPaths" />
+    </JoinItems>
+
+    <!--
+      Join metadata specified in ExpectedMetadata into the item group of actual dependencies, which has extra metadata we need.
+    -->
+    <JoinItems Left="@(_Dependency)" LeftMetadata="*" Right="@(_ExpectedDependencyWithFullPaths)" RightMetadata="*">
       <Output TaskParameter="JoinResult" ItemName="_DependencyWithExpectedMetadata" />
     </JoinItems>
 
     <ItemGroup>
       <_DependencyWithExpectedMetadata>
         <_UnpackDir>$(_OptimizedDependenciesDir)%(_DependencyWithExpectedMetadata.Identity)\</_UnpackDir>
-        <_OptimizeAssembly>$(_OptimizedDependenciesDir)%(_DependencyWithExpectedMetadata.Identity)\%(_DependencyWithExpectedMetadata.DevEnvLib)</_OptimizeAssembly>
       </_DependencyWithExpectedMetadata>
 
       <_DependencyWithOptimizationData Include="@(_DependencyWithExpectedMetadata)" 
-                                       Condition="'%(_DependencyWithExpectedMetadata.OverwriteNgenOptimizationData)' == 'true' and '$(ApplyPartialNgenOptimization)' == 'true'" />
+                                       Condition="'%(_DependencyWithExpectedMetadata.OptimizeAssemblies)' != '' and '$(ApplyPartialNgenOptimization)' == 'true'" />
 
       <_DependencyWithoutOptimizationData Include="@(_DependencyWithExpectedMetadata)" Exclude="@(_DependencyWithOptimizationData)"/>
 
-      <OptimizeAssembly Include="%(_DependencyWithOptimizationData._OptimizeAssembly)" />
+      <OptimizeAssembly Include="%(_DependencyWithOptimizationData.OptimizeAssembliesFullPaths)" />
     </ItemGroup>
   </Target>
 
@@ -182,8 +199,8 @@
     <Roslyn.Tools.ReplacePackageParts SourcePackage="%(_DependencyWithOptimizationData._NuGetPackageDir)%(_DependencyWithOptimizationData._NuGetPackageFileName)"
                                       DestinationFolder="$(DevDivPackagesDir)"
                                       NewVersionSuffix="$(_OptimizedNuGetPackageVersionSuffix)"
-                                      Parts="%(_DependencyWithOptimizationData.DevEnvLib)"
-                                      ReplacementFiles="%(_DependencyWithOptimizationData._OptimizeAssembly)"
+                                      Parts="%(_DependencyWithOptimizationData.OptimizeAssemblies)"
+                                      ReplacementFiles="%(_DependencyWithOptimizationData.OptimizeAssembliesFullPaths)"
                                       Condition="'@(_DependencyWithOptimizationData)' != ''">
       <Output TaskParameter="NewPackage" ItemName="FileWrites" />
     </Roslyn.Tools.ReplacePackageParts>

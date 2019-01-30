@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static ArrayTypeSyntax GenerateArrayType() => SyntaxFactory.ArrayType(GenerateIdentifierName(), new SyntaxList<ArrayRankSpecifierSyntax>());
         
-        private static ArrayRankSpecifierSyntax GenerateArrayRankSpecifier() => SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), new SeparatedSyntaxList<ExpressionSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBracketToken), default(SyntaxToken));
+        private static ArrayRankSpecifierSyntax GenerateArrayRankSpecifier() => SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), new SeparatedSyntaxList<ExpressionSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
         
         private static PointerTypeSyntax GeneratePointerType() => SyntaxFactory.PointerType(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.AsteriskToken));
         
@@ -527,8 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind());
             Assert.NotNull(node.Sizes);
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind());
-            Assert.Equal(SyntaxKind.None, node.QuestionToken.Kind());
-            var newNode = node.WithOpenBracketToken(node.OpenBracketToken).WithSizes(node.Sizes).WithCloseBracketToken(node.CloseBracketToken).WithQuestionToken(node.QuestionToken);
+            var newNode = node.WithOpenBracketToken(node.OpenBracketToken).WithSizes(node.Sizes).WithCloseBracketToken(node.CloseBracketToken);
             Assert.Equal(node, newNode);
         }
         

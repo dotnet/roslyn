@@ -47,7 +47,6 @@ param (
     [string]$officialSkipApplyOptimizationData = "",
     [string]$officialSkipTests = "",
     [string]$vsDropName = "",
-    [string]$vsBranch = "",
     [string]$vsDropAccessToken = "",
 
     # Test actions
@@ -104,7 +103,6 @@ function Print-Usage() {
     Write-Host "  -officialSkipTests <bool>                   Pass 'true' to not run tests"
     Write-Host "  -officialSkipApplyOptimizationData <bool>   Pass 'true' to not apply optimization data"
     Write-Host "  -vsDropName                                 Visual Studio product drop name"
-    Write-Host "  -vsBranch                                   Visual Studio insertion branch"
     Write-Host "  -vsDropAccessToken                          Visual Studio drop access token"
     Write-Host ""
     Write-Host "Command line arguments starting with '/p:' are passed through to MSBuild."
@@ -137,7 +135,6 @@ function Process-Arguments() {
        exit 0
     }
 
-    OfficialBuildOnly "vsBranch"
     OfficialBuildOnly "vsDropName"
     OfficialBuildOnly "vsDropAccessToken"
     OfficialBuildOnly "officialSkipTests"
@@ -149,7 +146,6 @@ function Process-Arguments() {
         $script:applyOptimizationData = ![System.Boolean]::Parse($officialSkipApplyOptimizationData)
         $script:buildOptimizationData = $true
     } else {
-        $script:vsBranch = "dummy/ci"
         $script:vsDropName = "Products/DummyDrop"
         $script:applyOptimizationData = $script:buildOptimizationData = $ci -and $configuration -eq "Release" -and $msbuildEngine -eq "vs"
     }
@@ -281,22 +277,25 @@ function Restore-OptProfData() {
 
     Exec-Console $dropToolPath "list --dropservice `"$dropServiceUrl`" $patAuth --pathPrefixFilter `"$dropNamePrefix`" --toJsonFile `"$dropsJsonPath`" --traceto `"$logFile`""
     $dropsJson = Get-Content -Raw -Path $dropsJsonPath | ConvertFrom-Json
+    
     $latestDrop = find-latest-drop($dropsJson)
     
     if ($latestDrop -eq $null) {
         Write-Host "No drop matching given name found: $dropServiceUrl/$dropNamePrefix/*" -ForegroundColor Red 
         ExitWithExitCode 1
     }
+    
+    # Temporarily hardcoding the drop location name to the last good Preview2 drop. The pipeline that generates new new OptProf drops is generating incomplete data.
+    #$latestDropName = $($latestDrop.Name)
+    $latestDropName = "OptimizationData/dotnet/roslyn/master-vs-deps/75e3797e1105a4da4c10dddda76c3b9398f7725a/223453/935479/1"
 
-    Write-Host "Downloading optimization data from service $dropServiceUrl drop $($latestDrop.Name)"
-    Exec-Console $dropToolPath "get --dropservice `"$dropServiceUrl`" $patAuth --name `"$($latestDrop.Name)`" --dest `"$IbcOptimizationDataDir`" --traceto `"$logFile`""
+    Write-Host "Downloading optimization data from service $dropServiceUrl drop $latestDropName"
+    Exec-Console $dropToolPath "get --dropservice `"$dropServiceUrl`" $patAuth --name `"$latestDropName`" --dest `"$IbcOptimizationDataDir`" --traceto `"$logFile`""
 }
 
 function Build-OptProfData() {
     $insertionDir = Join-Path $VSSetupDir "Insertion"
-    $optProfDir = Join-Path $ArtifactsDir "OptProf\$configuration"
-    $optProfDataDir = Join-Path $optProfDir "Data"
-    $optProfBranchDir = Join-Path $optProfDir "BranchInfo"
+    $optProfDataDir = Join-Path $ArtifactsDir "OptProf\$configuration\Data"
 
     $optProfConfigFile = Join-Path $EngRoot "config\OptProf.json"
     $optProfToolDir = Get-PackageDir "RoslynTools.OptProf"
@@ -304,11 +303,6 @@ function Build-OptProfData() {
 
     Write-Host "Generating optimization data using '$optProfConfigFile' into '$optProfDataDir'"
     Exec-Console $optProfToolExe "--configFile $optProfConfigFile --insertionFolder $insertionDir --outputFolder $optProfDataDir"
-
-    # Write out branch we are inserting into
-    Create-Directory $optProfBranchDir
-    $vsBranchFile = Join-Path $optProfBranchDir "vsbranch.txt"
-    $vsBranch >> $vsBranchFile
 
     # Set VSO variables used by MicroBuildBuildVSBootstrapper pipeline task
     $manifestList = [string]::Join(',', (Get-ChildItem "$insertionDir\*.vsman"))

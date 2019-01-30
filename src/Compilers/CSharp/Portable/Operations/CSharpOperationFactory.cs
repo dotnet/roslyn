@@ -276,8 +276,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateFromEndIndexExpressionOperation((BoundFromEndIndexExpression)boundNode);
                 case BoundKind.RangeExpression:
                     return CreateRangeExpressionOperation((BoundRangeExpression)boundNode);
-                case BoundKind.SuppressNullableWarningExpression:
-                    return CreateSuppressNullableWarningExpressionOperation((BoundSuppressNullableWarningExpression)boundNode);
                 case BoundKind.SwitchSection:
                     return CreateBoundSwitchSectionOperation((BoundSwitchSection)boundNode);
                 case BoundKind.SwitchExpression:
@@ -1504,8 +1502,8 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     enumeratorInfoOpt.GetEnumeratorMethod,
                                                     (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedSymbol,
                                                     enumeratorInfoOpt.MoveNextMethod,
-                                                    enumeratorInfoOpt.NeedsDisposeMethod,
-                                                    knownToImplementIDisposable: enumeratorInfoOpt.NeedsDisposeMethod && (object)enumeratorInfoOpt.GetEnumeratorMethod != null ?
+                                                    enumeratorInfoOpt.NeedsDisposal,
+                                                    knownToImplementIDisposable: enumeratorInfoOpt.NeedsDisposal && (object)enumeratorInfoOpt.GetEnumeratorMethod != null ?
                                                                                      compilation.Conversions.
                                                                                          ClassifyImplicitConversionFromType(enumeratorInfoOpt.GetEnumeratorMethod.ReturnType.TypeSymbol,
                                                                                                                             compilation.GetSpecialType(SpecialType.System_IDisposable),
@@ -1988,17 +1986,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 boundRange.Type,
                 boundRange.MethodOpt,
                 isImplicit: boundRange.WasCompilerGenerated);
-        }
-
-        private IOperation CreateSuppressNullableWarningExpressionOperation(BoundSuppressNullableWarningExpression boundSuppression)
-        {
-            return new CSharpLazySuppressNullableWarningOperation(
-                operationFactory: this,
-                boundSuppression,
-                _semanticModel,
-                boundSuppression.Syntax,
-                boundSuppression.Type,
-                isImplicit: boundSuppression.WasCompilerGenerated);
         }
 
         private IOperation CreateBoundDiscardPatternOperation(BoundDiscardPattern boundNode)

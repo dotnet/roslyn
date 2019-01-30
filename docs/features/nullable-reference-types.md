@@ -157,6 +157,8 @@ A warning is reported when using the `!` operator absent a `NonNullTypes` contex
 
 Unnecessary usages of `!` do not produce any diagnostics, including `!!`.
 
+A suppressed expression `e!` can be target-typed if the operand expression `e` can be target-typed.
+
 ### Explicit cast
 Explicit cast to `?` changes top-level nullability.
 Explicit cast to `!` does not change top-level nullability and may produce W warning.
