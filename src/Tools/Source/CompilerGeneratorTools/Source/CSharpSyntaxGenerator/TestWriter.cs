@@ -23,6 +23,7 @@ namespace CSharpSyntaxGenerator
             WriteLine("using Microsoft.CodeAnalysis.CSharp.Syntax;");
             WriteLine("using Roslyn.Utilities;");
             WriteLine("using Xunit;");
+            WriteLine("using InternalSyntaxFactory = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory;");
             WriteLine();
 
             WriteLine("namespace Microsoft.CodeAnalysis.CSharp.UnitTests");
@@ -94,13 +95,14 @@ namespace CSharpSyntaxGenerator
             var nodeFields = node.Fields.Where(n => IsNodeOrNodeList(n.Type));
 
             var internalNamespace = isGreen ? "Microsoft.CodeAnalysis.Syntax.InternalSyntax." : "";
-            var csharpNamespace = isGreen ? "Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax." : "";
+            var csharpNamespace = isGreen ? "Syntax.InternalSyntax." : "";
+            var syntaxFactory = isGreen ? "InternalSyntaxFactory" : "SyntaxFactory";
 
             var strippedName = StripPost(node.Name, "Syntax");
 
             WriteLine("private static {0}{1} Generate{2}()", csharpNamespace, node.Name, strippedName);
 
-            Write("    => {0}SyntaxFactory.{1}(", csharpNamespace, strippedName);
+            Write("    => {0}.{1}(", syntaxFactory, strippedName);
             //instantiate node
 
             bool first = true;
@@ -150,28 +152,28 @@ namespace CSharpSyntaxGenerator
                     var trailingTrivia = isGreen ? ", null" : string.Empty;
                     if (kind == "IdentifierToken")
                     {
-                        Write("{0}SyntaxFactory.Identifier(\"{1}\")", csharpNamespace, field.Name);
+                        Write("{0}.Identifier(\"{1}\")", syntaxFactory, field.Name);
                     }
                     else if (kind == "StringLiteralToken")
                     {
-                        Write("{0}SyntaxFactory.Literal({1}\"string\", \"string\"{2})", csharpNamespace, leadingTrivia, trailingTrivia);
+                        Write("{0}.Literal({1}\"string\", \"string\"{2})", syntaxFactory, leadingTrivia, trailingTrivia);
                     }
                     else if (kind == "CharacterLiteralToken")
                     {
-                        Write("{0}SyntaxFactory.Literal({1}\"a\", 'a'{2})", csharpNamespace, leadingTrivia, trailingTrivia);
+                        Write("{0}.Literal({1}\"a\", 'a'{2})", syntaxFactory, leadingTrivia, trailingTrivia);
                     }
                     else if (kind == "NumericLiteralToken")
                     {
-                        Write("{0}SyntaxFactory.Literal({1}\"1\", 1{2})", csharpNamespace, leadingTrivia, trailingTrivia);
+                        Write("{0}.Literal({1}\"1\", 1{2})", syntaxFactory, leadingTrivia, trailingTrivia);
                     }
                     else
                     {
-                        Write("{0}SyntaxFactory.Token(SyntaxKind.{1})", csharpNamespace, ChooseValidKind(field));
+                        Write("{0}.Token(SyntaxKind.{1})", syntaxFactory, ChooseValidKind(field));
                     }
                 }
                 else if (field.Type == "CSharpSyntaxNode")
                 {
-                    Write("{0}SyntaxFactory.IdentifierName({0}SyntaxFactory.Identifier(\"{1}\"))", csharpNamespace, field.Name);
+                    Write("{0}.IdentifierName({0}.Identifier(\"{1}\"))", syntaxFactory, field.Name);
                 }
                 else
                 {
