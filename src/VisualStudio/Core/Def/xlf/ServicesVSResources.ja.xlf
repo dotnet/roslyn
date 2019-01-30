@@ -117,6 +117,11 @@
         <target state="new">Members</target>
         <note />
       </trans-unit>
+      <trans-unit id="Modifier_preferences_colon">
+        <source>Modifier preferences:</source>
+        <target state="new">Modifier preferences:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Namespace_0">
         <source>Namespace: '{0}'</source>
         <target state="new">Namespace: '{0}'</target>
@@ -155,6 +160,16 @@
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
         <target state="new">Prefer range operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly_fields">
+        <source>Prefer readonly fields</source>
+        <target state="new">Prefer readonly fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_static_local_functions">
+        <source>Prefer static local functions</source>
+        <target state="new">Prefer static local functions</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_Members_Up">
@@ -1751,16 +1766,6 @@ I agree to all of the foregoing:</source>
       <trans-unit id="CantApplyChangesUnexpectedError">
         <source>Can't apply changes -- unexpected error: '{0}'</source>
         <target state="translated">変更を適用できません。予期しないエラー: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Field_preferences_colon">
-        <source>Field preferences:</source>
-        <target state="translated">フィールド設定:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_readonly">
-        <source>Prefer readonly</source>
-        <target state="translated">読み取り専用を優先する</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">
