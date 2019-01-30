@@ -134,14 +134,11 @@ Microsoft.CodeAnalysis.OperationKind.RecursivePattern = 103 -> Microsoft.CodeAna
 Microsoft.CodeAnalysis.OperationKind.ReDim = 101 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.ReDimClause = 102 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.StaticLocalInitializationSemaphore = 95 -> Microsoft.CodeAnalysis.OperationKind
-<<<<<<< HEAD
-=======
 Microsoft.CodeAnalysis.OperationKind.SuppressNullableWarning = 98 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.SwitchExpression = 105 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.SwitchExpressionArm = 106 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.TupleBinary = 87 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.Unary = 31 -> Microsoft.CodeAnalysis.OperationKind
->>>>>>> upstream/master-vs-deps
 Microsoft.CodeAnalysis.Operations.CommonConversion.IsImplicit.get -> bool
 Microsoft.CodeAnalysis.Operations.ICaseClauseOperation.Label.get -> Microsoft.CodeAnalysis.ILabelSymbol
 Microsoft.CodeAnalysis.Operations.ICoalesceAssignmentOperation
@@ -168,8 +165,6 @@ Microsoft.CodeAnalysis.Operations.IRangeOperation.IsLifted.get -> bool
 Microsoft.CodeAnalysis.Operations.IRangeOperation.LeftOperand.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IRangeOperation.Method.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Operations.IRangeOperation.RightOperand.get -> Microsoft.CodeAnalysis.IOperation
-<<<<<<< HEAD
-=======
 Microsoft.CodeAnalysis.Operations.IRecursivePatternOperation
 Microsoft.CodeAnalysis.Operations.IRecursivePatternOperation.DeclaredSymbol.get -> Microsoft.CodeAnalysis.ISymbol
 Microsoft.CodeAnalysis.Operations.IRecursivePatternOperation.DeconstructSymbol.get -> Microsoft.CodeAnalysis.ISymbol
@@ -184,7 +179,6 @@ Microsoft.CodeAnalysis.Operations.IReDimOperation.Clauses.get -> System.Collecti
 Microsoft.CodeAnalysis.Operations.IReDimOperation.Preserve.get -> bool
 Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation
 Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation.Expression.get -> Microsoft.CodeAnalysis.IOperation
->>>>>>> upstream/master-vs-deps
 Microsoft.CodeAnalysis.Operations.ISwitchCaseOperation.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.Operations.ISwitchExpressionArmOperation
 Microsoft.CodeAnalysis.Operations.ISwitchExpressionArmOperation.Guard.get -> Microsoft.CodeAnalysis.IOperation
