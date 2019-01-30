@@ -4,11 +4,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic;
-using Microsoft.CodeAnalysis.CSharp.UseLocalFunction;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
@@ -123,6 +121,39 @@ class C
         }
     }
 }", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        public async Task TestAsyncFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        async Task<int> [||]fibonacci(int n)
+        {
+            return n <= 1 ? n : await fibonacci(n - 1) + await fibonacci(n - 2);
+        }
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        static async Task<int> fibonacci(int n)
+        {
+            return n <= 1 ? n : await fibonacci(n - 1) + await fibonacci(n - 2);
+        }
+    }
+}",
+parseOptions: CSharp8ParseOptions);
         }
     }
 }
