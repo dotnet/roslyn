@@ -476,7 +476,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // If replacing the node will result in a change in overload resolution, we won't remove it.
                 var originalExpression = (TExpressionSyntax)currentOriginalNode;
                 var newExpression = (TExpressionSyntax)currentReplacedNode;
+
                 if (ReplacementBreaksExpression(originalExpression, newExpression))
+                {
+                    return true;
+                }
+
+                if (ReplacementBreaksGetTypeResolution(currentOriginalNode, currentReplacedNode, previousOriginalNode, previousReplacedNode))
                 {
                     return true;
                 }
@@ -519,6 +525,36 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Determine if removing the cast could cause the semantics of a GetType expression to change.
+        /// </summary>
+        private bool ReplacementBreaksGetTypeResolution(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode previousOriginalNode, SyntaxNode previousReplacedNode)
+        {
+            if (previousOriginalNode != null && previousReplacedNode != null)
+            {
+                var originalExpressionSymbol = this.OriginalSemanticModel.GetSymbolInfo(currentOriginalNode).Symbol;
+                var replacedExpressionSymbol = this.SpeculativeSemanticModel.GetSymbolInfo(currentReplacedNode).Symbol;
+
+                if (IsExpressionSymbolGetType(originalExpressionSymbol) && IsExpressionSymbolGetType(replacedExpressionSymbol))
+                {
+                    var previousOriginalType = this.OriginalSemanticModel.GetTypeInfo(previousOriginalNode).Type;
+                    var previousReplacedType = this.SpeculativeSemanticModel.GetTypeInfo(previousReplacedNode).Type;
+
+                    return !Equals(previousOriginalType, previousReplacedType);
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Determines if the symbol is the special System Object GetType.
+        /// </summary>
+        private bool IsExpressionSymbolGetType(ISymbol symbol)
+        {
+            return symbol != null && symbol.IsKind(SymbolKind.Method) && symbol.ContainingType.SpecialType == SpecialType.System_Object && symbol.Name == "GetType";
         }
 
         private bool ReplacementBreaksAttribute(TAttributeSyntax attribute, TAttributeSyntax newAttribute)
@@ -669,10 +705,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var newSymbolInfo = this.SpeculativeSemanticModel.GetSymbolInfo(node: newExpression);
             var symbol = originalSymbolInfo.Symbol;
             var newSymbol = newSymbolInfo.Symbol;
-
-            var originalTypeInfo = _semanticModel.GetTypeInfo(expression);
-            //_semanticModel.Get
-            //var newTypeInfo = this.SpeculativeSemanticModel.GetTypeInfo(newExpression);
 
             if (SymbolInfosAreCompatible(originalSymbolInfo, newSymbolInfo))
             {
