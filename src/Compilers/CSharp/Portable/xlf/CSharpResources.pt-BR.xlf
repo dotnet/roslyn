@@ -152,6 +152,11 @@
         <target state="new">A goto cannot jump to a location after a using declaration.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IllegalSuppression">
+        <source>The suppression operator is not allowed in this context</source>
+        <target state="new">The suppression operator is not allowed in this context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="new">Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</target>
