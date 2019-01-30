@@ -2387,8 +2387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static TypeSyntax NotVoid(TypeSyntax type)
         {
-            var pd = type as PredefinedTypeSyntax;
-            return pd != null && pd.Keyword.IsKind(SyntaxKind.VoidKeyword) ? null : type;
+            return type is PredefinedTypeSyntax pd && pd.Keyword.IsKind(SyntaxKind.VoidKeyword) ? null : type;
         }
 
         public override SyntaxNode WithType(SyntaxNode declaration, SyntaxNode type)
@@ -2594,8 +2593,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode InsertSwitchSections(SyntaxNode switchStatement, int index, IEnumerable<SyntaxNode> switchSections)
         {
-            var statement = switchStatement as SwitchStatementSyntax;
-            if (statement == null)
+            if (!(switchStatement is SwitchStatementSyntax statement))
             {
                 return switchStatement;
             }
@@ -4195,8 +4193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static bool IsSimpleLambdaParameter(SyntaxNode node)
         {
-            var p = node as ParameterSyntax;
-            return p != null && p.Type == null && p.Default == null && p.Modifiers.Count == 0;
+            return node is ParameterSyntax p && p.Type == null && p.Default == null && p.Modifiers.Count == 0;
         }
 
         public override SyntaxNode VoidReturningLambdaExpression(IEnumerable<SyntaxNode> lambdaParameters, SyntaxNode expression)
