@@ -51,5 +51,78 @@ class C
 }",
 parseOptions: CSharp8ParseOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        public async Task TestMissingIfAlreadyStatic()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        static int [||]fibonacci(int n)
+        {
+            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+        }
+    }
+}", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        public async Task TestMissingPriorToCSharp8()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int [||]fibonacci(int n)
+        {
+            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+        }
+    }
+}", parameters: new TestParameters(parseOptions: CSharp72ParseOptions));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        public async Task TestMissingIfCapturesValue()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M(int i)
+    {
+        int [||]fibonacci(int n)
+        {
+            return i <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+        }
+    }
+}", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        public async Task TestMissingIfCapturesThis()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int [||]fibonacci(int n)
+        {
+            M();
+            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+        }
+    }
+}", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
+        }
     }
 }
