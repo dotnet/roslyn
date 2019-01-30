@@ -188,7 +188,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     nameof(SymbolKind.Parameter),
                     nameof(SymbolKind.Property));
 
+#pragma warning disable CA1815 // Override equals and operator equals on value types
             private struct NodeAndSymbol
+#pragma warning restore CA1815 // Override equals and operator equals on value types
             {
                 public TInvocationExpressionSyntax Invocation { get; set; }
                 public IMethodSymbol Method { get; set; }

@@ -40,10 +40,14 @@ namespace Microsoft.CodeAnalysis
     internal class ObjectPool<T> where T : class
     {
         [DebuggerDisplay("{Value,nq}")]
+#pragma warning disable CA1815 // Override equals and operator equals on value types
+#pragma warning disable CA1051 // Do not declare visible instance fields
         private struct Element
         {
             internal T Value;
         }
+#pragma warning restore CA1051 // Do not declare visible instance fields
+#pragma warning restore CA1815 // Override equals and operator equals on value types
 
         /// <remarks>
         /// Not using System.Func{T} because this file is linked into the (debugger) Formatter,

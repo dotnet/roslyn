@@ -4,32 +4,32 @@
     <body>
       <trans-unit id="DuplicateBannedSymbolDescription">
         <source>The list of banned symbols contains a duplicate.</source>
-        <target state="new">The list of banned symbols contains a duplicate.</target>
+        <target state="translated">禁止されているシンボルの一覧に、重複項目が含まれています。</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateBannedSymbolMessage">
         <source>The symbol '{0}' is listed multiple times in the list of banned APIs</source>
-        <target state="new">The symbol '{0}' is listed multiple times in the list of banned APIs</target>
+        <target state="translated">シンボル '{0}' が、禁止されている API の一覧に複数回表示されています</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateBannedSymbolTitle">
         <source>The list of banned symbols contains a duplicate</source>
-        <target state="new">The list of banned symbols contains a duplicate</target>
+        <target state="translated">禁止されているシンボルの一覧に重複項目が含まれています</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedDescription">
         <source>The symbol has been marked as banned in this project, and an alternate should be used instead.</source>
-        <target state="new">The symbol has been marked as banned in this project, and an alternate should be used instead.</target>
+        <target state="translated">このシンボルはこのプロジェクトでは禁止のマークが付いています。代わりのものを使用する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedMessage">
         <source>The symbol '{0}' is banned in this project{1}</source>
-        <target state="new">The symbol '{0}' is banned in this project{1}</target>
+        <target state="translated">シンボル '{0}' はこのプロジェクト {1} では禁止されています</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedTitle">
         <source>Do not used banned APIs</source>
-        <target state="new">Do not used banned APIs</target>
+        <target state="translated">禁止されている API を使用しない</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableTitle">

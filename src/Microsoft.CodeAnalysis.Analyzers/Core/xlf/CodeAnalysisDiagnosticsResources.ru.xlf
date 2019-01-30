@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="MissingAttributeMessage">
         <source>Missing '{0}' attribute.</source>
-        <target state="translated">Отсутствует атрибут "{0}".</target>
+        <target state="translated">Отсутствует атрибут {0}"".""</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingDiagnosticAnalyzerAttributeTitle">

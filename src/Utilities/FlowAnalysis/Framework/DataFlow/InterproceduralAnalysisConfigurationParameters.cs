@@ -111,5 +111,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 HashUtilities.Combine(MaxInterproceduralMethodCallChain.GetHashCode(),
                                       MaxInterproceduralLambdaOrLocalFunctionCallChain.GetHashCode()));
         }
+
+        public static bool operator ==(InterproceduralAnalysisConfiguration left, InterproceduralAnalysisConfiguration right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(InterproceduralAnalysisConfiguration left, InterproceduralAnalysisConfiguration right)
+        {
+            return !(left == right);
+        }
     }
 }

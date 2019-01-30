@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
+#pragma warning disable CA1710 // Rename Microsoft.CodeAnalysis.ArrayBuilder<T> to end in 'Collection'.
+#pragma warning disable CA1000 // Do not declare static members on generic types
+
 namespace Microsoft.CodeAnalysis
 {
     [DebuggerDisplay("Count = {Count,nq}")]
@@ -22,6 +25,7 @@ namespace Microsoft.CodeAnalysis
                 _builder = builder;
             }
 
+#pragma warning disable CA1819 // Properties should not return arrays
             [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
             public T[] A
             {
@@ -37,6 +41,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
+#pragma warning restore CA1819
 #pragma warning restore CA1812
         #endregion
 
