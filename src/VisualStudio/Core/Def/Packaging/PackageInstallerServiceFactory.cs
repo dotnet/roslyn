@@ -502,6 +502,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 // Nuget may throw an ArgumentException when there is something about the project 
                 // they do not like/support.
             }
+            catch (InvalidOperationException)
+            {
+                // NuGet throws an InvalidOperationException if details
+                // for the project fail to load. We don't need to report
+                // these, and can assume that this will work on a future
+                // project change
+            }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
             }
