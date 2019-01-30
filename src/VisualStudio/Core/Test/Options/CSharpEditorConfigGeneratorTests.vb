@@ -101,6 +101,7 @@ csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
 csharp_style_conditional_delegate_call = true:suggestion
 
 # Modifier preferences
+csharp_prefer_static_local_function = true:suggestion
 csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async
 
 # Code-block preferences
@@ -259,6 +260,7 @@ csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
 csharp_style_conditional_delegate_call = true:suggestion
 
 # Modifier preferences
+csharp_prefer_static_local_function = true:suggestion
 csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async
 
 # Code-block preferences
