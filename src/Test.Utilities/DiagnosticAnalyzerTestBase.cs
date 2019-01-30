@@ -351,7 +351,7 @@ namespace Test.Utilities
 
             for (int i = 0; i < sources.Length; i++)
             {
-                MarkupTestFile.GetPositionAndSpan(sources[i].Source, out string source, out int? pos, out TextSpan? span);
+                MarkupTestFile.GetPositionAndSpan(sources[i].Source, out string source, out _, out TextSpan? span);
 
                 sources[i].Source = source;
                 spans[i] = span;
