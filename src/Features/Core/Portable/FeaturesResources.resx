@@ -1625,4 +1625,10 @@ This version used in: {2}</value>
   <data name="Pull_0_up_to_1" xml:space="preserve">
     <value>Pull '{0}' up to '{1}'</value>
   </data>
+  <data name="Local_function_can_be_made_static" xml:space="preserve">
+    <value>Local function can be made static</value>
+  </data>
+  <data name="Make_local_function_static" xml:space="preserve">
+    <value>Make local function 'static'</value>
+  </data>
 </root>
