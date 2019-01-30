@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
                     if (!string.IsNullOrEmpty(suffix))
                     {
-                        currentNewIdentifier = currentNewIdentifier + suffix;
+                        currentNewIdentifier += suffix;
                     }
                 }
 
