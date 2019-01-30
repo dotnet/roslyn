@@ -6590,12 +6590,6 @@ oneMoreTime:
             return new RangeOperation(operation.IsLifted, semanticModel: null, operation.Syntax, operation.Type, visitedLeftOperand, visitedRightOperand, operation.Method, isImplicit: IsImplicit(operation));
         }
 
-        public override IOperation VisitSuppressNullableWarningOperation(ISuppressNullableWarningOperation operation, int? argument)
-        {
-            IOperation visitedExpression = Visit(operation.Expression);
-            return new SuppressNullableWarningOperation(semanticModel: null, operation.Syntax, operation.Type, visitedExpression, operation.ConstantValue, isImplicit: IsImplicit(operation));
-        }
-
         public override IOperation VisitSwitchExpression(ISwitchExpressionOperation operation, int? captureIdForResult)
         {
             // expression switch { pat1 when g1 => e1, pat2 when g2 => e2 }

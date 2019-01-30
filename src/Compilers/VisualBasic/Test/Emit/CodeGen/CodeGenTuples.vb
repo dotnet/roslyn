@@ -18431,6 +18431,9 @@ additionalRefs:=s_valueTupleRefs)
             Assert.True(underlying1.IsSameType(tuple1, TypeCompareKind.IgnoreTupleNames))
             Assert.True(underlying1.IsSameType(underlying1, TypeCompareKind.IgnoreTupleNames))
 
+            Assert.False(tuple1.IsSameType(Nothing, TypeCompareKind.ConsiderEverything))
+            Assert.False(tuple1.IsSameType(Nothing, TypeCompareKind.IgnoreTupleNames))
+
             Dim m2 = comp.GetMember(Of MethodSymbol)("C.M2")
             Dim tuple2 As TypeSymbol = m2.Parameters(0).Type
             Dim underlying2 As NamedTypeSymbol = tuple2.TupleUnderlyingType

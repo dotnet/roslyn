@@ -972,7 +972,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim otherUnderlying = otherTuple.TupleUnderlyingType
-            If (Me.TupleUnderlyingType <> otherUnderlying) Then
+            If (Not TypeSymbol.Equals(Me.TupleUnderlyingType, otherUnderlying, TypeCompareKind.ConsiderEverything)) Then
                 Return False
             End If
 

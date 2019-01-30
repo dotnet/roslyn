@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
                     type = Nothing
                 End If
 
-                If Interlocked.CompareExchange(Of NamedTypeSymbol)(_lazySystemStringType, type, ErrorTypeSymbol.UnknownResultType) = ErrorTypeSymbol.UnknownResultType Then
+                If TypeSymbol.Equals(Interlocked.CompareExchange(Of NamedTypeSymbol)(_lazySystemStringType, type, ErrorTypeSymbol.UnknownResultType), ErrorTypeSymbol.UnknownResultType, TypeCompareKind.ConsiderEverything) Then
                     If info IsNot Nothing Then
                         ReportDiagnostic(diagnostics, syntaxNodeOpt, info)
                     End If
