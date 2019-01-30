@@ -2216,6 +2216,103 @@ class C
                 );
         }
 
+        [Fact, WorkItem(30955, "https://github.com/dotnet/roslyn/issues/30955")]
+        public void ArrayTypeInference_Verify30955()
+        {
+            var source = @"
+class Outer
+{
+    void M0(object x0, object? y0)
+    {
+        var a = new[] { x0, 1 };
+        a[0] = y0;
+        var b = new[] { x0, x0 };
+        b[0] = y0;
+    }
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (7,16): warning CS8601: Possible null reference assignment.
+                //         a[0] = y0;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y0").WithLocation(7, 16),
+                // (9,16): warning CS8601: Possible null reference assignment.
+                //         b[0] = y0;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y0").WithLocation(9, 16)
+                );
+        }
+
+        [Fact, WorkItem(30598, "https://github.com/dotnet/roslyn/issues/30598")]
+        public void Verify30598()
+        {
+            var source = @"
+class Program
+{
+    static object F(object[]? x)
+    {
+        return x[          // warning: possibly null
+            x.Length - 1]; // no warning
+    }
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,16): warning CS8602: Possible dereference of a null reference.
+                //         return x[          // warning: possibly null
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(6, 16)
+                );
+        }
+
+        [Fact, WorkItem(30925, "https://github.com/dotnet/roslyn/issues/30925")]
+        public void Verify30925()
+        {
+            var source = @"
+class Outer
+{
+    void M1<T>(T x1, object? y1) where T : class?
+    {
+        x1 = (T)y1;
+    }
+
+    void M2<T>(T x2, object? y2) where T : class?
+    {
+        x2 = y2;
+    }
+
+    void M3(string x3, object? y3)
+    {
+        x3 = (string)y3;
+    }
+
+    void M4(string x4, object? y4)
+    {
+        x4 = y4;
+    }
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x1 = (T)y1;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)y1").WithLocation(6, 14),
+                // (11,14): error CS0266: Cannot implicitly convert type 'object' to 'T'. An explicit conversion exists (are you missing a cast?)
+                //         x2 = y2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y2").WithArguments("object", "T").WithLocation(11, 14),
+                // (11,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x2 = y2;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y2").WithLocation(11, 14),
+                // (16,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x3 = (string)y3;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)y3").WithLocation(16, 14),
+                // (21,14): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //         x4 = y4;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y4").WithArguments("object", "string").WithLocation(21, 14),
+                // (21,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x4 = y4;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y4").WithLocation(21, 14)
+                );
+        }
+
         [Fact]
         public void SpeakableInference_ArrayTypeInference_NullableValueType()
         {
