@@ -808,6 +808,11 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(projectId));
             }
 
+            if (commandLineOptions == null)
+            {
+                throw new ArgumentNullException(nameof(commandLineOptions));
+            }
+
             CheckContainsProject(projectId);
 
             var oldProject = this.GetProjectState(projectId);

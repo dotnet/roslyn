@@ -1635,6 +1635,7 @@ public class C : A {
             solution = solution.AddProject(pid, "test", "test.dll", LanguageNames.CSharp);
             var project = solution.GetProject(pid);
 
+            // Is null until we set it.
             Assert.Equal(null, project.CommandLineOptions);
 
             solution = solution.WithProjectCommandLineOptions(pid, "--test");
@@ -1642,10 +1643,10 @@ public class C : A {
 
             Assert.Equal("--test", project.CommandLineOptions);
 
-            solution = solution.WithProjectCommandLineOptions(pid, null);
+            Assert.Throws<ArgumentNullException>(() => solution = solution.WithProjectCommandLineOptions(pid, null));
             project = solution.GetProject(pid);
 
-            Assert.Equal(null, project.CommandLineOptions);
+            Assert.Equal("--test", project.CommandLineOptions);
         }
 
         private static void GetMultipleProjects(

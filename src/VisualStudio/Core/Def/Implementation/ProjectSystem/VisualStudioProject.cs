@@ -246,6 +246,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             get => _commandLineOptions;
             set
             {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
                 if (_activeBatchScopes > 0)
                 {
                     _commandLineOptions = value;
