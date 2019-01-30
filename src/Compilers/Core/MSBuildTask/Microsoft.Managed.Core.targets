@@ -5,6 +5,7 @@
     Common targets for managed compilers.
   -->
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.MapSourceRoots" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.DiscoverEditorConfigFiles" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll" />
 
   <Target Name="ShimReferencePathsWhenCommonTargetsDoesNotUnderstandReferenceAssemblies"
           BeforeTargets="CoreCompile"
@@ -49,6 +50,18 @@
       <UseSharedCompilation>true</UseSharedCompilation>
     </PropertyGroup>
   </Target>
+
+  <!-- Find .editorconfig files above the source files and produce an EditorConfigFiles output group. Files are later
+       passed to the compiler. -->
+  <Target Name="DiscoverEditorConfigFiles" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" BeforeTargets="CoreCompile">
+    <DiscoverEditorConfigFiles InputFiles="@(Compile);@(AdditionalFile)">
+      <Output TaskParameter="EditorConfigFiles" ItemName="EditorConfigFiles" />
+      <Output TaskParameter="PotentialEditorConfigFiles" ItemName="PotentialEditorConfigFiles" />
+    </DiscoverEditorConfigFiles>
+  </Target>
+  
+  <!-- Find and return the files paths where we looked for .editorconfig files but did not find one. -->
+  <Target Name="GetPotentialAnalyzerConfigFiles" DependsOnTargets="DiscoverEditorConfigFiles" Returns="@(PotentialEditorConfigFiles)" />
 
   <!--
     ========================

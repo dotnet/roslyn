@@ -132,8 +132,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public string AppConfigPath { get; internal set; }
 
-
-
         /// <summary>
         /// Errors while parsing the command line arguments.
         /// </summary>
@@ -149,6 +147,11 @@ namespace Microsoft.CodeAnalysis
         /// References to analyzers supplied on the command line.
         /// </summary>
         public ImmutableArray<CommandLineAnalyzerReference> AnalyzerReferences { get; internal set; }
+
+        /// <summary>
+        /// A set of paths to EditorConfig-compatible analyzer config files.
+        /// </summary>
+        public ImmutableArray<string> AnalyzerConfigPaths { get; internal set; }
 
         /// <summary>
         /// A set of additional non-code text files that can be used by analyzers.
