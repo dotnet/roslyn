@@ -1626,6 +1626,28 @@ public class C : A {
             Assert.Throws<ArgumentException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange(new[] { did3, did2, did1 })));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void SetAndRetrieveCommandLineOptions_Success()
+        {
+            var solution = CreateSolution();
+            var pid = ProjectId.CreateNewId();
+
+            solution = solution.AddProject(pid, "test", "test.dll", LanguageNames.CSharp);
+            var project = solution.GetProject(pid);
+
+            Assert.Equal(null, project.CommandLineOptions);
+
+            solution = solution.WithProjectCommandLineOptions(pid, "--test");
+            project = solution.GetProject(pid);
+
+            Assert.Equal("--test", project.CommandLineOptions);
+
+            solution = solution.WithProjectCommandLineOptions(pid, null);
+            project = solution.GetProject(pid);
+
+            Assert.Equal(null, project.CommandLineOptions);
+        }
+
         private static void GetMultipleProjects(
             out Project csBrokenProject,
             out Project vbNormalProject,
