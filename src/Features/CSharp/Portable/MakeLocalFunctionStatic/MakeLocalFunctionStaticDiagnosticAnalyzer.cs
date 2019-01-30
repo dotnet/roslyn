@@ -34,6 +34,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             }
 
             var syntaxTree = context.Node.SyntaxTree;
+            var options = (CSharpParseOptions)syntaxTree.Options;
+            if (options.LanguageVersion < LanguageVersion.CSharp8)
+            {
+                return;
+            }
+
             var cancellationToken = context.CancellationToken;
             var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
