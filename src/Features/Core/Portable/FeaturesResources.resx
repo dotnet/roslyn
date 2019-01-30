@@ -1631,4 +1631,10 @@ This version used in: {2}</value>
   <data name="Make_local_function_static" xml:space="preserve">
     <value>Make local function 'static'</value>
   </data>
+  <data name="Use_simple_using_statement" xml:space="preserve">
+    <value>Use simple 'using' statement</value>
+  </data>
+  <data name="using_statment_can_be_simplified" xml:space="preserve">
+    <value>'using' statement can be simplified</value>
+  </data>
 </root>
