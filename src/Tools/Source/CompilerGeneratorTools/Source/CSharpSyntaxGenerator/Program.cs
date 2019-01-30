@@ -69,10 +69,10 @@ namespace CSharpSyntaxGenerator
             }
             else
             {
-                var outputPath = outputFile.Trim('"');
-                var prefix = Path.GetFileName(inputFile);
                 if (writeSource)
                 {
+                    var outputPath = outputFile.Trim('"');
+                    var prefix = Path.GetFileName(inputFile);
                     var outputMainFile = Path.Combine(outputPath, $"{prefix}.Main.Generated.cs");
                     var outputInternalFile = Path.Combine(outputPath, $"{prefix}.Internal.Generated.cs");
                     var outputSyntaxFile = Path.Combine(outputPath, $"{prefix}.Syntax.Generated.cs");
@@ -83,11 +83,7 @@ namespace CSharpSyntaxGenerator
                 }
                 if (writeTests)
                 {
-                    prefix = prefix.Replace(".xml", ".Test.xml"); // Syntax.xml => Syntax.Test.xml
-                    var greenTestsFile = Path.Combine(outputPath, $"{prefix}.GreenNodeTests.Generated.cs");
-                    var redTestsFile = Path.Combine(outputPath, $"{prefix}.RedNodeTests.Generated.cs");
-                    WriteToFile(tree, TestWriter.WriteGreen, greenTestsFile);
-                    WriteToFile(tree, TestWriter.WriteRed, redTestsFile);
+                    WriteToFile(tree, TestWriter.Write, outputFile);
                 }
             }
 
