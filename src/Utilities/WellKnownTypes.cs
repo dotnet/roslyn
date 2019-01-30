@@ -315,6 +315,11 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName("System.Exception");
         }
 
+        public static INamedTypeSymbol SystemException(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.SystemException");
+        }
+
         public static INamedTypeSymbol InvalidOperationException(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.InvalidOperationException");
