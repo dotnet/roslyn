@@ -1067,5 +1067,18 @@ internal sealed class CustomSerializingType : ISerializable
     }
 }");
         }
+
+        [WorkItem(32851, "https://github.com/dotnet/roslyn/issues/32851")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Parameter_Unused_SpecialNames()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    [|void M(int _, char _1, C _3)|]
+    {
+    }
+}");
+        }
     }
 }
