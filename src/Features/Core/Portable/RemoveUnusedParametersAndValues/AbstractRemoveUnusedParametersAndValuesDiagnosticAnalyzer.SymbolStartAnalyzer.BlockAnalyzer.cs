@@ -412,6 +412,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         SymbolUsageResult resultFromFlowAnalysis,
                         out ImmutableDictionary<string, string> properties)
                     {
+                        Debug.Assert(!(symbol is ILocalSymbol local) || !local.IsRef);
+
                         properties = null;
 
                         // Bail out in following cases:

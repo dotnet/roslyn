@@ -6038,5 +6038,44 @@ class C
     }
 }", optionName);
         }
+
+        [WorkItem(32855, "https://github.com/dotnet/roslyn/issues/32855")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task RefLocalInitialization(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Test
+{
+  int[] data = { 0 };
+
+  void Method()
+  {
+    ref int [|target|] = ref data[0];
+    target = 1;
+  }
+}", optionName);
+        }
+
+        [WorkItem(32855, "https://github.com/dotnet/roslyn/issues/32855")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task RefLocalAssignment(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Test
+{
+  int[] data = { 0 };
+
+  int Method()
+  {
+    ref int target = ref data[0];
+    [|target|] = 1;
+    return data[0];
+  }
+}", optionName);
+        }
     }
 }

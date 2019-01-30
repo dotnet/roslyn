@@ -59283,7 +59283,7 @@ namespace Metadata
                 });
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30747 Type load failed.")]
+        [Fact]
         [WorkItem(30747, "https://github.com/dotnet/roslyn/issues/30747")]
         public void MissingTypeKindBasisTypes()
         {
@@ -59316,7 +59316,9 @@ interface I2
             var compilation2 = CreateEmptyCompilation(source2, options: WithNonNullTypesTrue(TestOptions.ReleaseDll), references: new[] { compilation1.EmitToImageReference(), MinCorlibRef });
 
             compilation2.VerifyEmitDiagnostics();
-            CompileAndVerify(compilation2);
+
+            // Verification against a corlib not named exactly mscorlib is expected to fail.
+            CompileAndVerify(compilation2, verify: Verification.Fails);
 
             Assert.Equal(TypeKind.Struct, compilation2.GetTypeByMetadataName("A").TypeKind);
             Assert.Equal(TypeKind.Enum, compilation2.GetTypeByMetadataName("B").TypeKind);
@@ -59327,7 +59329,7 @@ interface I2
             var compilation3 = CreateEmptyCompilation(source2, options: WithNonNullTypesTrue(TestOptions.ReleaseDll), references: new[] { compilation1.ToMetadataReference(), MinCorlibRef });
 
             compilation3.VerifyEmitDiagnostics();
-            CompileAndVerify(compilation3);
+            CompileAndVerify(compilation3, verify: Verification.Fails);
 
             Assert.Equal(TypeKind.Struct, compilation3.GetTypeByMetadataName("A").TypeKind);
             Assert.Equal(TypeKind.Enum, compilation3.GetTypeByMetadataName("B").TypeKind);
@@ -59369,15 +59371,13 @@ interface I2
 
             compilation5.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
-                );
-            CompileAndVerify(compilation5);
-
-            Assert.Equal(TypeKind.Struct, compilation5.GetTypeByMetadataName("A").TypeKind);
-            Assert.Equal(TypeKind.Enum, compilation5.GetTypeByMetadataName("B").TypeKind);
-            Assert.Equal(TypeKind.Class, compilation5.GetTypeByMetadataName("C").TypeKind);
-            Assert.Equal(TypeKind.Delegate, compilation5.GetTypeByMetadataName("D").TypeKind);
-            Assert.Equal(TypeKind.Interface, compilation5.GetTypeByMetadataName("I1").TypeKind);
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Byte' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Byte").WithLocation(1, 1));
 
             var compilation6 = CreateEmptyCompilation(source2, options: WithNonNullTypesTrue(TestOptions.ReleaseDll), references: new[] { compilation1.EmitToImageReference(), MscorlibRef });
 
