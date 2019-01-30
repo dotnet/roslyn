@@ -1655,6 +1655,30 @@ class ClassA
 
         [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionDoesNotUseLocalInsideIf()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+
+    void M(bool flag)
+    {
+        ClassB $$
+        if (flag)
+        {
+            ClassB classB = new ClassB();
+        }
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "classB");
+            await VerifyItemExistsAsync(markup, "classB1", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestCompletionCanUseClassName()
         {
             var markup = @"
