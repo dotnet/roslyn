@@ -234,15 +234,17 @@ function BuildSolution {
   local test_runtime=""
   local mono_tool=""
   if [[ "$test_mono" == true ]]; then
+    
+    mono_path="$scriptroot/invoke-mono.sh"
     # Echo out the mono version to the comamnd line so it's visible in CI logs. It's not fixed
     # as we're using a feed vs. a hard coded package.
     if [[ "$ci" == true ]]; then
       mono --version
+      chmod +x "$mono_path"
     fi
 
     test=true
     test_runtime="/p:TestRuntime=Mono"
-    mono_path="$scriptroot/invoke-mono.sh"
     mono_tool="/p:MonoTool=\"$mono_path\""
   elif [[ "$test_core_clr" == true ]]; then
     test=true
