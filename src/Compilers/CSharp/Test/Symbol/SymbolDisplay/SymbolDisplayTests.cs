@@ -1298,7 +1298,7 @@ class C {
                 findSymbol,
                 format,
                 ".ctor",
-                SymbolDisplayPartKind.MethodName);
+                SymbolDisplayPartKind.ClassName);
         }
 
         [Fact]
@@ -6929,6 +6929,112 @@ class C
                 SymbolDisplayPartKind.ErrorTypeName, // var
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation); // _
+        }
+
+        [Fact]
+        public void ClassConstructorDeclaration()
+        {
+            TestSymbolDescription(
+@"class C
+{
+    C() { }
+}",
+                global => global.GetTypeMember("C").Constructors[0],
+                new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeContainingType),
+                "C.C",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName);
+        }
+
+        [Fact]
+        public void ClassConstructorInvocation()
+        {
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
+
+            var source =
+@"class C
+{
+    C() 
+    {
+        var c = new C();
+    }
+}";
+
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var constructor = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+            var symbol = model.GetSymbolInfo(constructor).Symbol;
+
+            Verify(
+                symbol.ToMinimalDisplayParts(model, constructor.SpanStart, format),
+                "C.C",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName);
+        }
+
+
+        [Fact]
+        public void StructConstructorDeclaration()
+        {
+            TestSymbolDescription(
+@"struct S
+{
+    int i;
+
+    S(int i)
+    {
+        this.i = i;
+    }
+}",
+                global => global.GetTypeMember("S").Constructors[0],
+                new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeContainingType),
+                "S.S",
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.StructName);
+        }
+
+        [Fact]
+        public void StructConstructorInvocation()
+        {
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
+
+            var source =
+@"struct S
+{
+    int i;
+
+    public S(int i)
+    {
+        this.i = i;
+    }
+}
+
+class C
+{
+    C() 
+    {
+        var s = new S(1);
+    }
+}";
+
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var constructor = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+            var symbol = model.GetSymbolInfo(constructor).Symbol;
+
+            Verify(
+                symbol.ToMinimalDisplayParts(model, constructor.SpanStart, format),
+                "S.S",
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.StructName);
         }
     }
 }

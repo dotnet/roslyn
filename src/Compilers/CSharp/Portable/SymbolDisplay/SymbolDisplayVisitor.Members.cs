@@ -393,24 +393,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : symbol.ContainingType.Name;
 
                     // In the case that symbol.containingType is null (which should never be the case here) we will fallback to the MethodName symbol part
-                    var displayPartKind = SymbolDisplayPartKind.MethodName;
-                    if (symbol.ContainingType != null)
+                    if (!TryGetPartKindForContainingType(symbol, out var displayPartKind))
                     {
-                        displayPartKind = symbol.ContainingType.TypeKind == TypeKind.Class
-                            ? SymbolDisplayPartKind.ClassName
-                            : SymbolDisplayPartKind.StructName;
+                        displayPartKind = SymbolDisplayPartKind.MethodName;
                     }
 
                     builder.Add(CreatePart(displayPartKind, symbol, name));
                     break;
                 case MethodKind.Destructor:
                     // In the case that symbol.containingType is null (which should never be the case here) we will fallback to the MethodName symbol part
-                    var partKind = SymbolDisplayPartKind.MethodName;
-                    if (symbol.ContainingType != null)
+                    if (!TryGetPartKindForContainingType(symbol, out var partKind))
                     {
-                        partKind = symbol.ContainingType.TypeKind == TypeKind.Class
-                            ? SymbolDisplayPartKind.ClassName
-                            : SymbolDisplayPartKind.StructName;
+                        partKind = SymbolDisplayPartKind.MethodName;
                     }
 
                     // Note: we are using the metadata name also in the case that symbol.containingType is null, which should never be the case here.
@@ -496,6 +490,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddParameters(symbol);
                 AddTypeParameterConstraints(symbol);
             }
+        }
+
+        private bool TryGetPartKindForContainingType(IMethodSymbol symbol, out SymbolDisplayPartKind partKind)
+        {
+            if (symbol.ContainingType is null)
+            {
+                partKind = default;
+                return false;
+            }
+
+            partKind = GetPartKind(symbol.ContainingType);
+            return true;
         }
 
         private void AddReturnType(IMethodSymbol symbol)
