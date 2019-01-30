@@ -1479,13 +1479,13 @@ namespace BoundTreeGenerator
                                     WriteLine($"{field.Type} {ToCamelCase(field.Name)} = ({field.Type})this.Visit{(IsNodeList(field.Type) ? "List" : "")}(node.{field.Name});");
                                 }
                             }
+
                             if (hadField)
                             {
                                 WriteLine($"{node.Name} updatedNode;");
                                 Blank();
                                 writeNullabilityCheck(inverted: false);
                                 Brace();
-                                writeTypeSymbolRetrieval();
                                 writeUpdate(decl: false, updatedType: true);
                                 writeNullabilityUpdate();
                                 Unbrace();
@@ -1502,7 +1502,6 @@ namespace BoundTreeGenerator
                                 WriteLine("return node;");
                                 Unbrace();
                                 Blank();
-                                writeTypeSymbolRetrieval();
                                 writeUpdate(decl: true, updatedType: true);
                                 writeNullabilityUpdate();
                                 WriteLine("return updatedNode;");
@@ -1510,25 +1509,22 @@ namespace BoundTreeGenerator
                             Unbrace();
 
                             void writeNullabilityCheck(bool inverted) =>
-                                WriteLine($"if ({(inverted ? "!" : "")}{topLevelNullabilities}.ContainsKey(node))");
-
-                            void writeTypeSymbolRetrieval() =>
-                                WriteLine($"TypeSymbol type = {topLevelNullabilities}[node].TypeSymbol;");
+                                WriteLine($"if ({(inverted ? "!" : "")}{topLevelNullabilities}.TryGetValue(node, out TypeSymbolWithAnnotations twsa))");
 
                             void writeUpdate(bool decl, bool updatedType)
                             {
                                 Write($"{(decl ? $"{node.Name} " : "")}updatedNode = node.Update");
                                 ParenList(
                                     AllSpecifiableFields(node),
-                                    field => IsDerivedOrListOfDerived("BoundNode", field.Type) || (updatedType && field.Name == "Type")
-                                                ? ToCamelCase(field.Name)
-                                                : string.Format("node.{0}", field.Name));
+                                    field => IsDerivedOrListOfDerived("BoundNode", field.Type) ? ToCamelCase(field.Name)
+                                             : updatedType && field.Name == "Type" ? "twsa.TypeSymbol" 
+                                             : string.Format("node.{0}", field.Name));
                                 WriteLine(";");
                             }
 
                             void writeNullabilityUpdate()
                             {
-                                WriteLine($"updatedNode.TopLevelNullability = {topLevelNullabilities}[node].NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);");
+                                WriteLine($"updatedNode.TopLevelNullability = twsa.NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);");
                             }
                         }
                         Unbrace();
