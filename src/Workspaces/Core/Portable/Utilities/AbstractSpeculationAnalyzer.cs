@@ -670,6 +670,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var symbol = originalSymbolInfo.Symbol;
             var newSymbol = newSymbolInfo.Symbol;
 
+            var originalTypeInfo = _semanticModel.GetTypeInfo(expression);
+            //_semanticModel.Get
+            //var newTypeInfo = this.SpeculativeSemanticModel.GetTypeInfo(newExpression);
+
             if (SymbolInfosAreCompatible(originalSymbolInfo, newSymbolInfo))
             {
                 // Original and new symbols for the invocation expression are compatible.

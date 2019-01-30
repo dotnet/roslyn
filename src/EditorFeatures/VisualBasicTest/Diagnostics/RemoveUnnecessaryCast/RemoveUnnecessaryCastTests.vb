@@ -1362,6 +1362,51 @@ End Module
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <WorkItem(32399, "https://github.com/dotnet/roslyn/issues/32399")>
+        Public Async Function TestDontRemoveNecessaryPredefinedCastWithGetType() As Task
+            Dim markup =
+<File>
+Module Program
+    Sub Main()
+        Dim a = 2
+        Dim b = [|CStr(a).GetType()|]
+    End Sub
+End Module
+</File>
+            Await TestMissingAsync(markup)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <WorkItem(32399, "https://github.com/dotnet/roslyn/issues/32399")>
+        Public Async Function TestDontRemoveNecessaryCTypeCastWithGetType() As Task
+            Dim markup =
+<File>
+Module Program
+    Sub Main()
+        Dim a = 2
+        Dim b = [|CType(a, String).GetType()|]
+    End Sub
+End Module
+</File>
+            Await TestMissingAsync(markup)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <WorkItem(32399, "https://github.com/dotnet/roslyn/issues/32399")>
+        Public Async Function TestDontRemoveNecessaryPredefinedCastWithToString() As Task
+            Dim markup =
+<File>
+Module Program
+    Sub Main()
+        Dim a = 2
+        Dim b = [|CStr(a).ToString()|]
+    End Sub
+End Module
+</File>
+            Await TestMissingAsync(markup)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         <WorkItem(30617, "https://github.com/dotnet/roslyn/issues/30617")>
         Public Async Function TestDontRemoveNecessaryPredefinedCastInWithStatement() As Task
             Dim markup =
