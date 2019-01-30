@@ -1502,7 +1502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             var modifierTokens = GetModifierTokens(declaration);
-            GetAccessibilityAndModifiers(modifierTokens, out var accessibility, out var modifiers);
+            GetAccessibilityAndModifiers(modifierTokens, out var accessibility, out _);
             return accessibility;
         }
 
@@ -1595,7 +1595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override DeclarationModifiers GetModifiers(SyntaxNode declaration)
         {
             var modifierTokens = GetModifierTokens(declaration);
-            GetAccessibilityAndModifiers(modifierTokens, out var accessibility, out var modifiers);
+            GetAccessibilityAndModifiers(modifierTokens, out _, out var modifiers);
             return modifiers;
         }
 
@@ -1865,19 +1865,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         break;
 
                     case SyntaxKind.ProtectedKeyword:
-                        if (accessibility == Accessibility.Private)
-                        {
-                            accessibility = Accessibility.ProtectedAndInternal;
-                        }
-                        else if (accessibility == Accessibility.Internal)
-                        {
-                            accessibility = Accessibility.ProtectedOrInternal;
-                        }
-
-                        {
-                            accessibility = Accessibility.Protected;
-                        }
-
+                        accessibility = Accessibility.Protected;
                         break;
 
                     case SyntaxKind.AbstractKeyword:
