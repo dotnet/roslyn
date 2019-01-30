@@ -10,6 +10,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         // All supported properties can be found in dotnet/project-system repo
         // https://github.com/dotnet/project-system/blob/master/src/Microsoft.VisualStudio.ProjectSystem.Managed/ProjectSystem/Rules/LanguageService.xaml
 
-        public const string RootNamespace = "RootNamespace";
+        public const string RootNamespace = nameof(RootNamespace);
     }
 }
