@@ -21,5 +21,6 @@ namespace Microsoft.CodeAnalysis.Experiments
     {
         public const string RoslynFeatureOOP = nameof(RoslynFeatureOOP);
         public const string RoslynOOP64bit = nameof(RoslynOOP64bit);
+        public const string CompletionAPI = nameof(CompletionAPI);
     }
 }
