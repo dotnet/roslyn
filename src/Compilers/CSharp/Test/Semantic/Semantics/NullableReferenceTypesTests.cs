@@ -2216,6 +2216,113 @@ class C
                 );
         }
 
+        [Fact, WorkItem(30941, "https://github.com/dotnet/roslyn/issues/30941")]
+        public void Verify30941()
+        {
+            var source = @"
+class Outer : Base
+{
+    void M1(Base? x1)
+    {
+        Outer y = x1;
+    }
+}
+class Base { }
+";
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,19): error CS0266: Cannot implicitly convert type 'Base' to 'Outer'. An explicit conversion exists (are you missing a cast?)
+                //         Outer y = x1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x1").WithArguments("Base", "Outer").WithLocation(6, 19),
+                // (6,19): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         Outer y = x1;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x1").WithLocation(6, 19)
+                );
+        }
+
+        [Fact, WorkItem(31958, "https://github.com/dotnet/roslyn/issues/31958")]
+        public void Verify31958()
+        {
+            var source = @"
+class C
+{
+    string? M(string s)
+    {
+        var d = (D)M;
+        d(null).ToString();
+
+        return null;
+    }
+
+    delegate string D(string? s);
+}
+";
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,17): warning CS8621: Nullability of reference types in return type of 'string? C.M(string s)' doesn't match the target delegate 'C.D'.
+                //         var d = (D)M;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "(D)M").WithArguments("string? C.M(string s)", "C.D").WithLocation(6, 17),
+                // (6,17): warning CS8622: Nullability of reference types in type of parameter 's' of 'string? C.M(string s)' doesn't match the target delegate 'C.D'.
+                //         var d = (D)M;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(D)M").WithArguments("s", "string? C.M(string s)", "C.D").WithLocation(6, 17)
+                );
+        }
+
+        [Fact, WorkItem(28377, "https://github.com/dotnet/roslyn/issues/28377")]
+        public void Verify28377()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        object x;
+        x! = null;
+    }
+}
+";
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (7,9): error CS8598: The suppression operator is not allowed in this context
+                //         x! = null;
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "x").WithLocation(7, 9),
+                // (7,9): error CS0165: Use of unassigned local variable 'x'
+                //         x! = null;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(7, 9)
+                );
+        }
+
+        [Fact, WorkItem(31295, "https://github.com/dotnet/roslyn/issues/31295")]
+        public void Verify31295()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        for (var x = 0; ; x!++) { }
+    }
+}";
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,27): error CS8598: The suppression operator is not allowed in this context
+                //         for (var x = 0; ; x!++) { }
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "x").WithLocation(6, 27)
+                );
+        }
+
+        [Fact, WorkItem(26654, "https://github.com/dotnet/roslyn/issues/26654")]
+        public void Verify26654()
+        {
+            var source = @"
+public class C
+{
+    public void M(out string? x) => throw null;
+    public void M2()
+    {
+        string y;
+        M(out y!);
+    }
+}";
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(30955, "https://github.com/dotnet/roslyn/issues/30955")]
         public void ArrayTypeInference_Verify30955()
         {
@@ -62003,7 +62110,6 @@ class Outer
 }
 ";
 
-            // https://github.com/dotnet/roslyn/issues/30941 - duplicate warnings for "z = x;"
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (7,13): error CS0266: Cannot implicitly convert type 'Outer' to 'T'. An explicit conversion exists (are you missing a cast?)
                 //         z = x;
@@ -62068,7 +62174,6 @@ class Outer
 }
 ";
 
-            // https://github.com/dotnet/roslyn/issues/30941 - duplicate warnings for "z = x;"
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (7,13): error CS0266: Cannot implicitly convert type 'Outer' to 'T'. An explicit conversion exists (are you missing a cast?)
                 //         z = x;
