@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
                         return null;
                     }
 
-                     return formattedSourceText;
+                    return formattedSourceText;
                 }, cancellationToken);
 
                 formattedDocuments.Add((documentId, formatTask));
