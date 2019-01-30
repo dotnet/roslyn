@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public virtual bool IsSuppressed
+        public bool IsSuppressed
         {
             get
             {
