@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             typesOnly.Add(resultType.TypeSymbol);
                         }
-                        var bestType = BestTypeInferrer.GetBestType(typesOnly, conversions, hadNullabilityMismatch: out _, ref useSiteDiagnostics);
+                        var bestType = BestTypeInferrer.GetBestType(typesOnly, conversions, ref useSiteDiagnostics);
                         bestResultType = bestType is null ? default : TypeSymbolWithAnnotations.Create(bestType);
                         typesOnly.Free();
                     }

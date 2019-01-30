@@ -663,10 +663,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Merges nested nullability from an otherwise identical type.
-        /// <paramref name="hadNullabilityMismatch"/> is true if there was conflict
-        /// merging nullability and warning should be reported by the caller.
         /// </summary>
-        internal abstract TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch);
+        internal abstract TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance);
 
         /// <summary>
         /// Returns true if the type may contain embedded references
