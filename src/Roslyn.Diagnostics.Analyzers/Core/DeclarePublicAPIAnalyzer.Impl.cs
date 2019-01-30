@@ -448,9 +448,7 @@ namespace Roslyn.Diagnostics.Analyzers
                             if (attribute.AttributeConstructor.Parameters.Length == 1 &&
                                 attribute.ConstructorArguments.Length == 1)
                             {
-                                var forwardedType = attribute.ConstructorArguments[0].Value as INamedTypeSymbol;
-
-                                if (forwardedType != null)
+                                if (attribute.ConstructorArguments[0].Value is INamedTypeSymbol forwardedType)
                                 {
                                     VisitForwardedTypeRecursively(forwardedType, reportDiagnostic, attribute.ApplicationSyntaxReference.GetSyntax(cancellationToken).GetLocation(), cancellationToken);
                                 }

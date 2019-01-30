@@ -156,8 +156,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 var idToAnalyzerMap = new ConcurrentDictionary<string, ConcurrentDictionary<string, ConcurrentBag<Location>>>();
                 compilationContext.RegisterOperationAction(operationAnalysisContext =>
                 {
-                    var objectCreation = ((IFieldInitializerOperation)operationAnalysisContext.Operation).Value as IObjectCreationOperation;
-                    if (objectCreation == null)
+                    if (!(((IFieldInitializerOperation)operationAnalysisContext.Operation).Value is IObjectCreationOperation objectCreation))
                     {
                         return;
                     }
@@ -174,10 +173,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     AnalyzeHelpLinkUri(operationAnalysisContext, objectCreation);
 
                     string categoryOpt = null;
-                    ImmutableArray<(string prefix, int start, int end)> allowedIdsInfoList;
                     if (!checkCategoryAndAllowedIds ||
                         !TryAnalyzeCategory(operationAnalysisContext, objectCreation,
-                            additionalTextOpt, categoryAndAllowedIdsMap, out categoryOpt, out allowedIdsInfoList))
+                            additionalTextOpt, categoryAndAllowedIdsMap, out categoryOpt, out var allowedIdsInfoList))
                     {
                         allowedIdsInfoList = default(ImmutableArray<(string prefix, int start, int end)>);
                     }
@@ -329,11 +327,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                         // Factory methods to track declaration locations for every analyzer rule ID.
                         ConcurrentBag<Location> AddLocationFactory(string analyzerName)
-                        {
-                            var newBag = new ConcurrentBag<Location>();
-                            newBag.Add(location);
-                            return newBag;
-                        };
+                            => new ConcurrentBag<Location> { location };
 
                         ConcurrentBag<Location> UpdateLocationsFactory(string analyzerName, ConcurrentBag<Location> bag)
                         {

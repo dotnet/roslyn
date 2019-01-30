@@ -81,7 +81,7 @@ public class MyDerivedCodeActionWithEquivalenceKey : MyAbstractCodeActionWithEqu
 
             if (withCustomCodeActions)
             {
-                sourceSuffix = sourceSuffix + CSharpCustomCodeActions;
+                sourceSuffix += CSharpCustomCodeActions;
             }
 
             // Verify expected diagnostics for fixer that supports FixAllProvider.
@@ -433,7 +433,7 @@ End Class
 
             if (withCustomCodeActions)
             {
-                sourceSuffix = sourceSuffix + VisualBasicCustomCodeActions;
+                sourceSuffix += VisualBasicCustomCodeActions;
             }
 
             // Verify expected diagnostics for fixer that supports FixAllProvider.
