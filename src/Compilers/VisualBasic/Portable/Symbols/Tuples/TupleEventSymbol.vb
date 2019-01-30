@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overloads Function Equals(other As TupleEventSymbol) As Boolean
             Return other Is Me OrElse
-                (other IsNot Nothing AndAlso Me._containingType = other._containingType AndAlso Me._underlyingEvent = other._underlyingEvent)
+                (other IsNot Nothing AndAlso TypeSymbol.Equals(Me._containingType, other._containingType, TypeCompareKind.ConsiderEverything) AndAlso Me._underlyingEvent = other._underlyingEvent)
         End Function
 
         Public Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)

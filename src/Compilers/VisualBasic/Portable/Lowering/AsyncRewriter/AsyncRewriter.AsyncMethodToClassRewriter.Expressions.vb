@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim spillSeq = DirectCast(valueOpt, BoundSpillSequence)
-                Debug.Assert(rewrittenType = spillSeq.Type)
+                Debug.Assert(TypeSymbol.Equals(rewrittenType, spillSeq.Type, TypeCompareKind.ConsiderEverything))
 
                 Return node.Update(
                     node.Locals.Concat(spillSeq.Locals),
