@@ -286,6 +286,38 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
+        /// Checks if the given method implements IDeserializationCallback.OnDeserialization()
+        /// </summary>
+        public static bool IsOnDeserializationImplementation(this IMethodSymbol method, Compilation compilation)
+        {
+            INamedTypeSymbol IDeserializationCallback = WellKnownTypes.IDeserializationCallback(compilation);
+            return method.IsOnDeserializationImplementation(IDeserializationCallback);
+        }
+        
+        /// <summary>
+        /// Checks if the given method implements <see cref="System.Runtime.Serialization.IDeserializationCallback.OnDeserialization"/> or overrides an implementation of <see cref="System.Runtime.Serialization.IDeserializationCallback.OnDeserialization"/>.
+        /// </summary>
+        public static bool IsOnDeserializationImplementation(this IMethodSymbol method, INamedTypeSymbol iDeserializationCallback)
+        {
+            if (method == null)
+            {
+                return false;
+            }
+
+            if (method.IsOverride)
+            {
+                return method.OverriddenMethod.IsOnDeserializationImplementation(iDeserializationCallback);
+            }
+
+            // Identify the implementor of IDisposable.Dispose in the given method's containing type and check
+            // if it is the given method.
+            return method.ReturnsVoid &&
+                method.Parameters.Length == 1 &&
+                method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
+                method.IsImplementationOfInterfaceMethod(null, iDeserializationCallback, "OnDeserialization");
+        }
+
+        /// <summary>
         /// Checks if the method is a property getter.
         /// </summary>
         public static bool IsPropertyGetter(this IMethodSymbol method)

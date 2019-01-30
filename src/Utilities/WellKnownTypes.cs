@@ -165,6 +165,11 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName("System.IDisposable");
         }
 
+        public static INamedTypeSymbol IDeserializationCallback(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Runtime.Serialization.IDeserializationCallback");
+        }
+
         public static INamedTypeSymbol ISerializable(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Runtime.Serialization.ISerializable");
@@ -288,6 +293,11 @@ namespace Analyzer.Utilities
         public static INamedTypeSymbol String(Compilation compilation)
         {
             return compilation.GetSpecialType(SpecialType.System_String);
+        }
+
+        public static INamedTypeSymbol Boolean(Compilation compilation)
+        {
+            return compilation.GetSpecialType(SpecialType.System_Boolean);
         }
 
         public static INamedTypeSymbol Object(Compilation compilation)
