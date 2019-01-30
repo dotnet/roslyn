@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
@@ -85,6 +86,48 @@ class Program
             return AssertCodeCleanupResult(expected, code,
                 (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
                 (CodeCleanupOptions.SortImports, enabled: true),
+                (CodeCleanupOptions.ApplyImplicitExplicitTypePreferences, enabled: false),
+                (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public Task SortUsings_WithSeparateImportGroups()
+        {
+            var code = @"using System.Collections.Generic;
+using System;
+using Microsoft.CSharp;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var list = new List<int>();
+        Console.WriteLine(list.Count);
+        CSharpCodeProvider cSharpCodeProvider;
+    }
+}
+";
+
+            var expected = @"using System;
+using System.Collections.Generic;
+
+using Microsoft.CSharp;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var list = new List<int>();
+        Console.WriteLine(list.Count);
+        CSharpCodeProvider cSharpCodeProvider;
+    }
+}
+";
+            return AssertCodeCleanupResult(expected, code,
+                (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
+                (CodeCleanupOptions.SortImports, enabled: true),
+                (GenerationOptions.SeparateImportDirectiveGroups, enabled: true),
                 (CodeCleanupOptions.ApplyImplicitExplicitTypePreferences, enabled: false),
                 (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
         }
