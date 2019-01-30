@@ -180,7 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             VisualStudioProject.RemoveSourceFile(filename);
         }
 
-        private void RefreshBinOutputPath()
+        protected void RefreshBinOutputPath()
         {
             var storage = Hierarchy as IVsBuildPropertyStorage;
             if (storage == null)
