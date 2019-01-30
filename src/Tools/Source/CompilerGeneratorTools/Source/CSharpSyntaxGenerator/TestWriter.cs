@@ -37,12 +37,12 @@ namespace CSharpSyntaxGenerator
             WriteNodeGenerators(isGreen: true);
             WriteLine("#endregion Green Generators");
             WriteLine();
-            
+
             WriteLine("#region Green Factory and Property Tests");
             WriteFactoryPropertyTests(isGreen: true);
             WriteLine("#endregion Green Factory and Property Tests");
             WriteLine();
-            
+
             WriteLine("#region Green Rewriters");
             WriteRewriterTests();
             WriteLine("#endregion Green Rewriters");
@@ -93,9 +93,14 @@ namespace CSharpSyntaxGenerator
             var valueFields = node.Fields.Where(n => !IsNodeOrNodeList(n.Type));
             var nodeFields = node.Fields.Where(n => IsNodeOrNodeList(n.Type));
 
+            var internalNamespace = isGreen ? "Microsoft.CodeAnalysis.Syntax.InternalSyntax." : "";
+            var csharpNamespace = isGreen ? "Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax." : "";
+
             var strippedName = StripPost(node.Name, "Syntax");
-            var syntaxFactory = isGreen ? "SF" : "SyntaxFactory";
-            Write("private static {0} Generate{1}() => {2}.{1}(", node.Name, strippedName, syntaxFactory);
+
+            WriteLine("private static {0}{1} Generate{2}()", csharpNamespace, node.Name, strippedName);
+
+            Write("    => {0}SyntaxFactory.{1}(", csharpNamespace, strippedName);
             //instantiate node
 
             bool first = true;
@@ -127,38 +132,46 @@ namespace CSharpSyntaxGenerator
                 }
                 else if (IsAnyList(field.Type))
                 {
-                    string typeName = isGreen ? field.Type : (field.Type == "SyntaxList<SyntaxToken>") ? "SyntaxTokenList" : field.Type;
+                    string typeName;
+                    if (isGreen)
+                    {
+                        typeName = internalNamespace + field.Type.Replace("<", "<" + csharpNamespace);
+                    }
+                    else
+                    {
+                        typeName = (field.Type == "SyntaxList<SyntaxToken>") ? "SyntaxTokenList" : field.Type;
+                    }
                     Write("new {0}()", typeName);
                 }
                 else if (field.Type == "SyntaxToken")
                 {
                     var kind = ChooseValidKind(field);
-                    var leadingTrivia = isGreen ? "null, " : "";
-                    var trailingTrivia = isGreen ? ", null" : "";
+                    var leadingTrivia = isGreen ? "null, " : string.Empty;
+                    var trailingTrivia = isGreen ? ", null" : string.Empty;
                     if (kind == "IdentifierToken")
                     {
-                        Write("SyntaxFactory.Identifier(\"{0}\")", field.Name);
+                        Write("{0}SyntaxFactory.Identifier(\"{1}\")", csharpNamespace, field.Name);
                     }
                     else if (kind == "StringLiteralToken")
                     {
-                        Write("SyntaxFactory.Literal({0}\"string\", \"string\"{1})", leadingTrivia, trailingTrivia);
+                        Write("{0}SyntaxFactory.Literal({1}\"string\", \"string\"{2})", csharpNamespace, leadingTrivia, trailingTrivia);
                     }
                     else if (kind == "CharacterLiteralToken")
                     {
-                        Write("SyntaxFactory.Literal({0}\"a\", 'a'{1})", leadingTrivia, trailingTrivia);
+                        Write("{0}SyntaxFactory.Literal({1}\"a\", 'a'{2})", csharpNamespace, leadingTrivia, trailingTrivia);
                     }
                     else if (kind == "NumericLiteralToken")
                     {
-                        Write("SyntaxFactory.Literal({0}\"1\", 1{1})", leadingTrivia, trailingTrivia);
+                        Write("{0}SyntaxFactory.Literal({1}\"1\", 1{2})", csharpNamespace, leadingTrivia, trailingTrivia);
                     }
                     else
                     {
-                        Write("SyntaxFactory.Token(SyntaxKind.{0})", ChooseValidKind(field));
+                        Write("{0}SyntaxFactory.Token(SyntaxKind.{1})", csharpNamespace, ChooseValidKind(field));
                     }
                 }
                 else if (field.Type == "CSharpSyntaxNode")
                 {
-                    Write("SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(\"{0}\"))", field.Name);
+                    Write("{0}SyntaxFactory.IdentifierName({0}SyntaxFactory.Identifier(\"{1}\"))", csharpNamespace, field.Name);
                 }
                 else
                 {
