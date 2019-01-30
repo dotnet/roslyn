@@ -9,7 +9,6 @@
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-
     <!-- 
       Mono serialization errors breaking tests that have traits
       https://github.com/mono/mono/issues/10945

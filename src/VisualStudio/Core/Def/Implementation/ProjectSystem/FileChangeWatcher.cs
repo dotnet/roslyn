@@ -13,6 +13,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// </summary>
     internal sealed class FileChangeWatcher
     {
+        internal const uint FileChangeFlags = (uint)(_VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Add | _VSFILECHANGEFLAGS.VSFILECHG_Del | _VSFILECHANGEFLAGS.VSFILECHG_Size);
+
         /// <summary>
         /// Gate that is used to guard modifications to <see cref="_taskQueue"/>.
         /// </summary>
@@ -189,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _fileChangeWatcher.EnqueueWork(service =>
                 {
                     uint cookie;
-                    ErrorHandler.ThrowOnFailure(service.AdviseFileChange(filePath, (uint)(_VSFILECHANGEFLAGS.VSFILECHG_Size | _VSFILECHANGEFLAGS.VSFILECHG_Time), this, out cookie));
+                    ErrorHandler.ThrowOnFailure(service.AdviseFileChange(filePath, FileChangeFlags, this, out cookie));
 
                     token.Cookie = cookie;
                 });

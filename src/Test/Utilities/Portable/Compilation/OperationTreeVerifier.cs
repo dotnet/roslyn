@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             expectedOperationTree = expectedOperationTree.Replace("\r\n", "\n").Replace("\n", Environment.NewLine);
             expectedOperationTree = expectedOperationTree.Replace("\"", "\"\"");
 
-            AssertEx.AreEqual(expectedOperationTree, actual);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedOperationTree, actual);
         }
 
         #region Logging helpers
@@ -1905,15 +1905,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.LeftOperand, nameof(operation.LeftOperand));
             Visit(operation.RightOperand, nameof(operation.RightOperand));
-        }
-
-        public override void VisitSuppressNullableWarningOperation(ISuppressNullableWarningOperation operation)
-        {
-            LogString(nameof(ISuppressNullableWarningOperation));
-
-            LogCommonPropertiesAndNewLine(operation);
-
-            Visit(operation.Expression, nameof(operation.Expression));
         }
 
         public override void VisitReDim(IReDimOperation operation)

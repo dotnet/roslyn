@@ -1625,6 +1625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DiscardPatternInSwitchStatement = 8523,
         #endregion diagnostics introduced for recursive patterns
 
+        ERR_IllegalSuppression = 8598,
         WRN_IllegalPPWarningSafeOnly = 8599,
         WRN_ConvertingNullableToNonNullable = 8600,
         WRN_NullReferenceAssignment = 8601,
@@ -1676,6 +1677,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UsingVarInSwitchCase = 8647,
         ERR_GoToForwardJumpOverUsingVar = 8648,
         ERR_GoToBackwardJumpOverUsingVar = 8649,
+        ERR_IsNullableType = 8650,
+        ERR_AsNullableType = 8651,
+
         #endregion diagnostics introduced for C# 8.0
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)

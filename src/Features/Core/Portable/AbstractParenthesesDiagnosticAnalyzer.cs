@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 {
@@ -12,6 +13,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         protected AbstractParenthesesDiagnosticAnalyzer(
             string descriptorId, LocalizableString title, LocalizableString message)
             : base(descriptorId, title, message)
+        {
+        }
+
+        protected AbstractParenthesesDiagnosticAnalyzer(ImmutableArray<DiagnosticDescriptor> diagnosticDescriptors)
+            : base(diagnosticDescriptors)
         {
         }
 
