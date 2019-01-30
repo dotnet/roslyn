@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
 {
     internal static class CodeFormatter
     {
-        const int MaxLoggedWorkspaceWarnings = 5;
+        private const int MaxLoggedWorkspaceWarnings = 5;
 
-        public static async Task<int> FormatWorkspaceAsync(ILogger logger, string solutionOrProjectPath, bool isSolution, bool logAllWorkspaceWarnings, CancellationToken cancellationToken)
+        public static async Task<int> FormatWorkspaceAsync(ILogger logger, string solutionOrProjectPath, bool isSolution, bool logAllWorkspaceWarnings, bool saveFormattedFiles, CancellationToken cancellationToken)
         {
             logger.LogInformation(string.Format(Resources.Formatting_code_files_in_workspace_0, solutionOrProjectPath));
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
                 logger.LogTrace(Resources.Workspace_loaded_in_0_ms, workspaceStopwatch.ElapsedMilliseconds);
                 workspaceStopwatch.Restart();
 
-                exitCode = await FormatFilesInWorkspaceAsync(logger, workspace, projectPath, codingConventionsManager, cancellationToken).ConfigureAwait(false);
+                exitCode = await FormatFilesInWorkspaceAsync(logger, workspace, projectPath, codingConventionsManager, saveFormattedFiles, cancellationToken).ConfigureAwait(false);
 
                 logger.LogDebug(Resources.Format_complete_in_0_ms, workspaceStopwatch.ElapsedMilliseconds);
             }
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
             }
         }
 
-        private static async Task<int> FormatFilesInWorkspaceAsync(ILogger logger, Workspace workspace, string projectPath, ICodingConventionsManager codingConventionsManager, CancellationToken cancellationToken)
+        private static async Task<int> FormatFilesInWorkspaceAsync(ILogger logger, Workspace workspace, string projectPath, ICodingConventionsManager codingConventionsManager, bool saveFormattedFiles, CancellationToken cancellationToken)
         {
             var projectIds = workspace.CurrentSolution.ProjectIds.ToImmutableArray();
             var optionsApplier = new EditorConfigOptionsApplier();
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
                 logger.LogInformation(Resources.Formatting_code_files_in_project_0, project.Name);
 
                 var formattedSolution = await FormatFilesInProjectAsync(logger, project, codingConventionsManager, optionsApplier, cancellationToken).ConfigureAwait(false);
-                if (!workspace.TryApplyChanges(formattedSolution))
+                if (saveFormattedFiles && !workspace.TryApplyChanges(formattedSolution))
                 {
                     logger.LogError(Resources.Failed_to_save_formatting_changes);
                     return 1;
@@ -159,7 +159,14 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
                     }
 
                     var formattedDocument = await Formatter.FormatAsync(document, documentOptions, cancellationToken).ConfigureAwait(false);
-                    return await formattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var formattedSourceText = await formattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    if (formattedSourceText.ContentEquals(await document.GetTextAsync(cancellationToken).ConfigureAwait(false)))
+                    {
+                        // Avoid touching files that didn't actually change
+                        return null;
+                    }
+
+                     return formattedSourceText;
                 }, cancellationToken);
 
                 formattedDocuments.Add((documentId, formatTask));

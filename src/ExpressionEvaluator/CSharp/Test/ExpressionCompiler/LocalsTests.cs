@@ -1628,8 +1628,9 @@ class C
         /// Should not include "this" inside display class
         /// instance method if "this" is not captured.
         /// </summary>
-        [Fact]
-        public void NoThisInsideDisplayClassInstanceMethod()
+        [Theory]
+        [MemberData(nameof(NonNullTypesTrueAndFalseDebugDll))]
+        public void NoThisInsideDisplayClassInstanceMethod(CSharpCompilationOptions options)
         {
             var source =
 @"using System;
@@ -1647,7 +1648,7 @@ class C
         f(2)(x);
     }
 }";
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: options);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<>c__DisplayClass0_0.<M>b__0");
