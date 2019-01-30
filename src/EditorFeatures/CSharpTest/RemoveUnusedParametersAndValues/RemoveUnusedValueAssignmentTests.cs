@@ -6081,5 +6081,29 @@ class C
   }
 }", optionName);
         }
+
+        [WorkItem(32903, "https://github.com/dotnet/roslyn/issues/32903")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task DelegateCreationWrappedInATuple_UsedInReturnedLambda(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+public class C
+{
+    private (int, int) createTuple() => (1, 1);
+
+    public (Func<int>, bool) M()
+    {
+        var ([|value1, value2|]) = createTuple();
+
+        int LocalFunction() => value1 + value2;
+
+        return (LocalFunction, true);
+    }
+}", optionName);
+        }
     }
 }
