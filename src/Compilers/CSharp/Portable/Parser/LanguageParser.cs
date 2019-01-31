@@ -363,16 +363,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return AddError(node, position, 0, ErrorCode.ERR_InsufficientStack);
         }
 
-        private NamespaceDeclarationSyntax ParseNamespaceDeclaration()
+        private NamespaceDeclarationSyntax ParseNamespaceDeclaration(
+            SyntaxListBuilder<AttributeListSyntax> attributeLists,
+            SyntaxListBuilder modifiers)
         {
             _recursionDepth++;
             StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
-            var result = ParseNamespaceDeclarationCore();
+            var result = ParseNamespaceDeclarationCore(attributeLists, modifiers);
             _recursionDepth--;
             return result;
         }
 
-        private NamespaceDeclarationSyntax ParseNamespaceDeclarationCore()
+        private NamespaceDeclarationSyntax ParseNamespaceDeclarationCore(
+            SyntaxListBuilder<AttributeListSyntax> attributeLists,
+            SyntaxListBuilder modifiers)
         {
             if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNodeKind == SyntaxKind.NamespaceDeclaration)
             {
@@ -418,7 +422,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 Debug.Assert(initialBadNodes == null); // init bad nodes should have been attached to open brace...
-                return _syntaxFactory.NamespaceDeclaration(namespaceToken, name, openBrace, body.Externs, body.Usings, body.Members, closeBrace, semicolon);
+                return _syntaxFactory.NamespaceDeclaration(
+                    attributeLists, modifiers.ToList(),
+                    namespaceToken, name, openBrace, body.Externs, body.Usings, body.Members, closeBrace, semicolon);
             }
             finally
             {
@@ -522,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             // incomplete members must be processed before we add any nodes to the body:
                             AddIncompleteMembers(ref pendingIncompleteMembers, ref body);
 
-                            body.Members.Add(this.ParseNamespaceDeclaration());
+                            body.Members.Add(this.ParseNamespaceDeclaration(attributeLists: default, modifiers: default));
                             seen = NamespaceParts.MembersAndStatements;
                             reportUnexpectedToken = true;
                             break;
@@ -590,7 +596,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 // incomplete members must be processed before we add any nodes to the body:
                                 AddIncompleteMembers(ref pendingIncompleteMembers, ref body);
 
-                                body.Members.Add(_syntaxFactory.GlobalStatement(ParseUsingStatement()));
+                                body.Members.Add(_syntaxFactory.GlobalStatement(
+                                    attributeLists: default, modifiers: default, ParseUsingStatement()));
                                 seen = NamespaceParts.MembersAndStatements;
                             }
                             else
@@ -2121,14 +2128,16 @@ tryAgain:
                         case SyntaxKind.UnsafeKeyword:
                             if (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
                             {
-                                return _syntaxFactory.GlobalStatement(ParseUnsafeStatement());
+                                return _syntaxFactory.GlobalStatement(
+                                    attributeLists: default, modifiers: default, ParseUnsafeStatement());
                             }
                             break;
 
                         case SyntaxKind.FixedKeyword:
                             if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
                             {
-                                return _syntaxFactory.GlobalStatement(ParseFixedStatement());
+                                return _syntaxFactory.GlobalStatement(
+                                    attributeLists: default, modifiers: default, ParseFixedStatement());
                             }
                             break;
 
@@ -2137,14 +2146,16 @@ tryAgain:
                             {
                                 case SyntaxKind.OpenParenToken:
                                 case SyntaxKind.OpenBraceToken:
-                                    return _syntaxFactory.GlobalStatement(ParseExpressionStatement());
+                                    return _syntaxFactory.GlobalStatement(
+                                        attributeLists: default, modifiers: default, ParseExpressionStatement());
                             }
                             break;
 
                         case SyntaxKind.NewKeyword:
                             if (IsPossibleNewExpression())
                             {
-                                return _syntaxFactory.GlobalStatement(ParseExpressionStatement());
+                                return _syntaxFactory.GlobalStatement(
+                                    attributeLists: default, modifiers: default, ParseExpressionStatement());
                             }
                             break;
                     }
@@ -2221,20 +2232,7 @@ tryAgain:
                 if (this.CurrentToken.Kind == SyntaxKind.NamespaceKeyword &&
                     parentKind == SyntaxKind.CompilationUnit)
                 {
-                    // we found a namespace with modifier or an attribute: ignore the attribute/modifier and parse as namespace
-                    if (attributes.Count > 0)
-                    {
-                        attributes[0] = this.AddError(attributes[0], ErrorCode.ERR_BadModifiersOnNamespace);
-                    }
-                    else
-                    {
-                        // if were no attributes and no modifiers we should have parsed it already in namespace body:
-                        Debug.Assert(modifiers.Count > 0);
-
-                        modifiers[0] = this.AddError(modifiers[0], ErrorCode.ERR_BadModifiersOnNamespace);
-                    }
-
-                    return _syntaxFactory.IncompleteMember(attributes, modifiers.ToList(), type: null);
+                    return ParseNamespaceDeclaration(attributes, modifiers);
                 }
 
                 // It's valid to have a type declaration here -- check for those
@@ -2257,7 +2255,8 @@ tryAgain:
                     _termState = saveTerm;
                     if (statement != null)
                     {
-                        return _syntaxFactory.GlobalStatement(statement);
+                        return _syntaxFactory.GlobalStatement(
+                            attributeLists: default, modifiers: default, statement);
                     }
                 }
 
@@ -4864,7 +4863,7 @@ tryAgain:
                     equalsValue = _syntaxFactory.EqualsValueClause(equals, value: value);
                 }
 
-                return _syntaxFactory.EnumMemberDeclaration(memberAttrs, memberName, equalsValue);
+                return _syntaxFactory.EnumMemberDeclaration(memberAttrs, modifiers: default, memberName, equalsValue);
             }
             finally
             {

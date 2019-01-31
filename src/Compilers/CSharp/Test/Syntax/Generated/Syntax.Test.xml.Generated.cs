@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.GlobalStatementSyntax GenerateGlobalStatement()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.GlobalStatement(GenerateBlock());
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.GlobalStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken>(), GenerateBlock());
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BlockSyntax GenerateBlock()
@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NamespaceDeclarationSyntax GenerateNamespaceDeclaration()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.NamespaceDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.NamespaceKeyword), GenerateIdentifierName(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExternAliasDirectiveSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.UsingDirectiveSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.MemberDeclarationSyntax>(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseBraceToken), null);
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.NamespaceDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken>(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.NamespaceKeyword), GenerateIdentifierName(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExternAliasDirectiveSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.UsingDirectiveSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.MemberDeclarationSyntax>(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseBraceToken), null);
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.AttributeListSyntax GenerateAttributeList()
@@ -746,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.EnumMemberDeclarationSyntax GenerateEnumMemberDeclaration()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.EnumMemberDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.AttributeListSyntax>(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Identifier("Identifier"), null);
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.EnumMemberDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken>(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Identifier("Identifier"), null);
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BaseListSyntax GenerateBaseList()
@@ -2117,6 +2117,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateGlobalStatement();
             
+            Assert.NotNull(node.AttributeLists);
+            Assert.NotNull(node.Modifiers);
             Assert.NotNull(node.Statement);
             
             AttachAndCheckDiagnostics(node);
@@ -2712,6 +2714,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateNamespaceDeclaration();
             
+            Assert.NotNull(node.AttributeLists);
+            Assert.NotNull(node.Modifiers);
             Assert.Equal(SyntaxKind.NamespaceKeyword, node.NamespaceKeyword.Kind);
             Assert.NotNull(node.Name);
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind);
@@ -2920,6 +2924,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateEnumMemberDeclaration();
             
             Assert.NotNull(node.AttributeLists);
+            Assert.NotNull(node.Modifiers);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind);
             Assert.Null(node.EqualsValue);
             
@@ -9849,7 +9854,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static GlobalStatementSyntax GenerateGlobalStatement()
         {
-            return SyntaxFactory.GlobalStatement(GenerateBlock());
+            return SyntaxFactory.GlobalStatement(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), GenerateBlock());
         }
         
         private static BlockSyntax GenerateBlock()
@@ -10079,7 +10084,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static NamespaceDeclarationSyntax GenerateNamespaceDeclaration()
         {
-            return SyntaxFactory.NamespaceDeclaration(SyntaxFactory.Token(SyntaxKind.NamespaceKeyword), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SyntaxList<ExternAliasDirectiveSyntax>(), new SyntaxList<UsingDirectiveSyntax>(), new SyntaxList<MemberDeclarationSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default(SyntaxToken));
+            return SyntaxFactory.NamespaceDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Token(SyntaxKind.NamespaceKeyword), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SyntaxList<ExternAliasDirectiveSyntax>(), new SyntaxList<UsingDirectiveSyntax>(), new SyntaxList<MemberDeclarationSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default(SyntaxToken));
         }
         
         private static AttributeListSyntax GenerateAttributeList()
@@ -10149,7 +10154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static EnumMemberDeclarationSyntax GenerateEnumMemberDeclaration()
         {
-            return SyntaxFactory.EnumMemberDeclaration(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Identifier("Identifier"), default(EqualsValueClauseSyntax));
+            return SyntaxFactory.EnumMemberDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Identifier("Identifier"), default(EqualsValueClauseSyntax));
         }
         
         private static BaseListSyntax GenerateBaseList()
@@ -11520,8 +11525,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateGlobalStatement();
             
+            Assert.NotNull(node.AttributeLists);
+            Assert.NotNull(node.Modifiers);
             Assert.NotNull(node.Statement);
-            var newNode = node.WithStatement(node.Statement);
+            var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithStatement(node.Statement);
             Assert.Equal(node, newNode);
         }
         
@@ -12115,6 +12122,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateNamespaceDeclaration();
             
+            Assert.NotNull(node.AttributeLists);
+            Assert.NotNull(node.Modifiers);
             Assert.Equal(SyntaxKind.NamespaceKeyword, node.NamespaceKeyword.Kind());
             Assert.NotNull(node.Name);
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind());
@@ -12123,7 +12132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Members);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
-            var newNode = node.WithNamespaceKeyword(node.NamespaceKeyword).WithName(node.Name).WithOpenBraceToken(node.OpenBraceToken).WithExterns(node.Externs).WithUsings(node.Usings).WithMembers(node.Members).WithCloseBraceToken(node.CloseBraceToken).WithSemicolonToken(node.SemicolonToken);
+            var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithNamespaceKeyword(node.NamespaceKeyword).WithName(node.Name).WithOpenBraceToken(node.OpenBraceToken).WithExterns(node.Externs).WithUsings(node.Usings).WithMembers(node.Members).WithCloseBraceToken(node.CloseBraceToken).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
         }
         
@@ -12323,9 +12332,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateEnumMemberDeclaration();
             
             Assert.NotNull(node.AttributeLists);
+            Assert.NotNull(node.Modifiers);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
             Assert.Null(node.EqualsValue);
-            var newNode = node.WithAttributeLists(node.AttributeLists).WithIdentifier(node.Identifier).WithEqualsValue(node.EqualsValue);
+            var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithIdentifier(node.Identifier).WithEqualsValue(node.EqualsValue);
             Assert.Equal(node, newNode);
         }
         

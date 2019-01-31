@@ -7,27 +7,19 @@ abstract Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.Body.get -> Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseArgumentListSyntax.Arguments.get -> Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax>
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseCrefParameterListSyntax.Parameters.get -> Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax>
-abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseFieldDeclarationSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseFieldDeclarationSyntax.Declaration.get -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax
-abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseFieldDeclarationSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseFieldDeclarationSyntax.SemicolonToken.get -> Microsoft.CodeAnalysis.SyntaxToken
-abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseMethodDeclarationSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseMethodDeclarationSyntax.Body.get -> Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseMethodDeclarationSyntax.ExpressionBody.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax
-abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseMethodDeclarationSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseMethodDeclarationSyntax.ParameterList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseMethodDeclarationSyntax.SemicolonToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseParameterListSyntax.Parameters.get -> Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax>
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BasePropertyDeclarationSyntax.AccessorList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.AccessorListSyntax
-abstract Microsoft.CodeAnalysis.CSharp.Syntax.BasePropertyDeclarationSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BasePropertyDeclarationSyntax.ExplicitInterfaceSpecifier.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExplicitInterfaceSpecifierSyntax
-abstract Microsoft.CodeAnalysis.CSharp.Syntax.BasePropertyDeclarationSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BasePropertyDeclarationSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
-abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeDeclarationSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeDeclarationSyntax.BaseList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseListSyntax
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeDeclarationSyntax.CloseBraceToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeDeclarationSyntax.Identifier.get -> Microsoft.CodeAnalysis.SyntaxToken
-abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeDeclarationSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeDeclarationSyntax.OpenBraceToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeDeclarationSyntax.SemicolonToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
@@ -745,11 +737,9 @@ Microsoft.CodeAnalysis.CSharp.Syntax.DelegateDeclarationSyntax.AddModifiers(para
 Microsoft.CodeAnalysis.CSharp.Syntax.DelegateDeclarationSyntax.AddParameterListParameters(params Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.DelegateDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.DelegateDeclarationSyntax.AddTypeParameterListParameters(params Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.DelegateDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.DelegateDeclarationSyntax.Arity.get -> int
-Microsoft.CodeAnalysis.CSharp.Syntax.DelegateDeclarationSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
 Microsoft.CodeAnalysis.CSharp.Syntax.DelegateDeclarationSyntax.ConstraintClauses.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterConstraintClauseSyntax>
 Microsoft.CodeAnalysis.CSharp.Syntax.DelegateDeclarationSyntax.DelegateKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.DelegateDeclarationSyntax.Identifier.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.DelegateDeclarationSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
 Microsoft.CodeAnalysis.CSharp.Syntax.DelegateDeclarationSyntax.ParameterList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.DelegateDeclarationSyntax.ReturnType.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.DelegateDeclarationSyntax.SemicolonToken.get -> Microsoft.CodeAnalysis.SyntaxToken
@@ -886,7 +876,6 @@ Microsoft.CodeAnalysis.CSharp.Syntax.EnumDeclarationSyntax.WithOpenBraceToken(Mi
 Microsoft.CodeAnalysis.CSharp.Syntax.EnumDeclarationSyntax.WithSemicolonToken(Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.EnumDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.EnumMemberDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.EnumMemberDeclarationSyntax.AddAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.EnumMemberDeclarationSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.EnumMemberDeclarationSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
 Microsoft.CodeAnalysis.CSharp.Syntax.EnumMemberDeclarationSyntax.EqualsValue.get -> Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.EnumMemberDeclarationSyntax.Identifier.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.EnumMemberDeclarationSyntax.Update(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax equalsValue) -> Microsoft.CodeAnalysis.CSharp.Syntax.EnumMemberDeclarationSyntax
@@ -1133,8 +1122,6 @@ Microsoft.CodeAnalysis.CSharp.Syntax.ImplicitStackAllocArrayCreationExpressionSy
 Microsoft.CodeAnalysis.CSharp.Syntax.IncompleteMemberSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.IncompleteMemberSyntax.AddAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.IncompleteMemberSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.IncompleteMemberSyntax.AddModifiers(params Microsoft.CodeAnalysis.SyntaxToken[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.IncompleteMemberSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.IncompleteMemberSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
-Microsoft.CodeAnalysis.CSharp.Syntax.IncompleteMemberSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
 Microsoft.CodeAnalysis.CSharp.Syntax.IncompleteMemberSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.IncompleteMemberSyntax.Update(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.IncompleteMemberSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.IncompleteMemberSyntax.WithAttributeLists(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists) -> Microsoft.CodeAnalysis.CSharp.Syntax.IncompleteMemberSyntax
