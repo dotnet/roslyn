@@ -1353,14 +1353,7 @@ namespace BoundTreeGenerator
                             foreach (Field field in AllNodeOrNodeListFields(node))
                             {
                                 hadField = true;
-                                if (SkipInVisitor(field))
-                                {
-                                    WriteLine("{2} {0} = node.{1};", ToCamelCase(field.Name), field.Name, field.Type);
-                                }
-                                else
-                                {
-                                    WriteLine("{3} {0} = ({3})this.Visit{2}(node.{1});", ToCamelCase(field.Name), field.Name, IsNodeList(field.Type) ? "List" : "", field.Type);
-                                }
+                                WriteNodeVisitCall(field);
                             }
                             foreach (Field field in AllTypeFields(node))
                             {
@@ -1401,12 +1394,7 @@ namespace BoundTreeGenerator
                             {
                                 hadField = true;
 
-                                if (SkipInVisitor(field))
-                                    WriteLine("Dim {0} As {2} = node.{1}", ToCamelCase(field.Name), field.Name, field.Type);
-                                else if (IsNodeList(field.Type))
-                                    WriteLine("Dim {0} As {2} = Me.VisitList(node.{1})", ToCamelCase(field.Name), field.Name, field.Type);
-                                else
-                                    WriteLine("Dim {0} As {2} = DirectCast(Me.Visit(node.{1}), {2})", ToCamelCase(field.Name), field.Name, field.Type);
+                                WriteNodeVisitCall(field);
                             }
                             foreach (Field field in AllTypeFields(node))
                             {
@@ -1452,13 +1440,13 @@ namespace BoundTreeGenerator
                         WriteLine("internal sealed partial class NullabilityRewriter : BoundTreeRewriter");
                         Brace();
 
-                        var topLevelNullabilities = "_topLevelNullabilities";
-                        WriteLine($"private readonly ImmutableDictionary<BoundExpression, TypeSymbolWithAnnotations> {topLevelNullabilities};");
+                        var updatedNullabilities = "_updatedNullabilities";
+                        WriteLine($"private readonly ImmutableDictionary<BoundExpression, TypeSymbolWithAnnotations> {updatedNullabilities};");
 
                         Blank();
-                        WriteLine("public NullabilityRewriter(ImmutableDictionary<BoundExpression, TypeSymbolWithAnnotations> topLevelNullabilities)");
+                        WriteLine("public NullabilityRewriter(ImmutableDictionary<BoundExpression, TypeSymbolWithAnnotations> updatedNullabilities)");
                         Brace();
-                        WriteLine($"{topLevelNullabilities} = topLevelNullabilities;");
+                        WriteLine($"{updatedNullabilities} = updatedNullabilities;");
                         Unbrace();
 
                         foreach (var node in _tree.Types.OfType<Node>().Where(n => IsDerivedType("BoundExpression", n.Name)))
@@ -1467,17 +1455,10 @@ namespace BoundTreeGenerator
                             WriteLine(GetVisitFunctionDeclaration(node.Name, isOverride: true));
                             Brace();
                             bool hadField = false;
-                            foreach (Field field in AllNodeOrNodeListFields(node))
+                            foreach (var field in AllNodeOrNodeListFields(node))
                             {
                                 hadField = true;
-                                if (SkipInVisitor(field))
-                                {
-                                    WriteLine($"{field.Type} {ToCamelCase(field.Name)} = node.{field.Name};");
-                                }
-                                else
-                                {
-                                    WriteLine($"{field.Type} {ToCamelCase(field.Name)} = ({field.Type})this.Visit{(IsNodeList(field.Type) ? "List" : "")}(node.{field.Name});");
-                                }
+                                WriteNodeVisitCall(field);
                             }
 
                             if (hadField)
@@ -1509,7 +1490,7 @@ namespace BoundTreeGenerator
                             Unbrace();
 
                             void writeNullabilityCheck(bool inverted) =>
-                                WriteLine($"if ({(inverted ? "!" : "")}{topLevelNullabilities}.TryGetValue(node, out TypeSymbolWithAnnotations twsa))");
+                                WriteLine($"if ({(inverted ? "!" : "")}{updatedNullabilities}.TryGetValue(node, out TypeSymbolWithAnnotations type))");
 
                             void writeUpdate(bool decl, bool updatedType)
                             {
@@ -1517,14 +1498,14 @@ namespace BoundTreeGenerator
                                 ParenList(
                                     AllSpecifiableFields(node),
                                     field => IsDerivedOrListOfDerived("BoundNode", field.Type) ? ToCamelCase(field.Name)
-                                             : updatedType && field.Name == "Type" ? "twsa.TypeSymbol" 
+                                             : updatedType && field.Name == "Type" ? "type.TypeSymbol" 
                                              : string.Format("node.{0}", field.Name));
                                 WriteLine(";");
                             }
 
                             void writeNullabilityUpdate()
                             {
-                                WriteLine($"updatedNode.TopLevelNullability = twsa.NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);");
+                                WriteLine($"updatedNode.TopLevelNullability = type.NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);");
                             }
                         }
                         Unbrace();
@@ -1748,6 +1729,44 @@ namespace BoundTreeGenerator
 
                 default:
                     throw new ArgumentException("Unexpected target language", nameof(_targetLang));
+            }
+        }
+
+        private void WriteNodeVisitCall(Field field)
+        {
+            switch (_targetLang)
+            {
+                case TargetLanguage.CSharp:
+                    if (SkipInVisitor(field))
+                    {
+                        WriteLine($"{field.Type} {ToCamelCase(field.Name)} = node.{field.Name};");
+                    }
+                    else if (IsNodeList(field.Type))
+                    {
+                        WriteLine($"{field.Type} {ToCamelCase(field.Name)} = this.VisitList(node.{field.Name});");
+                    }
+                    else
+                    {
+                        WriteLine($"{field.Type} {ToCamelCase(field.Name)} = ({field.Type})this.Visit(node.{field.Name});");
+                    }
+                    break;
+
+                case TargetLanguage.VB:
+
+                    if (SkipInVisitor(field))
+                    {
+                        WriteLine("Dim {0} As {2} = node.{1}", ToCamelCase(field.Name), field.Name, field.Type);
+                    }
+                    else if (IsNodeList(field.Type))
+                    {
+                        WriteLine("Dim {0} As {2} = Me.VisitList(node.{1})", ToCamelCase(field.Name), field.Name, field.Type);
+                    }
+                    else
+                    {
+                        WriteLine("Dim {0} As {2} = DirectCast(Me.Visit(node.{1}), {2})", ToCamelCase(field.Name), field.Name, field.Type);
+                    }
+
+                    break;
             }
         }
     }
