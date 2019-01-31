@@ -4289,12 +4289,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
             var left = node.Left;
+            var right = node.Right;
             var variables = GetDeconstructionAssignmentVariables(left);
 
-            // PROTOTYPE: Should visit expressions on right side, even if errors.
-            if (!node.HasErrors)
+            if (node.HasErrors)
             {
-                var right = node.Right;
+                // In the case of errors, simply visit the right as an r-value to update
+                // any nullability state even though deconstruction is skipped.
+                VisitRvalue(right.Operand);
+            }
+            else
+            {
                 VisitDeconstructionArguments(variables, right.Conversion, right.Operand);
             }
 
@@ -4378,7 +4383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private struct DeconstructionVariable
+        private readonly struct DeconstructionVariable
         {
             internal readonly BoundExpression Expression;
             internal readonly TypeSymbolWithAnnotations Type;
@@ -4399,31 +4404,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private ArrayBuilder<DeconstructionVariable> GetDeconstructionAssignmentVariables(BoundTupleExpression expr)
+        private ArrayBuilder<DeconstructionVariable> GetDeconstructionAssignmentVariables(BoundTupleExpression tuple)
         {
-            var arguments = expr.Arguments;
+            var arguments = tuple.Arguments;
             var builder = ArrayBuilder<DeconstructionVariable>.GetInstance(arguments.Length);
             foreach (var argument in arguments)
             {
-                builder.Add(GetDeconstructionAssignmentVariable(argument));
+                builder.Add(getDeconstructionAssignmentVariable(argument));
             }
             return builder;
-        }
 
-        private DeconstructionVariable GetDeconstructionAssignmentVariable(BoundExpression expr)
-        {
-            switch (expr.Kind)
+            DeconstructionVariable getDeconstructionAssignmentVariable(BoundExpression expr)
             {
-                case BoundKind.TupleLiteral:
-                case BoundKind.ConvertedTupleLiteral:
-                    return new DeconstructionVariable(GetDeconstructionAssignmentVariables((BoundTupleExpression)expr));
-                default:
-                    VisitLvalue(expr);
-                    return new DeconstructionVariable(expr, _resultType);
+                switch (expr.Kind)
+                {
+                    case BoundKind.TupleLiteral:
+                    case BoundKind.ConvertedTupleLiteral:
+                        return new DeconstructionVariable(GetDeconstructionAssignmentVariables((BoundTupleExpression)expr));
+                    default:
+                        VisitLvalue(expr);
+                        return new DeconstructionVariable(expr, _resultType);
+                }
             }
         }
 
-        // cf. LocalRewriter.GetRightParts.
+        /// <summary>
+        /// Return the sub-expressions for the righthand side of a deconstruction
+        /// assignment. cf. LocalRewriter.GetRightParts.
+        /// </summary>
         private ImmutableArray<BoundExpression> GetDeconstructionRightParts(BoundExpression expr)
         {
             switch (expr.Kind)

@@ -78110,11 +78110,16 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // PROTOTYPE: Missing warning 1.
             comp.VerifyDiagnostics(
                 // (5,9): error CS8132: Cannot deconstruct a tuple of '2' elements into '3' variables.
                 //         (object? a, object? b, object? c) = (x, y = null);
-                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(object? a, object? b, object? c) = (x, y = null)").WithArguments("2", "3").WithLocation(5, 9));
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(object? a, object? b, object? c) = (x, y = null)").WithArguments("2", "3").WithLocation(5, 9),
+                // (5,53): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (object? a, object? b, object? c) = (x, y = null);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(5, 53),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         y.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(9, 9));
         }
 
         [Fact]
