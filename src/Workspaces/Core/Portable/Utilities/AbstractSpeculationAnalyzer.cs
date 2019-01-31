@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     return true;
                 }
 
-                if (ReplacementBreaksGetTypeResolution(currentOriginalNode, currentReplacedNode, previousOriginalNode, previousReplacedNode))
+                if (ReplacementBreaksSystemObjectMethodResolution(currentOriginalNode, currentReplacedNode, previousOriginalNode, previousReplacedNode))
                 {
                     return true;
                 }
@@ -527,16 +527,16 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         /// <summary>
-        /// Determine if removing the cast could cause the semantics of a GetType expression to change.
+        /// Determine if removing the cast could cause the semantics of System.Object method call.
         /// </summary>
-        private bool ReplacementBreaksGetTypeResolution(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode previousOriginalNode, SyntaxNode previousReplacedNode)
+        private bool ReplacementBreaksSystemObjectMethodResolution(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode previousOriginalNode, SyntaxNode previousReplacedNode)
         {
             if (previousOriginalNode != null && previousReplacedNode != null)
             {
                 var originalExpressionSymbol = this.OriginalSemanticModel.GetSymbolInfo(currentOriginalNode).Symbol;
                 var replacedExpressionSymbol = this.SpeculativeSemanticModel.GetSymbolInfo(currentReplacedNode).Symbol;
 
-                if (IsExpressionSymbolGetType(originalExpressionSymbol) && IsExpressionSymbolGetType(replacedExpressionSymbol))
+                if (IsExpressionSymbolSystemObjectMethod(originalExpressionSymbol) && IsExpressionSymbolSystemObjectMethod(replacedExpressionSymbol))
                 {
                     var previousOriginalType = this.OriginalSemanticModel.GetTypeInfo(previousOriginalNode).Type;
                     var previousReplacedType = this.SpeculativeSemanticModel.GetTypeInfo(previousReplacedNode).Type;
@@ -549,11 +549,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         /// <summary>
-        /// Determines if the symbol is the special System Object GetType.
+        /// Determines if the symbol is a non-overridable, non static method on System.Object (e.g. GetType)
         /// </summary>
-        private bool IsExpressionSymbolGetType(ISymbol symbol)
+        private bool IsExpressionSymbolSystemObjectMethod(ISymbol symbol)
         {
-            return symbol != null && symbol.IsKind(SymbolKind.Method) && symbol.ContainingType.SpecialType == SpecialType.System_Object && symbol.Name == "GetType";
+            return symbol != null
+                && symbol.IsKind(SymbolKind.Method)
+                && symbol.ContainingType.SpecialType == SpecialType.System_Object
+                && !symbol.IsOverridable()
+                && !symbol.IsStaticType();
         }
 
         private bool ReplacementBreaksAttribute(TAttributeSyntax attribute, TAttributeSyntax newAttribute)
