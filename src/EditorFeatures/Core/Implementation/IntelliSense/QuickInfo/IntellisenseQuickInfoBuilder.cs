@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -41,21 +42,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 firstLineElements.Add(new ImageElement(warningGlyph.GetImageId()));
             }
 
+            var elements = new List<object>();
             var descSection = quickInfoItem.Sections.FirstOrDefault(s => s.Kind == QuickInfoSectionKinds.Description);
             if (descSection != null)
             {
-                firstLineElements.Add(BuildClassifiedTextElement(descSection));
+                var isFirstElement = true;
+                foreach (var element in BuildClassifiedTextElements(descSection))
+                {
+                    if (isFirstElement)
+                    {
+                        isFirstElement = false;
+                        firstLineElements.Add(element);
+                    }
+                    else
+                    {
+                        elements.Add(element);
+                    }
+                }
             }
 
-            var elements = new List<object>
-            {
-                new ContainerElement(ContainerElementStyle.Wrapped, firstLineElements)
-            };
+            elements.Insert(0, new ContainerElement(ContainerElementStyle.Wrapped, firstLineElements));
 
             // Add the remaining sections as Stacked style
             elements.AddRange(
                 quickInfoItem.Sections.Where(s => s.Kind != QuickInfoSectionKinds.Description)
-                                      .Select(BuildClassifiedTextElement));
+                                      .SelectMany(BuildClassifiedTextElements));
 
             // build text for RelatedSpan
             if (quickInfoItem.RelatedSpans.Any())
@@ -79,16 +90,67 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             }
 
             var content = new ContainerElement(
-                                ContainerElementStyle.Stacked,
+                                ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding,
                                 elements);
 
             return new IntellisenseQuickInfoItem(trackingSpan, content);
         }
 
-        private static ClassifiedTextElement BuildClassifiedTextElement(QuickInfoSection section)
+        private static IEnumerable<object> BuildClassifiedTextElements(QuickInfoSection section)
         {
-            return new ClassifiedTextElement(section.TaggedParts.Select(
-                    part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
+            var paragraphs = new List<object>();
+            var currentParagraph = new List<object>();
+            var currentRuns = new List<ClassifiedTextRun>();
+            foreach (var part in section.TaggedParts)
+            {
+                if (part.Tag == TextTags.LineBreak)
+                {
+                    if (currentRuns.Count == 0)
+                    {
+                        if (currentParagraph.Count > 0)
+                        {
+                            if (currentParagraph.Count == 1)
+                            {
+                                paragraphs.Add(currentParagraph[0]);
+                            }
+                            else
+                            {
+                                paragraphs.Add(new ContainerElement(ContainerElementStyle.Stacked, currentParagraph));
+                            }
+
+                            currentParagraph.Clear();
+                        }
+                    }
+                    else
+                    {
+                        currentParagraph.Add(new ClassifiedTextElement(currentRuns));
+                        currentRuns.Clear();
+                    }
+                }
+                else
+                {
+                    currentRuns.Add(new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text));
+                }
+            }
+
+            if (currentRuns.Count > 0)
+            {
+                currentParagraph.Add(new ClassifiedTextElement(currentRuns));
+            }
+
+            if (currentParagraph.Count > 0)
+            {
+                if (currentParagraph.Count == 1)
+                {
+                    paragraphs.Add(currentParagraph[0]);
+                }
+                else
+                {
+                    paragraphs.Add(new ContainerElement(ContainerElementStyle.Stacked, currentParagraph));
+                }
+            }
+
+            return paragraphs;
         }
     }
 }
