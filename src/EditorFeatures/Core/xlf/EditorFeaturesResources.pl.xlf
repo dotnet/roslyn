@@ -37,6 +37,11 @@
         <target state="new">Extract method encountered the following issues:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Filter_image_element">
+        <source>Filter</source>
+        <target state="new">Filter</target>
+        <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
+      </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
         <target state="translated">Funkcja formatowania dokumentu wykonała dodatkowe czyszczenie</target>
@@ -64,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Paste_Tracking">
         <source>Paste Tracking</source>
-        <target state="new">Paste Tracking</target>
+        <target state="translated">Śledzenie wklejania</target>
         <note />
       </trans-unit>
       <trans-unit id="Preprocessor_Text">
@@ -79,7 +84,7 @@
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
-        <target state="new">String - Escape Character</target>
+        <target state="translated">String - Escape Character</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_Static">
@@ -176,6 +181,11 @@
         <source>String - Verbatim</source>
         <target state="translated">Ciąg — dosłowne wyrażenie</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Warning_image_element">
+        <source>Warning</source>
+        <target state="new">Warning</target>
+        <note>Caption/tooltip for "Warning" image element displayed in completion popup.</note>
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Attribute_Name">
         <source>XML Doc Comments - Attribute Name</source>
@@ -980,7 +990,7 @@
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
         <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="translated">Możemy naprawić ten błąd, pomijając utworzenie parametrów struktury „out/ref”.
+        <target state="translated">Możemy naprawić ten błąd, pomijając utworzenie parametrów struktury „out/ref”. 
 Czy chcesz kontynuować?</target>
         <note />
       </trans-unit>

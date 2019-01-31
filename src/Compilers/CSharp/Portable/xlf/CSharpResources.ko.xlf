@@ -2579,12 +2579,12 @@
       </trans-unit>
       <trans-unit id="WRN_PatternBadSignature">
         <source>'{0}' does not implement the '{1}' pattern. '{2}' has the wrong signature.</source>
-        <target state="needs-review-translation">'{0}'이(가) '{1}' 패턴을 구현하지 않습니다. '{2}'에 잘못된 시그니처가 있습니다.</target>
+        <target state="translated">'{0}'이(가) '{1}' 패턴을 구현하지 않습니다. '{2}'에 잘못된 시그니처가 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternBadSignature_Title">
         <source>Type does not implement the collection pattern; member has the wrong signature</source>
-        <target state="needs-review-translation">형식은 컬렉션 패턴을 구현하지 않습니다. 멤버의 서명이 잘못되었습니다.</target>
+        <target state="translated">형식은 컬렉션 패턴을 구현하지 않습니다. 멤버의 서명이 잘못되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">

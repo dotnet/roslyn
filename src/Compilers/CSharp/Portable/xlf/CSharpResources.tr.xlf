@@ -2579,12 +2579,12 @@
       </trans-unit>
       <trans-unit id="WRN_PatternBadSignature">
         <source>'{0}' does not implement the '{1}' pattern. '{2}' has the wrong signature.</source>
-        <target state="needs-review-translation">'{0}', '{1}' kalıbını uygulamaz. '{2}' yanlış imzaya sahip.</target>
+        <target state="translated">'{0}', '{1}' kalıbını uygulamaz. '{2}' yanlış imzaya sahip.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternBadSignature_Title">
         <source>Type does not implement the collection pattern; member has the wrong signature</source>
-        <target state="needs-review-translation">Tür koleksiyon desenini uygulamaz; üye yanlış imzaya sahip</target>
+        <target state="translated">Tür koleksiyon desenini uygulamaz; üye yanlış imzaya sahip</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">

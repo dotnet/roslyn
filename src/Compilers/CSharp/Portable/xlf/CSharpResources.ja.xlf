@@ -2579,12 +2579,12 @@
       </trans-unit>
       <trans-unit id="WRN_PatternBadSignature">
         <source>'{0}' does not implement the '{1}' pattern. '{2}' has the wrong signature.</source>
-        <target state="needs-review-translation">'{0}' は、パターン '{1}' を実装しません。'{2}' には正しくないシグネチャが含まれます。</target>
+        <target state="translated">'{0}' は、パターン '{1}' を実装しません。'{2}' には正しくないシグネチャが含まれます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternBadSignature_Title">
         <source>Type does not implement the collection pattern; member has the wrong signature</source>
-        <target state="needs-review-translation">型は、コレクション パターンを実装しません。メンバーには正しくないシグネチャが含まれます</target>
+        <target state="translated">型は、コレクション パターンを実装しません。メンバーには正しくないシグネチャが含まれます</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
