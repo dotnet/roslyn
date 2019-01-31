@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     return descriptorFields;
                 }
 
-                descriptorFields = default(ImmutableArray<IFieldSymbol>);
+                descriptorFields = default;
 
                 if (this.DiagnosticAnalyzer.GetMembers(SupportedDiagnosticsName).FirstOrDefault() is IPropertySymbol supportedDiagnosticBaseProperty)
                 {

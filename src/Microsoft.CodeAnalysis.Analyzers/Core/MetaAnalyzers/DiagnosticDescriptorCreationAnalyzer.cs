@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         !TryAnalyzeCategory(operationAnalysisContext, objectCreation,
                             additionalTextOpt, categoryAndAllowedIdsMap, out categoryOpt, out var allowedIdsInfoList))
                     {
-                        allowedIdsInfoList = default(ImmutableArray<(string prefix, int start, int end)>);
+                        allowedIdsInfoList = default;
                     }
 
                     AnalyzeRuleId(operationAnalysisContext, objectCreation, additionalTextOpt,
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             out ImmutableArray<(string prefix, int start, int end)> allowedIdsInfoList)
         {
             category = null;
-            allowedIdsInfoList = default(ImmutableArray<(string prefix, int start, int end)>);
+            allowedIdsInfoList = default;
             foreach (var argument in objectCreation.Arguments)
             {
                 if (argument.Parameter.Name.Equals(CategoryParameterName, StringComparison.Ordinal))
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     if (parts.Length == 1)
                     {
                         // No ':' symbol, so the entry just specifies the category.
-                        builder.Add(category, default(ImmutableArray<(string prefix, int start, int end)>));
+                        builder.Add(category, default);
                         continue;
                     }
 

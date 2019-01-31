@@ -7,10 +7,13 @@ namespace Test.Utilities
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
     public class WorkItemAttribute : Attribute
     {
-#pragma warning disable IDE0060 // Remove unused parameter
-#pragma warning disable CA1801 // Remove unused parameter
         public WorkItemAttribute(int id, string source)
         {
+            Id = id;
+            Source = source;
         }
+
+        public int Id { get; }
+        public string Source { get; }
     }
 }
