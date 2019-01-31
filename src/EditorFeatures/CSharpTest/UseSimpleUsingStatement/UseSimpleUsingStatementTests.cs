@@ -3,7 +3,6 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic;
 using Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
@@ -325,6 +324,98 @@ class C
     }
 }",
 parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestWithFollowingReturn()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        [||]using (var a = b)
+        {
+        }
+        return;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        using var a = b;
+        return;
+    }
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestWithFollowingBreak()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        switch (0)
+        {
+            case 0:
+                {
+                    [||]using (var a = b)
+                    {
+                    }
+                    break;
+                }
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        switch (0)
+        {
+            case 0:
+                {
+                    using var a = b;
+                    break;
+                }
+        }
+    }
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        public async Task TestMissingInSwitchSection()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        switch (0)
+        {
+            case 0:
+                [||]using (var a = b)
+                {
+                }
+                break;
+        }
+    }
+}", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
     }
 }
