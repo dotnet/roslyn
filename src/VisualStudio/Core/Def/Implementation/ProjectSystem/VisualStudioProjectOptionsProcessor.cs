@@ -82,6 +82,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        /// <summary>
+        /// Returns the active path to the rule set file that is being used by this project, or null if there isn't a rule set file.
+        /// </summary>
+        public string EffectiveRuleSetFilePath => _ruleSetFile?.Target.Value.FilePath;
+
         private void ReparseCommandLine_NoLock()
         {
             var arguments = CommandLineParser.SplitCommandLineIntoArguments(_commandLine, removeHashComments: false);

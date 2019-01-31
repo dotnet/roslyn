@@ -107,8 +107,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return VisualStudioProject.OutputFilePath;
         }
 
-        public IReferenceCountedDisposable<IRuleSetFile> RuleSetFile { get; private set; }
-
         protected IVsReportExternalErrors ExternalErrorReporter { get; }
 
         internal HostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; }
