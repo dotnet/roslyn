@@ -6191,5 +6191,43 @@ public class C
     }}
 }}", optionName);
         }
+
+        [WorkItem(32959, "https://github.com/dotnet/roslyn/issues/32959")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UsedVariable_BailOutOnSemanticError()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int [|x|] = 1;
+        
+        // CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type.
+        Invoke<string>(() => x);
+
+        T Invoke<T>(Func<T> a) { return a(); }
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(32959, "https://github.com/dotnet/roslyn/issues/32959")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedVariable_BailOutOnSemanticError()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int [|x|] = 1;
+        
+        // CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type.
+        Invoke<string>(() => 0);
+
+        T Invoke<T>(Func<T> a) { return a(); }
+    }
+}", options: PreferDiscard);
+        }
     }
 }

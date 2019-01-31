@@ -56,6 +56,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 private bool _hasConversionFromDelegateTypeOrAnonymousFunctionToNonDelegateType;
 
                 /// <summary>
+                /// Indicates if the operation block has an <see cref="IInvalidOperation"/>.
+                /// We use this value in <see cref="ShouldAnalyze(IOperation, ISymbol)"/> to determine whether to bail from analysis or not.
+                /// </summary>
+                private bool _hasInvalidOperation;
+
+                /// <summary>
                 /// Parameters which have at least one read/write reference.
                 /// </summary>
                 private readonly ConcurrentDictionary<IParameterSymbol, bool> _referencedParameters;
@@ -102,6 +108,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeTuple, OperationKind.Tuple);
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeFieldOrPropertyReference, OperationKind.FieldReference, OperationKind.PropertyReference);
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeParameterReference, OperationKind.ParameterReference);
+                    context.RegisterOperationAction(_ => blockAnalyzer._hasInvalidOperation = true, OperationKind.Invalid);
                     context.RegisterOperationBlockEndAction(blockAnalyzer.AnalyzeOperationBlockEnd);
 
                     return;
@@ -308,6 +315,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     //     to any local/parameter in the current method. We cannot reliably flag any write to a 
                     //     local/parameter as unused for such cases.
                     if (_delegateWrappedInTuple)
+                    {
+                        return false;
+                    }
+
+                    //  7. Bail out on invalid operations, i.e. code with semantic errors.
+                    //     We are likely to have false positives from flow analysis results
+                    //     as we will not account for potential lambda/local function invocations.
+                    if (_hasInvalidOperation)
                     {
                         return false;
                     }
