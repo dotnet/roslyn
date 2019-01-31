@@ -1865,7 +1865,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         break;
 
                     case SyntaxKind.ProtectedKeyword:
-                        accessibility = Accessibility.Protected;
+                        if (accessibility == Accessibility.Private)
+                        {
+                            accessibility = Accessibility.ProtectedAndInternal;
+                        }
+                        else if (accessibility == Accessibility.Internal)
+                        {
+                            accessibility = Accessibility.ProtectedOrInternal;
+                        }
+                        else
+                        {
+                            accessibility = Accessibility.Protected;
+                        }
                         break;
 
                     case SyntaxKind.AbstractKeyword:
