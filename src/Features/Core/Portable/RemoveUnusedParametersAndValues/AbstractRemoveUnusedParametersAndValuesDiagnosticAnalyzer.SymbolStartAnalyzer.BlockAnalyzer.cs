@@ -448,9 +448,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         //   2. Symbol has error type, hence the diagnostic could be noised
                         //   3. Static local symbols. Assignment to static locals
                         //      is not unnecessary as the assigned value can be used on the next invocation.
+                        //   4. Ignore special discard symbol names (see https://github.com/dotnet/roslyn/issues/32923).
                         if (_options.UnusedValueAssignmentSeverity == ReportDiagnostic.Suppress ||
                             symbol.GetSymbolType().IsErrorType() ||
-                            symbol.IsStatic && symbol.Kind == SymbolKind.Local)
+                            symbol.IsStatic && symbol.Kind == SymbolKind.Local ||
+                            IsSymbolWithSpecialDiscardName(symbol))
                         {
                             return false;
                         }

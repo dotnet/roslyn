@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestHelpers;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
 {
@@ -6104,6 +6105,91 @@ public class C
         return (LocalFunction, true);
     }
 }", optionName);
+        }
+
+        [WorkItem(32923, "https://github.com/dotnet/roslyn/issues/32923")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedLocal_ForEach()
+        {
+            await TestDiagnosticsAsync(
+@"using System;
+
+public struct S
+{
+    public Enumerator GetEnumerator() => throw new NotImplementedException();
+
+    public struct Enumerator
+    {
+        public Enumerator(S sequence) => throw new NotImplementedException();
+        public int Current => throw new NotImplementedException();
+        public bool MoveNext() => throw new NotImplementedException();
+    }
+}
+
+class C
+{
+    void M(S s)
+    {
+        foreach (var [|x|] in s)
+        {
+        }
+    }
+}", new TestParameters(options: PreferDiscard, retainNonFixableDiagnostics: true),
+    Diagnostic("IDE0059"));
+        }
+
+        [WorkItem(32923, "https://github.com/dotnet/roslyn/issues/32923")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData("_", nameof(PreferDiscard))]
+        [InlineData("_", nameof(PreferUnusedLocal))]
+        [InlineData("_1", nameof(PreferDiscard))]
+        [InlineData("_1", nameof(PreferUnusedLocal))]
+        public async Task UnusedLocal_SpecialName_01(string variableName, string optionName)
+        {
+            await TestDiagnosticMissingAsync(
+$@"using System;
+
+public struct S
+{{
+    public Enumerator GetEnumerator() => throw new NotImplementedException();
+
+    public struct Enumerator
+    {{
+        public Enumerator(S sequence) => throw new NotImplementedException();
+        public int Current => throw new NotImplementedException();
+        public bool MoveNext() => throw new NotImplementedException();
+    }}
+}}
+
+class C
+{{
+    void M(S s)
+    {{
+        foreach (var [|{variableName}|] in s)
+        {{
+        }}
+    }}
+}}", new TestParameters(options: GetOptions(optionName), retainNonFixableDiagnostics: true));
+        }
+
+        [WorkItem(32923, "https://github.com/dotnet/roslyn/issues/32923")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData("_", nameof(PreferDiscard))]
+        [InlineData("_", nameof(PreferUnusedLocal))]
+        [InlineData("_3", nameof(PreferDiscard))]
+        [InlineData("_3", nameof(PreferUnusedLocal))]
+        public async Task UnusedLocal_SpecialName_02(string variableName, string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+$@"using System;
+
+public class C
+{{
+    public void M(int p)
+    {{
+        var [|{variableName}|] = p;
+    }}
+}}", optionName);
         }
     }
 }
