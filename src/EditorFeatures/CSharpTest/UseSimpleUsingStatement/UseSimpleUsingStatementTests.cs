@@ -230,9 +230,9 @@ parseOptions: CSharp8ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestMultiUsing2()
+        public async Task TestMultiUsingOnlyOnTopmostUsing()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"using System;
 
 class C
@@ -246,18 +246,7 @@ class C
         }
     }
 }",
-@"using System;
-
-class C
-{
-    void M()
-    {
-        using var a = b;
-        using var c = d;
-        Console.WriteLine(a);
-    }
-}",
-parseOptions: CSharp8ParseOptions);
+new TestParameters(parseOptions: CSharp8ParseOptions));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]

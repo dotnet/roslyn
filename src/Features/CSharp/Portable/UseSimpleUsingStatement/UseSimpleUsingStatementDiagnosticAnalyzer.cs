@@ -62,16 +62,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             }
         }
 
-        public static bool CanConvertUsingStatement(UsingStatementSyntax usingStatement)
+        private static bool CanConvertUsingStatement(UsingStatementSyntax usingStatement)
         {
             if (usingStatement.Declaration == null)
             {
                 return false;
             }
 
-            var parent = usingStatement.Parent;
-            if (!(parent is BlockSyntax || parent is UsingStatementSyntax))
+            var parentBlock = usingStatement.Parent as BlockSyntax;
+            if (parentBlock == null)
             {
+                // Don't offer on a using statement that is parented by another using statement.
+                // We'll just offer on the topmost using statement.
                 return false;
             }
 
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             //    the resource, instead of afterwards.  Effectly, the statement following
             //    cannot actually execute any code that might depend on the .Dispose method
             //    being called or not.
-            var statements = GetStatements(parent);
+            var statements = parentBlock.Statements;
 
             var index = statements.IndexOf(usingStatement);
             if (index == statements.Count - 1)
@@ -119,16 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 
             // Add any additional cases here in the future.
             return false;
-        }
-
-        private static SyntaxList<StatementSyntax> GetStatements(SyntaxNode parent)
-        {
-            switch (parent)
-            {
-                case BlockSyntax block: return block.Statements;
-                case UsingStatementSyntax usingStatement: return new SyntaxList<StatementSyntax>(usingStatement.Statement);
-                default: throw ExceptionUtilities.UnexpectedValue(parent);
-            }
         }
     }
 }

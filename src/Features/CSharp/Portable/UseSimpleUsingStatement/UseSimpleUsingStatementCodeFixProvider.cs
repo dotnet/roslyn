@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var directUsingStatements = diagnostics.SelectAsArray(d => (UsingStatementSyntax)d.AdditionalLocations[0].FindNode(cancellationToken));
+            var topmostUsingStatements = diagnostics.SelectAsArray(d => (UsingStatementSyntax)d.AdditionalLocations[0].FindNode(cancellationToken));
 
             // Grab all the convertible usings in a block of nested usings.  i.e.
             // 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 
             // Importantly, this is a set, so if we're doing a fix-all, we may add the items
             // multiple times, but that's ok as it will still only be in the set once.
-            var allUsingStatements = GetUsingStatementsToUpdate(directUsingStatements);
+            var allUsingStatements = GetUsingStatementsToUpdate(topmostUsingStatements);
 
             var rewriter = new Rewriter(allUsingStatements);
             var root = editor.OriginalRoot;
@@ -63,20 +63,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             return Task.CompletedTask;
         }
 
-        private static HashSet<UsingStatementSyntax> GetUsingStatementsToUpdate(ImmutableArray<UsingStatementSyntax> directUsingStatements)
+        private static HashSet<UsingStatementSyntax> GetUsingStatementsToUpdate(ImmutableArray<UsingStatementSyntax> topmostUsingStatements)
         {
             var allUsingStatements = new HashSet<UsingStatementSyntax>();
 
-            foreach (var usingStatement in directUsingStatements)
+            foreach (var topmostUsingStatement in topmostUsingStatements)
             {
-                // First, walk up to the topmost using statement in this chain that is convertible
-                var topmostUsingStatement = (UsingStatementSyntax)usingStatement.AncestorsAndSelf().TakeWhile(
-                    n => n is UsingStatementSyntax ancestor &&
-                         UseSimpleUsingStatementDiagnosticAnalyzer.CanConvertUsingStatement(ancestor)).Last();
-
-                // Then walk inwards adding all using statements that are convertible.
+                // Walk inwards adding all using statements that are convertible.
                 for (var current = topmostUsingStatement;
-                     current != null && UseSimpleUsingStatementDiagnosticAnalyzer.CanConvertUsingStatement(current);
+                     current?.Declaration != null;
                      current = current.Statement as UsingStatementSyntax)
                 {
                     allUsingStatements.Add(current);
