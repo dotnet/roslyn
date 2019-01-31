@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             ImmutableArray<CompletionItemWithHighlight> highlightedList)
         {
             if (filterTriggerKind == CompletionTriggerReason.Insertion &&
-                    !filterResults.Any(r => r.FilterResult.MatchedFilterText))
+                !filterResults.Any(r => r.FilterResult.MatchedFilterText))
             {
                 // The user has typed something, but nothing in the actual list matched what
                 // they were typing.  In this case, we want to dismiss completion entirely.
