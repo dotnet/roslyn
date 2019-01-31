@@ -63,9 +63,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
             elements.Insert(0, new ContainerElement(ContainerElementStyle.Wrapped, firstLineElements));
 
+            var documentationCommentSection = quickInfoItem.Sections.FirstOrDefault(s => s.Kind == QuickInfoSectionKinds.DocumentationComments);
+            if (documentationCommentSection != null)
+            {
+                var classifiedComments = BuildClassifiedTextElements(documentationCommentSection).ToArray();
+                if (classifiedComments.Length > 0)
+                {
+                    // Stack the first item with the main description to avoid the vertical padding
+                    var lastElement = elements[elements.Count - 1];
+                    elements[elements.Count - 1] = new ContainerElement(
+                        ContainerElementStyle.Stacked,
+                        lastElement,
+                        classifiedComments[0]);
+
+                    elements.AddRange(classifiedComments.Skip(1));
+                }
+            }
+
             // Add the remaining sections as Stacked style
             elements.AddRange(
-                quickInfoItem.Sections.Where(s => s.Kind != QuickInfoSectionKinds.Description)
+                quickInfoItem.Sections.Where(s => s.Kind != QuickInfoSectionKinds.Description && s.Kind != QuickInfoSectionKinds.DocumentationComments)
                                       .SelectMany(BuildClassifiedTextElements));
 
             // build text for RelatedSpan
