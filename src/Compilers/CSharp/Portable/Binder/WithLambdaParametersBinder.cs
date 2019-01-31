@@ -59,6 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal override bool IsNestedFunctionBinder => true;
+
         internal override bool IsDirectlyInIterator
         {
             get

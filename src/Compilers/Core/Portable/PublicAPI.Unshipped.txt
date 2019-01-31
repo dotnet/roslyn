@@ -161,7 +161,6 @@ Microsoft.CodeAnalysis.OperationKind.FlowCapture = 91 -> Microsoft.CodeAnalysis.
 Microsoft.CodeAnalysis.OperationKind.FlowCaptureReference = 92 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.IsNull = 93 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.StaticLocalInitializationSemaphore = 95 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.OperationKind.SuppressNullableWarning = 98 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.Operations.CommonConversion.IsImplicit.get -> bool
 Microsoft.CodeAnalysis.Operations.ICaseClauseOperation.Label.get -> Microsoft.CodeAnalysis.ILabelSymbol
 Microsoft.CodeAnalysis.Operations.ICoalesceAssignmentOperation
@@ -184,8 +183,6 @@ Microsoft.CodeAnalysis.Operations.IRangeOperation.IsLifted.get -> bool
 Microsoft.CodeAnalysis.Operations.IRangeOperation.LeftOperand.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IRangeOperation.Method.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Operations.IRangeOperation.RightOperand.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation
-Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation.Expression.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.ISwitchCaseOperation.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.Operations.ISwitchOperation.ExitLabel.get -> Microsoft.CodeAnalysis.ILabelSymbol
 Microsoft.CodeAnalysis.Operations.ISwitchOperation.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
@@ -223,8 +220,6 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitReDim(Microsoft.
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitReDimClause(Microsoft.CodeAnalysis.Operations.IReDimClauseOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitRecursivePattern(Microsoft.CodeAnalysis.Operations.IRecursivePatternOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitStaticLocalInitializationSemaphore(Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation operation) -> void
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitSuppressNullableWarningExpression(Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation operation) -> void
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitSuppressNullableWarningOperation(Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitSwitchExpression(Microsoft.CodeAnalysis.Operations.ISwitchExpressionOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitSwitchExpressionArm(Microsoft.CodeAnalysis.Operations.ISwitchExpressionArmOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitCaughtException(Microsoft.CodeAnalysis.FlowAnalysis.ICaughtExceptionOperation operation, TArgument argument) -> TResult
@@ -240,6 +235,5 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.V
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitReDimClause(Microsoft.CodeAnalysis.Operations.IReDimClauseOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitRecursivePattern(Microsoft.CodeAnalysis.Operations.IRecursivePatternOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitStaticLocalInitializationSemaphore(Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation operation, TArgument argument) -> TResult
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitSuppressNullableWarningOperation(Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitSwitchExpression(Microsoft.CodeAnalysis.Operations.ISwitchExpressionOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitSwitchExpressionArm(Microsoft.CodeAnalysis.Operations.ISwitchExpressionArmOperation operation, TArgument argument) -> TResult

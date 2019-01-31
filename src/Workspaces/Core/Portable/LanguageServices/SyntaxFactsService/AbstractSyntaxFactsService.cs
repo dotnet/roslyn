@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public bool ContainsInterleavedDirective(SyntaxNode node, CancellationToken cancellationToken)
             => ContainsInterleavedDirective(node.Span, node, cancellationToken);
 
-        private bool ContainsInterleavedDirective(
+        public bool ContainsInterleavedDirective(
             TextSpan span, SyntaxNode node, CancellationToken cancellationToken)
         {
             foreach (var token in node.DescendantTokens())

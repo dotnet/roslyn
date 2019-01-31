@@ -27,9 +27,14 @@
         <target state="new">Format complete.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_complete_in_0_ms">
-        <source>Format complete in {0}ms.</source>
-        <target state="new">Format complete in {0}ms.</target>
+      <trans-unit id="Format_files_but_do_not_save_changes_to_disk">
+        <source>Format files, but do not save changes to disk.</source>
+        <target state="new">Format files, but do not save changes to disk.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatted_0_of_1_files_in_2_ms">
+        <source>Formatted {0} of {1} files in {2}ms.</source>
+        <target state="new">Formatted {0} of {1} files in {2}ms.</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_code_file_0">

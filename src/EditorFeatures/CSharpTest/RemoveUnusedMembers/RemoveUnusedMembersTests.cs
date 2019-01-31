@@ -2262,5 +2262,57 @@ static class MyClass3
     </Project>
 </Workspace>");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(32702, "https://github.com/dotnet/roslyn/issues/32702")]
+        public async Task UsedExtensionMethod_ReferencedFromPartialMethod()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+static partial class B
+{
+    static partial void PartialMethod();
+}
+        </Document>
+        <Document>
+static partial class B
+{
+    static partial void PartialMethod()
+    {
+        UsedMethod();
+    }
+
+    private static void [|UsedMethod|]() { }
+}
+        </Document>
+    </Project>
+</Workspace>");
+        }
+
+        [Fact, WorkItem(32842, "https://github.com/dotnet/roslyn/issues/32842")]
+        public async Task FieldIsRead_NullCoalesceAssignment()
+        {
+            await TestDiagnosticMissingAsync(@"
+public class MyClass
+{
+    private MyClass [|_field|];
+    public MyClass Property => _field ??= new MyClass();
+}", new TestParameters(retainNonFixableDiagnostics: true, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
+        }
+
+        [Fact, WorkItem(32842, "https://github.com/dotnet/roslyn/issues/32842")]
+        public async Task FieldIsNotRead_NullCoalesceAssignment()
+        {
+            await TestDiagnosticsAsync(@"
+public class MyClass
+{
+    private MyClass [|_field|];
+    public void M() => _field ??= new MyClass();
+}", new TestParameters(retainNonFixableDiagnostics: true, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)),
+    expected: Diagnostic("IDE0052"));
+        }
     }
 }

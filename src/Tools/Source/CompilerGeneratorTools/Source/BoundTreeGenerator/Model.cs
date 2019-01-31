@@ -49,6 +49,13 @@ namespace BoundTreeGenerator
         [XmlAttribute]
         public string Errors;
 
+        /// <summary>
+        /// For nodes that have additional fields defined in code, it is necessary to provide
+        /// a hand-written implementation of ShallowClone.
+        /// </summary>
+        [XmlAttribute]
+        public string SkipShallowClone;
+
         [XmlElement(ElementName = "Kind", Type = typeof(Kind))]
         public List<Kind> Kinds;
 

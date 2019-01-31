@@ -677,7 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!(expr is null));
             Debug.Assert(!(expr.Type is null));
-            Debug.Assert(expr.Type.IsValueType && expr.Type.IsRefLikeType); // pattern dispose lookup is only valid on ref structs
+            Debug.Assert(expr.Type.IsRefLikeType || hasAwait); // pattern dispose lookup is only valid on ref structs or asynchronous usings
 
             // Don't try and lookup if we're not enabled
             if (MessageID.IDS_FeatureUsingDeclarations.RequiredVersion() > Compilation.LanguageVersion)
@@ -691,8 +691,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     diagnostics,
                                                     out var disposeMethod);
 
-            if ((!hasAwait && disposeMethod?.ReturnsVoid == false)
-                || (hasAwait && disposeMethod?.ReturnType.TypeSymbol.IsNonGenericTaskType(Compilation) == false)
+            if (disposeMethod?.IsExtensionMethod == true)
+            {
+                // Extension methods should just be ignored, rather than rejected after-the-fact
+                // Tracked by https://github.com/dotnet/roslyn/issues/32767
+
+                // extension methods do not contribute to pattern-based disposal
+                disposeMethod = null;
+            }
+            else if ((!hasAwait && disposeMethod?.ReturnsVoid == false)
                 || result == PatternLookupResult.NotAMethod)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -1987,10 +1994,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return;
             }
-            while (operand.Kind == BoundKind.SuppressNullableWarningExpression)
-            {
-                operand = ((BoundSuppressNullableWarningExpression)operand).Expression;
-            }
 
             switch (operand.Kind)
             {
@@ -2923,6 +2926,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool syntacticallyValid = SyntaxFacts.IsStatementExpression(syntax);
             if (!syntacticallyValid)
+            {
+                return false;
+            }
+
+            if (expression.IsSuppressed)
             {
                 return false;
             }
