@@ -1,27 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
-    internal enum PropertySetAbstractValue
+    internal class PropertySetAbstractValue
     {
-        /// <summary>
-        /// Doesn't matter.
-        /// </summary>
-        Unknown,
+        public PropertySetAbstractValue(ImmutableArray<PropertySetAbstractValueKind> propertyAbstractValues)
+        {
+            PropertyAbstractValues = propertyAbstractValues;
+        }
 
         /// <summary>
-        /// Not flagged for badness.
+        /// Individual values of the set of properties being tracked.
         /// </summary>
-        Unflagged,
-
-        /// <summary>
-        /// Flagged for badness.
-        /// </summary>
-        Flagged,
-
-        /// <summary>
-        /// Maybe flagged.
-        /// </summary>
-        MaybeFlagged,
+        /// <remarks>
+        /// Order of the array is the same as the provided <see cref="PropertyMapper"/>s.
+        /// </remarks>
+        public ImmutableArray<PropertySetAbstractValueKind> PropertyAbstractValues { get; }
     }
 }
