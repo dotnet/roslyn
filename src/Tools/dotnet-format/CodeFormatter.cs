@@ -61,9 +61,11 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
                 logger.LogTrace(Resources.Workspace_loaded_in_0_ms, workspaceStopwatch.ElapsedMilliseconds);
                 workspaceStopwatch.Restart();
 
-                exitCode = await FormatFilesInWorkspaceAsync(logger, workspace, projectPath, codingConventionsManager, saveFormattedFiles, cancellationToken).ConfigureAwait(false);
+                int fileCount;
+                int filesFormatted;
+                (exitCode, fileCount, filesFormatted) = await FormatFilesInWorkspaceAsync(logger, workspace, projectPath, codingConventionsManager, saveFormattedFiles, cancellationToken).ConfigureAwait(false);
 
-                logger.LogDebug(Resources.Format_complete_in_0_ms, workspaceStopwatch.ElapsedMilliseconds);
+                logger.LogDebug(Resources.Formatted_0_of_1_files_in_2_ms, filesFormatted, fileCount, workspaceStopwatch.ElapsedMilliseconds);
             }
 
             logger.LogInformation(Resources.Format_complete);
@@ -92,11 +94,13 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
             }
         }
 
-        private static async Task<int> FormatFilesInWorkspaceAsync(ILogger logger, Workspace workspace, string projectPath, ICodingConventionsManager codingConventionsManager, bool saveFormattedFiles, CancellationToken cancellationToken)
+        private static async Task<(int status, int fileCount, int filesFormatted)> FormatFilesInWorkspaceAsync(ILogger logger, Workspace workspace, string projectPath, ICodingConventionsManager codingConventionsManager, bool saveFormattedFiles, CancellationToken cancellationToken)
         {
             var projectIds = workspace.CurrentSolution.ProjectIds.ToImmutableArray();
             var optionsApplier = new EditorConfigOptionsApplier();
 
+            var totalFileCount = 0;
+            var totalFilesFormatted = 0;
             foreach (var projectId in projectIds)
             {
                 var project = workspace.CurrentSolution.GetProject(projectId);
@@ -114,18 +118,20 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
 
                 logger.LogInformation(Resources.Formatting_code_files_in_project_0, project.Name);
 
-                var formattedSolution = await FormatFilesInProjectAsync(logger, project, codingConventionsManager, optionsApplier, cancellationToken).ConfigureAwait(false);
+                var (formattedSolution, filesFormatted) = await FormatFilesInProjectAsync(logger, project, codingConventionsManager, optionsApplier, cancellationToken).ConfigureAwait(false);
+                totalFileCount += project.DocumentIds.Count;
+                totalFilesFormatted += filesFormatted;
                 if (saveFormattedFiles && !workspace.TryApplyChanges(formattedSolution))
                 {
                     logger.LogError(Resources.Failed_to_save_formatting_changes);
-                    return 1;
+                    return (1, totalFileCount, totalFilesFormatted);
                 }
             }
 
-            return 0;
+            return (0, totalFileCount, totalFilesFormatted);
         }
 
-        private static async Task<Solution> FormatFilesInProjectAsync(ILogger logger, Project project, ICodingConventionsManager codingConventionsManager, EditorConfigOptionsApplier optionsApplier, CancellationToken cancellationToken)
+        private static async Task<(Solution solution, int filesFormatted)> FormatFilesInProjectAsync(ILogger logger, Project project, ICodingConventionsManager codingConventionsManager, EditorConfigOptionsApplier optionsApplier, CancellationToken cancellationToken)
         {
             var isCommentTrivia = project.Language == LanguageNames.CSharp
                 ? IsCSharpCommentTrivia
@@ -166,13 +172,14 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
                         return null;
                     }
 
-                     return formattedSourceText;
+                    return formattedSourceText;
                 }, cancellationToken);
 
                 formattedDocuments.Add((documentId, formatTask));
             }
 
             var formattedSolution = project.Solution;
+            var filesFormatted = 0;
             foreach (var (documentId, formatTask) in formattedDocuments)
             {
                 var text = await formatTask.ConfigureAwait(false);
@@ -181,10 +188,11 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
                     continue;
                 }
 
+                filesFormatted++;
                 formattedSolution = formattedSolution.WithDocumentText(documentId, text);
             }
 
-            return formattedSolution;
+            return (formattedSolution, filesFormatted);
         }
 
         private static Func<SyntaxTrivia, bool> IsCSharpCommentTrivia =
