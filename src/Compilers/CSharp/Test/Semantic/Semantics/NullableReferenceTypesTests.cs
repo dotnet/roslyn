@@ -77614,6 +77614,159 @@ class Program
         }
 
         [Fact]
+        public void Deconstruction_24()
+        {
+            var source =
+@"class Program
+{
+    static void F(bool b, object x, object? y)
+    {
+        (object?, object, object?, object, object?, (object, object?), object, object, object?, object) t = (x, x, x, y, y, (y, x), x, x, y, y); // 1
+        var (_1, _2, _3, _4, _5, (_6a, _6b), _7, _8, _9, _10) = t;
+        _1.ToString();
+        _2.ToString();
+        _3.ToString();
+        _4.ToString(); // 2
+        _5.ToString(); // 3
+        _6a.ToString(); // 4
+        _6b.ToString();
+        _7.ToString();
+        _8.ToString();
+        _9.ToString(); // 5
+        _10.ToString(); // 6
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,109): warning CS8619: Nullability of reference types in value of type '(object, object, object, object?, object?, (object? y, object x), object, object, object?, object?)' doesn't match target type '(object?, object, object?, object, object?, (object, object?), object, object, object?, object)'.
+                //         (object?, object, object?, object, object?, (object, object?), object, object, object?, object) t = (x, x, x, y, y, (y, x), x, x, y, y); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, x, x, y, y, (y, x), x, x, y, y)").WithArguments("(object, object, object, object?, object?, (object? y, object x), object, object, object?, object?)", "(object?, object, object?, object, object?, (object, object?), object, object, object?, object)").WithLocation(5, 109),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         _4.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_4").WithLocation(10, 9),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         _5.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_5").WithLocation(11, 9),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         _6a.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_6a").WithLocation(12, 9),
+                // (16,9): warning CS8602: Possible dereference of a null reference.
+                //         _9.ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_9").WithLocation(16, 9),
+                // (17,9): warning CS8602: Possible dereference of a null reference.
+                //         _10.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_10").WithLocation(17, 9));
+        }
+
+        [Fact]
+        [WorkItem(33017, "https://github.com/dotnet/roslyn/issues/33017")]
+        public void Deconstruction_25()
+        {
+            var source =
+@"using System.Collections.Generic;
+class Program
+{
+    static void F1<T>(IEnumerable<(T, T)> e1)
+    {
+        foreach (var (x1, y1) in e1)
+        {
+            x1.ToString(); // 1
+            y1.ToString(); // 2
+        }
+        foreach ((object? z1, object? w1) in e1)
+        {
+            z1.ToString(); // 3
+            z1.ToString(); // 4
+        }
+    }
+    static void F2<T>(IEnumerable<(T, T?)> e2) where T : class
+    {
+        foreach (var (x2, y2) in e2)
+        {
+            x2.ToString();
+            y2.ToString(); // 5
+        }
+        foreach ((object? z2, object? w2) in e2)
+        {
+            z2.ToString();
+            z2.ToString(); // 6
+        }
+    }
+    static void F3<T>(IEnumerable<(T, T?)> e3) where T : struct
+    {
+        foreach (var (x3, y3) in e3)
+        {
+            x3.ToString();
+            _ = y3.Value; // 7
+        }
+        foreach ((object? z3, object? w3) in e3)
+        {
+            z3.ToString();
+            z3.ToString(); // 8
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/33017: Report warnings.
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Deconstruction_26()
+        {
+            var source =
+@"class Program
+{
+    static void F(bool c, object? a, object? b)
+    {
+        if (b == null) return;
+        var (x, y, z, w) = c ? (a, b, a, b) : (a, a, b, b);
+        x.ToString(); // 1
+        y.ToString(); // 2
+        z.ToString(); // 3
+        w.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 9),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         y.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(8, 9),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         z.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(9, 9));
+        }
+
+        [Fact]
+        [WorkItem(33019, "https://github.com/dotnet/roslyn/issues/33019")]
+        public void Deconstruction_27()
+        {
+            var source =
+@"class Program
+{
+    static void F(object? x, object y)
+    {
+        if (x == null) return;
+        y = null; // 1
+        var t = (new[] { x }, new[] { y });
+        var (ax, ay) = t;
+        ax[0].ToString();
+        ay[0].ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/33019: Inferred nullability of implicitly-typed
+            // deconstruction variables should be recorded in NullableWalker._variableTypes.
+            comp.VerifyDiagnostics(
+                // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 13));
+        }
+
+        [Fact]
         public void Deconstruction_ExtensionMethod_01()
         {
             var source =
@@ -78296,13 +78449,5 @@ class Program
                 //         (object? x, object? y, object? z) = new C();
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "3").WithLocation(9, 45));
         }
-
-        // PROTOTYPE: Test:
-        // Long tuples
-        // All implicit conversions - for tuples and Deconstruct
-        // All explicit conversions - for tuples and Deconstruct
-        // (x, y) = b ? (a, b) : (c, d); // See Lowering.RewriteDeconstruction for ConditionalOperator
-        // Test inferred nullability of locals declared from tuple deconstruction and Deconstruct method. Results should be stored in _variableTypes.
-        // ! suppression
     }
 }

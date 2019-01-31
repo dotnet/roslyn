@@ -4304,6 +4304,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             variables.FreeAll(v => v.NestedVariables);
+
+            // https://github.com/dotnet/roslyn/issues/33011: Result type should be inferred.
             SetResult(node);
             return null;
         }
