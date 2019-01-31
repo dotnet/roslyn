@@ -26,7 +26,7 @@ indent_size = 2
 [*.json]
 indent_size = 2
 
-[*.{sh}]
+[*.sh]
 end_of_line = lf
 indent_size = 2
 
