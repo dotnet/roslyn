@@ -11436,6 +11436,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
+        public override BoundNode VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node)
+        {
+            if (!_updatedNullabilities.TryGetValue(node, out TypeSymbolWithAnnotations type))
+            {
+                return node;
+            }
+
+            BoundDisposableValuePlaceholder updatedNode = node.Update(type.TypeSymbol);
+            updatedNode.TopLevelNullability = type.NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);
+            return updatedNode;
+        }
+
         public override BoundNode VisitDup(BoundDup node)
         {
             if (!_updatedNullabilities.TryGetValue(node, out TypeSymbolWithAnnotations type))
