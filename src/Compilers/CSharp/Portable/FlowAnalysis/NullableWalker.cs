@@ -1913,6 +1913,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private void LearnFromNonNullTest(BoundExpression expression, ref LocalState state)
+        {
+            var slotBuilder = ArrayBuilder<int>.GetInstance();
+            GetSlotsToMarkAsNotNullable(expression, slotBuilder);
+            MarkSlotsAsNotNullable(slotBuilder, ref state);
+            slotBuilder.Free();
+        }
+
         private static BoundExpression SkipReferenceConversions(BoundExpression possiblyConversion)
         {
             while (possiblyConversion.Kind == BoundKind.Conversion)
@@ -1934,7 +1942,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
         {
-
             BoundExpression leftOperand = node.LeftOperand;
             BoundExpression rightOperand = node.RightOperand;
             int leftSlot = MakeSlot(leftOperand);
@@ -1986,7 +1993,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            var rightState = this.State.Clone();
             var leftState = this.State.Clone();
+            LearnFromNonNullTest(leftOperand, ref leftState);
+            SetState(rightState);
+
             if (leftResult.ValueCanBeNull() == false)
             {
                 ReportNonSafetyDiagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, leftOperand.Syntax);
@@ -5445,10 +5456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReportSafetyDiagnostic(isValueType ? ErrorCode.WRN_NullableValueTypeMayBeNull : ErrorCode.WRN_NullReferenceReceiver, syntaxOpt ?? receiverOpt.Syntax);
                 }
 
-                var slotBuilder = ArrayBuilder<int>.GetInstance();
-                GetSlotsToMarkAsNotNullable(receiverOpt, slotBuilder);
-                MarkSlotsAsNotNullable(slotBuilder, ref State);
-                slotBuilder.Free();
+                LearnFromNonNullTest(receiverOpt, ref this.State);
             }
         }
 
@@ -5556,9 +5564,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitThrowExpression(BoundThrowExpression node)
         {
-            var result = base.VisitThrowExpression(node);
+            var result = VisitRvalue(node.Expression);
+            CheckPossibleNullReceiver(node.Expression);
+            SetUnreachable();
             SetUnknownResultNullability();
             return result;
+        }
+
+        public override BoundNode VisitThrowStatement(BoundThrowStatement node)
+        {
+            BoundExpression expr = node.ExpressionOpt;
+            VisitRvalue(expr);
+            CheckPossibleNullReceiver(expr);
+            SetUnreachable();
+            return null;
         }
 
         public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)

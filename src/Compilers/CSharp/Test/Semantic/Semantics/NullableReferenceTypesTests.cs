@@ -1984,6 +1984,67 @@ class C
             );
         }
 
+        [Fact, WorkItem(32879, "https://github.com/dotnet/roslyn/issues/32879")]
+        public void ThrowExpressionInNullCoalescingOperator()
+        {
+            var source = @"
+class C
+{
+    string Field = string.Empty;
+    void M(C? c)
+    {
+        _ = c ?? throw new System.ArgumentNullException(nameof(c));
+        c.ToString();
+    }
+    void M2(C? c)
+    {
+        _ = c?.Field ?? throw new System.ArgumentNullException(nameof(c));
+        c.ToString();
+        c.Field.ToString();
+    }
+    void M3(C? c)
+    {
+        _ = c ?? throw new System.ArgumentNullException(c.ToString()); // 1
+    }
+}
+";
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (18,57): warning CS8602: Possible dereference of a null reference.
+                //         _ = c ?? throw new System.ArgumentNullException(c.ToString()); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(18, 57)
+                );
+        }
+
+        [Fact, WorkItem(32877, "https://github.com/dotnet/roslyn/issues/32877")]
+        public void CheckReceiverOfThrow()
+        {
+            var source = @"
+class C
+{
+    void M(System.Exception? e, C? c)
+    {
+        _ = c ?? throw e;
+        throw null; // ok
+    }
+    void M(System.Exception? e)
+    {
+        throw e;
+    }
+    void M()
+    {
+        throw null!;
+    }
+}";
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,24): warning CS8602: Possible dereference of a null reference.
+                //         _ = c ?? throw e;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "e").WithLocation(6, 24),
+                // (11,15): warning CS8602: Possible dereference of a null reference.
+                //         throw e;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "e").WithLocation(11, 15)
+                );
+        }
+
         [Fact]
         public void Test0()
         {
