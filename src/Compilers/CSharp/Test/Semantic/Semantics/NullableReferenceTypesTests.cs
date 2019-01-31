@@ -78079,18 +78079,19 @@ class Program
             var source =
 @"class Program
 {
-    static void F((object, object, object) t)
+    static void F(object x, object y, object? z)
     {
-        (object? x, object? y) = t;
-        x.ToString();
-        y.ToString();
+        (object? a, object? b) = (x, y, z = 3);
+        a.ToString();
+        b.ToString();
+        z.ToString();
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,9): error CS8132: Cannot deconstruct a tuple of '3' elements into '2' variables.
-                //         (object? x, object? y) = t;
-                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(object? x, object? y) = t").WithArguments("3", "2").WithLocation(5, 9));
+                //         (object? a, object? b) = (x, y, z = 3);
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(object? a, object? b) = (x, y, z = 3)").WithArguments("3", "2").WithLocation(5, 9));
         }
 
         [Fact]
@@ -78099,9 +78100,34 @@ class Program
             var source =
 @"class Program
 {
-    static void F((object, object) t)
+    static void F(object x, object y)
     {
-        (object? x, object? y, object? z) = t;
+        (object? a, object? b, object? c) = (x, y = null);
+        a.ToString();
+        b.ToString();
+        c.ToString();
+        y.ToString(); // 1
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // PROTOTYPE: Missing warning 1.
+            comp.VerifyDiagnostics(
+                // (5,9): error CS8132: Cannot deconstruct a tuple of '2' elements into '3' variables.
+                //         (object? a, object? b, object? c) = (x, y = null);
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(object? a, object? b, object? c) = (x, y = null)").WithArguments("2", "3").WithLocation(5, 9));
+        }
+
+        [Fact]
+        public void Deconstruction_NoDeconstruct_01()
+        {
+            var source =
+@"class C
+{
+    C(object o) { }
+    static void F()
+    {
+        object? z = null;
+        var (x, y) = new C(z = 1);
         x.ToString();
         y.ToString();
         z.ToString();
@@ -78109,38 +78135,44 @@ class Program
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (5,9): error CS8132: Cannot deconstruct a tuple of '2' elements into '3' variables.
-                //         (object? x, object? y, object? z) = t;
-                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(object? x, object? y, object? z) = t").WithArguments("2", "3").WithLocation(5, 9));
+                // (7,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
+                //         var (x, y) = new C(z = 1);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(7, 14),
+                // (7,17): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
+                //         var (x, y) = new C(z = 1);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(7, 17),
+                // (7,22): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //         var (x, y) = new C(z = 1);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C(z = 1)").WithArguments("C", "Deconstruct").WithLocation(7, 22),
+                // (7,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                //         var (x, y) = new C(z = 1);
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C(z = 1)").WithArguments("C", "2").WithLocation(7, 22));
         }
 
         [Fact]
-        public void Deconstruction_NoDeconstruct()
+        public void Deconstruction_NoDeconstruct_02()
         {
             var source =
 @"class C
 {
+    C(object o) { }
     static void F()
     {
-        var (x, y) = new C();
+        object? z = null;
+        (object? x, object? y) = new C(z = 1);
         x.ToString();
         y.ToString();
+        z.ToString();
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (5,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
-                //         var (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(5, 14),
-                // (5,17): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
-                //         var (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(5, 17),
-                // (5,22): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
-                //         var (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("C", "Deconstruct").WithLocation(5, 22),
-                // (5,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
-                //         var (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(5, 22));
+                // (7,34): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //         (object? x, object? y) = new C(z = 1);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C(z = 1)").WithArguments("C", "Deconstruct").WithLocation(7, 34),
+                // (7,34): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                //         (object? x, object? y) = new C(z = 1);
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C(z = 1)").WithArguments("C", "2").WithLocation(7, 34));
         }
 
         [Fact]
