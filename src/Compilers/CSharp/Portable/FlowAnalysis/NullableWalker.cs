@@ -806,7 +806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
                 else if (EmptyStructTypeCache.IsTrackableStructType(targetType.TypeSymbol) &&
-                    targetType.TypeSymbol.Equals(valueType.TypeSymbol, TypeCompareKind.AllIgnoreOptions))
+                    areEquivalentTypes(targetType, valueType))
                 {
                     InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, isDefaultValue: IsDefaultValue(value), isByRefTarget: IsByRefTarget(targetSlot), slotWatermark: GetSlotWatermark());
                 }
@@ -4288,12 +4288,171 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
-            // https://github.com/dotnet/roslyn/issues/29618: Assign each of the deconstructed values,
-            // and handle deconstruction conversion for node.Right.
-            VisitLvalue(node.Left);
-            VisitRvalue(node.Right.Operand);
+            var left = node.Left;
+            var variables = GetDeconstructionAssignmentVariables(left);
+
+            // PROTOTYPE: Should visit expressions on right side, even if errors.
+            if (!node.HasErrors)
+            {
+                var right = node.Right;
+                VisitDeconstructionArguments(variables, right.Conversion, right.Operand);
+            }
+
+            variables.FreeAll(v => v.NestedVariables);
             SetResult(node);
             return null;
+        }
+
+        private void VisitDeconstructionArguments(ArrayBuilder<DeconstructionVariable> variables, Conversion conversion, BoundExpression right)
+        {
+            Debug.Assert(conversion.Kind == ConversionKind.Deconstruction);
+
+            int n = variables.Count;
+
+            if (!conversion.DeconstructionInfo.IsDefault)
+            {
+                VisitRvalue(right);
+
+                var invocation = conversion.DeconstructionInfo.Invocation as BoundCall;
+                var deconstructMethod = invocation?.Method;
+
+                if ((object)deconstructMethod != null)
+                {
+                    if (!invocation.InvokedAsExtensionMethod)
+                    {
+                        CheckPossibleNullReceiver(right);
+                    }
+                    else
+                    {
+                        // https://github.com/dotnet/roslyn/issues/33006: Check nullability of `this` argument.
+                    }
+
+                    // https://github.com/dotnet/roslyn/issues/33006: Update `Deconstruct` method
+                    // based on inferred receiver type, and check constraints.
+
+                    var parameters = deconstructMethod.Parameters;
+                    int offset = invocation.InvokedAsExtensionMethod ? 1 : 0;
+                    Debug.Assert(parameters.Length - offset == n);
+
+                    for (int i = 0; i < n; i++)
+                    {
+                        var variable = variables[i];
+                        var underlyingConversion = conversion.UnderlyingConversions[i];
+                        var nestedVariables = variable.NestedVariables;
+                        if (nestedVariables != null)
+                        {
+                            // https://github.com/dotnet/roslyn/issues/33005: Not handling deconstructing argument of Deconstruct.
+                            //VisitDeconstructionArguments(nestedVariables, underlyingConversion, arg);
+                        }
+                        else
+                        {
+                            var parameter = parameters[i + offset];
+                            VisitArgumentConversion(variable.Expression, underlyingConversion, parameter.RefKind, parameter, parameter.Type, variable.Type, extensionMethodThisArgument: false);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                var rightParts = GetDeconstructionRightParts(right);
+                Debug.Assert(rightParts.Length == n);
+
+                for (int i = 0; i < n; i++)
+                {
+                    var variable = variables[i];
+                    var rightPart = rightParts[i];
+                    var nestedVariables = variable.NestedVariables;
+                    if (nestedVariables != null)
+                    {
+                        VisitDeconstructionArguments(nestedVariables, conversion.UnderlyingConversions[i], rightPart);
+                    }
+                    else
+                    {
+                        int targetSlot = MakeSlot(variable.Expression);
+                        var targetType = variable.Type;
+                        var valueType = VisitOptionalImplicitConversion(rightPart, targetType, useLegacyWarnings: true, AssignmentKind.Assignment);
+                        int valueSlot = MakeSlot(rightPart);
+                        TrackNullableStateForAssignment(rightPart, targetType, targetSlot, valueType, valueSlot);
+                    }
+                }
+            }
+        }
+
+        private struct DeconstructionVariable
+        {
+            internal readonly BoundExpression Expression;
+            internal readonly TypeSymbolWithAnnotations Type;
+            internal readonly ArrayBuilder<DeconstructionVariable> NestedVariables;
+
+            internal DeconstructionVariable(BoundExpression expression, TypeSymbolWithAnnotations type)
+            {
+                Expression = expression;
+                Type = type;
+                NestedVariables = null;
+            }
+
+            internal DeconstructionVariable(ArrayBuilder<DeconstructionVariable> nestedVariables)
+            {
+                Expression = null;
+                Type = default;
+                NestedVariables = nestedVariables;
+            }
+        }
+
+        private ArrayBuilder<DeconstructionVariable> GetDeconstructionAssignmentVariables(BoundTupleExpression expr)
+        {
+            var arguments = expr.Arguments;
+            var builder = ArrayBuilder<DeconstructionVariable>.GetInstance(arguments.Length);
+            foreach (var argument in arguments)
+            {
+                builder.Add(GetDeconstructionAssignmentVariable(argument));
+            }
+            return builder;
+        }
+
+        private DeconstructionVariable GetDeconstructionAssignmentVariable(BoundExpression expr)
+        {
+            switch (expr.Kind)
+            {
+                case BoundKind.TupleLiteral:
+                case BoundKind.ConvertedTupleLiteral:
+                    return new DeconstructionVariable(GetDeconstructionAssignmentVariables((BoundTupleExpression)expr));
+                default:
+                    VisitLvalue(expr);
+                    return new DeconstructionVariable(expr, _resultType);
+            }
+        }
+
+        // cf. LocalRewriter.GetRightParts.
+        private ImmutableArray<BoundExpression> GetDeconstructionRightParts(BoundExpression expr)
+        {
+            switch (expr.Kind)
+            {
+                case BoundKind.TupleLiteral:
+                case BoundKind.ConvertedTupleLiteral:
+                    return ((BoundTupleExpression)expr).Arguments;
+                case BoundKind.Conversion:
+                    {
+                        var conv = (BoundConversion)expr;
+                        switch (conv.ConversionKind)
+                        {
+                            case ConversionKind.Identity:
+                            case ConversionKind.ImplicitTupleLiteral:
+                                return GetDeconstructionRightParts(conv.Operand);
+                        }
+                    }
+                    break;
+            }
+
+            if (expr.Type is TupleTypeSymbol tupleType)
+            {
+                // PROTOTYPE: Dropping conversion.UnderingConversions[i].
+                VisitRvalue(expr);
+                var fields = tupleType.TupleElements;
+                return fields.SelectAsArray((f, i, e) => (BoundExpression)new BoundFieldAccess(e.Syntax, e, f, constantValueOpt: null), expr);
+            }
+
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override BoundNode VisitIncrementOperator(BoundIncrementOperator node)

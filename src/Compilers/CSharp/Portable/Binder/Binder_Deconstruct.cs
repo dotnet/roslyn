@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Holds the variables on the LHS of a deconstruction as a tree of bound expressions.
         /// </summary>
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-        internal class DeconstructionVariable
+        internal sealed class DeconstructionVariable
         {
             internal readonly BoundExpression Single;
             internal readonly ArrayBuilder<DeconstructionVariable> NestedVariables;
@@ -432,16 +432,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal static void FreeDeconstructionVariables(ArrayBuilder<DeconstructionVariable> variables)
             {
-                foreach (var v in variables)
-                {
-                    if (v.HasNestedVariables)
-                    {
-                        FreeDeconstructionVariables(v.NestedVariables);
-                    }
-                }
-
-                variables.Free();
+                variables.FreeAll(v => v.NestedVariables);
             }
+
             private string GetDebuggerDisplay()
             {
                 if (Single != null)
