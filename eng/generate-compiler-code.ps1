@@ -127,7 +127,7 @@ try {
     $csharpTestDir = Join-Path $RepoRoot "src\Compilers\CSharp\Test\Syntax"
     $basicDir = Join-Path $RepoRoot "src\Compilers\VisualBasic\Portable"
     $basicTestDir = Join-Path $RepoRoot "src\Compilers\VisualBasic\Test\Syntax"
-    $generationTempDir = Join-Path $TempDir "Generated"
+    $generationTempDir = Join-Path $RepoRoot "artifacts\log\$configuration\Generated"
 
     Run-Language "CSharp" "cs" $csharpDir $csharpTestDir $csharpSyntaxGenerator $csharpErrorFactsGenerator
     Run-Language "VB" "vb" $basicDir $basicTestDir $basicSyntaxGenerator $basicErrorFactsGenerator

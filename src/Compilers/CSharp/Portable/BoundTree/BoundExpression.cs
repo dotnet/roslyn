@@ -48,6 +48,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
         }
+
+        public new Nullability TopLevelNullability
+        {
+            get => base.TopLevelNullability;
+            set => base.TopLevelNullability = value;
+        }
     }
 
     internal partial class BoundPassByCopy

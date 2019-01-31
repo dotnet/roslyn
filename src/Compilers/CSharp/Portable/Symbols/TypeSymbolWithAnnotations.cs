@@ -288,6 +288,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             hadNullabilityMismatch = true;
             return NullableAnnotation.NotAnnotated;
         }
+
+        public static Nullability ConvertToPublicNullability(this NullableAnnotation annotation, TypeSymbol type)
+        {
+            switch (annotation)
+            {
+                case NullableAnnotation.Annotated:
+                case NullableAnnotation.Nullable:
+                    return Nullability.MayBeNull;
+
+                case NullableAnnotation.NotNullable:
+                    return Nullability.NotNull;
+
+                case NullableAnnotation.NotAnnotated:
+                    return type.IsPossiblyNullableReferenceTypeTypeParameter() ?
+                        Nullability.MayBeNull :
+                        Nullability.NotNull;
+
+                case NullableAnnotation.Unknown:
+                    return Nullability.Unknown;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(annotation);
+            }
+        }
     }
 
     /// <summary>
