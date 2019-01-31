@@ -30,10 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var usingStatement = (UsingStatementSyntax)context.Node;
-            if (usingStatement.Declaration == null)
-            {
-                return;
-            }
 
             var syntaxTree = context.Node.SyntaxTree;
             //var options = (CSharpParseOptions)syntaxTree.Options;
@@ -55,12 +51,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 return;
             }
 
-            var parent = usingStatement.Parent;
-            var okParent = parent is BlockSyntax ||
-                           parent is SwitchSectionSyntax;
-            if (!okParent)
+            if (CanConvertUsingStatement(usingStatement))
             {
-                return;
+                context.ReportDiagnostic(DiagnosticHelper.Create(
+                    Descriptor,
+                    usingStatement.UsingKeyword.GetLocation(),
+                    option.Notification.Severity,
+                    additionalLocations: ImmutableArray.Create(usingStatement.GetLocation()),
+                    properties: null));
+            }
+        }
+
+        public static bool CanConvertUsingStatement(UsingStatementSyntax usingStatement)
+        {
+            if (usingStatement.Declaration == null)
+            {
+                return false;
+            }
+
+            var parent = usingStatement.Parent;
+            if (!(parent is BlockSyntax || parent is UsingStatementSyntax))
+            {
+                return false;
             }
 
             // Has to be one of the following forms:
@@ -72,22 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             //    the resource, instead of afterwards.  Effectly, the statement following
             //    cannot actually execute any code that might depend on the .Dispose method
             //    being called or not.
-            var statements = GetStatements(parent, usingStatement);
-            if (CanConvertUsingStatement(statements, usingStatement))
-            {
-                context.ReportDiagnostic(DiagnosticHelper.Create(
-                    Descriptor,
-                    usingStatement.UsingKeyword.GetLocation(),
-                    option.Notification.Severity,
-                    additionalLocations: ImmutableArray.Create(usingStatement.GetLocation()),
-                    properties: null));
-            }
-        }
+            var statements = GetStatements(parent);
 
-        private bool CanConvertUsingStatement(
-            SyntaxList<StatementSyntax> statements,
-            UsingStatementSyntax usingStatement)
-        {
             var index = statements.IndexOf(usingStatement);
             if (index == statements.Count - 1)
             {
@@ -123,12 +121,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             return false;
         }
 
-        private SyntaxList<StatementSyntax> GetStatements(SyntaxNode parent, UsingStatementSyntax usingStatement)
+        private static SyntaxList<StatementSyntax> GetStatements(SyntaxNode parent)
         {
             switch (parent)
             {
                 case BlockSyntax block: return block.Statements;
-                case SwitchSectionSyntax switchSection: return switchSection.Statements;
+                case UsingStatementSyntax usingStatement: return new SyntaxList<StatementSyntax>(usingStatement.Statement);
                 default: throw ExceptionUtilities.UnexpectedValue(parent);
             }
         }

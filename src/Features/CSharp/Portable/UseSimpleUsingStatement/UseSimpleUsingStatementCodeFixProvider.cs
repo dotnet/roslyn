@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingDeclaration
+namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UseSimpleUsingStatementCodeFixProvider)), Shared]
     internal class UseSimpleUsingStatementCodeFixProvider : SyntaxEditorBasedCodeFixProvider
@@ -38,15 +38,52 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingDeclaration
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var usingStatements = diagnostics.Select(d => (UsingStatementSyntax)d.AdditionalLocations[0].FindNode(cancellationToken)).ToSet();
+            var directUsingStatements = diagnostics.SelectAsArray(d => (UsingStatementSyntax)d.AdditionalLocations[0].FindNode(cancellationToken));
 
-            var rewriter = new Rewriter(usingStatements);
+            // Grab all the convertible usings in a block of nested usings.  i.e.
+            // 
+            //      using (...)
+            //      using (...)
+            //      using (...)
+            //      {
+            //      }
+            //
+            // If invoked on any of these , we'll convert in all in teh group that we can.
+
+            // Importantly, this is a set, so if we're doing a fix-all, we may add the items
+            // multiple times, but that's ok as it will still only be in the set once.
+            var allUsingStatements = GetUsingStatementsToUpdate(directUsingStatements);
+
+            var rewriter = new Rewriter(allUsingStatements);
             var root = editor.OriginalRoot;
             var updatedRoot = rewriter.Visit(root);
 
             editor.ReplaceNode(root, updatedRoot);
 
             return Task.CompletedTask;
+        }
+
+        private static HashSet<UsingStatementSyntax> GetUsingStatementsToUpdate(ImmutableArray<UsingStatementSyntax> directUsingStatements)
+        {
+            var allUsingStatements = new HashSet<UsingStatementSyntax>();
+
+            foreach (var usingStatement in directUsingStatements)
+            {
+                // First, walk up to the topmost using statement in this chain that is convertible
+                var topmostUsingStatement = (UsingStatementSyntax)usingStatement.AncestorsAndSelf().TakeWhile(
+                    n => n is UsingStatementSyntax ancestor &&
+                         UseSimpleUsingStatementDiagnosticAnalyzer.CanConvertUsingStatement(ancestor)).Last();
+
+                // Then walk inwards adding all using statements that are convertible.
+                for (var current = topmostUsingStatement;
+                     current != null && UseSimpleUsingStatementDiagnosticAnalyzer.CanConvertUsingStatement(current);
+                     current = current.Statement as UsingStatementSyntax)
+                {
+                    allUsingStatements.Add(current);
+                }
+            }
+
+            return allUsingStatements;
         }
 
         private class Rewriter : CSharpSyntaxRewriter
@@ -89,29 +126,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingDeclaration
                     modifiers: default,
                     usingStatement.Declaration,
                     SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-            }
-
-            public override SyntaxNode VisitElseClause(ElseClauseSyntax node)
-            {
-                // First, descend into the else-clause so we fixup any using statements contained
-                // inside of it.
-                var rewrittenElse = (ElseClauseSyntax)base.VisitElseClause(node);
-
-                // Now, if the else-clause previous pointed at a using statement we wanted to
-                // rewrite, and it still points at a using statement, then expand that using
-                // statemnet into the else-clause.
-                var rewrittenStatement = rewrittenElse.Statement;
-                if (ShouldExpand(node.Statement, rewrittenStatement))
-                {
-                    // Can't expand a using-statement directly inside an else-clause.
-                    // have to add a block around it to make sure scoping is preserved
-                    // properly.
-                    var expanded = Expand((UsingStatementSyntax)rewrittenStatement);
-                    return rewrittenElse.WithStatement(SyntaxFactory.Block(expanded))
-                                        .WithAdditionalAnnotations(Formatter.Annotation);
-                }
-
-                return rewrittenElse;
             }
 
             private bool ExpandAppropriateStatements(
@@ -166,29 +180,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingDeclaration
                                      .WithAdditionalAnnotations(Formatter.Annotation);
             }
 
-            public override SyntaxNode VisitSwitchSection(SwitchSectionSyntax node)
+            public override SyntaxNode VisitUsingStatement(UsingStatementSyntax node)
             {
-                var finalStatements = ArrayBuilder<StatementSyntax>.GetInstance();
-                var result = VisitSwitchSectionWorker(node, finalStatements);
-                finalStatements.Free();
+                // First, descend into the using-statement so we fixup any using statements contained
+                // inside of it.
+                var rewrittenUsingStatement = (UsingStatementSyntax)base.VisitUsingStatement(node);
 
-                return result;
-            }
-
-            private SyntaxNode VisitSwitchSectionWorker(SwitchSectionSyntax node, ArrayBuilder<StatementSyntax> finalStatements)
-            {
-                var rewrittenSwitchSection = (SwitchSectionSyntax)base.VisitSwitchSection(node);
-
-                var changed = ExpandAppropriateStatements(node.Statements, rewrittenSwitchSection.Statements, finalStatements);
-
-                if (!changed)
+                // Now, if the else-clause previous pointed at a using statement we wanted to
+                // rewrite, and it still points at a using statement, then expand that using
+                // statemnet into the else-clause.
+                var rewrittenStatement = rewrittenUsingStatement.Statement;
+                if (ShouldExpand(node.Statement, rewrittenStatement))
                 {
-                    // Didn't update any children.  Just return as is.
-                    return rewrittenSwitchSection;
+                    // Can't expand a using-statement directly inside an else-clause.
+                    // have to add a block around it to make sure scoping is preserved
+                    // properly.
+                    var expanded = Expand((UsingStatementSyntax)rewrittenStatement);
+                    return rewrittenUsingStatement.WithStatement(SyntaxFactory.Block(expanded))
+                                                  .WithAdditionalAnnotations(Formatter.Annotation);
                 }
 
-                return rewrittenSwitchSection.WithStatements(new SyntaxList<StatementSyntax>(finalStatements))
-                                             .WithAdditionalAnnotations(Formatter.Annotation);
+                return rewrittenUsingStatement;
             }
         }
 

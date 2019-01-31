@@ -2475,7 +2475,7 @@ Tato verze se používá zde: {2}.</target>
         <target state="new">updating usages in dependent projects</target>
         <note />
       </trans-unit>
-      <trans-unit id="using_statment_can_be_simplified">
+      <trans-unit id="using_statement_can_be_simplified">
         <source>'using' statement can be simplified</source>
         <target state="new">'using' statement can be simplified</target>
         <note />
