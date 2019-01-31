@@ -434,7 +434,8 @@ namespace CSharpSyntaxGenerator
         private void WriteSetAnnotations(Node node)
         {
             WriteLine();
-            Write("    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new {0}(this.Kind, ", node.Name);
+            WriteLine("    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)");
+            Write("        => new {0}(this.Kind, ", node.Name);
             for (int f = 0; f < node.Fields.Count; f++)
             {
                 var field = node.Fields[f];
@@ -448,7 +449,8 @@ namespace CSharpSyntaxGenerator
         private void WriteSetDiagnostics(Node node)
         {
             WriteLine();
-            Write("    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new {0}(this.Kind, ", node.Name);
+            WriteLine("    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)");
+            Write("        => new {0}(this.Kind, ", node.Name);
             for (int f = 0; f < node.Fields.Count; f++)
             {
                 var field = node.Fields[f];
@@ -699,7 +701,6 @@ namespace CSharpSyntaxGenerator
             WriteLine("        };");
             WriteLine("    }");
         }
-
 
         private void WriteGreenFactory(Node nd, bool withSyntaxFactoryContext = false)
         {
@@ -1195,7 +1196,6 @@ namespace CSharpSyntaxGenerator
                 WriteLine("            default: return null;");
                 WriteLine("        }");
                 WriteLine("    }");
-
 
                 this.WriteRedAcceptMethods(nd);
                 this.WriteRedUpdateMethod(nd);

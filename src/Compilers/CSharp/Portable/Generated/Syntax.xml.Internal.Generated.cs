@@ -116,9 +116,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new IdentifierNameSyntax(this.Kind, this.identifier, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new IdentifierNameSyntax(this.Kind, this.identifier, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new IdentifierNameSyntax(this.Kind, this.identifier, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new IdentifierNameSyntax(this.Kind, this.identifier, GetDiagnostics(), annotations);
 
     internal IdentifierNameSyntax(ObjectReader reader)
         : base(reader)
@@ -231,9 +233,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new QualifiedNameSyntax(this.Kind, this.left, this.dotToken, this.right, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new QualifiedNameSyntax(this.Kind, this.left, this.dotToken, this.right, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new QualifiedNameSyntax(this.Kind, this.left, this.dotToken, this.right, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new QualifiedNameSyntax(this.Kind, this.left, this.dotToken, this.right, GetDiagnostics(), annotations);
 
     internal QualifiedNameSyntax(ObjectReader reader)
         : base(reader)
@@ -350,9 +354,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new GenericNameSyntax(this.Kind, this.identifier, this.typeArgumentList, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new GenericNameSyntax(this.Kind, this.identifier, this.typeArgumentList, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new GenericNameSyntax(this.Kind, this.identifier, this.typeArgumentList, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new GenericNameSyntax(this.Kind, this.identifier, this.typeArgumentList, GetDiagnostics(), annotations);
 
     internal GenericNameSyntax(ObjectReader reader)
         : base(reader)
@@ -481,9 +487,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new TypeArgumentListSyntax(this.Kind, this.lessThanToken, this.arguments, this.greaterThanToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new TypeArgumentListSyntax(this.Kind, this.lessThanToken, this.arguments, this.greaterThanToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new TypeArgumentListSyntax(this.Kind, this.lessThanToken, this.arguments, this.greaterThanToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new TypeArgumentListSyntax(this.Kind, this.lessThanToken, this.arguments, this.greaterThanToken, GetDiagnostics(), annotations);
 
     internal TypeArgumentListSyntax(ObjectReader reader)
         : base(reader)
@@ -610,9 +618,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new AliasQualifiedNameSyntax(this.Kind, this.alias, this.colonColonToken, this.name, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new AliasQualifiedNameSyntax(this.Kind, this.alias, this.colonColonToken, this.name, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new AliasQualifiedNameSyntax(this.Kind, this.alias, this.colonColonToken, this.name, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new AliasQualifiedNameSyntax(this.Kind, this.alias, this.colonColonToken, this.name, GetDiagnostics(), annotations);
 
     internal AliasQualifiedNameSyntax(ObjectReader reader)
         : base(reader)
@@ -737,9 +747,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new PredefinedTypeSyntax(this.Kind, this.keyword, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new PredefinedTypeSyntax(this.Kind, this.keyword, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new PredefinedTypeSyntax(this.Kind, this.keyword, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new PredefinedTypeSyntax(this.Kind, this.keyword, GetDiagnostics(), annotations);
 
     internal PredefinedTypeSyntax(ObjectReader reader)
         : base(reader)
@@ -851,9 +863,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ArrayTypeSyntax(this.Kind, this.elementType, this.rankSpecifiers, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ArrayTypeSyntax(this.Kind, this.elementType, this.rankSpecifiers, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ArrayTypeSyntax(this.Kind, this.elementType, this.rankSpecifiers, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ArrayTypeSyntax(this.Kind, this.elementType, this.rankSpecifiers, GetDiagnostics(), annotations);
 
     internal ArrayTypeSyntax(ObjectReader reader)
         : base(reader)
@@ -978,9 +992,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ArrayRankSpecifierSyntax(this.Kind, this.openBracketToken, this.sizes, this.closeBracketToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ArrayRankSpecifierSyntax(this.Kind, this.openBracketToken, this.sizes, this.closeBracketToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ArrayRankSpecifierSyntax(this.Kind, this.openBracketToken, this.sizes, this.closeBracketToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ArrayRankSpecifierSyntax(this.Kind, this.openBracketToken, this.sizes, this.closeBracketToken, GetDiagnostics(), annotations);
 
     internal ArrayRankSpecifierSyntax(ObjectReader reader)
         : base(reader)
@@ -1097,9 +1113,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new PointerTypeSyntax(this.Kind, this.elementType, this.asteriskToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new PointerTypeSyntax(this.Kind, this.elementType, this.asteriskToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new PointerTypeSyntax(this.Kind, this.elementType, this.asteriskToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new PointerTypeSyntax(this.Kind, this.elementType, this.asteriskToken, GetDiagnostics(), annotations);
 
     internal PointerTypeSyntax(ObjectReader reader)
         : base(reader)
@@ -1209,9 +1227,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new NullableTypeSyntax(this.Kind, this.elementType, this.questionToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new NullableTypeSyntax(this.Kind, this.elementType, this.questionToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new NullableTypeSyntax(this.Kind, this.elementType, this.questionToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new NullableTypeSyntax(this.Kind, this.elementType, this.questionToken, GetDiagnostics(), annotations);
 
     internal NullableTypeSyntax(ObjectReader reader)
         : base(reader)
@@ -1339,9 +1359,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new TupleTypeSyntax(this.Kind, this.openParenToken, this.elements, this.closeParenToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new TupleTypeSyntax(this.Kind, this.openParenToken, this.elements, this.closeParenToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new TupleTypeSyntax(this.Kind, this.openParenToken, this.elements, this.closeParenToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new TupleTypeSyntax(this.Kind, this.openParenToken, this.elements, this.closeParenToken, GetDiagnostics(), annotations);
 
     internal TupleTypeSyntax(ObjectReader reader)
         : base(reader)
@@ -1467,9 +1489,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new TupleElementSyntax(this.Kind, this.type, this.identifier, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new TupleElementSyntax(this.Kind, this.type, this.identifier, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new TupleElementSyntax(this.Kind, this.type, this.identifier, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new TupleElementSyntax(this.Kind, this.type, this.identifier, GetDiagnostics(), annotations);
 
     internal TupleElementSyntax(ObjectReader reader)
         : base(reader)
@@ -1569,9 +1593,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new OmittedTypeArgumentSyntax(this.Kind, this.omittedTypeArgumentToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new OmittedTypeArgumentSyntax(this.Kind, this.omittedTypeArgumentToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new OmittedTypeArgumentSyntax(this.Kind, this.omittedTypeArgumentToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new OmittedTypeArgumentSyntax(this.Kind, this.omittedTypeArgumentToken, GetDiagnostics(), annotations);
 
     internal OmittedTypeArgumentSyntax(ObjectReader reader)
         : base(reader)
@@ -1691,9 +1717,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new RefTypeSyntax(this.Kind, this.refKeyword, this.readOnlyKeyword, this.type, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new RefTypeSyntax(this.Kind, this.refKeyword, this.readOnlyKeyword, this.type, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new RefTypeSyntax(this.Kind, this.refKeyword, this.readOnlyKeyword, this.type, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new RefTypeSyntax(this.Kind, this.refKeyword, this.readOnlyKeyword, this.type, GetDiagnostics(), annotations);
 
     internal RefTypeSyntax(ObjectReader reader)
         : base(reader)
@@ -1838,9 +1866,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ParenthesizedExpressionSyntax(this.Kind, this.openParenToken, this.expression, this.closeParenToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ParenthesizedExpressionSyntax(this.Kind, this.openParenToken, this.expression, this.closeParenToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ParenthesizedExpressionSyntax(this.Kind, this.openParenToken, this.expression, this.closeParenToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ParenthesizedExpressionSyntax(this.Kind, this.openParenToken, this.expression, this.closeParenToken, GetDiagnostics(), annotations);
 
     internal ParenthesizedExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -1976,9 +2006,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new TupleExpressionSyntax(this.Kind, this.openParenToken, this.arguments, this.closeParenToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new TupleExpressionSyntax(this.Kind, this.openParenToken, this.arguments, this.closeParenToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new TupleExpressionSyntax(this.Kind, this.openParenToken, this.arguments, this.closeParenToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new TupleExpressionSyntax(this.Kind, this.openParenToken, this.arguments, this.closeParenToken, GetDiagnostics(), annotations);
 
     internal TupleExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -2095,9 +2127,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new PrefixUnaryExpressionSyntax(this.Kind, this.operatorToken, this.operand, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new PrefixUnaryExpressionSyntax(this.Kind, this.operatorToken, this.operand, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new PrefixUnaryExpressionSyntax(this.Kind, this.operatorToken, this.operand, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new PrefixUnaryExpressionSyntax(this.Kind, this.operatorToken, this.operand, GetDiagnostics(), annotations);
 
     internal PrefixUnaryExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -2207,9 +2241,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new AwaitExpressionSyntax(this.Kind, this.awaitKeyword, this.expression, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new AwaitExpressionSyntax(this.Kind, this.awaitKeyword, this.expression, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new AwaitExpressionSyntax(this.Kind, this.awaitKeyword, this.expression, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new AwaitExpressionSyntax(this.Kind, this.awaitKeyword, this.expression, GetDiagnostics(), annotations);
 
     internal AwaitExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -2319,9 +2355,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new PostfixUnaryExpressionSyntax(this.Kind, this.operand, this.operatorToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new PostfixUnaryExpressionSyntax(this.Kind, this.operand, this.operatorToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new PostfixUnaryExpressionSyntax(this.Kind, this.operand, this.operatorToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new PostfixUnaryExpressionSyntax(this.Kind, this.operand, this.operatorToken, GetDiagnostics(), annotations);
 
     internal PostfixUnaryExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -2441,9 +2479,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new MemberAccessExpressionSyntax(this.Kind, this.expression, this.operatorToken, this.name, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new MemberAccessExpressionSyntax(this.Kind, this.expression, this.operatorToken, this.name, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new MemberAccessExpressionSyntax(this.Kind, this.expression, this.operatorToken, this.name, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new MemberAccessExpressionSyntax(this.Kind, this.expression, this.operatorToken, this.name, GetDiagnostics(), annotations);
 
     internal MemberAccessExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -2570,9 +2610,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ConditionalAccessExpressionSyntax(this.Kind, this.expression, this.operatorToken, this.whenNotNull, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ConditionalAccessExpressionSyntax(this.Kind, this.expression, this.operatorToken, this.whenNotNull, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ConditionalAccessExpressionSyntax(this.Kind, this.expression, this.operatorToken, this.whenNotNull, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ConditionalAccessExpressionSyntax(this.Kind, this.expression, this.operatorToken, this.whenNotNull, GetDiagnostics(), annotations);
 
     internal ConditionalAccessExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -2689,9 +2731,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new MemberBindingExpressionSyntax(this.Kind, this.operatorToken, this.name, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new MemberBindingExpressionSyntax(this.Kind, this.operatorToken, this.name, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new MemberBindingExpressionSyntax(this.Kind, this.operatorToken, this.name, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new MemberBindingExpressionSyntax(this.Kind, this.operatorToken, this.name, GetDiagnostics(), annotations);
 
     internal MemberBindingExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -2791,9 +2835,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ElementBindingExpressionSyntax(this.Kind, this.argumentList, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ElementBindingExpressionSyntax(this.Kind, this.argumentList, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ElementBindingExpressionSyntax(this.Kind, this.argumentList, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ElementBindingExpressionSyntax(this.Kind, this.argumentList, GetDiagnostics(), annotations);
 
     internal ElementBindingExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -2924,9 +2970,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new RangeExpressionSyntax(this.Kind, this.leftOperand, this.operatorToken, this.rightOperand, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new RangeExpressionSyntax(this.Kind, this.leftOperand, this.operatorToken, this.rightOperand, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new RangeExpressionSyntax(this.Kind, this.leftOperand, this.operatorToken, this.rightOperand, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new RangeExpressionSyntax(this.Kind, this.leftOperand, this.operatorToken, this.rightOperand, GetDiagnostics(), annotations);
 
     internal RangeExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -3033,9 +3081,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ImplicitElementAccessSyntax(this.Kind, this.argumentList, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ImplicitElementAccessSyntax(this.Kind, this.argumentList, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ImplicitElementAccessSyntax(this.Kind, this.argumentList, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ImplicitElementAccessSyntax(this.Kind, this.argumentList, GetDiagnostics(), annotations);
 
     internal ImplicitElementAccessSyntax(ObjectReader reader)
         : base(reader)
@@ -3148,9 +3198,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new BinaryExpressionSyntax(this.Kind, this.left, this.operatorToken, this.right, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new BinaryExpressionSyntax(this.Kind, this.left, this.operatorToken, this.right, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new BinaryExpressionSyntax(this.Kind, this.left, this.operatorToken, this.right, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new BinaryExpressionSyntax(this.Kind, this.left, this.operatorToken, this.right, GetDiagnostics(), annotations);
 
     internal BinaryExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -3277,9 +3329,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new AssignmentExpressionSyntax(this.Kind, this.left, this.operatorToken, this.right, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new AssignmentExpressionSyntax(this.Kind, this.left, this.operatorToken, this.right, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new AssignmentExpressionSyntax(this.Kind, this.left, this.operatorToken, this.right, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new AssignmentExpressionSyntax(this.Kind, this.left, this.operatorToken, this.right, GetDiagnostics(), annotations);
 
     internal AssignmentExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -3426,9 +3480,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ConditionalExpressionSyntax(this.Kind, this.condition, this.questionToken, this.whenTrue, this.colonToken, this.whenFalse, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ConditionalExpressionSyntax(this.Kind, this.condition, this.questionToken, this.whenTrue, this.colonToken, this.whenFalse, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ConditionalExpressionSyntax(this.Kind, this.condition, this.questionToken, this.whenTrue, this.colonToken, this.whenFalse, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ConditionalExpressionSyntax(this.Kind, this.condition, this.questionToken, this.whenTrue, this.colonToken, this.whenFalse, GetDiagnostics(), annotations);
 
     internal ConditionalExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -3567,9 +3623,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ThisExpressionSyntax(this.Kind, this.token, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ThisExpressionSyntax(this.Kind, this.token, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ThisExpressionSyntax(this.Kind, this.token, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ThisExpressionSyntax(this.Kind, this.token, GetDiagnostics(), annotations);
 
     internal ThisExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -3662,9 +3720,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new BaseExpressionSyntax(this.Kind, this.token, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new BaseExpressionSyntax(this.Kind, this.token, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new BaseExpressionSyntax(this.Kind, this.token, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new BaseExpressionSyntax(this.Kind, this.token, GetDiagnostics(), annotations);
 
     internal BaseExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -3757,9 +3817,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new LiteralExpressionSyntax(this.Kind, this.token, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new LiteralExpressionSyntax(this.Kind, this.token, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new LiteralExpressionSyntax(this.Kind, this.token, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new LiteralExpressionSyntax(this.Kind, this.token, GetDiagnostics(), annotations);
 
     internal LiteralExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -3882,9 +3944,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new MakeRefExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.expression, this.closeParenToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new MakeRefExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.expression, this.closeParenToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new MakeRefExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.expression, this.closeParenToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new MakeRefExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.expression, this.closeParenToken, GetDiagnostics(), annotations);
 
     internal MakeRefExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -4028,9 +4092,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new RefTypeExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.expression, this.closeParenToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new RefTypeExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.expression, this.closeParenToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new RefTypeExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.expression, this.closeParenToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new RefTypeExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.expression, this.closeParenToken, GetDiagnostics(), annotations);
 
     internal RefTypeExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -4194,9 +4260,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new RefValueExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.expression, this.comma, this.type, this.closeParenToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new RefValueExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.expression, this.comma, this.type, this.closeParenToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new RefValueExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.expression, this.comma, this.type, this.closeParenToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new RefValueExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.expression, this.comma, this.type, this.closeParenToken, GetDiagnostics(), annotations);
 
     internal RefValueExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -4354,9 +4422,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new CheckedExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.expression, this.closeParenToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new CheckedExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.expression, this.closeParenToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new CheckedExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.expression, this.closeParenToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new CheckedExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.expression, this.closeParenToken, GetDiagnostics(), annotations);
 
     internal CheckedExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -4500,9 +4570,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new DefaultExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.type, this.closeParenToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new DefaultExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.type, this.closeParenToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new DefaultExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.type, this.closeParenToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new DefaultExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.type, this.closeParenToken, GetDiagnostics(), annotations);
 
     internal DefaultExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -4646,9 +4718,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new TypeOfExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.type, this.closeParenToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new TypeOfExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.type, this.closeParenToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new TypeOfExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.type, this.closeParenToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new TypeOfExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.type, this.closeParenToken, GetDiagnostics(), annotations);
 
     internal TypeOfExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -4792,9 +4866,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new SizeOfExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.type, this.closeParenToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new SizeOfExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.type, this.closeParenToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new SizeOfExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.type, this.closeParenToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new SizeOfExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.type, this.closeParenToken, GetDiagnostics(), annotations);
 
     internal SizeOfExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -4918,9 +4994,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new InvocationExpressionSyntax(this.Kind, this.expression, this.argumentList, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new InvocationExpressionSyntax(this.Kind, this.expression, this.argumentList, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new InvocationExpressionSyntax(this.Kind, this.expression, this.argumentList, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new InvocationExpressionSyntax(this.Kind, this.expression, this.argumentList, GetDiagnostics(), annotations);
 
     internal InvocationExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -5030,9 +5108,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ElementAccessExpressionSyntax(this.Kind, this.expression, this.argumentList, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ElementAccessExpressionSyntax(this.Kind, this.expression, this.argumentList, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ElementAccessExpressionSyntax(this.Kind, this.expression, this.argumentList, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ElementAccessExpressionSyntax(this.Kind, this.expression, this.argumentList, GetDiagnostics(), annotations);
 
     internal ElementAccessExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -5182,9 +5262,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ArgumentListSyntax(this.Kind, this.openParenToken, this.arguments, this.closeParenToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ArgumentListSyntax(this.Kind, this.openParenToken, this.arguments, this.closeParenToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ArgumentListSyntax(this.Kind, this.openParenToken, this.arguments, this.closeParenToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ArgumentListSyntax(this.Kind, this.openParenToken, this.arguments, this.closeParenToken, GetDiagnostics(), annotations);
 
     internal ArgumentListSyntax(ObjectReader reader)
         : base(reader)
@@ -5320,9 +5402,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new BracketedArgumentListSyntax(this.Kind, this.openBracketToken, this.arguments, this.closeBracketToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new BracketedArgumentListSyntax(this.Kind, this.openBracketToken, this.arguments, this.closeBracketToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new BracketedArgumentListSyntax(this.Kind, this.openBracketToken, this.arguments, this.closeBracketToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new BracketedArgumentListSyntax(this.Kind, this.openBracketToken, this.arguments, this.closeBracketToken, GetDiagnostics(), annotations);
 
     internal BracketedArgumentListSyntax(ObjectReader reader)
         : base(reader)
@@ -5467,9 +5551,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ArgumentSyntax(this.Kind, this.nameColon, this.refKindKeyword, this.expression, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ArgumentSyntax(this.Kind, this.nameColon, this.refKindKeyword, this.expression, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ArgumentSyntax(this.Kind, this.nameColon, this.refKindKeyword, this.expression, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ArgumentSyntax(this.Kind, this.nameColon, this.refKindKeyword, this.expression, GetDiagnostics(), annotations);
 
     internal ArgumentSyntax(ObjectReader reader)
         : base(reader)
@@ -5586,9 +5672,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new NameColonSyntax(this.Kind, this.name, this.colonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new NameColonSyntax(this.Kind, this.name, this.colonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new NameColonSyntax(this.Kind, this.name, this.colonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new NameColonSyntax(this.Kind, this.name, this.colonToken, GetDiagnostics(), annotations);
 
     internal NameColonSyntax(ObjectReader reader)
         : base(reader)
@@ -5697,9 +5785,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new DeclarationExpressionSyntax(this.Kind, this.type, this.designation, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new DeclarationExpressionSyntax(this.Kind, this.type, this.designation, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new DeclarationExpressionSyntax(this.Kind, this.type, this.designation, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new DeclarationExpressionSyntax(this.Kind, this.type, this.designation, GetDiagnostics(), annotations);
 
     internal DeclarationExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -5829,9 +5919,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new CastExpressionSyntax(this.Kind, this.openParenToken, this.type, this.closeParenToken, this.expression, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new CastExpressionSyntax(this.Kind, this.openParenToken, this.type, this.closeParenToken, this.expression, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new CastExpressionSyntax(this.Kind, this.openParenToken, this.type, this.closeParenToken, this.expression, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new CastExpressionSyntax(this.Kind, this.openParenToken, this.type, this.closeParenToken, this.expression, GetDiagnostics(), annotations);
 
     internal CastExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -6017,9 +6109,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new AnonymousMethodExpressionSyntax(this.Kind, this.asyncKeyword, this.delegateKeyword, this.parameterList, this.body, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new AnonymousMethodExpressionSyntax(this.Kind, this.asyncKeyword, this.delegateKeyword, this.parameterList, this.body, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new AnonymousMethodExpressionSyntax(this.Kind, this.asyncKeyword, this.delegateKeyword, this.parameterList, this.body, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new AnonymousMethodExpressionSyntax(this.Kind, this.asyncKeyword, this.delegateKeyword, this.parameterList, this.body, GetDiagnostics(), annotations);
 
     internal AnonymousMethodExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -6193,9 +6287,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new SimpleLambdaExpressionSyntax(this.Kind, this.asyncKeyword, this.parameter, this.arrowToken, this.body, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new SimpleLambdaExpressionSyntax(this.Kind, this.asyncKeyword, this.parameter, this.arrowToken, this.body, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new SimpleLambdaExpressionSyntax(this.Kind, this.asyncKeyword, this.parameter, this.arrowToken, this.body, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new SimpleLambdaExpressionSyntax(this.Kind, this.asyncKeyword, this.parameter, this.arrowToken, this.body, GetDiagnostics(), annotations);
 
     internal SimpleLambdaExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -6316,9 +6412,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new RefExpressionSyntax(this.Kind, this.refKeyword, this.expression, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new RefExpressionSyntax(this.Kind, this.refKeyword, this.expression, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new RefExpressionSyntax(this.Kind, this.refKeyword, this.expression, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new RefExpressionSyntax(this.Kind, this.refKeyword, this.expression, GetDiagnostics(), annotations);
 
     internal RefExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -6457,9 +6555,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ParenthesizedLambdaExpressionSyntax(this.Kind, this.asyncKeyword, this.parameterList, this.arrowToken, this.body, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ParenthesizedLambdaExpressionSyntax(this.Kind, this.asyncKeyword, this.parameterList, this.arrowToken, this.body, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ParenthesizedLambdaExpressionSyntax(this.Kind, this.asyncKeyword, this.parameterList, this.arrowToken, this.body, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ParenthesizedLambdaExpressionSyntax(this.Kind, this.asyncKeyword, this.parameterList, this.arrowToken, this.body, GetDiagnostics(), annotations);
 
     internal ParenthesizedLambdaExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -6602,9 +6702,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new InitializerExpressionSyntax(this.Kind, this.openBraceToken, this.expressions, this.closeBraceToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new InitializerExpressionSyntax(this.Kind, this.openBraceToken, this.expressions, this.closeBraceToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new InitializerExpressionSyntax(this.Kind, this.openBraceToken, this.expressions, this.closeBraceToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new InitializerExpressionSyntax(this.Kind, this.openBraceToken, this.expressions, this.closeBraceToken, GetDiagnostics(), annotations);
 
     internal InitializerExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -6759,9 +6861,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ObjectCreationExpressionSyntax(this.Kind, this.newKeyword, this.type, this.argumentList, this.initializer, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ObjectCreationExpressionSyntax(this.Kind, this.newKeyword, this.type, this.argumentList, this.initializer, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ObjectCreationExpressionSyntax(this.Kind, this.newKeyword, this.type, this.argumentList, this.initializer, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ObjectCreationExpressionSyntax(this.Kind, this.newKeyword, this.type, this.argumentList, this.initializer, GetDiagnostics(), annotations);
 
     internal ObjectCreationExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -6893,9 +6997,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new AnonymousObjectMemberDeclaratorSyntax(this.Kind, this.nameEquals, this.expression, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new AnonymousObjectMemberDeclaratorSyntax(this.Kind, this.nameEquals, this.expression, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new AnonymousObjectMemberDeclaratorSyntax(this.Kind, this.nameEquals, this.expression, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new AnonymousObjectMemberDeclaratorSyntax(this.Kind, this.nameEquals, this.expression, GetDiagnostics(), annotations);
 
     internal AnonymousObjectMemberDeclaratorSyntax(ObjectReader reader)
         : base(reader)
@@ -7034,9 +7140,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new AnonymousObjectCreationExpressionSyntax(this.Kind, this.newKeyword, this.openBraceToken, this.initializers, this.closeBraceToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new AnonymousObjectCreationExpressionSyntax(this.Kind, this.newKeyword, this.openBraceToken, this.initializers, this.closeBraceToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new AnonymousObjectCreationExpressionSyntax(this.Kind, this.newKeyword, this.openBraceToken, this.initializers, this.closeBraceToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new AnonymousObjectCreationExpressionSyntax(this.Kind, this.newKeyword, this.openBraceToken, this.initializers, this.closeBraceToken, GetDiagnostics(), annotations);
 
     internal AnonymousObjectCreationExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -7179,9 +7287,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ArrayCreationExpressionSyntax(this.Kind, this.newKeyword, this.type, this.initializer, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ArrayCreationExpressionSyntax(this.Kind, this.newKeyword, this.type, this.initializer, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ArrayCreationExpressionSyntax(this.Kind, this.newKeyword, this.type, this.initializer, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ArrayCreationExpressionSyntax(this.Kind, this.newKeyword, this.type, this.initializer, GetDiagnostics(), annotations);
 
     internal ArrayCreationExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -7337,9 +7447,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ImplicitArrayCreationExpressionSyntax(this.Kind, this.newKeyword, this.openBracketToken, this.commas, this.closeBracketToken, this.initializer, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ImplicitArrayCreationExpressionSyntax(this.Kind, this.newKeyword, this.openBracketToken, this.commas, this.closeBracketToken, this.initializer, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ImplicitArrayCreationExpressionSyntax(this.Kind, this.newKeyword, this.openBracketToken, this.commas, this.closeBracketToken, this.initializer, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ImplicitArrayCreationExpressionSyntax(this.Kind, this.newKeyword, this.openBracketToken, this.commas, this.closeBracketToken, this.initializer, GetDiagnostics(), annotations);
 
     internal ImplicitArrayCreationExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -7489,9 +7601,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new StackAllocArrayCreationExpressionSyntax(this.Kind, this.stackAllocKeyword, this.type, this.initializer, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new StackAllocArrayCreationExpressionSyntax(this.Kind, this.stackAllocKeyword, this.type, this.initializer, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new StackAllocArrayCreationExpressionSyntax(this.Kind, this.stackAllocKeyword, this.type, this.initializer, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new StackAllocArrayCreationExpressionSyntax(this.Kind, this.stackAllocKeyword, this.type, this.initializer, GetDiagnostics(), annotations);
 
     internal StackAllocArrayCreationExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -7628,9 +7742,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ImplicitStackAllocArrayCreationExpressionSyntax(this.Kind, this.stackAllocKeyword, this.openBracketToken, this.closeBracketToken, this.initializer, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ImplicitStackAllocArrayCreationExpressionSyntax(this.Kind, this.stackAllocKeyword, this.openBracketToken, this.closeBracketToken, this.initializer, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ImplicitStackAllocArrayCreationExpressionSyntax(this.Kind, this.stackAllocKeyword, this.openBracketToken, this.closeBracketToken, this.initializer, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ImplicitStackAllocArrayCreationExpressionSyntax(this.Kind, this.stackAllocKeyword, this.openBracketToken, this.closeBracketToken, this.initializer, GetDiagnostics(), annotations);
 
     internal ImplicitStackAllocArrayCreationExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -7785,9 +7901,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new QueryExpressionSyntax(this.Kind, this.fromClause, this.body, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new QueryExpressionSyntax(this.Kind, this.fromClause, this.body, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new QueryExpressionSyntax(this.Kind, this.fromClause, this.body, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new QueryExpressionSyntax(this.Kind, this.fromClause, this.body, GetDiagnostics(), annotations);
 
     internal QueryExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -7921,9 +8039,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new QueryBodySyntax(this.Kind, this.clauses, this.selectOrGroup, this.continuation, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new QueryBodySyntax(this.Kind, this.clauses, this.selectOrGroup, this.continuation, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new QueryBodySyntax(this.Kind, this.clauses, this.selectOrGroup, this.continuation, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new QueryBodySyntax(this.Kind, this.clauses, this.selectOrGroup, this.continuation, GetDiagnostics(), annotations);
 
     internal QueryBodySyntax(ObjectReader reader)
         : base(reader)
@@ -8074,9 +8194,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new FromClauseSyntax(this.Kind, this.fromKeyword, this.type, this.identifier, this.inKeyword, this.expression, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new FromClauseSyntax(this.Kind, this.fromKeyword, this.type, this.identifier, this.inKeyword, this.expression, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new FromClauseSyntax(this.Kind, this.fromKeyword, this.type, this.identifier, this.inKeyword, this.expression, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new FromClauseSyntax(this.Kind, this.fromKeyword, this.type, this.identifier, this.inKeyword, this.expression, GetDiagnostics(), annotations);
 
     internal FromClauseSyntax(ObjectReader reader)
         : base(reader)
@@ -8223,9 +8345,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new LetClauseSyntax(this.Kind, this.letKeyword, this.identifier, this.equalsToken, this.expression, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new LetClauseSyntax(this.Kind, this.letKeyword, this.identifier, this.equalsToken, this.expression, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new LetClauseSyntax(this.Kind, this.letKeyword, this.identifier, this.equalsToken, this.expression, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new LetClauseSyntax(this.Kind, this.letKeyword, this.identifier, this.equalsToken, this.expression, GetDiagnostics(), annotations);
 
     internal LetClauseSyntax(ObjectReader reader)
         : base(reader)
@@ -8437,9 +8561,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new JoinClauseSyntax(this.Kind, this.joinKeyword, this.type, this.identifier, this.inKeyword, this.inExpression, this.onKeyword, this.leftExpression, this.equalsKeyword, this.rightExpression, this.into, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new JoinClauseSyntax(this.Kind, this.joinKeyword, this.type, this.identifier, this.inKeyword, this.inExpression, this.onKeyword, this.leftExpression, this.equalsKeyword, this.rightExpression, this.into, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new JoinClauseSyntax(this.Kind, this.joinKeyword, this.type, this.identifier, this.inKeyword, this.inExpression, this.onKeyword, this.leftExpression, this.equalsKeyword, this.rightExpression, this.into, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new JoinClauseSyntax(this.Kind, this.joinKeyword, this.type, this.identifier, this.inKeyword, this.inExpression, this.onKeyword, this.leftExpression, this.equalsKeyword, this.rightExpression, this.into, GetDiagnostics(), annotations);
 
     internal JoinClauseSyntax(ObjectReader reader)
         : base(reader)
@@ -8603,9 +8729,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new JoinIntoClauseSyntax(this.Kind, this.intoKeyword, this.identifier, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new JoinIntoClauseSyntax(this.Kind, this.intoKeyword, this.identifier, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new JoinIntoClauseSyntax(this.Kind, this.intoKeyword, this.identifier, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new JoinIntoClauseSyntax(this.Kind, this.intoKeyword, this.identifier, GetDiagnostics(), annotations);
 
     internal JoinIntoClauseSyntax(ObjectReader reader)
         : base(reader)
@@ -8712,9 +8840,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new WhereClauseSyntax(this.Kind, this.whereKeyword, this.condition, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new WhereClauseSyntax(this.Kind, this.whereKeyword, this.condition, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new WhereClauseSyntax(this.Kind, this.whereKeyword, this.condition, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new WhereClauseSyntax(this.Kind, this.whereKeyword, this.condition, GetDiagnostics(), annotations);
 
     internal WhereClauseSyntax(ObjectReader reader)
         : base(reader)
@@ -8830,9 +8960,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new OrderByClauseSyntax(this.Kind, this.orderByKeyword, this.orderings, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new OrderByClauseSyntax(this.Kind, this.orderByKeyword, this.orderings, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new OrderByClauseSyntax(this.Kind, this.orderByKeyword, this.orderings, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new OrderByClauseSyntax(this.Kind, this.orderByKeyword, this.orderings, GetDiagnostics(), annotations);
 
     internal OrderByClauseSyntax(ObjectReader reader)
         : base(reader)
@@ -8948,9 +9080,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new OrderingSyntax(this.Kind, this.expression, this.ascendingOrDescendingKeyword, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new OrderingSyntax(this.Kind, this.expression, this.ascendingOrDescendingKeyword, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new OrderingSyntax(this.Kind, this.expression, this.ascendingOrDescendingKeyword, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new OrderingSyntax(this.Kind, this.expression, this.ascendingOrDescendingKeyword, GetDiagnostics(), annotations);
 
     internal OrderingSyntax(ObjectReader reader)
         : base(reader)
@@ -9057,9 +9191,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new SelectClauseSyntax(this.Kind, this.selectKeyword, this.expression, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new SelectClauseSyntax(this.Kind, this.selectKeyword, this.expression, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new SelectClauseSyntax(this.Kind, this.selectKeyword, this.expression, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new SelectClauseSyntax(this.Kind, this.selectKeyword, this.expression, GetDiagnostics(), annotations);
 
     internal SelectClauseSyntax(ObjectReader reader)
         : base(reader)
@@ -9184,9 +9320,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new GroupClauseSyntax(this.Kind, this.groupKeyword, this.groupExpression, this.byKeyword, this.byExpression, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new GroupClauseSyntax(this.Kind, this.groupKeyword, this.groupExpression, this.byKeyword, this.byExpression, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new GroupClauseSyntax(this.Kind, this.groupKeyword, this.groupExpression, this.byKeyword, this.byExpression, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new GroupClauseSyntax(this.Kind, this.groupKeyword, this.groupExpression, this.byKeyword, this.byExpression, GetDiagnostics(), annotations);
 
     internal GroupClauseSyntax(ObjectReader reader)
         : base(reader)
@@ -9317,9 +9455,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new QueryContinuationSyntax(this.Kind, this.intoKeyword, this.identifier, this.body, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new QueryContinuationSyntax(this.Kind, this.intoKeyword, this.identifier, this.body, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new QueryContinuationSyntax(this.Kind, this.intoKeyword, this.identifier, this.body, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new QueryContinuationSyntax(this.Kind, this.intoKeyword, this.identifier, this.body, GetDiagnostics(), annotations);
 
     internal QueryContinuationSyntax(ObjectReader reader)
         : base(reader)
@@ -9426,9 +9566,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new OmittedArraySizeExpressionSyntax(this.Kind, this.omittedArraySizeExpressionToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new OmittedArraySizeExpressionSyntax(this.Kind, this.omittedArraySizeExpressionToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new OmittedArraySizeExpressionSyntax(this.Kind, this.omittedArraySizeExpressionToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new OmittedArraySizeExpressionSyntax(this.Kind, this.omittedArraySizeExpressionToken, GetDiagnostics(), annotations);
 
     internal OmittedArraySizeExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -9549,9 +9691,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new InterpolatedStringExpressionSyntax(this.Kind, this.stringStartToken, this.contents, this.stringEndToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new InterpolatedStringExpressionSyntax(this.Kind, this.stringStartToken, this.contents, this.stringEndToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new InterpolatedStringExpressionSyntax(this.Kind, this.stringStartToken, this.contents, this.stringEndToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new InterpolatedStringExpressionSyntax(this.Kind, this.stringStartToken, this.contents, this.stringEndToken, GetDiagnostics(), annotations);
 
     internal InterpolatedStringExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -9677,9 +9821,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new IsPatternExpressionSyntax(this.Kind, this.expression, this.isKeyword, this.pattern, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new IsPatternExpressionSyntax(this.Kind, this.expression, this.isKeyword, this.pattern, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new IsPatternExpressionSyntax(this.Kind, this.expression, this.isKeyword, this.pattern, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new IsPatternExpressionSyntax(this.Kind, this.expression, this.isKeyword, this.pattern, GetDiagnostics(), annotations);
 
     internal IsPatternExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -9793,9 +9939,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ThrowExpressionSyntax(this.Kind, this.throwKeyword, this.expression, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ThrowExpressionSyntax(this.Kind, this.throwKeyword, this.expression, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ThrowExpressionSyntax(this.Kind, this.throwKeyword, this.expression, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ThrowExpressionSyntax(this.Kind, this.throwKeyword, this.expression, GetDiagnostics(), annotations);
 
     internal ThrowExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -9902,9 +10050,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new WhenClauseSyntax(this.Kind, this.whenKeyword, this.condition, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new WhenClauseSyntax(this.Kind, this.whenKeyword, this.condition, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new WhenClauseSyntax(this.Kind, this.whenKeyword, this.condition, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new WhenClauseSyntax(this.Kind, this.whenKeyword, this.condition, GetDiagnostics(), annotations);
 
     internal WhenClauseSyntax(ObjectReader reader)
         : base(reader)
@@ -10019,9 +10169,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new DiscardPatternSyntax(this.Kind, this.underscoreToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new DiscardPatternSyntax(this.Kind, this.underscoreToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new DiscardPatternSyntax(this.Kind, this.underscoreToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new DiscardPatternSyntax(this.Kind, this.underscoreToken, GetDiagnostics(), annotations);
 
     internal DiscardPatternSyntax(ObjectReader reader)
         : base(reader)
@@ -10121,9 +10273,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new DeclarationPatternSyntax(this.Kind, this.type, this.designation, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new DeclarationPatternSyntax(this.Kind, this.type, this.designation, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new DeclarationPatternSyntax(this.Kind, this.type, this.designation, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new DeclarationPatternSyntax(this.Kind, this.type, this.designation, GetDiagnostics(), annotations);
 
     internal DeclarationPatternSyntax(ObjectReader reader)
         : base(reader)
@@ -10230,9 +10384,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new VarPatternSyntax(this.Kind, this.varKeyword, this.designation, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new VarPatternSyntax(this.Kind, this.varKeyword, this.designation, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new VarPatternSyntax(this.Kind, this.varKeyword, this.designation, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new VarPatternSyntax(this.Kind, this.varKeyword, this.designation, GetDiagnostics(), annotations);
 
     internal VarPatternSyntax(ObjectReader reader)
         : base(reader)
@@ -10393,9 +10549,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new RecursivePatternSyntax(this.Kind, this.type, this.positionalPatternClause, this.propertyPatternClause, this.designation, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new RecursivePatternSyntax(this.Kind, this.type, this.positionalPatternClause, this.propertyPatternClause, this.designation, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new RecursivePatternSyntax(this.Kind, this.type, this.positionalPatternClause, this.propertyPatternClause, this.designation, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new RecursivePatternSyntax(this.Kind, this.type, this.positionalPatternClause, this.propertyPatternClause, this.designation, GetDiagnostics(), annotations);
 
     internal RecursivePatternSyntax(ObjectReader reader)
         : base(reader)
@@ -10534,9 +10692,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new PositionalPatternClauseSyntax(this.Kind, this.openParenToken, this.subpatterns, this.closeParenToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new PositionalPatternClauseSyntax(this.Kind, this.openParenToken, this.subpatterns, this.closeParenToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new PositionalPatternClauseSyntax(this.Kind, this.openParenToken, this.subpatterns, this.closeParenToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new PositionalPatternClauseSyntax(this.Kind, this.openParenToken, this.subpatterns, this.closeParenToken, GetDiagnostics(), annotations);
 
     internal PositionalPatternClauseSyntax(ObjectReader reader)
         : base(reader)
@@ -10668,9 +10828,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new PropertyPatternClauseSyntax(this.Kind, this.openBraceToken, this.subpatterns, this.closeBraceToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new PropertyPatternClauseSyntax(this.Kind, this.openBraceToken, this.subpatterns, this.closeBraceToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new PropertyPatternClauseSyntax(this.Kind, this.openBraceToken, this.subpatterns, this.closeBraceToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new PropertyPatternClauseSyntax(this.Kind, this.openBraceToken, this.subpatterns, this.closeBraceToken, GetDiagnostics(), annotations);
 
     internal PropertyPatternClauseSyntax(ObjectReader reader)
         : base(reader)
@@ -10793,9 +10955,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new SubpatternSyntax(this.Kind, this.nameColon, this.pattern, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new SubpatternSyntax(this.Kind, this.nameColon, this.pattern, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new SubpatternSyntax(this.Kind, this.nameColon, this.pattern, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new SubpatternSyntax(this.Kind, this.nameColon, this.pattern, GetDiagnostics(), annotations);
 
     internal SubpatternSyntax(ObjectReader reader)
         : base(reader)
@@ -10894,9 +11058,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ConstantPatternSyntax(this.Kind, this.expression, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ConstantPatternSyntax(this.Kind, this.expression, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ConstantPatternSyntax(this.Kind, this.expression, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ConstantPatternSyntax(this.Kind, this.expression, GetDiagnostics(), annotations);
 
     internal ConstantPatternSyntax(ObjectReader reader)
         : base(reader)
@@ -11005,9 +11171,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new InterpolatedStringTextSyntax(this.Kind, this.textToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new InterpolatedStringTextSyntax(this.Kind, this.textToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new InterpolatedStringTextSyntax(this.Kind, this.textToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new InterpolatedStringTextSyntax(this.Kind, this.textToken, GetDiagnostics(), annotations);
 
     internal InterpolatedStringTextSyntax(ObjectReader reader)
         : base(reader)
@@ -11152,9 +11320,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new InterpolationSyntax(this.Kind, this.openBraceToken, this.expression, this.alignmentClause, this.formatClause, this.closeBraceToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new InterpolationSyntax(this.Kind, this.openBraceToken, this.expression, this.alignmentClause, this.formatClause, this.closeBraceToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new InterpolationSyntax(this.Kind, this.openBraceToken, this.expression, this.alignmentClause, this.formatClause, this.closeBraceToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new InterpolationSyntax(this.Kind, this.openBraceToken, this.expression, this.alignmentClause, this.formatClause, this.closeBraceToken, GetDiagnostics(), annotations);
 
     internal InterpolationSyntax(ObjectReader reader)
         : base(reader)
@@ -11282,9 +11452,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new InterpolationAlignmentClauseSyntax(this.Kind, this.commaToken, this.value, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new InterpolationAlignmentClauseSyntax(this.Kind, this.commaToken, this.value, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new InterpolationAlignmentClauseSyntax(this.Kind, this.commaToken, this.value, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new InterpolationAlignmentClauseSyntax(this.Kind, this.commaToken, this.value, GetDiagnostics(), annotations);
 
     internal InterpolationAlignmentClauseSyntax(ObjectReader reader)
         : base(reader)
@@ -11392,9 +11564,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new InterpolationFormatClauseSyntax(this.Kind, this.colonToken, this.formatStringToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new InterpolationFormatClauseSyntax(this.Kind, this.colonToken, this.formatStringToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new InterpolationFormatClauseSyntax(this.Kind, this.colonToken, this.formatStringToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new InterpolationFormatClauseSyntax(this.Kind, this.colonToken, this.formatStringToken, GetDiagnostics(), annotations);
 
     internal InterpolationFormatClauseSyntax(ObjectReader reader)
         : base(reader)
@@ -11492,9 +11666,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new GlobalStatementSyntax(this.Kind, this.statement, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new GlobalStatementSyntax(this.Kind, this.statement, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new GlobalStatementSyntax(this.Kind, this.statement, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new GlobalStatementSyntax(this.Kind, this.statement, GetDiagnostics(), annotations);
 
     internal GlobalStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -11630,9 +11806,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new BlockSyntax(this.Kind, this.openBraceToken, this.statements, this.closeBraceToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new BlockSyntax(this.Kind, this.openBraceToken, this.statements, this.closeBraceToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new BlockSyntax(this.Kind, this.openBraceToken, this.statements, this.closeBraceToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new BlockSyntax(this.Kind, this.openBraceToken, this.statements, this.closeBraceToken, GetDiagnostics(), annotations);
 
     internal BlockSyntax(ObjectReader reader)
         : base(reader)
@@ -11865,9 +12043,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new LocalFunctionStatementSyntax(this.Kind, this.modifiers, this.returnType, this.identifier, this.typeParameterList, this.parameterList, this.constraintClauses, this.body, this.expressionBody, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new LocalFunctionStatementSyntax(this.Kind, this.modifiers, this.returnType, this.identifier, this.typeParameterList, this.parameterList, this.constraintClauses, this.body, this.expressionBody, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new LocalFunctionStatementSyntax(this.Kind, this.modifiers, this.returnType, this.identifier, this.typeParameterList, this.parameterList, this.constraintClauses, this.body, this.expressionBody, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new LocalFunctionStatementSyntax(this.Kind, this.modifiers, this.returnType, this.identifier, this.typeParameterList, this.parameterList, this.constraintClauses, this.body, this.expressionBody, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal LocalFunctionStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -12078,9 +12258,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new LocalDeclarationStatementSyntax(this.Kind, this.awaitKeyword, this.usingKeyword, this.modifiers, this.declaration, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new LocalDeclarationStatementSyntax(this.Kind, this.awaitKeyword, this.usingKeyword, this.modifiers, this.declaration, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new LocalDeclarationStatementSyntax(this.Kind, this.awaitKeyword, this.usingKeyword, this.modifiers, this.declaration, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new LocalDeclarationStatementSyntax(this.Kind, this.awaitKeyword, this.usingKeyword, this.modifiers, this.declaration, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal LocalDeclarationStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -12217,9 +12399,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new VariableDeclarationSyntax(this.Kind, this.type, this.variables, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new VariableDeclarationSyntax(this.Kind, this.type, this.variables, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new VariableDeclarationSyntax(this.Kind, this.type, this.variables, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new VariableDeclarationSyntax(this.Kind, this.type, this.variables, GetDiagnostics(), annotations);
 
     internal VariableDeclarationSyntax(ObjectReader reader)
         : base(reader)
@@ -12354,9 +12538,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new VariableDeclaratorSyntax(this.Kind, this.identifier, this.argumentList, this.initializer, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new VariableDeclaratorSyntax(this.Kind, this.identifier, this.argumentList, this.initializer, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new VariableDeclaratorSyntax(this.Kind, this.identifier, this.argumentList, this.initializer, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new VariableDeclaratorSyntax(this.Kind, this.identifier, this.argumentList, this.initializer, GetDiagnostics(), annotations);
 
     internal VariableDeclaratorSyntax(ObjectReader reader)
         : base(reader)
@@ -12470,9 +12656,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new EqualsValueClauseSyntax(this.Kind, this.equalsToken, this.value, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new EqualsValueClauseSyntax(this.Kind, this.equalsToken, this.value, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new EqualsValueClauseSyntax(this.Kind, this.equalsToken, this.value, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new EqualsValueClauseSyntax(this.Kind, this.equalsToken, this.value, GetDiagnostics(), annotations);
 
     internal EqualsValueClauseSyntax(ObjectReader reader)
         : base(reader)
@@ -12587,9 +12775,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new SingleVariableDesignationSyntax(this.Kind, this.identifier, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new SingleVariableDesignationSyntax(this.Kind, this.identifier, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new SingleVariableDesignationSyntax(this.Kind, this.identifier, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new SingleVariableDesignationSyntax(this.Kind, this.identifier, GetDiagnostics(), annotations);
 
     internal SingleVariableDesignationSyntax(ObjectReader reader)
         : base(reader)
@@ -12680,9 +12870,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new DiscardDesignationSyntax(this.Kind, this.underscoreToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new DiscardDesignationSyntax(this.Kind, this.underscoreToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new DiscardDesignationSyntax(this.Kind, this.underscoreToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new DiscardDesignationSyntax(this.Kind, this.underscoreToken, GetDiagnostics(), annotations);
 
     internal DiscardDesignationSyntax(ObjectReader reader)
         : base(reader)
@@ -12800,9 +12992,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ParenthesizedVariableDesignationSyntax(this.Kind, this.openParenToken, this.variables, this.closeParenToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ParenthesizedVariableDesignationSyntax(this.Kind, this.openParenToken, this.variables, this.closeParenToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ParenthesizedVariableDesignationSyntax(this.Kind, this.openParenToken, this.variables, this.closeParenToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ParenthesizedVariableDesignationSyntax(this.Kind, this.openParenToken, this.variables, this.closeParenToken, GetDiagnostics(), annotations);
 
     internal ParenthesizedVariableDesignationSyntax(ObjectReader reader)
         : base(reader)
@@ -12916,9 +13110,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ExpressionStatementSyntax(this.Kind, this.expression, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ExpressionStatementSyntax(this.Kind, this.expression, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ExpressionStatementSyntax(this.Kind, this.expression, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ExpressionStatementSyntax(this.Kind, this.expression, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal ExpressionStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -13016,9 +13212,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new EmptyStatementSyntax(this.Kind, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new EmptyStatementSyntax(this.Kind, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new EmptyStatementSyntax(this.Kind, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new EmptyStatementSyntax(this.Kind, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal EmptyStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -13130,9 +13328,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new LabeledStatementSyntax(this.Kind, this.identifier, this.colonToken, this.statement, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new LabeledStatementSyntax(this.Kind, this.identifier, this.colonToken, this.statement, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new LabeledStatementSyntax(this.Kind, this.identifier, this.colonToken, this.statement, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new LabeledStatementSyntax(this.Kind, this.identifier, this.colonToken, this.statement, GetDiagnostics(), annotations);
 
     internal LabeledStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -13297,9 +13497,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new GotoStatementSyntax(this.Kind, this.gotoKeyword, this.caseOrDefaultKeyword, this.expression, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new GotoStatementSyntax(this.Kind, this.gotoKeyword, this.caseOrDefaultKeyword, this.expression, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new GotoStatementSyntax(this.Kind, this.gotoKeyword, this.caseOrDefaultKeyword, this.expression, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new GotoStatementSyntax(this.Kind, this.gotoKeyword, this.caseOrDefaultKeyword, this.expression, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal GotoStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -13420,9 +13622,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new BreakStatementSyntax(this.Kind, this.breakKeyword, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new BreakStatementSyntax(this.Kind, this.breakKeyword, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new BreakStatementSyntax(this.Kind, this.breakKeyword, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new BreakStatementSyntax(this.Kind, this.breakKeyword, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal BreakStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -13529,9 +13733,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ContinueStatementSyntax(this.Kind, this.continueKeyword, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ContinueStatementSyntax(this.Kind, this.continueKeyword, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ContinueStatementSyntax(this.Kind, this.continueKeyword, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ContinueStatementSyntax(this.Kind, this.continueKeyword, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal ContinueStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -13656,9 +13862,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ReturnStatementSyntax(this.Kind, this.returnKeyword, this.expression, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ReturnStatementSyntax(this.Kind, this.returnKeyword, this.expression, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ReturnStatementSyntax(this.Kind, this.returnKeyword, this.expression, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ReturnStatementSyntax(this.Kind, this.returnKeyword, this.expression, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal ReturnStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -13790,9 +13998,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ThrowStatementSyntax(this.Kind, this.throwKeyword, this.expression, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ThrowStatementSyntax(this.Kind, this.throwKeyword, this.expression, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ThrowStatementSyntax(this.Kind, this.throwKeyword, this.expression, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ThrowStatementSyntax(this.Kind, this.throwKeyword, this.expression, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal ThrowStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -13933,9 +14143,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new YieldStatementSyntax(this.Kind, this.yieldKeyword, this.returnOrBreakKeyword, this.expression, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new YieldStatementSyntax(this.Kind, this.yieldKeyword, this.returnOrBreakKeyword, this.expression, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new YieldStatementSyntax(this.Kind, this.yieldKeyword, this.returnOrBreakKeyword, this.expression, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new YieldStatementSyntax(this.Kind, this.yieldKeyword, this.returnOrBreakKeyword, this.expression, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal YieldStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -14083,9 +14295,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new WhileStatementSyntax(this.Kind, this.whileKeyword, this.openParenToken, this.condition, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new WhileStatementSyntax(this.Kind, this.whileKeyword, this.openParenToken, this.condition, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new WhileStatementSyntax(this.Kind, this.whileKeyword, this.openParenToken, this.condition, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new WhileStatementSyntax(this.Kind, this.whileKeyword, this.openParenToken, this.condition, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
 
     internal WhileStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -14258,9 +14472,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new DoStatementSyntax(this.Kind, this.doKeyword, this.statement, this.whileKeyword, this.openParenToken, this.condition, this.closeParenToken, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new DoStatementSyntax(this.Kind, this.doKeyword, this.statement, this.whileKeyword, this.openParenToken, this.condition, this.closeParenToken, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new DoStatementSyntax(this.Kind, this.doKeyword, this.statement, this.whileKeyword, this.openParenToken, this.condition, this.closeParenToken, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new DoStatementSyntax(this.Kind, this.doKeyword, this.statement, this.whileKeyword, this.openParenToken, this.condition, this.closeParenToken, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal DoStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -14510,9 +14726,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ForStatementSyntax(this.Kind, this.forKeyword, this.openParenToken, this.declaration, this.initializers, this.firstSemicolonToken, this.condition, this.secondSemicolonToken, this.incrementors, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ForStatementSyntax(this.Kind, this.forKeyword, this.openParenToken, this.declaration, this.initializers, this.firstSemicolonToken, this.condition, this.secondSemicolonToken, this.incrementors, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ForStatementSyntax(this.Kind, this.forKeyword, this.openParenToken, this.declaration, this.initializers, this.firstSemicolonToken, this.condition, this.secondSemicolonToken, this.incrementors, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ForStatementSyntax(this.Kind, this.forKeyword, this.openParenToken, this.declaration, this.initializers, this.firstSemicolonToken, this.condition, this.secondSemicolonToken, this.incrementors, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
 
     internal ForStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -14779,9 +14997,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ForEachStatementSyntax(this.Kind, this.awaitKeyword, this.forEachKeyword, this.openParenToken, this.type, this.identifier, this.inKeyword, this.expression, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ForEachStatementSyntax(this.Kind, this.awaitKeyword, this.forEachKeyword, this.openParenToken, this.type, this.identifier, this.inKeyword, this.expression, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ForEachStatementSyntax(this.Kind, this.awaitKeyword, this.forEachKeyword, this.openParenToken, this.type, this.identifier, this.inKeyword, this.expression, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ForEachStatementSyntax(this.Kind, this.awaitKeyword, this.forEachKeyword, this.openParenToken, this.type, this.identifier, this.inKeyword, this.expression, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
 
     internal ForEachStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -15006,9 +15226,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ForEachVariableStatementSyntax(this.Kind, this.awaitKeyword, this.forEachKeyword, this.openParenToken, this.variable, this.inKeyword, this.expression, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ForEachVariableStatementSyntax(this.Kind, this.awaitKeyword, this.forEachKeyword, this.openParenToken, this.variable, this.inKeyword, this.expression, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ForEachVariableStatementSyntax(this.Kind, this.awaitKeyword, this.forEachKeyword, this.openParenToken, this.variable, this.inKeyword, this.expression, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ForEachVariableStatementSyntax(this.Kind, this.awaitKeyword, this.forEachKeyword, this.openParenToken, this.variable, this.inKeyword, this.expression, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
 
     internal ForEachVariableStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -15229,9 +15451,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new UsingStatementSyntax(this.Kind, this.awaitKeyword, this.usingKeyword, this.openParenToken, this.declaration, this.expression, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new UsingStatementSyntax(this.Kind, this.awaitKeyword, this.usingKeyword, this.openParenToken, this.declaration, this.expression, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new UsingStatementSyntax(this.Kind, this.awaitKeyword, this.usingKeyword, this.openParenToken, this.declaration, this.expression, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new UsingStatementSyntax(this.Kind, this.awaitKeyword, this.usingKeyword, this.openParenToken, this.declaration, this.expression, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
 
     internal UsingStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -15400,9 +15624,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new FixedStatementSyntax(this.Kind, this.fixedKeyword, this.openParenToken, this.declaration, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new FixedStatementSyntax(this.Kind, this.fixedKeyword, this.openParenToken, this.declaration, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new FixedStatementSyntax(this.Kind, this.fixedKeyword, this.openParenToken, this.declaration, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new FixedStatementSyntax(this.Kind, this.fixedKeyword, this.openParenToken, this.declaration, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
 
     internal FixedStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -15530,9 +15756,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new CheckedStatementSyntax(this.Kind, this.keyword, this.block, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new CheckedStatementSyntax(this.Kind, this.keyword, this.block, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new CheckedStatementSyntax(this.Kind, this.keyword, this.block, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new CheckedStatementSyntax(this.Kind, this.keyword, this.block, GetDiagnostics(), annotations);
 
     internal CheckedStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -15639,9 +15867,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new UnsafeStatementSyntax(this.Kind, this.unsafeKeyword, this.block, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new UnsafeStatementSyntax(this.Kind, this.unsafeKeyword, this.block, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new UnsafeStatementSyntax(this.Kind, this.unsafeKeyword, this.block, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new UnsafeStatementSyntax(this.Kind, this.unsafeKeyword, this.block, GetDiagnostics(), annotations);
 
     internal UnsafeStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -15775,9 +16005,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new LockStatementSyntax(this.Kind, this.lockKeyword, this.openParenToken, this.expression, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new LockStatementSyntax(this.Kind, this.lockKeyword, this.openParenToken, this.expression, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new LockStatementSyntax(this.Kind, this.lockKeyword, this.openParenToken, this.expression, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new LockStatementSyntax(this.Kind, this.lockKeyword, this.openParenToken, this.expression, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
 
     internal LockStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -15971,9 +16203,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new IfStatementSyntax(this.Kind, this.ifKeyword, this.openParenToken, this.condition, this.closeParenToken, this.statement, this.@else, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new IfStatementSyntax(this.Kind, this.ifKeyword, this.openParenToken, this.condition, this.closeParenToken, this.statement, this.@else, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new IfStatementSyntax(this.Kind, this.ifKeyword, this.openParenToken, this.condition, this.closeParenToken, this.statement, this.@else, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new IfStatementSyntax(this.Kind, this.ifKeyword, this.openParenToken, this.condition, this.closeParenToken, this.statement, this.@else, GetDiagnostics(), annotations);
 
     internal IfStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -16112,9 +16346,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ElseClauseSyntax(this.Kind, this.elseKeyword, this.statement, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ElseClauseSyntax(this.Kind, this.elseKeyword, this.statement, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ElseClauseSyntax(this.Kind, this.elseKeyword, this.statement, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ElseClauseSyntax(this.Kind, this.elseKeyword, this.statement, GetDiagnostics(), annotations);
 
     internal ElseClauseSyntax(ObjectReader reader)
         : base(reader)
@@ -16315,9 +16551,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new SwitchStatementSyntax(this.Kind, this.switchKeyword, this.openParenToken, this.expression, this.closeParenToken, this.openBraceToken, this.sections, this.closeBraceToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new SwitchStatementSyntax(this.Kind, this.switchKeyword, this.openParenToken, this.expression, this.closeParenToken, this.openBraceToken, this.sections, this.closeBraceToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new SwitchStatementSyntax(this.Kind, this.switchKeyword, this.openParenToken, this.expression, this.closeParenToken, this.openBraceToken, this.sections, this.closeBraceToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new SwitchStatementSyntax(this.Kind, this.switchKeyword, this.openParenToken, this.expression, this.closeParenToken, this.openBraceToken, this.sections, this.closeBraceToken, GetDiagnostics(), annotations);
 
     internal SwitchStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -16484,9 +16722,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new SwitchSectionSyntax(this.Kind, this.labels, this.statements, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new SwitchSectionSyntax(this.Kind, this.labels, this.statements, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new SwitchSectionSyntax(this.Kind, this.labels, this.statements, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new SwitchSectionSyntax(this.Kind, this.labels, this.statements, GetDiagnostics(), annotations);
 
     internal SwitchSectionSyntax(ObjectReader reader)
         : base(reader)
@@ -16653,9 +16893,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new CasePatternSwitchLabelSyntax(this.Kind, this.keyword, this.pattern, this.whenClause, this.colonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new CasePatternSwitchLabelSyntax(this.Kind, this.keyword, this.pattern, this.whenClause, this.colonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new CasePatternSwitchLabelSyntax(this.Kind, this.keyword, this.pattern, this.whenClause, this.colonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new CasePatternSwitchLabelSyntax(this.Kind, this.keyword, this.pattern, this.whenClause, this.colonToken, GetDiagnostics(), annotations);
 
     internal CasePatternSwitchLabelSyntax(ObjectReader reader)
         : base(reader)
@@ -16790,9 +17032,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new CaseSwitchLabelSyntax(this.Kind, this.keyword, this.value, this.colonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new CaseSwitchLabelSyntax(this.Kind, this.keyword, this.value, this.colonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new CaseSwitchLabelSyntax(this.Kind, this.keyword, this.value, this.colonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new CaseSwitchLabelSyntax(this.Kind, this.keyword, this.value, this.colonToken, GetDiagnostics(), annotations);
 
     internal CaseSwitchLabelSyntax(ObjectReader reader)
         : base(reader)
@@ -16908,9 +17152,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new DefaultSwitchLabelSyntax(this.Kind, this.keyword, this.colonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new DefaultSwitchLabelSyntax(this.Kind, this.keyword, this.colonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new DefaultSwitchLabelSyntax(this.Kind, this.keyword, this.colonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new DefaultSwitchLabelSyntax(this.Kind, this.keyword, this.colonToken, GetDiagnostics(), annotations);
 
     internal DefaultSwitchLabelSyntax(ObjectReader reader)
         : base(reader)
@@ -17053,9 +17299,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new SwitchExpressionSyntax(this.Kind, this.governingExpression, this.switchKeyword, this.openBraceToken, this.arms, this.closeBraceToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new SwitchExpressionSyntax(this.Kind, this.governingExpression, this.switchKeyword, this.openBraceToken, this.arms, this.closeBraceToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new SwitchExpressionSyntax(this.Kind, this.governingExpression, this.switchKeyword, this.openBraceToken, this.arms, this.closeBraceToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new SwitchExpressionSyntax(this.Kind, this.governingExpression, this.switchKeyword, this.openBraceToken, this.arms, this.closeBraceToken, GetDiagnostics(), annotations);
 
     internal SwitchExpressionSyntax(ObjectReader reader)
         : base(reader)
@@ -17210,9 +17458,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new SwitchExpressionArmSyntax(this.Kind, this.pattern, this.whenClause, this.equalsGreaterThanToken, this.expression, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new SwitchExpressionArmSyntax(this.Kind, this.pattern, this.whenClause, this.equalsGreaterThanToken, this.expression, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new SwitchExpressionArmSyntax(this.Kind, this.pattern, this.whenClause, this.equalsGreaterThanToken, this.expression, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new SwitchExpressionArmSyntax(this.Kind, this.pattern, this.whenClause, this.equalsGreaterThanToken, this.expression, GetDiagnostics(), annotations);
 
     internal SwitchExpressionArmSyntax(ObjectReader reader)
         : base(reader)
@@ -17369,9 +17619,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new TryStatementSyntax(this.Kind, this.tryKeyword, this.block, this.catches, this.@finally, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new TryStatementSyntax(this.Kind, this.tryKeyword, this.block, this.catches, this.@finally, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new TryStatementSyntax(this.Kind, this.tryKeyword, this.block, this.catches, this.@finally, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new TryStatementSyntax(this.Kind, this.tryKeyword, this.block, this.catches, this.@finally, GetDiagnostics(), annotations);
 
     internal TryStatementSyntax(ObjectReader reader)
         : base(reader)
@@ -17528,9 +17780,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new CatchClauseSyntax(this.Kind, this.catchKeyword, this.declaration, this.filter, this.block, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new CatchClauseSyntax(this.Kind, this.catchKeyword, this.declaration, this.filter, this.block, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new CatchClauseSyntax(this.Kind, this.catchKeyword, this.declaration, this.filter, this.block, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new CatchClauseSyntax(this.Kind, this.catchKeyword, this.declaration, this.filter, this.block, GetDiagnostics(), annotations);
 
     internal CatchClauseSyntax(ObjectReader reader)
         : base(reader)
@@ -17678,9 +17932,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new CatchDeclarationSyntax(this.Kind, this.openParenToken, this.type, this.identifier, this.closeParenToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new CatchDeclarationSyntax(this.Kind, this.openParenToken, this.type, this.identifier, this.closeParenToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new CatchDeclarationSyntax(this.Kind, this.openParenToken, this.type, this.identifier, this.closeParenToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new CatchDeclarationSyntax(this.Kind, this.openParenToken, this.type, this.identifier, this.closeParenToken, GetDiagnostics(), annotations);
 
     internal CatchDeclarationSyntax(ObjectReader reader)
         : base(reader)
@@ -17819,9 +18075,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new CatchFilterClauseSyntax(this.Kind, this.whenKeyword, this.openParenToken, this.filterExpression, this.closeParenToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new CatchFilterClauseSyntax(this.Kind, this.whenKeyword, this.openParenToken, this.filterExpression, this.closeParenToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new CatchFilterClauseSyntax(this.Kind, this.whenKeyword, this.openParenToken, this.filterExpression, this.closeParenToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new CatchFilterClauseSyntax(this.Kind, this.whenKeyword, this.openParenToken, this.filterExpression, this.closeParenToken, GetDiagnostics(), annotations);
 
     internal CatchFilterClauseSyntax(ObjectReader reader)
         : base(reader)
@@ -17942,9 +18200,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new FinallyClauseSyntax(this.Kind, this.finallyKeyword, this.block, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new FinallyClauseSyntax(this.Kind, this.finallyKeyword, this.block, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new FinallyClauseSyntax(this.Kind, this.finallyKeyword, this.block, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new FinallyClauseSyntax(this.Kind, this.finallyKeyword, this.block, GetDiagnostics(), annotations);
 
     internal FinallyClauseSyntax(ObjectReader reader)
         : base(reader)
@@ -18115,9 +18375,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new CompilationUnitSyntax(this.Kind, this.externs, this.usings, this.attributeLists, this.members, this.endOfFileToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new CompilationUnitSyntax(this.Kind, this.externs, this.usings, this.attributeLists, this.members, this.endOfFileToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new CompilationUnitSyntax(this.Kind, this.externs, this.usings, this.attributeLists, this.members, this.endOfFileToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new CompilationUnitSyntax(this.Kind, this.externs, this.usings, this.attributeLists, this.members, this.endOfFileToken, GetDiagnostics(), annotations);
 
     internal CompilationUnitSyntax(ObjectReader reader)
         : base(reader)
@@ -18270,9 +18532,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ExternAliasDirectiveSyntax(this.Kind, this.externKeyword, this.aliasKeyword, this.identifier, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ExternAliasDirectiveSyntax(this.Kind, this.externKeyword, this.aliasKeyword, this.identifier, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ExternAliasDirectiveSyntax(this.Kind, this.externKeyword, this.aliasKeyword, this.identifier, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ExternAliasDirectiveSyntax(this.Kind, this.externKeyword, this.aliasKeyword, this.identifier, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal ExternAliasDirectiveSyntax(ObjectReader reader)
         : base(reader)
@@ -18438,9 +18702,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new UsingDirectiveSyntax(this.Kind, this.usingKeyword, this.staticKeyword, this.alias, this.name, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new UsingDirectiveSyntax(this.Kind, this.usingKeyword, this.staticKeyword, this.alias, this.name, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new UsingDirectiveSyntax(this.Kind, this.usingKeyword, this.staticKeyword, this.alias, this.name, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new UsingDirectiveSyntax(this.Kind, this.usingKeyword, this.staticKeyword, this.alias, this.name, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal UsingDirectiveSyntax(ObjectReader reader)
         : base(reader)
@@ -18677,9 +18943,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new NamespaceDeclarationSyntax(this.Kind, this.namespaceKeyword, this.name, this.openBraceToken, this.externs, this.usings, this.members, this.closeBraceToken, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new NamespaceDeclarationSyntax(this.Kind, this.namespaceKeyword, this.name, this.openBraceToken, this.externs, this.usings, this.members, this.closeBraceToken, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new NamespaceDeclarationSyntax(this.Kind, this.namespaceKeyword, this.name, this.openBraceToken, this.externs, this.usings, this.members, this.closeBraceToken, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new NamespaceDeclarationSyntax(this.Kind, this.namespaceKeyword, this.name, this.openBraceToken, this.externs, this.usings, this.members, this.closeBraceToken, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal NamespaceDeclarationSyntax(ObjectReader reader)
         : base(reader)
@@ -18869,9 +19137,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new AttributeListSyntax(this.Kind, this.openBracketToken, this.target, this.attributes, this.closeBracketToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new AttributeListSyntax(this.Kind, this.openBracketToken, this.target, this.attributes, this.closeBracketToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new AttributeListSyntax(this.Kind, this.openBracketToken, this.target, this.attributes, this.closeBracketToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new AttributeListSyntax(this.Kind, this.openBracketToken, this.target, this.attributes, this.closeBracketToken, GetDiagnostics(), annotations);
 
     internal AttributeListSyntax(ObjectReader reader)
         : base(reader)
@@ -18995,9 +19265,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new AttributeTargetSpecifierSyntax(this.Kind, this.identifier, this.colonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new AttributeTargetSpecifierSyntax(this.Kind, this.identifier, this.colonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new AttributeTargetSpecifierSyntax(this.Kind, this.identifier, this.colonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new AttributeTargetSpecifierSyntax(this.Kind, this.identifier, this.colonToken, GetDiagnostics(), annotations);
 
     internal AttributeTargetSpecifierSyntax(ObjectReader reader)
         : base(reader)
@@ -19115,9 +19387,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new AttributeSyntax(this.Kind, this.name, this.argumentList, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new AttributeSyntax(this.Kind, this.name, this.argumentList, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new AttributeSyntax(this.Kind, this.name, this.argumentList, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new AttributeSyntax(this.Kind, this.name, this.argumentList, GetDiagnostics(), annotations);
 
     internal AttributeSyntax(ObjectReader reader)
         : base(reader)
@@ -19246,9 +19520,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new AttributeArgumentListSyntax(this.Kind, this.openParenToken, this.arguments, this.closeParenToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new AttributeArgumentListSyntax(this.Kind, this.openParenToken, this.arguments, this.closeParenToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new AttributeArgumentListSyntax(this.Kind, this.openParenToken, this.arguments, this.closeParenToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new AttributeArgumentListSyntax(this.Kind, this.openParenToken, this.arguments, this.closeParenToken, GetDiagnostics(), annotations);
 
     internal AttributeArgumentListSyntax(ObjectReader reader)
         : base(reader)
@@ -19391,9 +19667,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new AttributeArgumentSyntax(this.Kind, this.nameEquals, this.nameColon, this.expression, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new AttributeArgumentSyntax(this.Kind, this.nameEquals, this.nameColon, this.expression, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new AttributeArgumentSyntax(this.Kind, this.nameEquals, this.nameColon, this.expression, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new AttributeArgumentSyntax(this.Kind, this.nameEquals, this.nameColon, this.expression, GetDiagnostics(), annotations);
 
     internal AttributeArgumentSyntax(ObjectReader reader)
         : base(reader)
@@ -19509,9 +19787,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new NameEqualsSyntax(this.Kind, this.name, this.equalsToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new NameEqualsSyntax(this.Kind, this.name, this.equalsToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new NameEqualsSyntax(this.Kind, this.name, this.equalsToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new NameEqualsSyntax(this.Kind, this.name, this.equalsToken, GetDiagnostics(), annotations);
 
     internal NameEqualsSyntax(ObjectReader reader)
         : base(reader)
@@ -19640,9 +19920,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new TypeParameterListSyntax(this.Kind, this.lessThanToken, this.parameters, this.greaterThanToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new TypeParameterListSyntax(this.Kind, this.lessThanToken, this.parameters, this.greaterThanToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new TypeParameterListSyntax(this.Kind, this.lessThanToken, this.parameters, this.greaterThanToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new TypeParameterListSyntax(this.Kind, this.lessThanToken, this.parameters, this.greaterThanToken, GetDiagnostics(), annotations);
 
     internal TypeParameterListSyntax(ObjectReader reader)
         : base(reader)
@@ -19786,9 +20068,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new TypeParameterSyntax(this.Kind, this.attributeLists, this.varianceKeyword, this.identifier, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new TypeParameterSyntax(this.Kind, this.attributeLists, this.varianceKeyword, this.identifier, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new TypeParameterSyntax(this.Kind, this.attributeLists, this.varianceKeyword, this.identifier, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new TypeParameterSyntax(this.Kind, this.attributeLists, this.varianceKeyword, this.identifier, GetDiagnostics(), annotations);
 
     internal TypeParameterSyntax(ObjectReader reader)
         : base(reader)
@@ -20116,9 +20400,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ClassDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ClassDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ClassDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ClassDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal ClassDeclarationSyntax(ObjectReader reader)
         : base(reader)
@@ -20434,9 +20720,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new StructDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new StructDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new StructDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new StructDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal StructDeclarationSyntax(ObjectReader reader)
         : base(reader)
@@ -20752,9 +21040,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new InterfaceDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new InterfaceDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new InterfaceDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new InterfaceDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal InterfaceDeclarationSyntax(ObjectReader reader)
         : base(reader)
@@ -21036,9 +21326,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new EnumDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.enumKeyword, this.identifier, this.baseList, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new EnumDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.enumKeyword, this.identifier, this.baseList, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new EnumDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.enumKeyword, this.identifier, this.baseList, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new EnumDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.enumKeyword, this.identifier, this.baseList, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal EnumDeclarationSyntax(ObjectReader reader)
         : base(reader)
@@ -21302,9 +21594,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new DelegateDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.delegateKeyword, this.returnType, this.identifier, this.typeParameterList, this.parameterList, this.constraintClauses, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new DelegateDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.delegateKeyword, this.returnType, this.identifier, this.typeParameterList, this.parameterList, this.constraintClauses, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new DelegateDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.delegateKeyword, this.returnType, this.identifier, this.typeParameterList, this.parameterList, this.constraintClauses, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new DelegateDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.delegateKeyword, this.returnType, this.identifier, this.typeParameterList, this.parameterList, this.constraintClauses, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal DelegateDeclarationSyntax(ObjectReader reader)
         : base(reader)
@@ -21489,9 +21783,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new EnumMemberDeclarationSyntax(this.Kind, this.attributeLists, this.identifier, this.equalsValue, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new EnumMemberDeclarationSyntax(this.Kind, this.attributeLists, this.identifier, this.equalsValue, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new EnumMemberDeclarationSyntax(this.Kind, this.attributeLists, this.identifier, this.equalsValue, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new EnumMemberDeclarationSyntax(this.Kind, this.attributeLists, this.identifier, this.equalsValue, GetDiagnostics(), annotations);
 
     internal EnumMemberDeclarationSyntax(ObjectReader reader)
         : base(reader)
@@ -21617,9 +21913,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new BaseListSyntax(this.Kind, this.colonToken, this.types, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new BaseListSyntax(this.Kind, this.colonToken, this.types, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new BaseListSyntax(this.Kind, this.colonToken, this.types, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new BaseListSyntax(this.Kind, this.colonToken, this.types, GetDiagnostics(), annotations);
 
     internal BaseListSyntax(ObjectReader reader)
         : base(reader)
@@ -21737,9 +22035,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new SimpleBaseTypeSyntax(this.Kind, this.type, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new SimpleBaseTypeSyntax(this.Kind, this.type, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new SimpleBaseTypeSyntax(this.Kind, this.type, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new SimpleBaseTypeSyntax(this.Kind, this.type, GetDiagnostics(), annotations);
 
     internal SimpleBaseTypeSyntax(ObjectReader reader)
         : base(reader)
@@ -21870,9 +22170,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new TypeParameterConstraintClauseSyntax(this.Kind, this.whereKeyword, this.name, this.colonToken, this.constraints, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new TypeParameterConstraintClauseSyntax(this.Kind, this.whereKeyword, this.name, this.colonToken, this.constraints, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new TypeParameterConstraintClauseSyntax(this.Kind, this.whereKeyword, this.name, this.colonToken, this.constraints, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new TypeParameterConstraintClauseSyntax(this.Kind, this.whereKeyword, this.name, this.colonToken, this.constraints, GetDiagnostics(), annotations);
 
     internal TypeParameterConstraintClauseSyntax(ObjectReader reader)
         : base(reader)
@@ -22024,9 +22326,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ConstructorConstraintSyntax(this.Kind, this.newKeyword, this.openParenToken, this.closeParenToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ConstructorConstraintSyntax(this.Kind, this.newKeyword, this.openParenToken, this.closeParenToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ConstructorConstraintSyntax(this.Kind, this.newKeyword, this.openParenToken, this.closeParenToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ConstructorConstraintSyntax(this.Kind, this.newKeyword, this.openParenToken, this.closeParenToken, GetDiagnostics(), annotations);
 
     internal ConstructorConstraintSyntax(ObjectReader reader)
         : base(reader)
@@ -22152,9 +22456,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ClassOrStructConstraintSyntax(this.Kind, this.classOrStructKeyword, this.questionToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ClassOrStructConstraintSyntax(this.Kind, this.classOrStructKeyword, this.questionToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ClassOrStructConstraintSyntax(this.Kind, this.classOrStructKeyword, this.questionToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ClassOrStructConstraintSyntax(this.Kind, this.classOrStructKeyword, this.questionToken, GetDiagnostics(), annotations);
 
     internal ClassOrStructConstraintSyntax(ObjectReader reader)
         : base(reader)
@@ -22254,9 +22560,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new TypeConstraintSyntax(this.Kind, this.type, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new TypeConstraintSyntax(this.Kind, this.type, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new TypeConstraintSyntax(this.Kind, this.type, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new TypeConstraintSyntax(this.Kind, this.type, GetDiagnostics(), annotations);
 
     internal TypeConstraintSyntax(ObjectReader reader)
         : base(reader)
@@ -22421,9 +22729,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new FieldDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.declaration, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new FieldDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.declaration, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new FieldDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.declaration, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new FieldDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.declaration, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal FieldDeclarationSyntax(ObjectReader reader)
         : base(reader)
@@ -22591,9 +22901,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new EventFieldDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.eventKeyword, this.declaration, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new EventFieldDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.eventKeyword, this.declaration, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new EventFieldDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.eventKeyword, this.declaration, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new EventFieldDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.eventKeyword, this.declaration, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal EventFieldDeclarationSyntax(ObjectReader reader)
         : base(reader)
@@ -22721,9 +23033,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ExplicitInterfaceSpecifierSyntax(this.Kind, this.name, this.dotToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ExplicitInterfaceSpecifierSyntax(this.Kind, this.name, this.dotToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ExplicitInterfaceSpecifierSyntax(this.Kind, this.name, this.dotToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ExplicitInterfaceSpecifierSyntax(this.Kind, this.name, this.dotToken, GetDiagnostics(), annotations);
 
     internal ExplicitInterfaceSpecifierSyntax(ObjectReader reader)
         : base(reader)
@@ -23022,9 +23336,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new MethodDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.returnType, this.explicitInterfaceSpecifier, this.identifier, this.typeParameterList, this.parameterList, this.constraintClauses, this.body, this.expressionBody, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new MethodDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.returnType, this.explicitInterfaceSpecifier, this.identifier, this.typeParameterList, this.parameterList, this.constraintClauses, this.body, this.expressionBody, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new MethodDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.returnType, this.explicitInterfaceSpecifier, this.identifier, this.typeParameterList, this.parameterList, this.constraintClauses, this.body, this.expressionBody, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new MethodDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.returnType, this.explicitInterfaceSpecifier, this.identifier, this.typeParameterList, this.parameterList, this.constraintClauses, this.body, this.expressionBody, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal MethodDeclarationSyntax(ObjectReader reader)
         : base(reader)
@@ -23306,9 +23622,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new OperatorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.returnType, this.operatorKeyword, this.operatorToken, this.parameterList, this.body, this.expressionBody, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new OperatorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.returnType, this.operatorKeyword, this.operatorToken, this.parameterList, this.body, this.expressionBody, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new OperatorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.returnType, this.operatorKeyword, this.operatorToken, this.parameterList, this.body, this.expressionBody, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new OperatorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.returnType, this.operatorKeyword, this.operatorToken, this.parameterList, this.body, this.expressionBody, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal OperatorDeclarationSyntax(ObjectReader reader)
         : base(reader)
@@ -23577,9 +23895,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ConversionOperatorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.implicitOrExplicitKeyword, this.operatorKeyword, this.type, this.parameterList, this.body, this.expressionBody, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ConversionOperatorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.implicitOrExplicitKeyword, this.operatorKeyword, this.type, this.parameterList, this.body, this.expressionBody, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ConversionOperatorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.implicitOrExplicitKeyword, this.operatorKeyword, this.type, this.parameterList, this.body, this.expressionBody, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ConversionOperatorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.implicitOrExplicitKeyword, this.operatorKeyword, this.type, this.parameterList, this.body, this.expressionBody, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal ConversionOperatorDeclarationSyntax(ObjectReader reader)
         : base(reader)
@@ -23846,9 +24166,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ConstructorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.identifier, this.parameterList, this.initializer, this.body, this.expressionBody, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ConstructorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.identifier, this.parameterList, this.initializer, this.body, this.expressionBody, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ConstructorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.identifier, this.parameterList, this.initializer, this.body, this.expressionBody, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ConstructorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.identifier, this.parameterList, this.initializer, this.body, this.expressionBody, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal ConstructorDeclarationSyntax(ObjectReader reader)
         : base(reader)
@@ -24009,9 +24331,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ConstructorInitializerSyntax(this.Kind, this.colonToken, this.thisOrBaseKeyword, this.argumentList, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ConstructorInitializerSyntax(this.Kind, this.colonToken, this.thisOrBaseKeyword, this.argumentList, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ConstructorInitializerSyntax(this.Kind, this.colonToken, this.thisOrBaseKeyword, this.argumentList, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ConstructorInitializerSyntax(this.Kind, this.colonToken, this.thisOrBaseKeyword, this.argumentList, GetDiagnostics(), annotations);
 
     internal ConstructorInitializerSyntax(ObjectReader reader)
         : base(reader)
@@ -24228,9 +24552,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new DestructorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.tildeToken, this.identifier, this.parameterList, this.body, this.expressionBody, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new DestructorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.tildeToken, this.identifier, this.parameterList, this.body, this.expressionBody, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new DestructorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.tildeToken, this.identifier, this.parameterList, this.body, this.expressionBody, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new DestructorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.tildeToken, this.identifier, this.parameterList, this.body, this.expressionBody, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal DestructorDeclarationSyntax(ObjectReader reader)
         : base(reader)
@@ -24538,9 +24864,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new PropertyDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.type, this.explicitInterfaceSpecifier, this.identifier, this.accessorList, this.expressionBody, this.initializer, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new PropertyDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.type, this.explicitInterfaceSpecifier, this.identifier, this.accessorList, this.expressionBody, this.initializer, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new PropertyDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.type, this.explicitInterfaceSpecifier, this.identifier, this.accessorList, this.expressionBody, this.initializer, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new PropertyDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.type, this.explicitInterfaceSpecifier, this.identifier, this.accessorList, this.expressionBody, this.initializer, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal PropertyDeclarationSyntax(ObjectReader reader)
         : base(reader)
@@ -24697,9 +25025,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ArrowExpressionClauseSyntax(this.Kind, this.arrowToken, this.expression, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ArrowExpressionClauseSyntax(this.Kind, this.arrowToken, this.expression, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ArrowExpressionClauseSyntax(this.Kind, this.arrowToken, this.expression, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ArrowExpressionClauseSyntax(this.Kind, this.arrowToken, this.expression, GetDiagnostics(), annotations);
 
     internal ArrowExpressionClauseSyntax(ObjectReader reader)
         : base(reader)
@@ -24879,9 +25209,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new EventDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.eventKeyword, this.type, this.explicitInterfaceSpecifier, this.identifier, this.accessorList, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new EventDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.eventKeyword, this.type, this.explicitInterfaceSpecifier, this.identifier, this.accessorList, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new EventDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.eventKeyword, this.type, this.explicitInterfaceSpecifier, this.identifier, this.accessorList, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new EventDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.eventKeyword, this.type, this.explicitInterfaceSpecifier, this.identifier, this.accessorList, GetDiagnostics(), annotations);
 
     internal EventDeclarationSyntax(ObjectReader reader)
         : base(reader)
@@ -25141,9 +25473,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new IndexerDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.type, this.explicitInterfaceSpecifier, this.thisKeyword, this.parameterList, this.accessorList, this.expressionBody, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new IndexerDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.type, this.explicitInterfaceSpecifier, this.thisKeyword, this.parameterList, this.accessorList, this.expressionBody, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new IndexerDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.type, this.explicitInterfaceSpecifier, this.thisKeyword, this.parameterList, this.accessorList, this.expressionBody, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new IndexerDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.type, this.explicitInterfaceSpecifier, this.thisKeyword, this.parameterList, this.accessorList, this.expressionBody, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal IndexerDeclarationSyntax(ObjectReader reader)
         : base(reader)
@@ -25317,9 +25651,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new AccessorListSyntax(this.Kind, this.openBraceToken, this.accessors, this.closeBraceToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new AccessorListSyntax(this.Kind, this.openBraceToken, this.accessors, this.closeBraceToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new AccessorListSyntax(this.Kind, this.openBraceToken, this.accessors, this.closeBraceToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new AccessorListSyntax(this.Kind, this.openBraceToken, this.accessors, this.closeBraceToken, GetDiagnostics(), annotations);
 
     internal AccessorListSyntax(ObjectReader reader)
         : base(reader)
@@ -25520,9 +25856,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new AccessorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.body, this.expressionBody, this.semicolonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new AccessorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.body, this.expressionBody, this.semicolonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new AccessorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.body, this.expressionBody, this.semicolonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new AccessorDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.body, this.expressionBody, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal AccessorDeclarationSyntax(ObjectReader reader)
         : base(reader)
@@ -25699,9 +26037,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ParameterListSyntax(this.Kind, this.openParenToken, this.parameters, this.closeParenToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ParameterListSyntax(this.Kind, this.openParenToken, this.parameters, this.closeParenToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ParameterListSyntax(this.Kind, this.openParenToken, this.parameters, this.closeParenToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ParameterListSyntax(this.Kind, this.openParenToken, this.parameters, this.closeParenToken, GetDiagnostics(), annotations);
 
     internal ParameterListSyntax(ObjectReader reader)
         : base(reader)
@@ -25836,9 +26176,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new BracketedParameterListSyntax(this.Kind, this.openBracketToken, this.parameters, this.closeBracketToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new BracketedParameterListSyntax(this.Kind, this.openBracketToken, this.parameters, this.closeBracketToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new BracketedParameterListSyntax(this.Kind, this.openBracketToken, this.parameters, this.closeBracketToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new BracketedParameterListSyntax(this.Kind, this.openBracketToken, this.parameters, this.closeBracketToken, GetDiagnostics(), annotations);
 
     internal BracketedParameterListSyntax(ObjectReader reader)
         : base(reader)
@@ -26019,9 +26361,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ParameterSyntax(this.Kind, this.attributeLists, this.modifiers, this.type, this.identifier, this.@default, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ParameterSyntax(this.Kind, this.attributeLists, this.modifiers, this.type, this.identifier, this.@default, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ParameterSyntax(this.Kind, this.attributeLists, this.modifiers, this.type, this.identifier, this.@default, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ParameterSyntax(this.Kind, this.attributeLists, this.modifiers, this.type, this.identifier, this.@default, GetDiagnostics(), annotations);
 
     internal ParameterSyntax(ObjectReader reader)
         : base(reader)
@@ -26187,9 +26531,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new IncompleteMemberSyntax(this.Kind, this.attributeLists, this.modifiers, this.type, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new IncompleteMemberSyntax(this.Kind, this.attributeLists, this.modifiers, this.type, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new IncompleteMemberSyntax(this.Kind, this.attributeLists, this.modifiers, this.type, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new IncompleteMemberSyntax(this.Kind, this.attributeLists, this.modifiers, this.type, GetDiagnostics(), annotations);
 
     internal IncompleteMemberSyntax(ObjectReader reader)
         : base(reader)
@@ -26303,9 +26649,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new SkippedTokensTriviaSyntax(this.Kind, this.tokens, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new SkippedTokensTriviaSyntax(this.Kind, this.tokens, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new SkippedTokensTriviaSyntax(this.Kind, this.tokens, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new SkippedTokensTriviaSyntax(this.Kind, this.tokens, GetDiagnostics(), annotations);
 
     internal SkippedTokensTriviaSyntax(ObjectReader reader)
         : base(reader)
@@ -26414,9 +26762,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new DocumentationCommentTriviaSyntax(this.Kind, this.content, this.endOfComment, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new DocumentationCommentTriviaSyntax(this.Kind, this.content, this.endOfComment, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new DocumentationCommentTriviaSyntax(this.Kind, this.content, this.endOfComment, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new DocumentationCommentTriviaSyntax(this.Kind, this.content, this.endOfComment, GetDiagnostics(), annotations);
 
     internal DocumentationCommentTriviaSyntax(ObjectReader reader)
         : base(reader)
@@ -26542,9 +26892,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new TypeCrefSyntax(this.Kind, this.type, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new TypeCrefSyntax(this.Kind, this.type, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new TypeCrefSyntax(this.Kind, this.type, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new TypeCrefSyntax(this.Kind, this.type, GetDiagnostics(), annotations);
 
     internal TypeCrefSyntax(ObjectReader reader)
         : base(reader)
@@ -26660,9 +27012,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new QualifiedCrefSyntax(this.Kind, this.container, this.dotToken, this.member, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new QualifiedCrefSyntax(this.Kind, this.container, this.dotToken, this.member, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new QualifiedCrefSyntax(this.Kind, this.container, this.dotToken, this.member, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new QualifiedCrefSyntax(this.Kind, this.container, this.dotToken, this.member, GetDiagnostics(), annotations);
 
     internal QualifiedCrefSyntax(ObjectReader reader)
         : base(reader)
@@ -26815,9 +27169,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new NameMemberCrefSyntax(this.Kind, this.name, this.parameters, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new NameMemberCrefSyntax(this.Kind, this.name, this.parameters, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new NameMemberCrefSyntax(this.Kind, this.name, this.parameters, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new NameMemberCrefSyntax(this.Kind, this.name, this.parameters, GetDiagnostics(), annotations);
 
     internal NameMemberCrefSyntax(ObjectReader reader)
         : base(reader)
@@ -26937,9 +27293,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new IndexerMemberCrefSyntax(this.Kind, this.thisKeyword, this.parameters, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new IndexerMemberCrefSyntax(this.Kind, this.thisKeyword, this.parameters, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new IndexerMemberCrefSyntax(this.Kind, this.thisKeyword, this.parameters, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new IndexerMemberCrefSyntax(this.Kind, this.thisKeyword, this.parameters, GetDiagnostics(), annotations);
 
     internal IndexerMemberCrefSyntax(ObjectReader reader)
         : base(reader)
@@ -27070,9 +27428,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new OperatorMemberCrefSyntax(this.Kind, this.operatorKeyword, this.operatorToken, this.parameters, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new OperatorMemberCrefSyntax(this.Kind, this.operatorKeyword, this.operatorToken, this.parameters, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new OperatorMemberCrefSyntax(this.Kind, this.operatorKeyword, this.operatorToken, this.parameters, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new OperatorMemberCrefSyntax(this.Kind, this.operatorKeyword, this.operatorToken, this.parameters, GetDiagnostics(), annotations);
 
     internal OperatorMemberCrefSyntax(ObjectReader reader)
         : base(reader)
@@ -27217,9 +27577,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ConversionOperatorMemberCrefSyntax(this.Kind, this.implicitOrExplicitKeyword, this.operatorKeyword, this.type, this.parameters, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ConversionOperatorMemberCrefSyntax(this.Kind, this.implicitOrExplicitKeyword, this.operatorKeyword, this.type, this.parameters, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ConversionOperatorMemberCrefSyntax(this.Kind, this.implicitOrExplicitKeyword, this.operatorKeyword, this.type, this.parameters, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ConversionOperatorMemberCrefSyntax(this.Kind, this.implicitOrExplicitKeyword, this.operatorKeyword, this.type, this.parameters, GetDiagnostics(), annotations);
 
     internal ConversionOperatorMemberCrefSyntax(ObjectReader reader)
         : base(reader)
@@ -27387,9 +27749,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new CrefParameterListSyntax(this.Kind, this.openParenToken, this.parameters, this.closeParenToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new CrefParameterListSyntax(this.Kind, this.openParenToken, this.parameters, this.closeParenToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new CrefParameterListSyntax(this.Kind, this.openParenToken, this.parameters, this.closeParenToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new CrefParameterListSyntax(this.Kind, this.openParenToken, this.parameters, this.closeParenToken, GetDiagnostics(), annotations);
 
     internal CrefParameterListSyntax(ObjectReader reader)
         : base(reader)
@@ -27526,9 +27890,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new CrefBracketedParameterListSyntax(this.Kind, this.openBracketToken, this.parameters, this.closeBracketToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new CrefBracketedParameterListSyntax(this.Kind, this.openBracketToken, this.parameters, this.closeBracketToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new CrefBracketedParameterListSyntax(this.Kind, this.openBracketToken, this.parameters, this.closeBracketToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new CrefBracketedParameterListSyntax(this.Kind, this.openBracketToken, this.parameters, this.closeBracketToken, GetDiagnostics(), annotations);
 
     internal CrefBracketedParameterListSyntax(ObjectReader reader)
         : base(reader)
@@ -27656,9 +28022,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new CrefParameterSyntax(this.Kind, this.refKindKeyword, this.type, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new CrefParameterSyntax(this.Kind, this.refKindKeyword, this.type, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new CrefParameterSyntax(this.Kind, this.refKindKeyword, this.type, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new CrefParameterSyntax(this.Kind, this.refKindKeyword, this.type, GetDiagnostics(), annotations);
 
     internal CrefParameterSyntax(ObjectReader reader)
         : base(reader)
@@ -27800,9 +28168,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new XmlElementSyntax(this.Kind, this.startTag, this.content, this.endTag, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new XmlElementSyntax(this.Kind, this.startTag, this.content, this.endTag, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new XmlElementSyntax(this.Kind, this.startTag, this.content, this.endTag, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new XmlElementSyntax(this.Kind, this.startTag, this.content, this.endTag, GetDiagnostics(), annotations);
 
     internal XmlElementSyntax(ObjectReader reader)
         : base(reader)
@@ -27943,9 +28313,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new XmlElementStartTagSyntax(this.Kind, this.lessThanToken, this.name, this.attributes, this.greaterThanToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new XmlElementStartTagSyntax(this.Kind, this.lessThanToken, this.name, this.attributes, this.greaterThanToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new XmlElementStartTagSyntax(this.Kind, this.lessThanToken, this.name, this.attributes, this.greaterThanToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new XmlElementStartTagSyntax(this.Kind, this.lessThanToken, this.name, this.attributes, this.greaterThanToken, GetDiagnostics(), annotations);
 
     internal XmlElementStartTagSyntax(ObjectReader reader)
         : base(reader)
@@ -28075,9 +28447,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new XmlElementEndTagSyntax(this.Kind, this.lessThanSlashToken, this.name, this.greaterThanToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new XmlElementEndTagSyntax(this.Kind, this.lessThanSlashToken, this.name, this.greaterThanToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new XmlElementEndTagSyntax(this.Kind, this.lessThanSlashToken, this.name, this.greaterThanToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new XmlElementEndTagSyntax(this.Kind, this.lessThanSlashToken, this.name, this.greaterThanToken, GetDiagnostics(), annotations);
 
     internal XmlElementEndTagSyntax(ObjectReader reader)
         : base(reader)
@@ -28218,9 +28592,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new XmlEmptyElementSyntax(this.Kind, this.lessThanToken, this.name, this.attributes, this.slashGreaterThanToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new XmlEmptyElementSyntax(this.Kind, this.lessThanToken, this.name, this.attributes, this.slashGreaterThanToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new XmlEmptyElementSyntax(this.Kind, this.lessThanToken, this.name, this.attributes, this.slashGreaterThanToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new XmlEmptyElementSyntax(this.Kind, this.lessThanToken, this.name, this.attributes, this.slashGreaterThanToken, GetDiagnostics(), annotations);
 
     internal XmlEmptyElementSyntax(ObjectReader reader)
         : base(reader)
@@ -28350,9 +28726,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new XmlNameSyntax(this.Kind, this.prefix, this.localName, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new XmlNameSyntax(this.Kind, this.prefix, this.localName, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new XmlNameSyntax(this.Kind, this.prefix, this.localName, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new XmlNameSyntax(this.Kind, this.prefix, this.localName, GetDiagnostics(), annotations);
 
     internal XmlNameSyntax(ObjectReader reader)
         : base(reader)
@@ -28459,9 +28837,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new XmlPrefixSyntax(this.Kind, this.prefix, this.colonToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new XmlPrefixSyntax(this.Kind, this.prefix, this.colonToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new XmlPrefixSyntax(this.Kind, this.prefix, this.colonToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new XmlPrefixSyntax(this.Kind, this.prefix, this.colonToken, GetDiagnostics(), annotations);
 
     internal XmlPrefixSyntax(ObjectReader reader)
         : base(reader)
@@ -28629,9 +29009,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new XmlTextAttributeSyntax(this.Kind, this.name, this.equalsToken, this.startQuoteToken, this.textTokens, this.endQuoteToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new XmlTextAttributeSyntax(this.Kind, this.name, this.equalsToken, this.startQuoteToken, this.textTokens, this.endQuoteToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new XmlTextAttributeSyntax(this.Kind, this.name, this.equalsToken, this.startQuoteToken, this.textTokens, this.endQuoteToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new XmlTextAttributeSyntax(this.Kind, this.name, this.equalsToken, this.startQuoteToken, this.textTokens, this.endQuoteToken, GetDiagnostics(), annotations);
 
     internal XmlTextAttributeSyntax(ObjectReader reader)
         : base(reader)
@@ -28786,9 +29168,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new XmlCrefAttributeSyntax(this.Kind, this.name, this.equalsToken, this.startQuoteToken, this.cref, this.endQuoteToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new XmlCrefAttributeSyntax(this.Kind, this.name, this.equalsToken, this.startQuoteToken, this.cref, this.endQuoteToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new XmlCrefAttributeSyntax(this.Kind, this.name, this.equalsToken, this.startQuoteToken, this.cref, this.endQuoteToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new XmlCrefAttributeSyntax(this.Kind, this.name, this.equalsToken, this.startQuoteToken, this.cref, this.endQuoteToken, GetDiagnostics(), annotations);
 
     internal XmlCrefAttributeSyntax(ObjectReader reader)
         : base(reader)
@@ -28943,9 +29327,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new XmlNameAttributeSyntax(this.Kind, this.name, this.equalsToken, this.startQuoteToken, this.identifier, this.endQuoteToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new XmlNameAttributeSyntax(this.Kind, this.name, this.equalsToken, this.startQuoteToken, this.identifier, this.endQuoteToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new XmlNameAttributeSyntax(this.Kind, this.name, this.equalsToken, this.startQuoteToken, this.identifier, this.endQuoteToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new XmlNameAttributeSyntax(this.Kind, this.name, this.equalsToken, this.startQuoteToken, this.identifier, this.endQuoteToken, GetDiagnostics(), annotations);
 
     internal XmlNameAttributeSyntax(ObjectReader reader)
         : base(reader)
@@ -29073,9 +29459,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new XmlTextSyntax(this.Kind, this.textTokens, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new XmlTextSyntax(this.Kind, this.textTokens, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new XmlTextSyntax(this.Kind, this.textTokens, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new XmlTextSyntax(this.Kind, this.textTokens, GetDiagnostics(), annotations);
 
     internal XmlTextSyntax(ObjectReader reader)
         : base(reader)
@@ -29193,9 +29581,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new XmlCDataSectionSyntax(this.Kind, this.startCDataToken, this.textTokens, this.endCDataToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new XmlCDataSectionSyntax(this.Kind, this.startCDataToken, this.textTokens, this.endCDataToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new XmlCDataSectionSyntax(this.Kind, this.startCDataToken, this.textTokens, this.endCDataToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new XmlCDataSectionSyntax(this.Kind, this.startCDataToken, this.textTokens, this.endCDataToken, GetDiagnostics(), annotations);
 
     internal XmlCDataSectionSyntax(ObjectReader reader)
         : base(reader)
@@ -29336,9 +29726,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new XmlProcessingInstructionSyntax(this.Kind, this.startProcessingInstructionToken, this.name, this.textTokens, this.endProcessingInstructionToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new XmlProcessingInstructionSyntax(this.Kind, this.startProcessingInstructionToken, this.name, this.textTokens, this.endProcessingInstructionToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new XmlProcessingInstructionSyntax(this.Kind, this.startProcessingInstructionToken, this.name, this.textTokens, this.endProcessingInstructionToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new XmlProcessingInstructionSyntax(this.Kind, this.startProcessingInstructionToken, this.name, this.textTokens, this.endProcessingInstructionToken, GetDiagnostics(), annotations);
 
     internal XmlProcessingInstructionSyntax(ObjectReader reader)
         : base(reader)
@@ -29477,9 +29869,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new XmlCommentSyntax(this.Kind, this.lessThanExclamationMinusMinusToken, this.textTokens, this.minusMinusGreaterThanToken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new XmlCommentSyntax(this.Kind, this.lessThanExclamationMinusMinusToken, this.textTokens, this.minusMinusGreaterThanToken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new XmlCommentSyntax(this.Kind, this.lessThanExclamationMinusMinusToken, this.textTokens, this.minusMinusGreaterThanToken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new XmlCommentSyntax(this.Kind, this.lessThanExclamationMinusMinusToken, this.textTokens, this.minusMinusGreaterThanToken, GetDiagnostics(), annotations);
 
     internal XmlCommentSyntax(ObjectReader reader)
         : base(reader)
@@ -29692,9 +30086,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new IfDirectiveTriviaSyntax(this.Kind, this.hashToken, this.ifKeyword, this.condition, this.endOfDirectiveToken, this.isActive, this.branchTaken, this.conditionValue, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new IfDirectiveTriviaSyntax(this.Kind, this.hashToken, this.ifKeyword, this.condition, this.endOfDirectiveToken, this.isActive, this.branchTaken, this.conditionValue, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new IfDirectiveTriviaSyntax(this.Kind, this.hashToken, this.ifKeyword, this.condition, this.endOfDirectiveToken, this.isActive, this.branchTaken, this.conditionValue, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new IfDirectiveTriviaSyntax(this.Kind, this.hashToken, this.ifKeyword, this.condition, this.endOfDirectiveToken, this.isActive, this.branchTaken, this.conditionValue, GetDiagnostics(), annotations);
 
     internal IfDirectiveTriviaSyntax(ObjectReader reader)
         : base(reader)
@@ -29854,9 +30250,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ElifDirectiveTriviaSyntax(this.Kind, this.hashToken, this.elifKeyword, this.condition, this.endOfDirectiveToken, this.isActive, this.branchTaken, this.conditionValue, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ElifDirectiveTriviaSyntax(this.Kind, this.hashToken, this.elifKeyword, this.condition, this.endOfDirectiveToken, this.isActive, this.branchTaken, this.conditionValue, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ElifDirectiveTriviaSyntax(this.Kind, this.hashToken, this.elifKeyword, this.condition, this.endOfDirectiveToken, this.isActive, this.branchTaken, this.conditionValue, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ElifDirectiveTriviaSyntax(this.Kind, this.hashToken, this.elifKeyword, this.condition, this.endOfDirectiveToken, this.isActive, this.branchTaken, this.conditionValue, GetDiagnostics(), annotations);
 
     internal ElifDirectiveTriviaSyntax(ObjectReader reader)
         : base(reader)
@@ -30002,9 +30400,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ElseDirectiveTriviaSyntax(this.Kind, this.hashToken, this.elseKeyword, this.endOfDirectiveToken, this.isActive, this.branchTaken, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ElseDirectiveTriviaSyntax(this.Kind, this.hashToken, this.elseKeyword, this.endOfDirectiveToken, this.isActive, this.branchTaken, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ElseDirectiveTriviaSyntax(this.Kind, this.hashToken, this.elseKeyword, this.endOfDirectiveToken, this.isActive, this.branchTaken, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ElseDirectiveTriviaSyntax(this.Kind, this.hashToken, this.elseKeyword, this.endOfDirectiveToken, this.isActive, this.branchTaken, GetDiagnostics(), annotations);
 
     internal ElseDirectiveTriviaSyntax(ObjectReader reader)
         : base(reader)
@@ -30136,9 +30536,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new EndIfDirectiveTriviaSyntax(this.Kind, this.hashToken, this.endIfKeyword, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new EndIfDirectiveTriviaSyntax(this.Kind, this.hashToken, this.endIfKeyword, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new EndIfDirectiveTriviaSyntax(this.Kind, this.hashToken, this.endIfKeyword, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new EndIfDirectiveTriviaSyntax(this.Kind, this.hashToken, this.endIfKeyword, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
 
     internal EndIfDirectiveTriviaSyntax(ObjectReader reader)
         : base(reader)
@@ -30268,9 +30670,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new RegionDirectiveTriviaSyntax(this.Kind, this.hashToken, this.regionKeyword, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new RegionDirectiveTriviaSyntax(this.Kind, this.hashToken, this.regionKeyword, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new RegionDirectiveTriviaSyntax(this.Kind, this.hashToken, this.regionKeyword, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new RegionDirectiveTriviaSyntax(this.Kind, this.hashToken, this.regionKeyword, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
 
     internal RegionDirectiveTriviaSyntax(ObjectReader reader)
         : base(reader)
@@ -30400,9 +30804,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new EndRegionDirectiveTriviaSyntax(this.Kind, this.hashToken, this.endRegionKeyword, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new EndRegionDirectiveTriviaSyntax(this.Kind, this.hashToken, this.endRegionKeyword, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new EndRegionDirectiveTriviaSyntax(this.Kind, this.hashToken, this.endRegionKeyword, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new EndRegionDirectiveTriviaSyntax(this.Kind, this.hashToken, this.endRegionKeyword, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
 
     internal EndRegionDirectiveTriviaSyntax(ObjectReader reader)
         : base(reader)
@@ -30532,9 +30938,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ErrorDirectiveTriviaSyntax(this.Kind, this.hashToken, this.errorKeyword, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ErrorDirectiveTriviaSyntax(this.Kind, this.hashToken, this.errorKeyword, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ErrorDirectiveTriviaSyntax(this.Kind, this.hashToken, this.errorKeyword, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ErrorDirectiveTriviaSyntax(this.Kind, this.hashToken, this.errorKeyword, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
 
     internal ErrorDirectiveTriviaSyntax(ObjectReader reader)
         : base(reader)
@@ -30664,9 +31072,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new WarningDirectiveTriviaSyntax(this.Kind, this.hashToken, this.warningKeyword, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new WarningDirectiveTriviaSyntax(this.Kind, this.hashToken, this.warningKeyword, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new WarningDirectiveTriviaSyntax(this.Kind, this.hashToken, this.warningKeyword, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new WarningDirectiveTriviaSyntax(this.Kind, this.hashToken, this.warningKeyword, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
 
     internal WarningDirectiveTriviaSyntax(ObjectReader reader)
         : base(reader)
@@ -30796,9 +31206,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new BadDirectiveTriviaSyntax(this.Kind, this.hashToken, this.identifier, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new BadDirectiveTriviaSyntax(this.Kind, this.hashToken, this.identifier, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new BadDirectiveTriviaSyntax(this.Kind, this.hashToken, this.identifier, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new BadDirectiveTriviaSyntax(this.Kind, this.hashToken, this.identifier, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
 
     internal BadDirectiveTriviaSyntax(ObjectReader reader)
         : base(reader)
@@ -30937,9 +31349,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new DefineDirectiveTriviaSyntax(this.Kind, this.hashToken, this.defineKeyword, this.name, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new DefineDirectiveTriviaSyntax(this.Kind, this.hashToken, this.defineKeyword, this.name, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new DefineDirectiveTriviaSyntax(this.Kind, this.hashToken, this.defineKeyword, this.name, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new DefineDirectiveTriviaSyntax(this.Kind, this.hashToken, this.defineKeyword, this.name, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
 
     internal DefineDirectiveTriviaSyntax(ObjectReader reader)
         : base(reader)
@@ -31085,9 +31499,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new UndefDirectiveTriviaSyntax(this.Kind, this.hashToken, this.undefKeyword, this.name, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new UndefDirectiveTriviaSyntax(this.Kind, this.hashToken, this.undefKeyword, this.name, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new UndefDirectiveTriviaSyntax(this.Kind, this.hashToken, this.undefKeyword, this.name, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new UndefDirectiveTriviaSyntax(this.Kind, this.hashToken, this.undefKeyword, this.name, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
 
     internal UndefDirectiveTriviaSyntax(ObjectReader reader)
         : base(reader)
@@ -31251,9 +31667,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new LineDirectiveTriviaSyntax(this.Kind, this.hashToken, this.lineKeyword, this.line, this.file, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new LineDirectiveTriviaSyntax(this.Kind, this.hashToken, this.lineKeyword, this.line, this.file, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new LineDirectiveTriviaSyntax(this.Kind, this.hashToken, this.lineKeyword, this.line, this.file, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new LineDirectiveTriviaSyntax(this.Kind, this.hashToken, this.lineKeyword, this.line, this.file, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
 
     internal LineDirectiveTriviaSyntax(ObjectReader reader)
         : base(reader)
@@ -31451,9 +31869,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new PragmaWarningDirectiveTriviaSyntax(this.Kind, this.hashToken, this.pragmaKeyword, this.warningKeyword, this.disableOrRestoreKeyword, this.nullableKeyword, this.errorCodes, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new PragmaWarningDirectiveTriviaSyntax(this.Kind, this.hashToken, this.pragmaKeyword, this.warningKeyword, this.disableOrRestoreKeyword, this.nullableKeyword, this.errorCodes, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new PragmaWarningDirectiveTriviaSyntax(this.Kind, this.hashToken, this.pragmaKeyword, this.warningKeyword, this.disableOrRestoreKeyword, this.nullableKeyword, this.errorCodes, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new PragmaWarningDirectiveTriviaSyntax(this.Kind, this.hashToken, this.pragmaKeyword, this.warningKeyword, this.disableOrRestoreKeyword, this.nullableKeyword, this.errorCodes, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
 
     internal PragmaWarningDirectiveTriviaSyntax(ObjectReader reader)
         : base(reader)
@@ -31647,9 +32067,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new PragmaChecksumDirectiveTriviaSyntax(this.Kind, this.hashToken, this.pragmaKeyword, this.checksumKeyword, this.file, this.guid, this.bytes, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new PragmaChecksumDirectiveTriviaSyntax(this.Kind, this.hashToken, this.pragmaKeyword, this.checksumKeyword, this.file, this.guid, this.bytes, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new PragmaChecksumDirectiveTriviaSyntax(this.Kind, this.hashToken, this.pragmaKeyword, this.checksumKeyword, this.file, this.guid, this.bytes, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new PragmaChecksumDirectiveTriviaSyntax(this.Kind, this.hashToken, this.pragmaKeyword, this.checksumKeyword, this.file, this.guid, this.bytes, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
 
     internal PragmaChecksumDirectiveTriviaSyntax(ObjectReader reader)
         : base(reader)
@@ -31816,9 +32238,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ReferenceDirectiveTriviaSyntax(this.Kind, this.hashToken, this.referenceKeyword, this.file, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ReferenceDirectiveTriviaSyntax(this.Kind, this.hashToken, this.referenceKeyword, this.file, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ReferenceDirectiveTriviaSyntax(this.Kind, this.hashToken, this.referenceKeyword, this.file, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ReferenceDirectiveTriviaSyntax(this.Kind, this.hashToken, this.referenceKeyword, this.file, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
 
     internal ReferenceDirectiveTriviaSyntax(ObjectReader reader)
         : base(reader)
@@ -31964,9 +32388,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new LoadDirectiveTriviaSyntax(this.Kind, this.hashToken, this.loadKeyword, this.file, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new LoadDirectiveTriviaSyntax(this.Kind, this.hashToken, this.loadKeyword, this.file, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new LoadDirectiveTriviaSyntax(this.Kind, this.hashToken, this.loadKeyword, this.file, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new LoadDirectiveTriviaSyntax(this.Kind, this.hashToken, this.loadKeyword, this.file, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
 
     internal LoadDirectiveTriviaSyntax(ObjectReader reader)
         : base(reader)
@@ -32103,9 +32529,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new ShebangDirectiveTriviaSyntax(this.Kind, this.hashToken, this.exclamationToken, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new ShebangDirectiveTriviaSyntax(this.Kind, this.hashToken, this.exclamationToken, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new ShebangDirectiveTriviaSyntax(this.Kind, this.hashToken, this.exclamationToken, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new ShebangDirectiveTriviaSyntax(this.Kind, this.hashToken, this.exclamationToken, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
 
     internal ShebangDirectiveTriviaSyntax(ObjectReader reader)
         : base(reader)
@@ -32244,9 +32672,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         return this;
     }
 
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics) => new NullableDirectiveTriviaSyntax(this.Kind, this.hashToken, this.nullableKeyword, this.settingToken, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+        => new NullableDirectiveTriviaSyntax(this.Kind, this.hashToken, this.nullableKeyword, this.settingToken, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
 
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations) => new NullableDirectiveTriviaSyntax(this.Kind, this.hashToken, this.nullableKeyword, this.settingToken, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+        => new NullableDirectiveTriviaSyntax(this.Kind, this.hashToken, this.nullableKeyword, this.settingToken, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
 
     internal NullableDirectiveTriviaSyntax(ObjectReader reader)
         : base(reader)

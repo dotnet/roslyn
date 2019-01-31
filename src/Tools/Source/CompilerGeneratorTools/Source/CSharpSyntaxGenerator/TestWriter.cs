@@ -30,7 +30,6 @@ namespace CSharpSyntaxGenerator
             OpenBlock();
 
             WriteLine();
-
             WriteLine("public partial class GreenNodeTests");
             OpenBlock();
 
@@ -51,7 +50,6 @@ namespace CSharpSyntaxGenerator
             CloseBlock();
 
             WriteLine();
-
             WriteLine("public partial class RedNodeTests");
             OpenBlock();
 

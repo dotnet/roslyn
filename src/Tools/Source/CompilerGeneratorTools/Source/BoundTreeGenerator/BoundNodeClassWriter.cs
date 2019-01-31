@@ -1194,21 +1194,18 @@ namespace BoundTreeGenerator
                         if (!fields.Any())
                         {
                             WriteLine("public override BoundNode Visit{0}({1} node) => null;", StripBound(node.Name), node.Name);
+                            continue;
                         }
-                        else
+                        WriteLine("public override BoundNode Visit{0}({1} node)", StripBound(node.Name), node.Name);
+                        Brace();
+                        foreach (Field field in fields)
                         {
-                            WriteLine("public override BoundNode Visit{0}({1} node)", StripBound(node.Name), node.Name);
-                            Brace();
-                            foreach (Field field in fields)
-                            {
-                                WriteLine("this.Visit{1}(node.{0});", field.Name, IsNodeList(field.Type) ? "List" : "");
-                            }
-                            WriteLine("return null;");
-                            Unbrace();
+                            WriteLine("this.Visit{1}(node.{0});", field.Name, IsNodeList(field.Type) ? "List" : "");
                         }
+                        WriteLine("return null;");
+                        Unbrace();
                     }
                     Unbrace();
-
 
                     break;
 
@@ -1233,7 +1230,6 @@ namespace BoundTreeGenerator
 
                     Outdent();
                     WriteLine("End Class");
-
 
                     break;
 
