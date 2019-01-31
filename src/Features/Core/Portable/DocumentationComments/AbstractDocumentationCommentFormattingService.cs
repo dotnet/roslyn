@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         {
             private bool _anyNonWhitespaceSinceLastPara;
             private bool _pendingParagraphBreak;
+            private bool _pendingLineBreak;
             private bool _pendingSingleSpace;
 
             private static TaggedText s_spacePart = new TaggedText(TextTags.Space, " ");
@@ -72,6 +73,20 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 _anyNonWhitespaceSinceLastPara = false;
             }
 
+            public void MarkLineBreak()
+            {
+                // If this is a <br> with nothing before it, then skip it.
+                if (_anyNonWhitespaceSinceLastPara == false)
+                {
+                    return;
+                }
+
+                _pendingLineBreak = true;
+
+                // Reset flag.
+                _anyNonWhitespaceSinceLastPara = false;
+            }
+
             public string GetText()
             {
                 return Builder.GetFullText();
@@ -84,12 +99,17 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                     Builder.Add(s_newlinePart);
                     Builder.Add(s_newlinePart);
                 }
+                else if (_pendingLineBreak)
+                {
+                    Builder.Add(s_newlinePart);
+                }
                 else if (_pendingSingleSpace)
                 {
                     Builder.Add(s_spacePart);
                 }
 
                 _pendingParagraphBreak = false;
+                _pendingLineBreak = false;
                 _pendingSingleSpace = false;
             }
         }
@@ -174,6 +194,10 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             if (name == "para")
             {
                 state.MarkBeginOrEndPara();
+            }
+            else if (name == "br")
+            {
+                state.MarkLineBreak();
             }
 
             foreach (var childNode in element.Nodes())
