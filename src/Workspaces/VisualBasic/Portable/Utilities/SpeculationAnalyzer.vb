@@ -384,7 +384,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 Dim newWithStatement = DirectCast(currentReplacedNode, WithStatementSyntax)
 
                 Return ReplacementBreaksWithStatement(originalWithStatement, newWithStatement)
-
             Else
                 Dim originalCollectionRangeVariableSyntax = TryCast(currentOriginalNode, CollectionRangeVariableSyntax)
                 If originalCollectionRangeVariableSyntax IsNot Nothing Then
@@ -423,15 +422,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 End If
             End If
 
-            Return False
-        End Function
-
-        Private Function ReplacementBreaksGetTypeResolution(originalExpression As ExpressionSyntax, replacedExpression As ExpressionSyntax) As Boolean
-            Dim originalExpressionSymbolInfo = Me.OriginalSemanticModel.GetSymbolInfo(originalExpression)
-            Dim replacedExpressionSymbolInfo = Me.SpeculativeSemanticModel.GetSymbolInfo(replacedExpression)
-
-            Dim originalExpressionTypeInfo = Me.OriginalSemanticModel.GetTypeInfo(originalExpression)
-            Dim replacedExpressionTypeInfo = Me.SpeculativeSemanticModel.GetTypeInfo(replacedExpression)
             Return False
         End Function
 

@@ -476,7 +476,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // If replacing the node will result in a change in overload resolution, we won't remove it.
                 var originalExpression = (TExpressionSyntax)currentOriginalNode;
                 var newExpression = (TExpressionSyntax)currentReplacedNode;
-
                 if (ReplacementBreaksExpression(originalExpression, newExpression))
                 {
                     return true;
