@@ -1137,6 +1137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 case MemberDeclarationSyntax memberDecl: return memberDecl.AttributeLists;
                 case AccessorDeclarationSyntax accessor: return accessor.AttributeLists;
+                case ParameterSyntax parameter: return parameter.AttributeLists;
                 case CompilationUnitSyntax compilationUnit: return compilationUnit.AttributeLists;
                 default:
                     return default;
@@ -1145,47 +1146,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static SyntaxNode WithAttributeLists(SyntaxNode declaration, SyntaxList<AttributeListSyntax> attributeLists)
         {
-            switch (declaration.Kind())
+            switch (declaration)
             {
-                case SyntaxKind.ClassDeclaration:
-                    return ((ClassDeclarationSyntax)declaration).WithAttributeLists(attributeLists);
-                case SyntaxKind.StructDeclaration:
-                    return ((StructDeclarationSyntax)declaration).WithAttributeLists(attributeLists);
-                case SyntaxKind.InterfaceDeclaration:
-                    return ((InterfaceDeclarationSyntax)declaration).WithAttributeLists(attributeLists);
-                case SyntaxKind.EnumDeclaration:
-                    return ((EnumDeclarationSyntax)declaration).WithAttributeLists(attributeLists);
-                case SyntaxKind.DelegateDeclaration:
-                    return ((DelegateDeclarationSyntax)declaration).WithAttributeLists(attributeLists);
-                case SyntaxKind.MethodDeclaration:
-                    return ((MethodDeclarationSyntax)declaration).WithAttributeLists(attributeLists);
-                case SyntaxKind.OperatorDeclaration:
-                    return ((OperatorDeclarationSyntax)declaration).WithAttributeLists(attributeLists);
-                case SyntaxKind.ConversionOperatorDeclaration:
-                    return ((ConversionOperatorDeclarationSyntax)declaration).WithAttributeLists(attributeLists);
-                case SyntaxKind.ConstructorDeclaration:
-                    return ((ConstructorDeclarationSyntax)declaration).WithAttributeLists(attributeLists);
-                case SyntaxKind.DestructorDeclaration:
-                    return ((DestructorDeclarationSyntax)declaration).WithAttributeLists(attributeLists);
-                case SyntaxKind.FieldDeclaration:
-                    return ((FieldDeclarationSyntax)declaration).WithAttributeLists(attributeLists);
-                case SyntaxKind.PropertyDeclaration:
-                    return ((PropertyDeclarationSyntax)declaration).WithAttributeLists(attributeLists);
-                case SyntaxKind.IndexerDeclaration:
-                    return ((IndexerDeclarationSyntax)declaration).WithAttributeLists(attributeLists);
-                case SyntaxKind.EventFieldDeclaration:
-                    return ((EventFieldDeclarationSyntax)declaration).WithAttributeLists(attributeLists);
-                case SyntaxKind.EventDeclaration:
-                    return ((EventDeclarationSyntax)declaration).WithAttributeLists(attributeLists);
-                case SyntaxKind.Parameter:
-                    return ((ParameterSyntax)declaration).WithAttributeLists(attributeLists);
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                    return ((AccessorDeclarationSyntax)declaration).WithAttributeLists(attributeLists);
-                case SyntaxKind.CompilationUnit:
-                    return ((CompilationUnitSyntax)declaration).WithAttributeLists(AsAssemblyAttributes(attributeLists));
+                case MemberDeclarationSyntax memberDecl: return memberDecl.WithAttributeLists(attributeLists);
+                case AccessorDeclarationSyntax accessor: return accessor.WithAttributeLists(attributeLists);
+                case ParameterSyntax parameter: return parameter.WithAttributeLists(attributeLists);
+                case CompilationUnitSyntax compilationUnit: return compilationUnit.WithAttributeLists(attributeLists);
                 default:
                     return declaration;
             }
@@ -1594,54 +1560,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static SyntaxTokenList GetModifierTokens(SyntaxNode declaration)
         {
-            switch (declaration.Kind())
+            switch (declaration)
             {
-                case SyntaxKind.ClassDeclaration:
-                    return ((ClassDeclarationSyntax)declaration).Modifiers;
-                case SyntaxKind.StructDeclaration:
-                    return ((StructDeclarationSyntax)declaration).Modifiers;
-                case SyntaxKind.InterfaceDeclaration:
-                    return ((InterfaceDeclarationSyntax)declaration).Modifiers;
-                case SyntaxKind.EnumDeclaration:
-                    return ((EnumDeclarationSyntax)declaration).Modifiers;
-                case SyntaxKind.DelegateDeclaration:
-                    return ((DelegateDeclarationSyntax)declaration).Modifiers;
-                case SyntaxKind.MethodDeclaration:
-                    return ((MethodDeclarationSyntax)declaration).Modifiers;
-                case SyntaxKind.OperatorDeclaration:
-                    return ((OperatorDeclarationSyntax)declaration).Modifiers;
-                case SyntaxKind.ConversionOperatorDeclaration:
-                    return ((ConversionOperatorDeclarationSyntax)declaration).Modifiers;
-                case SyntaxKind.ConstructorDeclaration:
-                    return ((ConstructorDeclarationSyntax)declaration).Modifiers;
-                case SyntaxKind.DestructorDeclaration:
-                    return ((DestructorDeclarationSyntax)declaration).Modifiers;
-                case SyntaxKind.FieldDeclaration:
-                    return ((FieldDeclarationSyntax)declaration).Modifiers;
-                case SyntaxKind.PropertyDeclaration:
-                    return ((PropertyDeclarationSyntax)declaration).Modifiers;
-                case SyntaxKind.IndexerDeclaration:
-                    return ((IndexerDeclarationSyntax)declaration).Modifiers;
-                case SyntaxKind.EventFieldDeclaration:
-                    return ((EventFieldDeclarationSyntax)declaration).Modifiers;
-                case SyntaxKind.EventDeclaration:
-                    return ((EventDeclarationSyntax)declaration).Modifiers;
-                case SyntaxKind.Parameter:
-                    return ((ParameterSyntax)declaration).Modifiers;
-                case SyntaxKind.LocalDeclarationStatement:
-                    return ((LocalDeclarationStatementSyntax)declaration).Modifiers;
-                case SyntaxKind.VariableDeclaration:
-                case SyntaxKind.VariableDeclarator:
-                    if (declaration.Parent != null)
-                    {
-                        return GetModifierTokens(declaration.Parent);
-                    }
-                    break;
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                    return ((AccessorDeclarationSyntax)declaration).Modifiers;
+                case MemberDeclarationSyntax memberDecl: return memberDecl.Modifiers;
+                case ParameterSyntax parameter: return parameter.Modifiers;
+                case LocalDeclarationStatementSyntax localDecl: return localDecl.Modifiers;
+                case AccessorDeclarationSyntax accessor: return accessor.Modifiers;
+                case VariableDeclarationSyntax varDecl: return GetModifierTokens(varDecl.Parent);
+                case VariableDeclaratorSyntax varDecl: return GetModifierTokens(varDecl.Parent);
             }
 
             return default;
