@@ -2218,7 +2218,8 @@ tryAgain:
                     return this.ParseConversionOperatorDeclaration(attributes, modifiers);
                 }
 
-                if (this.CurrentToken.Kind == SyntaxKind.NamespaceKeyword && parentKind == SyntaxKind.CompilationUnit)
+                if (this.CurrentToken.Kind == SyntaxKind.NamespaceKeyword &&
+                    parentKind == SyntaxKind.CompilationUnit)
                 {
                     // we found a namespace with modifier or an attribute: ignore the attribute/modifier and parse as namespace
                     if (attributes.Count > 0)
@@ -2233,19 +2234,7 @@ tryAgain:
                         modifiers[0] = this.AddError(modifiers[0], ErrorCode.ERR_BadModifiersOnNamespace);
                     }
 
-                    var namespaceDecl = ParseNamespaceDeclaration();
-
-                    if (modifiers.Count > 0)
-                    {
-                        namespaceDecl = AddLeadingSkippedSyntax(namespaceDecl, modifiers.ToListNode());
-                    }
-
-                    if (attributes.Count > 0)
-                    {
-                        namespaceDecl = AddLeadingSkippedSyntax(namespaceDecl, attributes.ToListNode());
-                    }
-
-                    return namespaceDecl;
+                    return _syntaxFactory.IncompleteMember(attributes, modifiers.ToList(), type: null);
                 }
 
                 // It's valid to have a type declaration here -- check for those
