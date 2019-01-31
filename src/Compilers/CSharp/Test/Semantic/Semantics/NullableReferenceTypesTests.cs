@@ -77524,6 +77524,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem(33011, "https://github.com/dotnet/roslyn/issues/33011")]
         public void Deconstruction_21()
         {
             var source =
@@ -77539,7 +77540,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // PROTOTYPE: Should not warn for u.y.
+            // https://github.com/dotnet/roslyn/issues/33011: Should warn for `u.x` only.
             comp.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         u.x.ToString(); // 1
@@ -77550,6 +77551,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem(33011, "https://github.com/dotnet/roslyn/issues/33011")]
         public void Deconstruction_22()
         {
             var source =
@@ -77569,7 +77571,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // PROTOTYPE: Should not warn for t.x.
+            // https://github.com/dotnet/roslyn/issues/33011: Should warn for `t.y` only.
             comp.VerifyDiagnostics(
                 // (12,9): warning CS8602: Possible dereference of a null reference.
                 //         t.x.ToString();
@@ -77581,6 +77583,7 @@ class Program
 
         // As above, but with struct type.
         [Fact]
+        [WorkItem(33011, "https://github.com/dotnet/roslyn/issues/33011")]
         public void Deconstruction_23()
         {
             var source =
@@ -77600,7 +77603,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // PROTOTYPE: Should not warn for t.x.
+            // https://github.com/dotnet/roslyn/issues/33011: Should warn for `t.y` only.
             comp.VerifyDiagnostics(
                 // (12,9): warning CS8602: Possible dereference of a null reference.
                 //         t.x.ToString();
@@ -78008,7 +78011,7 @@ class Program
         }
 
         [Fact]
-        public void Deconstruction_ImplicitBoxingConversion()
+        public void Deconstruction_ImplicitBoxingConversion_01()
         {
             var source =
 @"class Program
@@ -78040,7 +78043,33 @@ class Program
         }
 
         [Fact]
-        public void Deconstruction_ImplicitNullableConversion()
+        [WorkItem(33011, "https://github.com/dotnet/roslyn/issues/33011")]
+        public void Deconstruction_ImplicitBoxingConversion_02()
+        {
+            var source =
+@"class Program
+{
+    static void F<T>(T x, T? y) where T : struct
+    {
+        (T?, T?) t = (x, y);
+        (object? a, object? b) = t;
+        a.ToString();
+        b.ToString(); // 1
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/33011: Should warn for `b` only.
+            comp.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         a.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(7, 9),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         b.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b").WithLocation(8, 9));
+        }
+
+        [Fact]
+        public void Deconstruction_ImplicitNullableConversion_01()
         {
             var source =
 @"struct S
@@ -78055,8 +78084,8 @@ class Program
         _ = x.Value;
         x.Value.F.ToString();
         _ = y.Value;
-        y.Value.F.ToString(); // 2
-        _ = z.Value; // 3
+        y.Value.F.ToString(); // 1
+        _ = z.Value; // 2
         z.Value.F.ToString();
     }
 }";
@@ -78066,11 +78095,44 @@ class Program
                 //     internal object F;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("S.F", "null").WithLocation(3, 21),
                 // (13,9): warning CS8602: Possible dereference of a null reference.
-                //         y.Value.F.ToString(); // 2
+                //         y.Value.F.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.Value.F").WithLocation(13, 9),
                 // (14,13): warning CS8629: Nullable value type may be null.
-                //         _ = z.Value; // 3
+                //         _ = z.Value; // 2
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "z.Value").WithLocation(14, 13));
+        }
+
+        [Fact]
+        [WorkItem(33011, "https://github.com/dotnet/roslyn/issues/33011")]
+        public void Deconstruction_ImplicitNullableConversion_02()
+        {
+            var source =
+@"#pragma warning disable 0649
+struct S
+{
+    internal object F;
+}
+class Program
+{
+    static void F(S s)
+    {
+        (S, S) t = (s, new S());
+        (S? x, S? y) = t;
+        _ = x.Value;
+        x.Value.F.ToString();
+        _ = y.Value;
+        y.Value.F.ToString(); // 1
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/33011: Should warn for `y.Value.F` only.
+            comp.VerifyDiagnostics(
+                // (12,13): warning CS8629: Nullable value type may be null.
+                //         _ = x.Value;
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x.Value").WithLocation(12, 13),
+                // (14,13): warning CS8629: Nullable value type may be null.
+                //         _ = y.Value;
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y.Value").WithLocation(14, 13));
         }
 
         [Fact]

@@ -4454,10 +4454,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (expr.Type is TupleTypeSymbol tupleType)
             {
-                // PROTOTYPE: Dropping conversion.UnderingConversions[i].
+                // https://github.com/dotnet/roslyn/issues/33011: Should include conversion.UnderlyingConversions[i].
+                // For instance, Boxing conversions (see Deconstruction_ImplicitBoxingConversion_02) and
+                // ImplicitNullable conversions (see Deconstruction_ImplicitNullableConversion_02).
                 VisitRvalue(expr);
                 var fields = tupleType.TupleElements;
-                return fields.SelectAsArray((f, i, e) => (BoundExpression)new BoundFieldAccess(e.Syntax, e, f, constantValueOpt: null), expr);
+                return fields.SelectAsArray((f, e) => (BoundExpression)new BoundFieldAccess(e.Syntax, e, f, constantValueOpt: null), expr);
             }
 
             throw ExceptionUtilities.Unreachable;

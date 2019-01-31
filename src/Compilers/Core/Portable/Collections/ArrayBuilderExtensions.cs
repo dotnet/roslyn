@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (var item in builder)
             {
-                getNested(item)?.Free();
+                getNested(item)?.FreeAll(getNested);
             }
             builder.Free();
         }
