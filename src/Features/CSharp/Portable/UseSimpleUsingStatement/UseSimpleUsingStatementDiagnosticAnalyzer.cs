@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             var usingStatement = (UsingStatementSyntax)context.Node;
 
             var syntaxTree = context.Node.SyntaxTree;
-            //var options = (CSharpParseOptions)syntaxTree.Options;
-            //if (options.LanguageVersion < LanguageVersion.CSharp8)
-            //{
-            //    return;
-            //}
+            var options = (CSharpParseOptions)syntaxTree.Options;
+            if (options.LanguageVersion < LanguageVersion.CSharp8)
+            {
+                return;
+            }
 
             var cancellationToken = context.CancellationToken;
             var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
