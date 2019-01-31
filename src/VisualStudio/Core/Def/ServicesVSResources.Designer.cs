@@ -2137,6 +2137,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer simple &apos;using&apos; statement.
+        /// </summary>
+        internal static string Prefer_simple_using_statement {
+            get {
+                return ResourceManager.GetString("Prefer_simple_using_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer static local functions.
         /// </summary>
         internal static string Prefer_static_local_functions {

@@ -755,6 +755,35 @@ class Customer2
 }}
 ";
 
+        private static readonly string s_preferSimpleUsingStatement = $@"
+using System;
+
+class Customer1
+{{
+//[
+    // {ServicesVSResources.Prefer_colon}
+    void Method()
+    {{
+        using var resource = GetResource();
+        ProcesResource(resource);
+    }}
+//]
+}}
+class Customer2
+{{
+//[
+    // {ServicesVSResources.Over_colon}
+    void Method()
+    {{
+        using (var resource = GetResource())
+        {{
+            ProcessResource(resource);
+        }}
+    }}
+//]
+}}
+";
+
         private static readonly string s_preferLocalFunctionOverAnonymousFunction = $@"
 using System;
 
@@ -1522,6 +1551,7 @@ class C2
             // Code block
             AddBracesOptions(optionSet, codeBlockPreferencesGroupTitle);
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferAutoProperties, ServicesVSResources.analyzer_Prefer_auto_properties, s_preferAutoProperties, s_preferAutoProperties, this, optionSet, codeBlockPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferSimpleUsingStatement, ServicesVSResources.Prefer_simple_using_statement, s_preferSimpleUsingStatement, s_preferSimpleUsingStatement, this, optionSet, codeBlockPreferencesGroupTitle));
 
             AddParenthesesOptions(Options);
 
