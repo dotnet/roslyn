@@ -201,11 +201,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         private static readonly (string toReplace, string replaceWith)[] PlatformSpecificNormalizations =
         {
-            ("[mscorlib]", "[netstandard]")
+            ("[netstandard]", "[mscorlib]"),
+            ("[System.Core]", "[mscorlib]")
         };
 
         /// <summary>
-        /// Attempts to replace .Net Framework specific emitted IL with its .Net Core equivalent
+        /// Attempts to replace .Net Framework specific emitted IL with its .Net Core equivalent, or vice versa
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
