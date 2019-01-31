@@ -1115,5 +1115,65 @@ internal sealed class CustomSerializingType : ISerializable
 }",
     Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
+
+        [WorkItem(32973, "https://github.com/dotnet/roslyn/issues/32973")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task OutParameter_LocalFunction()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    public static bool M(out int x)
+    {
+        return LocalFunction(out x);
+
+        bool LocalFunction(out int [|y|])
+        {
+            y = 0;
+            return true;
+        }
+    }
+}");
+        }
+
+        [WorkItem(32973, "https://github.com/dotnet/roslyn/issues/32973")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task RefParameter_Unused_LocalFunction()
+        {
+            await TestDiagnosticsAsync(
+@"class C
+{
+    public static bool M(ref int x)
+    {
+        return LocalFunction(ref x);
+
+        bool LocalFunction(ref int [|y|])
+        {
+            return true;
+        }
+    }
+}",
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [WorkItem(32973, "https://github.com/dotnet/roslyn/issues/32973")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task RefParameter_Used_LocalFunction()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    public static bool M(ref int x)
+    {
+        return LocalFunction(ref x);
+
+        bool LocalFunction(ref int [|y|])
+        {
+            y = 0;
+            return true;
+        }
+    }
+}");
+        }
     }
 }

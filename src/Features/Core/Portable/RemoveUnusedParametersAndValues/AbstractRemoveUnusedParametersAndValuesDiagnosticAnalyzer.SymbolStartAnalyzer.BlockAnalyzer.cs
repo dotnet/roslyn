@@ -426,7 +426,30 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                                     unusedParameter.ContainingSymbol.IsLocalFunction())
                                 {
                                     var hasReference = symbolUsageResult.SymbolsRead.Contains(unusedParameter);
-                                    _symbolStartAnalyzer.ReportUnusedParameterDiagnostic(unusedParameter, hasReference, context.ReportDiagnostic, context.Options, context.CancellationToken);
+
+                                    bool shouldReport;
+                                    switch (unusedParameter.RefKind)
+                                    {
+                                        case RefKind.Out:
+                                            // Do not report out parameters of local functions.
+                                            shouldReport = false;
+                                            break;
+
+                                        case RefKind.Ref:
+                                            // Report ref parameters only if they have no read/write references.
+                                            // Note that we always have one write for the parameter input value from the caller.
+                                            shouldReport = !hasReference && symbolUsageResult.GetSymbolWriteCount(unusedParameter) == 1;
+                                            break;
+
+                                        default:
+                                            shouldReport = true;
+                                            break;
+                                    }
+
+                                    if (shouldReport)
+                                    {
+                                        _symbolStartAnalyzer.ReportUnusedParameterDiagnostic(unusedParameter, hasReference, context.ReportDiagnostic, context.Options, context.CancellationToken);
+                                    }
                                 }
 
                                 continue;
