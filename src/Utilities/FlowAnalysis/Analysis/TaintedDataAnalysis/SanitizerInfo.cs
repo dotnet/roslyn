@@ -34,6 +34,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         public bool IsConstructorSanitizing { get; }
 
         /// <summary>
+        /// Properties that untaint tainted data.
+        /// </summary>
+        public ImmutableHashSet<string> SanitizingProperties { get; }
+
+        /// <summary>
         /// Methods that untaint tainted data.
         /// </summary>
         public ImmutableHashSet<string> SanitizingMethods { get; }
@@ -41,8 +46,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         public override int GetHashCode()
         {
             return HashUtilities.Combine(this.SanitizingMethods,
+                HashUtilities.Combine(this.SanitizingProperties,
                 HashUtilities.Combine(StringComparer.Ordinal.GetHashCode(this.FullTypeName),
-                this.IsConstructorSanitizing.GetHashCode()));
+                this.IsConstructorSanitizing.GetHashCode())));
         }
 
         public override bool Equals(object obj)
@@ -56,6 +62,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             return other != null
                 && this.FullTypeName == other.FullTypeName
                 && this.IsConstructorSanitizing == other.IsConstructorSanitizing
+                && this.SanitizingProperties == other.SanitizingProperties
                 && this.SanitizingMethods == other.SanitizingMethods;
         }
     }
