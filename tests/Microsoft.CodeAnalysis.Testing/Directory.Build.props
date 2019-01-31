@@ -7,7 +7,7 @@
     <UsingToolXliff>false</UsingToolXliff>
   </PropertyGroup>
 
-  <Import Project="Sdk.props" Sdk="RoslynTools.RepoToolset" />
+  <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
 
   <PropertyGroup>
     <TestTargetFrameworks>net46;netcoreapp1.1;netcoreapp2.0</TestTargetFrameworks>
