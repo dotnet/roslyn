@@ -4459,9 +4459,9 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to &apos;using&apos; statement can be simplified.
         /// </summary>
-        internal static string using_statment_can_be_simplified {
+        internal static string using_statement_can_be_simplified {
             get {
-                return ResourceManager.GetString("using_statment_can_be_simplified", resourceCulture);
+                return ResourceManager.GetString("using_statement_can_be_simplified", resourceCulture);
             }
         }
         

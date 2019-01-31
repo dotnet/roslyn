@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
         public UseSimpleUsingStatementDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseSimpleUsingStatementDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_simple_using_statement), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.using_statment_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(FeaturesResources.using_statement_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 
             // Has to be one of the following forms:
             // 1. Using statement is the last statement in the parent.
-            // 2. Using statement is not the last statment in parent, but is followed by 
+            // 2. Using statement is not the last statement in parent, but is followed by 
             //    something that is unaffected by simplifying the using statement.  i.e.
             //    `return`/`break`/`continue`.  *Note*.  `return expr` would *not* be ok.
             //    In that case, `expr` would now be evaluated *before* the using disposed
