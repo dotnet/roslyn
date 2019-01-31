@@ -5199,7 +5199,7 @@ public namespace NS // CS1671
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "public"));
+            ParseAndValidate(test);
         }
 
         [Fact]
@@ -5209,7 +5209,7 @@ public namespace NS // CS1671
 namespace N { }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "[System.Obsolete]"));
+            ParseAndValidate(test);
         }
 
         [WorkItem(863437, "DevDiv/Personal")]
