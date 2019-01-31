@@ -204,8 +204,8 @@ namespace Roslyn.Diagnostics.Analyzers
         {
             if (!TryGetApiText(additionalTexts, cancellationToken, out AdditionalText shippedText, out AdditionalText unshippedText))
             {
-                shippedData = default(ApiData);
-                unshippedData = default(ApiData);
+                shippedData = default;
+                unshippedData = default;
                 return false;
             }
 

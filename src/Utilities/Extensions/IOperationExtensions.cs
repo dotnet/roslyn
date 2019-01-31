@@ -242,7 +242,7 @@ namespace Analyzer.Utilities.Extensions
             }
             else
             {
-                return default(TOperation);
+                return default;
             }
         }
 
