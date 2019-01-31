@@ -1133,45 +1133,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static SyntaxList<AttributeListSyntax> GetAttributeLists(SyntaxNode declaration)
         {
-            switch (declaration.Kind())
+            switch (declaration)
             {
-                case SyntaxKind.ClassDeclaration:
-                    return ((ClassDeclarationSyntax)declaration).AttributeLists;
-                case SyntaxKind.StructDeclaration:
-                    return ((StructDeclarationSyntax)declaration).AttributeLists;
-                case SyntaxKind.InterfaceDeclaration:
-                    return ((InterfaceDeclarationSyntax)declaration).AttributeLists;
-                case SyntaxKind.EnumDeclaration:
-                    return ((EnumDeclarationSyntax)declaration).AttributeLists;
-                case SyntaxKind.DelegateDeclaration:
-                    return ((DelegateDeclarationSyntax)declaration).AttributeLists;
-                case SyntaxKind.MethodDeclaration:
-                    return ((MethodDeclarationSyntax)declaration).AttributeLists;
-                case SyntaxKind.OperatorDeclaration:
-                    return ((OperatorDeclarationSyntax)declaration).AttributeLists;
-                case SyntaxKind.ConversionOperatorDeclaration:
-                    return ((ConversionOperatorDeclarationSyntax)declaration).AttributeLists;
-                case SyntaxKind.ConstructorDeclaration:
-                    return ((ConstructorDeclarationSyntax)declaration).AttributeLists;
-                case SyntaxKind.DestructorDeclaration:
-                    return ((DestructorDeclarationSyntax)declaration).AttributeLists;
-                case SyntaxKind.FieldDeclaration:
-                    return ((FieldDeclarationSyntax)declaration).AttributeLists;
-                case SyntaxKind.PropertyDeclaration:
-                    return ((PropertyDeclarationSyntax)declaration).AttributeLists;
-                case SyntaxKind.EventFieldDeclaration:
-                    return ((EventFieldDeclarationSyntax)declaration).AttributeLists;
-                case SyntaxKind.EventDeclaration:
-                    return ((EventDeclarationSyntax)declaration).AttributeLists;
-                case SyntaxKind.Parameter:
-                    return ((ParameterSyntax)declaration).AttributeLists;
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                    return ((AccessorDeclarationSyntax)declaration).AttributeLists;
-                case SyntaxKind.CompilationUnit:
-                    return ((CompilationUnitSyntax)declaration).AttributeLists;
+                case MemberDeclarationSyntax memberDecl: return memberDecl.AttributeLists;
+                case AccessorDeclarationSyntax accessor: return accessor.AttributeLists;
+                case CompilationUnitSyntax compilationUnit: return compilationUnit.AttributeLists;
                 default:
                     return default;
             }
