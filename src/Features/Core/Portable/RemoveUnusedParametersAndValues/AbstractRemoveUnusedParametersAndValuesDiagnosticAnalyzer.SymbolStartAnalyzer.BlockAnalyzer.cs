@@ -43,6 +43,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 private bool _delegateAssignedToFieldOrProperty;
 
                 /// <summary>
+                /// Indicates if a delegate was wrapped within an <see cref="ITupleOperation"/>.
+                /// We use this value in <see cref="ShouldAnalyze(IOperation, ISymbol)"/> to determine whether to bail from analysis or not.
+                /// </summary>
+                private bool _delegateWrappedInTuple;
+
+                /// <summary>
                 /// Indicates if the operation block has an <see cref="IConversionOperation"/> with a delegate type or an anonymous function
                 /// as it's source and a non-delegate type as it's target.
                 /// We use this value in <see cref="ShouldAnalyze(IOperation, ISymbol)"/> to determine whether to bail from analysis or not.
@@ -93,6 +99,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeDelegateCreationOrAnonymousFunction, OperationKind.DelegateCreation, OperationKind.AnonymousFunction);
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeArgument, OperationKind.Argument);
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeConversion, OperationKind.Conversion);
+                    context.RegisterOperationAction(blockAnalyzer.AnalyzeTuple, OperationKind.Tuple);
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeFieldOrPropertyReference, OperationKind.FieldReference, OperationKind.PropertyReference);
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeParameterReference, OperationKind.ParameterReference);
                     context.RegisterOperationBlockEndAction(blockAnalyzer.AnalyzeOperationBlockEnd);
@@ -204,6 +211,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     }
                 }
 
+                private void AnalyzeTuple(OperationAnalysisContext operationAnalysisContext)
+                {
+                    var tupleOperation = (ITupleOperation)operationAnalysisContext.Operation;
+                    if (!_delegateWrappedInTuple &&
+                        tupleOperation.Elements.Any(o => o.Type.IsDelegateType()))
+                    {
+                        _delegateWrappedInTuple = true;
+                    }
+                }
+
                 private void AnalyzeFieldOrPropertyReference(OperationAnalysisContext operationAnalysisContextContext)
                 {
                     var fieldOrPropertyReference = operationAnalysisContextContext.Operation;
@@ -285,7 +302,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         return false;
                     }
 
-                    //  6. Otherwise, we execute analysis by walking the reaching symbol write chain to attempt to
+                    //  6. Bail out if we have a delegate wrapped in a tuple.
+                    //     This indicates the delegate targets (such as lambda/local functions) have been wrapped
+                    //     within a tuple and passed around and invoked, and these invocations can read values written
+                    //     to any local/parameter in the current method. We cannot reliably flag any write to a 
+                    //     local/parameter as unused for such cases.
+                    if (_delegateWrappedInTuple)
+                    {
+                        return false;
+                    }
+
+                    //  7. Otherwise, we execute analysis by walking the reaching symbol write chain to attempt to
                     //     find the target method being invoked.
                     //     This works for most common and simple cases where a local is assigned a lambda and invoked later.
                     //     If we are unable to find a target, we will conservatively mark all current symbol writes as read.
