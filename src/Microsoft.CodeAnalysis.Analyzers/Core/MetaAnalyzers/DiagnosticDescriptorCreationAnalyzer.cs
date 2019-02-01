@@ -156,8 +156,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 var idToAnalyzerMap = new ConcurrentDictionary<string, ConcurrentDictionary<string, ConcurrentBag<Location>>>();
                 compilationContext.RegisterOperationAction(operationAnalysisContext =>
                 {
-                    var objectCreation = ((IFieldInitializerOperation)operationAnalysisContext.Operation).Value as IObjectCreationOperation;
-                    if (objectCreation == null)
+                    if (!(((IFieldInitializerOperation)operationAnalysisContext.Operation).Value is IObjectCreationOperation objectCreation))
                     {
                         return;
                     }
@@ -174,12 +173,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     AnalyzeHelpLinkUri(operationAnalysisContext, objectCreation);
 
                     string categoryOpt = null;
-                    ImmutableArray<(string prefix, int start, int end)> allowedIdsInfoList;
                     if (!checkCategoryAndAllowedIds ||
                         !TryAnalyzeCategory(operationAnalysisContext, objectCreation,
-                            additionalTextOpt, categoryAndAllowedIdsMap, out categoryOpt, out allowedIdsInfoList))
+                            additionalTextOpt, categoryAndAllowedIdsMap, out categoryOpt, out var allowedIdsInfoList))
                     {
-                        allowedIdsInfoList = default(ImmutableArray<(string prefix, int start, int end)>);
+                        allowedIdsInfoList = default;
                     }
 
                     AnalyzeRuleId(operationAnalysisContext, objectCreation, additionalTextOpt,
@@ -265,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             out ImmutableArray<(string prefix, int start, int end)> allowedIdsInfoList)
         {
             category = null;
-            allowedIdsInfoList = default(ImmutableArray<(string prefix, int start, int end)>);
+            allowedIdsInfoList = default;
             foreach (var argument in objectCreation.Arguments)
             {
                 if (argument.Parameter.Name.Equals(CategoryParameterName, StringComparison.Ordinal))
@@ -329,11 +327,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                         // Factory methods to track declaration locations for every analyzer rule ID.
                         ConcurrentBag<Location> AddLocationFactory(string analyzerName)
-                        {
-                            var newBag = new ConcurrentBag<Location>();
-                            newBag.Add(location);
-                            return newBag;
-                        };
+                            => new ConcurrentBag<Location> { location };
 
                         ConcurrentBag<Location> UpdateLocationsFactory(string analyzerName, ConcurrentBag<Location> bag)
                         {
@@ -514,7 +508,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     if (parts.Length == 1)
                     {
                         // No ':' symbol, so the entry just specifies the category.
-                        builder.Add(category, default(ImmutableArray<(string prefix, int start, int end)>));
+                        builder.Add(category, default);
                         continue;
                     }
 

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
         {
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
-            
+
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var typeIsSealed = ((INamedTypeSymbol)model.GetDeclaredSymbol(classDecl)).IsSealed;
 

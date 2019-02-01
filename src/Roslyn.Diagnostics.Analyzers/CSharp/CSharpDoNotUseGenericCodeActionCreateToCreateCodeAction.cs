@@ -41,8 +41,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 
             public void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
-                var invocation = context.Node as InvocationExpressionSyntax;
-                if (invocation == null)
+                if (!(context.Node is InvocationExpressionSyntax invocation))
                 {
                     return;
                 }
