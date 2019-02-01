@@ -727,12 +727,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var destinationType = targetType.TypeSymbol;
                 if ((object)sourceType != null && IsNullabilityMismatch(destinationType, sourceType))
                 {
-                    ReportNullabilityMismtachInAssignment(value.Syntax, sourceType, destinationType);
+                    ReportNullabilityMismatchInAssignment(value.Syntax, sourceType, destinationType);
                 }
             }
         }
 
-        private void ReportNullabilityMismtachInAssignment(SyntaxNode syntaxNode, object sourceType, object destinationType)
+        private void ReportNullabilityMismatchInAssignment(SyntaxNode syntaxNode, object sourceType, object destinationType)
         {
             ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, syntaxNode, sourceType, destinationType);
         }
@@ -3275,7 +3275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool canConvertNestedNullability = conversion.Exists;
             if (!canConvertNestedNullability && reportMismatch && !sourceExpression.IsSuppressed)
             {
-                ReportNullabilityMismtachInAssignment(sourceExpression.Syntax, GetTypeAsDiagnosticArgument(sourceType), destinationType);
+                ReportNullabilityMismatchInAssignment(sourceExpression.Syntax, GetTypeAsDiagnosticArgument(sourceType), destinationType);
             }
             return conversion;
         }
@@ -4088,7 +4088,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        ReportNullabilityMismtachInAssignment(node.Syntax, GetTypeAsDiagnosticArgument(operandType.TypeSymbol), targetType);
+                        ReportNullabilityMismatchInAssignment(node.Syntax, GetTypeAsDiagnosticArgument(operandType.TypeSymbol), targetType);
                     }
                 }
             }
@@ -4115,7 +4115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    ReportNullabilityMismtachInAssignment(node.Syntax, operandType.TypeSymbol, targetType.TypeSymbol);
+                    ReportNullabilityMismatchInAssignment(node.Syntax, operandType.TypeSymbol, targetType.TypeSymbol);
                 }
             }
 

@@ -236,7 +236,7 @@ It is intended that these merging rules are associative and commutative, so that
 > ***Open issue***: these rules do not describe the handling of merging pointer types.
 
 ### Array creation
-The calculation of the _best type_ element nullability uses the Conversions rules above and the contravariant merging rules.
+The calculation of the _best type_ element nullability uses the Conversions rules above and the covariant merging rules.
 ```c#
 var w = new [] { notNull, oblivious }; // ~[]!
 var x = new [] { notNull, maybeNull, oblivious }; // ?[]!

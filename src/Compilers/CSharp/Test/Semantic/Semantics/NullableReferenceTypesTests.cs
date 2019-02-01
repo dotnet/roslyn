@@ -36497,7 +36497,7 @@ class C
         }
 
         [Fact]
-        public void SuppressNullableWarning_Conditional2()
+        public void SuppressNullableWarning_NullCoalescing()
         {
             var source =
 @"
