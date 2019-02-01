@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UseSimpleUsingStatementCodeFixProvider)), Shared]
     internal class UseSimpleUsingStatementCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        // private static SyntaxAnnotation s_annotation = new SyntaxAnnotation();
-
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.UseSimpleUsingStatementDiagnosticId);
 
