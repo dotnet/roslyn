@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -163,11 +162,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             protected override TaintedDataAbstractValue ComputeAnalysisValueForReferenceOperation(IOperation operation, TaintedDataAbstractValue defaultValue)
             {
-                // If the property reference itself is a tainted data source
-                if (operation is IPropertyReferenceOperation propertyReferenceOperation
-                    && this.DataFlowAnalysisContext.SourceInfos.IsSourceProperty(propertyReferenceOperation.Property))
+                if (operation is IPropertyReferenceOperation propertyReferenceOperation)
                 {
-                    return TaintedDataAbstractValue.CreateTainted(propertyReferenceOperation.Member, propertyReferenceOperation.Syntax, this.OwningSymbol);
+                    if (this.IsPropertyASanitizer(propertyReferenceOperation))
+                    {
+                        return TaintedDataAbstractValue.NotTainted;
+                    }
+
+                    // If the property reference itself is a tainted data source
+                    if (this.DataFlowAnalysisContext.SourceInfos.IsSourceProperty(propertyReferenceOperation.Property))
+                    {
+                        return TaintedDataAbstractValue.CreateTainted(propertyReferenceOperation.Member, propertyReferenceOperation.Syntax, this.OwningSymbol);
+                    }
                 }
 
                 if (AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity analysisEntity))
@@ -474,6 +480,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             /// Determines if a property is a sink.
             /// </summary>
             /// <param name="propertyReferenceOperation">Property to check if it's a sink.</param>
+            /// <param name="sinkKinds">If the property is a sink, <see cref="HashSet{SinkInfo}"/> containing the kinds of sinks; null otherwise.</param>
             /// <returns>True if the property is a sink, false otherwise.</returns>
             private bool IsPropertyASink(IPropertyReferenceOperation propertyReferenceOperation, out HashSet<SinkKind> sinkKinds)
             {
@@ -501,6 +508,24 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     sinkKinds = null;
                     return false;
                 }
+            }
+
+            /// <summary>
+            /// Determines if the property is a sanitizer.
+            /// </summary>
+            /// <param name="propertyReferenceOperation">Property to check if it's a sanitizer.</param>
+            /// <returns>True if the property is a sanitizer, false otherwise.</returns>
+            private bool IsPropertyASanitizer(IPropertyReferenceOperation propertyReferenceOperation)
+            {
+                foreach (SanitizerInfo sanitizerInfo in this.DataFlowAnalysisContext.SanitizerInfos.GetInfosForType(propertyReferenceOperation.Member.ContainingType))
+                {
+                    if (sanitizerInfo.SanitizingProperties.Contains(propertyReferenceOperation.Member.MetadataName))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             private IEnumerable<IArgumentOperation> GetTaintedArguments(ImmutableArray<IArgumentOperation> arguments)

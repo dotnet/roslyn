@@ -76,8 +76,7 @@ namespace Analyzer.Utilities.Extensions
                 isInterface: isInterface,
                 taintedProperties: taintedProperties?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty,
-                taintedMethods: 
-                    taintedMethods?.ToImmutableHashSet(StringComparer.Ordinal)
+                taintedMethods: taintedMethods?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty);
             builder.Add(metadata);
         }
@@ -95,10 +94,10 @@ namespace Analyzer.Utilities.Extensions
                 fullTypeName,
                 isInterface: isInterface,
                 isConstructorSanitizing: isConstructorSanitizing,
-                
-                sanitizingMethods: sanitizingMethods != null 
-                    ? ImmutableHashSet.Create<string>(sanitizingMethods)
-                    : ImmutableHashSet<string>.Empty);
+                sanitizingProperties: sanitizingProperties?.ToImmutableHashSet(StringComparer.Ordinal)
+                    ?? ImmutableHashSet<string>.Empty,
+                sanitizingMethods: sanitizingMethods?.ToImmutableHashSet(StringComparer.Ordinal)
+                    ?? ImmutableHashSet<string>.Empty);
             builder.Add(info);
         }
     }

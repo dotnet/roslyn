@@ -10,11 +10,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// </summary>
     internal sealed class SanitizerInfo : ITaintedDataInfo, IEquatable<SanitizerInfo>
     {
-        public SanitizerInfo(string fullTypeName, bool isInterface, bool isConstructorSanitizing, ImmutableHashSet<string> sanitizingMethods)
+        public SanitizerInfo(string fullTypeName, bool isInterface, bool isConstructorSanitizing, ImmutableHashSet<string> sanitizingProperties, ImmutableHashSet<string> sanitizingMethods)
         {
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
             IsInterface = isInterface;
             IsConstructorSanitizing = isConstructorSanitizing;
+            SanitizingProperties = sanitizingProperties ?? throw new ArgumentNullException(nameof(sanitizingProperties));
             SanitizingMethods = sanitizingMethods ?? throw new ArgumentNullException(nameof(sanitizingMethods));
         }
 
