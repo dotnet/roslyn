@@ -42,7 +42,10 @@ public namespace A {}
             var global = comp.GlobalNamespace;
             var a = global.GetMembers("A").Single() as NamespaceSymbol;
             var errs = tree.GetDiagnostics();
-            Assert.Equal(1, errs.Count());
+            Assert.Equal(0, errs.Count());
+
+            comp.VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "public").WithLocation(2, 1));
         }
 
         // Types declared in compilation units or namespaces can have public or internal declared accessibility.
