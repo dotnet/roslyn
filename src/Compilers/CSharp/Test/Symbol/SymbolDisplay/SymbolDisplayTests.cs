@@ -6948,6 +6948,56 @@ class C
         }
 
         [Fact]
+        public void ClassDestructorDeclaration()
+        {
+            TestSymbolDescription(
+@"class C
+{
+    ~C() { }
+}",
+                global => global.GetTypeMember("C").GetMember("Finalize"),
+                new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeContainingType),
+                "C.~C",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName);
+        }
+
+        [Fact]
+        public void ClassStaticConstructorDeclaration()
+        {
+            TestSymbolDescription(
+@"class C
+{
+    static C() { }
+}",
+                global => global.GetTypeMember("C").Constructors[0],
+                new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeContainingType),
+                "C.C",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName);
+        }
+
+        [Fact]
+        public void ClassStaticDestructorDeclaration()
+        {
+            TestSymbolDescription(
+@"class C
+{
+    static ~C() { }
+}",
+                global => global.GetTypeMember("C").GetMember("Finalize"),
+                new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeContainingType),
+                "C.~C",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName);
+        }
+
+        [Fact]
         public void ClassConstructorInvocation()
         {
             var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
