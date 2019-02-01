@@ -246,6 +246,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        [Obsolete("This is a compatibility shim for Live Unit Testing; please do not use it.")]
         private sealed class StubProject : AbstractProject
         {
             private readonly string _outputPath;
