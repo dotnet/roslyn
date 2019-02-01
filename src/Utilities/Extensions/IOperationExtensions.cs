@@ -258,14 +258,13 @@ namespace Analyzer.Utilities.Extensions
             }
             else
             {
-                return default(TOperation);
+                return default;
             }
         }
 
         public static IConditionalAccessOperation GetConditionalAccess(this IConditionalAccessInstanceOperation operation)
         {
-            Func<IConditionalAccessOperation, bool> predicate = c => c.Operation.Syntax == operation.Syntax;
-            return operation.GetAncestor(OperationKind.ConditionalAccess, predicate);
+            return operation.GetAncestor(OperationKind.ConditionalAccess, (IConditionalAccessOperation c) => c.Operation.Syntax == operation.Syntax);
         }
 
         /// <summary>
@@ -319,8 +318,7 @@ namespace Analyzer.Utilities.Extensions
                 operation.Property.ContainingType.IsAnonymousType)
             {
                 var declarationSyntax = operation.Property.ContainingType.DeclaringSyntaxReferences[0].GetSyntax();
-                Func<IAnonymousObjectCreationOperation, bool> predicate = a => a.Syntax == declarationSyntax;
-                return operation.GetAncestor(OperationKind.AnonymousObjectCreation, predicate);
+                return operation.GetAncestor(OperationKind.AnonymousObjectCreation, (IAnonymousObjectCreationOperation a) => a.Syntax == declarationSyntax);
             }
 
             return null;

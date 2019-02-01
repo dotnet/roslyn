@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                         {
                             processNamespace((INamespaceSymbol)child);
                         }
-                        else if(@namespace.IsGlobalNamespace)
+                        else if (@namespace.IsGlobalNamespace)
                         {
                             includeGlobalNamespace = true;
                         }

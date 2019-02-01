@@ -145,9 +145,8 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsImplementationOfInterfaceMethod(this IMethodSymbol method, ITypeSymbol typeArgument, INamedTypeSymbol interfaceType, string interfaceMethodName)
         {
             INamedTypeSymbol constructedInterface = typeArgument != null ? interfaceType?.Construct(typeArgument) : interfaceType;
-            var interfaceMethod = constructedInterface?.GetMembers(interfaceMethodName).Single() as IMethodSymbol;
 
-            return interfaceMethod != null && method.Equals(method.ContainingType.FindImplementationForInterfaceMember(interfaceMethod));
+            return constructedInterface?.GetMembers(interfaceMethodName).Single() is IMethodSymbol interfaceMethod && method.Equals(method.ContainingType.FindImplementationForInterfaceMember(interfaceMethod));
         }
 
         /// <summary>
@@ -370,7 +369,7 @@ namespace Analyzer.Utilities.Extensions
         /// <summary>
         /// Returns the topmost <see cref="IBlockOperation"/> for given <paramref name="method"/>.
         /// </summary>
-        public static IBlockOperation GetTopmostOperationBlock(this IMethodSymbol method, Compilation compilation, CancellationToken cancellationToken = default(CancellationToken))
+        public static IBlockOperation GetTopmostOperationBlock(this IMethodSymbol method, Compilation compilation, CancellationToken cancellationToken = default)
         {
             var methodToBlockMap = s_methodToTopmostOperationBlockCache.GetOrCreateValue(compilation);
             return methodToBlockMap.GetOrAdd(method, ComputeTopmostOperationBlock);
@@ -422,7 +421,7 @@ namespace Analyzer.Utilities.Extensions
                     return false;
             }
         }
-      
+
         public static int GetParameterIndex(this IMethodSymbol methodSymbol, IParameterSymbol parameterSymbol)
         {
             for (var i = 0; i < methodSymbol.Parameters.Length; i++)

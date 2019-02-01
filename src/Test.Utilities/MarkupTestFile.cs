@@ -215,7 +215,7 @@ namespace Test.Utilities
 
         public static void GetSpans(string input, out string output, out IDictionary<string, IList<TextSpan>> spans)
         {
-            GetPositionAndSpans(input, out output, out int? cursorPositionOpt, out spans);
+            GetPositionAndSpans(input, out output, out _, out spans);
         }
 
         public static void GetPositionAndSpans(string input, out string output, out int cursorPosition, out IList<TextSpan> spans)
@@ -227,7 +227,7 @@ namespace Test.Utilities
 
         public static void GetPosition(string input, out string output, out int cursorPosition)
         {
-            GetPositionAndSpans(input, out output, out cursorPosition, out IList<TextSpan> spans);
+            GetPositionAndSpans(input, out output, out cursorPosition, out _);
         }
 
         public static void GetPositionAndSpan(string input, out string output, out int? cursorPosition, out TextSpan? textSpan)
@@ -246,7 +246,7 @@ namespace Test.Utilities
 
         public static void GetSpans(string input, out string output, out IList<TextSpan> spans)
         {
-            GetPositionAndSpans(input, out output, out int? pos, out spans);
+            GetPositionAndSpans(input, out output, out int? _, out spans);
         }
 
         public static void GetSpan(string input, out string output, out TextSpan textSpan)

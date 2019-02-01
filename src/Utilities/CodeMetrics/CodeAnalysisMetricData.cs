@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             }
         }
 
-#region Core Compute Methods
+        #region Core Compute Methods
         public async static Task<CodeAnalysisMetricData> ComputeAsync(Project project, CancellationToken cancellationToken)
         {
             if (project == null)
@@ -216,6 +216,6 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 #endif
                 select Task.Run(() => ComputeAsync(child, semanticModelProvider, cancellationToken))).ConfigureAwait(false)).ToImmutableArray();
 
-#endregion
+        #endregion
     }
 }

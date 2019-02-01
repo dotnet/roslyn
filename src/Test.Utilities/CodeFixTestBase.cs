@@ -80,7 +80,7 @@ namespace Test.Utilities
             Solution newSolution;
             if (onlyFixFirstFixableDiagnostic)
             {
-                newSolution = runner.ApplySingleFix(project, ImmutableArray<TestAdditionalDocument>.Empty, codeFixIndex.HasValue ? codeFixIndex.Value : 0);
+                newSolution = runner.ApplySingleFix(project, ImmutableArray<TestAdditionalDocument>.Empty, codeFixIndex ?? 0);
                 testFixAllScope = null;
             }
             else
@@ -122,15 +122,15 @@ namespace Test.Utilities
         }
 
         protected static void VerifyAdditionalFileFix(
-            string language, 
-            DiagnosticAnalyzer analyzerOpt, 
-            CodeFixProvider codeFixProvider, 
-            string source, 
-            IEnumerable<TestAdditionalDocument> additionalFiles, 
-            TestAdditionalDocument newAdditionalFileToVerify, 
-            int? codeFixIndex = null, 
-            bool allowNewCompilerDiagnostics = false, 
-            bool onlyFixFirstFixableDiagnostic = false, 
+            string language,
+            DiagnosticAnalyzer analyzerOpt,
+            CodeFixProvider codeFixProvider,
+            string source,
+            IEnumerable<TestAdditionalDocument> additionalFiles,
+            TestAdditionalDocument newAdditionalFileToVerify,
+            int? codeFixIndex = null,
+            bool allowNewCompilerDiagnostics = false,
+            bool onlyFixFirstFixableDiagnostic = false,
             TestValidationMode validationMode = DefaultTestValidationMode)
         {
             Document document = CreateDocument(source, language);
@@ -145,18 +145,17 @@ namespace Test.Utilities
                 document = project.GetDocument(document.Id);
             }
 
-            var additionalFileName = newAdditionalFileToVerify.Name;
             var additionalFileText = newAdditionalFileToVerify.GetText().ToString();
 
             Solution newSolution;
             var runner = new CodeFixRunner(analyzerOpt, codeFixProvider, validationMode);
             if (onlyFixFirstFixableDiagnostic || codeFixIndex.HasValue)
             {
-                newSolution = runner.ApplySingleFix(document.Project, additionalFiles, codeFixIndex.HasValue ? codeFixIndex.Value : 0);
+                newSolution = runner.ApplySingleFix(document.Project, additionalFiles, codeFixIndex ?? 0);
             }
             else
             {
-                newSolution = runner.ApplyFixesOneByOne(document.Project.Solution, additionalFiles, allowNewCompilerDiagnostics, codeFixIndex.HasValue ? codeFixIndex.Value : 0);
+                newSolution = runner.ApplyFixesOneByOne(document.Project.Solution, additionalFiles, allowNewCompilerDiagnostics, codeFixIndex ?? 0);
             }
 
             Assert.Equal(additionalFileText, GetActualTextForNewDocument(newSolution.GetDocument(document.Id), newAdditionalFileToVerify.Name).ToString());

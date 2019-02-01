@@ -227,7 +227,7 @@ namespace Test.Utilities
 
         protected void VerifyCSharpUnsafeCode(string source, params DiagnosticResult[] expected)
         {
-            Verify(new[] { source }.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), DefaultTestValidationMode, true, ReferenceFlags.None, compilationOptions: null, parseOptions:null, expected: expected);
+            Verify(new[] { source }.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), DefaultTestValidationMode, true, ReferenceFlags.None, compilationOptions: null, parseOptions: null, expected: expected);
         }
 
         protected void VerifyCSharp(string source, params DiagnosticResult[] expected)
@@ -378,7 +378,7 @@ namespace Test.Utilities
 
             for (int i = 0; i < sources.Length; i++)
             {
-                MarkupTestFile.GetPositionAndSpan(sources[i].Source, out string source, out int? pos, out TextSpan? span);
+                MarkupTestFile.GetPositionAndSpan(sources[i].Source, out string source, out _, out TextSpan? span);
 
                 sources[i].Source = source;
                 spans[i] = span;
