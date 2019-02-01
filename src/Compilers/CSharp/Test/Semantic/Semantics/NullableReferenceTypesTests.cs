@@ -2006,12 +2006,31 @@ class C
     {
         _ = c ?? throw new System.ArgumentNullException(c.ToString()); // 1
     }
+    void M4(string? s)
+    {
+        _ = s ?? s.ToString(); // 2
+        s.ToString();
+    }
+    void M5(string s)
+    {
+        _ = s ?? s.ToString(); // 3
+    }
 }
 ";
+
+            // We should probably warn of possible de-reference in alternative case of (3)
+            // Tracked by https://github.com/dotnet/roslyn/issues/30297
+
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (18,57): warning CS8602: Possible dereference of a null reference.
                 //         _ = c ?? throw new System.ArgumentNullException(c.ToString()); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(18, 57)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(18, 57),
+                // (22,18): warning CS8602: Possible dereference of a null reference.
+                //         _ = s ?? s.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(22, 18),
+                // (27,13): hidden CS8607: Expression is probably never null.
+                //         _ = s ?? s.ToString(); // 3
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "s").WithLocation(27, 13)
                 );
         }
 
@@ -2023,25 +2042,37 @@ class C
 {
     void M(System.Exception? e, C? c)
     {
-        _ = c ?? throw e;
+        _ = c ?? throw e; // 1
+        _ = c ?? throw null;
         throw null; // ok
     }
-    void M(System.Exception? e)
+    void M2(System.Exception? e)
     {
-        throw e;
+        throw e; // 2
     }
-    void M()
+    void M3()
     {
         throw null!;
     }
+    void M4()
+    {
+        throw this; // 3
+    }
+    public static implicit operator System.Exception?(C c) => throw null;
 }";
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,24): warning CS8602: Possible dereference of a null reference.
-                //         _ = c ?? throw e;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "e").WithLocation(6, 24),
-                // (11,15): warning CS8602: Possible dereference of a null reference.
-                //         throw e;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "e").WithLocation(11, 15)
+                // (6,24): warning CS8601: Possible null reference assignment.
+                //         _ = c ?? throw e; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "e").WithLocation(6, 24),
+                // (7,13): hidden CS8607: Expression is probably never null.
+                //         _ = c ?? throw null;
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c").WithLocation(7, 13),
+                // (12,15): warning CS8601: Possible null reference assignment.
+                //         throw e; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "e").WithLocation(12, 15),
+                // (20,15): error CS0155: The type caught or thrown must be derived from System.Exception
+                //         throw this; // 3
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "this").WithLocation(20, 15)
                 );
         }
 

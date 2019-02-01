@@ -1223,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Verify Visit method set _result.
             TypeSymbolWithAnnotations resultType = _resultType;
             Debug.Assert((object)resultType.TypeSymbol != _invalidType.TypeSymbol);
-            Debug.Assert(AreCloseEnough(resultType.TypeSymbol, node.Type));
+            Debug.Assert(node.Kind == BoundKind.ThrowExpression || AreCloseEnough(resultType.TypeSymbol, node.Type));
 #endif
             if (_callbackOpt != null)
             {
@@ -1844,7 +1844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             // We need to continue the walk regardless of whether the receiver should be updated.
                             var receiverType = conditional.Receiver.Type;
-                            if (shouldUpdateType(receiverType))
+                            if (IsTrackableType(receiverType))
                             {
                                 slotBuilder.Add(slot);
                             }
@@ -1878,7 +1878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // we need more special handling here
 
                         slot = MakeSlot(operand);
-                        if (slot > 0 && shouldUpdateType(operand.Type))
+                        if (slot > 0 && IsTrackableType(operand.Type))
                         {
                             // If we got a slot then all previous BoundCondtionalReceivers must have been handled.
                             Debug.Assert(_lastConditionalAccessSlot == -1);
@@ -1895,10 +1895,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return;
             }
-
-            bool shouldUpdateType(TypeSymbol operandType)
-                => !(operandType is null) && (!operandType.IsValueType || operandType.IsNullableType());
         }
+
+        private static bool IsTrackableType(TypeSymbol operandType)
+            => !(operandType is null) && (!operandType.IsValueType || operandType.IsNullableType());
 
         private static void MarkSlotsAsNotNullable(ArrayBuilder<int> slots, ref LocalState stateToUpdate)
         {
@@ -1993,10 +1993,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var rightState = this.State.Clone();
-            var leftState = this.State.Clone();
-            LearnFromNonNullTest(leftOperand, ref leftState);
-            SetState(rightState);
+            var whenNotNull = this.State.Clone();
+            LearnFromNonNullTest(leftOperand, ref whenNotNull);
+
+            // Consider learning in whenNull branch as well
+            // https://github.com/dotnet/roslyn/issues/30297
 
             if (leftResult.ValueCanBeNull() == false)
             {
@@ -2012,7 +2013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // https://github.com/dotnet/roslyn/issues/29955 For cases where the left operand determines
             // the type, we should unwrap the right conversion and re-apply.
             rightResult = VisitRvalueWithResult(rightOperand);
-            Join(ref this.State, ref leftState);
+            Join(ref this.State, ref whenNotNull);
             TypeSymbol resultType;
             var leftResultType = leftResult.TypeSymbol;
             var rightResultType = rightResult.TypeSymbol;
@@ -2789,7 +2790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var argument = arguments[i];
                 var argumentType = argument.Type;
-                if ((object)argumentType == null || (argumentType.IsValueType && !argumentType.IsNullableType()))
+                if (!IsTrackableType(argumentType))
                 {
                     continue;
                 }
@@ -4737,7 +4738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // We are supposed to track information for the node. Use whatever we managed to
                     // accumulate so far.
-                    if (!resultType.IsValueType || resultType.IsNullableType())
+                    if (IsTrackableType(resultType.TypeSymbol))
                     {
                         int slot = MakeMemberSlot(receiverOpt, member);
                         if (slot > 0 && slot < this.State.Capacity)
@@ -5124,7 +5125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NullableAnnotation nullableAnnotation = NullableAnnotation.Unknown;
                 var type = node.Type;
 
-                if (!type.IsValueType || type.IsNullableType())
+                if (IsTrackableType(type))
                 {
                     var operandType = _resultType;
                     switch (node.Conversion.Kind)
@@ -5564,20 +5565,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitThrowExpression(BoundThrowExpression node)
         {
-            var result = VisitRvalue(node.Expression);
-            CheckPossibleNullReceiver(node.Expression);
-            SetUnreachable();
-            SetUnknownResultNullability();
-            return result;
+            VisitThrow(node.Expression);
+            return null;
         }
 
         public override BoundNode VisitThrowStatement(BoundThrowStatement node)
         {
-            BoundExpression expr = node.ExpressionOpt;
-            VisitRvalue(expr);
-            CheckPossibleNullReceiver(expr);
-            SetUnreachable();
+            VisitThrow(node.ExpressionOpt);
             return null;
+        }
+
+        private void VisitThrow(BoundExpression expr)
+        {
+            VisitRvalue(expr);
+            // We treat `throw null` like an explicit `throw new System.NullReferenceException()`. The user is being explicit enough, so a warning would be annoying.
+            if (!expr.IsLiteralNull())
+            {
+                var exceptionType = TypeSymbolWithAnnotations.Create(compilation.GetWellKnownType(WellKnownType.System_Exception), NullableAnnotation.NotNullable);
+                VisitOptionalImplicitConversion(expr, targetTypeOpt: exceptionType, useLegacyWarnings: false, AssignmentKind.Assignment);
+            }
+            SetUnreachable();
         }
 
         public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
