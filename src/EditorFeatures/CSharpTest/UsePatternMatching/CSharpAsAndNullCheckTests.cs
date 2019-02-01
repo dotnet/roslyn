@@ -100,6 +100,39 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestInSwitchSection()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        switch (o)
+        {
+            default:
+                [|var|] x = o as string;
+                if (x != null)
+                {
+                }
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch (o)
+        {
+            default:
+                if (o is string x)
+                {
+                }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestMissingOnNonDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
