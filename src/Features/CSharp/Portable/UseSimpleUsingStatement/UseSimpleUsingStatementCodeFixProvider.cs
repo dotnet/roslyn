@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -22,6 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UseSimpleUsingStatementCodeFixProvider)), Shared]
     internal class UseSimpleUsingStatementCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        // private static SyntaxAnnotation s_annotation = new SyntaxAnnotation();
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.UseSimpleUsingStatementDiagnosticId);
 
@@ -38,165 +39,86 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var topmostUsingStatements = diagnostics.SelectAsArray(d => (UsingStatementSyntax)d.AdditionalLocations[0].FindNode(cancellationToken));
+            var topmostUsingStatements = diagnostics.Select(d => (UsingStatementSyntax)d.AdditionalLocations[0].FindNode(cancellationToken)).ToSet();
+            var blocks = topmostUsingStatements.Select(u => (BlockSyntax)u.Parent);
 
-            // Grab all the convertible usings in a block of nested usings.  i.e.
-            // 
-            //      using (...)
-            //      using (...)
-            //      using (...)
-            //      {
-            //      }
-            //
-            // If invoked on any of these , we'll convert in all in teh group that we can.
-
-            // Importantly, this is a set, so if we're doing a fix-all, we may add the items
-            // multiple times, but that's ok as it will still only be in the set once.
-            var allUsingStatements = GetUsingStatementsToUpdate(topmostUsingStatements);
-
-            var rewriter = new Rewriter(allUsingStatements);
             var root = editor.OriginalRoot;
-            var updatedRoot = rewriter.Visit(root);
+            var updatedRoot = root.ReplaceNodes(
+                blocks,
+                (original, current) => RewriteBlock(original, current, topmostUsingStatements));
 
             editor.ReplaceNode(root, updatedRoot);
 
             return Task.CompletedTask;
         }
 
-        private static HashSet<UsingStatementSyntax> GetUsingStatementsToUpdate(ImmutableArray<UsingStatementSyntax> topmostUsingStatements)
+        private static SyntaxNode RewriteBlock(
+            BlockSyntax originalBlock, BlockSyntax currentBlock,
+            ISet<UsingStatementSyntax> topmostUsingStatements)
         {
-            var allUsingStatements = new HashSet<UsingStatementSyntax>();
-
-            foreach (var topmostUsingStatement in topmostUsingStatements)
+            if (originalBlock.Statements.Count == currentBlock.Statements.Count)
             {
-                // Walk inwards adding all using statements that are convertible.
-                for (var current = topmostUsingStatement;
-                     current?.Declaration != null;
-                     current = current.Statement as UsingStatementSyntax)
+                var statementToUpdateIndex = originalBlock.Statements.IndexOf(s => topmostUsingStatements.Contains(s));
+                var statementToUpdate = currentBlock.Statements[statementToUpdateIndex];
+
+                if (statementToUpdate is UsingStatementSyntax usingStatement &&
+                    usingStatement.Declaration != null)
                 {
-                    allUsingStatements.Add(current);
+                    var updatedStatements = currentBlock.Statements.ReplaceRange(
+                        statementToUpdate,
+                        Expand(usingStatement));
+                    return currentBlock.WithStatements(updatedStatements);
                 }
             }
 
-            return allUsingStatements;
+            return currentBlock;
         }
 
-        private class Rewriter : CSharpSyntaxRewriter
+        private static IEnumerable<StatementSyntax> Expand(UsingStatementSyntax usingStatement)
         {
-            private readonly ISet<UsingStatementSyntax> _usingStatements;
+            var result = new List<StatementSyntax>();
+            Expand(result, usingStatement);
 
-            public Rewriter(ISet<UsingStatementSyntax> usingStatements)
+            for (int i = 0, n = result.Count; i < n; i++)
             {
-                _usingStatements = usingStatements;
+                result[i] = result[i].WithAdditionalAnnotations(Formatter.Annotation);
             }
 
-            private static SyntaxList<StatementSyntax> Expand(UsingStatementSyntax usingStatement)
+            return result;
+        }
+
+        private static void Expand(List<StatementSyntax> result, UsingStatementSyntax usingStatement)
+        {
+            // First, convert the using-statement into a using-declaration.
+            result.Add(Convert(usingStatement));
+            switch (usingStatement.Statement)
             {
-                var builder = ArrayBuilder<StatementSyntax>.GetInstance();
-                builder.Add(Convert(usingStatement));
-                if (usingStatement.Statement is BlockSyntax block)
-                {
-                    builder.AddRange(block.Statements);
-                }
-                else
-                {
-                    builder.Add(usingStatement.Statement);
-                }
-
-                var statements = new SyntaxList<StatementSyntax>(builder);
-                builder.Free();
-                return statements;
+                case BlockSyntax blockSyntax:
+                    // if we hit a block, then inline all the statements in the block into
+                    // the final list of statements.
+                    result.AddRange(blockSyntax.Statements);
+                    return;
+                case UsingStatementSyntax childUsing when childUsing.Declaration != null:
+                    // If we have a directly nested using-statement, then recurse into that
+                    // expanding it and handle its children as well.
+                    Expand(result, childUsing);
+                    return;
+                case StatementSyntax anythingElse:
+                    // Any other statement should be untouched and just be placed next in the
+                    // final list of statements.
+                    result.Add(anythingElse);
+                    return;
             }
+        }
 
-            private bool ShouldExpand(StatementSyntax beforeStatement, StatementSyntax afterStatement)
-                => _usingStatements.Contains(beforeStatement) &&
-                   afterStatement is UsingStatementSyntax usingStatement &&
-                   usingStatement.Declaration != null;
-
-            private static LocalDeclarationStatementSyntax Convert(UsingStatementSyntax usingStatement)
-            {
-                return SyntaxFactory.LocalDeclarationStatement(
-                    usingStatement.AwaitKeyword,
-                    usingStatement.UsingKeyword,
-                    modifiers: default,
-                    usingStatement.Declaration,
-                    SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-            }
-
-            private bool ExpandAppropriateStatements(
-                SyntaxList<StatementSyntax> originalStatements,
-                SyntaxList<StatementSyntax> rewrittenStatements,
-                ArrayBuilder<StatementSyntax> finalStatements)
-            {
-                var changed = false;
-                if (originalStatements.Count == rewrittenStatements.Count)
-                {
-                    for (int i = 0, n = rewrittenStatements.Count; i < n; i++)
-                    {
-                        var rewrittenStatement = rewrittenStatements[i];
-                        if (ShouldExpand(originalStatements[i], rewrittenStatement))
-                        {
-                            var expanded = Expand((UsingStatementSyntax)rewrittenStatement);
-                            finalStatements.AddRange(expanded);
-                            changed = true;
-                        }
-                        else
-                        {
-                            finalStatements.Add(rewrittenStatement);
-                        }
-                    }
-                }
-
-                return changed;
-            }
-
-            public override SyntaxNode VisitBlock(BlockSyntax node)
-            {
-                var finalStatements = ArrayBuilder<StatementSyntax>.GetInstance();
-                var result = VisitBlockWorker(node, finalStatements);
-                finalStatements.Free();
-
-                return result;
-            }
-
-            private SyntaxNode VisitBlockWorker(BlockSyntax node, ArrayBuilder<StatementSyntax> finalStatements)
-            {
-                var rewrittenBlock = (BlockSyntax)base.VisitBlock(node);
-
-                var changed = ExpandAppropriateStatements(node.Statements, rewrittenBlock.Statements, finalStatements);
-
-                if (!changed)
-                {
-                    // Didn't update any children.  Just return as is.
-                    return rewrittenBlock;
-                }
-
-                return rewrittenBlock.WithStatements(new SyntaxList<StatementSyntax>(finalStatements))
-                                     .WithAdditionalAnnotations(Formatter.Annotation);
-            }
-
-            public override SyntaxNode VisitUsingStatement(UsingStatementSyntax node)
-            {
-                // First, descend into the using-statement so we fixup any using statements contained
-                // inside of it.
-                var rewrittenUsingStatement = (UsingStatementSyntax)base.VisitUsingStatement(node);
-
-                // Now, if the else-clause previous pointed at a using statement we wanted to
-                // rewrite, and it still points at a using statement, then expand that using
-                // statemnet into the else-clause.
-                var rewrittenStatement = rewrittenUsingStatement.Statement;
-                if (ShouldExpand(node.Statement, rewrittenStatement))
-                {
-                    // Can't expand a using-statement directly inside an else-clause.
-                    // have to add a block around it to make sure scoping is preserved
-                    // properly.
-                    var expanded = Expand((UsingStatementSyntax)rewrittenStatement);
-                    return rewrittenUsingStatement.WithStatement(SyntaxFactory.Block(expanded))
-                                                  .WithAdditionalAnnotations(Formatter.Annotation);
-                }
-
-                return rewrittenUsingStatement;
-            }
+        private static LocalDeclarationStatementSyntax Convert(UsingStatementSyntax usingStatement)
+        {
+            return SyntaxFactory.LocalDeclarationStatement(
+                usingStatement.AwaitKeyword,
+                usingStatement.UsingKeyword,
+                modifiers: default,
+                usingStatement.Declaration,
+                SyntaxFactory.Token(SyntaxKind.SemicolonToken));
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

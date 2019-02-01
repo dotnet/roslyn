@@ -3,10 +3,8 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 {
@@ -51,22 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 return;
             }
 
-            if (CanConvertUsingStatement(usingStatement))
-            {
-                context.ReportDiagnostic(DiagnosticHelper.Create(
-                    Descriptor,
-                    usingStatement.UsingKeyword.GetLocation(),
-                    option.Notification.Severity,
-                    additionalLocations: ImmutableArray.Create(usingStatement.GetLocation()),
-                    properties: null));
-            }
-        }
-
-        private static bool CanConvertUsingStatement(UsingStatementSyntax usingStatement)
-        {
             if (usingStatement.Declaration == null)
             {
-                return false;
+                return;
             }
 
             var parentBlock = usingStatement.Parent as BlockSyntax;
@@ -74,9 +59,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             {
                 // Don't offer on a using statement that is parented by another using statement.
                 // We'll just offer on the topmost using statement.
-                return false;
+                return;
             }
 
+            // Check that all the immediately nested usings are convertible
+            // as well.  We don't want take a block of using and only convert some of them.
+            for (var current = usingStatement; current != null; current = current.Statement as UsingStatementSyntax)
+            {
+                if (current.Declaration == null)
+                {
+                    return;
+                }
+            }
+
+            // Verify that changing this using-statement into a using-declaration will not
+            // change semantics.
+            if (!PreservesSemantics(parentBlock, usingStatement))
+            {
+                return;
+            }
+
+            // Good to go!
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
+                usingStatement.UsingKeyword.GetLocation(),
+                option.Notification.Severity,
+                additionalLocations: ImmutableArray.Create(usingStatement.GetLocation()),
+                properties: null));
+        }
+
+        private static bool PreservesSemantics(
+            BlockSyntax parentBlock, UsingStatementSyntax usingStatement)
+        {
             // Has to be one of the following forms:
             // 1. Using statement is the last statement in the parent.
             // 2. Using statement is not the last statement in parent, but is followed by 
@@ -109,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             if (nextStatement is ReturnStatementSyntax returnStatement &&
                 returnStatement.Expression == null)
             {
-                // using statemnet followed by `return`.  Can conver this as executing 
+                // using statement followed by `return`.  Can conver this as executing 
                 // the `return` will cause the code to exit the using scope, causing 
                 // Dispose to be called at the same place as before.
                 //
