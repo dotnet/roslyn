@@ -43,6 +43,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
             Return TryCast(expressionStatement.Syntax, CallStatementSyntax) IsNot Nothing
         End Function
 
+        Protected Overrides Function IsExpressionBody(blockOperation As IBlockOperation) As Boolean
+            ' VB does not support expression body
+            Return False
+        End Function
+
         Protected Overrides Function GetDefinitionLocationToFade(unusedDefinition As IOperation) As Location
             Return unusedDefinition.Syntax.GetLocation()
         End Function

@@ -32,6 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         protected override bool IsCallStatement(IExpressionStatementOperation expressionStatement)
             => false;
 
+        protected override bool IsExpressionBody(IBlockOperation blockOperation)
+            => !blockOperation.Syntax.IsKind(SyntaxKind.Block);
+
         protected override Location GetDefinitionLocationToFade(IOperation unusedDefinition)
         {
             switch (unusedDefinition.Syntax)
