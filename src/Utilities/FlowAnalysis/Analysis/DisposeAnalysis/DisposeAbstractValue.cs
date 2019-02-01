@@ -26,11 +26,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             Debug.Assert(kind != DisposeAbstractValueKind.Disposed);
         }
 
-        private DisposeAbstractValue(IOperation disposingOrEscapingOperation, DisposeAbstractValueKind kind)
-            : this(ImmutableHashSet.Create(disposingOrEscapingOperation), kind)
-        {
-        }
-
         public DisposeAbstractValue(ImmutableHashSet<IOperation> disposingOrEscapingOperations, DisposeAbstractValueKind kind)
         {
             VerifyArguments(disposingOrEscapingOperations, kind);

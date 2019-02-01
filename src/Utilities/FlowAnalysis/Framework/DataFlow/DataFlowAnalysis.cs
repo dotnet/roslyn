@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     internal abstract class DataFlowAnalysis<TAnalysisData, TAnalysisContext, TAnalysisResult, TBlockAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisData : AbstractAnalysisData
-        where TAnalysisContext: AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
+        where TAnalysisContext : AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisResult : DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>
         where TBlockAnalysisResult : AbstractBlockAnalysisResult
     {
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             try
             {
-                
+
                 // Add each basic block to the result.
                 foreach (var block in cfg.Blocks)
                 {
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         // CONSIDER: Currently we need to do a bunch of branch adjusments for branches to/from finally, catch and filter regions.
                         //           We should revisit the overall CFG API and the walker to avoid such adjustments.
                         var successorsWithAdjustedBranches = GetSuccessorsWithAdjustedBranches(block).ToArray();
-                        foreach ((BranchWithInfo successorWithBranch, BranchWithInfo preadjustSuccessorWithBranch) successorWithAdjustedBranch in successorsWithAdjustedBranches)
+                        foreach ((BranchWithInfo successorWithBranch, BranchWithInfo preadjustSuccessorWithBranch) in successorsWithAdjustedBranches)
                         {
                             // successorWithAdjustedBranch returns a pair of branches:
                             //  1. successorWithBranch - This is the adjusted branch for a branch from inside a try region to outside the try region, where we don't flow into finally region.
@@ -175,15 +175,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             //                                    Currently, these blocks have no branch coming out from it.
 
                             // Flow the current analysis data through the branch.
-                            (TAnalysisData newSuccessorInput, bool isFeasibleBranch) = OperationVisitor.FlowBranch(block, successorWithAdjustedBranch.successorWithBranch, AnalysisDomain.Clone(output));
+                            (TAnalysisData newSuccessorInput, bool isFeasibleBranch) = OperationVisitor.FlowBranch(block, successorWithBranch, AnalysisDomain.Clone(output));
 
-                            if (successorWithAdjustedBranch.preadjustSuccessorWithBranch != null)
+                            if (preadjustSuccessorWithBranch != null)
                             {
-                                UpdateFinallySuccessorsAndCatchInput(successorWithAdjustedBranch.preadjustSuccessorWithBranch, newSuccessorInput);
+                                UpdateFinallySuccessorsAndCatchInput(preadjustSuccessorWithBranch, newSuccessorInput);
                             }
 
                             // Certain branches have no destination (e.g. BranchKind.Throw), so we don't need to update the input data for the branch destination block.
-                            var successorBlockOpt = successorWithAdjustedBranch.successorWithBranch.Destination;
+                            var successorBlockOpt = successorWithBranch.Destination;
                             if (successorBlockOpt == null)
                             {
                                 newSuccessorInput.Dispose();
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                             // Perf: We can stop tracking data for entities whose lifetime is limited by the leaving regions.
                             //       Below invocation explicitly drops such data from destination input.
-                            newSuccessorInput = OperationVisitor.OnLeavingRegions(successorWithAdjustedBranch.successorWithBranch.LeavingRegions, block, newSuccessorInput);
+                            newSuccessorInput = OperationVisitor.OnLeavingRegions(successorWithBranch.LeavingRegions, block, newSuccessorInput);
 
                             var isBackEdge = block.Ordinal >= successorBlockOpt.Ordinal;
                             if (isUnreachableBlock && !unreachableBlocks.Contains(successorBlockOpt.Ordinal))
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     {
                         var catchRegion = MergeIntoCatchInputData(tryAndCatchRegion, branchData);
                         if (catchRegion != null)
-                        {   
+                        {
                             // We also need to enqueue the catch block into the worklist as there is no direct branch into catch.
                             worklist.Add(catchRegion.FirstBlockOrdinal);
                         }
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         internal abstract TAnalysisResult ToResult(TAnalysisContext analysisContext, DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> dataFlowAnalysisResult);
         internal abstract TBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, TAnalysisData blockAnalysisData);
-        
+
         private void UpdateInput(DataFlowAnalysisResultBuilder<TAnalysisData> builder, BasicBlock block, TAnalysisData newInput)
         {
             Debug.Assert(newInput != null);

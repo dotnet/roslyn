@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
- 
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis
         {
             while (index > _builder.Count)
             {
-                _builder.Add(default(T));
+                _builder.Add(default);
             }
 
             if (index == _builder.Count)
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (Count == 0)
             {
-                return default(ImmutableArray<T>);
+                return default;
             }
 
             return this.ToImmutable();

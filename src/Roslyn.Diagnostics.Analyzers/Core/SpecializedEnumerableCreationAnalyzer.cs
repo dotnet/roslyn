@@ -47,8 +47,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         public override void Initialize(AnalysisContext analysisContext)
         {
-            // TODO: Confirm if the analyzer is thread-safe and uncomment below.
-            //analysisContext.EnableConcurrentExecution();
+            analysisContext.EnableConcurrentExecution();
 
             analysisContext.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
@@ -77,8 +76,7 @@ namespace Roslyn.Diagnostics.Analyzers
                         return;
                     }
 
-                    var genericEmptyEnumerableSymbol = linqEnumerableSymbol.GetMembers(EmptyMethodName).FirstOrDefault() as IMethodSymbol;
-                    if (genericEmptyEnumerableSymbol == null ||
+                    if (!(linqEnumerableSymbol.GetMembers(EmptyMethodName).FirstOrDefault() is IMethodSymbol genericEmptyEnumerableSymbol) ||
                         genericEmptyEnumerableSymbol.Arity != 1 ||
                         genericEmptyEnumerableSymbol.Parameters.Length != 0)
                     {
@@ -130,11 +128,10 @@ namespace Roslyn.Diagnostics.Analyzers
             protected bool ShouldAnalyzeArrayCreationExpression(SyntaxNode expression, SemanticModel semanticModel)
             {
                 TypeInfo typeInfo = semanticModel.GetTypeInfo(expression);
-                var arrayType = typeInfo.Type as IArrayTypeSymbol;
 
                 return typeInfo.ConvertedType != null &&
                     typeInfo.ConvertedType.OriginalDefinition == GenericEnumerableSymbol &&
-                    arrayType != null &&
+                    typeInfo.Type is IArrayTypeSymbol arrayType &&
                     arrayType.Rank == 1;
             }
 

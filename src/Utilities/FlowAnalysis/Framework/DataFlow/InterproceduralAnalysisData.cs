@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     internal sealed class InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>
         : CacheBasedEquatable<InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>>
-        where TAnalysisContext: class, IDataFlowAnalysisContext
+        where TAnalysisContext : class, IDataFlowAnalysisContext
     {
         public InterproceduralAnalysisData(
             TAnalysisData initialAnalysisData,

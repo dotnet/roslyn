@@ -81,14 +81,14 @@ public class MyDerivedCodeActionWithEquivalenceKey : MyAbstractCodeActionWithEqu
 
             if (withCustomCodeActions)
             {
-                sourceSuffix = sourceSuffix + CSharpCustomCodeActions;
+                sourceSuffix += CSharpCustomCodeActions;
             }
 
             // Verify expected diagnostics for fixer that supports FixAllProvider.
             VerifyCSharp(source + fixAllProviderString + sourceSuffix, validationMode, expected);
 
             // Verify RS1016 (OverrideGetFixAllProviderRule) diagnostic for fixer that does not support FixAllProvider.
-            expected = new DiagnosticResult[]{ missingGetFixAllProviderOverrideDiagnostic };
+            expected = new DiagnosticResult[] { missingGetFixAllProviderOverrideDiagnostic };
             VerifyCSharp(source + sourceSuffix, validationMode, expected);
         }
 
@@ -433,7 +433,7 @@ End Class
 
             if (withCustomCodeActions)
             {
-                sourceSuffix = sourceSuffix + VisualBasicCustomCodeActions;
+                sourceSuffix += VisualBasicCustomCodeActions;
             }
 
             // Verify expected diagnostics for fixer that supports FixAllProvider.

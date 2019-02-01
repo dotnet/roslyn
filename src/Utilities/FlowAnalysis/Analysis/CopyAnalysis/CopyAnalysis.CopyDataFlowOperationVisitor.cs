@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             protected override CopyAbstractValue GetAbstractValue(AnalysisEntity analysisEntity) => CurrentAnalysisData.TryGetValue(analysisEntity, out var value) ? value : CopyAbstractValue.Unknown;
 
             protected override CopyAbstractValue GetCopyAbstractValue(IOperation operation) => base.GetCachedAbstractValue(operation);
-            
+
             protected override CopyAbstractValue GetAbstractDefaultValue(ITypeSymbol type) => CopyAbstractValue.NotApplicable;
 
             protected override void ResetAbstractValue(AnalysisEntity analysisEntity)
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
                 // Stop tracking entity that is now out of scope.
                 entitiesToFilterBuilder.Add(entity);
-                
+
                 // Additionally, stop tracking all the child entities if the entity type has value copy semantics.
                 if (entity.Type.HasValueCopySemantics())
                 {
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             #region Visitor overrides
             public override CopyAbstractValue DefaultVisit(IOperation operation, object argument)
             {
-                var _ = base.DefaultVisit(operation, argument);
+                _ = base.DefaultVisit(operation, argument);
                 return CopyAbstractValue.Unknown;
             }
 
