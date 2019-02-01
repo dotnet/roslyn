@@ -46,6 +46,33 @@ class C
 parseOptions: CSharp8ParseOptions);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestMultiDeclaration()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        [||]using (var a = b, c = d)
+        {
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        using var a = b, c = d;
+    }
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
         public async Task TestMissingIfOnSimpleUsingStatement()
         {
