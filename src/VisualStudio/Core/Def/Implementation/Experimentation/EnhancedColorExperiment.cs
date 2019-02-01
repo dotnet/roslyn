@@ -305,15 +305,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     // happens to be the same as PlainText so an extra check isn't necessary. StructName doesn't need
                     // an additional check because it has a color defined in the PKGDEF. The Editor is smart enough
                     // to follow the BaseClassification hierarchy and render the colors appropriately.
-                    return colorItemMap[ClassificationTypeNames.LocalName].Foreground == DarkThemeIdentifier &&
-                        colorItemMap[ClassificationTypeNames.ParameterName].Foreground == DarkThemeIdentifier &&
-                        colorItemMap[ClassificationTypeNames.MethodName].Foreground == DarkThemeIdentifier &&
-                        colorItemMap[ClassificationTypeNames.ExtensionMethodName].Foreground == DarkThemeIdentifier &&
-                        (colorItemMap[ClassificationTypeNames.OperatorOverloaded].Foreground == DarkThemePlainText ||
-                            colorItemMap[ClassificationTypeNames.OperatorOverloaded].Foreground == DarkThemeOperator) &&
-                        (colorItemMap[ClassificationTypeNames.ControlKeyword].Foreground == DarkThemePlainText ||
-                            colorItemMap[ClassificationTypeNames.ControlKeyword].Foreground == DarkThemeKeyword) &&
-                        colorItemMap[ClassificationTypeNames.StructName].Foreground == DarkThemeClass;
+                    return IsDefaultColor(colorItemMap, ClassificationTypeNames.LocalName, DarkThemeIdentifier) &&
+                        IsDefaultColor(colorItemMap, ClassificationTypeNames.ParameterName, DarkThemeIdentifier) &&
+                        IsDefaultColor(colorItemMap, ClassificationTypeNames.MethodName, DarkThemeIdentifier) &&
+                        IsDefaultColor(colorItemMap, ClassificationTypeNames.ExtensionMethodName, DarkThemeIdentifier) &&
+                        (IsDefaultColor(colorItemMap, ClassificationTypeNames.OperatorOverloaded, DarkThemePlainText) ||
+                            IsDefaultColor(colorItemMap, ClassificationTypeNames.OperatorOverloaded, DarkThemeOperator)) &&
+                        (IsDefaultColor(colorItemMap, ClassificationTypeNames.ControlKeyword, DarkThemePlainText) ||
+                            IsDefaultColor(colorItemMap, ClassificationTypeNames.ControlKeyword, DarkThemeKeyword)) &&
+                        IsDefaultColor(colorItemMap, ClassificationTypeNames.StructName, DarkThemeClass);
                 }
                 else
                 {
@@ -321,14 +321,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     // Same as above, we also check ControlKeyword for whether it is the PlainText color. OperatorOverload and
                     // the other Identifier types do not need an additional check because their default color is the same
                     // as PlainText.
-                    return colorItemMap[ClassificationTypeNames.LocalName].Foreground == LightThemeIdentifier &&
-                        colorItemMap[ClassificationTypeNames.ParameterName].Foreground == LightThemeIdentifier &&
-                        colorItemMap[ClassificationTypeNames.MethodName].Foreground == LightThemeIdentifier &&
-                        colorItemMap[ClassificationTypeNames.ExtensionMethodName].Foreground == LightThemeIdentifier &&
-                        colorItemMap[ClassificationTypeNames.OperatorOverloaded].Foreground == LightThemeOperator &&
-                        (colorItemMap[ClassificationTypeNames.ControlKeyword].Foreground == LightThemePlainText ||
-                            colorItemMap[ClassificationTypeNames.ControlKeyword].Foreground == LightThemeKeyword);
+                    return IsDefaultColor(colorItemMap, ClassificationTypeNames.LocalName, LightThemeIdentifier) &&
+                        IsDefaultColor(colorItemMap, ClassificationTypeNames.ParameterName, LightThemeIdentifier) &&
+                        IsDefaultColor(colorItemMap, ClassificationTypeNames.MethodName, LightThemeIdentifier) &&
+                        IsDefaultColor(colorItemMap, ClassificationTypeNames.ExtensionMethodName, LightThemeIdentifier) &&
+                        IsDefaultColor(colorItemMap, ClassificationTypeNames.OperatorOverloaded, LightThemeOperator) &&
+                        (IsDefaultColor(colorItemMap, ClassificationTypeNames.ControlKeyword, LightThemePlainText) ||
+                            IsDefaultColor(colorItemMap, ClassificationTypeNames.ControlKeyword, LightThemeKeyword));
                 }
+            }
+
+            private bool IsDefaultColor(Dictionary<string, ColorableItems> colorItemMap, string classification, uint themeColor)
+            {
+                // Without visiting the Font and Colors options dialog, the reported colors for
+                // classifications that do not export a color, have a color defined in the PKGDEF,
+                // or have a custom color set will be Black (0x00000000) for the Foreground and
+                // White (0x00FFFFF) for the Background. We will additionally check the foreground
+                // against Black and DefaultForegroundColor for completeness.
+
+                var foreground = colorItemMap[classification].Foreground;
+                return foreground == themeColor ||
+                    foreground == 0 ||
+                    foreground == DefaultForegroundColor;
             }
 
             /// <summary>

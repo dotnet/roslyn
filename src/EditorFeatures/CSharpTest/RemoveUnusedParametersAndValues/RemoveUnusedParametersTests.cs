@@ -65,10 +65,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         [InlineData("public", "public")]
         [InlineData("public", "protected")]
-        public async Task Parameter_Unused_NonPrivate_NotApplicable(string typeAccesibility, string methodAccessibility)
+        public async Task Parameter_Unused_NonPrivate_NotApplicable(string typeAccessibility, string methodAccessibility)
         {
             await TestDiagnosticMissingAsync(
-$@"{typeAccesibility} class C
+$@"{typeAccessibility} class C
 {{
     {methodAccessibility} void M(int [|p|])
     {{
@@ -83,10 +83,10 @@ $@"{typeAccesibility} class C
         [InlineData("internal", "public")]
         [InlineData("internal", "internal")]
         [InlineData("internal", "protected")]
-        public async Task Parameter_Unused_NonPublicMethod(string typeAccesibility, string methodAccessibility)
+        public async Task Parameter_Unused_NonPublicMethod(string typeAccessibility, string methodAccessibility)
         {
             await TestDiagnosticsAsync(
-$@"{typeAccesibility} class C
+$@"{typeAccessibility} class C
 {{
     {methodAccessibility} void M(int [|p|])
     {{
@@ -979,6 +979,39 @@ class C
 }}");
         }
 
+        [WorkItem(32133, "https://github.com/dotnet/roslyn/issues/32133")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Parameter_SerializationConstructor()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+using System;
+using System.Runtime.Serialization;
+
+internal sealed class NonSerializable
+{
+    public NonSerializable(string value) => Value = value;
+
+    public string Value { get; set; }
+}
+
+[Serializable]
+internal sealed class CustomSerializingType : ISerializable
+{
+    private readonly NonSerializable _nonSerializable;
+
+    public CustomSerializingType(SerializationInfo info, StreamingContext [|context|])
+    {
+        _nonSerializable = new NonSerializable(info.GetString(""KEY""));
+    }
+
+    public void GetObjectData(SerializationInfo info, StreamingContext context)
+    {
+        info.AddValue(""KEY"", _nonSerializable.Value);
+    }
+}");
+        }
+
         [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task Parameter_DiagnosticMessages()
         {
@@ -1017,6 +1050,35 @@ class C
                 Assert.Equal("Remove unused parameter 'p3' if it is not part of a shipped public API", sortedDiagnostics[2].GetMessage());
                 Assert.Equal("Remove unused parameter 'p4' if it is not part of a shipped public API, its initial value is never used", sortedDiagnostics[3].GetMessage());
             }
+        }
+
+        [WorkItem(32287, "https://github.com/dotnet/roslyn/issues/32287")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Parameter_DeclarationPatternWithNullDeclaredSymbol()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    void M(object [|o|])
+    {
+        if (o is int _)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(32851, "https://github.com/dotnet/roslyn/issues/32851")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Parameter_Unused_SpecialNames()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    [|void M(int _, char _1, C _3)|]
+    {
+    }
+}");
         }
     }
 }

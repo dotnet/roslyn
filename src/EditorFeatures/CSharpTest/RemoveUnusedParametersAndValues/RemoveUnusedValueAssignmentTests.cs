@@ -1972,6 +1972,129 @@ $@"class C
 }}", optionName: optionName);
         }
 
+        [WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DeclarationPatternInRecursivePattern_WithNoReference_PreferDiscard()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(object p1, object p2)
+    {
+        var isZero = (p1, p2) switch { (0, 0) => true, (int [|x1|], int x2) => false };
+    }
+}",
+@"class C
+{
+    void M(object p1, object p2)
+    {
+        var isZero = (p1, p2) switch { (0, 0) => true, (int _, int x2) => false };
+    }
+}", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DeclarationPatternInRecursivePattern_WithNoReference_PreferUnusedLocal()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(object p1, object p2)
+    {
+        var isZero = (p1, p2) switch { (0, 0) => true, (int [|x1|], int x2) => false };
+    }
+}", options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DeclarationPatternInRecursivePattern_WithOnlyWriteReference_PreferDiscard()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(object p1, object p2)
+    {
+        var isZero = (p1, p2) switch { (0, 0) => true, (int [|x1|], int x2) => M2(out x1) };
+    }
+
+    bool M2(out int x)
+    {
+        x = 0;
+        return false;
+    }
+}",
+@"class C
+{
+    void M(object p1, object p2)
+    {
+        int x1;
+        var isZero = (p1, p2) switch { (0, 0) => true, (int _, int x2) => M2(out x1) };
+    }
+
+    bool M2(out int x)
+    {
+        x = 0;
+        return false;
+    }
+}", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DeclarationPatternInRecursivePattern_WithOnlyWriteReference_PreferUnusedLocal()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(object p1, object p2)
+    {
+        var isZero = (p1, p2) switch { (0, 0) => true, (int [|x1|], int x2) => M2(out x1) };
+    }
+
+    bool M2(out int x)
+    {
+        x = 0;
+        return false;
+    }
+}", options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [WorkItem(32271, "https://github.com/dotnet/roslyn/issues/32271")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard), "_")]
+        [InlineData(nameof(PreferUnusedLocal), "unused")]
+        public async Task DeclarationPatternInRecursivePattern_WithReadAndWriteReference(string optionName, string fix)
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(object p1, object p2)
+    {
+        var isZero = (p1, p2) switch { (0, 0) => true, (int [|x1|], int x2) => M2(x1 = 0) && M2(x1) };
+    }
+
+    bool M2(int x)
+    {
+        return false;
+    }
+}",
+$@"class C
+{{
+    void M(object p1, object p2)
+    {{
+        int x1;
+        var isZero = (p1, p2) switch {{ (0, 0) => true, (int {fix}, int x2) => M2(x1 = 0) && M2(x1) }};
+    }}
+
+    bool M2(int x)
+    {{
+        return false;
+    }}
+}}", optionName: optionName, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
@@ -5916,6 +6039,69 @@ class C
         x = 1;
 #endif
         return x;
+    }
+}", optionName);
+        }
+
+        [WorkItem(32855, "https://github.com/dotnet/roslyn/issues/32855")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task RefLocalInitialization(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Test
+{
+  int[] data = { 0 };
+
+  void Method()
+  {
+    ref int [|target|] = ref data[0];
+    target = 1;
+  }
+}", optionName);
+        }
+
+        [WorkItem(32855, "https://github.com/dotnet/roslyn/issues/32855")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task RefLocalAssignment(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Test
+{
+  int[] data = { 0 };
+
+  int Method()
+  {
+    ref int target = ref data[0];
+    [|target|] = 1;
+    return data[0];
+  }
+}", optionName);
+        }
+
+        [WorkItem(32903, "https://github.com/dotnet/roslyn/issues/32903")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task DelegateCreationWrappedInATuple_UsedInReturnedLambda(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+public class C
+{
+    private (int, int) createTuple() => (1, 1);
+
+    public (Func<int>, bool) M()
+    {
+        var ([|value1, value2|]) = createTuple();
+
+        int LocalFunction() => value1 + value2;
+
+        return (LocalFunction, true);
     }
 }", optionName);
         }

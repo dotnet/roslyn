@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
-        public bool OpenFileOnly(Workspace workspace) 
+        public bool OpenFileOnly(Workspace workspace)
             => true;
 
         public override void Initialize(AnalysisContext context)

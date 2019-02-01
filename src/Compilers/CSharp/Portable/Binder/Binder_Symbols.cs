@@ -413,44 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.ArrayType:
                     {
-                        var node = (ArrayTypeSyntax)syntax;
-                        TypeSymbolWithAnnotations type = BindType(node.ElementType, diagnostics, basesBeingResolved);
-                        if (type.IsStatic)
-                        {
-                            // CS0719: '{0}': array elements cannot be of static type
-                            Error(diagnostics, ErrorCode.ERR_ArrayOfStaticClass, node.ElementType, type.TypeSymbol);
-                        }
-
-                        if (ShouldCheckConstraints)
-                        {
-                            if (type.IsRestrictedType())
-                            {
-                                // CS0611: Array elements cannot be of type '{0}'
-                                Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node.ElementType, type.TypeSymbol);
-                            }
-                        }
-                        else
-                        {
-                            diagnostics.Add(new LazyArrayElementCantBeRefAnyDiagnosticInfo(type), node.ElementType.GetLocation());
-                        }
-
-                        for (int i = node.RankSpecifiers.Count - 1; i >= 0; i--)
-                        {
-                            var a = node.RankSpecifiers[i];
-                            var array = ArrayTypeSymbol.CreateCSharpArray(this.Compilation.Assembly, type, a.Rank);
-
-                            if (a.QuestionToken.IsKind(SyntaxKind.QuestionToken))
-                            {
-                                type = TypeSymbolWithAnnotations.Create(array, NullableAnnotation.Annotated);
-                                reportNullableReferenceTypesIfNeeded(a.QuestionToken);
-                            }
-                            else
-                            {
-                                type = TypeSymbolWithAnnotations.Create(IsNullableEnabled(a.CloseBracketToken), array);
-                            }
-                        }
-
-                        return type;
+                        return BindArrayType((ArrayTypeSyntax)syntax, diagnostics, permitDimensions: false, basesBeingResolved);
                     }
 
                 case SyntaxKind.PointerType:
@@ -521,6 +484,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
+
+        private TypeSymbolWithAnnotations BindArrayType(
+            ArrayTypeSyntax node,
+            DiagnosticBag diagnostics,
+            bool permitDimensions,
+            ConsList<TypeSymbol> basesBeingResolved)
+        {
+            TypeSymbolWithAnnotations type = BindType(node.ElementType, diagnostics, basesBeingResolved);
+            if (type.IsStatic)
+            {
+                // CS0719: '{0}': array elements cannot be of static type
+                Error(diagnostics, ErrorCode.ERR_ArrayOfStaticClass, node.ElementType, type.TypeSymbol);
+            }
+
+            if (ShouldCheckConstraints)
+            {
+                if (type.IsRestrictedType())
+                {
+                    // CS0611: Array elements cannot be of type '{0}'
+                    Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node.ElementType, type.TypeSymbol);
+                }
+            }
+            else
+            {
+                diagnostics.Add(new LazyArrayElementCantBeRefAnyDiagnosticInfo(type), node.ElementType.GetLocation());
+            }
+
+            for (int i = node.RankSpecifiers.Count - 1; i >= 0; i--)
+            {
+                var rankSpecifier = node.RankSpecifiers[i];
+                var dimension = rankSpecifier.Sizes;
+                if (!permitDimensions && dimension.Count != 0 && dimension[0].Kind() != SyntaxKind.OmittedArraySizeExpression)
+                {
+                    // https://github.com/dotnet/roslyn/issues/32464
+                    // Should capture invalid dimensions for use in `SemanticModel` and `IOperation`.
+                    Error(diagnostics, ErrorCode.ERR_ArraySizeInDeclaration, rankSpecifier);
+                }
+
+                var array = ArrayTypeSymbol.CreateCSharpArray(this.Compilation.Assembly, type, rankSpecifier.Rank);
+                type = TypeSymbolWithAnnotations.Create(IsNullableEnabled(rankSpecifier.CloseBracketToken), array);
+            }
+
+            return type;
         }
 
         private TypeSymbol BindTupleType(TupleTypeSyntax syntax, DiagnosticBag diagnostics)

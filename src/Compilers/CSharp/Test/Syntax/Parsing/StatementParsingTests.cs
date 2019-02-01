@@ -3071,7 +3071,7 @@ class C
                             N(SyntaxKind.IdentifierToken, "f");
                         }
                         N(SyntaxKind.QuestionToken);
-                    }                    
+                    }
                     N(SyntaxKind.VariableDeclarator);
                     {
                         N(SyntaxKind.IdentifierToken, "x");
@@ -3241,7 +3241,7 @@ class C
             UsingStatement("using readonly var x, y = ref z;", TestOptions.Regular8,
                 // (1,7): error CS0106: The modifier 'readonly' is not valid for this item
                 // using readonly var x, y = ref z;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1,7));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 7));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -3454,7 +3454,7 @@ class C1
 }
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular);
-            Assert.Equal(false, tree.GetRoot().ContainsDiagnostics);
+            tree.GetDiagnostics().Verify();
         }
 
         [Fact]

@@ -30,15 +30,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         private readonly RecentItemsManager _recentItemsManager;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly ITextView _textView;
 
-        public IEnumerable<char> PotentialCommitCharacters { get; }
-
-        internal CommitManager(ImmutableArray<char> potentialCommitCharacters, RecentItemsManager recentItemsManager, IThreadingContext threadingContext, IEditorOperationsFactoryService editorOperationsFactoryService) : base(threadingContext)
+        public IEnumerable<char> PotentialCommitCharacters
         {
-            PotentialCommitCharacters = potentialCommitCharacters;
+            get
+            {
+                if (_textView.Properties.TryGetProperty(CompletionSource.PotentialCommitCharacters, out ImmutableArray<char> potentialCommitCharacters))
+                {
+                    return potentialCommitCharacters;
+                }
+                else
+                {
+                    // If we were not initialized with a CompletionService or are called for a wrong textView, we should not make a commit.
+                    return ImmutableArray<char>.Empty;
+                }
+            }
+        }
+
+        internal CommitManager(ITextView textView, RecentItemsManager recentItemsManager, IThreadingContext threadingContext, IEditorOperationsFactoryService editorOperationsFactoryService) : base(threadingContext)
+        {
             _recentItemsManager = recentItemsManager;
             _editorOperationsFactoryService = editorOperationsFactoryService;
-    }
+            _textView = textView;
+        }
 
         /// <summary>
         /// The method performs a preliminarily filtering of commit availability.

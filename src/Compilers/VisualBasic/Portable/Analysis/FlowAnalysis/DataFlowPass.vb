@@ -536,7 +536,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' descend through Rest fields
                 ' force corresponding slots if do not exist
-                While containingType <> symbol.ContainingType
+                While Not TypeSymbol.Equals(containingType, symbol.ContainingType, TypeCompareKind.ConsiderEverything)
                     Dim restField = TryCast(containingType.GetMembers(TupleTypeSymbol.RestFieldName).FirstOrDefault(), FieldSymbol)
                     If restField Is Nothing Then
                         Return -1

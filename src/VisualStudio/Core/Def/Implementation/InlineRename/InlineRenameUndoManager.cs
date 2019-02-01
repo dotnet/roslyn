@@ -179,10 +179,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
 
             public void ApplyCurrentState(ITextBuffer subjectBuffer, object propagateSpansEditTag, IEnumerable<ITrackingSpan> spans)
             {
-                ApplyReplacementText(subjectBuffer, this.UndoManagers[subjectBuffer].TextUndoHistory, propagateSpansEditTag, spans, this.currentState.ReplacementText);
+                // There are crash dumps that indicate the BufferUndoState may be being unavailable
+                // here when inline rename has been dismissed due to an external workspace change.
+                // See bug https://github.com/dotnet/roslyn/issues/31883.
+                if (!this.UndoManagers.TryGetValue(subjectBuffer, out var bufferUndoState))
+                {
+                    return;
+                }
+
+                ApplyReplacementText(subjectBuffer, bufferUndoState.TextUndoHistory, propagateSpansEditTag, spans, this.currentState.ReplacementText);
 
                 // Here we create the descriptions for the redo list dropdown.
-                var undoManager = this.UndoManagers[subjectBuffer].UndoManager;
+                var undoManager = bufferUndoState.UndoManager;
                 foreach (var state in this.RedoStack.Reverse())
                 {
                     undoManager.Add(new RedoPrimitive(undoManager, GetUndoTransactionDescription(state.ReplacementText)));
@@ -210,18 +218,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
 
             private IEnumerable<IOleUndoUnit> GetUndoUnits(IOleUndoManager undoManager)
             {
-
-                // Unfortunately, EnumUndoable returns the units in oldest-first order.
-                undoManager.EnumUndoable(out var undoUnitEnumerator);
-                if (undoUnitEnumerator == null)
+                IEnumOleUndoUnits undoUnitEnumerator;
+                try
+                {
+                    // Unfortunately, EnumUndoable returns the units in oldest-first order.
+                    undoManager.EnumUndoable(out undoUnitEnumerator);
+                }
+                catch (COMException)
                 {
                     yield break;
                 }
 
                 const int BatchSize = 100;
+                IOleUndoUnit[] fetchedUndoUnits = new IOleUndoUnit[BatchSize];
+
                 while (true)
                 {
-                    IOleUndoUnit[] fetchedUndoUnits = new IOleUndoUnit[BatchSize];
                     undoUnitEnumerator.Next(BatchSize, fetchedUndoUnits, out var fetchedCount);
                     for (int i = 0; i < fetchedCount; i++)
                     {

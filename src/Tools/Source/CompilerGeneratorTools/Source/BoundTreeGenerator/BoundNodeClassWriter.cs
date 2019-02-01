@@ -885,9 +885,46 @@ namespace BoundTreeGenerator
             {
                 WriteAccept(node.Name);
                 WriteUpdateMethod(node as Node);
+                WriteShallowCloneMethodIfNeeded(node as Node);
             }
 
             WriteClassFooter(node);
+        }
+
+        private void WriteShallowCloneMethodIfNeeded(Node node)
+        {
+            if (SkipShallowClone(node))
+            {
+                return;
+            }
+
+            switch (_targetLang)
+            {
+                case TargetLanguage.CSharp:
+                    {
+                        if (node.Name != "BoundExpression" && IsDerivedType("BoundExpression", node.Name))
+                        {
+                            Blank();
+                            Write("protected override BoundExpression ShallowClone()", node.Name);
+                            Blank();
+                            Brace();
+                            Write("var result = new {0}", node.Name);
+                            var fields = new[] { "this.Syntax" }.Concat(AllSpecifiableFields(node).Select(f => $"this.{f.Name}")).Concat(new[] { "this.HasErrors" });
+                            ParenList(fields);
+                            WriteLine(";");
+                            WriteLine("result.CopyAttributes(this);");
+                            WriteLine("return result;");
+                            Unbrace();
+                        }
+                        break;
+                    }
+
+                case TargetLanguage.VB:
+                    break;
+
+                default:
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
+            }
         }
 
         private void WriteUpdateMethod(Node node)
@@ -920,7 +957,7 @@ namespace BoundTreeGenerator
                             var fields = new[] { "this.Syntax" }.Concat(AllSpecifiableFields(node).Select(f => ToCamelCase(f.Name))).Concat(new[] { "this.HasErrors" });
                             ParenList(fields);
                             WriteLine(";");
-                            WriteLine("result.WasCompilerGenerated = this.WasCompilerGenerated;");
+                            WriteLine("result.CopyAttributes(this);");
                             WriteLine("return result;");
                             Unbrace();
                         }
@@ -952,13 +989,7 @@ namespace BoundTreeGenerator
                             var fields = new[] { "Me.Syntax" }.Concat(AllSpecifiableFields(node).Select(f => ToCamelCase(f.Name))).Concat(new[] { "Me.HasErrors" });
                             ParenList(fields);
                             WriteLine("");
-                            WriteLine("");
-                            WriteLine("If Me.WasCompilerGenerated Then");
-                            Indent();
-                            WriteLine("result.SetWasCompilerGenerated()");
-                            Outdent();
-                            WriteLine("End If");
-                            WriteLine("");
+                            WriteLine("result.CopyAttributes(Me)");
                             WriteLine("Return result");
                             Outdent();
                             WriteLine("End If");
@@ -1257,11 +1288,20 @@ namespace BoundTreeGenerator
                                 else
                                     Write("new TreeDumperNode(\"{0}\", node.{1}, null)", ToCamelCase(field.Name), field.Name);
 
-                                if (i == allFields.Length - 1)
-                                    WriteLine("");
-                                else
+                                if (i != allFields.Length - 1)
                                     WriteLine(",");
                             }
+
+                            if (IsDerivedType("BoundExpression", node.Name))
+                            {
+                                if (allFields.Length != 0)
+                                {
+                                    WriteLine(",");
+                                }
+                                Write("new TreeDumperNode(\"isSuppressed\", node.IsSuppressed, null)");
+                            }
+
+                            WriteLine("");
                             Unbrace();
                         }
                         else
@@ -1581,17 +1621,22 @@ namespace BoundTreeGenerator
 
         private static bool IsNew(Field f)
         {
-            return f.New != null && string.Compare(f.New, "true", true) == 0;
+            return string.Compare(f.New, "true", true) == 0;
         }
 
         private static bool IsPropertyOverrides(Field f)
         {
-            return f.PropertyOverrides != null && string.Compare(f.PropertyOverrides, "true", true) == 0;
+            return string.Compare(f.PropertyOverrides, "true", true) == 0;
         }
 
         private static bool SkipInVisitor(Field f)
         {
-            return f.SkipInVisitor != null && string.Compare(f.SkipInVisitor, "true", true) == 0;
+            return string.Compare(f.SkipInVisitor, "true", true) == 0;
+        }
+
+        private static bool SkipShallowClone(Node n)
+        {
+            return string.Compare(n.SkipShallowClone, "true", true) == 0;
         }
 
         private string ToCamelCase(string name)

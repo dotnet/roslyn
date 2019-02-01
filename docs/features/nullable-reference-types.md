@@ -94,14 +94,25 @@ Invocation of methods annotated with the following attributes will also affect f
 - `[AssertsTrue]` (e.g. `Debug.Assert`) and `[AssertsFalse]`
 
 ## `default`
-`default(T)` is `T?` if `T` is a reference type.
-_Is `default(T)` also `T?` if `T` is an unconstrained type parameter?_
-_Is `default(T?)` an error?_
+If `T` is a reference type, `default(T)` is `T?`.
 ```c#
 string? s = default(string); // assigns ?, no warning
 string t = default; // assigns ?, warning
-T t = default; // assigns ?, warning
 ```
+If `T` is a value type, `default(T)` is `T` and any non-value-type fields in `T` are maybe null.
+If `T` is a value type, `new T()` is equivalent to `default(T)`.
+```c#
+struct Pair<T, U> { public T First; public U Second; }
+var p = default(Pair<object?, string>); // ok: Pair<object?, string!> p
+p.Second.ToString(); // warning
+(object?, string) t = default; // ok
+t.Item2.ToString(); // warning
+```
+If `T` is an unconstrained type parameter, `default(T)` is a `T` that is maybe null.
+```c#
+T t = default; // warning
+```
+_Is `default(T?)` an error?_
 
 ### Conversions
 Conversions can be calculated with ~ considered distinct from ? and !, or with ~ implicitly convertible to ? and !.
@@ -145,6 +156,8 @@ var z = new [] { optionalString, obliviousString }!; // no change, z is string?[
 A warning is reported when using the `!` operator absent a `NonNullTypes` context.
 
 Unnecessary usages of `!` do not produce any diagnostics, including `!!`.
+
+A suppressed expression `e!` can be target-typed if the operand expression `e` can be target-typed.
 
 ### Explicit cast
 Explicit cast to `?` changes top-level nullability.

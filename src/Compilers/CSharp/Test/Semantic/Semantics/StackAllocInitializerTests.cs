@@ -769,6 +769,9 @@ unsafe class Test
 }", TestOptions.UnsafeReleaseDll);
 
             comp.VerifyDiagnostics(
+                // (6,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
+                //         var obj1 = stackalloc int[][] { 1 };
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(6, 31),
                 // (6,31): error CS1575: A stackalloc expression requires [] after type
                 //         var obj1 = stackalloc int[][] { 1 };
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][]").WithLocation(6, 31)

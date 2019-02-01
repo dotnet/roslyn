@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 // before make any change, check whether spacing is allowed
                 var spanBetweenTokens = TextSpan.FromBounds(previousToken.Token.Span.End, currentToken.Token.SpanStart);
-                if (_context.IsSpacingSuppressed(spanBetweenTokens))
+                if (_context.IsSpacingSuppressed(spanBetweenTokens, triviaInfo.TreatAsElastic))
                 {
                     return;
                 }

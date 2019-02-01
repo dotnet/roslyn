@@ -158,7 +158,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public MustOverride Overloads Sub SendSelectCompletionItemThroughPresenterSession(item As CompletionItem)
 
-        Public MustOverride Function AssertNoCompletionSession(Optional block As Boolean = True) As Task
+        Public MustOverride Function AssertNoCompletionSession() As Task
+
+        Public MustOverride Sub AssertNoCompletionSessionWithNoBlock()
 
         Public MustOverride Function AssertCompletionSessionAfterTypingHash() As Task
 

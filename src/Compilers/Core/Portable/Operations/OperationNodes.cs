@@ -7959,7 +7959,7 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal abstract partial class BaseRecursivePatternOperation: Operation, IRecursivePatternOperation
+    internal abstract partial class BaseRecursivePatternOperation : Operation, IRecursivePatternOperation
     {
         public BaseRecursivePatternOperation(
             ITypeSymbol inputType,
@@ -9568,72 +9568,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
 
                 return _rightOperandInterlocked;
-            }
-        }
-    }
-
-    internal abstract class BaseSuppressNullableWarningOperation : Operation, ISuppressNullableWarningOperation
-    {
-        protected BaseSuppressNullableWarningOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.SuppressNullableWarning, semanticModel, syntax, type, constantValue, isImplicit: isImplicit)
-        {
-        }
-
-        public abstract IOperation Expression { get; }
-
-        public sealed override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                yield return Expression;
-            }
-        }
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitSuppressNullableWarningOperation(this);
-        }
-
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitSuppressNullableWarningOperation(this, argument);
-        }
-    }
-
-    internal sealed class SuppressNullableWarningOperation : BaseSuppressNullableWarningOperation
-    {
-        public SuppressNullableWarningOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation expression, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Expression = Operation.SetParentOperation(expression, this);
-        }
-
-        public override IOperation Expression { get; }
-    }
-
-    internal abstract class LazySuppressNullableWarningOperation : BaseSuppressNullableWarningOperation
-    {
-        private IOperation _expressionInterlocked = s_unset;
-
-        public LazySuppressNullableWarningOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-
-        protected abstract IOperation CreateExpression();
-
-        public override IOperation Expression
-        {
-            get
-            {
-                if (_expressionInterlocked == s_unset)
-                {
-                    IOperation expression = CreateExpression();
-                    SetParentOperation(expression, this);
-                    Interlocked.CompareExchange(ref _expressionInterlocked, expression, s_unset);
-                }
-
-                return _expressionInterlocked;
             }
         }
     }

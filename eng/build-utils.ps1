@@ -9,6 +9,9 @@ $ErrorActionPreference="Stop"
 $VSSetupDir = Join-Path $ArtifactsDir "VSSetup\$configuration"
 $PackagesDir = Join-Path $ArtifactsDir "packages\$configuration"
 
+# Use very short directory name to avoid long path issues (build machines, ibcmerge.exe)
+$IbcOptimizationDataDir = Join-Path $RepoRoot ".o"
+
 $binaryLog = if (Test-Path variable:binaryLog) { $binaryLog } else { $false }
 $nodeReuse = if (Test-Path variable:nodeReuse) { $nodeReuse } else { $false }
 $bootstrapDir = if (Test-Path variable:bootstrapDir) { $bootstrapDir } else { "" }
@@ -211,8 +214,8 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
         $args += " /bl:$logFilePath"
     }
 
-    if ($official) {
-        $args += " /p:OfficialBuildId=" + $env:BUILD_BUILDNUMBER
+    if ($officialBuildId) {
+        $args += " /p:OfficialBuildId=" + $officialBuildId
     }
 
     if ($ci) {
