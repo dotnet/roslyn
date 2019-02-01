@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 return;
             }
 
-            var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction);
+            var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferSimpleUsingStatement);
             if (!option.Value)
             {
                 return;
