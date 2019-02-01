@@ -182,42 +182,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     _hasDelegateCreationOrAnonymousFunction = true;
                     if (!_hasDelegateEscape)
                     {
-                        _hasDelegateEscape = !IsHandledOperationTreeShape(operationAnalysisContext.Operation);
-                    }
-
-                    return;
-
-                    // Local functions.
-                    bool IsHandledOperationTreeShape(IOperation operation)
-                    {
-                        // We only handle certain operation tree shapes in flow analysis of delegate creations
-                        // and consider those as non-delegate escaping operation trees.
-                        // For the remaining unknown ones, we conservatively mark the operation to lead to
-                        // delegate escape, and corresponding bail out from flow analysis in ShouldAnalyze method below.
-
-                        // 1. Delegate creation or anonymous function variable initializer is handled.
-                        if (operation.Parent is IVariableInitializerOperation)
-                        {
-                            return true;
-                        }
-
-                        // 2. Delegate creation or anonymous function assigned to a local or parameter are handled.
-                        if (operation.Parent is ISimpleAssignmentOperation assignment &&
-                            (assignment.Target.Kind == OperationKind.LocalReference ||
-                             assignment.Target.Kind == OperationKind.ParameterReference))
-                        {
-                            return true;
-                        }
-
-                        // 3. For anonymous functions parented by delegate creation, we analyze the parent operation.
-                        if (operation.Kind == OperationKind.AnonymousFunction &&
-                            operation.Parent is IDelegateCreationOperation)
-                        {
-                            return IsHandledOperationTreeShape(operation.Parent);
-                        }
-
-                        // 4. Otherwise, conservatively consider this as an unhandled delegate escape.
-                        return false;
+                        _hasDelegateEscape = !IsHandledDelegateCreationOrAnonymousFunctionTreeShape(operationAnalysisContext.Operation);
                     }
                 }
 
@@ -230,58 +195,124 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                     if (!_hasDelegateEscape)
                     {
-                        _hasDelegateEscape = !IsHandledOperationTreeShape(operationAnalysisContext.Operation);
+                        _hasDelegateEscape = !IsHandledLocalOrParameterReferenceTreeShape(operationAnalysisContext.Operation);
                     }
+                }
 
-                    return;
+                /// <summary>
+                /// We handle only certain operation tree shapes in flow analysis
+                /// when delegate creations are involved (lambdas/local functions).
+                /// We track assignments of lambdas/local functions to parameters/locals,
+                /// assignments of parameters/locals to other parameters/locals of delegate types,
+                /// and then delegate invocations through parameter/locals.
+                /// For the remaining unknown ones, we conservatively mark the operation as leading to
+                /// delegate escape, and corresponding bail out from flow analysis in <see cref="ShouldAnalyze(IOperation, ISymbol)"/>.
+                /// This function checks the operation tree shape in context of
+                /// an <see cref="IDelegateCreationOperation"/> or an <see cref="IAnonymousFunctionOperation"/>.
+                /// </summary>
+                private static bool IsHandledDelegateCreationOrAnonymousFunctionTreeShape(IOperation operation)
+                {
+                    Debug.Assert(operation.Kind == OperationKind.DelegateCreation || operation.Kind == OperationKind.AnonymousFunction);
 
-                    // Local functions
-                    bool IsHandledOperationTreeShape(IOperation operation)
+                    // 1. Delegate creation or anonymous function variable initializer is handled.
+                    //    For example, for 'Action a = () => { ... };', the lambda is the variable initializer
+                    //    and we track that 'a' points to this lambda during flow analysis
+                    //    and analyze lambda body at invocation sites 'a();' 
+                    if (operation.Parent is IVariableInitializerOperation)
                     {
-                        // We only handle certain operation tree shapes in flow analysis of delegates.
-                        // and consider those as non-delegate escaping operation trees.
-                        // For the remaining unknown ones, we conservatively mark the operation to lead to
-                        // delegate escape, and corresponding bail out from flow analysis in ShouldAnalyze method below.
-
-                        // 1. We are only interested in parameters or locals of delegate type.
-                        if (!operation.Type.IsDelegateType())
-                        {
-                            return true;
-                        }
-
-                        // 2. Delegate invocations are handled.
-                        if (operation.Parent is IInvocationOperation)
-                        {
-                            return true;
-                        }
-
-                        if (operation.Parent is ISimpleAssignmentOperation assignmentOperation)
-                        {
-                            // 3. Parameter/local as target of an assignment is handled.
-                            if (assignmentOperation.Target == operation)
-                            {
-                                return true;
-                            }
-
-                            // 4. Assignment from a parameter or local is only handled if being
-                            //    assigned to some parameter or local of delegate type.
-                            if (assignmentOperation.Target.Type.IsDelegateType() &&
-                                (assignmentOperation.Target.Kind == OperationKind.LocalReference ||
-                                assignmentOperation.Target.Kind == OperationKind.ParameterReference))
-                            {
-                                return true;
-                            }
-                        }
-
-                        // 5. Binary operations on parameter/local are fine.
-                        if (operation.Parent is IBinaryOperation)
-                        {
-                            return true;
-                        }
-
-                        // 6. Otherwise, conservatively consider this as an unhandled delegate escape.
-                        return false;
+                        return true;
                     }
+
+                    // 2. Delegate creation or anonymous function assigned to a local or parameter are handled.
+                    //    For example, for 'Action a; a = () => { ... };', the lambda is assigned to local 'a'
+                    //    and we track that 'a' points to this lambda during flow analysis
+                    //    and analyze lambda body at invocation sites 'a();' 
+                    if (operation.Parent is ISimpleAssignmentOperation assignment &&
+                        (assignment.Target.Kind == OperationKind.LocalReference ||
+                         assignment.Target.Kind == OperationKind.ParameterReference))
+                    {
+                        return true;
+                    }
+
+                    // 3. For anonymous functions parented by delegate creation, we analyze the parent operation.
+                    //    For example, for 'Action a = () => { ... };', the lambda generates an anonymous function
+                    //    operation parented by a delegate creation.
+                    if (operation.Kind == OperationKind.AnonymousFunction &&
+                        operation.Parent is IDelegateCreationOperation)
+                    {
+                        return IsHandledDelegateCreationOrAnonymousFunctionTreeShape(operation.Parent);
+                    }
+
+                    // 4. Otherwise, conservatively consider this as an unhandled delegate escape.
+                    return false;
+                }
+
+                /// <summary>
+                /// We handle only certain operation tree shapes in flow analysis
+                /// when delegate creations are involved (lambdas/local functions).
+                /// We track assignments of lambdas/local functions to parameters/locals,
+                /// assignments of parameters/locals to other parameters/locals of delegate types,
+                /// and then delegate invocations through parameter/locals.
+                /// For the remaining unknown ones, we conservatively mark the operation as leading to
+                /// delegate escape, and corresponding bail out from flow analysis in <see cref="ShouldAnalyze(IOperation, ISymbol)"/>.
+                /// This function checks the operation tree shape in context of
+                /// an <see cref="IParameterReferenceOperation"/> or an <see cref="ILocalReferenceOperation"/>
+                /// of delegate type.
+                /// </summary>
+                private static bool IsHandledLocalOrParameterReferenceTreeShape(IOperation operation)
+                {
+                    Debug.Assert(operation.Kind == OperationKind.LocalReference || operation.Kind == OperationKind.ParameterReference);
+
+                    // 1. We are only interested in parameters or locals of delegate type.
+                    if (!operation.Type.IsDelegateType())
+                    {
+                        return true;
+                    }
+
+                    // 2. Delegate invocations are handled.
+                    //    For example, for 'Action a = () => { ... };  a();'
+                    //    we track that 'a' points to the lambda during flow analysis
+                    //    and analyze lambda body at invocation sites 'a();' 
+                    if (operation.Parent is IInvocationOperation)
+                    {
+                        return true;
+                    }
+
+                    if (operation.Parent is ISimpleAssignmentOperation assignmentOperation)
+                    {
+                        // 3. Parameter/local as target of an assignment is handled.
+                        //    For example, for 'a = () => { ... };  a();'
+                        //    assignment of a lambda to a local/parameter 'a' is tracked during flow analysis
+                        //    and we analyze lambda body at invocation sites 'a();' 
+                        if (assignmentOperation.Target == operation)
+                        {
+                            return true;
+                        }
+
+                        // 4. Assignment from a parameter or local is only handled if being
+                        //    assigned to some parameter or local of delegate type.
+                        //    For example, for 'a = () => { ... }; b = a;  b();'
+                        //    assignment of a local/parameter 'b = a' is tracked during flow analysis
+                        //    and we analyze lambda body at invocation sites 'b();' 
+                        if (assignmentOperation.Target.Type.IsDelegateType() &&
+                            (assignmentOperation.Target.Kind == OperationKind.LocalReference ||
+                            assignmentOperation.Target.Kind == OperationKind.ParameterReference))
+                        {
+                            return true;
+                        }
+                    }
+
+                    // 5. Binary operations on parameter/local are fine.
+                    //    For example, 'a = () => { ... }; if (a != null) { a(); }'
+                    //    the binary operation 'a != null' is fine and does not lead
+                    //    to a delegate escape.
+                    if (operation.Parent is IBinaryOperation)
+                    {
+                        return true;
+                    }
+
+                    // 6. Otherwise, conservatively consider this as an unhandled delegate escape.
+                    return false;
                 }
 
                 /// <summary>
@@ -446,6 +477,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                                     {
                                         case RefKind.Out:
                                             // Do not report out parameters of local functions.
+                                            // If they are unused in the caller, we will flag the
+                                            // out argument at the local function callsite.
                                             shouldReport = false;
                                             break;
 
@@ -503,7 +536,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         //   4. Ignore special discard symbol names (see https://github.com/dotnet/roslyn/issues/32923).
                         if (_options.UnusedValueAssignmentSeverity == ReportDiagnostic.Suppress ||
                             symbol.GetSymbolType().IsErrorType() ||
-                            symbol.IsStatic && symbol.Kind == SymbolKind.Local ||
+                            (symbol.IsStatic && symbol.Kind == SymbolKind.Local) ||
                             IsSymbolWithSpecialDiscardName(symbol))
                         {
                             return false;
