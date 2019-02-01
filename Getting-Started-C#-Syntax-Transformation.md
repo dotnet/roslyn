@@ -408,7 +408,7 @@ namespace TransformationCS
                                            .WithFilePath(programPath);
 
             String rewriterPath = @"..\..\TypeInferenceRewriter.cs";
-            String rewriterText = File.ReadAllText(rewriterText);
+            String rewriterText = File.ReadAllText(rewriterPath);
             SyntaxTree rewriterTree =
                            CSharpSyntaxTree.ParseText(rewriterText)
                                            .WithFilePath(rewriterPath);
@@ -416,11 +416,11 @@ namespace TransformationCS
             SyntaxTree[] sourceTrees = { programTree, rewriterTree };
 
             MetadataReference mscorlib =
-                    MetadataReference.CreateFromAssembly(typeof(object).Assembly);
+                    MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
             MetadataReference codeAnalysis =
-                    MetadataReference.CreateFromAssembly(typeof(SyntaxTree).Assembly);
+                    MetadataReference.CreateFromFile(typeof(SyntaxTree).Assembly.Location);
             MetadataReference csharpCodeAnalysis =
-                    MetadataReference.CreateFromAssembly(typeof(CSharpSyntaxTree).Assembly);
+                    MetadataReference.CreateFromFile(typeof(CSharpSyntaxTree).Assembly.Location);
 
             MetadataReference[] references = { mscorlib, codeAnalysis, csharpCodeAnalysis };
 
@@ -474,7 +474,7 @@ namespace TransformationCS
                                            .WithFilePath(programPath);
 
             String rewriterPath = @"..\..\TypeInferenceRewriter.cs";
-            String rewriterText = File.ReadAllText(rewriterText);
+            String rewriterText = File.ReadAllText(rewriterPath);
             SyntaxTree rewriterTree =
                            CSharpSyntaxTree.ParseText(rewriterText)
                                            .WithFilePath(rewriterPath);
@@ -483,11 +483,11 @@ namespace TransformationCS
             SyntaxTree[] sourceTrees = { programTree, rewriterTree };
 
             MetadataReference mscorlib =
-                    MetadataReference.CreateFromAssembly(typeof(object).Assembly);
+                    MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
             MetadataReference codeAnalysis =
-                    MetadataReference.CreateFromAssembly(typeof(SyntaxTree).Assembly);
+                    MetadataReference.CreateFromFile(typeof(SyntaxTree).Assembly.Location);
             MetadataReference csharpCodeAnalysis =
-                    MetadataReference.CreateFromAssembly(typeof(CSharpSyntaxTree).Assembly);
+                    MetadataReference.CreateFromFile(typeof(CSharpSyntaxTree).Assembly.Location);
 
             MetadataReference[] references = { mscorlib, codeAnalysis, csharpCodeAnalysis };
 
