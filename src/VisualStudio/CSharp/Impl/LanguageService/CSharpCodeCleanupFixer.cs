@@ -22,8 +22,10 @@ using Microsoft.VisualStudio.Editor.CodeCleanup;
 using Microsoft.VisualStudio.Language.CodeCleanUp;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
+using __VSHPROPID8 = Microsoft.VisualStudio.Shell.Interop.__VSHPROPID8;
 using IVsHierarchyItemManager = Microsoft.VisualStudio.Shell.IVsHierarchyItemManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
@@ -253,12 +255,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         public static readonly FixIdDefinition SortImports;
 
         private readonly IThreadingContext _threadingContext;
-        private readonly VisualStudioWorkspace _workspace;
+        private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IVsHierarchyItemManager _vsHierarchyItemManager;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeCleanUpFixer(IThreadingContext threadingContext, VisualStudioWorkspace workspace, IVsHierarchyItemManager vsHierarchyItemManager)
+        public CSharpCodeCleanUpFixer(IThreadingContext threadingContext, VisualStudioWorkspaceImpl workspace, IVsHierarchyItemManager vsHierarchyItemManager)
         {
             _threadingContext = threadingContext;
             _workspace = workspace;
@@ -289,17 +291,28 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             var itemId = hierarchyContent.ItemId;
             if (itemId == (uint)VSConstants.VSITEMID.Root)
             {
-                // Map the hierarchy to a ProjectId. For hierarchies mapping to multitargeted projects, the first target
-                // is chosen.
+                // Map the hierarchy to a ProjectId. For hierarchies mapping to multitargeted projects, we first try to
+                // get the project in the most recent active context, but fall back to the first target framework if no
+                // active context is available.
                 var hierarchyToProjectMap = _workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
 
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var projectHierarchyItem = _vsHierarchyItemManager.GetHierarchyItem(hierarchyContent.Hierarchy, itemId);
-                if (!hierarchyToProjectMap.TryGetProjectId(projectHierarchyItem, targetFrameworkMoniker: null, out var projectId))
+                ProjectId projectId = null;
+                if (ErrorHandler.Succeeded(hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out var contextProjectNameObject))
+                    && contextProjectNameObject is string contextProjectName)
                 {
-                    return false;
+                    projectId = _workspace.GetProjectWithHierarchyAndName(hierarchy, contextProjectName)?.Id;
+                }
+
+                if (projectId is null)
+                {
+                    var projectHierarchyItem = _vsHierarchyItemManager.GetHierarchyItem(hierarchyContent.Hierarchy, itemId);
+                    if (!hierarchyToProjectMap.TryGetProjectId(projectHierarchyItem, targetFrameworkMoniker: null, out projectId))
+                    {
+                        return false;
+                    }
                 }
 
                 await TaskScheduler.Default;
