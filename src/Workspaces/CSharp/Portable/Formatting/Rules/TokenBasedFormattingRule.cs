@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // ```
             if (previousToken.IsCommaInPropertyPatternClause())
             {
-                return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+                return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
             }
 
             // else * except else if case
