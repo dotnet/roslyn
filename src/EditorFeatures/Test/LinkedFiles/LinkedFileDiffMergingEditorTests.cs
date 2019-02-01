@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new TestCodeRefactoringProvider();
 
-        [WpfFact()]
+        [WpfFact]
         public async Task TestCodeActionPreviewAndApply()
         {
             using (var workspace = TestWorkspace.Create(WorkspaceXml))
