@@ -844,7 +844,6 @@ class Customer
 //[
         // {ServicesVSResources.Over_colon}
         var sub = value.Substring(1, value.Length - 2);
->>>>>>> UI options.  Also support arrays.
 //]
     }}
 }}
