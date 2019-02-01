@@ -88,7 +88,7 @@ public class MyDerivedCodeActionWithEquivalenceKey : MyAbstractCodeActionWithEqu
             VerifyCSharp(source + fixAllProviderString + sourceSuffix, validationMode, expected);
 
             // Verify RS1016 (OverrideGetFixAllProviderRule) diagnostic for fixer that does not support FixAllProvider.
-            expected = new DiagnosticResult[]{ missingGetFixAllProviderOverrideDiagnostic };
+            expected = new DiagnosticResult[] { missingGetFixAllProviderOverrideDiagnostic };
             VerifyCSharp(source + sourceSuffix, validationMode, expected);
         }
 

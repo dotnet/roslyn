@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                         distinctCaseKindsBuilder.Add(caseClauseOperation.CaseKind);
                         if (caseClauseOperation.CaseKind == CaseKind.Relational)
                         {
-                            countBinaryOperator(operation, ((IRelationalCaseClauseOperation)operation).Relation);    
+                            countBinaryOperator(operation, ((IRelationalCaseClauseOperation)operation).Relation);
                         }
                         else
                         {

@@ -78,12 +78,12 @@ namespace Test.Utilities
         }
 
         private void VerifyFixAll(
-            string language, 
-            DiagnosticAnalyzer analyzerOpt, 
-            CodeFixProvider codeFixProvider, 
-            string[] oldSources, 
-            string[] newSources, 
-            bool allowNewCompilerDiagnostics, 
+            string language,
+            DiagnosticAnalyzer analyzerOpt,
+            CodeFixProvider codeFixProvider,
+            string[] oldSources,
+            string[] newSources,
+            bool allowNewCompilerDiagnostics,
             bool allowUnsafeCode,
             TestValidationMode validationMode)
         {
@@ -96,15 +96,15 @@ namespace Test.Utilities
         }
 
         protected static void VerifyAdditionalFileFix(
-            string language, 
-            DiagnosticAnalyzer analyzerOpt, 
-            CodeFixProvider codeFixProvider, 
-            string source, 
-            IEnumerable<TestAdditionalDocument> additionalFiles, 
-            TestAdditionalDocument newAdditionalFileToVerify, 
-            int? codeFixIndex = null, 
-            bool allowNewCompilerDiagnostics = false, 
-            bool onlyFixFirstFixableDiagnostic = false, 
+            string language,
+            DiagnosticAnalyzer analyzerOpt,
+            CodeFixProvider codeFixProvider,
+            string source,
+            IEnumerable<TestAdditionalDocument> additionalFiles,
+            TestAdditionalDocument newAdditionalFileToVerify,
+            int? codeFixIndex = null,
+            bool allowNewCompilerDiagnostics = false,
+            bool onlyFixFirstFixableDiagnostic = false,
             TestValidationMode validationMode = DefaultTestValidationMode)
         {
             Document document = CreateDocument(source, language);

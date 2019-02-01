@@ -41,7 +41,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }";
-            DiagnosticResult[] expected = new[] { GetCSharpRS1007ExpectedDiagnostic(11, 9), GetCSharpRS1015ExpectedDiagnostic(11, 9)};
+            DiagnosticResult[] expected = new[] { GetCSharpRS1007ExpectedDiagnostic(11, 9), GetCSharpRS1015ExpectedDiagnostic(11, 9) };
             VerifyCSharp(source, expected);
         }
 
@@ -104,7 +104,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }";
             DiagnosticResult[] expected = new[] {
-                GetCSharpRS1007ExpectedDiagnostic(11, 9), 
+                GetCSharpRS1007ExpectedDiagnostic(11, 9),
                 GetCSharpRS1015ExpectedDiagnostic(11, 118),
                 GetCSharpRS1007ExpectedDiagnostic(14, 9),
                 GetCSharpRS1015ExpectedDiagnostic(14, 9)
