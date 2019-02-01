@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         return null;
                     }
 
+                    if (currentToken.Parent.IsKind(SyntaxKindEx.PropertyPatternClause))
+                    {
+                        return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
+                    }
+
                     if (!previousToken.IsParenInParenthesizedExpression())
                     {
                         return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
@@ -39,6 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     if (currentToken.IsInterpolation())
                     {
                         return null;
+                    }
+
+                    if (currentToken.Parent.IsKind(SyntaxKindEx.PropertyPatternClause))
+                    {
+                        return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
                     }
 
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
@@ -71,7 +81,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                             !currentToken.IsCloseParenInStatement() &&
                             !currentToken.IsEqualsTokenInAutoPropertyInitializers() &&
                             !currentToken.IsColonInCasePatternSwitchLabel() && // no newline required before colon in pattern-switch-label (ex: `case {<pattern>}:`)
-                            !currentToken.IsColonInSwitchExpressionArm())  // no newline required before colon in switch-expression-arm (ex: `{<pattern>}: expression`)
+                            !currentToken.IsColonInSwitchExpressionArm() &&  // no newline required before colon in switch-expression-arm (ex: `{<pattern>}: expression`)
+                            !currentToken.IsCommaInPropertyPatternClause() &&
+                            !currentToken.Parent.IsKind(SyntaxKind.SingleVariableDesignation) // no newline before variable designation
+                            )
                         {
                             return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                         }
@@ -83,6 +96,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     if (previousToken.IsInterpolation())
                     {
                         return null;
+                    }
+
+                    if (currentToken.Parent.IsKind(SyntaxKindEx.PropertyPatternClause))
+                    {
+                        return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
                     }
 
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
@@ -117,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // ```
             if (previousToken.IsCommaInPropertyPatternClause())
             {
-                return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
+                return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
             }
 
             // else * except else if case

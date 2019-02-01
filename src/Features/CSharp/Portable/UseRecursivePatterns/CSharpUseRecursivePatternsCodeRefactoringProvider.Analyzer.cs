@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
@@ -27,9 +27,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             public override AnalyzedNode VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node)
             {
                 // Attempt to combine the pattern on the left and the condition of the when-clause.
-                if (node.WhenClause is var whenClause && whenClause != null)
+                if (node.WhenClause != null)
                 {
-                    return new Conjunction(Visit(node.Pattern), Visit(whenClause.Condition));
+                    return new Conjunction(Visit(node.Pattern), Visit(node.WhenClause.Condition));
+                }
+
+                return null;
+            }
+
+            public override AnalyzedNode VisitSwitchExpressionArm(SwitchExpressionArmSyntax node)
+            {
+                if (node.WhenClause != null)
+                {
+                    return new Conjunction(Visit(node.Pattern), Visit(node.WhenClause.Condition));
                 }
 
                 return null;
@@ -41,14 +51,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 var right = node.Right;
                 switch (node.Kind())
                 {
-                    // Yield a pattern-match for an equality comparison if either side is a constant.
                     case SyntaxKind.EqualsExpression when IsConstant(right):
                         return new PatternMatch(left, new ConstantPattern(right));
 
                     case SyntaxKind.EqualsExpression when IsConstant(left):
                         return new PatternMatch(right, new ConstantPattern(left));
 
-                    // Yield a not-null pattern-match for an inequality comparison if either side is the constant null.
                     case SyntaxKind.NotEqualsExpression when IsConstantNull(right):
                         return new PatternMatch(left, NotNullPattern.Instance);
 
@@ -63,8 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
                     // Analyze and combine both operands of an &&-operator.
                     case SyntaxKind.LogicalAndExpression
-                        when Visit(left) is var analyzedLeft && analyzedLeft != null &&
-                            Visit(right) is var analyzedRight && analyzedRight != null:
+                        when Visit(left) is AnalyzedNode analyzedLeft &&
+                            Visit(right) is AnalyzedNode analyzedRight:
                         return new Conjunction(analyzedLeft, analyzedRight);
                 }
 
@@ -120,55 +128,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             public override AnalyzedNode VisitRecursivePattern(RecursivePatternSyntax node)
             {
-                var nodes = new List<AnalyzedNode>();
-
-                if (node.Type is var type && type != null)
+                var nodes = ArrayBuilder<AnalyzedNode>.GetInstance();
+                if (node.Type != null)
                 {
-                    nodes.Add(new TypePattern(type));
+                    nodes.Add(new TypePattern(node.Type));
                 }
 
-                if (node.PositionalPatternClause is var positinal && positinal != null)
+                if (node.PositionalPatternClause != null)
                 {
-                    nodes.Add(new PositionalPattern(
-                        positinal.Subpatterns.SelectAsArray(sub => (sub.NameColon, Visit(sub.Pattern)))));
+                    nodes.Add(new PositionalPattern(node.PositionalPatternClause.Subpatterns
+                        .SelectAsArray(sub => (sub.NameColon, Visit(sub.Pattern)))));
                 }
 
-                if (node.PropertyPatternClause is var property && property != null)
+                if (node.PropertyPatternClause != null)
                 {
-                    nodes.AddRange(property.Subpatterns
+                    nodes.AddRange(node.PropertyPatternClause.Subpatterns
                         .Select(sub => new PatternMatch(sub.NameColon.Name, Visit(sub.Pattern))));
                 }
 
-                if (node.Designation is var designation && designation != null)
+                if (node.Designation != null)
                 {
-                    nodes.Add(Visit(designation));
+                    nodes.Add(Visit(node.Designation));
                 }
 
                 if (nodes.Count == 0)
                 {
+                    nodes.Free();
                     return NotNullPattern.Instance;
                 }
 
-                return nodes.Aggregate((left, right) => new Conjunction(left, right));
+                return nodes.ToImmutableAndFree().Aggregate((left, right) => new Conjunction(left, right));
             }
 
             public override AnalyzedNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
             {
-                if (IsIdentifierOrSimpleMemberAccess(node))
-                {
-                    // An expression of the form `(e.Property)` can be rewritten as a pattern-match `e is {Property: true}`
-                    return new PatternMatch(node,
-                        new ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)));
-                }
-
-                return new Evaluation(node);
+                // An expression of the form `(e.Property)` can be rewritten as a pattern-match `e is {Property: true}`
+                return new PatternMatch(node,
+                    new ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)));
             }
 
             public override AnalyzedNode VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
             {
                 // An expression of the form `!(e.Property)` can be rewritten as a pattern-match `e is {Property: false}`
-                if (node.IsKind(SyntaxKind.LogicalNotExpression) &&
-                    IsIdentifierOrSimpleMemberAccess(node.Operand))
+                if (node.IsKind(SyntaxKind.LogicalNotExpression))
                 {
                     return new PatternMatch(node.Operand,
                         new ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)));
@@ -189,23 +191,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             }
         }
 
-        private static bool IsIdentifierOrSimpleMemberAccess(ExpressionSyntax node)
-        {
-            switch (node.Kind())
-            {
-                default:
-                    return false;
-                case SyntaxKind.IdentifierName:
-                    return true;
-                case SyntaxKind.MemberBindingExpression:
-                    return IsIdentifierOrSimpleMemberAccess(((MemberBindingExpressionSyntax)node).Name);
-                case SyntaxKind.ParenthesizedExpression:
-                    return IsIdentifierOrSimpleMemberAccess(((ParenthesizedExpressionSyntax)node).Expression);
-                case SyntaxKind.SimpleMemberAccessExpression:
-                    return IsIdentifierOrSimpleMemberAccess(((MemberAccessExpressionSyntax)node).Name);
-                case SyntaxKind.ConditionalAccessExpression:
-                    return IsIdentifierOrSimpleMemberAccess(((ConditionalAccessExpressionSyntax)node).WhenNotNull);
-            }
-        }
     }
 }

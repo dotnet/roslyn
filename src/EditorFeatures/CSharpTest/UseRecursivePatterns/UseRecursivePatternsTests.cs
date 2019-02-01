@@ -28,10 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
 {
     bool M()
     {
-        return b is
-        {
-            P1: 1, P2: 2
-        };
+        return b is { P1: 1, P2: 2 };
     }
 }");
         }
@@ -57,10 +54,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
     {
         return b is
         {
-            MetadataName: string.Empty, ContainingType: null, ContainingNamespace:
-            {
-                Name: string.Empty, ContainingNamespace: null
-            }
+            MetadataName: string.Empty,
+            ContainingType: null,
+            ContainingNamespace: { Name: string.Empty, ContainingNamespace: null }
         };
     }
 }");
@@ -74,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
 {
     bool M()
     {
-        return type.Name == ""ValueTuple"" &&
+        return type.Name == ""ValueTuple"" && 
             type.ContainingSymbol is var declContainer &&
             declContainer.Kind == SymbolKind.Namespace [||]&&
             declContainer.Name == ""System"";
@@ -86,12 +82,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
     {
         return type is
         {
-            Name: ""ValueTuple"", ContainingSymbol:
-            {
-                Name: ""System"", Kind: SymbolKind.Namespace
-            }
-
-            declContainer
+            Name: ""ValueTuple"",
+            ContainingSymbol: { Name: ""System"", Kind: SymbolKind.Namespace } declContainer
         };
     }
 }");
@@ -117,12 +109,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
     {
         return type is
         {
-            Name: ""ValueTuple"", ContainingSymbol: SomeType
-            {
-                Name: ""System"", Kind: SymbolKind.Namespace
-            }
-
-            declContainer
+            Name: ""ValueTuple"",
+            ContainingSymbol: SomeType { Name: ""System"", Kind: SymbolKind.Namespace } declContainer
         };
     }
 }");
@@ -143,10 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
 {
     bool M()
     {
-        return type is
-        {
-            Name: ""ValueTuple"", IsStruct: true
-        };
+        return type is { Name: ""ValueTuple"", IsStruct: true };
     }
 }");
         }
@@ -166,10 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
 {
     bool M()
     {
-        return type is
-        {
-            Name: ""ValueTuple"", IsClass: false
-        };
+        return type is { Name: ""ValueTuple"", IsClass: false };
     }
 }");
         }
@@ -196,15 +178,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
         {
             ContainingSymbol:
             {
-                ContainingSymbol: NamespaceSymbol
-                {
-                    IsGlobalNamespace: true
-                }
-
-                , Name: ""System"", Kind: SymbolKind.Namespace
-            }
-
-            declContainer
+                ContainingSymbol: NamespaceSymbol { IsGlobalNamespace: true },
+                Name: ""System"",
+                Kind: SymbolKind.Namespace
+            } declContainer
         };
     }
 }");
@@ -227,10 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
     {
         return declContainer is
         {
-            ContainingSymbol: NamespaceSymbol
-            {
-                IsGlobalNamespace: true
-            }
+            ContainingSymbol: NamespaceSymbol { IsGlobalNamespace: true }
         };
     }
 }");
@@ -257,12 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
     {
         switch (node)
         {
-            case String
-            {
-                Length: 0
-            }
-
-            s:
+            case String { Length: 0 } s:
                 break;
         }
     }
@@ -290,12 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
     {
         switch (node)
         {
-            case String
-            {
-                Length: 0
-            }
-
-            s when b:
+            case String { Length: 0 } s when b:
                 break;
         }
     }
@@ -323,12 +287,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
     {
         switch (node)
         {
-            case String
-            {
-                Length: int _
-            }
-
-            s when b && c:
+            case String { Length: int _ } s when b && c:
                 break;
         }
     }
@@ -356,12 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
     {
         switch (node)
         {
-            case String
-            {
-                Length: int _
-            }
-
-            s when b && c:
+            case String { Length: int _ } s when b && c:
                 break;
         }
     }
@@ -389,12 +343,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
     {
         switch (node)
         {
-            case String
-            {
-                Length: int _
-            }
-
-            s when b && c:
+            case String { Length: int _ } s when b && c:
                 break;
         }
     }
@@ -436,10 +385,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
 {
     bool M()
     {
-        return x && b is
-        {
-            P1: 1, P2: 2
-        };
+        return x && b is { P1: 1, P2: 2 };
     }
 }");
         }
@@ -459,7 +405,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
 {
     bool M()
     {
-        return x is { } v ;
+        return x is { } v;
     }
 }");
         }
@@ -479,7 +425,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
 {
     bool M(C x)
     {
-        return x is { } v ;
+        return x is { } v;
     }
 }");
         }
@@ -499,15 +445,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseRecursivePatterns
 {
     bool M(C c)
     {
-        return c is (SomeType
-        {
-        }
-
-        x,
-        {
-        }
-
-        y);
+        return c is (SomeType { } x, { } y);
     }
 }");
         }

@@ -332,6 +332,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             switch (currentToken.Kind())
             {
                 case SyntaxKind.OpenBraceToken:
+                    return currentToken.Parent.IsKind(SyntaxKindEx.PropertyPatternClause) ? 0 : 1;
+
                 case SyntaxKind.CloseBraceToken:
                 case SyntaxKind.ElseKeyword:
                 case SyntaxKind.FinallyKeyword:
