@@ -28,7 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         return null;
                     }
 
-                    if (currentToken.Parent.IsKind(SyntaxKindEx.PropertyPatternClause))
+                    if (currentToken.Parent.IsKind(SyntaxKindEx.PropertyPatternClause) &&
+                        // Force new line if subpatterns are already spanned across multiple lines.
+                        !currentToken.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia))
                     {
                         return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
                     }
@@ -44,11 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     if (currentToken.IsInterpolation())
                     {
                         return null;
-                    }
-
-                    if (currentToken.Parent.IsKind(SyntaxKindEx.PropertyPatternClause))
-                    {
-                        return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
                     }
 
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
