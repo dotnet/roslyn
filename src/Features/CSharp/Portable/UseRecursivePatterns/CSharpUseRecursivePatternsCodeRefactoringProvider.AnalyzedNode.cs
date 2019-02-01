@@ -273,8 +273,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
         // Represent a type-check. We make this node from the following:
         //
         //      - A direct cast: (T)e
+        //          (note that we have a slight semantic change here since (T)e could throw)
         //      - A safe cast: e as T
         //      - A declaration pattern: T t
+        //      - A type test: is T
         // 
         // This can be morphed into a recursive pattern or rewritten as a standalone declaration pattern.
         private sealed class TypePattern : AnalyzedNode
