@@ -62,36 +62,55 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.NotNull(intellisenseQuickInfo)
 
             Dim container = Assert.IsType(Of Adornments.ContainerElement)(intellisenseQuickInfo.Item)
-            Assert.Equal(3, container.Elements.Count())
-            Assert.Equal(ContainerElementStyle.Stacked, container.Style)
+            Assert.Equal(2, container.Elements.Count())
+            Assert.Equal(ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding, container.Style)
 
-            Assert.Collection(container.Elements,
-                    New Action(Of Object)() {
-                        Sub(row0 As Object)
-                            Dim firstRowContainer = Assert.IsType(Of Adornments.ContainerElement)(row0)
-                            Assert.Equal(2, firstRowContainer.Elements.Count())
-                            Assert.Equal(ContainerElementStyle.Wrapped, firstRowContainer.Style)
+            Assert.Collection(
+                container.Elements,
+                New Action(Of Object)() {
+                    Sub(row0row1 As Object)
+                        Dim row0row1container = Assert.IsAssignableFrom(Of ContainerElement)(row0row1)
+                        Assert.Equal(ContainerElementStyle.Stacked, row0row1container.Style)
+                        Assert.Collection(
+                            row0row1container.Elements,
+                            New Action(Of Object)() {
+                                Sub(row0 As Object)
+                                    Dim firstRowContainer = Assert.IsType(Of ContainerElement)(row0)
+                                    Assert.Equal(2, firstRowContainer.Elements.Count())
+                                    Assert.Equal(ContainerElementStyle.Wrapped, firstRowContainer.Style)
 
-                            Assert.Collection(firstRowContainer.Elements,
-                                    New Action(Of Object)() {
-                                    Sub(row0col0 As Object)
-                                        Dim element00 = Assert.IsType(Of ImageElement)(row0col0)
-                                        Assert.Equal(KnownImageIds.ImageCatalogGuid, element00.ImageId.Guid)
-                                        Assert.Equal(KnownImageIds.MethodPublic, element00.ImageId.Id)
-                                    End Sub,
-                                    Sub(row0col1 As Object)
-                                        Dim element01 = Assert.IsType(Of ClassifiedTextElement)(row0col1)
-                                        Assert.Equal(18, element01.Runs.Count())
-                                    End Sub})
-                        End Sub,
-                        Sub(row1 As Object)
-                            Dim element1 = Assert.IsType(Of ClassifiedTextElement)(row1)
-                            Assert.Equal(1, element1.Runs.Count())
-                        End Sub,
-                        Sub(row2 As Object)
-                            Dim element2 = Assert.IsType(Of ClassifiedTextElement)(row2)
-                            Assert.Equal(8, element2.Runs.Count())
-                        End Sub})
+                                    Assert.Collection(firstRowContainer.Elements,
+                                            New Action(Of Object)() {
+                                            Sub(row0col0 As Object)
+                                                Dim element00 = Assert.IsType(Of ImageElement)(row0col0)
+                                                Assert.Equal(KnownImageIds.ImageCatalogGuid, element00.ImageId.Guid)
+                                                Assert.Equal(KnownImageIds.MethodPublic, element00.ImageId.Id)
+                                            End Sub,
+                                            Sub(row0col1 As Object)
+                                                Dim element01 = Assert.IsType(Of ClassifiedTextElement)(row0col1)
+                                                Assert.Equal(18, element01.Runs.Count())
+                                            End Sub})
+                                End Sub,
+                                Sub(row1 As Object)
+                                    Dim element1 = Assert.IsType(Of ClassifiedTextElement)(row1)
+                                    Assert.Equal(1, element1.Runs.Count())
+                                End Sub
+                            })
+                    End Sub,
+                    Sub(row2row3 As Object)
+                        Dim row2row3container = Assert.IsAssignableFrom(Of ContainerElement)(row2row3)
+                        Assert.Equal(ContainerElementStyle.Stacked, row2row3container.Style)
+                        Assert.Collection(
+                            row2row3container.Elements,
+                            Sub(row2 As Object)
+                                Dim element2 = Assert.IsType(Of ClassifiedTextElement)(row2)
+                                Assert.Equal(1, element2.Runs.Count())
+                            End Sub,
+                            Sub(row3 As Object)
+                                Dim element3 = Assert.IsType(Of ClassifiedTextElement)(row3)
+                                Assert.Equal(6, element3.Runs.Count())
+                            End Sub)
+                    End Sub})
 
         End Sub
 
