@@ -365,7 +365,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             {
                 var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 var newDoc = await FixDocumentAsync(document, context.EnabledFixIds, progressTracker, innerCancellationToken).ConfigureAwait(true);
-                return document.Project.Solution;
+                return newDoc.Project.Solution;
             }
         }
 
