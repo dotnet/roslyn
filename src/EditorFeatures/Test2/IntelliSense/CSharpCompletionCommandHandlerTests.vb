@@ -4080,6 +4080,7 @@ class C
                 state.SendBackspace()
                 state.SendTypeChars("i")
                 Await state.AssertSelectedCompletionItem(displayText:="identifier", isHardSelected:=False)
+
             End Using
         End Function
 
