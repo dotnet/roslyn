@@ -1151,7 +1151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case MemberDeclarationSyntax memberDecl: return memberDecl.WithAttributeLists(attributeLists);
                 case AccessorDeclarationSyntax accessor: return accessor.WithAttributeLists(attributeLists);
                 case ParameterSyntax parameter: return parameter.WithAttributeLists(attributeLists);
-                case CompilationUnitSyntax compilationUnit: return compilationUnit.WithAttributeLists(attributeLists);
+                case CompilationUnitSyntax compilationUnit: return compilationUnit.WithAttributeLists(AsAssemblyAttributes(attributeLists));
                 default:
                     return declaration;
             }
