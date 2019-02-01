@@ -2579,12 +2579,12 @@
       </trans-unit>
       <trans-unit id="WRN_PatternBadSignature">
         <source>'{0}' does not implement the '{1}' pattern. '{2}' has the wrong signature.</source>
-        <target state="needs-review-translation">'{0}' n'implémente pas le modèle '{1}'. '{2}' a une signature erronée.</target>
+        <target state="translated">'{0}' n'implémente pas le modèle '{1}'. '{2}' a une signature erronée.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternBadSignature_Title">
         <source>Type does not implement the collection pattern; member has the wrong signature</source>
-        <target state="needs-review-translation">Un type n'implémente pas le modèle de la collection ; un membre n'a pas la bonne signature</target>
+        <target state="translated">Un type n'implémente pas le modèle de la collection ; un membre n'a pas la bonne signature</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">

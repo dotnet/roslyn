@@ -2579,12 +2579,12 @@
       </trans-unit>
       <trans-unit id="WRN_PatternBadSignature">
         <source>'{0}' does not implement the '{1}' pattern. '{2}' has the wrong signature.</source>
-        <target state="needs-review-translation">'“{0}”不实现“{1}”模式。“{2}”有错误的签名。</target>
+        <target state="translated">'“{0}”不实现“{1}”模式。“{2}”有错误的签名。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternBadSignature_Title">
         <source>Type does not implement the collection pattern; member has the wrong signature</source>
-        <target state="needs-review-translation">类型不实现集合模式；成员有错误的签名</target>
+        <target state="translated">类型不实现集合模式；成员有错误的签名</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">

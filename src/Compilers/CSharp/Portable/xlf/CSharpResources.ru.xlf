@@ -2579,12 +2579,12 @@
       </trans-unit>
       <trans-unit id="WRN_PatternBadSignature">
         <source>'{0}' does not implement the '{1}' pattern. '{2}' has the wrong signature.</source>
-        <target state="needs-review-translation">'"{0}" не реализует шаблон "{1}". "{2}" имеет неправильную сигнатуру.</target>
+        <target state="translated">'"{0}" не реализует шаблон "{1}". "{2}" имеет неправильную сигнатуру.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PatternBadSignature_Title">
         <source>Type does not implement the collection pattern; member has the wrong signature</source>
-        <target state="needs-review-translation">Тип не реализует шаблон коллекции: член содержит неправильную подпись</target>
+        <target state="translated">Тип не реализует шаблон коллекции: член содержит неправильную подпись</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
