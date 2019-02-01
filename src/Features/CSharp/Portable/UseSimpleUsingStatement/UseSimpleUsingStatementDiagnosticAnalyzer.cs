@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             if (nextStatement is BreakStatementSyntax ||
                 nextStatement is ContinueStatementSyntax)
             {
-                // using statemnet followed by break/continue.  Can conver this as executing 
+                // using statement followed by break/continue.  Can convert this as executing 
                 // the break/continue will cause the code to exit the using scope, causing 
                 // Dispose to be called at the same place as before.
                 return true;
