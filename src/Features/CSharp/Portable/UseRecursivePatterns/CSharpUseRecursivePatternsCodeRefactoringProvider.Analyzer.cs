@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
                     // Analyze and combine both operands of an &&-operator.
                     case SyntaxKind.LogicalAndExpression
+                        // No need to Visit(right) if Visit(left) has already failed.
                         when Visit(left) is AnalyzedNode analyzedLeft &&
                             Visit(right) is AnalyzedNode analyzedRight:
                         return new Conjunction(analyzedLeft, analyzedRight);
@@ -162,15 +163,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
             public override AnalyzedNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
             {
-                // An expression of the form `(e.Property)` can be rewritten as a pattern-match `e is {Property: true}`
-                return new PatternMatch(node,
-                    new ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)));
+                // Avoid creating superfluous `is true` if this can't turned to a property pattern.
+                if (IsIdentifierOrSimpleMemberAccess(node))
+                {
+                    // An expression of the form `(e.Property)` can be rewritten as a pattern-match `e is {Property: true}`
+                    return new PatternMatch(node,
+                        new ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)));
+                }
+
+                return new Evaluation(node);
             }
 
             public override AnalyzedNode VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
             {
                 // An expression of the form `!(e.Property)` can be rewritten as a pattern-match `e is {Property: false}`
-                if (node.IsKind(SyntaxKind.LogicalNotExpression))
+                if (node.IsKind(SyntaxKind.LogicalNotExpression) &&
+                    IsIdentifierOrSimpleMemberAccess(node.Operand))
                 {
                     return new PatternMatch(node.Operand,
                         new ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)));
@@ -191,5 +199,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             }
         }
 
+        private static bool IsIdentifierOrSimpleMemberAccess(ExpressionSyntax node)
+        {
+            switch (node.Kind())
+            {
+                default:
+                    return false;
+                case SyntaxKind.IdentifierName:
+                    return true;
+                case SyntaxKind.MemberBindingExpression:
+                    return IsIdentifierOrSimpleMemberAccess(((MemberBindingExpressionSyntax)node).Name);
+                case SyntaxKind.ParenthesizedExpression:
+                    return IsIdentifierOrSimpleMemberAccess(((ParenthesizedExpressionSyntax)node).Expression);
+                case SyntaxKind.SimpleMemberAccessExpression:
+                    return IsIdentifierOrSimpleMemberAccess(((MemberAccessExpressionSyntax)node).Name);
+                case SyntaxKind.ConditionalAccessExpression:
+                    return IsIdentifierOrSimpleMemberAccess(((ConditionalAccessExpressionSyntax)node).WhenNotNull);
+            }
+        }
     }
 }

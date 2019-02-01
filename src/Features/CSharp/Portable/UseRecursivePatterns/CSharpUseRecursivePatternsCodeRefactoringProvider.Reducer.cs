@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
@@ -43,7 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             {
                 // Bail out in case previous intersection attempts have failed.
                 if (left is null || right is null)
+                {
                     return null;
+                }
 
                 // Since the bitwise-OR operator is symmetrical, each case covers both orderings for each pair.
                 // We always have C(N+1, 2) cases where N is the number of kinds; so the following switch is exhaustive.
@@ -140,7 +142,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             private AnalyzedNode Visit(TypePattern left, TypePattern right)
             {
                 if (AreEquivalent(left.Type, right.Type))
+                {
                     return left;
+                }
 
                 return null;
             }
@@ -251,7 +255,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                     {
                         var node = VisitConjunction(pattern, match.Pattern);
                         if (node is null)
+                        {
                             return null;
+                        }
 
                         return new PositionalPattern(subpatterns.SetItem(index, (subpattern.NameColonOpt, node)));
                     }
@@ -267,9 +273,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                 var rightSubpatterns = right.Subpatterns;
 
                 if (leftSubpatterns.Length != rightSubpatterns.Length)
+                {
                     return null;
+                }
 
-                var builder = new List<(NameColonSyntax, AnalyzedNode)>(leftSubpatterns.Length);
+                var builder = ArrayBuilder<(NameColonSyntax, AnalyzedNode)>.GetInstance(leftSubpatterns.Length);
                 for (var index = 0; index < leftSubpatterns.Length; index++)
                 {
                     var leftSub = leftSubpatterns[index];
@@ -277,18 +285,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
                     var node = VisitConjunction(leftSub.Pattern, rightSub.Pattern);
                     if (node is null)
+                    {
+                        builder.Free();
                         return null;
+                    }
 
                     builder.Add((leftSub.NameColonOpt ?? rightSub.NameColonOpt, node));
                 }
 
-                return new PositionalPattern(builder.ToImmutableArray());
+                return new PositionalPattern(builder.ToImmutableAndFree());
             }
 
             private PatternMatch VisitPatternMatch(ExpressionSyntax expression, AnalyzedNode pattern)
             {
                 if (pattern is null)
+                {
                     return null;
+                }
 
                 // Try to expand a match of the form 
                 //
@@ -337,25 +350,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                         //
                         // But still yield a type-pattern in case the type is checked in other places so we can merge the two.
                         return VisitPatternMatch(node.Expression, VisitConjunction(new TypePattern(node.Type), pattern));
-                }
-            }
-
-            private static bool IsIdentifierOrSimpleMemberAccess(ExpressionSyntax node)
-            {
-                switch (node.Kind())
-                {
-                    default:
-                        return false;
-                    case SyntaxKind.IdentifierName:
-                        return true;
-                    case SyntaxKind.MemberBindingExpression:
-                        return IsIdentifierOrSimpleMemberAccess(((MemberBindingExpressionSyntax)node).Name);
-                    case SyntaxKind.ParenthesizedExpression:
-                        return IsIdentifierOrSimpleMemberAccess(((ParenthesizedExpressionSyntax)node).Expression);
-                    case SyntaxKind.SimpleMemberAccessExpression:
-                        return IsIdentifierOrSimpleMemberAccess(((MemberAccessExpressionSyntax)node).Name);
-                    case SyntaxKind.ConditionalAccessExpression:
-                        return IsIdentifierOrSimpleMemberAccess(((ConditionalAccessExpressionSyntax)node).WhenNotNull);
                 }
             }
         }

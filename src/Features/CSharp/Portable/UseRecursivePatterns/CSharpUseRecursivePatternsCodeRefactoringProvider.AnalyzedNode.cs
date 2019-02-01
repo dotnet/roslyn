@@ -93,7 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             public static Conjunction Create(AnalyzedNode left, AnalyzedNode right)
             {
                 if (left is null || right is null)
+                {
                     return null;
+                }
 
                 return new Conjunction(left, right);
             }
@@ -187,7 +189,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             public static AnalyzedNode Create(ExpressionSyntax expression, AnalyzedNode pattern)
             {
                 if (pattern is null)
+                {
                     return null;
+                }
+
                 return new PatternMatch(expression, pattern);
             }
 
@@ -306,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             }
 
             public override bool Contains(ExpressionSyntax e)
-                => e.IsKind(SyntaxKind.IdentifierName) && (IdentifierNameSyntax)e is var name &&
+                => e.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax name) &&
                     SyntaxFactory.AreEquivalent(name.Identifier, Identifier);
 
             public override PatternSyntax AsPatternSyntax()
@@ -369,35 +374,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                     GetSeparators(Subpatterns.Length - 1, multiline: false)));
         }
 
-        // helpers
+        // Helpers
 
         private static SyntaxToken TokenWithoutTrivia(SyntaxKind kind)
-            => Token(default, kind, default);
+            => Token(leading: default, kind, trailing: default);
+
+        private static SyntaxToken GetToken(SyntaxKind token, bool multiline)
+        {
+            return multiline
+                ? Token(default, token, TriviaList(ElasticCarriageReturnLineFeed))
+                : TokenWithoutTrivia(token);
+        }
 
         private static ImmutableArray<SyntaxToken> GetSeparators(int count, bool multiline)
         {
             if (count == 0)
+            {
                 return ImmutableArray<SyntaxToken>.Empty;
+            }
 
-            var separator = multiline
-                ? Token(default, SyntaxKind.CommaToken, TriviaList(ElasticCarriageReturnLineFeed))
-                : TokenWithoutTrivia(SyntaxKind.CommaToken);
-
-            return ArrayBuilder<SyntaxToken>.GetInstance(count, separator).ToImmutableAndFree();
+            return ArrayBuilder<SyntaxToken>.GetInstance(count,
+                GetToken(SyntaxKind.CommaToken, multiline)).ToImmutableAndFree();
         }
 
         private static PropertyPatternClauseSyntax AsPropertyPatternClauseSyntax(ImmutableArray<SubpatternSyntax> subpatterns)
         {
-            var multiline = subpatterns.Length > 3 || subpatterns.Any(shouldConsiderMultiline);
+            var multiline = subpatterns.Length > 3 || subpatterns.Any(ShouldConsiderMultiline);
 
             return PropertyPatternClause(
-                getToken(SyntaxKind.OpenBraceToken),
+                GetToken(SyntaxKind.OpenBraceToken, multiline),
                 SeparatedList(subpatterns, GetSeparators(subpatterns.Length - 1, multiline)),
-                getToken(SyntaxKind.CloseBraceToken));
+                GetToken(SyntaxKind.CloseBraceToken, multiline));
 
-            // local functions
+            // Local functions
 
-            bool shouldConsiderMultiline(SubpatternSyntax s)
+            bool ShouldConsiderMultiline(SubpatternSyntax s)
             {
                 // TODO probably better to rely on the width of the expression?
                 return s.Pattern is RecursivePatternSyntax n
@@ -405,13 +416,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                     + (n.Type != null ? 1 : 0)
                     + (n.PositionalPatternClause != null ? 1 : 0)
                     + (n.Designation != null ? 1 : 0) > 1;
-            }
-
-            SyntaxToken getToken(SyntaxKind token)
-            {
-                return multiline
-                    ? Token(TriviaList(CarriageReturnLineFeed), token, TriviaList(ElasticCarriageReturnLineFeed))
-                    : TokenWithoutTrivia(token);
             }
         }
     }
