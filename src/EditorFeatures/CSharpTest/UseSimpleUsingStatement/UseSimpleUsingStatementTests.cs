@@ -316,6 +316,82 @@ parseOptions: CSharp8ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestFixAll3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        {|FixAllInDocument:|}using (var a = b)
+        using (var c = d)
+        {
+            using (var e = f)
+            using (var g = h)
+            {
+                Console.WriteLine(a);
+            }
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        using var a = b;
+        using var c = d;
+        using var e = f;
+        using var g = h;
+        Console.WriteLine(a);
+    }
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestFixAll4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        {|FixAllInDocument:|}using (var a = b)
+        using (var c = d)
+        {
+            using (e)
+            using (f)
+            {
+                Console.WriteLine(a);
+            }
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        using var a = b;
+        using var c = d;
+        using (e)
+        using (f)
+        {
+            Console.WriteLine(a);
+        }
+    }
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
         public async Task TestWithFollowingReturn()
         {
             await TestInRegularAndScriptAsync(

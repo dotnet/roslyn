@@ -49,13 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 return;
             }
 
-            if (usingStatement.Declaration == null)
-            {
-                return;
-            }
-
-            var parentBlock = usingStatement.Parent as BlockSyntax;
-            if (parentBlock == null)
+            if (!(usingStatement.Parent is BlockSyntax parentBlock))
             {
                 // Don't offer on a using statement that is parented by another using statement.
                 // We'll just offer on the topmost using statement.
