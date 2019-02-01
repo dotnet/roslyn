@@ -765,7 +765,7 @@ class Customer1
     void Method()
     {{
         using var resource = GetResource();
-        ProcesResource(resource);
+        ProcessResource(resource);
     }}
 //]
 }}
