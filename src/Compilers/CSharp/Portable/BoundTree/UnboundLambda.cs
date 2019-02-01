@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public MessageID MessageID { get { return Syntax.Kind() == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda; } }
 
-        internal readonly InferredLambdaReturnType InferredReturnType;
+        internal InferredLambdaReturnType InferredReturnType { get; private set; }
 
         MethodSymbol IBoundLambdaOrFunction.Symbol { get { return Symbol; } }
 
@@ -67,6 +67,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax is ExpressionSyntax && LambdaUtilities.IsLambdaBody(syntax, allowReducedLambdas: true) || // query lambdas
                 LambdaUtilities.IsQueryPairLambda(syntax)                                                       // "pair" lambdas in queries
             );
+        }
+
+        protected override BoundExpression ShallowClone()
+        {
+            var result = new BoundLambda(this.Syntax, this.UnboundLambda, this.Symbol, this.Body, this.Diagnostics, this.Binder, this.Type, this.HasErrors);
+            result.CopyAttributes(this);
+            result.InferredReturnType = InferredReturnType;
+            return result;
         }
 
         public TypeSymbolWithAnnotations GetInferredReturnType(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -321,9 +329,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public MessageID MessageID { get { return Data.MessageID; } }
-        public BoundLambda Bind(NamedTypeSymbol delegateType) { return Data.Bind(delegateType); }
-        public BoundLambda BindForErrorRecovery() { return Data.BindForErrorRecovery(); }
-        public BoundLambda BindForReturnTypeInference(NamedTypeSymbol delegateType) { return Data.BindForReturnTypeInference(delegateType); }
+
+        public BoundLambda Bind(NamedTypeSymbol delegateType)
+            => SuppressIfNeeded(Data.Bind(delegateType));
+
+        public BoundLambda BindForErrorRecovery()
+            => SuppressIfNeeded(Data.BindForErrorRecovery());
+
+        public BoundLambda BindForReturnTypeInference(NamedTypeSymbol delegateType)
+            => SuppressIfNeeded(Data.BindForReturnTypeInference(delegateType));
+
+        private BoundLambda SuppressIfNeeded(BoundLambda lambda)
+            => this.IsSuppressed ? (BoundLambda)lambda.WithSuppression() : lambda;
+
         public bool HasSignature { get { return Data.HasSignature; } }
         public bool HasExplicitlyTypedParameterList { get { return Data.HasExplicitlyTypedParameterList; } }
         public int ParameterCount { get { return Data.ParameterCount; } }

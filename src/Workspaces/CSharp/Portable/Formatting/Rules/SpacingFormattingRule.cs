@@ -65,22 +65,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For Method Call
-            if (currentToken.IsOpenParenInArgumentList())
+            //   MethodName ( args )
+            // Or Positional Pattern
+            //   x is TypeName ( args )
+            if (currentToken.IsOpenParenInArgumentListOrPositionalPattern())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceAfterMethodCallName);
             }
 
-            if (previousToken.IsOpenParenInArgumentList() && currentToken.IsCloseParenInArgumentList())
+            if (previousToken.IsOpenParenInArgumentListOrPositionalPattern() && currentToken.IsCloseParenInArgumentListOrPositionalPattern())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses);
             }
 
-            if (previousToken.IsOpenParenInArgumentList())
+            if (previousToken.IsOpenParenInArgumentListOrPositionalPattern())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinMethodCallParentheses);
             }
 
-            if (currentToken.IsCloseParenInArgumentList())
+            if (currentToken.IsCloseParenInArgumentListOrPositionalPattern())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinMethodCallParentheses);
             }
@@ -360,24 +363,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (hasLeftOperand)
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
-                }
-            }
-
-            // Put a space between the type and a positional pattern
-            // ex: `e is Type ( /*positional*/ )`
-            if (currentToken.IsKind(SyntaxKind.OpenParenToken) &&
-                currentParentKind == SyntaxKindEx.PositionalPatternClause)
-            {
-#if !CODE_STYLE
-                var recursivePatternType = ((RecursivePatternSyntax)currentToken.Parent.Parent).Type;
-#else
-                var childNodesAndTokens = currentToken.Parent.Parent.ChildNodesAndTokens();
-                var recursivePatternType = childNodesAndTokens.Count > 0 ? childNodesAndTokens[0].AsNode() as TypeSyntax : null;
-#endif
-
-                if (recursivePatternType != null)
-                {
-                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
             }
 

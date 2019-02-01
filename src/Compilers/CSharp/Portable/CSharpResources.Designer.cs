@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpResources {
@@ -579,6 +579,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_AsMustHaveReferenceType {
             get {
                 return ResourceManager.GetString("ERR_AsMustHaveReferenceType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to It is not legal to use nullable reference type &apos;{0}?&apos; in an as expression; use the underlying type &apos;{0}&apos; instead..
+        /// </summary>
+        internal static string ERR_AsNullableType {
+            get {
+                return ResourceManager.GetString("ERR_AsNullableType", resourceCulture);
             }
         }
         
@@ -5425,6 +5434,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The suppression operator is not allowed in this context.
+        /// </summary>
+        internal static string ERR_IllegalSuppression {
+            get {
+                return ResourceManager.GetString("ERR_IllegalSuppression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unsafe code may only appear if compiling with /unsafe.
         /// </summary>
         internal static string ERR_IllegalUnsafe {
@@ -6285,6 +6303,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_InvalidVersionFormatDeterministic {
             get {
                 return ResourceManager.GetString("ERR_InvalidVersionFormatDeterministic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to It is not legal to use nullable reference type &apos;{0}?&apos; in an is-type expression; use the underlying type &apos;{0}&apos; instead..
+        /// </summary>
+        internal static string ERR_IsNullableType {
+            get {
+                return ResourceManager.GetString("ERR_IsNullableType", resourceCulture);
             }
         }
         
