@@ -18,6 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class IntellisenseQuickInfoBuilderTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(33001, "https://github.com/dotnet/roslyn/issues/33001")>
         Public Async Sub BuildQuickInfoItem()
 
             Dim codeAnalysisQuickInfoItem =
@@ -98,6 +99,216 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "Writes the specified string value, followed by the current line terminator, to the standard output stream."))),
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "Exceptions")),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.NamespaceName, "System"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                        New ClassifiedTextRun(ClassificationTypeNames.NamespaceName, "IO"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                        New ClassifiedTextRun(ClassificationTypeNames.ClassName, "IOException"))))
+
+            AssertEqualAdornments(expected, container)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(33001, "https://github.com/dotnet/roslyn/issues/33001")>
+        Public Async Sub BuildQuickInfoItemWithoutDocumentation()
+
+            Dim codeAnalysisQuickInfoItem =
+                QuickInfoItem.Create(
+                    New TextSpan(0, 0),
+                    ImmutableArray.Create(WellKnownTags.Method, WellKnownTags.Public),
+                    ImmutableArray.Create(
+                        QuickInfoSection.Create(
+                            QuickInfoSectionKinds.Description,
+                            ImmutableArray.Create(
+                                New TaggedText(TextTags.Keyword, "void"),
+                                New TaggedText(TextTags.Space, " "),
+                                New TaggedText(TextTags.Class, "Console"),
+                                New TaggedText(TextTags.Punctuation, "."),
+                                New TaggedText(TextTags.Method, "WriteLine"),
+                                New TaggedText(TextTags.Punctuation, "("),
+                                New TaggedText(TextTags.Keyword, "string"),
+                                New TaggedText(TextTags.Space, " "),
+                                New TaggedText(TextTags.Parameter, "value"),
+                                New TaggedText(TextTags.Punctuation, ")"),
+                                New TaggedText(TextTags.Space, " "),
+                                New TaggedText(TextTags.Punctuation, "("),
+                                New TaggedText(TextTags.Punctuation, "+"),
+                                New TaggedText(TextTags.Space, " "),
+                                New TaggedText(TextTags.Text, "18"),
+                                New TaggedText(TextTags.Space, " "),
+                                New TaggedText(TextTags.Text, "overloads"),
+                                New TaggedText(TextTags.Punctuation, ")"))),
+                        QuickInfoSection.Create(
+                            QuickInfoSectionKinds.Exception,
+                            ImmutableArray.Create(
+                                New TaggedText(TextTags.Text, "Exceptions"),
+                                New TaggedText(TextTags.LineBreak, "\r\n"),
+                                New TaggedText(TextTags.Space, " "),
+                                New TaggedText(TextTags.Namespace, "System"),
+                                New TaggedText(TextTags.Punctuation, "."),
+                                New TaggedText(TextTags.Namespace, "IO"),
+                                New TaggedText(TextTags.Punctuation, "."),
+                                New TaggedText(TextTags.Class, "IOException")))))
+
+            Dim trackingSpan = New Mock(Of ITrackingSpan) With {
+                .DefaultValue = DefaultValue.Mock
+            }
+
+            Dim intellisenseQuickInfo = Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, Nothing, Nothing, Threading.CancellationToken.None)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Wrapped,
+                    New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPublic)),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.ClassName, "Console"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                        New ClassifiedTextRun(ClassificationTypeNames.MethodName, "WriteLine"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "string"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "value"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "+"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "18"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "overloads"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "Exceptions")),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.NamespaceName, "System"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                        New ClassifiedTextRun(ClassificationTypeNames.NamespaceName, "IO"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                        New ClassifiedTextRun(ClassificationTypeNames.ClassName, "IOException"))))
+
+            AssertEqualAdornments(expected, container)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(33001, "https://github.com/dotnet/roslyn/issues/33001")>
+        Public Async Sub BuildQuickInfoItemWithMultiLineDocumentation()
+
+            Dim codeAnalysisQuickInfoItem =
+                QuickInfoItem.Create(
+                    New TextSpan(0, 0),
+                    ImmutableArray.Create(WellKnownTags.Method, WellKnownTags.Public),
+                    ImmutableArray.Create(
+                        QuickInfoSection.Create(
+                            QuickInfoSectionKinds.Description,
+                            ImmutableArray.Create(
+                                New TaggedText(TextTags.Keyword, "void"),
+                                New TaggedText(TextTags.Space, " "),
+                                New TaggedText(TextTags.Class, "Console"),
+                                New TaggedText(TextTags.Punctuation, "."),
+                                New TaggedText(TextTags.Method, "WriteLine"),
+                                New TaggedText(TextTags.Punctuation, "("),
+                                New TaggedText(TextTags.Keyword, "string"),
+                                New TaggedText(TextTags.Space, " "),
+                                New TaggedText(TextTags.Parameter, "value"),
+                                New TaggedText(TextTags.Punctuation, ")"),
+                                New TaggedText(TextTags.Space, " "),
+                                New TaggedText(TextTags.Punctuation, "("),
+                                New TaggedText(TextTags.Punctuation, "+"),
+                                New TaggedText(TextTags.Space, " "),
+                                New TaggedText(TextTags.Text, "18"),
+                                New TaggedText(TextTags.Space, " "),
+                                New TaggedText(TextTags.Text, "overloads"),
+                                New TaggedText(TextTags.Punctuation, ")"))),
+                        QuickInfoSection.Create(
+                            QuickInfoSectionKinds.DocumentationComments,
+                            ImmutableArray.Create(
+                                New TaggedText(TextTags.Text, "Documentation line 1."),
+                                New TaggedText(TextTags.LineBreak, "\r\n"),
+                                New TaggedText(TextTags.Text, "Documentation line 2."),
+                                New TaggedText(TextTags.LineBreak, "\r\n"),
+                                New TaggedText(TextTags.LineBreak, "\r\n"),
+                                New TaggedText(TextTags.Text, "Documentation paragraph 2."),
+                                New TaggedText(TextTags.LineBreak, "\r\n"),
+                                New TaggedText(TextTags.Text, "Documentation paragraph 2 line 2."),
+                                New TaggedText(TextTags.LineBreak, "\r\n"),
+                                New TaggedText(TextTags.LineBreak, "\r\n"),
+                                New TaggedText(TextTags.Text, "Documentation paragraph 3."))),
+                        QuickInfoSection.Create(
+                            QuickInfoSectionKinds.Exception,
+                            ImmutableArray.Create(
+                                New TaggedText(TextTags.Text, "Exceptions"),
+                                New TaggedText(TextTags.LineBreak, "\r\n"),
+                                New TaggedText(TextTags.Space, " "),
+                                New TaggedText(TextTags.Namespace, "System"),
+                                New TaggedText(TextTags.Punctuation, "."),
+                                New TaggedText(TextTags.Namespace, "IO"),
+                                New TaggedText(TextTags.Punctuation, "."),
+                                New TaggedText(TextTags.Class, "IOException")))))
+
+            Dim trackingSpan = New Mock(Of ITrackingSpan) With {
+                .DefaultValue = DefaultValue.Mock
+            }
+
+            Dim intellisenseQuickInfo = Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, Nothing, Nothing, Threading.CancellationToken.None)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ContainerElement(
+                        ContainerElementStyle.Wrapped,
+                        New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPublic)),
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "Console"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "WriteLine"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "string"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "value"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "+"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.Text, "18"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.Text, "overloads"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
+                    New ContainerElement(
+                        ContainerElementStyle.Stacked,
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Text, "Documentation line 1.")),
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Text, "Documentation line 2.")))),
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "Documentation paragraph 2.")),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "Documentation paragraph 2 line 2."))),
+                New ClassifiedTextElement(
+                    New ClassifiedTextRun(ClassificationTypeNames.Text, "Documentation paragraph 3.")),
                 New ContainerElement(
                     ContainerElementStyle.Stacked,
                     New ClassifiedTextElement(
