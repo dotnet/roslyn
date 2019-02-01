@@ -6229,5 +6229,133 @@ public class C
     }
 }", options: PreferDiscard);
         }
+
+        [WorkItem(32946, "https://github.com/dotnet/roslyn/issues/32946")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DelegateEscape_01()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    Action[] M()
+    {
+        var [|j|] = 0;
+        return new Action[1] { () => Console.WriteLine(j) };
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(32946, "https://github.com/dotnet/roslyn/issues/32946")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DelegateEscape_02()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    Action[] M(Action[] actions)
+    {
+        var [|j|] = 0;
+        actions[0] = () => Console.WriteLine(j);
+        return actions;
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(32946, "https://github.com/dotnet/roslyn/issues/32946")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DelegateEscape_03()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    Action[,] M(Action[,] actions)
+    {
+        var [|j|] = 0;
+        actions[0, 0] = () => Console.WriteLine(j);
+        return actions;
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(32946, "https://github.com/dotnet/roslyn/issues/32946")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DelegateEscape_04()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    List<Action> M()
+    {
+        var [|j|] = 0;
+        return new List<Action> { () => Console.WriteLine(j) };
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(32946, "https://github.com/dotnet/roslyn/issues/32946")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DelegateEscape_05()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    List<Action> M()
+    {
+        var [|j|] = 0;
+        var list = new List<Action>();
+        list.Add(() => Console.WriteLine(j));
+        return list;
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(32924, "https://github.com/dotnet/roslyn/issues/32924")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DelegateEscape_06()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int [|j|] = 0;
+        Console.CancelKeyPress += (s, e) => e.Cancel = j != 0;
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(32924, "https://github.com/dotnet/roslyn/issues/32924")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DelegateEscape_07()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int [|j|] = 0;
+        Console.CancelKeyPress += LocalFunctionHandler;
+        return;
+
+        void LocalFunctionHandler(object s, ConsoleCancelEventArgs e) => e.Cancel = j != 0;
+    }
+}", options: PreferDiscard);
+        }
     }
 }
