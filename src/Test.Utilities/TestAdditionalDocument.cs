@@ -37,7 +37,7 @@ namespace Test.Utilities
         public override string Path => _filePath;
         public string Name => _fileName;
 
-        public override SourceText GetText(CancellationToken cancellationToken = default(CancellationToken))
+        public override SourceText GetText(CancellationToken cancellationToken = default)
             => _sourceText;
     }
 }

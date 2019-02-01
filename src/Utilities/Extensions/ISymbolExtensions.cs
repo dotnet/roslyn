@@ -15,8 +15,7 @@ namespace Analyzer.Utilities.Extensions
     {
         public static bool IsType(this ISymbol symbol)
         {
-            var typeSymbol = symbol as ITypeSymbol;
-            return typeSymbol != null && typeSymbol.IsType;
+            return symbol is ITypeSymbol typeSymbol && typeSymbol.IsType;
         }
 
         public static bool IsAccessorMethod(this ISymbol symbol)
@@ -333,7 +332,7 @@ namespace Analyzer.Utilities.Extensions
 
                 var type1 = method1.Parameters[index].Type.OriginalDefinition;
                 var type2 = method2.Parameters[index].Type.OriginalDefinition;
-                
+
                 if (type1.TypeKind == TypeKind.TypeParameter &&
                     type2.TypeKind == TypeKind.TypeParameter &&
                     ((ITypeParameterSymbol)type1).Ordinal == ((ITypeParameterSymbol)type2).Ordinal)
@@ -464,7 +463,7 @@ namespace Analyzer.Utilities.Extensions
             Debug.Assert(symbol != null);
             Debug.Assert(symbol.IsOverride);
 
-            switch(symbol)
+            switch (symbol)
             {
                 case IMethodSymbol methodSymbol:
                     return methodSymbol.OverriddenMethod;
