@@ -120,8 +120,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 if (!item.Properties.TryGetProperty(CompletionSource.RoslynItem, out RoslynCompletionItem roslynItem))
                 {
                     roslynItem = RoslynCompletionItem.Create(
-                        displayText: item.DisplayText, 
-                        filterText: item.FilterText, 
+                        displayText: item.DisplayText,
+                        filterText: item.FilterText,
                         sortText: item.SortText,
                         displayTextSuffix: item.Suffix);
                 }
@@ -141,9 +141,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     //
                     //  2. They brough up completion with ctrl-j or through deletion.  In these
                     //     cases we just always keep all the items in the list.
-                    if (data.Trigger.Reason == CompletionTriggerReason.Backspace ||
-                        data.Trigger.Reason == CompletionTriggerReason.Deletion ||
-                        data.Trigger.Reason == CompletionTriggerReason.Invoke ||
+                    if (initialRoslynTriggerKind == CompletionTriggerKind.Deletion ||
+                        initialRoslynTriggerKind == CompletionTriggerKind.Invoke ||
                         filterText.Length <= 1)
                     {
                         initialListOfItemsToBeIncluded.Add(new ExtendedFilterResult(item, new FilterResult(roslynItem, filterText, matchedFilterText: false)));
@@ -177,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // If this was deletion, then we control the entire behavior of deletion ourselves.
             if (initialRoslynTriggerKind == CompletionTriggerKind.Deletion)
             {
-                return HandleDeletionTrigger(initialListOfItemsToBeIncluded, filterText, updatedFilters, highlightedList);
+                return HandleDeletionTrigger(data.Trigger.Reason, initialListOfItemsToBeIncluded, filterText, updatedFilters, highlightedList);
             }
 
             Func<ImmutableArray<RoslynCompletionItem>, string, ImmutableArray<RoslynCompletionItem>> filterMethod;
@@ -284,11 +283,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         private FilteredCompletionModel HandleDeletionTrigger(
+            CompletionTriggerReason filterTriggerKind,
             List<ExtendedFilterResult> filterResults,
             string filterText,
             ImmutableArray<CompletionFilterWithState> filters,
             ImmutableArray<CompletionItemWithHighlight> highlightedList)
         {
+            if (filterTriggerKind == CompletionTriggerReason.Insertion &&
+                !filterResults.Any(r => r.FilterResult.MatchedFilterText))
+            {
+                // The user has typed something, but nothing in the actual list matched what
+                // they were typing.  In this case, we want to dismiss completion entirely.
+                // The thought process is as follows: we aggressively brough up completion
+                // to help them when they typed delete (in case they wanted to pick another
+                // item).  However, they're typing something that doesn't seem to match at all
+                // The completion list is just distracting at this point.
+                return null;
+            }
+
             ExtendedFilterResult? bestFilterResult = null;
             int matchCount = 1;
             foreach (var currentFilterResult in filterResults.Where(r => r.FilterResult.MatchedFilterText))
