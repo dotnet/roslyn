@@ -29,6 +29,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
         {
             var usingStatement = (UsingStatementSyntax)context.Node;
 
+            var syntaxTree = context.Node.SyntaxTree;
+            var options = (CSharpParseOptions)syntaxTree.Options;
+            if (options.LanguageVersion < LanguageVersion.CSharp8)
+            {
+                return;
+            }
+
             if (!(usingStatement.Parent is BlockSyntax parentBlock))
             {
                 // Don't offer on a using statement that is parented by another using statement.
@@ -49,13 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             // Verify that changing this using-statement into a using-declaration will not
             // change semantics.
             if (!PreservesSemantics(parentBlock, usingStatement))
-            {
-                return;
-            }
-
-            var syntaxTree = context.Node.SyntaxTree;
-            var options = (CSharpParseOptions)syntaxTree.Options;
-            if (options.LanguageVersion < LanguageVersion.CSharp8)
             {
                 return;
             }
