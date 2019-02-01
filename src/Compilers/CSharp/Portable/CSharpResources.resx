@@ -2818,6 +2818,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_BadDelegateLeave" xml:space="preserve">
     <value>Control cannot leave the body of an anonymous method or lambda expression</value>
   </data>
+  <data name="ERR_IllegalSuppression" xml:space="preserve">
+    <value>The suppression operator is not allowed in this context</value>
+  </data>
   <data name="WRN_IllegalPragma" xml:space="preserve">
     <value>Unrecognized #pragma directive</value>
   </data>

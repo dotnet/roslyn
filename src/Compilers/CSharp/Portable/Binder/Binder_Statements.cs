@@ -1993,10 +1993,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return;
             }
-            while (operand.Kind == BoundKind.SuppressNullableWarningExpression)
-            {
-                operand = ((BoundSuppressNullableWarningExpression)operand).Expression;
-            }
 
             switch (operand.Kind)
             {
@@ -2929,6 +2925,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool syntacticallyValid = SyntaxFacts.IsStatementExpression(syntax);
             if (!syntacticallyValid)
+            {
+                return false;
+            }
+
+            if (expression.IsSuppressed)
             {
                 return false;
             }

@@ -17,6 +17,1942 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     [CompilerTrait(CompilerFeature.NullableReferenceTypes)]
     public class NullableReferenceTypesTests : CSharpTestBase
     {
+        [Fact, WorkItem(31297, "https://github.com/dotnet/roslyn/issues/31297")]
+        public void SuppressNullableWarning_RefSpanReturn()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    ref Span<byte> M()
+    {
+        Span<byte> x = stackalloc byte[10];
+        ref Span<byte> y = ref x!;
+        return ref y; // 1
+    }
+    ref Span<byte> M2()
+    {
+        Span<byte> x = stackalloc byte[10];
+        ref Span<byte> y = ref x;
+        return ref y!; // 2
+    }
+}", options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (9,20): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref y; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(9, 20),
+                // (15,20): error CS8598: The suppression operator is not allowed in this context
+                //         return ref y!; // 2
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "y").WithLocation(15, 20)
+                );
+        }
+
+        [Fact, WorkItem(31297, "https://github.com/dotnet/roslyn/issues/31297")]
+        public void SuppressNullableWarning_RefReassignment()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+class C
+{
+    void M()
+    {
+        ref var x = ref NullableRef();
+        x = ref x!;
+
+        ref var y = ref NullableRef()!;
+        y = ref y!;
+    }
+
+    ref string? NullableRef() => throw null;
+}", options: WithNonNullTypesTrue());
+
+            // Need to refine. Tracked by https://github.com/dotnet/roslyn/issues/31297
+            comp.VerifyDiagnostics(
+                // (7,17): error CS8598: The suppression operator is not allowed in this context
+                //         x = ref x!;
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "x").WithLocation(7, 17),
+                // (10,17): error CS8598: The suppression operator is not allowed in this context
+                //         y = ref y!;
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "y").WithLocation(10, 17)
+                );
+        }
+
+        [Fact, WorkItem(30151, "https://github.com/dotnet/roslyn/issues/30151")]
+        public void SuppressNullableWarning_WholeArrayInitializer()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+class C
+{
+    unsafe void M()
+    {
+        string[] s = new[] { null, string.Empty }; // expecting a warning
+        string[] s2 = (new[] { null, string.Empty })!;
+        int* s3 = (stackalloc[] { 1 })!;
+        System.Span<string> s4 = (stackalloc[] { null, string.Empty })!;
+    }
+}", options: TestOptions.UnsafeDebugDll);
+
+            // Missing warning
+            // Need to confirm whether this suppression should be allowed or be effective
+            // If so, we need to verify the semantic model
+            // Tracked by https://github.com/dotnet/roslyn/issues/30151
+
+            comp.VerifyDiagnostics(
+                // (8,20): error CS1525: Invalid expression term 'stackalloc'
+                //         int* s3 = (stackalloc[] { 1 })!;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(8, 20),
+                // (9,35): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
+                //         System.Span<string> s4 = (stackalloc[] { null, string.Empty })!;
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { null, string.Empty }").WithArguments("string").WithLocation(9, 35),
+                // (9,35): error CS1525: Invalid expression term 'stackalloc'
+                //         System.Span<string> s4 = (stackalloc[] { null, string.Empty })!;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(9, 35)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_NullCoalescingAssignment()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M(int? i, int i2, dynamic d)
+    {
+        i! ??= i2; // 1
+        i ??= i2!;
+        i! ??= d; // 2
+        i ??= d!;
+    }
+    void M(string? s, string s2, dynamic d)
+    {
+        s! ??= s2; // 3
+        s ??= s2!;
+        s! ??= d; // 4
+        s ??= d!;
+    }
+}", options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8598: The suppression operator is not allowed in this context
+                //         i! ??= i2; // 1
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "i").WithLocation(6, 9),
+                // (8,9): error CS8598: The suppression operator is not allowed in this context
+                //         i! ??= d; // 2
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "i").WithLocation(8, 9),
+                // (9,9): hidden CS8607: Expression is probably never null.
+                //         i ??= d!;
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "i").WithLocation(9, 9),
+                // (13,9): error CS8598: The suppression operator is not allowed in this context
+                //         s! ??= s2; // 3
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "s").WithLocation(13, 9),
+                // (15,9): error CS8598: The suppression operator is not allowed in this context
+                //         s! ??= d; // 4
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "s").WithLocation(15, 9),
+                // (16,9): hidden CS8607: Expression is probably never null.
+                //         s ??= d!;
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "s").WithLocation(16, 9)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_ExpressionTree()
+        {
+            var comp = CreateCompilation(@"
+using System;
+using System.Linq.Expressions;
+class C
+{
+    void M()
+    {
+        string x = null;
+        Expression<Func<string>> e = () => x!;
+        Expression<Func<string>> e2 = (() => x)!;
+        Expression<Func<Func<string>>> e3 = () => M2!;
+    }
+    string M2() => throw null;
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_QueryReceiver()
+        {
+            string source = @"
+using System;
+namespace NS { }
+static class C
+{
+    static void Main()
+    {
+        _ = from x in null! select x;
+        _ = from x in default! select x;
+        _ = from x in (y => y)! select x;
+        _ = from x in NS! select x;
+        _ = from x in Main! select x;
+    }
+
+    static object Select(this object x, Func<int, int> y)
+    {
+        return null;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,29): error CS0186: Use of null is not valid in this context
+                //         _ = from x in null! select x;
+                Diagnostic(ErrorCode.ERR_NullNotValid, "select x").WithLocation(8, 29),
+                // (9,32): error CS8312: Use of default literal is not valid in this context
+                //         _ = from x in default! select x;
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNotValid, "select x").WithLocation(9, 32),
+                // (10,33): error CS1936: Could not find an implementation of the query pattern for source type 'anonymous method'.  'Select' not found.
+                //         _ = from x in (y => y)! select x;
+                Diagnostic(ErrorCode.ERR_QueryNoProvider, "select x").WithArguments("anonymous method", "Select").WithLocation(10, 33),
+                // (11,23): error CS8598: The suppression operator is not allowed in this context
+                //         _ = from x in NS! select x;
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "NS").WithLocation(11, 23),
+                // (11,23): error CS0119: 'NS' is a namespace, which is not valid in the given context
+                //         _ = from x in NS! select x;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "NS").WithArguments("NS", "namespace").WithLocation(11, 23),
+                // (12,23): error CS0119: 'C.Main()' is a method, which is not valid in the given context
+                //         _ = from x in Main! select x;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Main").WithArguments("C.Main()", "method").WithLocation(12, 23)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_Query()
+        {
+            string source = @"
+using System.Linq;
+class C
+{
+    static void M(System.Collections.Generic.IEnumerable<int> c)
+    {
+        var q = (from x in c select x)!;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_EventInCompoundAssignment()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public event System.Action E;
+    void M()
+    {
+        E! += () => {};
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,9): error CS8598: The suppression operator is not allowed in this context
+                //         E! += () => {};
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "E").WithLocation(7, 9)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void OperationsInNonDeclaringType()
+        {
+            var text = @"
+class C
+{
+    public event System.Action E;
+}
+
+class D
+{
+    void Method(ref System.Action a, C c)
+    {
+        c.E! = a; //CS0070
+        c.E! += a;
+        a = c.E!; //CS0070
+        Method(ref c.E!, c); //CS0070
+        c.E!.Invoke(); //CS0070
+        bool b1 = c.E! is System.Action; //CS0070
+        c.E!++; //CS0070
+        c.E! |= true; //CS0070
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (11,9): error CS8598: The suppression operator is not allowed in this context
+                //         c.E! = a; //CS0070
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c.E").WithLocation(11, 9),
+                // (12,9): error CS8598: The suppression operator is not allowed in this context
+                //         c.E! += a;
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c.E").WithLocation(12, 9),
+                // (13,15): error CS0070: The event 'C.E' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+                //         a = c.E!; //CS0070
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "E").WithArguments("C.E", "C").WithLocation(13, 15),
+                // (14,22): error CS0070: The event 'C.E' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+                //         Method(ref c.E!, c); //CS0070
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "E").WithArguments("C.E", "C").WithLocation(14, 22),
+                // (15,11): error CS0070: The event 'C.E' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+                //         c.E!.Invoke(); //CS0070
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "E").WithArguments("C.E", "C").WithLocation(15, 11),
+                // (16,21): error CS0070: The event 'C.E' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+                //         bool b1 = c.E! is System.Action; //CS0070
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "E").WithArguments("C.E", "C").WithLocation(16, 21),
+                // (17,9): error CS8598: The suppression operator is not allowed in this context
+                //         c.E!++; //CS0070
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c.E").WithLocation(17, 9),
+                // (18,9): error CS8598: The suppression operator is not allowed in this context
+                //         c.E! |= true; //CS0070
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c.E").WithLocation(18, 9)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_Fixed()
+        {
+            var text = @"
+public class MyClass
+{
+    int field = 0;
+    unsafe public void Main()
+    {
+        int i = 45;
+        fixed (int *j = &(i!)) { }
+        fixed (int *k = &(this!.field)) { }
+
+        int[] a = new int[] {1,2,3};
+        fixed (int *b = a!)
+        {
+            fixed (int *c = b!) { }
+        }
+    }
+}
+";
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (8,27): error CS8598: The suppression operator is not allowed in this context
+                //         fixed (int *j = &(i!)) { }
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "i").WithLocation(8, 27),
+                // (14,29): error CS8385: The given expression cannot be used in a fixed statement
+                //             fixed (int *c = b!) { }
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "b").WithLocation(14, 29)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_MemberAccess()
+        {
+            var comp = CreateCompilation(@"
+namespace NS
+{
+    public static class C
+    {
+        public static void M()
+        {
+            _ = null!.field; // 1
+            _ = default!.field; // 2
+            _ = NS!.C.field; // 3
+            _ = NS.C!.field; // 4
+            _ = nameof(C!.M); // 5
+            _ = nameof(C.M!); // 6
+            _ = nameof(missing!); // 7
+        }
+    }
+    public class Base { public virtual void M() { } }
+    public class D : Base
+    {
+        public override void M()
+        {
+            _ = this!.ToString(); // 8
+            _ = base!.ToString(); // 9
+        }
+    }
+}");
+            // Like cast, suppressions are allowed on `this`, but not on `base`
+
+            comp.VerifyDiagnostics(
+                // (8,17): error CS0023: Operator '.' cannot be applied to operand of type '<null>'
+                //             _ = null!.field; // 1
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "null!.field").WithArguments(".", "<null>").WithLocation(8, 17),
+                // (9,25): error CS0023: Operator '.' cannot be applied to operand of type 'default'
+                //             _ = default!.field; // 2
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, ".").WithArguments(".", "default").WithLocation(9, 25),
+                // (10,17): error CS8598: The suppression operator is not allowed in this context
+                //             _ = NS!.C.field; // 3
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "NS").WithLocation(10, 17),
+                // (10,23): error CS0117: 'C' does not contain a definition for 'field'
+                //             _ = NS!.C.field; // 3
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "field").WithArguments("NS.C", "field").WithLocation(10, 23),
+                // (11,17): error CS8598: The suppression operator is not allowed in this context
+                //             _ = NS.C!.field; // 4
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "NS.C").WithLocation(11, 17),
+                // (11,23): error CS0117: 'C' does not contain a definition for 'field'
+                //             _ = NS.C!.field; // 4
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "field").WithArguments("NS.C", "field").WithLocation(11, 23),
+                // (12,24): error CS8598: The suppression operator is not allowed in this context
+                //             _ = nameof(C!.M); // 5
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "C").WithLocation(12, 24),
+                // (12,24): error CS8082: Sub-expression cannot be used in an argument to nameof.
+                //             _ = nameof(C!.M); // 5
+                Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "C!").WithLocation(12, 24),
+                // (13,24): error CS8081: Expression does not have a name.
+                //             _ = nameof(C.M!); // 6
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "C.M!").WithLocation(13, 24),
+                // (14,24): error CS0103: The name 'missing' does not exist in the current context
+                //             _ = nameof(missing!); // 7
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "missing").WithArguments("missing").WithLocation(14, 24),
+                // (23,17): error CS0175: Use of keyword 'base' is not valid in this context
+                //             _ = base!.ToString(); // 9
+                Diagnostic(ErrorCode.ERR_BaseIllegal, "base").WithLocation(23, 17)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SymbolInfoForMethodGroup03()
+        {
+            var source = @"
+public class A
+{
+    public static void M(A a)
+    {
+        _ = nameof(a.Extension!);
+    }
+}
+public static class X1
+{
+    public static string Extension(this A a) { return null; }
+}";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            compilation.VerifyDiagnostics(
+                // (6,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(a.Extension!);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "a.Extension!").WithLocation(6, 20)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_StringInterpolation()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        M(""world"", null);
+    }
+    public static void M(string x, string? y)
+    {
+        System.IFormattable z = $""hello ""!;
+        System.IFormattable z2 = $""{x} {y} {y!}""!;
+        System.Console.Write(z);
+        System.Console.Write(z2);
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(TestOptions.DebugExe));
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "hello world");
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var suppression = tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().First();
+            Assert.Equal(@"$""hello ""!", suppression.ToString());
+
+            // Need to verify the semantic model
+            // Tracked by https://github.com/dotnet/roslyn/issues/32661
+
+            // should be IFormattable twice
+            //VerifyTypeInfo(model, suppression, "System.String", "System.IFormattable");
+
+            var interpolated = suppression.Operand;
+            Assert.Equal(@"$""hello """, interpolated.ToString());
+            VerifyTypeInfo(model, interpolated, "System.String", "System.IFormattable");
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_StringInterpolation_ExplicitCast()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        M(""world"", null);
+    }
+    public static void M(string x, string? y)
+    {
+        var z = (System.IFormattable)($""hello ""!);
+        var z2 = (System.IFormattable)($""{x} {y} {y!}""!);
+        System.Console.Write(z);
+        System.Console.Write(z2);
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(TestOptions.DebugExe));
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "hello world");
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            // Need to verify the semantic model
+            // Tracked by https://github.com/dotnet/roslyn/issues/32661
+
+            var suppression = tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().First();
+
+            Assert.Equal(@"$""hello ""!", suppression.ToString());
+            //VerifyTypeInfo(model, suppression, "System.String", "System.String");
+
+            var interpolated = suppression.Operand;
+            Assert.Equal(@"$""hello """, interpolated.ToString());
+            VerifyTypeInfo(model, interpolated, "System.String", "System.String");
+        }
+
+        private static void VerifyTypeInfo(SemanticModel model, ExpressionSyntax expression, string expectedType, string expectedConvertedType)
+        {
+            var type = model.GetTypeInfo(expression);
+            if (expectedType is null)
+            {
+                Assert.Null(type.Type);
+            }
+            else
+            {
+                var actualType = type.Type.ToTestDisplayString();
+                Assert.True(expectedType == actualType, $"Unexpected TypeInfo.Type '{actualType}'");
+            }
+
+            if (expectedConvertedType is null)
+            {
+                Assert.Null(type.ConvertedType);
+            }
+            else
+            {
+                var actualConvertedType = type.ConvertedType.ToTestDisplayString();
+                Assert.True(expectedConvertedType == actualConvertedType, $"Unexpected TypeInfo.ConvertedType '{actualConvertedType}'");
+            }
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_Default()
+        {
+            var source =
+@"class C
+{
+    static void M()
+    {
+        string s = default!;
+        s.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var suppression = tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().Single();
+
+            // Need to verify the semantic model
+            // Tracked by https://github.com/dotnet/roslyn/issues/32661
+
+            //VerifyTypeInfo(model, suppression, "System.String", "System.String");
+
+            var literal = suppression.Operand;
+            VerifyTypeInfo(model, literal, "System.String", "System.String");
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_Constant()
+        {
+            var source =
+@"class C
+{
+    static void M()
+    {
+        const int i = 3!;
+        _ = i;
+        const string s = null!;
+        _ = s;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var suppressions = tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().ToArray();
+
+            // Need to verify the semantic model
+            // Tracked by https://github.com/dotnet/roslyn/issues/32661
+
+            //Assert.Equal(3, model.GetConstantValue(suppressions[0]).Value);
+            //Assert.Null(model.GetConstantValue(suppressions[1]).Value);
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_MethodGroupInNameof()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+class C
+{
+    static void M<T>()
+    {
+        _ = nameof(C.M<T>!);
+    }
+}
+" }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (6,24): error CS0119: 'T' is a type, which is not valid in the given context
+                //         _ = nameof(C.M<T>!);
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(6, 24),
+                // (6,27): error CS1525: Invalid expression term ')'
+                //         _ = nameof(C.M<T>!);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 27)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_MethodGroup()
+        {
+            var source =
+@"class C
+{
+    delegate string Copier(string s);
+    static void Main()
+    {
+        Copier c = M2;
+        Copier c2 = M2!;
+    }
+    static string? M2(string? s) => throw null;
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(TestOptions.DebugExe));
+            comp.VerifyDiagnostics(
+                // (6,20): warning CS8621: Nullability of reference types in return type of 'string? C.M2(string? s)' doesn't match the target delegate 'C.Copier'.
+                //         Copier c = M2;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "M2").WithArguments("string? C.M2(string? s)", "C.Copier").WithLocation(6, 20)
+                );
+            CompileAndVerify(comp);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            // Need to verify the semantic model
+            // Tracked by https://github.com/dotnet/roslyn/issues/32661
+
+            // unepxected answer from semantic model
+            var suppression = tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().Single();
+            //VerifyTypeInfo(model, suppression, null, "C.Copier");
+
+            var methodGroup = suppression.Operand;
+            VerifyTypeInfo(model, methodGroup, null, "C.Copier");
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void InvalidUseOfMethodGroup()
+        {
+            var source =
+@"class A
+{
+    internal object E() { return null; }
+    private object F() { return null; }
+    static void M(A a)
+    {
+        object o;
+        a.E! += a.E!; // 1
+        if (a.E! != null) // 2
+        {
+            M(a.E!); // 3
+            a.E!.ToString(); // 4
+            a.P!.ToString(); // 5
+            o = !(a.E!); // 6
+            o = a.E! ?? a.F!; // 7
+        }
+        a.F! += a.F!; // 8
+        if (a.F! != null) // 9
+        {
+            M(a.F!); // 10
+            a.F!.ToString(); // 11
+            o = !(a.F!); // 12
+            o = (o != null) ? a.E! : a.F!; // 13
+        }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,9): error CS8598: The suppression operator is not allowed in this context
+                //         a.E! += a.E!; // 1
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "a.E").WithLocation(8, 9),
+                // (9,13): error CS0019: Operator '!=' cannot be applied to operands of type 'method group' and '<null>'
+                //         if (a.E! != null) // 2
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "a.E! != null").WithArguments("!=", "method group", "<null>").WithLocation(9, 13),
+                // (11,15): error CS1503: Argument 1: cannot convert from 'method group' to 'A'
+                //             M(a.E!); // 3
+                Diagnostic(ErrorCode.ERR_BadArgType, "a.E").WithArguments("1", "method group", "A").WithLocation(11, 15),
+                // (12,15): error CS0119: 'A.E()' is a method, which is not valid in the given context
+                //             a.E!.ToString(); // 4
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("A.E()", "method").WithLocation(12, 15),
+                // (13,15): error CS1061: 'A' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
+                //             a.P!.ToString(); // 5
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("A", "P").WithLocation(13, 15),
+                // (14,17): error CS0023: Operator '!' cannot be applied to operand of type 'method group'
+                //             o = !(a.E!); // 6
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!(a.E!)").WithArguments("!", "method group").WithLocation(14, 17),
+                // (15,17): error CS0019: Operator '??' cannot be applied to operands of type 'method group' and 'method group'
+                //             o = a.E! ?? a.F!; // 7
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "a.E! ?? a.F!").WithArguments("??", "method group", "method group").WithLocation(15, 17),
+                // (17,9): error CS8598: The suppression operator is not allowed in this context
+                //         a.F! += a.F!; // 8
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "a.F").WithLocation(17, 9),
+                // (18,13): error CS0019: Operator '!=' cannot be applied to operands of type 'method group' and '<null>'
+                //         if (a.F! != null) // 9
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "a.F! != null").WithArguments("!=", "method group", "<null>").WithLocation(18, 13),
+                // (20,15): error CS1503: Argument 1: cannot convert from 'method group' to 'A'
+                //             M(a.F!); // 10
+                Diagnostic(ErrorCode.ERR_BadArgType, "a.F").WithArguments("1", "method group", "A").WithLocation(20, 15),
+                // (21,15): error CS0119: 'A.F()' is a method, which is not valid in the given context
+                //             a.F!.ToString(); // 11
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "F").WithArguments("A.F()", "method").WithLocation(21, 15),
+                // (22,17): error CS0023: Operator '!' cannot be applied to operand of type 'method group'
+                //             o = !(a.F!); // 12
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!(a.F!)").WithArguments("!", "method group").WithLocation(22, 17),
+                // (23,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'method group' and 'method group'
+                //             o = (o != null) ? a.E! : a.F!; // 13
+                Diagnostic(ErrorCode.ERR_InvalidQM, "(o != null) ? a.E! : a.F!").WithArguments("method group", "method group").WithLocation(23, 17)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_AccessPropertyWithoutArguments()
+        {
+            string source1 = @"
+Imports System
+Imports System.Runtime.InteropServices
+<Assembly: PrimaryInteropAssembly(0, 0)>
+<Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")>
+<ComImport()>
+<Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E211"")>
+Public Interface IB
+    Property Value(Optional index As Object = Nothing) As Object
+End Interface
+";
+
+            var reference = BasicCompilationUtils.CompileToMetadata(source1);
+
+            string source2 = @"
+class CIB : IB
+{
+    public dynamic get_Value(object index = null)
+    {
+        return ""Test"";
+    }
+
+    public void set_Value(object index = null, object Value = null)
+    {
+    }
+}
+
+class Test
+{
+    static void Main()
+    {
+        IB x = new CIB();
+        System.Console.WriteLine(x.Value!.Length);
+    }
+}
+";
+
+            var compilation2 = CreateCompilation(source2, new[] { reference.WithEmbedInteropTypes(true), CSharpRef }, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(compilation2, expectedOutput: @"4");
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_CollectionInitializerProperty()
+        {
+            var source = @"
+public class C
+{
+    public string P { get; set; } = null!;
+    void M()
+    {
+        _ = new C() { P! = null };
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,21): error CS1922: Cannot initialize type 'C' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
+                //         _ = new C() { P! = null };
+                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ P! = null }").WithArguments("C").WithLocation(7, 21),
+                // (7,23): error CS0747: Invalid initializer member declarator
+                //         _ = new C() { P! = null };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "P! = null").WithLocation(7, 23),
+                // (7,23): error CS8598: The suppression operator is not allowed in this context
+                //         _ = new C() { P! = null };
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "P").WithLocation(7, 23)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_InInvocation()
+        {
+            var source = @"
+public class C
+{
+    public System.Action? field = null;
+    void M()
+    {
+        this.M!();
+        nameof!(M);
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,9): error CS8598: The suppression operator is not allowed in this context
+                //         this.M!();
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "this.M").WithLocation(7, 9),
+                // (8,9): error CS0103: The name 'nameof' does not exist in the current context
+                //         nameof!(M);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nameof").WithArguments("nameof").WithLocation(8, 9)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_InInvocation2()
+        {
+            var source = @"
+public class C
+{
+    public System.Action? field = null;
+    void M()
+    {
+        this!.field!();
+    }
+}";
+            var comp = CreateCompilationWithCSharp(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp);
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_InInvocationAndDynamic()
+        {
+            var source = @"
+public class C
+{
+    void M()
+    {
+        dynamic? d = new object();
+        d.M!(); // 1
+        int z = d.y.z;
+
+        d = null;
+        d!.M();
+
+        d = null;
+        int y = d.y; // 2
+
+        d = null;
+        d.M!(); // 3
+
+        d += null;
+        d += null!;
+    }
+}";
+            // What warnings should we produce on dynamic?
+            // Should `!` be allowed on members/invocations on dynamic?
+            // See https://github.com/dotnet/roslyn/issues/32364
+
+            var comp = CreateCompilationWithCSharp(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,9): error CS8598: The suppression operator is not allowed in this context
+                //         d.M!(); // 1
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "d.M").WithLocation(7, 9),
+                // (14,17): warning CS8602: Possible dereference of a null reference.
+                //         int y = d.y; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "d").WithLocation(14, 17),
+                // (17,9): error CS8598: The suppression operator is not allowed in this context
+                //         d.M!(); // 3
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "d.M").WithLocation(17, 9),
+                // (17,9): warning CS8602: Possible dereference of a null reference.
+                //         d.M!(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "d").WithLocation(17, 9)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_Stackalloc()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+class Test
+{
+    void M()
+    {
+        System.Span<int> a3 = stackalloc[] { 1, 2, 3 }!;
+        var x3 = true ? stackalloc[] { 1, 2, 3 }! : a3;
+    }
+}", TestOptions.UnsafeReleaseDll);
+
+            // Note: when we allow stackalloc expressions to be nested in other expressions,
+            // we'll have to look at conversion from expression of suppressed stackalloc
+            comp.VerifyDiagnostics(
+                // (6,31): error CS1525: Invalid expression term 'stackalloc'
+                //         System.Span<int> a3 = stackalloc[] { 1, 2, 3 }!;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 31),
+                // (7,25): error CS1525: Invalid expression term 'stackalloc'
+                //         var x3 = true ? stackalloc[] { 1, 2, 3 }! : a3;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(7, 25)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_MethodGroup2()
+        {
+            var source =
+@"class C
+{
+    delegate string? Copier(string? s);
+    static void Main()
+    {
+        Copier c = M2;
+        Copier c2 = M2!;
+    }
+    static string M2(string s) => throw null;
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(TestOptions.DebugExe));
+            comp.VerifyDiagnostics(
+                // (6,20): warning CS8622: Nullability of reference types in type of parameter 's' of 'string C.M2(string s)' doesn't match the target delegate 'C.Copier'.
+                //         Copier c = M2;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "M2").WithArguments("s", "string C.M2(string s)", "C.Copier").WithLocation(6, 20)
+                );
+            CompileAndVerify(comp);
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_Lambda()
+        {
+            var source =
+@"class C
+{
+    delegate string Copier(string s);
+    static void Main()
+    {
+        Copier c = (string? x) => { return null; }!;
+        Copier c2 = (string? x) => { return null; };
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(TestOptions.DebugExe));
+            comp.VerifyDiagnostics(
+                // (6,44): warning CS8603: Possible null reference return.
+                //         Copier c = (string? x) => { return null; }!;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(6, 44),
+                // (7,21): warning CS8622: Nullability of reference types in type of parameter 'x' of 'lambda expression' doesn't match the target delegate 'C.Copier'.
+                //         Copier c2 = (string? x) => { return null; };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(string? x) => { return null; }").WithArguments("x", "lambda expression", "C.Copier").WithLocation(7, 21),
+                // (7,45): warning CS8603: Possible null reference return.
+                //         Copier c2 = (string? x) => { return null; };
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(7, 45)
+                );
+            CompileAndVerify(comp);
+
+            // Need to verify the semantic model
+            // Tracked by https://github.com/dotnet/roslyn/issues/32661
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var suppression = tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().Single();
+            Assert.Equal("(string? x) => { return null; }!", suppression.ToString());
+            //VerifyTypeInfo(model, suppression, null, "C.Copier");
+
+            var lambda = suppression.Operand;
+            Assert.Equal("(string? x) => { return null; }", lambda.ToString());
+            VerifyTypeInfo(model, lambda, null, "C.Copier");
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_Lambda_ExplicitCast()
+        {
+            var source =
+@"class C
+{
+    delegate string Copier(string s);
+    static void M()
+    {
+        var c = (Copier)((string? x) => { return null; }!);
+        var c2 = (Copier)((string? x) => { return null; });
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,50): warning CS8603: Possible null reference return.
+                //         var c = (Copier)((string? x) => { return null; }!);
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(6, 50),
+                // (7,18): warning CS8622: Nullability of reference types in type of parameter 'x' of 'lambda expression' doesn't match the target delegate 'C.Copier'.
+                //         var c2 = (Copier)((string? x) => { return null; });
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(Copier)((string? x) => { return null; })").WithArguments("x", "lambda expression", "C.Copier").WithLocation(7, 18),
+                // (7,51): warning CS8603: Possible null reference return.
+                //         var c2 = (Copier)((string? x) => { return null; });
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(7, 51)
+                );
+            CompileAndVerify(comp);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            // Need to verify the semantic model
+            // Tracked by https://github.com/dotnet/roslyn/issues/32661
+
+            var suppression = tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().Single();
+            Assert.Equal("(string? x) => { return null; }!", suppression.ToString());
+            //VerifyTypeInfo(model, suppression, "C.Copier", "C.Copier");
+
+            var lambda = suppression.Operand;
+            Assert.Equal("(string? x) => { return null; }", lambda.ToString());
+            VerifyTypeInfo(model, lambda, null, "C.Copier");
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_Lambda2()
+        {
+            var source =
+@"class C
+{
+    delegate string? Copier(string? s);
+    static void Main()
+    {
+        Copier c = (string x) => { return string.Empty; }!;
+        Copier c2 = (string x) => { return string.Empty; };
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(TestOptions.DebugExe));
+            comp.VerifyDiagnostics(
+                // (7,21): warning CS8622: Nullability of reference types in type of parameter 'x' of 'lambda expression' doesn't match the target delegate 'C.Copier'.
+                //         Copier c2 = (string x) => { return string.Empty; };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(string x) => { return string.Empty; }").WithArguments("x", "lambda expression", "C.Copier").WithLocation(7, 21)
+                );
+            CompileAndVerify(comp);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var suppression = tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().Single();
+            Assert.Equal("(string x) => { return string.Empty; }!", suppression.ToString());
+
+            // Need to verify the semantic model
+            // Tracked by https://github.com/dotnet/roslyn/issues/32661
+
+            //VerifyTypeInfo(model, suppression, null, "C.Copier");
+
+            var lambda = suppression.Operand;
+            Assert.Equal("(string x) => { return string.Empty; }", lambda.ToString());
+            VerifyTypeInfo(model, lambda, null, "C.Copier");
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_Lambda2_ExplicitCast()
+        {
+            var source =
+@"class C
+{
+    delegate string? Copier(string? s);
+    static void Main()
+    {
+        var c = (Copier)((string x) => { return string.Empty; }!);
+        var c2 = (Copier)((string x) => { return string.Empty; });
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(TestOptions.DebugExe));
+            comp.VerifyDiagnostics(
+                // (7,18): warning CS8622: Nullability of reference types in type of parameter 'x' of 'lambda expression' doesn't match the target delegate 'C.Copier'.
+                //         var c2 = (Copier)((string x) => { return string.Empty; });
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(Copier)((string x) => { return string.Empty; })").WithArguments("x", "lambda expression", "C.Copier").WithLocation(7, 18)
+                );
+            CompileAndVerify(comp);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            // Need to verify the semantic model
+            // Tracked by https://github.com/dotnet/roslyn/issues/32661
+
+            var suppression = tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().Single();
+            Assert.Equal("(string x) => { return string.Empty; }!", suppression.ToString());
+            //VerifyTypeInfo(model, suppression, "C.Copier", "C.Copier");
+
+            var lambda = suppression.Operand;
+            Assert.Equal("(string x) => { return string.Empty; }", lambda.ToString());
+            VerifyTypeInfo(model, lambda, null, "C.Copier");
+        }
+
+        [Fact, WorkItem(32697, "https://github.com/dotnet/roslyn/issues/32697")]
+        public void SuppressNullableWarning_LambdaInOverloadResolution()
+        {
+            var source =
+@"class C
+{
+    static void Main(string? x)
+    {
+        var s = M(() => { return x; });
+        s /*T:string?*/ .ToString(); // 1
+
+        var s2 = M(() => { return x; }!); // suppressed
+        s2 /*T:string?*/ .ToString(); // 2
+
+        var s3 = M(M2);
+        s3 /*T:string*/ .ToString(); // 3
+
+        var s4 = M(M2!); // suppressed
+        s4 /*T:string*/ .ToString(); // 4
+    }
+    static T M<T>(System.Func<T> x) => throw null;
+    static string? M2() => throw null;
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyTypes();
+
+            // Missing warnings on s3 and s4
+            // Tracked by https://github.com/dotnet/roslyn/issues/32697
+
+            comp.VerifyDiagnostics(
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         s /*T:string?*/ .ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(6, 9),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         s2 /*T:string?*/ .ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(9, 9)
+                );
+            CompileAndVerify(comp);
+        }
+
+        [Fact, WorkItem(32698, "https://github.com/dotnet/roslyn/issues/32698")]
+        public void SuppressNullableWarning_DelegateCreation()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        _ = new System.Func<string, string>((string? x) => { return null; }!);
+        _ = new System.Func<string?, string?>((string x) => { return string.Empty; }!);
+        _ = new System.Func<string, string>(M1!);
+        _ = new System.Func<string?, string?>(M2!);
+
+        // without suppression
+        _ = new System.Func<string, string>((string? x) => { return null; }); // 1
+        _ = new System.Func<string?, string?>((string x) => { return string.Empty; }); // 2
+        _ = new System.Func<string, string>(M1); // 3
+        _ = new System.Func<string?, string?>(M2); // 4
+    }
+    static string? M1(string? x) => throw null;
+    static string M2(string x) => throw null;
+}";
+
+            // missing warnings
+            // Tracked by https://github.com/dotnet/roslyn/issues/32698
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(TestOptions.DebugExe));
+            comp.VerifyDiagnostics(
+                );
+            CompileAndVerify(comp);
+
+            // Need to verify the semantic model
+            // Tracked by https://github.com/dotnet/roslyn/issues/32661
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_MethodGroupInOverloadResolution_NoReceiver()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+class A
+{
+    class B
+    {
+        void F()
+        {
+            IEnumerable<string?> c = null!;
+            c.S(G);
+            c.S(G!);
+
+            IEnumerable<string> c2 = null!;
+            c2.S(G);
+            c2.S(G2);
+        }
+    }
+    object G(string s) => throw null;
+    object G2(string? s) => throw null;
+}
+static class E
+{
+    internal static IEnumerable<U> S<T, U>(this IEnumerable<T> c, Func<T, U> f)
+    {
+        throw new NotImplementedException();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,17): error CS0120: An object reference is required for the non-static field, method, or property 'A.G(string)'
+                //             c.S(G);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "G").WithArguments("A.G(string)").WithLocation(10, 17),
+                // (11,17): error CS0120: An object reference is required for the non-static field, method, or property 'A.G(string)'
+                //             c.S(G!);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "G").WithArguments("A.G(string)").WithLocation(11, 17),
+                // (14,18): error CS0120: An object reference is required for the non-static field, method, or property 'A.G(string)'
+                //             c2.S(G);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "G").WithArguments("A.G(string)").WithLocation(14, 18),
+                // (15,18): error CS0120: An object reference is required for the non-static field, method, or property 'A.G2(string?)'
+                //             c2.S(G2);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "G2").WithArguments("A.G2(string?)").WithLocation(15, 18)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_MethodGroupInOverloadResolution()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+class A
+{
+    void M()
+    {
+        IEnumerable<string?> c = null!;
+        c.S(G); // 1
+        c.S(G!);
+
+        IEnumerable<string> c2 = null!;
+        c2.S(G);
+        c2.S(G2);
+    }
+    static object G(string s) => throw null;
+    static object G2(string? s) => throw null;
+}
+static class E
+{
+    internal static IEnumerable<U> S<T, U>(this IEnumerable<T> c, Func<T, U> f)
+    {
+        throw new NotImplementedException();
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,13): warning CS8622: Nullability of reference types in type of parameter 's' of 'object A.G(string s)' doesn't match the target delegate 'Func<string?, object>'.
+                //         c.S(G); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "G").WithArguments("s", "object A.G(string s)", "System.Func<string?, object>").WithLocation(8, 13)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void ErrorInLambdaArgumentList()
+        {
+            var source = @"
+class Program
+{
+    public Program(string x) : this((() => x)!) { }
+}";
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,38): error CS1660: Cannot convert lambda expression to type 'string' because it is not a delegate type
+                //     public Program(string x) : this((() => x)!) { }
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => x").WithArguments("lambda expression", "string").WithLocation(4, 38)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void CS1113ERR_ValueTypeExtDelegate01()
+        {
+            var source =
+@"class C
+{
+    public void M() { }
+}
+interface I
+{
+    void M();
+}
+enum E
+{
+}
+struct S
+{
+    public void M() { }
+}
+static class SC
+{
+    static void Test(C c, I i, E e, S s, double d)
+    {
+        System.Action cm = c.M!;   // OK -- instance method
+        System.Action cm1 = c.M1!; // OK -- extension method on ref type
+        System.Action im = i.M!;   // OK -- instance method
+        System.Action im2 = i.M2!; // OK -- extension method on ref type
+        System.Action em3 = e.M3!; // BAD -- extension method on value type
+        System.Action sm = s.M!;   // OK -- instance method
+        System.Action sm4 = s.M4!; // BAD -- extension method on value type
+        System.Action dm5 = d.M5!; // BAD -- extension method on value type
+    }
+
+    static void M1(this C c) { }
+    static void M2(this I i) { }
+    static void M3(this E e) { }
+    static void M4(this S s) { }
+    static void M5(this double d) { }
+}";
+            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+                // (24,29): error CS1113: Extension methods 'SC.M3(E)' defined on value type 'E' cannot be used to create delegates
+                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "e.M3").WithArguments("SC.M3(E)", "E").WithLocation(24, 29),
+                // (26,29): error CS1113: Extension methods 'SC.M4(S)' defined on value type 'S' cannot be used to create delegates
+                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "s.M4").WithArguments("SC.M4(S)", "S").WithLocation(26, 29),
+                // (27,29): error CS1113: Extension methods 'SC.M5(double)' defined on value type 'double' cannot be used to create delegates
+                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "d.M5").WithArguments("SC.M5(double)", "double").WithLocation(27, 29));
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void BugCodePlex_30_01()
+        {
+            string source1 = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Goo(() => { return () => 0; ; }!);
+        Goo(() => { return () => 0; }!);
+    }
+    static void Goo(Func<Func<short>> x) { Console.Write(1); }
+    static void Goo(Func<Func<int>> x) { Console.Write(2); }
+}
+";
+            CompileAndVerify(source1, expectedOutput: @"22");
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_AddressOfWithLambdaOrMethodGroup()
+        {
+            var source = @"
+unsafe class C
+{
+    static void M()
+    {
+        _ = &(() => {}!);
+        _ = &(M!);
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,15): error CS8598: The suppression operator is not allowed in this context
+                //         _ = &(() => {}!);
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "() => {}").WithLocation(6, 15),
+                // (7,15): error CS8598: The suppression operator is not allowed in this context
+                //         _ = &(M!);
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "M").WithLocation(7, 15)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void TestLambdaWithError19()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Ma(string.Empty, ((x, y) => x.ToString())!);
+        Mb(string.Empty, ((x, y) => x.ToString())!);
+        Mc(string.Empty, ((x, y) => x.ToString())!);
+    }
+    static void Ma<T>(T t, Expression<Action<T, T, int>> action) { }
+    static void Mb<T>(T t, Expression<Action<T, T, int>> action) { }
+    static void Mb<T>(T t, Action<T, T, int> action) { }
+    static void Mc<T>(T t, Expression<Action<T, T, int>> action) { }
+    static void Mc() { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            foreach (var lambda in tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
+            {
+                var reference = lambda.Body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().First();
+                Assert.Equal("x", reference.ToString());
+                var typeInfo = sm.GetTypeInfo(reference);
+                Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+                Assert.Equal("String", typeInfo.Type.Name);
+                Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+            }
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_DelegateComparison()
+        {
+            var source = @"
+class C
+{
+    static void M()
+    {
+        System.Func<int> x = null;
+        _ = x == (() => 1)!;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS0019: Operator '==' cannot be applied to operands of type 'Func<int>' and 'lambda expression'
+                //         _ = x == (() => 1)!;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == (() => 1)!").WithArguments("==", "System.Func<int>", "lambda expression").WithLocation(7, 13)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_ArgList()
+        {
+            var source = @"
+class C
+{
+    static void M()
+    {
+        _ = __arglist!;
+        M(__arglist(__arglist()!));
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0190: The __arglist construct is valid only within a variable argument method
+                //         _ = __arglist!;
+                Diagnostic(ErrorCode.ERR_ArgsInvalid, "__arglist").WithLocation(6, 13),
+                // (7,21): error CS0226: An __arglist expression may only appear inside of a call or new expression
+                //         M(__arglist(__arglist()!));
+                Diagnostic(ErrorCode.ERR_IllegalArglist, "__arglist()").WithLocation(7, 21)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void BadInvocationInLambda()
+        {
+            var src = @"
+using System;
+using System.Linq.Expressions;
+
+class C
+{
+    Expression<Action<dynamic>> e = x => new object[](x);
+    Expression<Action<dynamic>> e2 = x => new object[](x)!;
+}";
+            // Suppressed expression cannot be used as a statement
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(src);
+            comp.VerifyDiagnostics(
+                // (7,52): error CS1586: Array creation must have array size or array initializer
+                //     Expression<Action<dynamic>> e = x => new object[](x);
+                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(7, 52),
+                // (7,42): error CS0149: Method name expected
+                //     Expression<Action<dynamic>> e = x => new object[](x);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "new object[]").WithLocation(7, 42),
+                // (8,53): error CS1586: Array creation must have array size or array initializer
+                //     Expression<Action<dynamic>> e2 = x => new object[](x)!;
+                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(8, 53),
+                // (8,43): error CS0149: Method name expected
+                //     Expression<Action<dynamic>> e2 = x => new object[](x)!;
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "new object[]").WithLocation(8, 43),
+                // (8,43): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //     Expression<Action<dynamic>> e2 = x => new object[](x)!;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "new object[](x)!").WithLocation(8, 43)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_AsStatement()
+        {
+            var src = @"
+class C
+{
+    void M2(string x)
+    {
+        x!;
+        M2(x)!;
+    }
+    string M(string x)
+    {
+        x!;
+        M(x)!;
+        throw null;
+    }
+}";
+            // Suppressed expression cannot be used as a statement
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         x!;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "x!").WithLocation(6, 9),
+                // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         M2(x)!;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "M2(x)!").WithLocation(7, 9),
+                // (11,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         x!;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "x!").WithLocation(11, 9),
+                // (12,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         M(x)!;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "M(x)!").WithLocation(12, 9)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_VoidInvocation()
+        {
+            var src = @"
+class C
+{
+    void M()
+    {
+        _ = M()!;
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8209: A value of type 'void' may not be assigned.
+                //         _ = M()!;
+                Diagnostic(ErrorCode.ERR_VoidAssignment, "_").WithLocation(6, 9)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void CS0023ERR_BadUnaryOp_lambdaExpression()
+        {
+            var text = @"
+class X
+{
+    static void Main()
+    {
+        System.Func<int, int> f = (arg => { arg = 2; return arg; } !).ToString();
+        
+        var x = (delegate { } !).ToString();
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,35): error CS0023: Operator '.' cannot be applied to operand of type 'lambda expression'
+                //         System.Func<int, int> f = (arg => { arg = 2; return arg; } !).ToString();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(arg => { arg = 2; return arg; } !).ToString").WithArguments(".", "lambda expression").WithLocation(6, 35),
+                // (8,17): error CS0023: Operator '.' cannot be applied to operand of type 'anonymous method'
+                //         var x = (delegate { } !).ToString();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(delegate { } !).ToString").WithArguments(".", "anonymous method").WithLocation(8, 17)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void ConditionalMemberAccess001()
+        {
+            var text = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x4 = (()=> { return 1; } !) ?.ToString();
+    }
+}
+";
+
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+                // (6,18): error CS0023: Operator '?' cannot be applied to operand of type 'lambda expression'
+                //         var x4 = (()=> { return 1; } !) ?.ToString();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(()=> { return 1; } !) ?.ToString()").WithArguments("?", "lambda expression").WithLocation(6, 18),
+                // (6,18): error CS0023: Operator '?' cannot be applied to operand of type 'lambda expression'
+                //         var x4 = (()=> { return 1; } !) ?.ToString();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(()=> { return 1; } !) ?.ToString()").WithArguments("?", "lambda expression").WithLocation(6, 18)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void DynamicCollectionInitializer_Errors()
+        {
+            string source = @"
+using System;
+
+unsafe class C
+{
+    public dynamic X;
+    public static int* ptr = null;
+
+    static void M()
+    {
+        var c = new C
+        {
+            X =
+            {
+                M!,
+                ptr!,
+                () => {}!,
+                default(TypedReference)!,
+                M()!,
+                __arglist
+            }
+        };
+    }
+}
+";
+            // Should `!` be disallowed on arguments to dynamic?
+            // See https://github.com/dotnet/roslyn/issues/32364
+
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (15,17): error CS1976: Cannot use a method group as an argument to a dynamically dispatched operation. Did you intend to invoke the method?
+                //                 M!,
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArgMemgrp, "M").WithLocation(15, 17),
+                // (16,17): error CS1978: Cannot use an expression of type 'int*' as an argument to a dynamically dispatched operation.
+                //                 ptr!,
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "ptr").WithArguments("int*").WithLocation(16, 17),
+                // (17,17): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
+                //                 () => {}!,
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "() => {}").WithLocation(17, 17),
+                // (18,17): error CS1978: Cannot use an expression of type 'TypedReference' as an argument to a dynamically dispatched operation.
+                //                 default(TypedReference)!,
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "default(TypedReference)").WithArguments("System.TypedReference").WithLocation(18, 17),
+                // (19,17): error CS1978: Cannot use an expression of type 'void' as an argument to a dynamically dispatched operation.
+                //                 M()!,
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "M()").WithArguments("void").WithLocation(19, 17),
+                // (20,17): error CS0190: The __arglist construct is valid only within a variable argument method
+                //                 __arglist
+                Diagnostic(ErrorCode.ERR_ArgsInvalid, "__arglist").WithLocation(20, 17),
+                // (20,17): error CS1978: Cannot use an expression of type 'RuntimeArgumentHandle' as an argument to a dynamically dispatched operation.
+                //                 __arglist
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(20, 17)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void TestNullCoalesceWithMethodGroup()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Action a = Main! ?? Main;
+        Action a2 = Main ?? Main!;
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,20): error CS0019: Operator '??' cannot be applied to operands of type 'method group' and 'method group'
+                //         Action a = Main! ?? Main;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "Main! ?? Main").WithArguments("??", "method group", "method group").WithLocation(8, 20),
+                // (9,21): error CS0019: Operator '??' cannot be applied to operands of type 'method group' and 'method group'
+                //         Action a2 = Main ?? Main!;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "Main ?? Main!").WithArguments("??", "method group", "method group").WithLocation(9, 21)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_IsAsOperatorWithBadSuppressedExpression()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        _ = (() => {}!) is null; // 1
+        _ = (M!) is null; // 2
+        _ = (null, null)! is object; // 3
+        _ = null! is object; // 4
+        _ = default! is object; // 5
+
+        _ = (() => {}!) as object; // 6
+        _ = (M!) as object; // 7
+        _ = (null, null)! as object; // 8
+        _ = null! as object; // ok
+        _ = default! as string; // 10
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //         _ = (() => {}!) is null; // 1
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "(() => {}!) is null").WithLocation(6, 13),
+                // (7,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //         _ = (M!) is null; // 2
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "(M!) is null").WithLocation(7, 13),
+                // (8,13): error CS0023: Operator 'is' cannot be applied to operand of type '(<null>, <null>)'
+                //         _ = (null, null)! is object; // 3
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(null, null)! is object").WithArguments("is", "(<null>, <null>)").WithLocation(8, 13),
+                // (9,13): warning CS0184: The given expression is never of the provided ('object') type
+                //         _ = null! is object; // 4
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "null! is object").WithArguments("object").WithLocation(9, 13),
+                // (10,13): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
+                //         _ = default! is object; // 5
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "default! is object").WithArguments("is", "default").WithLocation(10, 13),
+                // (12,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //         _ = (() => {}!) as object; // 6
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "(() => {}!) as object").WithLocation(12, 13),
+                // (13,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //         _ = (M!) as object; // 7
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "(M!) as object").WithLocation(13, 13),
+                // (14,13): error CS8307: The first operand of an 'as' operator may not be a tuple literal without a natural type.
+                //         _ = (null, null)! as object; // 8
+                Diagnostic(ErrorCode.ERR_TypelessTupleInAs, "(null, null)! as object").WithLocation(14, 13),
+                // (16,13): warning CS0458: The result of the expression is always 'null' of type 'string'
+                //         _ = default! as string; // 10
+                Diagnostic(ErrorCode.WRN_AlwaysNull, "default! as string").WithArguments("string").WithLocation(16, 13)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void ImplicitDelegateCreationWithIncompleteLambda()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    public void F()
+    {
+        Action<int> x = (i => i.)!
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,33): error CS1001: Identifier expected
+                //         Action<int> x = (i => i.)!
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(7, 33),
+                // (7,35): error CS1002: ; expected
+                //         Action<int> x = (i => i.)!
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 35),
+                // (7,31): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         Action<int> x = (i => i.)!
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "i.").WithLocation(7, 31)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var lambda = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.SimpleLambdaExpression)).Single();
+
+            var param = lambda.ChildNodes().Where(n => n.IsKind(SyntaxKind.Parameter)).Single();
+            var symbol1 = model.GetDeclaredSymbol(param);
+            Assert.Equal("System.Int32 i", symbol1.ToTestDisplayString());
+
+            var id = lambda.DescendantNodes().First(n => n.IsKind(SyntaxKind.IdentifierName));
+            var symbol2 = model.GetSymbolInfo(id).Symbol;
+            Assert.Equal("System.Int32 i", symbol2.ToTestDisplayString());
+
+            Assert.Same(symbol1, symbol2);
+        }
+
+        [Fact, WorkItem(32179, "https://github.com/dotnet/roslyn/issues/32179")]
+        public void SuppressNullableWarning_DefaultStruct()
+        {
+            var source =
+@"public struct S
+{
+    public string field;
+}
+public class C
+{
+    public S field;
+    void M()
+    {
+        S s = default; // assigns null to S.field
+        _ = s;
+        _ = new C(); // assigns null to C.S.field
+    }
+}";
+            // We should probably warn for such scenarios (either in the definition of S, or in the usage of S)
+            // Tracked by https://github.com/dotnet/roslyn/issues/32179
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_ThrowNull()
+        {
+            var source =
+@"class C
+{
+    void M()
+    {
+        throw null!;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_ThrowExpression()
+        {
+            var source =
+@"class C
+{
+    void M()
+    {
+        (throw null)!;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         (throw null)!;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(throw null)!").WithLocation(5, 9),
+                // (5,10): error CS8115: A throw expression is not allowed in this context.
+                //         (throw null)!;
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(5, 10)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_IsNull()
+        {
+            var source =
+@"class C
+{
+    bool M(object o)
+    {
+        return o is null!;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,21): hidden CS8606: Result of the comparison is possibly always false.
+                //         return o is null!;
+                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "null!").WithLocation(5, 21)
+                );
+            CompileAndVerify(comp);
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_MiscNull()
+        {
+            var source = @"
+using System.Linq.Expressions;
+class C
+{
+    void M<T>(object o, int? i)
+    {
+        _ = null is object; // 1
+        _ = null! is object; // 2
+
+        int i2 = null!; // 3
+        var i3 = (int)null!; // 4
+        T t = null!; // 5
+        var t2 = (T)null!; // 6
+        _ = null == null!;
+        _ = (null!, null) == (null, null!);
+        (null)++; // 9
+        (null!)++; // 10
+        _ = !null; // 11
+        _ = !(null!); // 12
+        Expression<System.Func<object>> testExpr = () => null! ?? ""hello""; // 13
+        _ = o == null;
+        _ = o == null!; // 14
+        _ = null ?? o;
+        _ = null! ?? o;
+        _ = i == null;
+        _ = i == null!;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('object') type
+                //         _ = null is object; // 1
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "null is object").WithArguments("object").WithLocation(7, 13),
+                // (8,13): warning CS0184: The given expression is never of the provided ('object') type
+                //         _ = null! is object; // 2
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "null! is object").WithArguments("object").WithLocation(8, 13),
+                // (10,18): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         int i2 = null!; // 3
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(10, 18),
+                // (11,18): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         var i3 = (int)null!; // 4
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "(int)null!").WithArguments("int").WithLocation(11, 18),
+                // (12,15): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
+                //         T t = null!; // 5
+                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(12, 15),
+                // (13,18): error CS0037: Cannot convert null to 'T' because it is a non-nullable value type
+                //         var t2 = (T)null!; // 6
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "(T)null!").WithArguments("T").WithLocation(13, 18),
+                // (16,10): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
+                //         (null)++; // 9
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "null").WithLocation(16, 10),
+                // (17,10): error CS8598: The suppression operator is not allowed in this context
+                //         (null!)++; // 10
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "null").WithLocation(17, 10),
+                // (18,13): error CS8310: Operator '!' cannot be applied to operand '<null>'
+                //         _ = !null; // 11
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "!null").WithArguments("!", "<null>").WithLocation(18, 13),
+                // (19,13): error CS8310: Operator '!' cannot be applied to operand '<null>'
+                //         _ = !(null!); // 12
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "!(null!)").WithArguments("!", "<null>").WithLocation(19, 13),
+                // (20,58): error CS0845: An expression tree lambda may not contain a coalescing operator with a null or default literal left-hand side
+                //         Expression<System.Func<object>> testExpr = () => null! ?? "hello"; // 13
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "null").WithLocation(20, 58),
+                // (21,13): hidden CS8606: Result of the comparison is possibly always false.
+                //         _ = o == null;
+                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "o == null").WithLocation(21, 13),
+                // (22,13): hidden CS8606: Result of the comparison is possibly always false.
+                //         _ = o == null!; // 14
+                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "o == null!").WithLocation(22, 13)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_MiscDefault()
+        {
+            var source =
+@"class C
+{
+    void M(dynamic d, int? i)
+    {
+        d.M(null!, default!, null, default); // 1
+        _ = default == default!; // 2
+        _ = default! == default!; // 3
+        _ = 1 + default!; // 4
+        _ = default ?? d; // 5
+        _ = default! ?? d; // 6
+        _ = i ?? default;
+        _ = i ?? default!;
+    }
+    void M2(object o)
+    {
+        _ = o == default; // 7
+        _ = o == default!; // 8
+    }
+}";
+            // Should `!` be disallowed on arguments to dynamic (line // 1) ?
+            // See https://github.com/dotnet/roslyn/issues/32364
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,20): error CS8311: Cannot use a default literal as an argument to a dynamically dispatched operation.
+                //         d.M(null!, default!, null, default); // 1
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArgDefaultLiteral, "default").WithLocation(5, 20),
+                // (5,36): error CS8311: Cannot use a default literal as an argument to a dynamically dispatched operation.
+                //         d.M(null!, default!, null, default); // 1
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArgDefaultLiteral, "default").WithLocation(5, 36),
+                // (6,13): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
+                //         _ = default == default!; // 2
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default == default!").WithArguments("==").WithLocation(6, 13),
+                // (7,13): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
+                //         _ = default! == default!; // 3
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default! == default!").WithArguments("==").WithLocation(7, 13),
+                // (8,13): error CS8310: Operator '+' cannot be applied to operand 'default'
+                //         _ = 1 + default!; // 4
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 + default!").WithArguments("+", "default").WithLocation(8, 13),
+                // (9,13): error CS8310: Operator '??' cannot be applied to operand 'default'
+                //         _ = default ?? d; // 5
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default ?? d").WithArguments("??", "default").WithLocation(9, 13),
+                // (10,13): error CS8310: Operator '??' cannot be applied to operand 'default'
+                //         _ = default! ?? d; // 6
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default! ?? d").WithArguments("??", "default").WithLocation(10, 13),
+                // (16,13): hidden CS8606: Result of the comparison is possibly always false.
+                //         _ = o == default; // 7
+                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "o == default").WithLocation(16, 13),
+                // (17,13): hidden CS8606: Result of the comparison is possibly always false.
+                //         _ = o == default!; // 8
+                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "o == default!").WithLocation(17, 13)
+            );
+        }
+
         [Fact]
         public void Test0()
         {
@@ -3438,7 +5374,7 @@ public class List2<T> { public T Item { get; set; } = null!; }
             comp.VerifyDiagnostics(
                 // (2,55): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
                 // public class List2<T> { public T Item { get; set; } = null!; }
-                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null!").WithArguments("T").WithLocation(2, 55)
+                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(2, 55)
                 );
         }
 
@@ -3453,7 +5389,7 @@ public class List2<T> { public T Item { get; set; } = null!!; }
             comp.VerifyDiagnostics(
                 // (2,55): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
                 // public class List2<T> { public T Item { get; set; } = null!!; }
-                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null!!").WithArguments("T").WithLocation(2, 55)
+                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(2, 55)
                 );
         }
 
@@ -12081,7 +14017,10 @@ public class C
 }
 " }, options: WithNonNullTypesTrue());
 
-            VerifyVarLocal(c, "string!");
+            // Need to verify the semantic model
+            // Tracked by https://github.com/dotnet/roslyn/issues/32661
+
+            VerifyVarLocal(c, "string?");
             c.VerifyTypes();
             c.VerifyDiagnostics();
         }
@@ -12612,9 +14551,9 @@ public class C
 {
     public void Main(string s)
     {
-        s = null!; // https://github.com/dotnet/roslyn/issues/29862: null! returns an oblivious result
+        s = null!;
         var s2 = s;
-        s2 /*T:string*/ .ToString(); // ok
+        s2 /*T:string!*/ .ToString(); // ok
         s2 = null; // warn
     }
 }
@@ -12622,7 +14561,11 @@ public class C
 
             VerifyVarLocal(c, "string!");
             c.VerifyTypes();
-            c.VerifyDiagnostics();
+            c.VerifyDiagnostics(
+                // (9,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         s2 = null; // warn
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(9, 14)
+                );
         }
 
         [Fact]
@@ -12634,15 +14577,13 @@ public class C
 {
     public void Main(string s)
     {
-        s = default!; // default! returns an oblivious result
+        s = default!; // default! returns a non-null result
         var s2 = s;
-        s2/*T:string*/.ToString(); // ok
+        s2/*T:string!*/.ToString(); // ok
     }
 }
 " }, options: WithNonNullTypesTrue());
 
-            // https://github.com/dotnet/roslyn/issues/29862: The suppression operator isn't producing a non-null result
-            //                                                I'd expect default! to return a non-null result
             VerifyVarLocal(c, "string!");
             c.VerifyTypes();
             c.VerifyDiagnostics();
@@ -19403,9 +21344,13 @@ class CL1
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
+
+            // Need to verify the semantic model
+            // Tracked by https://github.com/dotnet/roslyn/issues/32661
+
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Unknown, symbol.Type.NullableAnnotation);
+            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
+            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -23403,29 +25348,41 @@ class C
 {
     static void F()
     {
-        var d1 = (D<string?>)((string s1) =>
-            {
-                s1 = null;
-                return s1;
-            });
-        var d2 = (D<string>)((string? s2) =>
-            {
-                s2.ToString();
-                return s2;
-            });
+        var d1 = (D<string?>)((string s1) => { s1 = null; return s1; });
+        var d2 = (D<string>)((string? s2) => { s2.ToString(); return s2; });
+
+        // suppressed
+        var d3 = (D<string?>)((string s1) => { s1 = null; return s1; }!);
+        var d4 = (D<string>)((string? s2) => { s2.ToString(); return s2; }!);
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
+                // (6,18): warning CS8622: Nullability of reference types in type of parameter 's1' of 'lambda expression' doesn't match the target delegate 'D<string?>'.
+                //         var d1 = (D<string?>)((string s1) => { s1 = null; return s1; });
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(D<string?>)((string s1) => { s1 = null; return s1; })").WithArguments("s1", "lambda expression", "D<string?>").WithLocation(6, 18),
                 // (6,21): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'D<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
-                //         var d1 = (D<string?>)((string s1) =>
+                //         var d1 = (D<string?>)((string s1) => { s1 = null; return s1; });
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "string?").WithArguments("D<T>", "T", "string?").WithLocation(6, 21),
-                // (8,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //                 s1 = null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 22),
-                // (13,17): warning CS8602: Possible dereference of a null reference.
-                //                 s2.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(13, 17));
+                // (6,53): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         var d1 = (D<string?>)((string s1) => { s1 = null; return s1; });
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 53),
+                // (7,18): warning CS8622: Nullability of reference types in type of parameter 's2' of 'lambda expression' doesn't match the target delegate 'D<string>'.
+                //         var d2 = (D<string>)((string? s2) => { s2.ToString(); return s2; });
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(D<string>)((string? s2) => { s2.ToString(); return s2; })").WithArguments("s2", "lambda expression", "D<string>").WithLocation(7, 18),
+                // (7,48): warning CS8602: Possible dereference of a null reference.
+                //         var d2 = (D<string>)((string? s2) => { s2.ToString(); return s2; });
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(7, 48),
+                // (10,21): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'D<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                //         var d3 = (D<string?>)((string s1) => { s1 = null; return s1; }!);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "string?").WithArguments("D<T>", "T", "string?").WithLocation(10, 21),
+                // (10,53): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         var d3 = (D<string?>)((string s1) => { s1 = null; return s1; }!);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(10, 53),
+                // (11,48): warning CS8602: Possible dereference of a null reference.
+                //         var d4 = (D<string>)((string? s2) => { s2.ToString(); return s2; }!);
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(11, 48)
+                );
         }
 
         /// <summary>
@@ -23633,6 +25590,27 @@ class C
         F(o => { if (o == null) throw new ArgumentException(); return o; }).ToString();
     }
 }";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void LambdaReturnValue_05_WithSuppression()
+        {
+            var source =
+@"using System;
+class C
+{
+    static T F<T>(Func<object?, T> f)
+    {
+        throw null;
+    }
+    static void G()
+    {
+        F(o => { if (o == null) throw new ArgumentException(); return o; }!).ToString();
+    }
+}";
+            // covers suppression case in InferReturnType
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
@@ -27273,30 +29251,14 @@ class CL0<T>
             CSharpCompilation c = CreateCompilation(new[] { @"
 class C
 {
-    static void Main()
-    {
-    }
-
     void M1<T>(T x){}
 
     void Test1()
     {
-        System.Action<string?> u1 = (System.Action<string?>)M1<string>;
-    }
-
-    void Test2()
-    {
+        System.Action<string?> u1 = (System.Action<string?>)M1<string>; // 1
         System.Action<string> u2 = (System.Action<string>)M1<string?>;
-    }
-
-    void Test3()
-    {
-        System.Action<CL0<string?>> u3 = (System.Action<CL0<string?>>)M1<CL0<string>>;
-    }
-
-    void Test4()
-    {
-        System.Action<CL0<string>> u4 = (System.Action<CL0<string>>)M1<CL0<string?>>;
+        System.Action<CL0<string?>> u3 = (System.Action<CL0<string?>>)M1<CL0<string>>; // 2
+        System.Action<CL0<string>> u4 = (System.Action<CL0<string>>)M1<CL0<string?>>; //3
     }
 }
 
@@ -27306,6 +29268,15 @@ class CL0<T>
 " }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
+                // (8,37): warning CS8622: Nullability of reference types in type of parameter 'x' of 'void C.M1<string>(string x)' doesn't match the target delegate 'Action<string?>'.
+                //         System.Action<string?> u1 = (System.Action<string?>)M1<string>; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(System.Action<string?>)M1<string>").WithArguments("x", "void C.M1<string>(string x)", "System.Action<string?>").WithLocation(8, 37),
+                // (10,42): warning CS8622: Nullability of reference types in type of parameter 'x' of 'void C.M1<CL0<string>>(CL0<string> x)' doesn't match the target delegate 'Action<CL0<string?>>'.
+                //         System.Action<CL0<string?>> u3 = (System.Action<CL0<string?>>)M1<CL0<string>>; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(System.Action<CL0<string?>>)M1<CL0<string>>").WithArguments("x", "void C.M1<CL0<string>>(CL0<string> x)", "System.Action<CL0<string?>>").WithLocation(10, 42),
+                // (11,41): warning CS8622: Nullability of reference types in type of parameter 'x' of 'void C.M1<CL0<string?>>(CL0<string?> x)' doesn't match the target delegate 'Action<CL0<string>>'.
+                //         System.Action<CL0<string>> u4 = (System.Action<CL0<string>>)M1<CL0<string?>>; //3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(System.Action<CL0<string>>)M1<CL0<string?>>").WithArguments("x", "void C.M1<CL0<string?>>(CL0<string?> x)", "System.Action<CL0<string>>").WithLocation(11, 41)
                 );
         }
 
@@ -27375,21 +29346,9 @@ class C
     void Test1()
     {
         System.Func<string?> u1 = (System.Func<string?>)M1<string>;
-    }
-
-    void Test2()
-    {
-        System.Func<string> u2 = (System.Func<string>)M1<string?>;
-    }
-
-    void Test3()
-    {
-        System.Func<CL0<string?>> u3 = (System.Func<CL0<string?>>)M1<CL0<string>>;
-    }
-
-    void Test4()
-    {
-        System.Func<CL0<string>> u4 = (System.Func<CL0<string>>)M1<CL0<string?>>;
+        System.Func<string> u2 = (System.Func<string>)M1<string?>; // 1
+        System.Func<CL0<string?>> u3 = (System.Func<CL0<string?>>)M1<CL0<string>>; // 2
+        System.Func<CL0<string>> u4 = (System.Func<CL0<string>>)M1<CL0<string?>>; // 3
     }
 }
 
@@ -27399,6 +29358,15 @@ class CL0<T>
 " }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
+                // (13,34): warning CS8621: Nullability of reference types in return type of 'string? C.M1<string?>()' doesn't match the target delegate 'Func<string>'.
+                //         System.Func<string> u2 = (System.Func<string>)M1<string?>; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "(System.Func<string>)M1<string?>").WithArguments("string? C.M1<string?>()", "System.Func<string>").WithLocation(13, 34),
+                // (14,40): warning CS8621: Nullability of reference types in return type of 'CL0<string> C.M1<CL0<string>>()' doesn't match the target delegate 'Func<CL0<string?>>'.
+                //         System.Func<CL0<string?>> u3 = (System.Func<CL0<string?>>)M1<CL0<string>>; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "(System.Func<CL0<string?>>)M1<CL0<string>>").WithArguments("CL0<string> C.M1<CL0<string>>()", "System.Func<CL0<string?>>").WithLocation(14, 40),
+                // (15,39): warning CS8621: Nullability of reference types in return type of 'CL0<string?> C.M1<CL0<string?>>()' doesn't match the target delegate 'Func<CL0<string>>'.
+                //         System.Func<CL0<string>> u4 = (System.Func<CL0<string>>)M1<CL0<string?>>; // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "(System.Func<CL0<string>>)M1<CL0<string?>>").WithArguments("CL0<string?> C.M1<CL0<string?>>()", "System.Func<CL0<string>>").WithLocation(15, 39)
                 );
         }
 
@@ -34402,37 +36370,37 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C<object>", "C<object?>").WithLocation(7, 23),
                 // (8,18): hidden CS8607: Expression is probably never null.
                 //         var t3 = x! ?? y; // 4 and 5
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x!").WithLocation(8, 18),
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x").WithLocation(8, 18),
                 // (8,24): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
                 //         var t3 = x! ?? y; // 4 and 5
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "C<object>").WithLocation(8, 24),
                 // (9,18): hidden CS8607: Expression is probably never null.
                 //         var t4 = y! ?? x; // 6 and 7
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y!").WithLocation(9, 18),
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y").WithLocation(9, 18),
                 // (9,24): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'C<object?>'.
                 //         var t4 = y! ?? x; // 6 and 7
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C<object>", "C<object?>").WithLocation(9, 24),
                 // (10,23): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
                 //         var t5 = x ?? y!; // 8
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y!").WithArguments("C<object?>", "C<object>").WithLocation(10, 23),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "C<object>").WithLocation(10, 23),
                 // (11,18): hidden CS8607: Expression is probably never null.
                 //         var t6 = y ?? x!; // 9 and 10
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y").WithLocation(11, 18),
                 // (11,23): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'C<object?>'.
                 //         var t6 = y ?? x!; // 9 and 10
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x!").WithArguments("C<object>", "C<object?>").WithLocation(11, 23),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C<object>", "C<object?>").WithLocation(11, 23),
                 // (12,18): hidden CS8607: Expression is probably never null.
                 //         var t7 = x! ?? y!; // 11 and 12
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x!").WithLocation(12, 18),
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x").WithLocation(12, 18),
                 // (12,24): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
                 //         var t7 = x! ?? y!; // 11 and 12
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y!").WithArguments("C<object?>", "C<object>").WithLocation(12, 24),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "C<object>").WithLocation(12, 24),
                 // (13,18): hidden CS8607: Expression is probably never null.
                 //         var t8 = y! ?? x!; // 13 and 14
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y!").WithLocation(13, 18),
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y").WithLocation(13, 18),
                 // (13,24): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'C<object?>'.
                 //         var t8 = y! ?? x!; // 13 and 14
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x!").WithArguments("C<object>", "C<object?>").WithLocation(13, 24)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C<object>", "C<object?>").WithLocation(13, 24)
                 );
         }
 
@@ -34555,10 +36523,10 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C<object>", "C<object?>").WithLocation(8, 39),
                 // (9,32): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
                 //         _ = new C<int>() { X = y!, Y = x! };
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y!").WithArguments("C<object?>", "C<object>").WithLocation(9, 32),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "C<object>").WithLocation(9, 32),
                 // (9,40): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'C<object?>'.
                 //         _ = new C<int>() { X = y!, Y = x! };
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x!").WithArguments("C<object>", "C<object?>").WithLocation(9, 40)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C<object>", "C<object?>").WithLocation(9, 40)
                 );
         }
 
@@ -34839,10 +36807,10 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "a").WithLocation(10, 36),
                 // (14,23): warning CS8620: Nullability of reference types in argument of type 'List<string?>' doesn't match target type 'List<string>' for parameter 'b' in 'void C.F(ref List<string> a, ref List<string>? b, ref List<string?> c, ref List<string?>? d)'.
                 //         F(ref b!, ref c!, ref d!, ref a!); // warn 5 and 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "c!").WithArguments("List<string?>", "List<string>", "b", "void C.F(ref List<string> a, ref List<string>? b, ref List<string?> c, ref List<string?>? d)").WithLocation(14, 23),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "c").WithArguments("List<string?>", "List<string>", "b", "void C.F(ref List<string> a, ref List<string>? b, ref List<string?> c, ref List<string?>? d)").WithLocation(14, 23),
                 // (14,39): warning CS8620: Nullability of reference types in argument of type 'List<string>' doesn't match target type 'List<string?>' for parameter 'd' in 'void C.F(ref List<string> a, ref List<string>? b, ref List<string?> c, ref List<string?>? d)'.
                 //         F(ref b!, ref c!, ref d!, ref a!); // warn 5 and 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "a!").WithArguments("List<string>", "List<string?>", "d", "void C.F(ref List<string> a, ref List<string>? b, ref List<string?> c, ref List<string?>? d)").WithLocation(14, 39)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "a").WithArguments("List<string>", "List<string?>", "d", "void C.F(ref List<string> a, ref List<string>? b, ref List<string?> c, ref List<string?>? d)").WithLocation(14, 39)
                 );
         }
 
@@ -34911,10 +36879,10 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(23, 39),
                 // (23,23): warning CS8620: Nullability of reference types in argument of type 'List<string?>' doesn't match target type 'List<string>' for parameter 'b' in 'void C.F(ref List<string> a, ref List<string>? b, ref List<string?> c, ref List<string?>? d)'.
                 //         F(ref b!, ref c!, ref d!, ref a!);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "c!").WithArguments("List<string?>", "List<string>", "b", "void C.F(ref List<string> a, ref List<string>? b, ref List<string?> c, ref List<string?>? d)").WithLocation(23, 23),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "c").WithArguments("List<string?>", "List<string>", "b", "void C.F(ref List<string> a, ref List<string>? b, ref List<string?> c, ref List<string?>? d)").WithLocation(23, 23),
                 // (23,39): warning CS8620: Nullability of reference types in argument of type 'List<string>' doesn't match target type 'List<string?>' for parameter 'd' in 'void C.F(ref List<string> a, ref List<string>? b, ref List<string?> c, ref List<string?>? d)'.
                 //         F(ref b!, ref c!, ref d!, ref a!);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "a!").WithArguments("List<string>", "List<string?>", "d", "void C.F(ref List<string> a, ref List<string>? b, ref List<string?> c, ref List<string?>? d)").WithLocation(23, 39)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "a").WithArguments("List<string>", "List<string?>", "d", "void C.F(ref List<string> a, ref List<string>? b, ref List<string?> c, ref List<string?>? d)").WithLocation(23, 39)
                 );
         }
 
@@ -34951,10 +36919,10 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "a").WithLocation(11, 36),
                 // (15,23): warning CS8620: Nullability of reference types in argument of type 'List<string?>' doesn't match target type 'List<string>' for parameter 'b' in 'void C.F(out List<string> a, out List<string>? b, out List<string?> c, out List<string?>? d)'.
                 //         F(out b!, out c!, out d!, out a!); // warn on `c!` and `a!`
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "c!").WithArguments("List<string?>", "List<string>", "b", "void C.F(out List<string> a, out List<string>? b, out List<string?> c, out List<string?>? d)").WithLocation(15, 23),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "c").WithArguments("List<string?>", "List<string>", "b", "void C.F(out List<string> a, out List<string>? b, out List<string?> c, out List<string?>? d)").WithLocation(15, 23),
                 // (15,39): warning CS8620: Nullability of reference types in argument of type 'List<string>' doesn't match target type 'List<string?>' for parameter 'd' in 'void C.F(out List<string> a, out List<string>? b, out List<string?> c, out List<string?>? d)'.
                 //         F(out b!, out c!, out d!, out a!); // warn on `c!` and `a!`
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "a!").WithArguments("List<string>", "List<string?>", "d", "void C.F(out List<string> a, out List<string>? b, out List<string?> c, out List<string?>? d)").WithLocation(15, 39)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "a").WithArguments("List<string>", "List<string?>", "d", "void C.F(out List<string> a, out List<string>? b, out List<string?> c, out List<string?>? d)").WithLocation(15, 39)
                 );
         }
 
@@ -35002,7 +36970,6 @@ class C
                 );
         }
 
-        // https://github.com/dotnet/roslyn/issues/29903: 't! = s' should be an error.
         [Fact]
         [WorkItem(29903, "https://github.com/dotnet/roslyn/issues/29903")]
         public void SuppressNullableWarning_Assignment()
@@ -35024,12 +36991,15 @@ class C
                 parseOptions: TestOptions.Regular8,
                 options: WithNonNullTypesTrue(TestOptions.ReleaseExe));
             comp.VerifyDiagnostics(
-                // (7,14): warning CS8601: Possible null reference assignment.
+                // (7,9): error CS8598: The suppression operator is not allowed in this context
                 //         t! = s;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "s").WithLocation(7, 14),
-                // (9,16): warning CS8601: Possible null reference assignment.
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "t").WithLocation(7, 9),
+                // (8,9): error CS8598: The suppression operator is not allowed in this context
+                //         t! += s;
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "t").WithLocation(8, 9),
+                // (9,10): error CS8598: The suppression operator is not allowed in this context
                 //         (t!) = s;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "s").WithLocation(9, 16)
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "t").WithLocation(9, 10)
                 );
         }
 
@@ -35064,8 +37034,6 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("a", "A.implicit operator B(A a)").WithLocation(12, 14));
         }
 
-        // https://github.com/dotnet/roslyn/issues/29905: PreciseAbstractFlowPass.VisitSuppressNullableWarningExpression
-        // should not assume node.Expression is an rvalue.
         [Fact]
         [WorkItem(29906, "https://github.com/dotnet/roslyn/issues/29906")]
         public void SuppressNullableWarning_Condition()
@@ -35075,7 +37043,7 @@ class C
 {
     static object? F(bool b)
     {
-        return (b && G(out var o))!? o : null;
+        return (b && G(out var o))! ? o : null;
     }
     static bool G(out object o)
     {
@@ -35083,14 +37051,8 @@ class C
         return true;
     }
 }";
-            var comp = CreateCompilation(
-                new[] { source }, options: WithNonNullTypesTrue(),
-                parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (5,38): error CS0165: Use of unassigned local variable 'o'
-                //         return (b && G(out var o))!? o : null;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "o").WithArguments("o").WithLocation(5, 38)
-                );
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -35154,11 +37116,9 @@ struct S2<T>
             var source =
 @"struct S<T> where T : class
 {
-    static S<object> F(S<object?> s) => s!/*T:S<object?>*/;
+    static S<object> F(S<object?> s) => s /*T:S<object?>*/ !;
 }";
-            var comp = CreateCompilation(
-                new[] { source }, options: WithNonNullTypesTrue(),
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
             comp.VerifyTypes();
         }
@@ -35255,21 +37215,19 @@ class C
     static void F2<T2>(T2 t2) where T2 : class
     {
         default(T2).ToString(); // 3
-        default(T2)!.ToString();
+        default(T2)!.ToString(); // 4
         t2.ToString();
         t2!.ToString();
     }
     static void F3<T3>(T3 t3) where T3 : struct
     {
         default(T3).ToString();
-        default(T3)!.ToString(); // 4
+        default(T3)!.ToString();
         t3.ToString();
-        t3!.ToString(); // 5
+        t3!.ToString();
     }
 }";
-            var comp = CreateCompilation(
-                new[] { source }, options: WithNonNullTypesTrue(),
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,9): warning CS8602: Possible dereference of a null reference.
                 //         default(T1).ToString(); // 1
@@ -35282,7 +37240,11 @@ class C
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T2).ToString").WithArguments("T2").WithLocation(12, 9),
                 // (12,9): warning CS8602: Possible dereference of a null reference.
                 //         default(T2).ToString(); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T2)").WithLocation(12, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T2)").WithLocation(12, 9),
+                // (13,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T2' is null
+                //         default(T2)!.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T2)!.ToString").WithArguments("T2").WithLocation(13, 9)
+                );
         }
 
         [Fact]
@@ -35388,16 +37350,15 @@ class B5 : A<int>
     }
     object P { set { } }
 }";
-            var comp = CreateCompilation(
-                new[] { source }, options: WithNonNullTypesTrue(),
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,11): error CS1503: Argument 1: cannot convert from 'method group' to 'object'
                 //         G(F!);
-                Diagnostic(ErrorCode.ERR_BadArgType, "F!").WithArguments("1", "method group", "object").WithLocation(5, 11),
+                Diagnostic(ErrorCode.ERR_BadArgType, "F").WithArguments("1", "method group", "object").WithLocation(5, 11),
                 // (6,11): error CS0154: The property or indexer 'C.P' cannot be used in this context because it lacks the get accessor
                 //         G(c.P!);
-                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "c.P").WithArguments("C.P").WithLocation(6, 11));
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "c.P").WithArguments("C.P").WithLocation(6, 11)
+                );
         }
 
         [Fact]
@@ -35415,10 +37376,10 @@ class B5 : A<int>
             comp.VerifyDiagnostics(
                 // (5,46): error CS0428: Cannot convert method group 'F' to non-delegate type 'object'. Did you intend to invoke the method?
                 //         var a = new object[] { new object(), F! };
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F!").WithArguments("F", "object").WithLocation(5, 46));
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "object").WithLocation(5, 46));
         }
 
-        [Fact]
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
         public void SuppressNullableWarning_IndexedProperty()
         {
             var source0 =
@@ -36601,6 +38562,9 @@ F(v).ToString();";
         F2(null!, null);
     }
 }";
+            // we should warn on the conversion of `null` to `string` in `(string)null`
+            // Tracked by https://github.com/dotnet/roslyn/issues/32844
+
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (14,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
@@ -36611,7 +38575,8 @@ F(v).ToString();";
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 15),
                 // (16,19): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         F2(null!, null);
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 19));
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 19)
+                );
         }
 
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
@@ -43464,7 +45429,7 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29971: Location of WRN_NullabilityMismatchInAssignment should be `y` rather than `B`.
+            // https://github.com/dotnet/roslyn/issues/29971: Location of WRN_ConvertingNullableToNonNullable should be `y` rather than `B`.
             comp.VerifyDiagnostics(
                 // (15,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         foreach (B y in e)
