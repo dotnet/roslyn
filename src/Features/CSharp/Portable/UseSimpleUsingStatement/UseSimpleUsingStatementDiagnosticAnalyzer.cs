@@ -29,6 +29,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
         {
             var usingStatement = (UsingStatementSyntax)context.Node;
 
+            if (!(usingStatement.Parent is BlockSyntax parentBlock))
+            {
+                // Don't offer on a using statement that is parented by another using statement.
+                // We'll just offer on the topmost using statement.
+                return;
+            }
+
+            // Check that all the immediately nested usings are convertible as well.  
+            // We don't want take a sequence of nested-using and only convert some of them.
+            for (var current = usingStatement; current != null; current = current.Statement as UsingStatementSyntax)
+            {
+                if (current.Declaration == null)
+                {
+                    return;
+                }
+            }
+
+            // Verify that changing this using-statement into a using-declaration will not
+            // change semantics.
+            if (!PreservesSemantics(parentBlock, usingStatement))
+            {
+                return;
+            }
+
             var syntaxTree = context.Node.SyntaxTree;
             var options = (CSharpParseOptions)syntaxTree.Options;
             if (options.LanguageVersion < LanguageVersion.CSharp8)
@@ -45,30 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 
             var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction);
             if (!option.Value)
-            {
-                return;
-            }
-
-            if (!(usingStatement.Parent is BlockSyntax parentBlock))
-            {
-                // Don't offer on a using statement that is parented by another using statement.
-                // We'll just offer on the topmost using statement.
-                return;
-            }
-
-            // Check that all the immediately nested usings are convertible
-            // as well.  We don't want take a block of using and only convert some of them.
-            for (var current = usingStatement; current != null; current = current.Statement as UsingStatementSyntax)
-            {
-                if (current.Declaration == null)
-                {
-                    return;
-                }
-            }
-
-            // Verify that changing this using-statement into a using-declaration will not
-            // change semantics.
-            if (!PreservesSemantics(parentBlock, usingStatement))
             {
                 return;
             }
