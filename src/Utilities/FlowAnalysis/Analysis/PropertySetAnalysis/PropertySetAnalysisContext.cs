@@ -71,13 +71,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         {
             return new PropertySetAnalysisContext(
                 valueDomain,
-                wellKnownTypeProvider, 
+                wellKnownTypeProvider,
                 controlFlowGraph,
                 owningSymbol,
                 interproceduralAnalysisConfig,
                 pessimisticAnalysis,
-                pointsToAnalysisResultOpt, 
-                getOrComputeAnalysisResult, 
+                pointsToAnalysisResultOpt,
+                getOrComputeAnalysisResult,
                 parentControlFlowGraphOpt: null,
                 interproceduralAnalysisDataOpt: null,
                 typeToTrackMetadataName: typeToTrackMetadataName,

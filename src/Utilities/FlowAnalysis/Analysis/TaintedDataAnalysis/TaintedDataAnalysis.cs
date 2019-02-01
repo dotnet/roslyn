@@ -83,7 +83,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             TaintedDataAnalysisContext analysisContext,
             DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue> dataFlowAnalysisResult)
         {
-            TaintedDataOperationVisitor visitor = (TaintedDataOperationVisitor) this.OperationVisitor;
+            TaintedDataOperationVisitor visitor = (TaintedDataOperationVisitor)this.OperationVisitor;
             return new TaintedDataAnalysisResult(dataFlowAnalysisResult, visitor.GetTaintedDataSourceSinkEntries());
         }
 

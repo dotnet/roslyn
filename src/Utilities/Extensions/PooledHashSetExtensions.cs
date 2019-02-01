@@ -32,7 +32,7 @@ namespace Analyzer.Utilities.Extensions
             builder.AddSinkInfo(
                 fullTypeName,
                 new[] { sinkKind },
-                isInterface, 
+                isInterface,
                 isAnyStringParameterInConstructorASink,
                 sinkProperties,
                 sinkMethodParameters);
@@ -76,7 +76,7 @@ namespace Analyzer.Utilities.Extensions
                 isInterface: isInterface,
                 taintedProperties: taintedProperties?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty,
-                taintedMethods: 
+                taintedMethods:
                     taintedMethods?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty);
             builder.Add(metadata);

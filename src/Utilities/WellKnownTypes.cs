@@ -9,7 +9,7 @@ namespace Analyzer.Utilities
     internal static class WellKnownTypes
     {
         public const string SystemWebHttpRequest = "System.Web.HttpRequest";
-        public const string SystemDataIDataAdapter= "System.Data.IDataAdapter";
+        public const string SystemDataIDataAdapter = "System.Data.IDataAdapter";
         public const string SystemDataIDbCommand = "System.Data.IDbCommand";
         public const string SystemExceptionFullName = "System.Exception";
         public const string SystemDiagnosticContractsContract = "System.Diagnostics.Contracts.Contract";

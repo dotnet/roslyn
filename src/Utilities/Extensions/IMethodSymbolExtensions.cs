@@ -365,7 +365,7 @@ namespace Analyzer.Utilities.Extensions
         /// <remarks>Also see <see cref="IOperationExtensions.s_operationToCfgCache"/></remarks>
         private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation>> s_methodToTopmostOperationBlockCache
             = new ConditionalWeakTable<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation>>();
-        
+
         /// <summary>
         /// Returns the topmost <see cref="IBlockOperation"/> for given <paramref name="method"/>.
         /// </summary>

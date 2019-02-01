@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
     internal class DisposeBlockAnalysisResult : AbstractBlockAnalysisResult
     {
         public DisposeBlockAnalysisResult(BasicBlock basicBlock, DisposeAnalysisData blockAnalysisData)
-            : base (basicBlock)
+            : base(basicBlock)
         {
             Data = blockAnalysisData?.ToImmutableDictionary() ?? ImmutableDictionary<AbstractLocation, DisposeAbstractValue>.Empty;
         }
