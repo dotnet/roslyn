@@ -156,8 +156,8 @@
   <data name="Could_not_format_0_Format_currently_supports_only_CSharp_and_Visual_Basic_projects" xml:space="preserve">
     <value>Could not format '{0}'. Format currently supports only C# and Visual Basic projects.</value>
   </data>
-  <data name="Format_complete_in_0_ms" xml:space="preserve">
-    <value>Format complete in {0}ms.</value>
+  <data name="Formatted_0_of_1_files_in_2_ms" xml:space="preserve">
+    <value>Formatted {0} of {1} files in {2}ms.</value>
   </data>
   <data name="Loading_workspace" xml:space="preserve">
     <value>Loading workspace.</value>

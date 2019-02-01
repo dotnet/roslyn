@@ -549,14 +549,14 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Dim nestedOperand As BoundExpression = GetConversionOperand(nestedConversion)
 
                 If nestedConversion.Syntax Is nestedOperand.Syntax AndAlso
-                   nestedConversion.Type <> nestedOperand.Type AndAlso
+                   Not TypeSymbol.Equals(nestedConversion.Type, nestedOperand.Type, TypeCompareKind.ConsiderEverything) AndAlso
                    nestedConversion.ExplicitCastInCode AndAlso
-                   topLevelConversion.Type = nestedConversion.Type Then
+                   TypeSymbol.Equals(topLevelConversion.Type, nestedConversion.Type, TypeCompareKind.ConsiderEverything) Then
 
                     Return GetConversionInfo(nestedConversion)
                 End If
             ElseIf boundOperand.Syntax.IsKind(SyntaxKind.AddressOfExpression) AndAlso
-                   topLevelConversion.Type = boundOperand.Type AndAlso
+                   TypeSymbol.Equals(topLevelConversion.Type, boundOperand.Type, TypeCompareKind.ConsiderEverything) AndAlso
                    IsDelegateCreation(topLevelConversion.Syntax, boundOperand, boundOperand.Type) Then
 
                 Return (CreateDelegateCreationConversionOperand(boundOperand), Conversion:=Nothing, IsDelegateCreation:=True)
