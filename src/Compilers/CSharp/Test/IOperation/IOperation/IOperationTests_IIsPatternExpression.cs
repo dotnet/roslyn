@@ -882,10 +882,55 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'tu
             Value: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
       PropertySubpatterns (1):
-        MatchedSymbol: System.Int32 (System.Int32 X, System.Int32 Y).Item1, Pattern: 
-            IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: System.Int32, DeclaredSymbol: System.Int32 x, MatchesNull: False)
+          IPropertySubpatternOperation (OperationKind.None, Type: null) (Syntax: 'Item1: int x')Member: 
+              IFieldReferenceOperation: System.Int32 (System.Int32 X, System.Int32 Y).Item1 (OperationKind.FieldReference, Type: System.Int32, IsImplicit) (Syntax: 'Item1')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: (System.Int32 X, System.Int32 Y), IsImplicit) (Syntax: 'Item1')
+            Pattern: 
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: System.Int32, DeclaredSymbol: System.Int32 x, MatchesNull: False)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.Patterns)]
+        [Fact]
+        public void IsPattern_BadRecursivePattern_01()
+        {
+            string source = @"
+class C
+{
+    void M((int X, int Y) tuple, bool b)
+    {
+        if (/*<bind>*/tuple is (1, 2) { NotFound: int x } y/*</bind>*/) { }
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'tuple is (1 ... : int x } y')
+  Value: 
+    IParameterReferenceOperation: tuple (OperationKind.ParameterReference, Type: (System.Int32 X, System.Int32 Y)) (Syntax: 'tuple')
+  Pattern: 
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '(1, 2) { No ... : int x } y') (InputType: (System.Int32 X, System.Int32 Y), DeclaredSymbol: (System.Int32 X, System.Int32 Y) y, MatchedType: (System.Int32 X, System.Int32 Y), DeconstructSymbol: null)
+      DeconstructionSubpatterns (2):
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32)
+            Value: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '2') (InputType: System.Int32)
+            Value: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.None, Type: null, IsInvalid) (Syntax: 'NotFound: int x')Member: 
+              null
+            Pattern: 
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: ?, DeclaredSymbol: System.Int32 x, MatchesNull: False)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(6,41): error CS0117: '(int X, int Y)' does not contain a definition for 'NotFound'
+                //         if (/*<bind>*/tuple is (1, 2) { NotFound: int x } y/*</bind>*/) { }
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "NotFound").WithArguments("(int X, int Y)", "NotFound").WithLocation(6, 41)
+            };
 
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

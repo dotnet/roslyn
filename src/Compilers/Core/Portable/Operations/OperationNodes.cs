@@ -7965,7 +7965,8 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol inputType,
             ITypeSymbol matchedType,
             ISymbol deconstructSymbol,
-            ISymbol declaredSymbol, SemanticModel semanticModel,
+            ISymbol declaredSymbol,
+            SemanticModel semanticModel,
             SyntaxNode syntax,
             bool isImplicit)
             : base(OperationKind.RecursivePattern, semanticModel, syntax, type: default, constantValue: default, isImplicit)
@@ -7979,7 +7980,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public ITypeSymbol MatchedType { get; }
         public ISymbol DeconstructSymbol { get; }
         public abstract ImmutableArray<IPatternOperation> DeconstructionSubpatterns { get; }
-        public abstract ImmutableArray<(ISymbol, IPatternOperation)> PropertySubpatterns { get; }
+        public abstract ImmutableArray<IPropertySubpatternOperation> PropertySubpatterns { get; }
         public ISymbol DeclaredSymbol { get; }
         public override IEnumerable<IOperation> Children
         {
@@ -7992,7 +7993,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 foreach (var p in PropertySubpatterns)
                 {
-                    yield return p.Item2;
+                    yield return p;
                 }
             }
         }
@@ -8017,7 +8018,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol matchedType,
             ISymbol deconstructSymbol,
             ImmutableArray<IPatternOperation> deconstructionSubpatterns,
-            ImmutableArray<(ISymbol, IPatternOperation)> propertySubpatterns,
+            ImmutableArray<IPropertySubpatternOperation> propertySubpatterns,
             ISymbol declaredSymbol, SemanticModel semanticModel,
             SyntaxNode syntax,
             bool isImplicit)
@@ -8025,32 +8026,30 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             SetParentOperation(deconstructionSubpatterns, this);
             DeconstructionSubpatterns = deconstructionSubpatterns;
-            foreach (var p in propertySubpatterns)
-            {
-                SetParentOperation(p.Item2, this);
-            }
+            SetParentOperation(propertySubpatterns, this);
             PropertySubpatterns = propertySubpatterns;
         }
         public override ImmutableArray<IPatternOperation> DeconstructionSubpatterns { get; }
-        public override ImmutableArray<(ISymbol, IPatternOperation)> PropertySubpatterns { get; }
+        public override ImmutableArray<IPropertySubpatternOperation> PropertySubpatterns { get; }
     }
 
     internal abstract partial class LazyRecursivePatternOperation : BaseRecursivePatternOperation
     {
         private ImmutableArray<IPatternOperation> _lazyDeconstructionSubpatterns;
-        private ImmutableArray<(ISymbol, IPatternOperation)> _lazyPropertySubpatterns;
+        private ImmutableArray<IPropertySubpatternOperation> _lazyPropertySubpatterns;
         public LazyRecursivePatternOperation(
             ITypeSymbol inputType,
             ITypeSymbol matchedType,
             ISymbol deconstructSymbol,
-            ISymbol declaredSymbol, SemanticModel semanticModel,
+            ISymbol declaredSymbol,
+            SemanticModel semanticModel,
             SyntaxNode syntax,
             bool isImplicit)
             : base(inputType, matchedType, deconstructSymbol, declaredSymbol, semanticModel, syntax, isImplicit)
         {
         }
         public abstract ImmutableArray<IPatternOperation> CreateDeconstructionSubpatterns();
-        public abstract ImmutableArray<(ISymbol, IPatternOperation)> CreatePropertySubpatterns();
+        public abstract ImmutableArray<IPropertySubpatternOperation> CreatePropertySubpatterns();
         public override ImmutableArray<IPatternOperation> DeconstructionSubpatterns
         {
             get
@@ -8069,7 +8068,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 return _lazyDeconstructionSubpatterns;
             }
         }
-        public override ImmutableArray<(ISymbol, IPatternOperation)> PropertySubpatterns
+        public override ImmutableArray<IPropertySubpatternOperation> PropertySubpatterns
         {
             get
             {
@@ -8078,13 +8077,103 @@ namespace Microsoft.CodeAnalysis.Operations
                     var propertySubpatterns = CreatePropertySubpatterns();
                     foreach (var propertySubpattern in propertySubpatterns)
                     {
-                        SetParentOperation(propertySubpattern.Item2, this);
+                        SetParentOperation(propertySubpattern, this);
                     }
 
                     ImmutableInterlocked.InterlockedInitialize(ref _lazyPropertySubpatterns, propertySubpatterns);
                 }
 
                 return _lazyPropertySubpatterns;
+            }
+        }
+    }
+
+    internal abstract partial class BasePropertySubpatternOperation : Operation, IPropertySubpatternOperation
+    {
+        public BasePropertySubpatternOperation(
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(OperationKind.None, semanticModel, syntax, type: default, constantValue: default, isImplicit)
+        {
+        }
+        public abstract IOperation Member { get; }
+        public abstract IPatternOperation Pattern { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                if (Member != null)
+                    yield return Member;
+
+                if (Pattern != null)
+                    yield return Pattern;
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitPropertySubpattern(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitPropertySubpattern(this, argument);
+        }
+    }
+
+    internal sealed partial class PropertySubpatternOperation : BasePropertySubpatternOperation
+    {
+        public PropertySubpatternOperation(
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit,
+            IOperation member,
+            IPatternOperation pattern)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            SetParentOperation(member, this);
+            Member = member;
+            SetParentOperation(pattern, this);
+            Pattern = pattern;
+        }
+        public override IOperation Member { get; }
+        public override IPatternOperation Pattern { get; }
+    }
+
+    internal abstract partial class LazyPropertySubpatternOperation : BasePropertySubpatternOperation
+    {
+        private IOperation _lazyMember = s_unset;
+        private IPatternOperation _lazyPattern = s_unsetPattern;
+        public LazyPropertySubpatternOperation(
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+        }
+        public abstract IOperation CreateMember();
+        public abstract IPatternOperation CreatePattern();
+        public override IOperation Member
+        {
+            get
+            {
+                if (_lazyMember == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyMember, CreateMember(), s_unset);
+                }
+
+                return _lazyMember;
+            }
+        }
+        public override IPatternOperation Pattern
+        {
+            get
+            {
+                if (_lazyPattern == s_unsetPattern)
+                {
+                    Interlocked.CompareExchange(ref _lazyPattern, CreatePattern(), s_unsetPattern);
+                }
+
+                return _lazyPattern;
             }
         }
     }

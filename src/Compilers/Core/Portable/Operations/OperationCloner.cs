@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.IsImplicit);
         }
 
-        public override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, object argument)
+        internal override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, object argument)
         {
             return new RecursivePatternOperation(
                 operation.InputType,
@@ -547,6 +547,16 @@ namespace Microsoft.CodeAnalysis.Operations
                 ((Operation)operation).OwningSemanticModel,
                 operation.Syntax,
                 operation.IsImplicit);
+        }
+
+        internal override IOperation VisitPropertySubpattern(IPropertySubpatternOperation operation, object argument)
+        {
+            return new PropertySubpatternOperation(
+                semanticModel: null,
+                operation.Syntax,
+                operation.IsImplicit,
+                Visit(operation.Member),
+                Visit(operation.Pattern));
         }
 
         public override IOperation VisitPatternCaseClause(IPatternCaseClauseOperation operation, object argument)

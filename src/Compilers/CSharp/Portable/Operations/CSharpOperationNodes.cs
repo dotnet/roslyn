@@ -1492,7 +1492,10 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundRecursivePattern _boundRecursivePattern;
 
-        public CSharpLazyRecursivePatternOperation(CSharpOperationFactory operationFactory, BoundRecursivePattern boundRecursivePattern, SemanticModel semanticModel)
+        public CSharpLazyRecursivePatternOperation(
+            CSharpOperationFactory operationFactory,
+            BoundRecursivePattern boundRecursivePattern,
+            SemanticModel semanticModel)
             : base(inputType: boundRecursivePattern.InputType,
                    matchedType: boundRecursivePattern.DeclaredType?.Type ?? boundRecursivePattern.InputType.StrippedType(),
                    deconstructSymbol: boundRecursivePattern.DeconstructMethod,
@@ -1510,15 +1513,70 @@ namespace Microsoft.CodeAnalysis.Operations
             return _boundRecursivePattern.Deconstruction.IsDefault ? ImmutableArray<IPatternOperation>.Empty :
                 _boundRecursivePattern.Deconstruction.SelectAsArray((p, fac) => (IPatternOperation)fac.Create(p.Pattern), _operationFactory);
         }
-        public override ImmutableArray<(ISymbol, IPatternOperation)> CreatePropertySubpatterns()
+        public override ImmutableArray<IPropertySubpatternOperation> CreatePropertySubpatterns()
         {
-            return _boundRecursivePattern.Properties.IsDefault ? ImmutableArray<(ISymbol, IPatternOperation)>.Empty :
-                _boundRecursivePattern.Properties.SelectAsArray((p, fac) => ((ISymbol)p.Symbol, (IPatternOperation)fac.Create(p.Pattern)), _operationFactory);
+            return _boundRecursivePattern.Properties.IsDefault ? ImmutableArray<IPropertySubpatternOperation>.Empty :
+                _boundRecursivePattern.Properties.SelectAsArray((p, fac) => fac.CreatePropertySubpattern(p), _operationFactory);
+        }
+    }
+
+    internal sealed partial class CSharpLazyPropertySubpatternOperation : LazyPropertySubpatternOperation
+    {
+        private readonly Symbol _symbol;
+        private readonly BoundPattern _pattern;
+        private readonly CSharpOperationFactory _operationFactory;
+        private readonly SemanticModel _semanticModel;
+
+        public CSharpLazyPropertySubpatternOperation(
+            CSharpOperationFactory operationFactory,
+            SyntaxNode syntax,
+            Symbol symbol,
+            BoundPattern pattern,
+            SemanticModel semanticModel)
+            : base(semanticModel, syntax, false)
+        {
+            this._symbol = symbol;
+            this._pattern = pattern;
+            this._operationFactory = operationFactory;
+        }
+        public override IOperation CreateMember()
+        {
+            var nameSyntax = (Syntax is SubpatternSyntax subpatSyntax ? subpatSyntax.NameColon?.Name : null) ?? Syntax;
+            bool isImplicit = nameSyntax != Syntax;
+            switch (_symbol)
+            {
+                case FieldSymbol field:
+                    {
+                        var constantValue = field.ConstantValue is null ? default(Optional<object>) : new Optional<object>(field.ConstantValue);
+                        var receiver = new InstanceReferenceOperation(
+                            InstanceReferenceKind.PatternInput, OwningSemanticModel, nameSyntax, field.ContainingType, constantValue, isImplicit: true);
+                        return new FieldReferenceOperation(
+                            field, isDeclaration: false, receiver, this.OwningSemanticModel, nameSyntax, field.Type.TypeSymbol, constantValue, isImplicit: isImplicit);
+                    }
+                case PropertySymbol property:
+                    {
+                        var receiver = new InstanceReferenceOperation(
+                            InstanceReferenceKind.PatternInput, OwningSemanticModel, nameSyntax, property.ContainingType, constantValue: default, isImplicit: true);
+                        return new PropertyReferenceOperation(
+                            property, receiver, ImmutableArray<IArgumentOperation>.Empty, this.OwningSemanticModel, nameSyntax, property.Type.TypeSymbol,
+                            constantValue: default, isImplicit: isImplicit);
+                    }
+                case null:
+                    return null;
+                default:
+                    // PROTOTYPE(ngafter): how are errors handled here?
+                    throw ExceptionUtilities.UnexpectedValue(_symbol);
+            }
+        }
+
+        public override IPatternOperation CreatePattern()
+        {
+            return (IPatternOperation)_operationFactory.Create(this._pattern);
         }
     }
 
     /// <summary>
-    /// Represents a C# recursive pattern.
+    /// Represents a C# recursive pattern using ITuple.
     /// </summary>
     internal sealed partial class CSharpLazyITuplePatternOperation : LazyRecursivePatternOperation
     {
@@ -1543,9 +1601,9 @@ namespace Microsoft.CodeAnalysis.Operations
             return _boundITuplePattern.Subpatterns.IsDefault ? ImmutableArray<IPatternOperation>.Empty :
                 _boundITuplePattern.Subpatterns.SelectAsArray((p, fac) => (IPatternOperation)fac.Create(p.Pattern), _operationFactory);
         }
-        public override ImmutableArray<(ISymbol, IPatternOperation)> CreatePropertySubpatterns()
+        public override ImmutableArray<IPropertySubpatternOperation> CreatePropertySubpatterns()
         {
-            return ImmutableArray<(ISymbol, IPatternOperation)>.Empty;
+            return ImmutableArray<IPropertySubpatternOperation>.Empty;
         }
     }
 

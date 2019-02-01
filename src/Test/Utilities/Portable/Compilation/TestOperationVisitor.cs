@@ -1151,7 +1151,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Empty(operation.Children);
         }
 
-        public override void VisitRecursivePattern(IRecursivePatternOperation operation)
+        internal override void VisitRecursivePattern(IRecursivePatternOperation operation)
         {
             Assert.Equal(OperationKind.RecursivePattern, operation.Kind);
             VisitPatternCommon(operation);
@@ -1186,24 +1186,34 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             foreach (var subpat in operation.PropertySubpatterns)
             {
-                var (symbol, pattern) = subpat;
-                switch (symbol)
-                {
-                    case null: // error case
-                        break;
-                    case IFieldSymbol field:
-                    case IPropertySymbol prop:
-                    case IErrorTypeSymbol error:
-                        break;
-                    default:
-                        Assert.True(false, $"Unexpected symbol {symbol}");
-                        break;
-                }
+                Assert.True(subpat is IPropertySubpatternOperation);
             }
 
             IEnumerable<IOperation> children = operation.DeconstructionSubpatterns.Cast<IOperation>();
-            children = children.Concat(operation.PropertySubpatterns.Select(x => x.Item2));
+            children = children.Concat(operation.PropertySubpatterns);
 
+            AssertEx.Equal(children, operation.Children);
+        }
+
+        internal override void VisitPropertySubpattern(IPropertySubpatternOperation operation)
+        {
+            Assert.True(operation.Member is IMemberReferenceOperation);
+            var member = (IMemberReferenceOperation)operation.Member;
+            switch (member.Member)
+            {
+                case null: // error case
+                    break;
+                case IFieldSymbol field:
+                case IPropertySymbol prop:
+                case IErrorTypeSymbol error:
+                    break;
+                case var symbol:
+                    Assert.True(false, $"Unexpected symbol {symbol}");
+                    break;
+            }
+
+            Assert.NotNull(operation.Pattern);
+            var children = new IOperation[] { operation.Member, operation.Pattern };
             AssertEx.Equal(children, operation.Children);
         }
 

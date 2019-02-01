@@ -1762,7 +1762,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogNewLine();
         }
 
-        public override void VisitRecursivePattern(IRecursivePatternOperation operation)
+        internal override void VisitRecursivePattern(IRecursivePatternOperation operation)
         {
             LogString(nameof(IRecursivePatternOperation));
             LogPatternProperties(operation);
@@ -1773,11 +1773,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogNewLine();
 
             VisitArray(operation.DeconstructionSubpatterns, $"{nameof(operation.DeconstructionSubpatterns)} ", true, true);
-            VisitArrayCommon(operation.PropertySubpatterns, $"{nameof(operation.PropertySubpatterns)} ", true, true, subpat =>
-            {
-                LogSymbol(subpat.Item1, "MatchedSymbol");
-                Visit(subpat.Item2, ", Pattern");
-            });
+            VisitArray(operation.PropertySubpatterns, $"{nameof(operation.PropertySubpatterns)} ", true, true);
+        }
+
+        internal override void VisitPropertySubpattern(IPropertySubpatternOperation operation)
+        {
+            LogString(nameof(IPropertySubpatternOperation));
+            LogCommonProperties(operation);
+            LogNewLine();
+
+            Visit(operation.Member, $"{nameof(operation.Member)}");
+            Visit(operation.Pattern, $"{nameof(operation.Pattern)}");
         }
 
         public override void VisitIsPattern(IIsPatternOperation operation)
