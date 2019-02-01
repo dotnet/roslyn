@@ -150,28 +150,28 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             var name = element.Name.LocalName;
 
-            if (name == "see" ||
-                name == "seealso")
+            if (name == DocumentationCommentXmlNames.SeeElementName ||
+                name == DocumentationCommentXmlNames.SeeAlsoElementName)
             {
                 foreach (var attribute in element.Attributes())
                 {
-                    AppendTextFromAttribute(state, element, attribute, attributeNameToParse: "cref");
+                    AppendTextFromAttribute(state, element, attribute, attributeNameToParse: DocumentationCommentXmlNames.CrefAttributeName);
                 }
 
                 return;
             }
-            else if (name == "paramref" ||
-                     name == "typeparamref")
+            else if (name == DocumentationCommentXmlNames.ParameterReferenceElementName ||
+                     name == DocumentationCommentXmlNames.TypeParameterReferenceElementName)
             {
                 foreach (var attribute in element.Attributes())
                 {
-                    AppendTextFromAttribute(state, element, attribute, attributeNameToParse: "name");
+                    AppendTextFromAttribute(state, element, attribute, attributeNameToParse: DocumentationCommentXmlNames.NameAttributeName);
                 }
 
                 return;
             }
 
-            if (name == "para")
+            if (name == DocumentationCommentXmlNames.ParaElementName)
             {
                 state.MarkBeginOrEndPara();
             }
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 AppendTextFromNode(state, childNode, compilation);
             }
 
-            if (name == "para")
+            if (name == DocumentationCommentXmlNames.ParaElementName)
             {
                 state.MarkBeginOrEndPara();
             }
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
             else
             {
-                var displayKind = attributeName == "langword"
+                var displayKind = attributeName == DocumentationCommentXmlNames.LangwordAttributeName
                     ? TextTags.Keyword
                     : TextTags.Text;
                 state.AppendParts(SpecializedCollections.SingletonEnumerable(new TaggedText(displayKind, attribute.Value)));
