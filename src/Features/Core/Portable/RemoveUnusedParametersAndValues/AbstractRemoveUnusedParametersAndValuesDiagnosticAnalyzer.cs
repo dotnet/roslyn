@@ -101,9 +101,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         protected abstract bool IsCallStatement(IExpressionStatementOperation expressionStatement);
 
         /// <summary>
-        /// Indicates if the given block operation is an expression body.
+        /// Indicates if the given operation is an expression of an expression body.
         /// </summary>
-        protected abstract bool IsExpressionBody(IBlockOperation blockOperation);
+        protected abstract bool IsExpressionOfExpressionBody(IExpressionStatementOperation expressionStatement);
 
         /// <summary>
         /// Method to compute well-known diagnostic property maps for different comnbinations of diagnostic properties.

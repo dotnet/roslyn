@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
             Return TryCast(expressionStatement.Syntax, CallStatementSyntax) IsNot Nothing
         End Function
 
-        Protected Overrides Function IsExpressionBody(blockOperation As IBlockOperation) As Boolean
+        Protected Overrides Function IsExpressionOfExpressionBody(expressionStatementOperation As IExpressionStatementOperation) As Boolean
             ' VB does not support expression body
             Return False
         End Function

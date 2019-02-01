@@ -175,8 +175,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     //     an invocation by prefixing the invocation with keyword "Call".
                     //     Similarly, we do not want to flag an expression of a C# expression body.
                     if (_symbolStartAnalyzer._compilationAnalyzer.IsCallStatement(expressionStatement) ||
-                        (expressionStatement.Parent is IBlockOperation blockParent &&
-                         _symbolStartAnalyzer._compilationAnalyzer.IsExpressionBody(blockParent)))
+                        _symbolStartAnalyzer._compilationAnalyzer.IsExpressionOfExpressionBody(expressionStatement))
                     {
                         return;
                     }
