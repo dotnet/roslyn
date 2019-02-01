@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             //              Conjunction(TypePattern(T), VarPattern(v)),
             //              PatternMatch(Property, ConstantPattern(true)))
             //
-            // Which we'll be rewritten to:
+            // Which will be rewritten to:
             //
             //      e1 is T {Property: true} v
             //
