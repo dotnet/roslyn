@@ -153,12 +153,15 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             if (name == DocumentationCommentXmlNames.SeeElementName ||
                 name == DocumentationCommentXmlNames.SeeAlsoElementName)
             {
-                foreach (var attribute in element.Attributes())
+                if (element.IsEmpty || element.FirstNode == null)
                 {
-                    AppendTextFromAttribute(state, element, attribute, attributeNameToParse: DocumentationCommentXmlNames.CrefAttributeName);
-                }
+                    foreach (var attribute in element.Attributes())
+                    {
+                        AppendTextFromAttribute(state, element, attribute, attributeNameToParse: DocumentationCommentXmlNames.CrefAttributeName);
+                    }
 
-                return;
+                    return;
+                }
             }
             else if (name == DocumentationCommentXmlNames.ParameterReferenceElementName ||
                      name == DocumentationCommentXmlNames.TypeParameterReferenceElementName)
