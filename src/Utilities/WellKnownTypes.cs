@@ -295,11 +295,6 @@ namespace Analyzer.Utilities
             return compilation.GetSpecialType(SpecialType.System_String);
         }
 
-        public static INamedTypeSymbol Boolean(Compilation compilation)
-        {
-            return compilation.GetSpecialType(SpecialType.System_Boolean);
-        }
-
         public static INamedTypeSymbol Object(Compilation compilation)
         {
             return compilation.GetSpecialType(SpecialType.System_Object);

@@ -284,15 +284,6 @@ namespace Analyzer.Utilities.Extensions
 
             return DisposeMethodKind.None;
         }
-
-        /// <summary>
-        /// Checks if the given method implements IDeserializationCallback.OnDeserialization()
-        /// </summary>
-        public static bool IsOnDeserializationImplementation(this IMethodSymbol method, Compilation compilation)
-        {
-            INamedTypeSymbol IDeserializationCallback = WellKnownTypes.IDeserializationCallback(compilation);
-            return method.IsOnDeserializationImplementation(IDeserializationCallback);
-        }
         
         /// <summary>
         /// Checks if the given method implements <see cref="System.Runtime.Serialization.IDeserializationCallback.OnDeserialization"/> or overrides an implementation of <see cref="System.Runtime.Serialization.IDeserializationCallback.OnDeserialization"/>.
