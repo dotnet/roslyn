@@ -637,6 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         private bool ReplacementChangesSemanticsOfWhenNotNull(ExpressionSyntax originalWhenNotNull, ExpressionSyntax newWhenNotNull)
         {
+            // We want to look at the first symbol following the `?.` and determine whether the symbols are compatible
             var originalFirstNode = originalWhenNotNull.GetFirstToken().Parent;
             var newFirstNode = newWhenNotNull.GetFirstToken().Parent;
 
