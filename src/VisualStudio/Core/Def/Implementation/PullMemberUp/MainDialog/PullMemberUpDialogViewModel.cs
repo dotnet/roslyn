@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
             _symbolToMemberViewMap = members.ToImmutableDictionary(memberViewModel => memberViewModel.Symbol);
             if (destinations != default && !destinations.IsEmpty)
             {
-                // Give a default selection for user
+                // Select a destination by default
                 destinations[0].IsChecked = true;
             }
         }
