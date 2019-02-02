@@ -48,7 +48,7 @@ The Test.cmd script will run our unit test on already built binaries.  It can be
 2. Navigate to the directory of your Git clone.
 3. Run `msbuild /v:m /m /nodereuse:false BuildAndTest.proj` in the command prompt.
 
-You can more precisely control how the tests are run by running the eng/build.ps1 script directly with the relevant options. For example passing in the `-test` switch will run the tests on .Net Framework, whilst passing in the `testCoreClr` switch will run the test on .Net Core.
+You can more precisely control how the tests are run by running the eng/build.ps1 script directly with the relevant options. For example passing in the `-test` switch will run the tests on .Net Framework, whilst passing in the `-testCoreClr` switch will run the tests on .Net Core.
 
 The results of the tests can be viewed in the artifacts/TestResults directory.
 
