@@ -32,14 +32,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             TaintedDataSymbolMap<SanitizerInfo> taintedSanitizerInfos,
             TaintedDataSymbolMap<SinkInfo> taintedSinkInfos)
             : base(
-                  valueDomain, 
-                  wellKnownTypeProvider, 
-                  controlFlowGraph, 
-                  owningSymbol, 
+                  valueDomain,
+                  wellKnownTypeProvider,
+                  controlFlowGraph,
+                  owningSymbol,
                   interproceduralAnalysisConfig,
                   pessimisticAnalysis,
-                  predicateAnalysis: false, 
-                  copyAnalysisResultOpt: null, 
+                  predicateAnalysis: false,
+                  copyAnalysisResultOpt: null,
                   pointsToAnalysisResultOpt: pointsToAnalysisResult,
                   getOrComputeAnalysisResult: getOrComputeAnalysisResult,
                   parentControlFlowGraphOpt: parentControlFlowGraph,
@@ -85,9 +85,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         public override TaintedDataAnalysisContext ForkForInterproceduralAnalysis(
             IMethodSymbol invokedMethod,
-            ControlFlowGraph invokedCfg, 
+            ControlFlowGraph invokedCfg,
             IOperation operation,
-            DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> pointsToAnalysisResultOpt, 
+            DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> pointsToAnalysisResultOpt,
             DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue> copyAnalysisResultOpt,
             InterproceduralTaintedDataAnalysisData interproceduralAnalysisData)
         {

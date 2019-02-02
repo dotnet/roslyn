@@ -50,7 +50,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         internal static TaintedDataAbstractValue CreateTainted(ISymbol taintedSymbol, SyntaxNode accessingSyntax, ISymbol accessingMethod)
         {
             return new TaintedDataAbstractValue(
-                TaintedDataAbstractValueKind.Tainted, 
+                TaintedDataAbstractValueKind.Tainted,
                 ImmutableHashSet.Create<SymbolAccess>(
                     new SymbolAccess(
                         taintedSymbol,

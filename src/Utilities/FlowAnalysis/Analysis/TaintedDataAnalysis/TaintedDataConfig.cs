@@ -24,7 +24,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// </remarks>
     internal class TaintedDataConfig
     {
-        private static ConditionalWeakTable<Compilation, TaintedDataConfig> s_ConfigsByCompilation = new ConditionalWeakTable<Compilation, TaintedDataConfig>();
+        private static readonly ConditionalWeakTable<Compilation, TaintedDataConfig> s_ConfigsByCompilation = new ConditionalWeakTable<Compilation, TaintedDataConfig>();
 
         /// <summary>
         /// <see cref="WellKnownTypeProvider"/> for this instance's <see cref="Compilation"/>.

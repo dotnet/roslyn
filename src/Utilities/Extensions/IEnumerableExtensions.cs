@@ -95,7 +95,7 @@ namespace Analyzer.Utilities.Extensions
         }
 
         public static void Dispose<T>(this IEnumerable<T> collection)
-            where T: IDisposable
+            where T : IDisposable
         {
             foreach (var item in collection)
             {

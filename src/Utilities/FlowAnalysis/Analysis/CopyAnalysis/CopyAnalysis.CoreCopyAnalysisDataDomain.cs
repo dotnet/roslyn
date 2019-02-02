@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         /// </summary>
         private sealed class CoreCopyAnalysisDataDomain : MapAbstractDomain<AnalysisEntity, CopyAbstractValue>
         {
-            Func<AnalysisEntity, CopyAbstractValue> _getDefaultCopyValue;
+            private readonly Func<AnalysisEntity, CopyAbstractValue> _getDefaultCopyValue;
 
             public CoreCopyAnalysisDataDomain(AbstractValueDomain<CopyAbstractValue> valueDomain, Func<AnalysisEntity, CopyAbstractValue> getDefaultCopyValue)
                 : base(valueDomain)

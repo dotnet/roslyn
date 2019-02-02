@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         : DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisData : AbstractAnalysisData
         where TAnalysisContext : AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
-        where TAnalysisResult: IDataFlowAnalysisResult<TAbstractAnalysisValue>
+        where TAnalysisResult : IDataFlowAnalysisResult<TAbstractAnalysisValue>
         where TAbstractAnalysisValue : IEquatable<TAbstractAnalysisValue>
     {
         protected AnalysisEntityDataFlowOperationVisitor(TAnalysisContext analysisContext)
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 try
                 {
                     AddTrackedEntities(allEntities);
-                    
+
                     // Stop tracking entities for locals and capture Ids that are now out of scope.
                     foreach (var local in region.Locals)
                     {
@@ -375,8 +375,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected override void UpdateReachability(BasicBlock basicBlock, TAnalysisData analysisData, bool isReachable)
         {
             Debug.Assert(PredicateAnalysis);
-            var predicatedData = analysisData as AnalysisEntityBasedPredicateAnalysisData<TAbstractAnalysisValue>;
-            if (predicatedData != null)
+            if (analysisData is AnalysisEntityBasedPredicateAnalysisData<TAbstractAnalysisValue> predicatedData)
             {
                 Debug.Assert(!isReachable || predicatedData.IsReachableBlockData);
                 predicatedData.IsReachableBlockData = isReachable;

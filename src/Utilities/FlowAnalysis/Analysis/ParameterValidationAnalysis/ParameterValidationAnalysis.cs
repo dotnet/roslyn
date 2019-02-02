@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             foreach (var block in analysisContext.ControlFlowGraph.Blocks)
             {
                 var data = new ParameterValidationAnalysisData(dataFlowAnalysisResult[block].Data);
-                data = Flow(newOperationVisitor, block, data);
+                _ = Flow(newOperationVisitor, block, data);
             }
 
             return new ParameterValidationAnalysisResult(dataFlowAnalysisResult, newOperationVisitor.HazardousParameterUsages);

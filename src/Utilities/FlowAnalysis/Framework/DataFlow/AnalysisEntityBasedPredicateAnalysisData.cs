@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public virtual void Reset(Func<AnalysisEntity, TValue, TValue> getResetValue)
         {
             AssertValidAnalysisData();
-            
+
             // Reset the current analysis data, while ensuring that we don't violate the monotonicity, i.e. we cannot remove any existing key from currentAnalysisData.
             // Just set the values for existing keys to ValueDomain.UnknownOrMayBeValue.
             if (CoreAnalysisData.Count > 0)

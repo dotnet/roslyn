@@ -47,7 +47,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Set of properties on the type that are sinks.
         /// </summary>
         public ImmutableHashSet<string> SinkProperties { get; }
-        
+
         /// <summary>
         /// Mapping of method name to parameter names that are sinks.
         /// </summary>
@@ -65,8 +65,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         public override bool Equals(object obj)
         {
-            SinkInfo other = obj as SinkInfo;
-            return other != null ? this.Equals(other) : false;
+            return obj is SinkInfo other ? this.Equals(other) : false;
         }
 
         public bool Equals(SinkInfo other)

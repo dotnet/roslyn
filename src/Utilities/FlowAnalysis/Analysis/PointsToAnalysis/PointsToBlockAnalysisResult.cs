@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
     internal class PointsToBlockAnalysisResult : AbstractBlockAnalysisResult
     {
         public PointsToBlockAnalysisResult(BasicBlock basicBlock, PointsToAnalysisData blockAnalysisData)
-            : base (basicBlock)
+            : base(basicBlock)
         {
             Data = blockAnalysisData?.CoreAnalysisData.ToImmutableDictionary() ?? ImmutableDictionary<AnalysisEntity, PointsToAbstractValue>.Empty;
             IsReachable = blockAnalysisData?.IsReachableBlockData ?? true;

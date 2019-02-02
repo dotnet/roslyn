@@ -7,13 +7,13 @@ namespace Test.Utilities
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
     public class WorkItemAttribute : Attribute
     {
-        private readonly int _id;
-        private readonly string _source;
-
         public WorkItemAttribute(int id, string source)
         {
-            _id = id;
-            _source = source;
+            Id = id;
+            Source = source;
         }
+
+        public int Id { get; }
+        public string Source { get; }
     }
 }
