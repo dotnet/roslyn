@@ -3337,6 +3337,41 @@ class T
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
+        [WorkItem(31012, "https://github.com/dotnet/roslyn/issues/31012")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceLocalInArgumentList()
+        {
+            var code =
+                @"using System;
+public interface IResolver { int Resolve(); }
+public class Test
+{
+    private void register(Func<IResolver, object> a) { }
+    private void test(Func<int, object> factory)
+        => register(x => factory(
+            [|x.Resolve()|]
+        ));
+}";
+
+            var expected =
+                @"using System;
+public interface IResolver { int Resolve(); }
+public class Test
+{
+    private void register(Func<IResolver, object> a) { }
+    private void test(Func<int, object> factory)
+        => register(x =>
+        {
+            int {|Rename:arg|} = x.Resolve();
+            return factory(
+     arg
+ );
+        });
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
+
         [WorkItem(24807, "https://github.com/dotnet/roslyn/issues/24807")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalInExpressionBodiedVoidMethod()
