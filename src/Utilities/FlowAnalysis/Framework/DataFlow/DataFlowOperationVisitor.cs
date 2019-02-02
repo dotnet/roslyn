@@ -321,6 +321,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             CurrentBasicBlock = null;
+            return;
+
+            // Local functions.
+            void OnLeavingRegion(ControlFlowRegion region)
+            {
+                if (region.Locals.Length > 0 || region.CaptureIds.Length > 0)
+                {
+                    ProcessOutOfScopeLocalsAndFlowCaptures(region.Locals, region.CaptureIds);
+                }
+            }
         }
 
         protected abstract void StopTrackingDataForParameter(IParameterSymbol parameter, AnalysisEntity analysisEntity);
@@ -533,25 +543,33 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        public TAnalysisData OnLeavingRegions(ImmutableArray<ControlFlowRegion> regions, BasicBlock currentBasicBlock, TAnalysisData input)
+        public TAnalysisData OnLeavingRegions(
+            IEnumerable<ILocalSymbol> leavingRegionLocals,
+            IEnumerable<CaptureId> leavingRegionFlowCaptures,
+            BasicBlock currentBasicBlock,
+            TAnalysisData input)
         {
+            if (!leavingRegionLocals.Any() && !leavingRegionFlowCaptures.Any())
+            {
+                return input;
+            }
+
             CurrentBasicBlock = currentBasicBlock;
             CurrentAnalysisData = input;
 
-            foreach (var region in regions)
-            {
-                OnLeavingRegion(region);
-            }
+            ProcessOutOfScopeLocalsAndFlowCaptures(leavingRegionLocals, leavingRegionFlowCaptures);
 
             CurrentBasicBlock = null;
             return CurrentAnalysisData;
         }
 
-        protected virtual void OnLeavingRegion(ControlFlowRegion region)
+        protected virtual void ProcessOutOfScopeLocalsAndFlowCaptures(IEnumerable<ILocalSymbol> locals, IEnumerable<CaptureId> flowCaptures)
         {
+            Debug.Assert(locals.Any() || flowCaptures.Any());
+
             if (PredicateAnalysis)
             {
-                foreach (var captureId in region.CaptureIds)
+                foreach (var captureId in flowCaptures)
                 {
                     if (AnalysisEntityFactory.TryGetForFlowCapture(captureId, out var analysisEntity) &&
                         HasPredicatedDataForEntity(analysisEntity))
