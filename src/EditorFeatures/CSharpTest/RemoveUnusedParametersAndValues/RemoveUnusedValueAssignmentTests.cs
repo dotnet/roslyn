@@ -1835,8 +1835,7 @@ $@"class C
         switch (p)
         {
             case int _:
-                int x;
-                x = 1;
+                int x = 1;
                 break;
         };
     }
@@ -4011,8 +4010,7 @@ $@"class C
         switch (p)
         {{
             case int {fix}:
-                int x;
-                x = 1;
+                int x = 1;
                 p = x;
                 break;
         }}
@@ -4975,8 +4973,7 @@ $@"class C
         switch(flag)
         {
             case 0:
-                int x;
-                x = 1;
+                int x = 1;
                 return x;
 
             default:
@@ -5019,9 +5016,8 @@ $@"class C
         switch(flag)
         {{
             case 0:
-                int x;
                 {fix} = M2();
-                x = 1;
+                int x = 1;
                 return x;
 
             default:
