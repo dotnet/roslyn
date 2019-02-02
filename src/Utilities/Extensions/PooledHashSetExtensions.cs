@@ -82,7 +82,7 @@ namespace Analyzer.Utilities.Extensions
         }
 
         // Just to make hardcoding SanitizerInfos more convenient.
-        public static void AddSanitizer(
+        public static void AddSanitizerInfo(
             this PooledHashSet<SanitizerInfo> builder,
             string fullTypeName,
             bool isInterface,

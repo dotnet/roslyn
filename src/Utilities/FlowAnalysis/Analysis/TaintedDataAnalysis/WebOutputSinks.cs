@@ -18,7 +18,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             // TODO paulming: Review why InformationDisclosure and XSS sinks are different.
             var builder = PooledHashSet<SinkInfo>.GetInstance();
 
-            SinkKind[] sinkKinds = new SinkKind[] { SinkKind.InformationDisclosure, SinkKind.XSS };
+            SinkKind[] sinkKinds = new SinkKind[] { SinkKind.InformationDisclosure, SinkKind.Xss };
 
             builder.AddSinkInfo(
                 WellKnownTypes.SystemWebUIITextControl,
