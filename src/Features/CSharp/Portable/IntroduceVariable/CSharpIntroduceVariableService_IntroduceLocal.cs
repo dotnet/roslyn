@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                     return (LambdaExpressionSyntax)current.Parent;
                 }
 
-                current = current.Parent as ExpressionSyntax;
+                current = current.Parent?.FirstAncestorOrSelf<ExpressionSyntax>();
             }
 
             return null;
