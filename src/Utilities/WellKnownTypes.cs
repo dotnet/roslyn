@@ -9,9 +9,9 @@ namespace Analyzer.Utilities
     internal static class WellKnownTypes
     {
         public const string SystemWebHttpRequest = "System.Web.HttpRequest";
-        public const string SystemDataIDataAdapter= "System.Data.IDataAdapter";
+        public const string SystemDataIDataAdapter = "System.Data.IDataAdapter";
         public const string SystemDataIDbCommand = "System.Data.IDbCommand";
-        public const string SystemException = "System.Exception";
+        public const string SystemExceptionFullName = "System.Exception";
         public const string SystemDiagnosticContractsContract = "System.Diagnostics.Contracts.Contract";
         public const string SystemIDisposable = "System.IDisposable";
         public const string SystemThreadingMonitor = "System.Threading.Monitor";
@@ -146,6 +146,7 @@ namespace Analyzer.Utilities
         public const string SystemIOFile = "System.IO.File";
         public const string SystemIOFileInfo = "System.IO.FileInfo";
         public const string SystemSecurityCryptographyCipherMode = "System.Security.Cryptography.CipherMode";
+        public const string SystemNetSecurityRemoteCertificateValidationCallback = "System.Net.Security.RemoteCertificateValidationCallback";
         public const string SystemDiagnosticsProcess = "System.Diagnostics.Process";
         public const string SystemDiagnosticsProcessStartInfo = "System.Diagnostics.ProcessStartInfo";
         public const string SystemTextRegularExpressionsRegex = "System.Text.RegularExpressions.Regex";
@@ -452,9 +453,29 @@ namespace Analyzer.Utilities
             return compilation.GetSpecialType(SpecialType.System_Object);
         }
 
+        public static INamedTypeSymbol X509Certificate(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Security.Cryptography.X509Certificates.X509Certificate");
+        }
+
+        public static INamedTypeSymbol X509Chain(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Security.Cryptography.X509Certificates.X509Chain");
+        }
+
+        public static INamedTypeSymbol SslPolicyErrors(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Net.Security.SslPolicyErrors");
+        }
+
         public static INamedTypeSymbol Exception(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName(SystemException);
+            return compilation.GetTypeByMetadataName(SystemExceptionFullName);
+        }
+
+        public static INamedTypeSymbol SystemException(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.SystemException");
         }
 
         public static INamedTypeSymbol InvalidOperationException(Compilation compilation)

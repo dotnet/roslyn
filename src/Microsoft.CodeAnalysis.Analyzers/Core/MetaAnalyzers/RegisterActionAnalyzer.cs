@@ -188,7 +188,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     nameof(SymbolKind.Parameter),
                     nameof(SymbolKind.Property));
 
+#pragma warning disable CA1815 // Override equals and operator equals on value types
             private struct NodeAndSymbol
+#pragma warning restore CA1815 // Override equals and operator equals on value types
             {
                 public TInvocationExpressionSyntax Invocation { get; set; }
                 public IMethodSymbol Method { get; set; }
@@ -473,8 +475,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 }
 
                 // Get the context parameter on which we are registering an action.
-                var contextParameter = model.GetSymbolInfo(receiver, cancellationToken).Symbol as IParameterSymbol;
-                if (contextParameter == null)
+                if (!(model.GetSymbolInfo(receiver, cancellationToken).Symbol is IParameterSymbol contextParameter))
                 {
                     return;
                 }

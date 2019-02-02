@@ -28,8 +28,8 @@ namespace Analyzer.Utilities
                                                         isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultForVsixAndNuget,
                                                         description: s_localizableDescription);
 
-        private static Version s_MicrosoftCodeAnalysisMinVersion = new Version("2.6");
-        private static Version s_MicrosoftCodeAnalysisDogfoodVersion = new Version("42.42");
+        private static readonly Version s_MicrosoftCodeAnalysisMinVersion = new Version("2.6");
+        private static readonly Version s_MicrosoftCodeAnalysisDogfoodVersion = new Version("42.42");
         private static readonly Version s_MicrosoftCodeAnalysisVersion = typeof(AnalysisContext).GetTypeInfo().Assembly.GetName().Version;
 
         // Execute IOperation analyzers if we are either using dogfood bits of Microsoft.CodeAnalysis or its version is >= 2.6

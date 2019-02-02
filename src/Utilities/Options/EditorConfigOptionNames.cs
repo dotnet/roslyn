@@ -28,6 +28,11 @@ namespace Analyzer.Utilities
         /// </summary>
         public const string OutputKind = "output_kind";
 
+        /// <summary>
+        /// Boolean option to configure if single letter type parameter names are allowed for CA1715 (https://docs.microsoft.com/visualstudio/code-quality/ca1715-identifiers-should-have-correct-prefix).
+        /// </summary>
+        public const string AllowSingleLetterTypeParameters = "allow_single_letter_type_parameters";
+
         #region Dataflow analysis options
 
         /// <summary>

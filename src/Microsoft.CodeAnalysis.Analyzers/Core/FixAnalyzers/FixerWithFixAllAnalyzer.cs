@@ -184,8 +184,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
             internal void OperationBlockStart(OperationBlockStartAnalysisContext context)
             {
-                var method = context.OwningSymbol as IMethodSymbol;
-                if (method == null)
+                if (!(context.OwningSymbol is IMethodSymbol method))
                 {
                     return;
                 }

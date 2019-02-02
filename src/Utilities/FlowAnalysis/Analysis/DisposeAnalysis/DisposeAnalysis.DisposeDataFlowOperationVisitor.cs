@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             #region Visitor methods
             public override DisposeAbstractValue DefaultVisit(IOperation operation, object argument)
             {
-                var value = base.DefaultVisit(operation, argument);
+                _ = base.DefaultVisit(operation, argument);
                 return DisposeAbstractValue.NotDisposable;
             }
 
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                     {
                         // Discover if a disposable object is being passed into the creation method for this new disposable object
                         // and if the new disposable object assumes ownership of that passed in disposable object.
-                        if ((operation.Parent is IObjectCreationOperation objectCreation ||
+                        if ((operation.Parent is IObjectCreationOperation ||
                              operation.Parent is IInvocationOperation invocation && IsDisposableCreationSpecialCase(invocation.TargetMethod)) &&
                             DisposeOwnershipTransferLikelyTypes.Contains(operation.Parameter.Type))
                         {
@@ -346,9 +346,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                     !operation.Field.IsStatic &&
                     operation.Instance?.Kind == OperationKind.InstanceReference)
                 {
-                    if (!_trackedInstanceFieldLocationsOpt.TryGetValue(operation.Field, out PointsToAbstractValue pointsToAbstractValue))
+                    if (!_trackedInstanceFieldLocationsOpt.TryGetValue(operation.Field, out _))
                     {
-                        pointsToAbstractValue = GetPointsToAbstractValue(operation);
+                        var pointsToAbstractValue = GetPointsToAbstractValue(operation);
                         if (HandleInstanceCreation(operation.Type, pointsToAbstractValue, DisposeAbstractValue.NotDisposable) != DisposeAbstractValue.NotDisposable)
                         {
                             _trackedInstanceFieldLocationsOpt.Add(operation.Field, pointsToAbstractValue);

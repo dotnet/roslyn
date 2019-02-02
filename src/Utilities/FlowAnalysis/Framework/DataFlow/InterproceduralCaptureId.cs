@@ -31,5 +31,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public override int GetHashCode()
             => HashUtilities.Combine(Id.GetHashCode(), ControlFlowGraph.GetHashCode());
+
+        public static bool operator ==(InterproceduralCaptureId left, InterproceduralCaptureId right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(InterproceduralCaptureId left, InterproceduralCaptureId right)
+        {
+            return !(left == right);
+        }
     }
 }

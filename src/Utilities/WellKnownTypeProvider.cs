@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Compilation = compilation;
             _fullNameToTypeMap = new ConcurrentDictionary<string, INamedTypeSymbol>(StringComparer.Ordinal);
 
-            Exception = GetTypeByMetadataName(Analyzer.Utilities.WellKnownTypes.SystemException);
+            Exception = GetTypeByMetadataName(Analyzer.Utilities.WellKnownTypes.SystemExceptionFullName);
             Contract = GetTypeByMetadataName(Analyzer.Utilities.WellKnownTypes.SystemDiagnosticContractsContract);
             IDisposable = GetTypeByMetadataName(Analyzer.Utilities.WellKnownTypes.SystemIDisposable);
             Monitor = GetTypeByMetadataName(Analyzer.Utilities.WellKnownTypes.SystemThreadingMonitor);

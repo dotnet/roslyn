@@ -79,8 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
             }
 
             //If we can't find the method symbol, quit
-            var methodSymbol = model.GetSymbolInfo(candidateInvocation).Symbol as IMethodSymbol;
-            if (methodSymbol == null)
+            if (!(model.GetSymbolInfo(candidateInvocation).Symbol is IMethodSymbol methodSymbol))
             {
                 return;
             }
@@ -93,8 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
             }
 
             //If we're not in one of the known immutable types, quit
-            var parentType = methodSymbol.ReceiverType as INamedTypeSymbol;
-            if (parentType == null)
+            if (!(methodSymbol.ReceiverType is INamedTypeSymbol parentType))
             {
                 return;
             }

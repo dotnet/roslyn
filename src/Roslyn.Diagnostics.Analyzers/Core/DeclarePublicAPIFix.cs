@@ -116,7 +116,7 @@ namespace Roslyn.Diagnostics.Analyzers
         {
             for (int i = 0; i < list.Count; i++)
             {
-                if (string.Compare(name, list[i], StringComparison.Ordinal) < 0 )
+                if (string.Compare(name, list[i], StringComparison.Ordinal) < 0)
                 {
                     list.Insert(i, name);
                     return;

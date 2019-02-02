@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             #region Visitor methods
             public override ValueContentAbstractValue DefaultVisit(IOperation operation, object argument)
             {
-                var _ = base.DefaultVisit(operation, argument);
+                _ = base.DefaultVisit(operation, argument);
                 if (operation.Type == null)
                 {
                     return ValueContentAbstractValue.DoesNotContainLiteralOrNonLiteralState;
