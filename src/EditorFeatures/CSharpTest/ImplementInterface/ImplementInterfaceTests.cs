@@ -8450,59 +8450,6 @@ public class Test : ITest
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task GenericInterfaceNotNull1()
-        {
-            await TestInRegularAndScriptAsync(
-@$"#nullable enable 
-
-using System.Diagnostics.CodeAnalysis;
-
-{NullableAttributesCode}
-
-interface IFoo<T>
-{{
-    [return: NotNull]
-    T Bar([DisallowNull] T bar);
-
-    [return: MaybeNull]
-    T Baz([AllowNull] T bar);
-}}
-
-class A : [|IFoo<int>|]
-{{
-}}",
-@$"#nullable enable 
-
-using System.Diagnostics.CodeAnalysis;
-
-{NullableAttributesCode}
-
-interface IFoo<T>
-{{
-    [return: NotNull]
-    T Bar([DisallowNull] T bar);
-
-    [return: MaybeNull]
-    T Baz([AllowNull] T bar);
-}}
-
-class A : [|IFoo<int>|]
-{{
-    [return: NotNull]
-    public int Bar([DisallowNull] int bar)
-    {{
-        throw new System.NotImplementedException();
-    }}
-
-    [return: MaybeNull]
-    public int Baz([AllowNull] int bar)
-    {{
-        throw new System.NotImplementedException();
-    }}
-}}");
-        }
-
         [WorkItem(13427, "https://github.com/dotnet/roslyn/issues/13427")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestDoNotAddNewWithGenericAndNonGenericMethods()
