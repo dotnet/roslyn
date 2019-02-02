@@ -519,7 +519,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             Dim originalFirstNode = originalWhenNotNull.GetFirstToken().Parent
             Dim newFirstNode = newWhenNotNull.GetFirstToken().Parent
 
-            Return ReplacementChangesSemantics(originalFirstNode, newFirstNode, originalWhenNotNull, False)
+            Return Not SymbolsAreCompatible(originalFirstNode, newFirstNode)
         End Function
 
         Private Function ReplacementBreaksInterpolation(interpolation As InterpolationSyntax, newInterpolation As InterpolationSyntax) As Boolean

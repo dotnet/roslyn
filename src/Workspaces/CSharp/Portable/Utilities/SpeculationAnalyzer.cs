@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             var originalFirstNode = originalWhenNotNull.GetFirstToken().Parent;
             var newFirstNode = newWhenNotNull.GetFirstToken().Parent;
 
-            return ReplacementChangesSemantics(originalFirstNode, newFirstNode, originalWhenNotNull, false);
+            return !SymbolsAreCompatible(originalFirstNode, newFirstNode);
         }
 
         private bool ReplacementBreaksInterpolation(InterpolationSyntax interpolation, InterpolationSyntax newInterpolation)
