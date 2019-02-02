@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class FeaturesResources {
@@ -2260,6 +2260,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Local function can be made static.
+        /// </summary>
+        internal static string Local_function_can_be_made_static {
+            get {
+                return ResourceManager.GetString("Local_function_can_be_made_static", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to local variable.
         /// </summary>
         internal static string local_variable {
@@ -2319,6 +2328,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Make_field_readonly {
             get {
                 return ResourceManager.GetString("Make_field_readonly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make local function &apos;static&apos;.
+        /// </summary>
+        internal static string Make_local_function_static {
+            get {
+                return ResourceManager.GetString("Make_local_function_static", resourceCulture);
             }
         }
         
