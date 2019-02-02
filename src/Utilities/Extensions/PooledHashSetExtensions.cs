@@ -87,15 +87,12 @@ namespace Analyzer.Utilities.Extensions
             string fullTypeName,
             bool isInterface,
             bool isConstructorSanitizing,
-            string[] sanitizingProperties = null,
-            string[] sanitizingMethods = null)
+            string[] sanitizingMethods)
         {
             SanitizerInfo info = new SanitizerInfo(
                 fullTypeName,
                 isInterface: isInterface,
                 isConstructorSanitizing: isConstructorSanitizing,
-                sanitizingProperties: sanitizingProperties?.ToImmutableHashSet(StringComparer.Ordinal)
-                    ?? ImmutableHashSet<string>.Empty,
                 sanitizingMethods: sanitizingMethods?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty);
             builder.Add(info);

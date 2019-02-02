@@ -21,7 +21,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 WellKnownTypes.MicrosoftSecurityApplicationAntiXss,
                 isInterface: false,
                 isConstructorSanitizing: false,
-                sanitizingProperties: null,
                 sanitizingMethods: new[] {
                     "HtmlAttributeEncode",
                     "HtmlEncode",
@@ -31,7 +30,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 WellKnownTypes.MicrosoftSecurityApplicationAntiXssEncoder,
                 isInterface: false,
                 isConstructorSanitizing: false,
-                sanitizingProperties: null,
                 sanitizingMethods: new[] {
                     "HtmlAttributeEncode",
                     "HtmlEncode",
@@ -40,7 +38,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 WellKnownTypes.MicrosoftSecurityApplicationEncoder,
                 isInterface: false,
                 isConstructorSanitizing: false,
-                sanitizingProperties: null,
                 sanitizingMethods: new[] {
                     "HtmlAttributeEncode",
                     "HtmlEncode",
@@ -50,7 +47,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 WellKnownTypes.MicrosoftSecurityApplicationUnicodeCharacterEncoder,
                 isInterface: false,
                 isConstructorSanitizing: false,
-                sanitizingProperties: null,
                 sanitizingMethods: new[] {
                     "HtmlAttributeEncode",
                     "HtmlEncode",
@@ -60,7 +56,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 WellKnownTypes.SystemIDisposable,
                 isInterface: false,
                 isConstructorSanitizing: false,
-                sanitizingProperties: null,
                 sanitizingMethods: new[] {
                     "Dispose",
                 });
@@ -68,7 +63,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 WellKnownTypes.SystemWebHttpServerUtility,
                 isInterface: false,
                 isConstructorSanitizing: false,
-                sanitizingProperties: null,
                 sanitizingMethods: new[] {
                     "HtmlEncode",
                 });
@@ -76,7 +70,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 WellKnownTypes.SystemWebHttpServerUtilityBase,
                 isInterface: false,
                 isConstructorSanitizing: false,
-                sanitizingProperties: null,
                 sanitizingMethods: new[] {
                     "HtmlEncode",
                 });
@@ -84,7 +77,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 WellKnownTypes.SystemWebHttpServerUtilityWrapper,
                 isInterface: false,
                 isConstructorSanitizing: false,
-                sanitizingProperties: null,
                 sanitizingMethods: new[] {
                     "HtmlEncode",
                 });
@@ -92,7 +84,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 WellKnownTypes.SystemWebHttpUtility,
                 isInterface: false,
                 isConstructorSanitizing: false,
-                sanitizingProperties: null,
                 sanitizingMethods: new[] {
                     "HtmlAttributeEncode",
                     "HtmlEncode",
@@ -101,7 +92,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 WellKnownTypes.SystemWebSecurityAntiXssAntiXssEncoder,
                 isInterface: false,
                 isConstructorSanitizing: false,
-                sanitizingProperties: null,
                 sanitizingMethods: new[] {
                     "HtmlAttributeEncode",
                     "HtmlEncode",
@@ -111,7 +101,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 WellKnownTypes.SystemWebSecurityAntiXssUnicodeCharacterEncoder,
                 isInterface: false,
                 isConstructorSanitizing: false,
-                sanitizingProperties: null,
                 sanitizingMethods: new[] {
                     "HtmlAttributeEncode",
                     "HtmlEncode",
@@ -121,33 +110,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 WellKnownTypes.SystemWebUIHtmlTextWriter,
                 isInterface: false,
                 isConstructorSanitizing: false,
-                sanitizingProperties: null,
                 sanitizingMethods: new[] {
                     "WriteHtmlAttributeEncode",
                 });
             builder.AddSanitizerInfo(
-                WellKnownTypes.SystemWebUIWebControlsBoundField,
-                isInterface: false,
-                isConstructorSanitizing: false,
-                sanitizingProperties: new[] {
-                    "HtmlEncode",
-                    "SupportsHtmlEncode",
-                },
-                sanitizingMethods: null);
-            builder.AddSanitizerInfo(
-                WellKnownTypes.SystemWebUIWebControlsCheckBoxField,
-                isInterface: false,
-                isConstructorSanitizing: false,
-                sanitizingProperties: new[] {
-                    "HtmlEncode",
-                    "SupportsHtmlEncode",
-                },
-                sanitizingMethods: null);
-            builder.AddSanitizerInfo(
                 WellKnownTypes.SystemWebUtilHttpEncoder,
                 isInterface: false,
                 isConstructorSanitizing: false,
-                sanitizingProperties: null,
                 sanitizingMethods: new[] {
                     "HtmlAttributeEncode",
                     "HtmlEncode",

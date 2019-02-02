@@ -162,18 +162,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             protected override TaintedDataAbstractValue ComputeAnalysisValueForReferenceOperation(IOperation operation, TaintedDataAbstractValue defaultValue)
             {
-                if (operation is IPropertyReferenceOperation propertyReferenceOperation)
+                // If the property reference itself is a tainted data source
+                if (operation is IPropertyReferenceOperation propertyReferenceOperation
+                    && this.DataFlowAnalysisContext.SourceInfos.IsSourceProperty(propertyReferenceOperation.Property))
                 {
-                    if (this.IsPropertyASanitizer(propertyReferenceOperation))
-                    {
-                        return TaintedDataAbstractValue.NotTainted;
-                    }
-
-                    // If the property reference itself is a tainted data source
-                    if (this.DataFlowAnalysisContext.SourceInfos.IsSourceProperty(propertyReferenceOperation.Property))
-                    {
-                        return TaintedDataAbstractValue.CreateTainted(propertyReferenceOperation.Member, propertyReferenceOperation.Syntax, this.OwningSymbol);
-                    }
+                    return TaintedDataAbstractValue.CreateTainted(propertyReferenceOperation.Member, propertyReferenceOperation.Syntax, this.OwningSymbol);
                 }
 
                 if (AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity analysisEntity))
@@ -508,24 +501,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     sinkKinds = null;
                     return false;
                 }
-            }
-
-            /// <summary>
-            /// Determines if the property is a sanitizer.
-            /// </summary>
-            /// <param name="propertyReferenceOperation">Property to check if it's a sanitizer.</param>
-            /// <returns>True if the property is a sanitizer, false otherwise.</returns>
-            private bool IsPropertyASanitizer(IPropertyReferenceOperation propertyReferenceOperation)
-            {
-                foreach (SanitizerInfo sanitizerInfo in this.DataFlowAnalysisContext.SanitizerInfos.GetInfosForType(propertyReferenceOperation.Member.ContainingType))
-                {
-                    if (sanitizerInfo.SanitizingProperties.Contains(propertyReferenceOperation.Member.MetadataName))
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
             }
 
             private IEnumerable<IArgumentOperation> GetTaintedArguments(ImmutableArray<IArgumentOperation> arguments)
