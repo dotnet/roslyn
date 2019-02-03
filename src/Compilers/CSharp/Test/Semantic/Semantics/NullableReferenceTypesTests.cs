@@ -42123,10 +42123,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (5,31): error CS0165: Use of unassigned local variable 't'
                 //         (string, string?) t = t;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "t").WithArguments("t").WithLocation(5, 31),
-                // (7,9): warning CS8602: Possible dereference of a null reference.
-                //         t.Item2.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item2").WithLocation(7, 9));
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "t").WithArguments("t").WithLocation(5, 31));
         }
 
         [Fact]
@@ -78792,6 +78789,111 @@ class Program
                 // (15,9): warning CS8602: Possible dereference of a null reference.
                 //         y.F.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.F").WithLocation(15, 9));
+        }
+
+        [Fact]
+        public void AssignmentToSameVariable_01()
+        {
+            var source =
+@"#pragma warning disable 8618
+class C
+{
+    internal C F;
+}
+class Program
+{
+    static void F()
+    {
+        C a = new C() { F = null }; // 1
+        a = a;
+        a.F.ToString(); // 2
+        C b = new C() { F = new C() { F = null } }; // 3
+        b.F = b.F;
+        b.F.F.ToString(); // 4
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,29): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         C a = new C() { F = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 29),
+                // (11,9): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         a = a;
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "a = a").WithLocation(11, 9),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         a.F.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.F").WithLocation(12, 9),
+                // (13,43): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         C b = new C() { F = new C() { F = null } }; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 43),
+                // (14,9): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         b.F = b.F;
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "b.F = b.F").WithLocation(14, 9),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         b.F.F.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.F.F").WithLocation(15, 9));
+        }
+
+        [Fact]
+        public void AssignmentToSameVariable_02()
+        {
+            var source =
+@"#pragma warning disable 8618
+struct A
+{
+    internal int? F;
+}
+struct B
+{
+    internal A A;
+}
+class Program
+{
+    static void F()
+    {
+        A a = new A() { F = 1 };
+        a = a;
+        _ = a.F.Value;
+        B b = new B() { A = new A() { F = 2 } };
+        b.A = b.A;
+        _ = b.A.F.Value;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (15,9): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         a = a;
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "a = a").WithLocation(15, 9),
+                // (18,9): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         b.A = b.A;
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "b.A = b.A").WithLocation(18, 9));
+        }
+
+        [Fact]
+        public void AssignmentToSameVariable_03()
+        {
+            var source =
+@"#pragma warning disable 8618
+class C
+{
+    internal object F;
+}
+class Program
+{
+    static void F(C? c)
+    {
+        c.F = c.F; // 1
+        c.F.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,9): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         c.F = c.F; // 1
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "c.F = c.F").WithLocation(10, 9),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         c.F = c.F; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(10, 9));
         }
     }
 }

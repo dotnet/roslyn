@@ -752,7 +752,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if (targetSlot <= 0)
+                if (targetSlot <= 0 || targetSlot == valueSlot)
                 {
                     return;
                 }
@@ -768,8 +768,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _tryState = state;
                 }
 
-                // https://github.com/dotnet/roslyn/issues/29968 Might this clear state that
-                // should be copied in InheritNullableStateOfTrackableType?
                 InheritDefaultState(targetSlot);
 
                 if (targetType.IsReferenceType)
