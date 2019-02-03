@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                                                    .OfType<LambdaExpressionSyntax>()
                                                    .ToSet();
 
-            var parentLambda = GetParentLambda(expression, lambdas);
+            var parentLambda = expression.AncestorsAndSelf().FirstOrDefault(lambdas.Contains);
 
             if (parentLambda != null)
             {
