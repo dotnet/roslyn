@@ -426,14 +426,14 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 case BoundKind.LocalDeclaration:
                     {
-                        return CreateFromArray<BoundExpression, IOperation>(((BoundLocalDeclaration)declaration).DeclaredType.BoundDimensionsOpt);
+                        return CreateFromArray<BoundExpression, IOperation>(((BoundLocalDeclaration)declaration).DeclaredTypeOpt.BoundDimensionsOpt);
                     }
                 case BoundKind.MultipleLocalDeclarations:
                 case BoundKind.UsingLocalDeclarations:
                     {
                         var declarations = ((BoundMultipleLocalDeclarations)declaration).LocalDeclarations;
                         var dimensions = declarations.Length > 0
-                            ? declarations[0].DeclaredType.BoundDimensionsOpt
+                            ? declarations[0].DeclaredTypeOpt.BoundDimensionsOpt
                             : ImmutableArray<BoundExpression>.Empty;
                         return CreateFromArray<BoundExpression, IOperation>(dimensions);
                     }

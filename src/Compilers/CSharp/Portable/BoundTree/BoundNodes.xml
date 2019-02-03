@@ -777,7 +777,10 @@
   -->
   <Node Name="BoundLocalDeclaration" Base="BoundStatement">
     <Field Name="LocalSymbol" Type="LocalSymbol"/>
-    <Field Name="DeclaredType" Type="BoundTypeExpression"/>
+
+    <!-- Only set for the first declaration in BoundMultipleLocalDeclarations
+    unless the type is inferred -->
+    <Field Name="DeclaredTypeOpt" Type="BoundTypeExpression" Null="allow"/>
     <Field Name="InitializerOpt" Type="BoundExpression" Null="allow"/>
     <Field Name="ArgumentsOpt" Type="ImmutableArray&lt;BoundExpression&gt;" Null="allow"/>
   </Node>

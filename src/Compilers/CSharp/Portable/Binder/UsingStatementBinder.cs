@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(!declarationsOpt.IsEmpty);
                 multipleDeclarationsOpt = new BoundMultipleLocalDeclarations(declarationSyntax, declarationsOpt);
-                declarationTypeOpt = declarationsOpt[0].DeclaredType.Type;
+                declarationTypeOpt = declarationsOpt[0].DeclaredTypeOpt.Type;
 
                 if (declarationTypeOpt.IsDynamic())
                 {

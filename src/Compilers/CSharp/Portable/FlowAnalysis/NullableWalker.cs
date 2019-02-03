@@ -1215,7 +1215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            bool inferredType = node.DeclaredType.InferredType;
+            bool inferredType = node.DeclaredTypeOpt?.InferredType ?? false; // a declaration with an inferred type will always store its DeclaredType
             TypeSymbolWithAnnotations type = local.Type;
             TypeSymbolWithAnnotations valueType = VisitOptionalImplicitConversion(initializer, targetTypeOpt: inferredType ? default : type, useLegacyWarnings: true, AssignmentKind.Assignment);
 
