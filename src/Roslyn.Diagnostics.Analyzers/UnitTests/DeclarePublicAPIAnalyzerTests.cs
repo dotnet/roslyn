@@ -179,9 +179,9 @@ End Class
                 GetBasicResultAt(8, 9, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "Property"),
                 GetBasicResultAt(11, 9, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "Property"),
                 GetBasicResultAt(17, 16, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "Method"),
-                GetBasicResultAt(20, 30, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "implicit get-accessor for ReadOnlyProperty"),
-                GetBasicResultAt(21, 21, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "implicit get-accessor for NormalProperty"),
-                GetBasicResultAt(21, 21, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "implicit set-accessor for NormalProperty"));
+                GetBasicResultAt(20, 30, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "implicit get-accessor for ReadOnlyAutoProperty"),
+                GetBasicResultAt(21, 21, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "implicit get-accessor for NormalAutoProperty"),
+                GetBasicResultAt(21, 21, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "implicit set-accessor for NormalAutoProperty"));
         }
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
