@@ -2479,10 +2479,10 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int, Func<int, int>> f = x =>
+        Func<int, Func<int, int>> f = x => y =>
         {
             var {|Rename:v|} = x + 1;
-            return y => v;
+            return v;
         };
     }
 }",
@@ -2539,8 +2539,11 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int, int> {|Rename:p|} = y => y + 1;
-        Func<int, Func<int, int>> f = x => p;
+        Func<int, Func<int, int>> f = x =>
+        {
+            Func<int, int> {|Rename:p|} = y => y + 1;
+            return p;
+        };
     }
 }");
         }
@@ -4377,11 +4380,11 @@ class TestClass
     @"using System;
 class TestClass
 {
-    Func<int, int> Y()
+    Func<int, int> Y() => f =>
     {
         const int {|Rename:V|} = 9;
-        return f => f * V;
-    }
+        return f * V;
+    };
 }";
 
             await TestInRegularAndScriptAsync(code, expected, index: 2);
@@ -4431,11 +4434,11 @@ class TestClass
     @"using System;
 class TestClass
 {
-    Func<int, int> Y()
+    Func<int, int> Y() => (f) =>
     {
         const int {|Rename:V|} = 9;
-        return (f) => f * V;
-    }
+        return f * V;
+    };
 }";
 
             await TestInRegularAndScriptAsync(code, expected, index: 2);
