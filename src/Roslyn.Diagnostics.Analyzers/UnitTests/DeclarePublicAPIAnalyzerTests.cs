@@ -142,7 +142,7 @@ public class C
                 GetCSharpResultAt(7, 43, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "ArrowExpressionProperty.get"));
         }
 
-        [Fact(Skip = "821"), WorkItem(821, "https://github.com/dotnet/roslyn-analyzers/issues/821")]
+        [Fact, WorkItem(821, "https://github.com/dotnet/roslyn-analyzers/issues/821")]
         public void SimpleMissingMember_Basic()
         {
             var source = @"
@@ -164,7 +164,8 @@ Public Class C
     Public Sub Method()
     End Sub
 
-    Public ReadOnly Property ReadOnlyProperty As Integer = 0
+    Public ReadOnly Property ReadOnlyAutoProperty As Integer = 0
+    Public Property NormalAutoProperty As Integer = 0
 End Class
 ";
 
@@ -172,18 +173,15 @@ End Class
             var unshippedText = @"";
 
             VerifyBasic(source, shippedText, unshippedText,
-                // Test0.vb(4,14): warning RS0016: Symbol 'C' is not part of the declared API.
                 GetBasicResultAt(4, 14, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "C"),
-                // Test0.vb(5,12): warning RS0016: Symbol 'Field' is not part of the declared API.
+                GetBasicResultAt(4, 14, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "implicit constructor for C"),
                 GetBasicResultAt(5, 12, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "Field"),
-                // Test0.vb(8,9): warning RS0016: Symbol 'Property' is not part of the declared API.
                 GetBasicResultAt(8, 9, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "Property"),
-                // Test0.vb(11,9): warning RS0016: Symbol 'Property' is not part of the declared API.
                 GetBasicResultAt(11, 9, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "Property"),
-                // Test0.vb(17,16): warning RS0016: Symbol 'Method' is not part of the declared API.
                 GetBasicResultAt(17, 16, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "Method"),
-                // Test0.vb(17,60): warning RS0016: Symbol 'ReadOnlyProperty' is not part of the declared API.
-                GetBasicResultAt(20, 60, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "ReadOnlyProperty"));
+                GetBasicResultAt(20, 30, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "implicit get-accessor for ReadOnlyProperty"),
+                GetBasicResultAt(21, 21, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "implicit get-accessor for NormalProperty"),
+                GetBasicResultAt(21, 21, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "implicit set-accessor for NormalProperty"));
         }
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]

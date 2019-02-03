@@ -17,6 +17,16 @@
         <target state="translated">A lista de símbolos banidos contém informações duplicadas</target>
         <note />
       </trans-unit>
+      <trans-unit id="PublicImplicitGetAccessor">
+        <source>implicit get-accessor for {0}</source>
+        <target state="new">implicit get-accessor for {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicImplicitSetAccessor">
+        <source>implicit set-accessor for {0}</source>
+        <target state="new">implicit set-accessor for {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SymbolIsBannedDescription">
         <source>The symbol has been marked as banned in this project, and an alternate should be used instead.</source>
         <target state="translated">O símbolo foi marcado como proibido neste projeto e um símbolo alternativo deve ser usado em seu lugar.</target>
