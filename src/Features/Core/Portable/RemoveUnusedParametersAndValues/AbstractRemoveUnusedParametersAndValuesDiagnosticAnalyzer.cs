@@ -101,6 +101,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         protected abstract bool IsCallStatement(IExpressionStatementOperation expressionStatement);
 
         /// <summary>
+        /// Indicates if the given operation is an expression of an expression body.
+        /// </summary>
+        protected abstract bool IsExpressionOfExpressionBody(IExpressionStatementOperation expressionStatement);
+
+        /// <summary>
         /// Method to compute well-known diagnostic property maps for different comnbinations of diagnostic properties.
         /// The property map is added to each instance of the reported diagnostic and is used by the code fixer to
         /// compute the correct code fix.
@@ -299,5 +304,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             Debug.Assert(TryGetUnusedValuePreference(diagnostic, out _));
             return diagnostic.Properties.ContainsKey(IsRemovableAssignmentKey);
         }
+
+        /// <summary>
+        /// Returns true for symbols whose name starts with an underscore and
+        /// are optionally followed by an integer, such as '_', '_1', '_2', etc.
+        /// These are treated as special discard symbol names.
+        /// </summary>
+        private static bool IsSymbolWithSpecialDiscardName(ISymbol symbol)
+            => symbol.Name.StartsWith("_") &&
+               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name.Substring(1), out _));
     }
 }

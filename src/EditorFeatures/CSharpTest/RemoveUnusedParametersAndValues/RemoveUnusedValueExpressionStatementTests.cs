@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
@@ -506,6 +507,59 @@ $@"class C
 
     int M2() => 0;
 }", options: PreferUnusedLocal);
+        }
+
+        [WorkItem(32942, "https://github.com/dotnet/roslyn/issues/32942")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task ExpressionBodiedMember_01(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M() => [|M2()|];
+    int M2() => 0;
+}", optionName);
+        }
+
+        [WorkItem(32942, "https://github.com/dotnet/roslyn/issues/32942")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task ExpressionBodiedMember_02(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        System.Action a = () => [|M2()|];
+    }
+
+    int M2() => 0;
+}", optionName);
+        }
+
+        [WorkItem(32942, "https://github.com/dotnet/roslyn/issues/32942")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task ExpressionBodiedMember_03(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        LocalFunction();
+        return;
+
+        void LocalFunction() => [|M2()|];
+    }
+
+    int M2() => 0;
+}", optionName);
         }
     }
 }
