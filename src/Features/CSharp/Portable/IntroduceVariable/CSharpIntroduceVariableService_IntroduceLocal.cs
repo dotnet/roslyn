@@ -79,23 +79,11 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         {
             var anonymousMethodParameters = GetAnonymousMethodParameters(document, expression, cancellationToken);
             var lambdas = anonymousMethodParameters.SelectMany(p => p.ContainingSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).AsEnumerable())
-                                                   .OfType<LambdaExpressionSyntax>()
-                                                   .ToSet();
+                .OfType<LambdaExpressionSyntax>()
+                .ToSet();
 
-            var parentLambda = GetParentLambda(expression, lambdas);
-
-            if (parentLambda != null)
-            {
-                return parentLambda;
-            }
-            else if (IsInExpressionBodiedMember(expression))
-            {
-                return expression.GetAncestorOrThis<ArrowExpressionClauseSyntax>();
-            }
-            else
-            {
-                return expression.GetAncestorsOrThis<BlockSyntax>().LastOrDefault();
-            }
+            return expression.Ancestors().FirstOrDefault(s =>
+                s is BlockSyntax || s is ArrowExpressionClauseSyntax || lambdas.Contains(s));
         }
 
         private Document IntroduceLocalDeclarationIntoLambda(
@@ -126,22 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             var newRoot = document.Root.ReplaceNode(oldLambda, newLambda);
             return document.Document.WithSyntaxRoot(newRoot);
-        }
-
-        private LambdaExpressionSyntax GetParentLambda(ExpressionSyntax expression, ISet<LambdaExpressionSyntax> lambdas)
-        {
-            var current = expression;
-            while (current != null)
-            {
-                if (lambdas.Contains(current.Parent))
-                {
-                    return (LambdaExpressionSyntax)current.Parent;
-                }
-
-                current = current.Parent?.FirstAncestorOrSelf<ExpressionSyntax>();
-            }
-
-            return null;
         }
 
         private TypeSyntax GetTypeSyntax(SemanticDocument document, DocumentOptionSet options, ExpressionSyntax expression, bool isConstant, CancellationToken cancellationToken)
