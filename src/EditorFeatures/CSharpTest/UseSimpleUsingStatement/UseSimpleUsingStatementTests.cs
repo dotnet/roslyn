@@ -165,6 +165,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
         public async Task TestAsyncUsing()
         {
+            // not actually legal code.
             await TestInRegularAndScriptAsync(
 @"using System;
 using System.Threading.Tasks;
@@ -186,6 +187,36 @@ class C
     void M()
     {
         async using var a = b;
+    }
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        public async Task TestAwaitUsing()
+        {
+            // not actually legal code.
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        await [||]using (var a = b)
+        {
+        }
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        await using var a = b;
     }
 }",
 parseOptions: CSharp8ParseOptions);
