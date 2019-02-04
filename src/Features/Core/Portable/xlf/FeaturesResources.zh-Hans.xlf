@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
         <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
-        <target state="new">Adding a method with an explicit interface specifier will prevent the debug session from continuing.</target>
+        <target state="translated">添加具有显式接口说明符的方法将阻止调试会话继续。</target>
         <note />
       </trans-unit>
       <trans-unit id="Align_wrapped_arguments">
@@ -59,12 +59,12 @@
       </trans-unit>
       <trans-unit id="Code_Quality">
         <source>Code Quality</source>
-        <target state="new">Code Quality</target>
+        <target state="translated">代码质量</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
-        <target state="new">Convert to LINQ</target>
+        <target state="translated">转换为 LINQ</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_0">
@@ -74,22 +74,22 @@
       </trans-unit>
       <trans-unit id="Convert_to_class">
         <source>Convert to class</source>
-        <target state="new">Convert to class</target>
+        <target state="translated">Convert to class</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq_call_form">
         <source>Convert to LINQ (call form)</source>
-        <target state="new">Convert to LINQ (call form)</target>
+        <target state="translated">转换为 LINQ (调用表单)</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
-        <target state="new">Convert to struct</target>
+        <target state="translated">Convert to struct</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_tuple">
         <source>Convert to tuple</source>
-        <target state="new">Convert to tuple</target>
+        <target state="translated">Convert to tuple</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Fix_formatting">
         <source>Fix formatting</source>
-        <target state="new">Fix formatting</target>
+        <target state="translated">解决格式问题</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">
@@ -137,16 +137,6 @@
         <target state="new">Indent wrapped parameters</target>
         <note />
       </trans-unit>
-      <trans-unit id="Move_file_to_0">
-        <source>Move file to '{0}'</source>
-        <target state="new">Move file to '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Move_file_to_project_root_folder">
-        <source>Move file to project root folder</source>
-        <target state="new">Move file to project root folder</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
         <target state="new">Indexing can be simplified</target>
@@ -172,24 +162,34 @@
         <target state="new">Introduce query variable</target>
         <note />
       </trans-unit>
+      <trans-unit id="Invert_conditional">
+        <source>Invert conditional</source>
+        <target state="new">Invert conditional</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_file_to_0">
+        <source>Move file to '{0}'</source>
+        <target state="new">Move file to '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_file_to_project_root_folder">
+        <source>Move file to project root folder</source>
+        <target state="new">Move file to project root folder</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
         <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
-        <target state="new">Private member '{0}' can be removed as the value assigned to it is never read.</target>
+        <target state="translated">可删除私有成员“{0}”，因为永不会读取分配给它的值。</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_is_unused">
         <source>Private member '{0}' is unused.</source>
-        <target state="new">Private member '{0}' is unused.</target>
+        <target state="translated">未使用私有成员“{0}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
-        <target state="translated">如果修改源文件 {0}，则由于内部错误，调试会话将无法继续: {1}。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invert_conditional">
-        <source>Invert conditional</source>
-        <target state="new">Invert conditional</target>
+        <target state="translated">修改源文件 {0} 将防止调试会话因内部错误 {1} 而继续进行。</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
@@ -224,12 +224,12 @@
       </trans-unit>
       <trans-unit id="Remove_unread_private_members">
         <source>Remove unread private members</source>
-        <target state="new">Remove unread private members</target>
+        <target state="translated">删除未读的私有成员</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_member">
         <source>Remove unused member</source>
-        <target state="new">Remove unused member</target>
+        <target state="translated">删除未使用的成员</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameter">
@@ -259,7 +259,7 @@
       </trans-unit>
       <trans-unit id="Remove_unused_private_members">
         <source>Remove unused private members</source>
-        <target state="new">Remove unused private members</target>
+        <target state="translated">删除未使用的私有成员</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -304,7 +304,7 @@
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
-        <target state="new">Use block body for lambda expressions</target>
+        <target state="translated">对 lambda 表达式使用块正文</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
@@ -329,7 +329,7 @@
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
-        <target state="new">Use expression body for lambda expressions</target>
+        <target state="translated">对 lambda 表达式使用表达式正文</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_functions">
@@ -344,17 +344,27 @@
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
-        <target state="new">Use interpolated verbatim string</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
-        <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
-        <target state="new">Warning: Changing namespace may produce invalid code and change code meaning.</target>
+        <target state="translated">使用内插的原义字符串</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_range_operator">
         <source>Use range operator</source>
         <target state="new">Use range operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_assigned_to_0_is_never_used">
+        <source>Value assigned to '{0}' is never used</source>
+        <target state="new">Value assigned to '{0}' is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_assigned_to_symbol_is_never_used">
+        <source>Value assigned to symbol is never used</source>
+        <target state="new">Value assigned to symbol is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
+        <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
+        <target state="new">Warning: Changing namespace may produce invalid code and change code meaning.</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -390,16 +400,6 @@
       <trans-unit id="_0_can_be_simplified">
         <source>{0} can be simplified</source>
         <target state="new">{0} can be simplified</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Value_assigned_to_0_is_never_used">
-        <source>Value assigned to '{0}' is never used</source>
-        <target state="new">Value assigned to '{0}' is never used</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Value_assigned_to_symbol_is_never_used">
-        <source>Value assigned to symbol is never used</source>
-        <target state="new">Value assigned to symbol is never used</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -749,7 +749,7 @@
       </trans-unit>
       <trans-unit id="in_">
         <source>in</source>
-        <target state="translated">在</target>
+        <target state="translated">隶属</target>
         <note />
       </trans-unit>
       <trans-unit id="Summary_colon">
@@ -779,7 +779,7 @@
       </trans-unit>
       <trans-unit id="Remarks_colon">
         <source>Remarks:</source>
-        <target state="translated">备注:</target>
+        <target state="translated">言论：</target>
         <note />
       </trans-unit>
       <trans-unit id="generating_source_for_symbols_of_this_type_is_not_supported">
@@ -1194,7 +1194,7 @@
       </trans-unit>
       <trans-unit id="Failed_to_launch_0_process_exit_code_colon_1_with_output_colon">
         <source>Failed to launch '{0}' process (exit code: {1}) with output: </source>
-        <target state="translated">启动“{0}”进程失败(退出代码:{1})，输出:</target>
+        <target state="translated">启动“{0}”进程失败(退出代码: {1})，输出为:</target>
         <note />
       </trans-unit>
       <trans-unit id="Hosting_process_exited_with_exit_code_0">
@@ -1460,7 +1460,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Project">
         <source>Project</source>
-        <target state="translated">项目</target>
+        <target state="translated">PROJECT</target>
         <note />
       </trans-unit>
       <trans-unit id="Solution">
@@ -2422,22 +2422,22 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">
         <source>updating usages in containing member</source>
-        <target state="new">updating usages in containing member</target>
+        <target state="translated">updating usages in containing member</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_project">
         <source>updating usages in containing project</source>
-        <target state="new">updating usages in containing project</target>
+        <target state="translated">updating usages in containing project</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_type">
         <source>updating usages in containing type</source>
-        <target state="new">updating usages in containing type</target>
+        <target state="translated">updating usages in containing type</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_dependent_projects">
         <source>updating usages in dependent projects</source>
-        <target state="new">updating usages in dependent projects</target>
+        <target state="translated">updating usages in dependent projects</target>
         <note />
       </trans-unit>
     </body>

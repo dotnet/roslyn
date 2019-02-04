@@ -49,12 +49,12 @@
       </trans-unit>
       <trans-unit id="Formatting_Document">
         <source>Formatting Document...</source>
-        <target state="translated">Formatando Documento...</target>
+        <target state="translated">Formatando documento...</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_new_line">
         <source>Insert new line</source>
-        <target state="translated">Inserir nova linha</target>
+        <target state="translated">Inserir Nova Linha</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_Paste">

@@ -154,7 +154,7 @@
       </trans-unit>
       <trans-unit id="Title">
         <source>Title</source>
-        <target state="translated">Заголовок</target>
+        <target state="translated">Название</target>
         <note />
       </trans-unit>
     </body>
