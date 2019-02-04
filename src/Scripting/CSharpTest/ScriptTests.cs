@@ -923,6 +923,18 @@ i", options);
             ScriptingTestHelpers.EvaluateScriptWithOutput(script, "Hello World!");
         }
 
+        [Fact]
+        public void CreateScriptWithNullableContext()
+        {
+            var script = CSharpScript.Create(@"#nullable enable
+                string x = null;");
+            var compilation = script.GetCompilation();
+
+            compilation.VerifyDiagnostics(
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(2, 28)
+            );
+        }
+
         private class StreamOffsetResolver : SourceReferenceResolver
         {
             public override bool Equals(object other) => ReferenceEquals(this, other);
