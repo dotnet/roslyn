@@ -317,6 +317,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 VisualStudioProject.AssemblyName = Path.GetFileNameWithoutExtension(pCompilerOptions.wszExeName)
             End If
 
+            RefreshBinOutputPath()
+
             _runtimeLibraries = VisualStudioProjectOptionsProcessor.GetRuntimeLibraries(_compilerHost)
 
             If Not _runtimeLibraries.SequenceEqual(oldRuntimeLibraries, StringComparer.Ordinal) Then
