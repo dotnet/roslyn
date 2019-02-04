@@ -2069,19 +2069,23 @@ class C
     {
         throw e; // 6
     }
+    void M5<TException>(TException e) where TException : System.Exception?
+    {
+        throw e; // 7
+    }
 }";
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (6,24): error CS8597: Possible null value.
                 //         _ = c ?? throw e; // 1
                 Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(6, 24),
                 // (7,13): hidden CS8607: Expression is probably never null.
-                //         _ = c ?? throw null!; // 2
+                //         _ = c ?? throw null; // 2
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c").WithLocation(7, 13),
                 // (7,24): error CS8597: Possible null value.
-                //         _ = c ?? throw null!; // 2
+                //         _ = c ?? throw null; // 2
                 Diagnostic(ErrorCode.WRN_PossibleNull, "null").WithLocation(7, 24),
                 // (8,15): error CS8597: Possible null value.
-                //         throw null!; // 3
+                //         throw null; // 3
                 Diagnostic(ErrorCode.WRN_PossibleNull, "null").WithLocation(8, 15),
                 // (13,19): error CS8597: Possible null value.
                 //             throw e; // 4
@@ -2091,7 +2095,10 @@ class C
                 Diagnostic(ErrorCode.ERR_BadExceptionType, "this").WithLocation(19, 15),
                 // (24,15): error CS8597: Possible null value.
                 //         throw e; // 6
-                Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(24, 15)
+                Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(24, 15),
+                // (28,15): error CS8597: Possible null value.
+                //         throw e; // 7
+                Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(28, 15)
                 );
         }
 

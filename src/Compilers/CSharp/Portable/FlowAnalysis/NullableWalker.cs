@@ -5579,7 +5579,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = VisitRvalueWithResult(expr);
             if ((expr.ConstantValue?.IsNull == true && !expr.IsSuppressed) ||
-                result.NullableAnnotation.IsAnyNullable())
+                result.NullableAnnotation.IsAnyNullable() ||
+                IsTypeParameterDisallowingAnnotation(result.TypeSymbol))
             {
                 ReportSafetyDiagnostic(ErrorCode.WRN_PossibleNull, expr.Syntax);
             }
