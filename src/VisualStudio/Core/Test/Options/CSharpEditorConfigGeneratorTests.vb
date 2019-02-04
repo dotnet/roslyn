@@ -106,6 +106,7 @@ csharp_preferred_modifier_order = public,private,protected,internal,static,exter
 
 # Code-block preferences
 csharp_prefer_braces = true:silent
+csharp_prefer_simple_using_statement = true:suggestion
 
 # Expression-level preferences
 csharp_prefer_simple_default_expression = true:suggestion
@@ -265,6 +266,7 @@ csharp_preferred_modifier_order = public,private,protected,internal,static,exter
 
 # Code-block preferences
 csharp_prefer_braces = true:silent
+csharp_prefer_simple_using_statement = true:suggestion
 
 # Expression-level preferences
 csharp_prefer_simple_default_expression = true:suggestion
