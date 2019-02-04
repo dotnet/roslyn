@@ -6355,8 +6355,8 @@ public class Oblivious
             var lib = @"
 public class External
 {
-    public static string Method(string s) => throw null;
-    public static string? NMethod(string? ns) => throw null;
+    public static string Method(string s) => throw null!;
+    public static string? NMethod(string? ns) => throw null!;
 }
 ";
 
@@ -6371,16 +6371,16 @@ public class OuterA
 " + NonNullTypesOn() + @"
     public class A
     {
-        public static string Method(string s) => throw null;
-        public static string? NMethod(string? ns) => throw null;
+        public static string Method(string s) => throw null!;
+        public static string? NMethod(string? ns) => throw null!;
     }
 }
 
 // NonNullTypes(true) by default
 public class B
 {
-    public static string Method(string s) => throw null;
-    public static string? NMethod(string? ns) => throw null;
+    public static string Method(string s) => throw null!;
+    public static string? NMethod(string? ns) => throw null!;
 }
 
 " + NonNullTypesOff() + @"
@@ -6389,17 +6389,17 @@ public class OuterD
     public class D
     {
 " + NonNullTypesOn() + @"
-        public static string Method(string s) => throw null;
+        public static string Method(string s) => throw null!;
 " + NonNullTypesOn() + @"
-        public static string? NMethod(string? ns) => throw null;
+        public static string? NMethod(string? ns) => throw null!;
     }
 }
 
 " + NonNullTypesOff() + @"
 public class Oblivious2
 {
-    public static string Method(string s) => throw null;
-    public static string? NMethod(string? ns) => throw null;
+    public static string Method(string s) => throw null!;
+    public static string? NMethod(string? ns) => throw null!;
 }
 " + NonNullTypesOn() + @"
 class E
