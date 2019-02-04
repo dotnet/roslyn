@@ -145,7 +145,7 @@ namespace Analyzer.Utilities.Extensions
             for (int i = 0; i < operations.Length; i++)
             {
                 var operation = operations[i];
-       
+
                 // Check if all descendants are either implicit or are explicit with no constant value or type, indicating it is not user written code.
                 if (operation.DescendantsAndSelf().All(o => o.IsImplicit || (!o.ConstantValue.HasValue && o.Type == null)))
                 {
@@ -258,14 +258,13 @@ namespace Analyzer.Utilities.Extensions
             }
             else
             {
-                return default(TOperation);
+                return default;
             }
         }
 
         public static IConditionalAccessOperation GetConditionalAccess(this IConditionalAccessInstanceOperation operation)
         {
-            Func<IConditionalAccessOperation, bool> predicate = c => c.Operation.Syntax == operation.Syntax;
-            return operation.GetAncestor(OperationKind.ConditionalAccess, predicate);
+            return operation.GetAncestor(OperationKind.ConditionalAccess, (IConditionalAccessOperation c) => c.Operation.Syntax == operation.Syntax);
         }
 
         /// <summary>
@@ -319,8 +318,7 @@ namespace Analyzer.Utilities.Extensions
                 operation.Property.ContainingType.IsAnonymousType)
             {
                 var declarationSyntax = operation.Property.ContainingType.DeclaringSyntaxReferences[0].GetSyntax();
-                Func<IAnonymousObjectCreationOperation, bool> predicate = a => a.Syntax == declarationSyntax;
-                return operation.GetAncestor(OperationKind.AnonymousObjectCreation, predicate);
+                return operation.GetAncestor(OperationKind.AnonymousObjectCreation, (IAnonymousObjectCreationOperation a) => a.Syntax == declarationSyntax);
             }
 
             return null;
@@ -554,10 +552,8 @@ namespace Analyzer.Utilities.Extensions
                 case IMemberReferenceOperation memberReferenceOperation:
                     return memberReferenceOperation.Instance;
 
-                case ILocalReferenceOperation localReferenceOperation:
-                    return null;
-
-                case IParameterReferenceOperation parameterReferenceOperation:
+                case ILocalReferenceOperation _:
+                case IParameterReferenceOperation _:
                     return null;
 
                 case IArrayElementReferenceOperation arrayElementReferenceOperation:
@@ -566,7 +562,7 @@ namespace Analyzer.Utilities.Extensions
                 case IDynamicMemberReferenceOperation dynamicMemberReferenceOperation:
                     return dynamicMemberReferenceOperation.Instance;
 
-                case IFlowCaptureReferenceOperation flowCaptureReferenceOperation:
+                case IFlowCaptureReferenceOperation _:
                     return null;
 
                 default:
@@ -574,7 +570,7 @@ namespace Analyzer.Utilities.Extensions
                     return null;
             }
         }
-        
+
         public static bool IsWithinLambdaOrLocalFunction(this IOperation operation)
             => operation.GetAncestor<IAnonymousFunctionOperation>(OperationKind.AnonymousFunction) != null ||
                operation.GetAncestor<ILocalFunctionOperation>(OperationKind.LocalFunction) != null;

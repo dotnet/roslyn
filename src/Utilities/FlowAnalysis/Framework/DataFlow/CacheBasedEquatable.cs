@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// Abstract cache based equatable implementation for objects that are compared frequently and hence need a performance optimization of using a cached hash code.
     /// </summary>
     internal abstract class CacheBasedEquatable<T> : IEquatable<T>
-        where T: class
+        where T : class
     {
         private ImmutableArray<int> _lazyHashCodeParts;
         private int _lazyHashCode;
@@ -75,11 +75,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public static bool operator ==(CacheBasedEquatable<T> value1, CacheBasedEquatable<T> value2)
         {
-            if ((object)value1 == null)
+            if (value1 is null)
             {
-                return (object)value2 == null;
+                return value2 is null;
             }
-            else if ((object)value2 == null)
+            else if (value2 is null)
             {
                 return false;
             }

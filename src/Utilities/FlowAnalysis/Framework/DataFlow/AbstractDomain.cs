@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public abstract int Compare(T oldValue, T newValue, bool assertMonotonicity);
 
+#pragma warning disable CA1030 // Use events where appropriate
         [Conditional("DEBUG")]
         protected static void FireNonMonotonicAssertIfNeeded(bool assertMonotonicity)
         {
@@ -56,5 +57,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 Debug.Fail("Non-monotonic merge");
             }
         }
+#pragma warning restore CA1030 // Use events where appropriate
     }
 }

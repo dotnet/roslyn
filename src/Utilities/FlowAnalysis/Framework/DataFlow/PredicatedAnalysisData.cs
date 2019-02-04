@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         public bool IsReachableBlockData { get; set; }
-        
+
         public bool HasPredicatedData => _lazyPredicateDataMap != null;
 
         [Conditional("DEBUG")]
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
             }
 
-            return result;            
+            return result;
         }
 
         private static DictionaryAnalysisData<TKey, TValue> Merge(
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             var appliedPredicatedData1 = CloneAndApplyPredicatedData(coreAnalysisData1, predicateTrueOrFalseData1, applyPredicatedData);
             var appliedPredicatedData2 = CloneAndApplyPredicatedData(coreAnalysisData2, predicateTrueOrFalseData2, applyPredicatedData);
 
-            return coreDataAnalysisDomain.Merge(appliedPredicatedData1, appliedPredicatedData2);            
+            return coreDataAnalysisDomain.Merge(appliedPredicatedData1, appliedPredicatedData2);
         }
 
         private static DictionaryAnalysisData<TKey, TValue> CloneAndApplyPredicatedData(

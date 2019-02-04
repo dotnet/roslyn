@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
- 
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+
+#pragma warning disable CA1710 // Rename Microsoft.CodeAnalysis.ArrayBuilder<T> to end in 'Collection'.
+#pragma warning disable CA1000 // Do not declare static members on generic types
 
 namespace Microsoft.CodeAnalysis
 {
@@ -22,6 +25,7 @@ namespace Microsoft.CodeAnalysis
                 _builder = builder;
             }
 
+#pragma warning disable CA1819 // Properties should not return arrays
             [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
             public T[] A
             {
@@ -37,6 +41,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
+#pragma warning restore CA1819
 #pragma warning restore CA1812
         #endregion
 
@@ -100,7 +105,7 @@ namespace Microsoft.CodeAnalysis
         {
             while (index > _builder.Count)
             {
-                _builder.Add(default(T));
+                _builder.Add(default);
             }
 
             if (index == _builder.Count)
@@ -241,7 +246,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (Count == 0)
             {
-                return default(ImmutableArray<T>);
+                return default;
             }
 
             return this.ToImmutable();

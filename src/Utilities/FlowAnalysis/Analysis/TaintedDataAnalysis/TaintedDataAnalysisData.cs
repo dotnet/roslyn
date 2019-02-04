@@ -39,7 +39,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         public override AnalysisEntityBasedPredicateAnalysisData<TaintedDataAbstractValue> WithMergedData(AnalysisEntityBasedPredicateAnalysisData<TaintedDataAbstractValue> data, MapAbstractDomain<AnalysisEntity, TaintedDataAbstractValue> coreDataAnalysisDomain)
         {
-            return new TaintedDataAnalysisData(this, (TaintedDataAnalysisData) data, coreDataAnalysisDomain);
+            return new TaintedDataAnalysisData(this, (TaintedDataAnalysisData)data, coreDataAnalysisDomain);
         }
 
         public void Reset(TaintedDataAbstractValue resetValue)

@@ -24,7 +24,7 @@ namespace Analyzer.Utilities.Extensions
             }
             else
             {
-                return default(TResult);
+                return default;
             }
         }
     }

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
     internal sealed class CopyBlockAnalysisResult : AbstractBlockAnalysisResult
     {
         public CopyBlockAnalysisResult(BasicBlock basicBlock, CopyAnalysisData blockAnalysisData)
-            : base (basicBlock)
+            : base(basicBlock)
         {
             Data = blockAnalysisData?.CoreAnalysisData.ToImmutableDictionary() ?? ImmutableDictionary<AnalysisEntity, CopyAbstractValue>.Empty;
             IsReachable = blockAnalysisData?.IsReachableBlockData ?? true;

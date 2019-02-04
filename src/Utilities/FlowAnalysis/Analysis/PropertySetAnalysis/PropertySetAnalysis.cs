@@ -94,7 +94,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         {
             return new PropertySetAnalysisResult(
                 dataFlowAnalysisResult,
-                ((PropertySetDataFlowOperationVisitor) this.OperationVisitor).HazardousUsages);
+                ((PropertySetDataFlowOperationVisitor)this.OperationVisitor).HazardousUsages);
         }
 
         internal override PropertySetBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, PropertySetAnalysisData blockAnalysisData) => new PropertySetBlockAnalysisResult(basicBlock, blockAnalysisData);

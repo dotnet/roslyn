@@ -132,8 +132,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         public override void Initialize(AnalysisContext context)
         {
-            // TODO: Make the analyzer thread-safe.
-            //context.EnableConcurrentExecution();
+            context.EnableConcurrentExecution();
 
             // Analyzer needs to get callbacks for generated code, and might report diagnostics in generated code.
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
@@ -205,8 +204,8 @@ namespace Roslyn.Diagnostics.Analyzers
         {
             if (!TryGetApiText(additionalTexts, cancellationToken, out AdditionalText shippedText, out AdditionalText unshippedText))
             {
-                shippedData = default(ApiData);
-                unshippedData = default(ApiData);
+                shippedData = default;
+                unshippedData = default;
                 return false;
             }
 

@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
     /// <summary>
     /// Analysis result from execution of <see cref="ParameterValidationAnalysis"/> on a control flow graph.
     /// </summary>
-    internal sealed class ParameterValidationAnalysisResult: DataFlowAnalysisResult<ParameterValidationBlockAnalysisResult, ParameterValidationAbstractValue>
+    internal sealed class ParameterValidationAnalysisResult : DataFlowAnalysisResult<ParameterValidationBlockAnalysisResult, ParameterValidationAbstractValue>
     {
         public ParameterValidationAnalysisResult(
             DataFlowAnalysisResult<ParameterValidationBlockAnalysisResult, ParameterValidationAbstractValue> parameterValidationAnalysisResult,

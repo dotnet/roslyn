@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities;
 
+#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T> - CacheBasedEquatable handles equality
+
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 {
     /// <summary>
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         public static CopyAbstractValue NotApplicable = new CopyAbstractValue(CopyAbstractValueKind.NotApplicable);
         public static CopyAbstractValue Invalid = new CopyAbstractValue(CopyAbstractValueKind.Invalid);
         public static CopyAbstractValue Unknown = new CopyAbstractValue(CopyAbstractValueKind.Unknown);
-        
+
         private CopyAbstractValue(ImmutableHashSet<AnalysisEntity> analysisEntities, CopyAbstractValueKind kind)
         {
             Debug.Assert(analysisEntities.IsEmpty == (kind != CopyAbstractValueKind.Known));
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         }
 
         public CopyAbstractValue(ImmutableHashSet<AnalysisEntity> analysisEntities)
-            : this (analysisEntities, CopyAbstractValueKind.Known)
+            : this(analysisEntities, CopyAbstractValueKind.Known)
         {
             Debug.Assert(!analysisEntities.IsEmpty);
         }

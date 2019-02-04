@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 case IMemberReferenceOperation memberReference:
                     instanceOpt = memberReference.Instance;
                     GetSymbolAndIndicesForMemberReference(memberReference, ref symbolOpt, ref indices);
-                    
+
                     // Workaround for https://github.com/dotnet/roslyn/issues/22736 (IPropertyReferenceExpressions in IAnonymousObjectCreationExpression are missing a receiver).
                     if (instanceOpt == null &&
                         symbolOpt != null &&
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         case ILocalReferenceOperation localReference:
                             return TryCreateForSymbolDeclaration(localReference.Local, out analysisEntity);
 
-                        case ITupleOperation tupleOperation:
+                        case ITupleOperation _:
                             // TODO handle tuple operations
                             // https://github.com/dotnet/roslyn-analyzers/issues/1571
                             break;

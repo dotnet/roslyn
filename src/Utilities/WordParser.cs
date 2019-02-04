@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Text;
 
@@ -196,7 +197,7 @@ namespace Analyzer.Utilities
         /// <exception cref="ArgumentException">
         ///     <paramref name="options"/> is not one or more of the <see cref="WordParserOptions"/> values.
         /// </exception>
-        public static bool ContainsWord(string text, WordParserOptions options, params string[] words)
+        public static bool ContainsWord(string text, WordParserOptions options, ImmutableArray<string> words)
         {
             return ContainsWord(text, options, NullChar, words);
         }
@@ -230,9 +231,9 @@ namespace Analyzer.Utilities
         /// <exception cref="ArgumentException">
         ///     <paramref name="options"/> is not one or more of the <see cref="WordParserOptions"/> values.
         /// </exception>
-        internal static bool ContainsWord(string text, WordParserOptions options, char prefix, params string[] words)
+        internal static bool ContainsWord(string text, WordParserOptions options, char prefix, ImmutableArray<string> words)
         {
-            if (words == null)
+            if (words.IsDefault)
             {
                 throw new ArgumentNullException(nameof(words));
             }

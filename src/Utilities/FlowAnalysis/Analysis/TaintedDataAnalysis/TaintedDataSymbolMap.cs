@@ -93,7 +93,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     if (this.InterfaceInfos.TryGetValue(interfaceSymbol, out TInfo info))
                     {
-                         yield return info;
+                        yield return info;
                     }
                 }
             }

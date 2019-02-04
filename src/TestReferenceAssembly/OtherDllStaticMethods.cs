@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#pragma warning disable CA1801
+#pragma warning disable CA1801 // Remove unused parameter
+#pragma warning disable IDE0060 // Remove unused parameter
 
 using System;
 using System.Linq;
@@ -26,7 +27,7 @@ namespace OtherDll
 
         public static T ReturnsDefault<T>(T input)
         {
-            return default(T);
+            return default;
         }
 
         public static string ReturnsRandom(string input)
@@ -34,7 +35,7 @@ namespace OtherDll
             Random r = new Random();
             byte[] bytes = new byte[r.Next(20) + 10];
             r.NextBytes(bytes);
-            bytes = bytes.Where(b => (byte) ' ' <= b && b <= (byte) '~').ToArray();
+            bytes = bytes.Where(b => (byte)' ' <= b && b <= (byte)'~').ToArray();
             return Encoding.ASCII.GetString(bytes);
         }
 
@@ -45,7 +46,7 @@ namespace OtherDll
 
         public static void SetsOutputToDefault<T>(T input, out T output)
         {
-            output = default(T);
+            output = default;
         }
 
         public static void SetsOutputToRandom(string input, out string output)
@@ -60,7 +61,7 @@ namespace OtherDll
 
         public static void SetsReferenceToDefault<T>(T input, ref T output)
         {
-            output = default(T);
+            output = default;
         }
 
         public static void SetsReferenceToRandom(string input, ref string output)
@@ -68,7 +69,7 @@ namespace OtherDll
             Random r = new Random();
             byte[] bytes = new byte[r.Next(20) + 10];
             r.NextBytes(bytes);
-            bytes = bytes.Where(b => (byte) ' ' <= b && b <= (byte) '~').ToArray();
+            bytes = bytes.Where(b => (byte)' ' <= b && b <= (byte)'~').ToArray();
             output = Encoding.ASCII.GetString(bytes);
         }
     }

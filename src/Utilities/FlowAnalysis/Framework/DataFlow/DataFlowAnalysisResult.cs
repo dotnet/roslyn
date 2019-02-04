@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     ///  (3) Merged analysis state for all the unhandled throw operations in the graph.
     /// </summary>
     internal class DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> : IDataFlowAnalysisResult<TAbstractAnalysisValue>
-        where TBlockAnalysisResult: AbstractBlockAnalysisResult
+        where TBlockAnalysisResult : AbstractBlockAnalysisResult
     {
         private readonly ImmutableDictionary<BasicBlock, TBlockAnalysisResult> _basicBlockStateMap;
         private readonly ImmutableDictionary<IOperation, TAbstractAnalysisValue> _operationStateMap;
