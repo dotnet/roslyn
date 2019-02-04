@@ -217,8 +217,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     if (TryGetReceiverAndMember(node, out BoundExpression receiver, out Symbol member))
                     {
-                        int containingSlot = MakeSlot(receiver);
-                        return (containingSlot == -1) ? -1 : GetOrCreateSlot(member, containingSlot);
+                        Debug.Assert((receiver == null) == member.IsStatic);
+                        int containingSlot = -1;
+                        if (receiver != null)
+                        {
+                            containingSlot = MakeSlot(receiver);
+                            if (containingSlot < 0)
+                            {
+                                break;
+                            }
+                        }
+                        return GetOrCreateSlot(member, containingSlot);
                     }
                     break;
                 case BoundKind.AssignmentOperator:

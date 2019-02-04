@@ -328,11 +328,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var fieldAccess = (BoundFieldAccess)expr;
                         var fieldSymbol = fieldAccess.FieldSymbol;
-                        if (fieldSymbol.IsStatic || fieldSymbol.IsFixedSizeBuffer)
+                        member = fieldSymbol;
+                        if (fieldSymbol.IsFixedSizeBuffer)
                         {
                             return false;
                         }
-                        member = fieldSymbol;
+                        if (fieldSymbol.IsStatic)
+                        {
+                            return true;
+                        }
                         receiver = fieldAccess.ReceiverOpt;
                         break;
                     }
@@ -340,12 +344,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var eventAccess = (BoundEventAccess)expr;
                         var eventSymbol = eventAccess.EventSymbol;
-                        if (eventSymbol.IsStatic)
-                        {
-                            return false;
-                        }
                         // https://github.com/dotnet/roslyn/issues/29901 Use AssociatedField for field-like events?
                         member = eventSymbol;
+                        if (eventSymbol.IsStatic)
+                        {
+                            return true;
+                        }
                         receiver = eventAccess.ReceiverOpt;
                         break;
                     }
@@ -353,15 +357,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var propAccess = (BoundPropertyAccess)expr;
                         var propSymbol = propAccess.PropertySymbol;
+                        member = GetBackingFieldIfStructProperty(propSymbol);
                         if (propSymbol.IsStatic)
                         {
-                            return false;
+                            return true;
                         }
-                        member = GetBackingFieldIfStructProperty(propSymbol);
                         receiver = propAccess.ReceiverOpt;
                         break;
                     }
             }
+
+            Debug.Assert(member?.IsStatic != true);
 
             return (object)member != null &&
                 (object)receiver != null &&
@@ -383,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // https://github.com/dotnet/roslyn/issues/29619 Relying on field name
                     // will not work for properties declared in other languages.
                     var fieldName = GeneratedNames.MakeBackingFieldName(property.Name);
-                    return _emptyStructTypeCache.GetStructInstanceFields(containingType).FirstOrDefault(f => f.Name == fieldName);
+                    return _emptyStructTypeCache.GetStructFields(containingType, includeStatic: symbol.IsStatic).FirstOrDefault(f => f.Name == fieldName);
                 }
             }
             return symbol;
@@ -4717,8 +4723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // accumulate so far.
                     if (!resultType.IsValueType || resultType.IsNullableType())
                     {
-                        int containingSlot = getReceiverSlot();
-                        int slot = (containingSlot < 0) ? -1 : GetOrCreateSlot(member, containingSlot);
+                        int slot = getMemberSlot();
                         if (slot > 0 && slot < this.State.Capacity)
                         {
                             var annotation = this.State[slot];
@@ -4747,6 +4752,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             int getReceiverSlot() => (receiverOpt is null) ? -1 : MakeSlot(receiverOpt);
+
+            int getMemberSlot()
+            {
+                int containingSlot = -1;
+                if (!member.IsStatic)
+                {
+                    containingSlot = getReceiverSlot();
+                    if (containingSlot < 0)
+                    {
+                        return -1;
+                    }
+                }
+                return GetOrCreateSlot(member, containingSlot);
+            }
         }
 
         private static SpecialMember? GetNullableOfTMember(CSharpCompilation compilation, Symbol member)
