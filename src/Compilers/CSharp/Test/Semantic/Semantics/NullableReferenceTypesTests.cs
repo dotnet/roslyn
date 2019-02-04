@@ -2073,6 +2073,16 @@ class C
     {
         throw e; // 7
     }
+    void M6()
+    {
+        try
+        {
+        }
+        catch
+        {
+            throw;
+        }
+    }
 }";
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (6,24): error CS8597: Possible null value.

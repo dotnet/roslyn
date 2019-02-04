@@ -5578,7 +5578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitThrow(BoundExpression expr)
         {
             var result = VisitRvalueWithResult(expr);
-            if ((expr.ConstantValue?.IsNull == true && !expr.IsSuppressed) ||
+            if ((expr?.ConstantValue?.IsNull == true && !expr.IsSuppressed) ||
                 result.NullableAnnotation.IsAnyNullable() ||
                 IsTypeParameterDisallowingAnnotation(result.TypeSymbol))
             {
