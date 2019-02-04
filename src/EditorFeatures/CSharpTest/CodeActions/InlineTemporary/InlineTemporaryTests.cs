@@ -3756,7 +3756,7 @@ class C
 {
     public void M()
     {
-        var s2 = string.Replace($""hello"", ""world"");
+        var s2 = string.Replace((string)$""hello"", ""world"");
     }
 }");
         }
@@ -3800,7 +3800,7 @@ class C
 {
     public void M(int x)
     {
-        var s2 = string.Replace($""hello {x}"", ""world"");
+        var s2 = string.Replace((string)$""hello {x}"", ""world"");
     }
 }");
         }
