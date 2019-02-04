@@ -2015,6 +2015,12 @@ class C
     {
         _ = s ?? s.ToString(); // 3
     }
+#nullable disable
+    void M6(string s)
+    {
+#nullable enable
+        _ = s ?? s.ToString();
+    }
 }
 ";
 
@@ -2043,39 +2049,48 @@ class C
     void M(System.Exception? e, C? c)
     {
         _ = c ?? throw e; // 1
-        _ = c ?? throw null;
-        throw null; // ok
+        _ = c ?? throw null; // 2
+        throw null; // 3
     }
     void M2(System.Exception? e, bool b)
     {
         if (b)
-            throw e; // 2
+            throw e; // 4
         else
             throw e!;
     }
     void M3()
     {
-        throw null!;
+        throw this; // 5
     }
-    void M4()
+    public static implicit operator System.Exception?(C c) => throw null!;
+    void M4<TException>(TException? e) where TException : System.Exception
     {
-        throw this; // 3
+        throw e; // 6
     }
-    public static implicit operator System.Exception?(C c) => throw null;
 }";
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (6,24): error CS8597: Possible null value.
                 //         _ = c ?? throw e; // 1
                 Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(6, 24),
                 // (7,13): hidden CS8607: Expression is probably never null.
-                //         _ = c ?? throw null;
+                //         _ = c ?? throw null; // 2
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c").WithLocation(7, 13),
+                // (7,24): error CS8597: Possible null value.
+                //         _ = c ?? throw null; // 2
+                Diagnostic(ErrorCode.WRN_PossibleNull, "null").WithLocation(7, 24),
+                // (8,15): error CS8597: Possible null value.
+                //         throw null; // 3
+                Diagnostic(ErrorCode.WRN_PossibleNull, "null").WithLocation(8, 15),
                 // (13,19): error CS8597: Possible null value.
-                //             throw e; // 2
+                //             throw e; // 4
                 Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(13, 19),
-                // (23,15): error CS0155: The type caught or thrown must be derived from System.Exception
-                //         throw this; // 3
-                Diagnostic(ErrorCode.ERR_BadExceptionType, "this").WithLocation(23, 15)
+                // (19,15): error CS0155: The type caught or thrown must be derived from System.Exception
+                //         throw this; // 5
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "this").WithLocation(19, 15),
+                // (24,15): error CS8597: Possible null value.
+                //         throw e; // 6
+                Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(24, 15)
                 );
         }
 

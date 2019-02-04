@@ -5578,15 +5578,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitThrow(BoundExpression expr)
         {
             var result = VisitRvalueWithResult(expr);
-            // We treat `throw null` like an explicit `throw new System.NullReferenceException()`. The user is being explicit enough, so a warning would be annoying.
-            if (!expr.IsLiteralNull())
+            if ((expr.ConstantValue?.IsNull == true && !expr.IsSuppressed) ||
+                result.NullableAnnotation.IsAnyNullable())
             {
-                if (result.NullableAnnotation.IsAnyNullable())
-                {
-                    ReportSafetyDiagnostic(ErrorCode.WRN_PossibleNull, expr.Syntax);
-                }
+                ReportSafetyDiagnostic(ErrorCode.WRN_PossibleNull, expr.Syntax);
             }
             SetUnreachable();
+            _resultType = default;
         }
 
         public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
