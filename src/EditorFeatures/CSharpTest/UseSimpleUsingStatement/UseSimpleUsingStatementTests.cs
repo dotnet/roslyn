@@ -472,6 +472,50 @@ parseOptions: CSharp8ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestFixAll5()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        {|FixAllInDocument:|}using (var a = b) { }
+        using (var c = d) { }
+    }
+}",
+new TestParameters(parseOptions: CSharp8ParseOptions));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestFixAll6()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        using (var a = b) { }
+        {|FixAllInDocument:|}using (var c = d) { }
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        using (var a = b) { }
+        using var c = d;
+    }
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
         public async Task TestWithFollowingReturn()
         {
             await TestInRegularAndScriptAsync(
