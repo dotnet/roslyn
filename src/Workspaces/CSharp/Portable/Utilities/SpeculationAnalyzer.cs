@@ -635,15 +635,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 ReplacementChangesSemanticsOfWhenNotNull(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull);
         }
 
-        private bool ReplacementChangesSemanticsOfWhenNotNull(ExpressionSyntax originalWhenNotNull, ExpressionSyntax newWhenNotNull)
-        {
-            // We want to look at the first symbol following the `?.` and determine whether the symbols are compatible
-            var originalFirstNode = originalWhenNotNull.GetFirstToken().Parent;
-            var newFirstNode = newWhenNotNull.GetFirstToken().Parent;
-
-            return !SymbolsAreCompatible(originalFirstNode, newFirstNode);
-        }
-
         private bool ReplacementBreaksInterpolation(InterpolationSyntax interpolation, InterpolationSyntax newInterpolation)
         {
             return !TypesAreCompatible(interpolation.Expression, newInterpolation.Expression);

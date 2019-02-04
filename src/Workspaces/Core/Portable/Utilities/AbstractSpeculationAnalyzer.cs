@@ -449,6 +449,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return false;
         }
 
+        protected bool ReplacementChangesSemanticsOfWhenNotNull(TExpressionSyntax originalWhenNotNull, TExpressionSyntax newWhenNotNull)
+        {
+            // We want to look at the first symbol following the `?.` and determine whether the symbols are compatible
+            var originalFirstNode = originalWhenNotNull.GetFirstToken().Parent;
+            var newFirstNode = newWhenNotNull.GetFirstToken().Parent;
+
+            return !SymbolsAreCompatible(originalFirstNode, newFirstNode);
+        }
+
         /// <summary>
         /// Checks whether the semantic symbols for the <see cref="OriginalExpression"/> and <see cref="ReplacedExpression"/> are non-null and compatible.
         /// </summary>

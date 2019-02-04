@@ -515,14 +515,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 ReplacementChangesSemanticsOfWhenNotNull(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull)
         End Function
 
-        Private Function ReplacementChangesSemanticsOfWhenNotNull(originalWhenNotNull As ExpressionSyntax, newWhenNotNull As ExpressionSyntax) As Boolean
-            ' We want to look at the first symbol following the `?.` and determine whether the symbols are compatible
-            Dim originalFirstNode = originalWhenNotNull.GetFirstToken().Parent
-            Dim newFirstNode = newWhenNotNull.GetFirstToken().Parent
-
-            Return Not SymbolsAreCompatible(originalFirstNode, newFirstNode)
-        End Function
-
         Private Function ReplacementBreaksInterpolation(interpolation As InterpolationSyntax, newInterpolation As InterpolationSyntax) As Boolean
             Return Not TypesAreCompatible(interpolation.Expression, newInterpolation.Expression)
         End Function

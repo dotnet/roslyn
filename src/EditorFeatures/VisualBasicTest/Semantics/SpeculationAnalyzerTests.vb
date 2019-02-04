@@ -206,6 +206,27 @@ End Class
             </Code>.Value, "b", True)
         End Sub
 
+        <Fact, WorkItem(11008, "https://github.com/dotnet/roslyn/issues/11008#issuecomment-230786838")>
+        Public Sub SpeculationAnalyzerConditionalFunctionInvocationWithRequiredCast()
+            Test(<Code>
+Class MyString
+    Public Overrides Function ToString() As String
+        Return String.Empty
+    End Function
+
+    Public Shared Widening Operator CType(ByVal val As MyString) As String
+        Return val.ToString()
+    End Operator
+End Class
+Class Program
+    Sub Main()
+        Dim b As MyString = New MyString()
+        [|CStr(b)|]?.ToString()
+    End Sub
+End Class
+            </Code>.Value, "b", True)
+        End Sub
+
         Protected Overrides Function Parse(text As String) As SyntaxTree
             Return SyntaxFactory.ParseSyntaxTree(text)
         End Function
