@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var usingStatement = (UsingStatementSyntax)context.Node;
+            var outermostUsing = (UsingStatementSyntax)context.Node;
 
             var syntaxTree = context.Node.SyntaxTree;
             var options = (CSharpParseOptions)syntaxTree.Options;
@@ -36,17 +37,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 return;
             }
 
-            if (!(usingStatement.Parent is BlockSyntax parentBlock))
+            if (!(outermostUsing.Parent is BlockSyntax parentBlock))
             {
                 // Don't offer on a using statement that is parented by another using statement.
                 // We'll just offer on the topmost using statement.
                 return;
             }
 
+            var innermostUsing = outermostUsing;
+
             // Check that all the immediately nested usings are convertible as well.  
             // We don't want take a sequence of nested-using and only convert some of them.
-            for (var current = usingStatement; current != null; current = current.Statement as UsingStatementSyntax)
+            for (var current = outermostUsing; current != null; current = current.Statement as UsingStatementSyntax)
             {
+                innermostUsing = current;
                 if (current.Declaration == null)
                 {
                     return;
@@ -55,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 
             // Verify that changing this using-statement into a using-declaration will not
             // change semantics.
-            if (!PreservesSemantics(parentBlock, usingStatement))
+            if (!PreservesSemantics(parentBlock, outermostUsing, innermostUsing))
             {
                 return;
             }
@@ -76,14 +80,67 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             // Good to go!
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
-                usingStatement.UsingKeyword.GetLocation(),
+                outermostUsing.UsingKeyword.GetLocation(),
                 option.Notification.Severity,
-                additionalLocations: ImmutableArray.Create(usingStatement.GetLocation()),
+                additionalLocations: ImmutableArray.Create(outermostUsing.GetLocation()),
                 properties: null));
         }
 
         private static bool PreservesSemantics(
-            BlockSyntax parentBlock, UsingStatementSyntax usingStatement)
+            BlockSyntax parentBlock,
+            UsingStatementSyntax outermostUsing,
+            UsingStatementSyntax innermostUsing)
+        {
+            var statements = parentBlock.Statements;
+            var index = statements.IndexOf(outermostUsing);
+
+            return UsingValueDoesNotLeakToFollowingStatements(statements, index) &&
+                   UsingStatementDoesNotInvolveJumps(statements, index, innermostUsing);
+        }
+
+        private static bool UsingStatementDoesNotInvolveJumps(
+            SyntaxList<StatementSyntax> parentStatements, int index, UsingStatementSyntax innermostUsing)
+        {
+
+            // Jumps are not allowed to cross a using declaration in the forward direction, 
+            // and can't go back unless there is a curly brace between the using and the label.
+            // 
+            // We conservatively implement this by disallowing the change if there are gotos/labels 
+            // in the containing block, or inside the using body.  
+
+            // Note: we only have to check up to the `using`, since the checks below in
+            // UsingValueDoesNotLeakToFollowingStatements ensure that there would be no
+            // labels/gotos *after* the using statement.
+            for (int i = 0; i < index; i++)
+            {
+                var priorStatement = parentStatements[i];
+                if (IsGotoOrLabeledStatement(priorStatement))
+                {
+                    return false;
+                }
+            }
+
+            var innerStatements = innermostUsing.Statement is BlockSyntax block
+                ? block.Statements
+                : new SyntaxList<StatementSyntax>(innermostUsing.Statement);
+
+            foreach (var statement in innerStatements)
+            {
+                if (IsGotoOrLabeledStatement(statement))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool IsGotoOrLabeledStatement(StatementSyntax priorStatement)
+            => priorStatement.Kind() == SyntaxKind.GotoStatement ||
+               priorStatement.Kind() == SyntaxKind.LabeledStatement;
+
+        private static bool UsingValueDoesNotLeakToFollowingStatements(
+            SyntaxList<StatementSyntax> statements, int index)
         {
             // Has to be one of the following forms:
             // 1. Using statement is the last statement in the parent.
@@ -94,9 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             //    the resource, instead of afterwards.  Effectly, the statement following
             //    cannot actually execute any code that might depend on the .Dispose method
             //    being called or not.
-            var statements = parentBlock.Statements;
 
-            var index = statements.IndexOf(usingStatement);
             if (index == statements.Count - 1)
             {
                 // very last statement in the block.  Can be converted.

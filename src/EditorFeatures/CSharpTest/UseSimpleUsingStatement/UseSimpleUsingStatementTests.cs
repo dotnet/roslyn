@@ -606,5 +606,45 @@ class C
     }
 }", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        public async Task TestMissingWithJumpInsideToOutside()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        label:
+        [||]using (var a = b)
+        {
+            goto label;
+        }
+    }
+}", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        public async Task TestMissingWithJumpBeforeToAfter()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        {
+            goto label;
+            [||]using (var a = b)
+            {
+            }
+        }
+        label:
+    }
+}", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
+        }
     }
 }
