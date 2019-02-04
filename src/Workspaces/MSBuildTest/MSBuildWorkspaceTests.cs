@@ -22,6 +22,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
+using static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
@@ -1768,7 +1769,7 @@ class C1
         public async Task TestParseOptions_CSharp_LanguageVersion_Default()
         {
             CreateCSharpFiles();
-            await AssertCSParseOptionsAsync(CS.LanguageVersion.CSharp8, options => options.LanguageVersion);
+            await AssertCSParseOptionsAsync(CS.LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), options => options.LanguageVersion);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
