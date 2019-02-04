@@ -6,14 +6,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Basic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicEncapsulateField : AbstractEditorTest
     {
-        public BasicEncapsulateField(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicEncapsulateField))
+        public BasicEncapsulateField(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(BasicEncapsulateField))
         {
         }
 
