@@ -78576,7 +78576,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(33074, "https://github.com/dotnet/roslyn/issues/33074")]
+        [WorkItem(25868, "https://github.com/dotnet/roslyn/issues/25868")]
         public void ByRefTarget_01()
         {
             var source =
@@ -78601,7 +78601,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(33074, "https://github.com/dotnet/roslyn/issues/33074")]
+        [WorkItem(25868, "https://github.com/dotnet/roslyn/issues/25868")]
         public void ByRefTarget_02()
         {
             var source =
@@ -78628,7 +78628,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(33074, "https://github.com/dotnet/roslyn/issues/33074")]
+        [WorkItem(25868, "https://github.com/dotnet/roslyn/issues/25868")]
         public void ByRefTarget_03()
         {
             var source =
@@ -78650,7 +78650,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(33074, "https://github.com/dotnet/roslyn/issues/33074")]
+        [WorkItem(25868, "https://github.com/dotnet/roslyn/issues/25868")]
         public void ByRefTarget_04()
         {
             var source =
@@ -78674,7 +78674,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(33074, "https://github.com/dotnet/roslyn/issues/33074")]
+        [WorkItem(25868, "https://github.com/dotnet/roslyn/issues/25868")]
         public void ByRefTarget_05()
         {
             var source =
@@ -78704,7 +78704,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(33074, "https://github.com/dotnet/roslyn/issues/33074")]
+        [WorkItem(25868, "https://github.com/dotnet/roslyn/issues/25868")]
         public void ByRefTarget_06()
         {
             var source =
@@ -78731,7 +78731,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(33074, "https://github.com/dotnet/roslyn/issues/33074")]
+        [WorkItem(25868, "https://github.com/dotnet/roslyn/issues/25868")]
         public void ByRefTarget_07()
         {
             var source =
@@ -78763,7 +78763,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(33074, "https://github.com/dotnet/roslyn/issues/33074")]
+        [WorkItem(25868, "https://github.com/dotnet/roslyn/issues/25868")]
         public void ByRefTarget_08()
         {
             var source =
@@ -78789,6 +78789,48 @@ class Program
                 // (15,9): warning CS8602: Possible dereference of a null reference.
                 //         y.F.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.F").WithLocation(15, 9));
+        }
+
+        [Fact]
+        [WorkItem(33095, "https://github.com/dotnet/roslyn/issues/33095")]
+        public void ByRefTarget_09()
+        {
+            var source =
+@"class Program
+{
+    static void F(ref string x)
+    {
+        ref string? y = ref x; // 1
+        y = null;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/33095: Missing warning.
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(33095, "https://github.com/dotnet/roslyn/issues/33095")]
+        public void ByRefTarget_10()
+        {
+            var source =
+@"class Program
+{
+    static ref string F1(ref string? x)
+    {
+        return ref x; // 1
+    }
+    static ref string? F2(ref string y)
+    {
+        return ref y; // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/33095: Missing warning.
+            comp.VerifyDiagnostics(
+                // (5,20): warning CS8603: Possible null reference return.
+                //         return ref x; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "x").WithLocation(5, 20));
         }
 
         [Fact]
