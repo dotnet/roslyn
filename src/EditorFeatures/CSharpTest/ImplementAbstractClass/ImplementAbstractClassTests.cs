@@ -501,7 +501,7 @@ abstract class d
 
 class c : d
 {
-    public override void goo(b x = default(b))
+    public override void goo(b x = default)
     {
         throw new System.NotImplementedException();
     }
@@ -1636,12 +1636,12 @@ sealed class [|D|] : B
 @"struct V { }
 abstract class B
 {
-    public abstract void M1(int i = 0, string s = null, int? j = null, V v = default(V));
+    public abstract void M1(int i = 0, string s = null, int? j = null, V v = default);
     public abstract void M2<T>(T? i = null) where T : struct;
 }
 sealed class D : B
 {
-    public override void M1(int i = 0, string s = null, int? j = null, V v = default(V))
+    public override void M1(int i = 0, string s = null, int? j = null, V v = default)
     {
         throw new System.NotImplementedException();
     }

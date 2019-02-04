@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (requiredVersion == LanguageVersion.Preview.MapSpecifiedToEffectiveVersion() &&
                         options.SpecifiedLanguageVersion == LanguageVersion.Default)
                     {
-                        return new CSDiagnosticInfo(ErrorCode.WRN_FeatureInPreview, feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
+                        return new CSDiagnosticInfo(ErrorCode.WRN_FeatureInPreview, feature.Localize());
                     }
                 }
 

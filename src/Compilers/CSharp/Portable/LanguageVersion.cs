@@ -130,14 +130,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         LatestMajor = int.MaxValue - 2,
 
         /// <summary>
-        /// The latest supported version of the language.
-        /// </summary>
-        Latest = int.MaxValue - 1,
-
-        /// <summary>
         /// Preview of the next language version.
         /// </summary>
-        Preview = int.MaxValue,
+        Preview = int.MaxValue - 1,
+
+        /// <summary>
+        /// The latest supported version of the language.
+        /// </summary>
+        Latest = int.MaxValue,
 
         /// <summary>
         /// The default language version, which is the preview version, but produces
