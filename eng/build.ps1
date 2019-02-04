@@ -323,6 +323,10 @@ function TestUsingOptimizedRunner() {
             # Minimize all windows to avoid interference during integration test runs
             $shell = New-Object -ComObject "Shell.Application"
             $shell.MinimizeAll()
+
+            # Terminate Explorer to avoid interference
+            Set-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name AutoRestartShell -Value 0
+            Stop-Process -ProcessName explorer -Force
         }
     }
 
