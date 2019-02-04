@@ -11,7 +11,7 @@ using EnvDTE;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
-
+using Xunit.Abstractions;
 using Process = System.Diagnostics.Process;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public string InstallationPath { get; }
 
-        public VisualStudioInstance(Process hostProcess, DTE dte, ImmutableHashSet<string> supportedPackageIds, string installationPath)
+        public VisualStudioInstance(Process hostProcess, DTE dte, ImmutableHashSet<string> supportedPackageIds, string installationPath, ITestOutputHelper testOutputHelper)
         {
             HostProcess = hostProcess;
             Dte = dte;
@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             SendKeys = new SendKeys(this);
 
             // Ensure we are in a known 'good' state by cleaning up anything changed by the previous instance
-            CleanUp();
+            CleanUp(testOutputHelper);
         }
 
         private static string GetIpcClientChannelName(Process hostProcess)
@@ -189,12 +189,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public bool IsRunning => !HostProcess.HasExited;
 
-        public void CleanUp()
+        public void CleanUp(ITestOutputHelper testOutputHelper)
         {
             Workspace.CleanUpWaitingService();
             Workspace.CleanUpWorkspace();
             SolutionExplorer.CleanUpOpenSolution();
-            Workspace.WaitForAllAsyncOperations();
+            var longRunningOperations = Workspace.WaitForAllAsyncOperations();
+            foreach (var pair in longRunningOperations)
+            {
+                testOutputHelper.WriteLine($"{pair.Key}: {pair.Value.TotalMilliseconds}ms");
+            }
 
             // Close any windows leftover from previous (failed) tests
             InteractiveWindow.CloseInteractiveWindow();
@@ -208,7 +212,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             StartPage.SetEnabled(false);
         }
 
-        public void Close(bool exitHostProcess = true)
+        public void Close(ITestOutputHelper testOutputHelper, bool exitHostProcess = true)
         {
             if (!IsRunning)
             {
@@ -218,7 +222,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             try
             {
-                CleanUp();
+                CleanUp(testOutputHelper);
             }
             catch
             {

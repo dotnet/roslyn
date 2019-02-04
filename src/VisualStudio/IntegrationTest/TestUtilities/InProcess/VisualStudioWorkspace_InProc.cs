@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -123,8 +124,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void WaitForAsyncOperations(string featuresToWaitFor, bool waitForWorkspaceFirst = true)
             => GetWaitingService().WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);
 
-        public void WaitForAllAsyncOperations(params string[] featureNames)
-            => GetWaitingService().WaitForAllAsyncOperations(featureNames);
+        public KeyValuePair<string, TimeSpan>[] WaitForAllAsyncOperations(params string[] featureNames)
+            => GetWaitingService().WaitForAllAsyncOperations(featureNames).ToArray();
 
         private static void LoadRoslynPackage()
         {

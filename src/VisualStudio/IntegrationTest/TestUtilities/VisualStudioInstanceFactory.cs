@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio.Setup.Configuration;
 using RunTests;
+using Xunit.Abstractions;
+using Xunit.Sdk;
 using Process = System.Diagnostics.Process;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
@@ -106,28 +108,28 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <summary>
         /// Returns a <see cref="VisualStudioInstanceContext"/>, starting a new instance of Visual Studio if necessary.
         /// </summary>
-        public async Task<VisualStudioInstanceContext> GetNewOrUsedInstanceAsync(ImmutableHashSet<string> requiredPackageIds)
+        public async Task<VisualStudioInstanceContext> GetNewOrUsedInstanceAsync(ImmutableHashSet<string> requiredPackageIds, ITestOutputHelper testOutputHelper)
         {
             try
             {
                 bool shouldStartNewInstance = ShouldStartNewInstance(requiredPackageIds);
-                await UpdateCurrentlyRunningInstanceAsync(requiredPackageIds, shouldStartNewInstance).ConfigureAwait(true);
+                await UpdateCurrentlyRunningInstanceAsync(requiredPackageIds, shouldStartNewInstance, testOutputHelper).ConfigureAwait(true);
 
-                return new VisualStudioInstanceContext(_currentlyRunningInstance, this);
+                return new VisualStudioInstanceContext(_currentlyRunningInstance, this, testOutputHelper);
             }
             catch
             {
                 // Make sure the next test doesn't try to reuse the same instance
-                NotifyCurrentInstanceContextDisposed(canReuse: false);
+                NotifyCurrentInstanceContextDisposed(canReuse: false, testOutputHelper);
                 throw;
             }
         }
 
-        internal void NotifyCurrentInstanceContextDisposed(bool canReuse)
+        internal void NotifyCurrentInstanceContextDisposed(bool canReuse, ITestOutputHelper testOutputHelper)
         {
             if (!canReuse)
             {
-                _currentlyRunningInstance?.Close();
+                _currentlyRunningInstance?.Close(testOutputHelper);
                 _currentlyRunningInstance = null;
             }
         }
@@ -147,7 +149,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <summary>
         /// Starts up a new <see cref="VisualStudioInstance"/>, shutting down any instances that are already running.
         /// </summary>
-        private async Task UpdateCurrentlyRunningInstanceAsync(ImmutableHashSet<string> requiredPackageIds, bool shouldStartNewInstance)
+        private async Task UpdateCurrentlyRunningInstanceAsync(ImmutableHashSet<string> requiredPackageIds, bool shouldStartNewInstance, ITestOutputHelper testOutputHelper)
         {
             Process hostProcess;
             DTE dte;
@@ -157,7 +159,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             if (shouldStartNewInstance)
             {
                 // We are starting a new instance, so ensure we close the currently running instance, if it exists
-                _currentlyRunningInstance?.Close();
+                _currentlyRunningInstance?.Close(testOutputHelper);
 
                 var instance = LocateVisualStudioInstance(requiredPackageIds) as ISetupInstance2;
                 supportedPackageIds = ImmutableHashSet.CreateRange(instance.GetPackages().Select((supportedPackage) => supportedPackage.GetId()));
@@ -190,10 +192,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 supportedPackageIds = _currentlyRunningInstance.SupportedPackageIds;
                 installationPath = _currentlyRunningInstance.InstallationPath;
 
-                _currentlyRunningInstance.Close(exitHostProcess: false);
+                _currentlyRunningInstance.Close(testOutputHelper, exitHostProcess: false);
             }
 
-            _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte, supportedPackageIds, installationPath);
+            _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte, supportedPackageIds, installationPath, testOutputHelper);
         }
 
         private static IEnumerable<ISetupInstance> EnumerateVisualStudioInstances()
@@ -325,7 +327,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public void Dispose()
         {
-            _currentlyRunningInstance?.Close();
+            _currentlyRunningInstance?.Close(new TestOutputHelper());
             _currentlyRunningInstance = null;
 
             AppDomain.CurrentDomain.FirstChanceException -= FirstChanceExceptionHandler;
