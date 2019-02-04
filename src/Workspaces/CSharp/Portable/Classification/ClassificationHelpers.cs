@@ -114,6 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.DoStatement:
                 case SyntaxKind.ForStatement:
                 case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachVariableStatement:
                 // Checked Statements
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.ElseClause:

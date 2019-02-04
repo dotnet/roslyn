@@ -727,9 +727,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var destinationType = targetType.TypeSymbol;
                 if ((object)sourceType != null && IsNullabilityMismatch(destinationType, sourceType))
                 {
-                    ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, value.Syntax, sourceType, destinationType);
+                    ReportNullabilityMismatchInAssignment(value.Syntax, sourceType, destinationType);
                 }
             }
+        }
+
+        private void ReportNullabilityMismatchInAssignment(SyntaxNode syntaxNode, object sourceType, object destinationType)
+        {
+            ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, syntaxNode, sourceType, destinationType);
         }
 
         /// <summary>
@@ -806,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
                 else if (EmptyStructTypeCache.IsTrackableStructType(targetType.TypeSymbol) &&
-                    targetType.TypeSymbol.Equals(valueType.TypeSymbol, TypeCompareKind.AllIgnoreOptions))
+                    areEquivalentTypes(targetType, valueType))
                 {
                     InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, isDefaultValue: IsDefaultValue(value), isByRefTarget: IsByRefTarget(targetSlot), slotWatermark: GetSlotWatermark());
                 }
@@ -1540,15 +1545,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var placeholders = placeholderBuilder.ToImmutableAndFree();
 
             TypeSymbol bestType = null;
-            bool hadNestedNullabilityMismatch = false;
             if (!node.HasErrors)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, out hadNestedNullabilityMismatch, ref useSiteDiagnostics);
-                if (hadNestedNullabilityMismatch)
-                {
-                    ReportSafetyDiagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, node.Syntax);
-                }
+                bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, ref useSiteDiagnostics);
             }
 
             TypeSymbolWithAnnotations inferredType;
@@ -1561,16 +1561,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 inferredType = TypeSymbolWithAnnotations.Create(bestType);
             }
 
-            if ((object)bestType != null && !inferredType.IsValueType)
+            if ((object)bestType != null)
             {
-                // Note: so long as we have a best type, we can proceed. But we don't want to report warnings on nested nullability
-
                 // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
                 for (int i = 0; i < n; i++)
                 {
                     var placeholder = placeholders[i];
                     resultTypes[i] = ApplyConversion(placeholder, placeholder, conversions[i], inferredType, resultTypes[i], checkConversion: true,
-                        fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: !hadNestedNullabilityMismatch, reportTopLevelWarnings: false);
+                        fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: true, reportTopLevelWarnings: false);
                 }
 
                 // Set top-level nullability on inferred element type
@@ -1621,7 +1619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var placeholders = placeholdersBuilder.ToImmutableAndFree();
-            TypeSymbol bestType = BestTypeInferrer.InferBestType(placeholders, walker._conversions, hadNullabilityMismatch: out _, ref useSiteDiagnostics);
+            TypeSymbol bestType = BestTypeInferrer.InferBestType(placeholders, walker._conversions, ref useSiteDiagnostics);
 
             TypeSymbolWithAnnotations inferredType;
             if ((object)bestType != null)
@@ -2330,24 +2328,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //   var c = true ? a : b;
                 BoundExpression consequencePlaceholder = CreatePlaceholderIfNecessary(consequence, consequenceResult);
                 BoundExpression alternativePlaceholder = CreatePlaceholderIfNecessary(alternative, alternativeResult);
-                bool hadNullabilityMismatch;
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 // https://github.com/dotnet/roslyn/issues/30432: InferBestTypeForConditionalOperator should use node.IsRef.
-                resultType = BestTypeInferrer.InferBestTypeForConditionalOperator(consequencePlaceholder, alternativePlaceholder, _conversions, out _, out hadNullabilityMismatch, ref useSiteDiagnostics);
-                if (hadNullabilityMismatch)
-                {
-                    ReportSafetyDiagnostic(
-                        ErrorCode.WRN_NoBestNullabilityConditionalExpression,
-                        node.Syntax,
-                        GetTypeAsDiagnosticArgument(consequenceResult.TypeSymbol),
-                        GetTypeAsDiagnosticArgument(alternativeResult.TypeSymbol));
-                }
+                resultType = BestTypeInferrer.InferBestTypeForConditionalOperator(consequencePlaceholder, alternativePlaceholder, _conversions, out _, ref useSiteDiagnostics);
             }
 
             if ((object)resultType != null)
             {
-                // Let's pretend the result type is nullable, in order to avoid warnings reported for top level nullability by ApplyConversion.
-                var resultTypeWithAnnotations = TypeSymbolWithAnnotations.Create(resultType, resultType.IsValueType ? NullableAnnotation.Unknown : NullableAnnotation.Nullable);
+                var resultTypeWithAnnotations = TypeSymbolWithAnnotations.Create(resultType);
                 TypeSymbolWithAnnotations convertedConsequenceResult = default;
                 TypeSymbolWithAnnotations convertedAlternativeResult = default;
 
@@ -2362,7 +2350,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         checkConversion: true,
                         fromExplicitCast: false,
                         useLegacyWarnings: false,
-                        AssignmentKind.Assignment);
+                        AssignmentKind.Assignment,
+                        reportTopLevelWarnings: false);
                 }
 
                 if (!isConstantTrue)
@@ -2376,7 +2365,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         checkConversion: true,
                         fromExplicitCast: false,
                         useLegacyWarnings: false,
-                        AssignmentKind.Assignment);
+                        AssignmentKind.Assignment,
+                        reportTopLevelWarnings: false);
                 }
 
                 if (convertedAlternativeResult.IsNull)
@@ -3145,7 +3135,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterRefKinds: out ImmutableArray<RefKind> parameterRefKinds);
 
             refKinds.Free();
-            bool hadNullabilityMismatch;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var result = MethodTypeInferrer.Infer(
                 _binder,
@@ -3155,17 +3144,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterTypes,
                 parameterRefKinds,
                 arguments,
-                out hadNullabilityMismatch,
                 ref useSiteDiagnostics,
                 getTypeWithAnnotationOpt: s_getTypeWithSpeakableAnnotations);
 
             if (!result.Success)
             {
                 return method;
-            }
-            if (hadNullabilityMismatch)
-            {
-                ReportSafetyDiagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, node.Syntax, definition);
             }
             return definition.Construct(result.InferredTypeArguments);
         }
@@ -3289,9 +3273,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var conversion = GenerateConversion(_conversions, sourceExpression, sourceType, destinationType, fromExplicitCast: false, extensionMethodThisArgument: false);
             bool canConvertNestedNullability = conversion.Exists;
-            if (!canConvertNestedNullability && reportMismatch)
+            if (!canConvertNestedNullability && reportMismatch && !sourceExpression.IsSuppressed)
             {
-                ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, sourceExpression.Syntax, GetTypeAsDiagnosticArgument(sourceType), destinationType);
+                ReportNullabilityMismatchInAssignment(sourceExpression.Syntax, GetTypeAsDiagnosticArgument(sourceType), destinationType);
             }
             return conversion;
         }
@@ -4104,7 +4088,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, GetTypeAsDiagnosticArgument(operandType.TypeSymbol), targetType);
+                        ReportNullabilityMismatchInAssignment(node.Syntax, GetTypeAsDiagnosticArgument(operandType.TypeSymbol), targetType);
                     }
                 }
             }
@@ -4131,7 +4115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, operandType.TypeSymbol, targetType.TypeSymbol);
+                    ReportNullabilityMismatchInAssignment(node.Syntax, operandType.TypeSymbol, targetType.TypeSymbol);
                 }
             }
 
@@ -4288,12 +4272,183 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
-            // https://github.com/dotnet/roslyn/issues/29618: Assign each of the deconstructed values,
-            // and handle deconstruction conversion for node.Right.
-            VisitLvalue(node.Left);
-            VisitRvalue(node.Right.Operand);
+            var left = node.Left;
+            var right = node.Right;
+            var variables = GetDeconstructionAssignmentVariables(left);
+
+            if (node.HasErrors)
+            {
+                // In the case of errors, simply visit the right as an r-value to update
+                // any nullability state even though deconstruction is skipped.
+                VisitRvalue(right.Operand);
+            }
+            else
+            {
+                VisitDeconstructionArguments(variables, right.Conversion, right.Operand);
+            }
+
+            variables.FreeAll(v => v.NestedVariables);
+
+            // https://github.com/dotnet/roslyn/issues/33011: Result type should be inferred.
             SetResult(node);
             return null;
+        }
+
+        private void VisitDeconstructionArguments(ArrayBuilder<DeconstructionVariable> variables, Conversion conversion, BoundExpression right)
+        {
+            Debug.Assert(conversion.Kind == ConversionKind.Deconstruction);
+
+            int n = variables.Count;
+
+            if (!conversion.DeconstructionInfo.IsDefault)
+            {
+                VisitRvalue(right);
+
+                var invocation = conversion.DeconstructionInfo.Invocation as BoundCall;
+                var deconstructMethod = invocation?.Method;
+
+                if ((object)deconstructMethod != null)
+                {
+                    if (!invocation.InvokedAsExtensionMethod)
+                    {
+                        CheckPossibleNullReceiver(right);
+                    }
+                    else
+                    {
+                        // https://github.com/dotnet/roslyn/issues/33006: Check nullability of `this` argument.
+                    }
+
+                    // https://github.com/dotnet/roslyn/issues/33006: Update `Deconstruct` method
+                    // based on inferred receiver type, and check constraints.
+
+                    var parameters = deconstructMethod.Parameters;
+                    int offset = invocation.InvokedAsExtensionMethod ? 1 : 0;
+                    Debug.Assert(parameters.Length - offset == n);
+
+                    for (int i = 0; i < n; i++)
+                    {
+                        var variable = variables[i];
+                        var underlyingConversion = conversion.UnderlyingConversions[i];
+                        var nestedVariables = variable.NestedVariables;
+                        if (nestedVariables != null)
+                        {
+                            // https://github.com/dotnet/roslyn/issues/33005: Not handling deconstructing argument of Deconstruct.
+                            //VisitDeconstructionArguments(nestedVariables, underlyingConversion, arg);
+                        }
+                        else
+                        {
+                            var parameter = parameters[i + offset];
+                            VisitArgumentConversion(variable.Expression, underlyingConversion, parameter.RefKind, parameter, parameter.Type, variable.Type, extensionMethodThisArgument: false);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                var rightParts = GetDeconstructionRightParts(right);
+                Debug.Assert(rightParts.Length == n);
+
+                for (int i = 0; i < n; i++)
+                {
+                    var variable = variables[i];
+                    var rightPart = rightParts[i];
+                    var nestedVariables = variable.NestedVariables;
+                    if (nestedVariables != null)
+                    {
+                        VisitDeconstructionArguments(nestedVariables, conversion.UnderlyingConversions[i], rightPart);
+                    }
+                    else
+                    {
+                        int targetSlot = MakeSlot(variable.Expression);
+                        var targetType = variable.Type;
+                        var valueType = VisitOptionalImplicitConversion(rightPart, targetType, useLegacyWarnings: true, AssignmentKind.Assignment);
+                        int valueSlot = MakeSlot(rightPart);
+                        TrackNullableStateForAssignment(rightPart, targetType, targetSlot, valueType, valueSlot);
+                    }
+                }
+            }
+        }
+
+        private readonly struct DeconstructionVariable
+        {
+            internal readonly BoundExpression Expression;
+            internal readonly TypeSymbolWithAnnotations Type;
+            internal readonly ArrayBuilder<DeconstructionVariable> NestedVariables;
+
+            internal DeconstructionVariable(BoundExpression expression, TypeSymbolWithAnnotations type)
+            {
+                Expression = expression;
+                Type = type;
+                NestedVariables = null;
+            }
+
+            internal DeconstructionVariable(ArrayBuilder<DeconstructionVariable> nestedVariables)
+            {
+                Expression = null;
+                Type = default;
+                NestedVariables = nestedVariables;
+            }
+        }
+
+        private ArrayBuilder<DeconstructionVariable> GetDeconstructionAssignmentVariables(BoundTupleExpression tuple)
+        {
+            var arguments = tuple.Arguments;
+            var builder = ArrayBuilder<DeconstructionVariable>.GetInstance(arguments.Length);
+            foreach (var argument in arguments)
+            {
+                builder.Add(getDeconstructionAssignmentVariable(argument));
+            }
+            return builder;
+
+            DeconstructionVariable getDeconstructionAssignmentVariable(BoundExpression expr)
+            {
+                switch (expr.Kind)
+                {
+                    case BoundKind.TupleLiteral:
+                    case BoundKind.ConvertedTupleLiteral:
+                        return new DeconstructionVariable(GetDeconstructionAssignmentVariables((BoundTupleExpression)expr));
+                    default:
+                        VisitLvalue(expr);
+                        return new DeconstructionVariable(expr, _resultType);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Return the sub-expressions for the righthand side of a deconstruction
+        /// assignment. cf. LocalRewriter.GetRightParts.
+        /// </summary>
+        private ImmutableArray<BoundExpression> GetDeconstructionRightParts(BoundExpression expr)
+        {
+            switch (expr.Kind)
+            {
+                case BoundKind.TupleLiteral:
+                case BoundKind.ConvertedTupleLiteral:
+                    return ((BoundTupleExpression)expr).Arguments;
+                case BoundKind.Conversion:
+                    {
+                        var conv = (BoundConversion)expr;
+                        switch (conv.ConversionKind)
+                        {
+                            case ConversionKind.Identity:
+                            case ConversionKind.ImplicitTupleLiteral:
+                                return GetDeconstructionRightParts(conv.Operand);
+                        }
+                    }
+                    break;
+            }
+
+            if (expr.Type is TupleTypeSymbol tupleType)
+            {
+                // https://github.com/dotnet/roslyn/issues/33011: Should include conversion.UnderlyingConversions[i].
+                // For instance, Boxing conversions (see Deconstruction_ImplicitBoxingConversion_02) and
+                // ImplicitNullable conversions (see Deconstruction_ImplicitNullableConversion_02).
+                VisitRvalue(expr);
+                var fields = tupleType.TupleElements;
+                return fields.SelectAsArray((f, e) => (BoundExpression)new BoundFieldAccess(e.Syntax, e, f, constantValueOpt: null), expr);
+            }
+
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override BoundNode VisitIncrementOperator(BoundIncrementOperator node)
