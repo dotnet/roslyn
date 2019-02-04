@@ -2046,9 +2046,12 @@ class C
         _ = c ?? throw null;
         throw null; // ok
     }
-    void M2(System.Exception? e)
+    void M2(System.Exception? e, bool b)
     {
-        throw e; // 2
+        if (b)
+            throw e; // 2
+        else
+            throw e!;
     }
     void M3()
     {
@@ -2061,18 +2064,18 @@ class C
     public static implicit operator System.Exception?(C c) => throw null;
 }";
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,24): warning CS8601: Possible null reference assignment.
+                // (6,24): error CS8597: Possible null value.
                 //         _ = c ?? throw e; // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "e").WithLocation(6, 24),
+                Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(6, 24),
                 // (7,13): hidden CS8607: Expression is probably never null.
                 //         _ = c ?? throw null;
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c").WithLocation(7, 13),
-                // (12,15): warning CS8601: Possible null reference assignment.
-                //         throw e; // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "e").WithLocation(12, 15),
-                // (20,15): error CS0155: The type caught or thrown must be derived from System.Exception
+                // (13,19): error CS8597: Possible null value.
+                //             throw e; // 2
+                Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(13, 19),
+                // (23,15): error CS0155: The type caught or thrown must be derived from System.Exception
                 //         throw this; // 3
-                Diagnostic(ErrorCode.ERR_BadExceptionType, "this").WithLocation(20, 15)
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "this").WithLocation(23, 15)
                 );
         }
 

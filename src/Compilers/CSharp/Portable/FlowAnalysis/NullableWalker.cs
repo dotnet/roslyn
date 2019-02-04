@@ -1223,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Verify Visit method set _result.
             TypeSymbolWithAnnotations resultType = _resultType;
             Debug.Assert((object)resultType.TypeSymbol != _invalidType.TypeSymbol);
-            Debug.Assert(node.Kind == BoundKind.ThrowExpression || AreCloseEnough(resultType.TypeSymbol, node.Type));
+            Debug.Assert(AreCloseEnough(resultType.TypeSymbol, node.Type));
 #endif
             if (_callbackOpt != null)
             {
@@ -1844,7 +1844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             // We need to continue the walk regardless of whether the receiver should be updated.
                             var receiverType = conditional.Receiver.Type;
-                            if (IsTrackableType(receiverType))
+                            if (PossiblyNullableType(receiverType))
                             {
                                 slotBuilder.Add(slot);
                             }
@@ -1878,7 +1878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // we need more special handling here
 
                         slot = MakeSlot(operand);
-                        if (slot > 0 && IsTrackableType(operand.Type))
+                        if (slot > 0 && PossiblyNullableType(operand.Type))
                         {
                             // If we got a slot then all previous BoundCondtionalReceivers must have been handled.
                             Debug.Assert(_lastConditionalAccessSlot == -1);
@@ -1897,7 +1897,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool IsTrackableType(TypeSymbol operandType)
+        private static bool PossiblyNullableType(TypeSymbol operandType)
             => !(operandType is null) && (!operandType.IsValueType || operandType.IsNullableType());
 
         private static void MarkSlotsAsNotNullable(ArrayBuilder<int> slots, ref LocalState stateToUpdate)
@@ -2790,7 +2790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var argument = arguments[i];
                 var argumentType = argument.Type;
-                if (!IsTrackableType(argumentType))
+                if (!PossiblyNullableType(argumentType))
                 {
                     continue;
                 }
@@ -4738,7 +4738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // We are supposed to track information for the node. Use whatever we managed to
                     // accumulate so far.
-                    if (IsTrackableType(resultType.TypeSymbol))
+                    if (PossiblyNullableType(resultType.TypeSymbol))
                     {
                         int slot = MakeMemberSlot(receiverOpt, member);
                         if (slot > 0 && slot < this.State.Capacity)
@@ -5125,7 +5125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NullableAnnotation nullableAnnotation = NullableAnnotation.Unknown;
                 var type = node.Type;
 
-                if (IsTrackableType(type))
+                if (PossiblyNullableType(type))
                 {
                     var operandType = _resultType;
                     switch (node.Conversion.Kind)
@@ -5577,12 +5577,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitThrow(BoundExpression expr)
         {
-            VisitRvalue(expr);
+            var result = VisitRvalueWithResult(expr);
             // We treat `throw null` like an explicit `throw new System.NullReferenceException()`. The user is being explicit enough, so a warning would be annoying.
             if (!expr.IsLiteralNull())
             {
-                var exceptionType = TypeSymbolWithAnnotations.Create(compilation.GetWellKnownType(WellKnownType.System_Exception), NullableAnnotation.NotNullable);
-                VisitOptionalImplicitConversion(expr, targetTypeOpt: exceptionType, useLegacyWarnings: false, AssignmentKind.Assignment);
+                if (result.NullableAnnotation.IsAnyNullable())
+                {
+                    ReportSafetyDiagnostic(ErrorCode.WRN_PossibleNull, expr.Syntax);
+                }
             }
             SetUnreachable();
         }

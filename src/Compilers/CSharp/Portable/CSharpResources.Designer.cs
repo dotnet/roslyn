@@ -15575,6 +15575,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Possible null value..
+        /// </summary>
+        internal static string WRN_PossibleNull {
+            get {
+                return ResourceManager.GetString("WRN_PossibleNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Possible null value..
+        /// </summary>
+        internal static string WRN_PossibleNull_Title {
+            get {
+                return ResourceManager.GetString("WRN_PossibleNull_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: new protected member declared in sealed class.
         /// </summary>
         internal static string WRN_ProtectedInSealed {
