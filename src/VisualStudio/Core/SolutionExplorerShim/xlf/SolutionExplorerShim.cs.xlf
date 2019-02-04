@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Warning">
         <source>Warning</source>
-        <target state="translated">Varování</target>
+        <target state="translated">Upozornění</target>
         <note />
       </trans-unit>
       <trans-unit id="Info">
@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Path">
         <source>Path</source>
-        <target state="translated">Cesta</target>
+        <target state="translated">PATH</target>
         <note />
       </trans-unit>
       <trans-unit id="Category">
