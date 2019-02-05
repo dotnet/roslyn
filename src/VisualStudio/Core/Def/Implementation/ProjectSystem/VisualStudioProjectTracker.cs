@@ -114,6 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        [Obsolete("This is a compatibility shim for TypeScript and F#; please do not use it.")]
         internal bool TryGetProjectByBinPath(string filePath, out AbstractProject project)
         {
             var projectsWithBinPath = _workspace.CurrentSolution.Projects.Where(p => string.Equals(p.OutputFilePath, filePath, StringComparison.OrdinalIgnoreCase)).ToList();
@@ -130,6 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        [Obsolete("This is a compatibility shim for TypeScript and F#; please do not use it.")]
         private sealed class StubProject : AbstractProject
         {
             private readonly ProjectId _id;

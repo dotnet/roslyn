@@ -78,6 +78,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                     ProjectGuid = GetProjectIDGuid(hierarchy),
                 });
 
+            ((VisualStudioWorkspaceImpl)Workspace).AddProjectRuleSetFileToInternalMaps(
+                VisualStudioProject,
+                () => VisualStudioProjectOptionsProcessor.EffectiveRuleSetFilePath);
+
             // Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace 
             // by assigning the value of the project's root namespace to it. So various feature can choose to 
             // use it for their own purpose.
@@ -180,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             VisualStudioProject.RemoveSourceFile(filename);
         }
 
-        private void RefreshBinOutputPath()
+        protected void RefreshBinOutputPath()
         {
             var storage = Hierarchy as IVsBuildPropertyStorage;
             if (storage == null)

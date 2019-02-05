@@ -752,20 +752,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if (targetSlot <= 0)
+                if (targetSlot <= 0 || targetSlot == valueSlot)
                 {
                     return;
                 }
 
-                bool isByRefTarget = IsByRefTarget(targetSlot);
                 if (targetSlot >= this.State.Capacity) Normalize(ref this.State);
 
-                // https://github.com/dotnet/roslyn/issues/29968 Remove isByRefTarget check?
-                var newState = isByRefTarget ?
-                    // Since reference can point to the heap, we cannot assume the value is not null after this assignment,
-                    // regardless of what value is being assigned.
-                    targetType.NullableAnnotation.IsAnyNullable() ? targetType.NullableAnnotation : NullableAnnotation.Unknown :
-                    valueType.NullableAnnotation;
+                var newState = valueType.NullableAnnotation;
                 this.State[targetSlot] = newState;
                 if (newState.IsAnyNullable() && _tryState.HasValue)
                 {
@@ -774,8 +768,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _tryState = state;
                 }
 
-                // https://github.com/dotnet/roslyn/issues/29968 Might this clear state that
-                // should be copied in InheritNullableStateOfTrackableType?
                 InheritDefaultState(targetSlot);
 
                 if (targetType.IsReferenceType)
@@ -795,7 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (valueSlot > 0)
                         {
-                            InheritNullableStateOfTrackableType(targetSlot, valueSlot, isByRefTarget, slotWatermark: GetSlotWatermark());
+                            InheritNullableStateOfTrackableType(targetSlot, valueSlot, slotWatermark: GetSlotWatermark());
                         }
                     }
                 }
@@ -807,13 +799,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // When that issue is fixed, Nullable<T> should be handled there instead.
                     if (valueSlot > 0 && areEquivalentTypes(targetType, valueType))
                     {
-                        InheritNullableStateOfTrackableType(targetSlot, valueSlot, isByRefTarget, slotWatermark: GetSlotWatermark());
+                        InheritNullableStateOfTrackableType(targetSlot, valueSlot, slotWatermark: GetSlotWatermark());
                     }
                 }
                 else if (EmptyStructTypeCache.IsTrackableStructType(targetType.TypeSymbol) &&
                     areEquivalentTypes(targetType, valueType))
                 {
-                    InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, isDefaultValue: IsDefaultValue(value), isByRefTarget: IsByRefTarget(targetSlot), slotWatermark: GetSlotWatermark());
+                    InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, isDefaultValue: IsDefaultValue(value), slotWatermark: GetSlotWatermark());
                 }
             }
 
@@ -822,25 +814,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private int GetSlotWatermark() => this.nextVariableSlot;
-
-        private bool IsByRefTarget(int slot)
-        {
-            if (slot > 0)
-            {
-                Symbol associatedNonMemberSymbol = GetNonMemberSymbol(slot);
-
-                switch (associatedNonMemberSymbol.Kind)
-                {
-                    case SymbolKind.Local:
-                        return ((LocalSymbol)associatedNonMemberSymbol).RefKind != RefKind.None;
-                    case SymbolKind.Parameter:
-                        var parameter = (ParameterSymbol)associatedNonMemberSymbol;
-                        return !parameter.IsThis && parameter.RefKind != RefKind.None;
-                }
-            }
-
-            return false;
-        }
 
         private void ReportNonSafetyDiagnostic(SyntaxNode syntax)
         {
@@ -876,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void InheritNullableStateOfTrackableStruct(TypeSymbol targetType, int targetSlot, int valueSlot, bool isDefaultValue, bool isByRefTarget, int slotWatermark)
+        private void InheritNullableStateOfTrackableStruct(TypeSymbol targetType, int targetSlot, int valueSlot, bool isDefaultValue, int slotWatermark)
         {
             Debug.Assert(targetSlot > 0);
             Debug.Assert(EmptyStructTypeCache.IsTrackableStructType(targetType));
@@ -885,12 +858,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // See ModifyMembers_StructPropertyNoBackingField and PropertyCycle_Struct tests.
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(targetType))
             {
-                InheritNullableStateOfMember(targetSlot, valueSlot, field, isDefaultValue: isDefaultValue, isByRefTarget: isByRefTarget, slotWatermark);
+                InheritNullableStateOfMember(targetSlot, valueSlot, field, isDefaultValue: isDefaultValue, slotWatermark);
             }
         }
 
         // 'slotWatermark' is used to avoid inheriting members from inherited members.
-        private void InheritNullableStateOfMember(int targetContainerSlot, int valueContainerSlot, Symbol member, bool isDefaultValue, bool isByRefTarget, int slotWatermark)
+        private void InheritNullableStateOfMember(int targetContainerSlot, int valueContainerSlot, Symbol member, bool isDefaultValue, int slotWatermark)
         {
             Debug.Assert(targetContainerSlot > 0);
             Debug.Assert(valueContainerSlot <= slotWatermark);
@@ -906,14 +879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NullableAnnotation value = (isDefaultValue && fieldOrPropertyType.IsReferenceType) ?
                     NullableAnnotation.Nullable :
                     fieldOrPropertyType.NullableAnnotation;
-                // https://github.com/dotnet/roslyn/issues/29968 Remove isByRefTarget check?
-                if (isByRefTarget)
-                {
-                    // This is a member access through a by ref entity and it isn't considered declared as not-nullable.
-                    // Since reference can point to the heap, we cannot assume the member doesn't have null value
-                    // after this assignment, regardless of what value is being assigned.
-                }
-                else if (valueContainerSlot > 0)
+                if (valueContainerSlot > 0)
                 {
                     int valueMemberSlot = VariableSlot(member, valueContainerSlot);
                     value = valueMemberSlot > 0 && valueMemberSlot < this.State.Capacity ?
@@ -928,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     int valueMemberSlot = VariableSlot(member, valueContainerSlot);
                     if (valueMemberSlot > 0 && valueMemberSlot <= slotWatermark)
                     {
-                        InheritNullableStateOfTrackableType(targetMemberSlot, valueMemberSlot, isByRefTarget, slotWatermark);
+                        InheritNullableStateOfTrackableType(targetMemberSlot, valueMemberSlot, slotWatermark);
                     }
                 }
             }
@@ -946,7 +912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             valueMemberSlot = slot;
                         }
                     }
-                    InheritNullableStateOfTrackableStruct(fieldOrPropertyType.TypeSymbol, targetMemberSlot, valueMemberSlot, isDefaultValue: isDefaultValue, isByRefTarget: isByRefTarget, slotWatermark);
+                    InheritNullableStateOfTrackableStruct(fieldOrPropertyType.TypeSymbol, targetMemberSlot, valueMemberSlot, isDefaultValue: isDefaultValue, slotWatermark);
                 }
             }
         }
@@ -968,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void InheritNullableStateOfTrackableType(int targetSlot, int valueSlot, bool isByRefTarget, int slotWatermark)
+        private void InheritNullableStateOfTrackableType(int targetSlot, int valueSlot, int slotWatermark)
         {
             Debug.Assert(targetSlot > 0);
             Debug.Assert(valueSlot > 0);
@@ -983,7 +949,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 var member = variable.Symbol;
                 Debug.Assert(member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Property || member.Kind == SymbolKind.Event);
-                InheritNullableStateOfMember(targetSlot, valueSlot, member, isDefaultValue: false, isByRefTarget, slotWatermark);
+                InheritNullableStateOfMember(targetSlot, valueSlot, member, isDefaultValue: false, slotWatermark);
             }
         }
 
@@ -1041,7 +1007,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         slot,
                         valueSlot: -1,
                         isDefaultValue: parameter.ExplicitDefaultConstantValue?.IsNull == true,
-                        isByRefTarget: parameter.RefKind != RefKind.None,
                         slotWatermark: GetSlotWatermark());
                 }
             }
@@ -1331,7 +1296,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 slot,
                                 valueSlot: -1,
                                 isDefaultValue: isDefaultValueTypeConstructor,
-                                isByRefTarget: false,
                                 slotWatermark: GetSlotWatermark());
                         }
                     }
@@ -5101,7 +5065,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (slot > 0)
                 {
                     this.State[slot] = NullableAnnotation.NotNullable;
-                    InheritNullableStateOfTrackableStruct(type, slot, valueSlot: -1, isDefaultValue: true, isByRefTarget: false, slotWatermark: GetSlotWatermark());
+                    InheritNullableStateOfTrackableStruct(type, slot, valueSlot: -1, isDefaultValue: true, slotWatermark: GetSlotWatermark());
                 }
             }
             _resultType = TypeSymbolWithAnnotations.Create(type, (type is null || type.IsNullableType() || !type.IsValueType) ? NullableAnnotation.Nullable : NullableAnnotation.Unknown);
