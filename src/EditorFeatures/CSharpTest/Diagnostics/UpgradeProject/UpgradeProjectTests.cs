@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
 {
     object F = [|null!|];
 }",
-                LanguageVersion.CSharp8,
+                LanguageVersion.Preview,
                 new CSharpParseOptions(LanguageVersion.CSharp7_2));
         }
 
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
 {
     object F = [|null!|];
 }",
-                LanguageVersion.CSharp8,
+                LanguageVersion.Preview,
                 new CSharpParseOptions(LanguageVersion.CSharp7));
         }
 
@@ -384,7 +384,7 @@ class C
     <Project Language=""Visual Basic"">
     </Project>
 </Workspace>",
-                LanguageVersion.CSharp8,
+                LanguageVersion.Preview,
                 parseOptions: null,
                 index: 1);
         }
@@ -450,6 +450,7 @@ class C
         [Fact]
         public async Task ListAllSuggestions_CSharp8()
         {
+            var version8 = LanguageVersion.CSharp8.ToDisplayString();
             await TestExactActionSetOfferedAsync(
 
 @"<Workspace>
@@ -470,10 +471,9 @@ class C
     </Project>
 </Workspace>",
                 new[] {
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0 *beta*"),
-                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "8.0 *beta*")
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, version8),
+                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, version8)
     });
-            // https://github.com/dotnet/roslyn/issues/29819 Remove beta label once C# 8.0 is RTM
         }
 
         [Fact]
@@ -531,18 +531,19 @@ class C
         [Fact]
         public async Task OnlyOfferFixAllProjectsFromCSharp6ToDefaultWhenApplicable()
         {
+            var defaultVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion().ToDisplayString();
             await TestExactActionSetOfferedAsync(
 
-@"<Workspace>
+$@"<Workspace>
     <Project Language=""C#"" LanguageVersion=""6"">
         <Document>
 class C
-{
+{{
     void A()
-    {
-        var x = [|(1, 2)|];
-    }
-}
+    {{
+#error version:[|{defaultVersion}|]
+    }}
+}}
         </Document>
     </Project>
     <Project Language=""C#"" LanguageVersion=""Default"">
@@ -551,13 +552,15 @@ class C
     </Project>
 </Workspace>",
                 new[] {
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0"),
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, defaultVersion),
+                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, defaultVersion)
                     });
         }
 
         [Fact]
         public async Task OnlyOfferFixAllProjectsToCSharp8WhenApplicable()
         {
+            var previewVersion = LanguageVersion.Preview.ToDisplayString();
             await TestExactActionSetOfferedAsync(
 
 @"<Workspace>
@@ -575,7 +578,8 @@ class C
     </Project>
 </Workspace>",
                 new[] {
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0 *beta*"),
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, previewVersion),
+                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, previewVersion)
                     });
         }
 
@@ -603,8 +607,8 @@ class C
     </Project>
 </Workspace>",
                 new[] {
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0 *beta*"),
-                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "8.0 *beta*")
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, defaultEffectiveVersion),
+                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, defaultEffectiveVersion)
                     });
         }
 
