@@ -442,7 +442,7 @@ try {
         BuildSolution
     }
 
-    if ($ci -and $build) {
+    if ($ci -and $build -and $msbuildEngine -eq "vs") {
         Set-OptProfVariables
     }
 
