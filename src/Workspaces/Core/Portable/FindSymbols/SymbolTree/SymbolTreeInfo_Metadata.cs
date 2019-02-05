@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -157,6 +158,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return cached;
             }
 
+            return GetMetadataChecksumSlow(solution, reference, cancellationToken);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/33131")]
+        private static Checksum GetMetadataChecksumSlow(Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken)
+        {
             return ChecksumCache.GetOrCreate(reference, _ =>
             {
                 var serializer = solution.Workspace.Services.GetService<ISerializerService>();
