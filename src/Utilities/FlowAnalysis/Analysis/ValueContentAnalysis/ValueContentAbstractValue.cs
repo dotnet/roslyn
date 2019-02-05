@@ -19,6 +19,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
     /// </summary>
     internal partial class ValueContentAbstractValue : CacheBasedEquatable<ValueContentAbstractValue>
     {
+        // Ensure we bound the number of value content literals and avoid infinite analysis iterations.
+        private const int LiteralsBound = 10;
+
         public static readonly ValueContentAbstractValue UndefinedState = new ValueContentAbstractValue(ImmutableHashSet<object>.Empty, ValueContainsNonLiteralState.Undefined);
         public static readonly ValueContentAbstractValue InvalidState = new ValueContentAbstractValue(ImmutableHashSet<object>.Empty, ValueContainsNonLiteralState.Invalid);
         public static readonly ValueContentAbstractValue MayBeContainsNonLiteralState = new ValueContentAbstractValue(ImmutableHashSet<object>.Empty, ValueContainsNonLiteralState.Maybe);
@@ -150,6 +153,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             }
 
             ImmutableHashSet<object> mergedLiteralValues = LiteralValues.AddRange(otherState.LiteralValues);
+            if (mergedLiteralValues.Count > LiteralsBound)
+            {
+                return MayBeContainsNonLiteralState;
+            }
+
             ValueContainsNonLiteralState mergedNonLiteralState = Merge(NonLiteralState, otherState.NonLiteralState);
             return Create(mergedLiteralValues, mergedNonLiteralState);
         }
