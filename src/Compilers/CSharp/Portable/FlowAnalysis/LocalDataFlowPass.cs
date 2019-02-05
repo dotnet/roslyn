@@ -229,10 +229,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected int MakeMemberSlot(BoundExpression receiverOpt, Symbol member)
         {
-            Debug.Assert(receiverOpt != null || member.IsStatic);
             int containingSlot = -1;
             if (!member.IsStatic)
             {
+                if (receiverOpt is null)
+                {
+                    return -1;
+                }
                 containingSlot = MakeSlot(receiverOpt);
                 if (containingSlot < 0)
                 {
