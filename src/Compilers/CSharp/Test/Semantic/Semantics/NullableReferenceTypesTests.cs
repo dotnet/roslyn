@@ -8303,6 +8303,9 @@ public class Class<T> : Base<T>
                 // (7,25): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public virtual List<T?> P { get; set; } = default;
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(7, 25),
+                // (7,47): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     public virtual List<T?> P { get; set; } = default;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(7, 47),
                 // (12,26): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public override List<T?> P { get; set; } = default;
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(12, 26),
@@ -8331,6 +8334,9 @@ public class Class<T> : Base<T> where T : class
 ";
             var comp = CreateCompilation(new[] { source });
             comp.VerifyDiagnostics(
+                // (7,47): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     public virtual List<T?> P { get; set; } = default;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(7, 47),
                 // (12,27): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public override List<T?> P { get; set; } = default;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(12, 27)
@@ -8354,7 +8360,10 @@ public class Class<T> : Base<T> where T : struct
 }
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (6,47): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     public virtual List<T?> P { get; set; } = default;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(6, 47));
         }
 
         [Fact]
@@ -47759,6 +47768,9 @@ class C<T>
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
+                // (4,24): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     internal T field = default;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(4, 24),
                 // (8,16): warning CS8602: Possible dereference of a null reference.
                 //         if (c) a.field.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.field").WithLocation(8, 16),
@@ -78376,6 +78388,40 @@ class Program
                 // (9,45): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 3 out parameters and a void return type.
                 //         (object? x, object? y, object? z) = new C();
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "3").WithLocation(9, 45));
+        }
+
+        [Fact]
+        [WorkItem(26628, "https://github.com/dotnet/roslyn/issues/26628")]
+        public void ImplicitConstructor_01()
+        {
+            var source =
+@"#pragma warning disable 414
+class Program
+{
+    object F = null; // warning
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,16): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     object F = null; // warning
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 16));
+        }
+
+        [Fact]
+        [WorkItem(26628, "https://github.com/dotnet/roslyn/issues/26628")]
+        public void ImplicitConstructor_02()
+        {
+            var source =
+@"#pragma warning disable 414
+class Program
+{
+    static object F = null; // warning
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static object F = null; // warning
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 23));
         }
     }
 }
