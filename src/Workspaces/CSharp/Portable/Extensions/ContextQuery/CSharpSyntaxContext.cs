@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsCrefContext;
         public readonly bool IsCatchFilterContext;
         public readonly bool IsDestructorTypeContext;
+        public readonly bool IsFirstDotOfDotDotToken;
 
         private CSharpSyntaxContext(
             Workspace workspace,
@@ -99,6 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isDestructorTypeContext,
             bool isPossibleTupleContext,
             bool isPatternContext,
+            bool isFirstDotOfDotDotToken,
             CancellationToken cancellationToken)
             : base(workspace, semanticModel, position, leftToken, targetToken,
                    isTypeContext, isNamespaceContext, isNamespaceDeclarationNameContext,
@@ -138,6 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsCrefContext = isCrefContext;
             this.IsCatchFilterContext = isCatchFilterContext;
             this.IsDestructorTypeContext = isDestructorTypeContext;
+            this.IsFirstDotOfDotDotToken = isFirstDotOfDotDotToken;
         }
 
         public static CSharpSyntaxContext CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -195,6 +198,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                                             targetToken.Parent.IsKind(SyntaxKind.DestructorDeclaration) &&
                                             targetToken.Parent.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration);
 
+            var isFirstDotOfDotDotToken = targetToken.IsKind(SyntaxKind.DotDotToken) &&
+                                                targetToken.Parent.IsKind(SyntaxKind.RangeExpression) &&
+                                                position == targetToken.SpanStart + 1;
+
             return new CSharpSyntaxContext(
                 workspace: workspace,
                 semanticModel: semanticModel,
@@ -245,6 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isDestructorTypeContext: isDestructorTypeContext,
                 isPossibleTupleContext: syntaxTree.IsPossibleTupleContext(leftToken, position),
                 isPatternContext: syntaxTree.IsPatternContext(leftToken, position),
+                isFirstDotOfDotDotToken: isFirstDotOfDotDotToken,
                 cancellationToken: cancellationToken);
         }
 

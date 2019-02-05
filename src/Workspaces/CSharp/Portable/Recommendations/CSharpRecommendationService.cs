@@ -94,6 +94,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             {
                 return GetSymbolsForNamespaceDeclarationNameContext(context, cancellationToken);
             }
+            else if (context.IsFirstDotOfDotDotToken)
+            {
+                return GetSymbolsForExpressionOrStatementContext(context, filterOutOfScopeLocals, cancellationToken);
+            }
 
             return ImmutableArray<ISymbol>.Empty;
         }
