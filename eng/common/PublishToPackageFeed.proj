@@ -32,6 +32,9 @@
     <PushArtifactsInManifestToFeed
       ExpectedFeedUrl="$(TargetStaticFeed)"
       AccountKey="$(AccountKeyToStaticFeed)"
+      BARBuildId="$(BARBuildId)"
+      MaestroApiEndpoint="$(MaestroApiEndpoint)"
+      BuildAssetRegistryToken="$(BuildAssetRegistryToken)"
       Overwrite="$(OverrideAssetsWithSameName)"
       PassIfExistingItemIdentical="$(PassIfExistingItemIdentical)"
       MaxClients="$(MaxParallelUploads)"
