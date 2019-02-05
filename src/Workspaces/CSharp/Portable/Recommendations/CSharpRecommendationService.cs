@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
             else if (context.IsAnyExpressionContext ||
                      context.IsStatementContext ||
+                     context.IsAfterFirstDotOfDotDot ||
                      context.SyntaxTree.IsDefiniteCastTypeContext(context.Position, context.LeftToken, cancellationToken))
             {
                 // GitHub #717: With automatic brace completion active, typing '(i' produces "(i)", which gets parsed as
@@ -93,10 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             else if (context.IsNamespaceDeclarationNameContext)
             {
                 return GetSymbolsForNamespaceDeclarationNameContext(context, cancellationToken);
-            }
-            else if (context.IsFirstDotOfDotDotToken)
-            {
-                return GetSymbolsForExpressionOrStatementContext(context, filterOutOfScopeLocals, cancellationToken);
             }
 
             return ImmutableArray<ISymbol>.Empty;
