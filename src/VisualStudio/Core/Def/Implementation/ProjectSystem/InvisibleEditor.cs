@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
@@ -13,7 +14,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal partial class InvisibleEditor : IInvisibleEditor
+    internal partial class InvisibleEditor : ForegroundThreadAffinitizedObject, IInvisibleEditor
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly string _filePath;
@@ -42,6 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// projects in the solution.</para>
         /// </remarks>
         public InvisibleEditor(IServiceProvider serviceProvider, string filePath, IVsHierarchy hierarchyOpt, bool needsSave, bool needsUndoDisabled)
+            : base(serviceProvider.GetMefService<IThreadingContext>(), assertIsForeground: true)
         {
             _serviceProvider = serviceProvider;
             _filePath = filePath;
@@ -144,6 +146,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         public void Dispose()
         {
+            AssertIsForeground();
+
             _buffer = null;
             _vsTextLines = null;
 
