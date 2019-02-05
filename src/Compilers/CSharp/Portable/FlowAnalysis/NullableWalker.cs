@@ -358,6 +358,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var propAccess = (BoundPropertyAccess)expr;
                         var propSymbol = propAccess.PropertySymbol;
                         member = GetBackingFieldIfStructProperty(propSymbol);
+                        if (member is null)
+                        {
+                            return false;
+                        }
                         if (propSymbol.IsStatic)
                         {
                             return true;
@@ -397,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // https://github.com/dotnet/roslyn/issues/29619 Temporary, until we're using
         // properties on structs directly.
-        private new int GetOrCreateSlot(Symbol symbol, int containingSlot = 0)
+        protected override int GetOrCreateSlot(Symbol symbol, int containingSlot = 0)
         {
             symbol = GetBackingFieldIfStructProperty(symbol);
             if ((object)symbol == null)
@@ -4723,7 +4727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // accumulate so far.
                     if (!resultType.IsValueType || resultType.IsNullableType())
                     {
-                        int slot = getMemberSlot();
+                        int slot = MakeMemberSlot(receiverOpt, member);
                         if (slot > 0 && slot < this.State.Capacity)
                         {
                             var annotation = this.State[slot];
@@ -4737,7 +4741,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!IsConditionalState);
                     if (nullableOfTMember == SpecialMember.System_Nullable_T_get_HasValue)
                     {
-                        int containingSlot = getReceiverSlot();
+                        int containingSlot = (receiverOpt is null) ? -1 : MakeSlot(receiverOpt);
                         if (containingSlot > 0)
                         {
                             // https://github.com/dotnet/roslyn/issues/31516: Report HDN_NullCheckIsProbablyAlwaysTrue/False
@@ -4749,22 +4753,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 _resultType = resultType;
-            }
-
-            int getReceiverSlot() => (receiverOpt is null) ? -1 : MakeSlot(receiverOpt);
-
-            int getMemberSlot()
-            {
-                int containingSlot = -1;
-                if (!member.IsStatic)
-                {
-                    containingSlot = getReceiverSlot();
-                    if (containingSlot < 0)
-                    {
-                        return -1;
-                    }
-                }
-                return GetOrCreateSlot(member, containingSlot);
             }
         }
 

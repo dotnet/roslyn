@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Force a variable to have a slot.  Returns -1 if the variable has an empty struct type.
         /// </summary>
-        protected int GetOrCreateSlot(Symbol symbol, int containingSlot = 0)
+        protected virtual int GetOrCreateSlot(Symbol symbol, int containingSlot = 0)
         {
             if (symbol.Kind == SymbolKind.RangeVariable) return -1;
 
@@ -217,23 +217,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     if (TryGetReceiverAndMember(node, out BoundExpression receiver, out Symbol member))
                     {
-                        Debug.Assert((receiver == null) == member.IsStatic);
-                        int containingSlot = -1;
-                        if (receiver != null)
-                        {
-                            containingSlot = MakeSlot(receiver);
-                            if (containingSlot < 0)
-                            {
-                                break;
-                            }
-                        }
-                        return GetOrCreateSlot(member, containingSlot);
+                        Debug.Assert((receiver is null) == member.IsStatic);
+                        return MakeMemberSlot(receiver, member);
                     }
                     break;
                 case BoundKind.AssignmentOperator:
                     return MakeSlot(((BoundAssignmentOperator)node).Left);
             }
             return -1;
+        }
+
+        protected int MakeMemberSlot(BoundExpression receiverOpt, Symbol member)
+        {
+            Debug.Assert(receiverOpt != null || member.IsStatic);
+            int containingSlot = -1;
+            if (!member.IsStatic)
+            {
+                containingSlot = MakeSlot(receiverOpt);
+                if (containingSlot < 0)
+                {
+                    return -1;
+                }
+            }
+            return GetOrCreateSlot(member, containingSlot);
         }
 
         protected static TypeSymbolWithAnnotations VariableType(Symbol s)
