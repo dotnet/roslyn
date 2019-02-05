@@ -3250,7 +3250,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 originalEffectiveParameters.ParameterTypes,
                 originalEffectiveParameters.ParameterRefKinds,
                 args,
-                out _,
                 ref useSiteDiagnostics);
 
             if (inferenceResult.Success)

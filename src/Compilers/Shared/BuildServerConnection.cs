@@ -336,7 +336,16 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 Log("Attempt to connect named pipe '{0}'", pipeName);
                 try
                 {
-                    await pipeStream.ConnectAsync(timeoutMs, cancellationToken).ConfigureAwait(false);
+                    // NamedPipeClientStream.ConnectAsync on the "full" framework has a bug where it
+                    // tries to move potentially expensive work (actually connecting to the pipe) to
+                    // a background thread with Task.Factory.StartNew. However, that call will merely
+                    // queue the work onto the TaskScheduler associated with the "current" Task which
+                    // does not guarantee it will be processed on a background thread and this could
+                    // lead to a hang.
+                    // To avoid this, we first force ourselves to a background thread using Task.Run.
+                    // This ensures that the Task created by ConnectAsync will run on the default
+                    // TaskScheduler (i.e., on a threadpool thread) which was the intent all along.
+                    await Task.Run(() => pipeStream.ConnectAsync(timeoutMs, cancellationToken)).ConfigureAwait(false);
                 }
                 catch (Exception e) when (e is IOException || e is TimeoutException)
                 {
