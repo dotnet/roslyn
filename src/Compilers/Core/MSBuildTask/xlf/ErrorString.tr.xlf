@@ -60,13 +60,12 @@
       <trans-unit id="CopyRefAssembly_BadSource3">
         <source>Failed to check the content hash of the source ref assembly '{0}': {1}
 {2}</source>
-        <target state="translated">{0}' hedef başvuru bütünleştirilmiş kodunun içerik karması denetlenemedi: {1}
-{2}</target>
+        <target state="translated">Kaynak ürün kodu derleme '{0}' içerik karma denetlemek başarısız oldu: {1} (2)</target>
         <note />
       </trans-unit>
       <trans-unit id="CopyRefAssembly_BadDestination1">
         <source>Failed to check the content hash of the destination ref assembly '{0}'. It will be overwritten.</source>
-        <target state="translated">{0}' hedef başvuru bütünleştirilmiş kodunun içerik karması denetlenemedi. Üzerine yazılacak.</target>
+        <target state="translated">Hedef ürün kodu derleme '{0}' içerik karma denetlemek başarısız oldu. O-ecek var overwritten.</target>
         <note />
       </trans-unit>
       <trans-unit id="General_ToolFileNotFound">

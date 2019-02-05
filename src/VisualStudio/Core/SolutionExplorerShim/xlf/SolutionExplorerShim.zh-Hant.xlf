@@ -104,12 +104,12 @@
       </trans-unit>
       <trans-unit id="Path">
         <source>Path</source>
-        <target state="translated">路徑</target>
+        <target state="translated">PATH</target>
         <note />
       </trans-unit>
       <trans-unit id="Category">
         <source>Category</source>
-        <target state="translated">類別</target>
+        <target state="translated">分類</target>
         <note />
       </trans-unit>
       <trans-unit id="Default_severity">

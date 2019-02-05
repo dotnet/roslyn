@@ -183,6 +183,62 @@ $@"class C
 }", optionName);
         }
 
+        [WorkItem(33073, "https://github.com/dotnet/roslyn/issues/33073")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task ExpressionStatement_SemanticError_02(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|M2()|];
+    }
+
+    UndefinedType M2() => null;
+}", optionName);
+        }
+
+        [WorkItem(33073, "https://github.com/dotnet/roslyn/issues/33073")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task ExpressionStatement_SemanticError_03(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    private async Task M()
+    {
+        // error CS0103: The name 'CancellationToken' does not exist in the current context
+        [|await Task.Delay(0, CancellationToken.None).ConfigureAwait(false)|];
+    }
+}", optionName);
+        }
+
+        [WorkItem(33073, "https://github.com/dotnet/roslyn/issues/33073")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task ExpressionStatement_SemanticError_04(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    private async Task M()
+    {
+        // error CS0103: The name 'Task' does not exist in the current context
+        // error CS0103: The name 'CancellationToken' does not exist in the current context
+        // error CS1983: The return type of an async method must be void, Task or Task<T>
+        [|await Task.Delay(0, CancellationToken.None).ConfigureAwait(false)|];
+    }
+}", optionName);
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
