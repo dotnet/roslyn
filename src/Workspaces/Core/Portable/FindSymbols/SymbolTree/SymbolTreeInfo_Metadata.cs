@@ -147,6 +147,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/33131", AllowCaptures = false)]
         public static Checksum GetMetadataChecksum(
             Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken)
         {
@@ -158,6 +159,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return cached;
             }
 
+            // Break things up to the fast path above and this slow path were we allocate a closure.
             return GetMetadataChecksumSlow(solution, reference, cancellationToken);
         }
 
