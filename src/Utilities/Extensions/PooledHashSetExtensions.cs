@@ -81,5 +81,22 @@ namespace Analyzer.Utilities.Extensions
                     ?? ImmutableHashSet<string>.Empty);
             builder.Add(metadata);
         }
+
+        // Just to make hardcoding SanitizerInfos more convenient.
+        public static void AddSanitizerInfo(
+            this PooledHashSet<SanitizerInfo> builder,
+            string fullTypeName,
+            bool isInterface,
+            bool isConstructorSanitizing,
+            string[] sanitizingMethods)
+        {
+            SanitizerInfo info = new SanitizerInfo(
+                fullTypeName,
+                isInterface: isInterface,
+                isConstructorSanitizing: isConstructorSanitizing,
+                sanitizingMethods: sanitizingMethods?.ToImmutableHashSet(StringComparer.Ordinal)
+                    ?? ImmutableHashSet<string>.Empty);
+            builder.Add(info);
+        }
     }
 }
