@@ -140,8 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         Latest = int.MaxValue,
 
         /// <summary>
-        /// The default language version, which is the preview version, but produces
-        /// a warning when using a preview-only feature.
+        /// The default language version, which is the latest supported version.
         /// </summary>
         Default = 0,
     }
