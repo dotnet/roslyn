@@ -151,6 +151,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // We can reuse the index for any given reference as long as it hasn't changed.
             // So our checksum is just the checksum for the PEReference itself.
+            // First see if the value is already in the cache, to avoid an allocation if possible.
+            if (ChecksumCache.TryGetValue(reference, out var cached))
+            {
+                return cached;
+            }
+
             return ChecksumCache.GetOrCreate(reference, _ =>
             {
                 var serializer = solution.Workspace.Services.GetService<ISerializerService>();
