@@ -226,6 +226,8 @@ namespace Microsoft.CodeAnalysis
         SuppressNullableWarning = 0x62,
         /// <summary>Indicates an <see cref="IRangeOperation"/>.</summary>
         Range = 0x63,
+        // Unused, FromEndIndex will be a unary operator: https://github.com/dotnet/roslyn/pull/32918
+        //FromEndIndex = 0x64,
         /// <summary>Indicates an <see cref="IReDimOperation"/>.</summary>
         ReDim = 0x65,
         /// <summary>Indicates an <see cref="IReDimClauseOperation"/>.</summary>
