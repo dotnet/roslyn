@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return -1;
             }
 
-            MethodSymbol? getTopLevelMethod(MethodSymbol method)
+            MethodSymbol? getTopLevelMethod(MethodSymbol? method)
             {
                 while ((object)method != null)
                 {
@@ -4280,7 +4280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)deconstructMethod != null)
                 {
-                    if (!invocation.InvokedAsExtensionMethod)
+                    if (!invocation!.InvokedAsExtensionMethod)
                     {
                         CheckPossibleNullReceiver(right);
                     }
@@ -4309,7 +4309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             var parameter = parameters[i + offset];
-                            VisitArgumentConversion(variable.Expression, underlyingConversion, parameter.RefKind, parameter, parameter.Type, variable.Type, extensionMethodThisArgument: false);
+                            VisitArgumentConversion(variable.Expression!, underlyingConversion, parameter.RefKind, parameter, parameter.Type, variable.Type, extensionMethodThisArgument: false);
                         }
                     }
                 }
@@ -4330,7 +4330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        int targetSlot = MakeSlot(variable.Expression);
+                        int targetSlot = MakeSlot(variable.Expression!);
                         var targetType = variable.Type;
                         var valueType = VisitOptionalImplicitConversion(rightPart, targetType, useLegacyWarnings: true, AssignmentKind.Assignment);
                         int valueSlot = MakeSlot(rightPart);
@@ -4342,9 +4342,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly struct DeconstructionVariable
         {
-            internal readonly BoundExpression Expression;
+            internal readonly BoundExpression? Expression;
             internal readonly TypeSymbolWithAnnotations Type;
-            internal readonly ArrayBuilder<DeconstructionVariable> NestedVariables;
+            internal readonly ArrayBuilder<DeconstructionVariable>? NestedVariables;
 
             internal DeconstructionVariable(BoundExpression expression, TypeSymbolWithAnnotations type)
             {
