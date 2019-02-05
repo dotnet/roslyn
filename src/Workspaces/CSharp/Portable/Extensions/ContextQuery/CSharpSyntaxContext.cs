@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsCrefContext;
         public readonly bool IsCatchFilterContext;
         public readonly bool IsDestructorTypeContext;
-        public readonly bool IsAfterFirstDotOfDotDot;
 
         private CSharpSyntaxContext(
             Workspace workspace,
@@ -100,7 +99,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isDestructorTypeContext,
             bool isPossibleTupleContext,
             bool isPatternContext,
-            bool isAfterFirstDotOfDotDot,
             CancellationToken cancellationToken)
             : base(workspace, semanticModel, position, leftToken, targetToken,
                    isTypeContext, isNamespaceContext, isNamespaceDeclarationNameContext,
@@ -140,7 +138,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsCrefContext = isCrefContext;
             this.IsCatchFilterContext = isCatchFilterContext;
             this.IsDestructorTypeContext = isDestructorTypeContext;
-            this.IsAfterFirstDotOfDotDot = isAfterFirstDotOfDotDot;
         }
 
         public static CSharpSyntaxContext CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -228,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isInImportsDirective: IsLeftSideOfUsingAliasDirective(leftToken, cancellationToken),
                 isLabelContext: syntaxTree.IsLabelContext(position, cancellationToken),
                 isTypeArgumentOfConstraintContext: syntaxTree.IsTypeArgumentOfConstraintClause(position, cancellationToken),
-                isRightOfDotOrArrowOrColonColon: syntaxTree.IsRightOfDotOrArrowOrColonColon(position, cancellationToken),
+                isRightOfDotOrArrowOrColonColon: isAfterFirstDotOfDotDot || syntaxTree.IsRightOfDotOrArrowOrColonColon(position, cancellationToken),
                 isIsOrAsOrSwitchExpressionContext: syntaxTree.IsIsOrAsOrSwitchExpressionContext(semanticModel, position, leftToken, cancellationToken),
                 isObjectCreationTypeContext: syntaxTree.IsObjectCreationTypeContext(position, leftToken, cancellationToken),
                 isDefiniteCastTypeContext: syntaxTree.IsDefiniteCastTypeContext(position, leftToken, cancellationToken),
@@ -251,7 +248,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isDestructorTypeContext: isDestructorTypeContext,
                 isPossibleTupleContext: syntaxTree.IsPossibleTupleContext(leftToken, position),
                 isPatternContext: syntaxTree.IsPatternContext(leftToken, position),
-                isAfterFirstDotOfDotDot: isAfterFirstDotOfDotDot,
                 cancellationToken: cancellationToken);
         }
 

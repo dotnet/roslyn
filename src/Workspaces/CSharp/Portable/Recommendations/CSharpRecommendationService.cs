@@ -66,7 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
             else if (context.IsAnyExpressionContext ||
                      context.IsStatementContext ||
-                     context.IsAfterFirstDotOfDotDot ||
                      context.SyntaxTree.IsDefiniteCastTypeContext(context.Position, context.LeftToken, cancellationToken))
             {
                 // GitHub #717: With automatic brace completion active, typing '(i' produces "(i)", which gets parsed as
@@ -109,6 +108,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             if (node.Kind() == SyntaxKind.SimpleMemberAccessExpression)
             {
                 return GetSymbolsOffOfExpression(context, ((MemberAccessExpressionSyntax)node).Expression, cancellationToken);
+            }
+            else if (node.Kind() == SyntaxKind.RangeExpression)
+            {
+                return GetSymbolsOffOfExpression(context, ((RangeExpressionSyntax)node).LeftOperand, cancellationToken);
             }
             else if (node.Kind() == SyntaxKind.PointerMemberAccessExpression)
             {
