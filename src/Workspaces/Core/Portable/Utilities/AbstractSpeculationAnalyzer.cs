@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 var originalExpressionSymbol = this.OriginalSemanticModel.GetSymbolInfo(currentOriginalNode).Symbol;
                 var replacedExpressionSymbol = this.SpeculativeSemanticModel.GetSymbolInfo(currentReplacedNode).Symbol;
 
-                if (IsExpressionSymbolSystemObjectMethod(originalExpressionSymbol) && IsExpressionSymbolSystemObjectMethod(replacedExpressionSymbol))
+                if (IsSymbolSystemObjectInstanceMethod(originalExpressionSymbol) && IsSymbolSystemObjectInstanceMethod(replacedExpressionSymbol))
                 {
                     var previousOriginalType = this.OriginalSemanticModel.GetTypeInfo(previousOriginalNode).Type;
                     var previousReplacedType = this.SpeculativeSemanticModel.GetTypeInfo(previousReplacedNode).Type;
@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Determines if the symbol is a non-overridable, non static method on System.Object (e.g. GetType)
         /// </summary>
-        private bool IsExpressionSymbolSystemObjectMethod(ISymbol symbol)
+        private bool IsSymbolSystemObjectInstanceMethod(ISymbol symbol)
         {
             return symbol != null
                 && symbol.IsKind(SymbolKind.Method)
