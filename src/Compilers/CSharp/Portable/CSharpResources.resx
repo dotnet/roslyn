@@ -2815,6 +2815,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_BadDelegateLeave" xml:space="preserve">
     <value>Control cannot leave the body of an anonymous method or lambda expression</value>
   </data>
+  <data name="ERR_IllegalSuppression" xml:space="preserve">
+    <value>The suppression operator is not allowed in this context</value>
+  </data>
   <data name="WRN_IllegalPragma" xml:space="preserve">
     <value>Unrecognized #pragma directive</value>
   </data>
@@ -5427,12 +5430,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullAsNonNullable_Title" xml:space="preserve">
     <value>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</value>
   </data>
-  <data name="WRN_NoBestNullabilityConditionalExpression" xml:space="preserve">
-    <value>No best nullability for operands of conditional expression '{0}' and '{1}'.</value>
-  </data>
-  <data name="WRN_NoBestNullabilityConditionalExpression_Title" xml:space="preserve">
-    <value>No best nullability for operands of conditional expression.</value>
-  </data>
   <data name="ERR_AnnotationDisallowedInObjectCreation" xml:space="preserve">
     <value>Cannot use a nullable reference type in object creation.</value>
   </data>
@@ -5462,18 +5459,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_NullableOptionNotAvailable" xml:space="preserve">
     <value>Invalid '{0}' value: '{1}' for C# {2}. Please use language version {3} or greater.</value>
-  </data>
-  <data name="WRN_CantInferNullabilityOfMethodTypeArgs" xml:space="preserve">
-    <value>The nullability of type arguments for method '{0}' cannot be inferred from the usage. Try specifying the type arguments explicitly.</value>
-  </data>
-  <data name="WRN_CantInferNullabilityOfMethodTypeArgs_Title" xml:space="preserve">
-    <value>The nullability of type arguments for method cannot be inferred from the usage. Try specifying the type arguments explicitly.</value>
-  </data>
-  <data name="WRN_NoBestNullabilityArrayElements" xml:space="preserve">
-    <value>No best nullability found for implicitly-typed array.</value>
-  </data>
-  <data name="WRN_NoBestNullabilityArrayElements_Title" xml:space="preserve">
-    <value>No best nullability found for implicitly-typed array.</value>
   </data>
   <data name="ERR_NonTaskMainCantBeAsync" xml:space="preserve">
     <value>A void or int returning entry point cannot be async</value>

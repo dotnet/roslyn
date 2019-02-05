@@ -847,19 +847,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)
+        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance)
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
             if (!IsGenericType)
             {
-                hadNullabilityMismatch = false;
                 return this;
             }
 
             var allTypeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance();
             var allTypeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
-            bool haveChanges = MergeTypeArgumentNullability(this, (NamedTypeSymbol)other, variance, allTypeParameters, allTypeArguments, out hadNullabilityMismatch);
+            bool haveChanges = MergeTypeArgumentNullability(this, (NamedTypeSymbol)other, variance, allTypeParameters, allTypeArguments);
 
             NamedTypeSymbol result;
             if (haveChanges)
@@ -888,13 +887,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol typeB,
             VarianceKind variance,
             ArrayBuilder<TypeParameterSymbol> allTypeParameters,
-            ArrayBuilder<TypeSymbolWithAnnotations> allTypeArguments,
-            out bool hadNullabilityMismatch)
+            ArrayBuilder<TypeSymbolWithAnnotations> allTypeArguments)
         {
             Debug.Assert(typeA.IsGenericType);
             Debug.Assert(typeA.Equals(typeB, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
-
-            hadNullabilityMismatch = false;
 
             var definition = typeA.OriginalDefinition;
             bool haveChanges = false;
@@ -912,8 +908,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         TypeSymbolWithAnnotations typeArgumentA = typeArgumentsA[i];
                         TypeSymbolWithAnnotations typeArgumentB = typeArgumentsB[i];
                         VarianceKind typeArgumentVariance = GetTypeArgumentVariance(variance, typeParameters[i].Variance);
-                        TypeSymbolWithAnnotations merged = typeArgumentA.MergeNullability(typeArgumentB, typeArgumentVariance, out bool hadMismatch);
-                        hadNullabilityMismatch |= hadMismatch;
+                        TypeSymbolWithAnnotations merged = typeArgumentA.MergeNullability(typeArgumentB, typeArgumentVariance);
                         allTypeArguments.Add(merged);
                         if (!typeArgumentA.IsSameAs(merged))
                         {

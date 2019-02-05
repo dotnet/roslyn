@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis
             if (operation.Parent is IAssignmentOperation assignmentOperation &&
                 assignmentOperation.Target == operation)
             {
-                return operation.Parent.Kind == OperationKind.CompoundAssignment
+                return operation.Parent.Kind == OperationKind.CompoundAssignment || operation.Parent.Kind == OperationKind.CoalesceAssignment
                     ? ValueUsageInfo.ReadWrite
                     : ValueUsageInfo.Write;
             }

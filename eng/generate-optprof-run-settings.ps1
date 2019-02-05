@@ -14,7 +14,7 @@ try {
   $optProfToolDir = Get-PackageDir "Roslyn.OptProf.RunSettings.Generator"
   $optProfToolExe = Join-Path $optProfToolDir "tools\roslyn.optprof.runsettings.generator.exe"
   $configFile = Join-Path $EngRoot "config\OptProf.json"
-  $runSettingsFile = Join-Path $VSSetupDir "Insertion\RunSettings\RoslynOptProf.runsettings"
+  $runSettingsFile = Join-Path $VSSetupDir "Insertion\OptProf\Training.runsettings"
 
   Exec-Console $optProfToolExe "--config $configFile --vsDropName $vsDropName --bootstrapperInfo $bootstrapperInfo --out $runSettingsFile"
 

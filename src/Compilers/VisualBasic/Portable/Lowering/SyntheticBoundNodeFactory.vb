@@ -328,7 +328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function ReferenceAssignment(byRefLocal As LocalSymbol, lValue As BoundExpression) As BoundReferenceAssignment
-            Debug.Assert(byRefLocal.Type = lValue.Type)
+            Debug.Assert(TypeSymbol.Equals(byRefLocal.Type, lValue.Type, TypeCompareKind.ConsiderEverything))
             Debug.Assert(byRefLocal.IsByRef)
 
             Dim boundNode = New BoundReferenceAssignment(_syntax, Local(byRefLocal, isLValue:=True), lValue, isLValue:=True, type:=lValue.Type)

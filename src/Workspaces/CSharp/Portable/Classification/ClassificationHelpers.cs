@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.YieldKeyword:
                 case SyntaxKind.DefaultKeyword: // Include DefaultKeyword as it can be part of a DefaultSwitchLabel
                 case SyntaxKind.InKeyword: // Include InKeyword as it can be part of an ForEachStatement
-                case SyntaxKind.WhenKeyword: // Include WhenKeyword as it can be part of a CatchFilterClause
+                case SyntaxKind.WhenKeyword: // Include WhenKeyword as it can be part of a CatchFilterClause or a pattern WhenClause
                     return true;
                 default:
                     return false;
@@ -114,6 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.DoStatement:
                 case SyntaxKind.ForStatement:
                 case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachVariableStatement:
                 // Checked Statements
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.ElseClause:
@@ -126,6 +127,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.CatchClause:
                 case SyntaxKind.CatchFilterClause:
                 case SyntaxKind.FinallyClause:
+                case SyntaxKind.SwitchExpression:
+                case SyntaxKind.ThrowExpression:
+                case SyntaxKind.WhenClause:
                     return true;
                 default:
                     return false;

@@ -508,9 +508,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return true;
                     case BoundKind.ObjectCreationExpression:
                         return IsValidDefaultValue((BoundObjectCreationExpression)expression);
-                    case BoundKind.SuppressNullableWarningExpression:
-                        expression = ((BoundSuppressNullableWarningExpression)expression).Expression;
-                        break;
                     default:
                         return false;
                 }

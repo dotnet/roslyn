@@ -14,12 +14,12 @@
       </trans-unit>
       <trans-unit id="CSharp_Coding_Conventions">
         <source>C# Coding Conventions</source>
-        <target state="new">C# Coding Conventions</target>
+        <target state="translated">Conventions de codage C#</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_Formatting_Rules">
         <source>C# Formatting Rules</source>
-        <target state="new">C# Formatting Rules</target>
+        <target state="translated">Règles de formatage C#</target>
         <note />
       </trans-unit>
       <trans-unit id="Discard">
@@ -29,7 +29,12 @@
       </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
-        <target state="translated">Paramètres de mise en forme du document (essai) </target>
+        <target state="translated">Paramètres de mise en forme du document (essai)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Event_Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="new">Generate Event Subscription</target>
         <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
@@ -44,17 +49,17 @@
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
-        <target state="translated">Préférer 'is nul' pour les contrôles d'égalité de référence</target>
+        <target state="translated">Préférer 'is nul' pour les vérifications d'égalité de référence</target>
         <note>'is null' is a C# string and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
-        <target state="translated">Supprimer les usings inutiles</target>
+        <target state="translated">Supprimer les Usings inutiles</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_usings">
         <source>Sort usings</source>
-        <target state="translated">Trier les usings</target>
+        <target state="translated">Trier les instructions using</target>
         <note />
       </trans-unit>
       <trans-unit id="Surround_With">
@@ -294,7 +299,7 @@
       </trans-unit>
       <trans-unit id="Insert_space_after_cast">
         <source>Insert space after cast</source>
-        <target state="translated">Insérer un espace après cast</target>
+        <target state="translated">Insérer un espace après le cast</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_spaces_within_parentheses_of_control_flow_statements">
@@ -449,7 +454,7 @@
       </trans-unit>
       <trans-unit id="Regular">
         <source>Regular</source>
-        <target state="translated">Normale</target>
+        <target state="translated">Normal</target>
         <note />
       </trans-unit>
       <trans-unit id="Small">
@@ -599,7 +604,7 @@
       </trans-unit>
       <trans-unit id="predefined_type_preferences_colon">
         <source>predefined type preferences:</source>
-        <target state="translated">préférences de types prédéfinies :</target>
+        <target state="translated">Préférences de types prédéfinies :</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_string_literals_on_enter">
@@ -734,7 +739,7 @@
       </trans-unit>
       <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
         <source>Report invalid placeholders in 'string.Format' calls</source>
-        <target state="translated">Signaler les espaces réservés non valides dans les appels de 'string.Format'</target>
+        <target state="translated">Signaler les espaces réservés non valides dans les appels de 'String.Format'</target>
         <note />
       </trans-unit>
       <trans-unit id="Separate_using_directive_groups">
@@ -747,11 +752,6 @@
         <target state="translated">Afficher les s_uggestions de nom</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_Event_Subscription">
-        <source>Generate Event Subscription</source>
-        <target state="translated">Générer un abonnement à des événements</target>
-        <note />
-      </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">
         <source>In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</source>
         <target state="translated">Dans les opérateurs arithmétiques :  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</target>
@@ -759,7 +759,7 @@
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators:  &amp;&amp;   ||   ??</source>
-        <target state="translated">Dans les autres opérateurs binaires :  &amp;&amp;   ||   ??</target>
+        <target state="translated">Dans d'autres opérateurs binaires :  &amp;&amp;   ||   ??</target>
         <note />
       </trans-unit>
     </body>
