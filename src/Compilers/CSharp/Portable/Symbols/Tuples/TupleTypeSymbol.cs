@@ -1450,17 +1450,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.WithUnderlyingType(underlyingType);
         }
 
-        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)
+        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance)
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
             var otherTuple = other as TupleTypeSymbol;
             if (otherTuple is null)
             {
-                hadNullabilityMismatch = false;
                 return this;
             }
             NamedTypeSymbol underlyingType;
-            if (MergeUnderlyingTypeNullability(_underlyingType, otherTuple._underlyingType, variance, out underlyingType, out hadNullabilityMismatch))
+            if (MergeUnderlyingTypeNullability(_underlyingType, otherTuple._underlyingType, variance, out underlyingType))
             {
                 return WithUnderlyingType(underlyingType);
             }
@@ -1471,12 +1470,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol typeA,
             NamedTypeSymbol typeB,
             VarianceKind variance,
-            out NamedTypeSymbol mergedType,
-            out bool hadNullabilityMismatch)
+            out NamedTypeSymbol mergedType)
         {
             Debug.Assert(typeA.Equals(typeB, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
-            hadNullabilityMismatch = false;
             mergedType = null;
 
             var typeDefinition = typeA.OriginalDefinition;
@@ -1491,8 +1488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 TypeSymbolWithAnnotations typeArgumentA = typeArgumentsA[i];
                 TypeSymbolWithAnnotations typeArgumentB = typeArgumentsB[i];
-                TypeSymbolWithAnnotations merged = mergeNullability(typeArgumentA, typeArgumentB, out bool hadMismatch);
-                hadNullabilityMismatch |= hadMismatch;
+                TypeSymbolWithAnnotations merged = mergeNullability(typeArgumentA, typeArgumentB);
                 allTypeArguments.Add(merged);
                 if (!typeArgumentA.IsSameAs(merged))
                 {
@@ -1510,19 +1506,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return haveChanges;
 
             // We use special rules for merging tuples, allowing nested types to remain unspeakable
-            TypeSymbolWithAnnotations mergeNullability(TypeSymbolWithAnnotations one, TypeSymbolWithAnnotations other, out bool nullabilityMismatch)
+            TypeSymbolWithAnnotations mergeNullability(TypeSymbolWithAnnotations one, TypeSymbolWithAnnotations other)
             {
                 TypeSymbol typeSymbol = other.TypeSymbol;
-                NullableAnnotation nullableAnnotation = mergeNullableAnnotation(typeSymbol, one.NullableAnnotation, other.NullableAnnotation, out bool hadTopLevelMismatch);
-                TypeSymbol type = one.TypeSymbol.MergeNullability(typeSymbol, variance, out bool hadNestedMismatch);
+                NullableAnnotation nullableAnnotation = mergeNullableAnnotation(typeSymbol, one.NullableAnnotation, other.NullableAnnotation);
+                TypeSymbol type = one.TypeSymbol.MergeNullability(typeSymbol, variance);
                 Debug.Assert((object)type != null);
-                nullabilityMismatch = hadTopLevelMismatch | hadNestedMismatch;
                 return TypeSymbolWithAnnotations.Create(type, nullableAnnotation, one.CustomModifiers);
             }
 
-            NullableAnnotation mergeNullableAnnotation(TypeSymbol type, NullableAnnotation a, NullableAnnotation b, out bool nullabilityMismatch)
+            NullableAnnotation mergeNullableAnnotation(TypeSymbol type, NullableAnnotation a, NullableAnnotation b)
             {
-                nullabilityMismatch = false;
                 switch (variance)
                 {
                     case VarianceKind.In:
@@ -1530,7 +1524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case VarianceKind.Out:
                         return a.JoinForFlowAnalysisBranches(b, type, _IsPossiblyNullableReferenceTypeTypeParameterDelegate);
                     case VarianceKind.None:
-                        return a.EnsureCompatibleForTuples(b, type, _IsPossiblyNullableReferenceTypeTypeParameterDelegate, out nullabilityMismatch);
+                        return a.EnsureCompatibleForTuples(b, type, _IsPossiblyNullableReferenceTypeTypeParameterDelegate);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(variance);
                 }
