@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return cached;
             }
 
-            // Break things up to the fast path above and this slow path were we allocate a closure.
+            // Break things up to the fast path above and this slow path where we allocate a closure.
             return GetMetadataChecksumSlow(solution, reference, cancellationToken);
         }
 
