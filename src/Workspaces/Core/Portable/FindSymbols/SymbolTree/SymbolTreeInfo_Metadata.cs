@@ -164,7 +164,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/33131")]
         private static Checksum GetMetadataChecksumSlow(Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken)
         {
             return ChecksumCache.GetOrCreate(reference, _ =>
