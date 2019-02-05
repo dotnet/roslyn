@@ -25,10 +25,10 @@ namespace Microsoft.CodeAnalysis.AddImports
         protected abstract SyntaxList<TExternSyntax> GetExterns(SyntaxNode node);
         protected abstract bool IsStaticUsing(TUsingOrAliasSyntax usingOrAlias);
 
-        private bool IsUsing(TUsingOrAliasSyntax usingOrAlias) => !IsAlias(usingOrAlias) && !IsStaticUsing(usingOrAlias);
+        private bool IsSimpleUsing(TUsingOrAliasSyntax usingOrAlias) => !IsAlias(usingOrAlias) && !IsStaticUsing(usingOrAlias);
         private bool IsAlias(TUsingOrAliasSyntax usingOrAlias) => GetAlias(usingOrAlias) != null;
         private bool HasAliases(SyntaxNode node) => GetUsingsAndAliases(node).Any(IsAlias);
-        private bool HasUsings(SyntaxNode node) => GetUsingsAndAliases(node).Any(IsUsing);
+        private bool HasUsings(SyntaxNode node) => GetUsingsAndAliases(node).Any(IsSimpleUsing);
         private bool HasStaticUsings(SyntaxNode node) => GetUsingsAndAliases(node).Any(IsStaticUsing);
         private bool HasExterns(SyntaxNode node) => GetExterns(node).Any();
         private bool HasAnyImports(SyntaxNode node) => GetUsingsAndAliases(node).Any() || GetExterns(node).Any();
@@ -92,7 +92,12 @@ namespace Microsoft.CodeAnalysis.AddImports
                         return aliasContainer;
                     }
 
-                    return IsStaticUsing(u) ? staticUsingContainer : usingContainer;
+                    if (IsStaticUsing(u))
+                    {
+                        return staticUsingContainer;
+                    }
+
+                    return usingContainer;
             }
 
             throw new InvalidOperationException();
@@ -112,7 +117,7 @@ namespace Microsoft.CodeAnalysis.AddImports
             var filteredImports = newImports.Where(i => !HasExistingImport(i, containers, globalImports)).ToArray();
 
             var externAliases = filteredImports.OfType<TExternSyntax>().ToArray();
-            var usingDirectives = filteredImports.OfType<TUsingOrAliasSyntax>().Where(IsUsing).ToArray();
+            var usingDirectives = filteredImports.OfType<TUsingOrAliasSyntax>().Where(IsSimpleUsing).ToArray();
             var staticUsingDirectives = filteredImports.OfType<TUsingOrAliasSyntax>().Where(IsStaticUsing).ToArray();
             var aliasDirectives = filteredImports.OfType<TUsingOrAliasSyntax>().Where(IsAlias).ToArray();
 
