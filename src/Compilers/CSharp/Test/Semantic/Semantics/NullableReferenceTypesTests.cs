@@ -79061,12 +79061,17 @@ class Program
         C<T5?>.F = default(T5);
         _ = C<T5?>.F.Value;
     }
-    static void F6()
+    static void F6<T6>() where T6 : new()
+    {
+        C<T6>.F = new T6();
+        C<T6>.F.ToString();
+    }
+    static void F7()
     {
         C<string>.F = null; // 5
         _ = C<string>.F.Length; // 6
     }
-    static void F7()
+    static void F8()
     {
         C<int?>.F = 3;
         _ = C<int?>.F.Value;
@@ -79086,12 +79091,12 @@ class Program
                 // (26,9): warning CS8602: Possible dereference of a null reference.
                 //         C<T4>.F.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "C<T4>.F").WithLocation(26, 9),
-                // (35,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // (40,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         C<string>.F = null; // 5
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(35, 23),
-                // (36,13): warning CS8602: Possible dereference of a null reference.
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(40, 23),
+                // (41,13): warning CS8602: Possible dereference of a null reference.
                 //         _ = C<string>.F.Length; // 6
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "C<string>.F").WithLocation(36, 13));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "C<string>.F").WithLocation(41, 13));
         }
 
         [Fact]
@@ -79134,12 +79139,17 @@ class Program
         C<T5?>.P = default(T5);
         _ = C<T5?>.P.Value;
     }
-    static void F6()
+    static void F6<T6>() where T6 : new()
+    {
+        C<T6>.P = new T6();
+        C<T6>.P.ToString();
+    }
+    static void F7()
     {
         C<string>.P = null; // 5
         _ = C<string>.P.Length; // 6
     }
-    static void F7()
+    static void F8()
     {
         C<int?>.P = 3;
         _ = C<int?>.P.Value;
@@ -79159,12 +79169,12 @@ class Program
                 // (29,9): warning CS8602: Possible dereference of a null reference.
                 //         C<T4>.P.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "C<T4>.P").WithLocation(29, 9),
-                // (38,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // (43,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         C<string>.P = null; // 5
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(38, 23),
-                // (39,13): warning CS8602: Possible dereference of a null reference.
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(43, 23),
+                // (44,13): warning CS8602: Possible dereference of a null reference.
                 //         _ = C<string>.P.Length; // 6
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "C<string>.P").WithLocation(39, 13));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "C<string>.P").WithLocation(44, 13));
         }
 
         [Fact]
