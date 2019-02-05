@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return newValueIsBigger ? -1 : 0;
         }
 
+#pragma warning disable CA1030 // Use events where appropriate
         [Conditional("DEBUG")]
         private static void FireNonMonotonicAssertIfNeeded(bool assertMonotonicity)
         {
@@ -85,6 +86,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 Debug.Fail("Non-monotonic merge");
             }
         }
+#pragma warning restore CA1030 // Use events where appropriate
 
         public override DictionaryAnalysisData<TKey, TValue> Merge(DictionaryAnalysisData<TKey, TValue> value1, DictionaryAnalysisData<TKey, TValue> value2)
         {

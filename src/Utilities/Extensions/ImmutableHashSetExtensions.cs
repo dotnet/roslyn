@@ -10,7 +10,7 @@ namespace System.Collections.Immutable
         public static ImmutableHashSet<T> AddRange<T>(this ImmutableHashSet<T> set1, ImmutableHashSet<T> set2)
         {
             var builder = PooledHashSet<T>.GetInstance();
-            
+
             foreach (var item in set1)
             {
                 builder.Add(item);

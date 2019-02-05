@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     internal abstract class AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         : CacheBasedEquatable<TAnalysisContext>, IDataFlowAnalysisContext
-        where TAnalysisContext: class, IDataFlowAnalysisContext
-        where TAnalysisResult: IDataFlowAnalysisResult<TAbstractAnalysisValue>
+        where TAnalysisContext : class, IDataFlowAnalysisContext
+        where TAnalysisResult : IDataFlowAnalysisResult<TAbstractAnalysisValue>
     {
         protected AbstractDataFlowAnalysisContext(
             AbstractValueDomain<TAbstractAnalysisValue> valueDomain,

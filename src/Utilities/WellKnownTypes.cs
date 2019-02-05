@@ -9,9 +9,9 @@ namespace Analyzer.Utilities
     internal static class WellKnownTypes
     {
         public const string SystemWebHttpRequest = "System.Web.HttpRequest";
-        public const string SystemDataIDataAdapter= "System.Data.IDataAdapter";
+        public const string SystemDataIDataAdapter = "System.Data.IDataAdapter";
         public const string SystemDataIDbCommand = "System.Data.IDbCommand";
-        public const string SystemException = "System.Exception";
+        public const string SystemExceptionFullName = "System.Exception";
         public const string SystemDiagnosticContractsContract = "System.Diagnostics.Contracts.Contract";
         public const string SystemIDisposable = "System.IDisposable";
         public const string SystemThreadingMonitor = "System.Threading.Monitor";
@@ -146,10 +146,54 @@ namespace Analyzer.Utilities
         public const string SystemIOFile = "System.IO.File";
         public const string SystemIOFileInfo = "System.IO.FileInfo";
         public const string SystemSecurityCryptographyCipherMode = "System.Security.Cryptography.CipherMode";
+        public const string SystemNetSecurityRemoteCertificateValidationCallback = "System.Net.Security.RemoteCertificateValidationCallback";
         public const string SystemDiagnosticsProcess = "System.Diagnostics.Process";
         public const string SystemDiagnosticsProcessStartInfo = "System.Diagnostics.ProcessStartInfo";
         public const string SystemTextRegularExpressionsRegex = "System.Text.RegularExpressions.Regex";
         public const string SystemRuntimeSerializationNetDataContractSerializer = "System.Runtime.Serialization.NetDataContractSerializer";
+        public const string MicrosoftSecurityApplicationAntiXss = "Microsoft.Security.Application.AntiXss";
+        public const string MicrosoftSecurityApplicationAntiXssEncoder = "Microsoft.Security.Application.AntiXssEncoder";
+        public const string MicrosoftSecurityApplicationEncoder = "Microsoft.Security.Application.Encoder";
+        public const string MicrosoftSecurityApplicationUnicodeCharacterEncoder = "Microsoft.Security.Application.UnicodeCharacterEncoder";
+        public const string SystemWebHttpServerUtility = "System.Web.HttpServerUtility";
+        public const string SystemWebHttpServerUtilityBase = "System.Web.HttpServerUtilityBase";
+        public const string SystemWebHttpServerUtilityWrapper = "System.Web.HttpServerUtilityWrapper";
+        public const string SystemWebHttpUtility = "System.Web.HttpUtility";
+        public const string SystemWebSecurityAntiXssAntiXssEncoder = "System.Web.Security.AntiXss.AntiXssEncoder";
+        public const string SystemWebSecurityAntiXssUnicodeCharacterEncoder = "System.Web.Security.AntiXss.UnicodeCharacterEncoder";
+        public const string SystemWebUIAttributeCollection = "System.Web.UI.AttributeCollection";
+        public const string SystemWebUIClientScriptManager = "System.Web.UI.ClientScriptManager";
+        public const string SystemWebUIControl = "System.Web.UI.Control";
+        public const string SystemWebUIControlBuilder = "System.Web.UI.ControlBuilder";
+        public const string SystemWebUIPage = "System.Web.UI.Page";
+        public const string SystemWebUIWebControlsAdCreatedEventArgs = "System.Web.UI.WebControls.AdCreatedEventArgs";
+        public const string SystemWebUIWebControlsBoundField = "System.Web.UI.WebControls.BoundField";
+        public const string SystemWebUIWebControlsCommandField = "System.Web.UI.WebControls.CommandField";
+        public const string SystemWebUIWebControlsDataControlField = "System.Web.UI.WebControls.DataControlField";
+        public const string SystemWebUIWebControlsDataGrid = "System.Web.UI.WebControls.DataGrid";
+        public const string SystemWebUIWebControlsDataGridColumn = "System.Web.UI.WebControls.DataGridColumn";
+        public const string SystemWebUIWebControlsHotSpot = "System.Web.UI.WebControls.HotSpot";
+        public const string SystemWebUIWebControlsHtmlForm = "System.Web.UI.WebControls.HtmlForm";
+        public const string SystemWebUIWebControlsImage = "System.Web.UI.WebControls.Image";
+        public const string SystemWebUIWebControlsImageField = "System.Web.UI.WebControls.ImageField";
+        public const string SystemWebUIWebControlsLoginStatus = "System.Web.UI.WebControls.LoginStatus";
+        public const string SystemWebUIWebControlsPagerSettings = "System.Web.UI.WebControls.PagerSettings";
+        public const string SystemWebUIWebControlsPanel = "System.Web.UI.WebControls.Panel";
+        public const string SystemWebUIWebControlsPanelStyle = "System.Web.UI.WebControls.PanelStyle";
+        public const string SystemWebUIWebControlsRadioButton = "System.Web.UI.WebControls.RadioButton";
+        public const string SystemWebUIWebControlsSiteMapDataSource = "System.Web.UI.WebControls.SiteMapDataSource";
+        public const string SystemWebUIWebControlsTableStyle = "System.Web.UI.WebControls.TableStyle";
+        public const string SystemWebUIWebControlsTreeNodeStyle = "System.Web.UI.WebControls.TreeNodeStyle";
+        public const string SystemWebUIWebControlsWebControl = "System.Web.UI.WebControls.WebControl";
+        public const string SystemWebUIWebControlsWebPartsDeclarativeCatalogPart = "System.Web.UI.WebControls.WebParts.DeclarativeCatalogPart";
+        public const string SystemWebUIWebControlsWebPartsGenericWebPart = "System.Web.UI.WebControls.WebParts.GenericWebPart";
+        public const string SystemWebUIWebControlsWebPartsPageCatalogPart = "System.Web.UI.WebControls.WebParts.PageCatalogPart";
+        public const string SystemWebUIWebControlsWebPartsWebPart = "System.Web.UI.WebControls.WebParts.WebPart";
+        public const string SystemWebUIWebControlsWebPartsWebPartZoneBase = "System.Web.UI.WebControls.WebParts.WebPartZoneBase";
+        public const string SystemWebUIWebControlsWebPartsWebZone = "System.Web.UI.WebControls.WebParts.WebZone";
+        public const string SystemWebUIWebControlsWebPartsZoneLinkButton = "System.Web.UI.WebControls.WebParts.ZoneLinkButton";
+        public const string SystemWebUIWebControlsWizard = "System.Web.UI.WebControls.Wizard";
+        public const string SystemWebUtilHttpEncoder = "System.Web.Util.HttpEncoder";
 
         public static INamedTypeSymbol ICollection(Compilation compilation)
         {
@@ -451,9 +495,29 @@ namespace Analyzer.Utilities
             return compilation.GetSpecialType(SpecialType.System_Object);
         }
 
+        public static INamedTypeSymbol X509Certificate(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Security.Cryptography.X509Certificates.X509Certificate");
+        }
+
+        public static INamedTypeSymbol X509Chain(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Security.Cryptography.X509Certificates.X509Chain");
+        }
+
+        public static INamedTypeSymbol SslPolicyErrors(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Net.Security.SslPolicyErrors");
+        }
+
         public static INamedTypeSymbol Exception(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName(SystemException);
+            return compilation.GetTypeByMetadataName(SystemExceptionFullName);
+        }
+
+        public static INamedTypeSymbol SystemException(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.SystemException");
         }
 
         public static INamedTypeSymbol InvalidOperationException(Compilation compilation)

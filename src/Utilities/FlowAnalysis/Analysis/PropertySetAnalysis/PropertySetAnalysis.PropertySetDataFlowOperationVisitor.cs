@@ -23,7 +23,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             AbstractLocationDataFlowOperationVisitor<PropertySetAnalysisData, PropertySetAnalysisContext, PropertySetAnalysisResult, PropertySetAbstractValue>
         {
             private readonly ImmutableDictionary<(Location Location, IMethodSymbol Method), PropertySetAbstractValue>.Builder _hazardousUsageBuilder;
-            private INamedTypeSymbol DeserializerTypeSymbol;
+            private readonly INamedTypeSymbol DeserializerTypeSymbol;
 
             public PropertySetDataFlowOperationVisitor(PropertySetAnalysisContext analysisContext)
                 : base(analysisContext)
@@ -100,8 +100,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 PropertySetAbstractValue abstractValue = base.VisitObjectCreation(operation, argument);
                 if (operation.Type == this.DeserializerTypeSymbol)
                 {
-                    abstractValue = this.DataFlowAnalysisContext.IsNewInstanceFlagged 
-                        ? PropertySetAbstractValue.Flagged 
+                    abstractValue = this.DataFlowAnalysisContext.IsNewInstanceFlagged
+                        ? PropertySetAbstractValue.Flagged
                         : PropertySetAbstractValue.Unflagged;
                     PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(operation);
                     this.SetAbstractValue(pointsToAbstractValue, abstractValue);

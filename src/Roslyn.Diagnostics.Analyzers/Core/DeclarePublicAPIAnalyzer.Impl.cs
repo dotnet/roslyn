@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,11 +19,11 @@ namespace Roslyn.Diagnostics.Analyzers
     {
         private sealed class ApiLine
         {
-            public string Text { get; private set; }
-            public TextSpan Span { get; private set; }
-            public SourceText SourceText { get; private set; }
-            public string Path { get; private set; }
-            public bool IsShippedApi { get; private set; }
+            public string Text { get; }
+            public TextSpan Span { get; }
+            public SourceText SourceText { get; }
+            public string Path { get; }
+            public bool IsShippedApi { get; }
 
             internal ApiLine(string text, TextSpan span, SourceText sourceText, string path, bool isShippedApi)
             {
@@ -33,10 +35,12 @@ namespace Roslyn.Diagnostics.Analyzers
             }
         }
 
-        private struct RemovedApiLine
+#pragma warning disable CA1815 // Override equals and operator equals on value types
+        private readonly struct RemovedApiLine
+#pragma warning restore CA1815 // Override equals and operator equals on value types
         {
-            public string Text { get; private set; }
-            public ApiLine ApiLine { get; private set; }
+            public string Text { get; }
+            public ApiLine ApiLine { get; }
 
             internal RemovedApiLine(string text, ApiLine apiLine)
             {
@@ -45,10 +49,12 @@ namespace Roslyn.Diagnostics.Analyzers
             }
         }
 
-        private struct ApiData
+#pragma warning disable CA1815 // Override equals and operator equals on value types
+        private readonly struct ApiData
+#pragma warning restore CA1815 // Override equals and operator equals on value types
         {
-            public ImmutableArray<ApiLine> ApiList { get; private set; }
-            public ImmutableArray<RemovedApiLine> RemovedApiList { get; private set; }
+            public ImmutableArray<ApiLine> ApiList { get; }
+            public ImmutableArray<RemovedApiLine> RemovedApiList { get; }
 
             internal ApiData(ImmutableArray<ApiLine> apiList, ImmutableArray<RemovedApiLine> removedApiList)
             {
@@ -59,32 +65,32 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private sealed class Impl
         {
-            private static readonly HashSet<MethodKind> s_ignorableMethodKinds = new HashSet<MethodKind>
-            {
-                MethodKind.EventAdd,
-                MethodKind.EventRemove
-            };
+            private static readonly ImmutableArray<MethodKind> s_ignorableMethodKinds
+                = ImmutableArray.Create(MethodKind.EventAdd, MethodKind.EventRemove);
 
             private readonly Compilation _compilation;
             private readonly ApiData _unshippedData;
-            private readonly Dictionary<ITypeSymbol, bool> _typeCanBeExtendedCache = new Dictionary<ITypeSymbol, bool>();
-            private readonly HashSet<string> _visitedApiList = new HashSet<string>(StringComparer.Ordinal);
-            private readonly Dictionary<string, ApiLine> _publicApiMap = new Dictionary<string, ApiLine>(StringComparer.Ordinal);
+            private readonly ConcurrentDictionary<ITypeSymbol, bool> _typeCanBeExtendedCache = new ConcurrentDictionary<ITypeSymbol, bool>();
+            private readonly ConcurrentDictionary<string, UnusedValue> _visitedApiList = new ConcurrentDictionary<string, UnusedValue>(StringComparer.Ordinal);
+            private readonly IReadOnlyDictionary<string, ApiLine> _publicApiMap;
 
             internal Impl(Compilation compilation, ApiData shippedData, ApiData unshippedData)
             {
                 _compilation = compilation;
                 _unshippedData = unshippedData;
 
+                var publicApiMap = new Dictionary<string, ApiLine>(StringComparer.Ordinal);
                 foreach (ApiLine cur in shippedData.ApiList)
                 {
-                    _publicApiMap.Add(cur.Text, cur);
+                    publicApiMap.Add(cur.Text, cur);
                 }
 
                 foreach (ApiLine cur in unshippedData.ApiList)
                 {
-                    _publicApiMap.Add(cur.Text, cur);
+                    publicApiMap.Add(cur.Text, cur);
                 }
+
+                _publicApiMap = publicApiMap;
             }
 
             internal void OnSymbolAction(SymbolAnalysisContext symbolContext)
@@ -132,7 +138,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 Debug.Assert(IsPublicAPI(symbol));
 
                 string publicApiName = GetPublicApiName(symbol);
-                _visitedApiList.Add(publicApiName);
+                _visitedApiList.TryAdd(publicApiName, default);
 
                 List<Location> locationsToReport = new List<Location>();
 
@@ -442,9 +448,7 @@ namespace Roslyn.Diagnostics.Analyzers
                             if (attribute.AttributeConstructor.Parameters.Length == 1 &&
                                 attribute.ConstructorArguments.Length == 1)
                             {
-                                var forwardedType = attribute.ConstructorArguments[0].Value as INamedTypeSymbol;
-
-                                if (forwardedType != null)
+                                if (attribute.ConstructorArguments[0].Value is INamedTypeSymbol forwardedType)
                                 {
                                     VisitForwardedTypeRecursively(forwardedType, reportDiagnostic, attribute.ApplicationSyntaxReference.GetSyntax(cancellationToken).GetLocation(), cancellationToken);
                                 }
@@ -485,7 +489,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 var list = new List<ApiLine>();
                 foreach (KeyValuePair<string, ApiLine> pair in _publicApiMap)
                 {
-                    if (_visitedApiList.Contains(pair.Key))
+                    if (_visitedApiList.ContainsKey(pair.Key))
                     {
                         continue;
                     }
@@ -539,20 +543,17 @@ namespace Roslyn.Diagnostics.Analyzers
 
             private bool CanTypeBeExtendedPublicly(ITypeSymbol type)
             {
-                if (_typeCanBeExtendedCache.TryGetValue(type, out bool result))
-                {
-                    return result;
-                }
+                return _typeCanBeExtendedCache.GetOrAdd(type, t => CanTypeBeExtendedPubliclyImpl(t));
+            }
 
+            private static bool CanTypeBeExtendedPubliclyImpl(ITypeSymbol type)
+            {
                 // a type can be extended publicly if (1) it isn't sealed, and (2) it has some constructor that is
                 // not internal, private or protected&internal
-                result = !type.IsSealed &&
+                return !type.IsSealed &&
                     type.GetMembers(WellKnownMemberNames.InstanceConstructorName).Any(
                         m => m.DeclaredAccessibility != Accessibility.Internal && m.DeclaredAccessibility != Accessibility.Private && m.DeclaredAccessibility != Accessibility.ProtectedAndInternal
                     );
-
-                _typeCanBeExtendedCache.Add(type, result);
-                return result;
             }
         }
     }

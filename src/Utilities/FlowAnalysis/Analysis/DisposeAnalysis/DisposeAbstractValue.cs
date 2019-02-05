@@ -5,6 +5,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities;
 
+#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T> - CacheBasedEquatable handles equality
+
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 {
     /// <summary>
@@ -22,11 +24,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             : this(ImmutableHashSet<IOperation>.Empty, kind)
         {
             Debug.Assert(kind != DisposeAbstractValueKind.Disposed);
-        }
-
-        private DisposeAbstractValue(IOperation disposingOrEscapingOperation, DisposeAbstractValueKind kind)
-            : this(ImmutableHashSet.Create(disposingOrEscapingOperation), kind)
-        {
         }
 
         public DisposeAbstractValue(ImmutableHashSet<IOperation> disposingOrEscapingOperations, DisposeAbstractValueKind kind)

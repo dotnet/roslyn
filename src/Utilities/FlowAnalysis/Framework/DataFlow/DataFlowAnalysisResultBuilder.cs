@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             TAnalysisData mergedDataForUnhandledThrowOperationsOpt,
             ControlFlowGraph cfg,
             TAbstractAnalysisValue defaultUnknownValue)
-            where TBlockAnalysisResult: AbstractBlockAnalysisResult
+            where TBlockAnalysisResult : AbstractBlockAnalysisResult
         {
             var resultBuilder = PooledDictionary<BasicBlock, TBlockAnalysisResult>.GetInstance();
             foreach (var kvp in _info)

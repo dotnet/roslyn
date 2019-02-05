@@ -24,12 +24,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// </remarks>
     internal class TaintedDataConfig
     {
-        private static ConditionalWeakTable<Compilation, TaintedDataConfig> s_ConfigsByCompilation = new ConditionalWeakTable<Compilation, TaintedDataConfig>();
+        private static readonly ConditionalWeakTable<Compilation, TaintedDataConfig> s_ConfigsByCompilation = new ConditionalWeakTable<Compilation, TaintedDataConfig>();
 
         /// <summary>
         /// <see cref="WellKnownTypeProvider"/> for this instance's <see cref="Compilation"/>.
         /// </summary>
         private WellKnownTypeProvider WellKnownTypeProvider { get; }
+
+#pragma warning disable CA1721 // Property names should not match get methods
 
         /// <summary>
         /// Mapping of sink kind to source symbol map.
@@ -45,6 +47,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Mapping of sink kind to sink symbol map.
         /// </summary>
         private Dictionary<SinkKind, Lazy<TaintedDataSymbolMap<SinkInfo>>> SinkSymbolMap { get; }
+
+#pragma warning restore CA1721 // Property names should not match get methods
 
         /// <summary>
         /// Gets a cached <see cref="TaintedDataConfig"/> for <paramref name="compilation"/>.
@@ -177,14 +181,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.Dll:
                 case SinkKind.FilePathInjection:
                 case SinkKind.ProcessCommand:
+                case SinkKind.Xss:
                 case SinkKind.Regex:
                     return WebInputSources.SourceInfos;
 
                 case SinkKind.InformationDisclosure:
                     return InformationDisclosureSources.SourceInfos;
-
-                case SinkKind.XSS:  // TODO: Implement as part of CA3002
-                    return ImmutableHashSet<SourceInfo>.Empty;
 
                 default:
                     Debug.Fail($"Unhandled SinkKind {sinkKind}");
@@ -199,9 +201,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.Sql:
                     return PrimitiveTypeConverterSanitizers.SanitizerInfos;
 
+                case SinkKind.Xss:
+                    return XssSanitizers.SanitizerInfos;
+
                 case SinkKind.Dll:
                 case SinkKind.InformationDisclosure:
-                case SinkKind.XSS:  // TODO: Implement as part of CA3002
                 case SinkKind.FilePathInjection:
                 case SinkKind.ProcessCommand:
                 case SinkKind.Regex:
@@ -224,7 +228,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     return DllSinks.SinkInfos;
 
                 case SinkKind.InformationDisclosure:
-                case SinkKind.XSS:
+                case SinkKind.Xss:
                     return WebOutputSinks.SinkInfos;
 
                 case SinkKind.FilePathInjection:

@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -40,7 +39,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                             kvp.Value.SinkKinds.ToImmutable(),
                             kvp.Value.SourceOrigins.ToImmutable()));
                 }
-                 
+
                 return builder.ToImmutableArray();
             }
 
@@ -64,7 +63,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             protected override TaintedDataAnalysisData GetClonedAnalysisData(TaintedDataAnalysisData analysisData)
             {
-                return (TaintedDataAnalysisData) analysisData.Clone();
+                return (TaintedDataAnalysisData)analysisData.Clone();
             }
 
             protected override bool HasAbstractValue(AnalysisEntity analysisEntity)
@@ -201,11 +200,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             {
                 // Always invoke base visit.
                 TaintedDataAbstractValue baseVisit = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
-                    method, 
+                    method,
                     visitedInstance,
-                    visitedArguments, 
-                    invokedAsDelegate, 
-                    originalOperation, 
+                    visitedArguments,
+                    invokedAsDelegate,
+                    originalOperation,
                     defaultValue);
 
                 IEnumerable<IArgumentOperation> taintedArguments = GetTaintedArguments(visitedArguments);
@@ -248,7 +247,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             /// <param name="defaultValue">Default TaintedDataAbstractValue if we don't need to override.</param>
             /// <returns>Abstract value of the output parameter.</returns>
             protected override TaintedDataAbstractValue ComputeAnalysisValueForEscapedRefOrOutArgument(
-                AnalysisEntity analysisEntity, 
+                AnalysisEntity analysisEntity,
                 IArgumentOperation operation,
                 TaintedDataAbstractValue defaultValue)
             {
@@ -305,7 +304,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             }
 
             private void TrackTaintedDataEnteringSink(
-                ISymbol sinkSymbol, 
+                ISymbol sinkSymbol,
                 Location sinkLocation,
                 IEnumerable<SinkKind> sinkKinds,
                 IEnumerable<SymbolAccess> sources)
@@ -333,7 +332,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             /// <param name="taintedArguments">Arguments with tainted data to the method.</param>
             /// <param name="originalOperation">Original IOperation for the method/constructor invocation.</param>
             private void ProcessTaintedDataEnteringInvocationOrCreation(
-                IMethodSymbol targetMethod, 
+                IMethodSymbol targetMethod,
                 IEnumerable<IArgumentOperation> taintedArguments,
                 IOperation originalOperation)
             {
@@ -374,27 +373,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     && this.IsPropertyASink(propertyReferenceOperation, out HashSet<SinkKind> sinkKinds))
                 {
                     this.TrackTaintedDataEnteringSink(
-                        propertyReferenceOperation.Member, 
-                        propertyReferenceOperation.Syntax.GetLocation(), 
+                        propertyReferenceOperation.Member,
+                        propertyReferenceOperation.Syntax.GetLocation(),
                         sinkKinds,
                         assignmentValueAbstractValue.SourceOrigins);
-                }
-            }
-
-            private IEnumerable<TaintedDataAbstractValue> GetTaintedValuesFromInputArguments(IEnumerable<IArgumentOperation> arguments)
-            {
-                foreach (IArgumentOperation argument in arguments)
-                {
-                    if (argument.Parameter.RefKind == RefKind.None
-                        || argument.Parameter.RefKind == RefKind.Ref
-                        || argument.Parameter.RefKind == RefKind.In)
-                    {
-                        TaintedDataAbstractValue value = this.GetCachedAbstractValue(argument);
-                        if (value.Kind == TaintedDataAbstractValueKind.Tainted)
-                        {
-                            yield return value;
-                        }
-                    }
                 }
             }
 
@@ -474,6 +456,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             /// Determines if a property is a sink.
             /// </summary>
             /// <param name="propertyReferenceOperation">Property to check if it's a sink.</param>
+            /// <param name="sinkKinds">If the property is a sink, <see cref="HashSet{SinkInfo}"/> containing the kinds of sinks; null otherwise.</param>
             /// <returns>True if the property is a sink, false otherwise.</returns>
             private bool IsPropertyASink(IPropertyReferenceOperation propertyReferenceOperation, out HashSet<SinkKind> sinkKinds)
             {

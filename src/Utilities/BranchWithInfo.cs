@@ -59,7 +59,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public ImmutableArray<ControlFlowRegion> FinallyRegions { get; }
         public ImmutableArray<ControlFlowRegion> LeavingRegions { get; }
         public IOperation BranchValueOpt { get; }
+
+#pragma warning disable CA1721 // Property names should not match get methods - https://github.com/dotnet/roslyn-analyzers/issues/2085
         public ControlFlowConditionKind ControlFlowConditionKind { get; }
+#pragma warning restore CA1721 // Property names should not match get methods
 
         public BranchWithInfo With(
             BasicBlock destination,

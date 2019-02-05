@@ -53,7 +53,7 @@ namespace Analyzer.Utilities
             {
                 _disposeOwnershipTransferLikelyTypes = GetDisposeOwnershipTransferLikelyTypes(compilation);
             }
-        }        
+        }
 
         private static ImmutableHashSet<INamedTypeSymbol> GetDisposeOwnershipTransferLikelyTypes(Compilation compilation)
         {

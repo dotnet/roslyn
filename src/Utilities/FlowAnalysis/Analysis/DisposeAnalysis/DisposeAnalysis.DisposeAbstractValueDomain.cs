@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             private DisposeAbstractValueDomain() { }
 
             public override DisposeAbstractValue Bottom => DisposeAbstractValue.NotDisposable;
-            
+
             public override DisposeAbstractValue UnknownOrMayBeValue => DisposeAbstractValue.Unknown;
 
             public override int Compare(DisposeAbstractValue oldValue, DisposeAbstractValue newValue, bool assertMonotonicity)

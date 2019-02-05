@@ -47,8 +47,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         public override bool Equals(object obj)
         {
-            SanitizerInfo other = obj as SanitizerInfo;
-            return other != null ? this.Equals(other) : false;
+            return obj is SanitizerInfo other ? this.Equals(other) : false;
         }
 
         public bool Equals(SanitizerInfo other)
