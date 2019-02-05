@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             CancellationToken cancellationToken)
         {
             // Determines if we can make the local function 'static'.  We can make it static
-            // if the original lambda did not cpature any variables (other than the local 
+            // if the original lambda did not capture any variables (other than the local 
             // variable itself).  it's ok for the lambda to capture itself as a static-local
             // function can reference itself without any problems.
             if (makeStaticIfPossible)

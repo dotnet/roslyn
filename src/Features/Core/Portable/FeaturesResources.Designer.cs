@@ -4403,6 +4403,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use simple &apos;using&apos; statement.
+        /// </summary>
+        internal static string Use_simple_using_statement {
+            get {
+                return ResourceManager.GetString("Use_simple_using_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use &apos;throw&apos; expression.
         /// </summary>
         internal static string Use_throw_expression {
@@ -4444,6 +4453,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Using_ref_structs_will_prevent_the_debug_session_from_continuing {
             get {
                 return ResourceManager.GetString("Using_ref_structs_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;using&apos; statement can be simplified.
+        /// </summary>
+        internal static string using_statement_can_be_simplified {
+            get {
+                return ResourceManager.GetString("using_statement_can_be_simplified", resourceCulture);
             }
         }
         

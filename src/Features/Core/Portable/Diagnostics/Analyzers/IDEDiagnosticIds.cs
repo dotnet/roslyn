@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UseExpressionBodyForLocalFunctionsDiagnosticId = "IDE0061";
 
         public const string MakeLocalFunctionStaticDiagnosticId = "IDE0062";
+        public const string UseSimpleUsingStatementDiagnosticId = "IDE0063";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

@@ -167,6 +167,11 @@
         <target state="new">Prefer readonly fields</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_simple_using_statement">
+        <source>Prefer simple 'using' statement</source>
+        <target state="new">Prefer simple 'using' statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
         <target state="new">Prefer static local functions</target>
