@@ -115,34 +115,27 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         public string TypeToTrackMetadataName { get; }
 
         /// <summary>
-        /// How newly created instances should be considered: flagged or unflagged.
+        /// How constructor invocations map to <see cref="PropertySetAbstractValueKind"/>s.
         /// </summary>
-        public bool IsNewInstanceFlagged { get; }
+        public ConstructorMapper ConstructorMapper { get; }
 
         /// <summary>
-        /// Name of the property that when assigned to, may change the abstract value.
+        /// How property assignments map to <see cref="PropertySetAbstractValueKind"/>.
         /// </summary>
-        public string PropertyToSetFlag { get; }
+        public ImmutableArray<PropertyMapper> PropertyMappers { get; }
 
         /// <summary>
-        /// Whether to change the abstract value of the instance to flagged or not flagged,
-        /// when the <see cref="PropertyToSetFlag"/> property is set to null or non-null.
+        /// When and how to evaluate <see cref="PropertySetAbstractValueKind"/>s to for hazardous usages.
         /// </summary>
-        public bool IsNullPropertyFlagged { get; }
-
-        /// <summary>
-        /// Method names for invocations that check whether the instance is flagged or maybe flagged.
-        /// </summary>
-        public ImmutableHashSet<string> MethodNamesToCheckForFlaggedUsage { get; }
+        public ImmutableArray<HazardousUsageEvaluator> HazardousUsageEvaluators { get; }
 
 #pragma warning disable CA1307 // Specify StringComparison - string.GetHashCode(StringComparison) not available in all projects that reference this shared project
         protected override void ComputeHashCodePartsSpecific(ArrayBuilder<int> builder)
         {
             builder.Add(TypeToTrackMetadataName.GetHashCode());
-            builder.Add(IsNewInstanceFlagged.GetHashCode());
-            builder.Add(PropertyToSetFlag.GetHashCode());
-            builder.Add(IsNullPropertyFlagged.GetHashCode());
-            builder.Add(HashUtilities.Combine(MethodNamesToCheckForFlaggedUsage));
+            builder.Add(ConstructorMapper.GetHashCode());
+            builder.Add(HashUtilities.Combine(PropertyMappers));
+            builder.Add(HashUtilities.Combine(HazardousUsageEvaluators));
         }
 #pragma warning restore CA1307 // Specify StringComparison
     }
