@@ -137,7 +137,6 @@
         <target state="new">Indent wrapped parameters</target>
         <note />
       </trans-unit>
-<<<<<<< HEAD
       <trans-unit id="Local_function_can_be_made_static">
         <source>Local function can be made static</source>
         <target state="new">Local function can be made static</target>
@@ -178,8 +177,6 @@
         <target state="new">Move file to project root folder</target>
         <note />
       </trans-unit>
-=======
->>>>>>> upstream/master
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
         <target state="new">Indexing can be simplified</target>
@@ -397,8 +394,7 @@
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
-<<<<<<< HEAD
-        <target state="new">Use interpolated verbatim string</target>
+        <target state="translated">Usar cadeia de caracteres textual interpolada</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_simple_using_statement">
@@ -409,9 +405,6 @@
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
         <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
         <target state="new">Warning: Changing namespace may produce invalid code and change code meaning.</target>
-=======
-        <target state="translated">Usar cadeia de caracteres textual interpolada</target>
->>>>>>> upstream/master
         <note />
       </trans-unit>
       <trans-unit id="Use_range_operator">
