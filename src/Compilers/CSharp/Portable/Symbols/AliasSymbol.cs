@@ -159,6 +159,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return new SyntaxReferenceEnumerable(this, (symbol, index) => DeclaringSyntaxReferenceEnumerableMoveNextHelper<UsingDirectiveSyntax>(((AliasSymbol)symbol)._locations, index));
+            }
+        }
+
         public override bool IsExtern
         {
             get

@@ -162,6 +162,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return _underlyingNamespace.DeclaringSyntaxReferencesEnumerable;
+            }
+        }
+
         public override AssemblySymbol ContainingAssembly
         {
             get

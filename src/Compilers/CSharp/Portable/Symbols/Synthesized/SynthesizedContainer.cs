@@ -108,6 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable => SyntaxReferenceEnumerable.Empty;
+
         public override IEnumerable<string> MemberNames => SpecializedCollections.EmptyEnumerable<string>();
 
         public override NamedTypeSymbol ConstructedFrom => this;

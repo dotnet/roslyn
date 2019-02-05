@@ -99,6 +99,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
             => ComputeDeclaringReferencesCore();
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return new SyntaxReferenceEnumerable(
+                    this,
+                    (symbol, index) =>
+                    {
+                        var declarations = ((SourceNamespaceSymbol)symbol)._mergedDeclaration.Declarations;
+                        if (index + 1 >= declarations.Length)
+                        {
+                            return default;
+                        }
+
+                        return (index + 1, new NamespaceDeclarationSyntaxReference(declarations[index + 1].SyntaxReference));
+                    });
+            }
+        }
+
         private ImmutableArray<SyntaxReference> ComputeDeclaringReferencesCore()
         {
             // SyntaxReference in the namespace declaration points to the name node of the namespace decl node not

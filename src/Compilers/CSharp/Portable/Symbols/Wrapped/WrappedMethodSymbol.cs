@@ -94,6 +94,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return UnderlyingMethod.DeclaringSyntaxReferencesEnumerable;
+            }
+        }
+
         public override Accessibility DeclaredAccessibility
         {
             get

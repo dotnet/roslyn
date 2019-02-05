@@ -158,6 +158,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return SyntaxReferenceEnumerable.Empty;
+            }
+        }
+
         public MockNamedTypeSymbol(string name, IEnumerable<Symbol> children, TypeKind kind = TypeKind.Class)
         {
             _name = name;

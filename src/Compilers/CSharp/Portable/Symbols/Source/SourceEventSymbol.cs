@@ -117,6 +117,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public sealed override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return new SyntaxReferenceEnumerable(
+                    this,
+                    (symbol, index) =>
+                    {
+                        if (index != -1)
+                        {
+                            return default;
+                        }
+
+                        return (0, ((SourceEventSymbol)symbol)._syntaxRef);
+                    });
+            }
+        }
+
         /// <summary>
         /// Gets the syntax list of custom attributes applied on the event symbol.
         /// </summary>

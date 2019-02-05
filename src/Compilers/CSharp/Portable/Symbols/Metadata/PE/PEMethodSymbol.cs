@@ -715,6 +715,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable => SyntaxReferenceEnumerable.Empty;
+
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             if (!_packedFlags.IsCustomAttributesPopulated)

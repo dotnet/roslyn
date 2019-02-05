@@ -1176,6 +1176,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return new SyntaxReferenceEnumerable(this, (symbol, index) => DeclaringSyntaxReferenceEnumerableMoveNextHelper<CSharpSyntaxNode>(((TupleTypeSymbol)symbol)._locations, index));
+            }
+        }
+
         internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
             if ((comparison & TypeCompareKind.IgnoreTupleNames) != 0)

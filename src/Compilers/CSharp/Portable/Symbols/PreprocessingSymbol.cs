@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// Represents a preprocessing conditional compilation symbol.
     /// </summary>
-    internal class PreprocessingSymbol : Symbol, IPreprocessingSymbol
+    internal sealed class PreprocessingSymbol : Symbol, IPreprocessingSymbol
     {
         private readonly string _name;
 
@@ -37,7 +36,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return GetDeclaringSyntaxReferenceHelper<CSharpSyntaxNode>(Locations);
+                return ImmutableArray<SyntaxReference>.Empty;
+            }
+        }
+
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return SyntaxReferenceEnumerable.Empty;
             }
         }
 

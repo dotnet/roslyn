@@ -80,6 +80,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return _underlyingEvent.DeclaringSyntaxReferencesEnumerable;
+            }
+        }
+
         public override Accessibility DeclaredAccessibility
         {
             get

@@ -69,6 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences { get { throw ExceptionUtilities.Unreachable; } }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable { get { throw ExceptionUtilities.Unreachable; } }
+
         public override Accessibility DeclaredAccessibility { get { throw ExceptionUtilities.Unreachable; } }
 
         public override bool IsVirtual { get { throw ExceptionUtilities.Unreachable; } }

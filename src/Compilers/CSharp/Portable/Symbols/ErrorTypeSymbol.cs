@@ -256,6 +256,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return SyntaxReferenceEnumerable.Empty;
+            }
+        }
+
         /// <summary>
         /// Returns the arity of this type, or the number of type parameters it takes.
         /// A non-generic type has zero arity.

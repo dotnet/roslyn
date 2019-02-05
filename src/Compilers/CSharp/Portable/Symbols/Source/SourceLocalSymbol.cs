@@ -456,6 +456,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return new SyntaxReferenceEnumerable(
+                    this,
+                    (symbol, index) =>
+                    {
+                        if (index != -1)
+                        {
+                            return default;
+                        }
+
+                        return (0, ((SourceLocalSymbol)symbol)._identifierToken.Parent.GetReference());
+                    });
+            }
+        }
+
         internal override bool IsCompilerGenerated
         {
             get { return false; }

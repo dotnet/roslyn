@@ -280,6 +280,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return new SyntaxReferenceEnumerable(
+                    this,
+                    (symbol, index) =>
+                    {
+                        if (index != -1)
+                        {
+                            return default;
+                        }
+
+                        return (0, ((LambdaSymbol)symbol)._syntax.GetReference());
+                    });
+            }
+        }
+
         public override Symbol ContainingSymbol
         {
             get { return _containingSymbol; }

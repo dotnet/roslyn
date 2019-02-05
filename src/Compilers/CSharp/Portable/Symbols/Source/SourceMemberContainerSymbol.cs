@@ -869,6 +869,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return new SyntaxReferenceEnumerable(
+                    this,
+                    (symbol, index) =>
+                    {
+                        var declarations = ((SourceMemberContainerTypeSymbol)symbol).declaration.Declarations;
+                        if (index + 1 < declarations.Length)
+                        {
+                            return (index + 1, declarations[index + 1].SyntaxReference);
+                        }
+
+                        return default;
+                    });
+            }
+        }
+
         // This method behaves the same was as the base class, but avoids allocations associated with DeclaringSyntaxReferences
         internal override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken)
         {

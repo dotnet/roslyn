@@ -197,6 +197,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return SyntaxReferenceEnumerable.Empty;
+            }
+        }
+
         /// <summary>
         /// Returns an array of assembly identities for assemblies referenced by this module.
         /// Items at the same position from ReferencedAssemblies and from ReferencedAssemblySymbols 

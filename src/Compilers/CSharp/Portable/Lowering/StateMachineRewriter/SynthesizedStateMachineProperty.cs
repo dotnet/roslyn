@@ -111,6 +111,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<SyntaxReference>.Empty; }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get { return SyntaxReferenceEnumerable.Empty; }
+        }
+
         public override Accessibility DeclaredAccessibility
         {
             get { return _getter.DeclaredAccessibility; }

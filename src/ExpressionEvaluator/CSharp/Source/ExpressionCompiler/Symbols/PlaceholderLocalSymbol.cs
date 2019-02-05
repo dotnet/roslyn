@@ -127,6 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return ImmutableArray<SyntaxReference>.Empty; }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get { return SyntaxReferenceEnumerable.Empty; }
+        }
+
         internal abstract override bool IsWritableVariable { get; }
 
         internal override EELocalSymbolBase ToOtherMethod(MethodSymbol method, TypeMap typeMap)

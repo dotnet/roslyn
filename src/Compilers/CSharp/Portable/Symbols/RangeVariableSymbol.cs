@@ -65,6 +65,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return new SyntaxReferenceEnumerable(
+                    this,
+                    (symbol, index) =>
+                    {
+                        if (index != -1)
+                        {
+                            return default;
+                        }
+
+                        SyntaxToken token = (SyntaxToken)((RangeVariableSymbol)symbol)._locations[0].SourceTree.GetRoot().FindToken(((RangeVariableSymbol)symbol)._locations[0].SourceSpan.Start);
+                        Debug.Assert(token.Kind() == SyntaxKind.IdentifierToken);
+                        CSharpSyntaxNode node = (CSharpSyntaxNode)token.Parent;
+                        Debug.Assert(node is QueryClauseSyntax || node is QueryContinuationSyntax || node is JoinIntoClauseSyntax);
+                        return (0, node.GetReference());
+                    });
+            }
+        }
+
         public override bool IsExtern
         {
             get

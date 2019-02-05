@@ -83,6 +83,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { throw ExceptionUtilities.Unreachable; }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
         internal override void EnsureAllConstraintsAreResolved(bool early)
         {
         }

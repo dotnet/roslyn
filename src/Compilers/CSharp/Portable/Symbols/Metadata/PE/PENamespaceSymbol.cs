@@ -149,6 +149,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return SyntaxReferenceEnumerable.Empty;
+            }
+        }
+
         /// <summary>
         /// Returns PEModuleSymbol containing the namespace.
         /// </summary>

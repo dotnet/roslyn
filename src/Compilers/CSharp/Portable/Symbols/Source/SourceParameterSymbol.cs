@@ -237,6 +237,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public sealed override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                if (IsImplicitlyDeclared)
+                {
+                    return SyntaxReferenceEnumerable.Empty;
+                }
+
+                return new SyntaxReferenceEnumerable(this, (symbol, index) => DeclaringSyntaxReferenceEnumerableMoveNextHelper<ParameterSyntax>(((SourceParameterSymbol)symbol)._locations, index));
+            }
+        }
+
         public sealed override TypeSymbolWithAnnotations Type
         {
             get

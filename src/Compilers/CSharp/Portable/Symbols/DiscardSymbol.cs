@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override Symbol ContainingSymbol => null;
         public override Accessibility DeclaredAccessibility => Accessibility.NotApplicable;
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable => SyntaxReferenceEnumerable.Empty;
         public override bool IsAbstract => false;
         public override bool IsExtern => false;
         public override bool IsImplicitlyDeclared => true;

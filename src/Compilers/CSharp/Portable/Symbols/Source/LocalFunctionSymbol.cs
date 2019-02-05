@@ -322,6 +322,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray.Create(_syntax.GetReference());
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return new SyntaxReferenceEnumerable(
+                    this,
+                    (symbol, index) =>
+                    {
+                        if (index != -1)
+                        {
+                            return default;
+                        }
+
+                        return (0, ((LocalFunctionSymbol)symbol)._syntax.GetReference());
+                    });
+            }
+        }
+
         internal override bool GenerateDebugInfo => true;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;

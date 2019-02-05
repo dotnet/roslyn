@@ -218,6 +218,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _reducedFrom.DeclaringSyntaxReferences; }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get { return _reducedFrom.DeclaringSyntaxReferencesEnumerable; }
+        }
+
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             return _reducedFrom.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);

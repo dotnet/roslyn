@@ -63,6 +63,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { throw ExceptionUtilities.Unreachable; }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
             get { return ImmutableArray<MethodSymbol>.Empty; }

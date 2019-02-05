@@ -100,6 +100,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return new SyntaxReferenceEnumerable(
+                    this,
+                    (symbol, index) =>
+                    {
+                        if (index != -1)
+                        {
+                            return default;
+                        }
+
+                        var identifierNodeOrToken = ((SourceLabelSymbol)symbol)._identifierNodeOrToken;
+                        CSharpSyntaxNode node = null;
+
+                        if (identifierNodeOrToken.IsToken)
+                        {
+                            if (identifierNodeOrToken.Parent != null)
+                                node = identifierNodeOrToken.Parent.FirstAncestorOrSelf<LabeledStatementSyntax>();
+                        }
+                        else
+                        {
+                            node = identifierNodeOrToken.AsNode().FirstAncestorOrSelf<SwitchLabelSyntax>();
+                        }
+
+                        return node is null ? default : (0, node.GetReference());
+                    });
+            }
+        }
+
         public override MethodSymbol ContainingMethod
         {
             get

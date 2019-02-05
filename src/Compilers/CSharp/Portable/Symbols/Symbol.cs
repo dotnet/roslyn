@@ -289,6 +289,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public abstract ImmutableArray<SyntaxReference> DeclaringSyntaxReferences { get; }
 
+        public abstract SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable { get; }
+
         /// <summary>
         /// Helper for implementing <see cref="DeclaringSyntaxReferences"/> for derived classes that store a location but not a 
         /// <see cref="CSharpSyntaxNode"/> or <see cref="SyntaxReference"/>.
@@ -322,6 +324,49 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return builder.ToImmutableAndFree();
+        }
+
+        internal static (int?, SyntaxReference) DeclaringSyntaxReferenceEnumerableMoveNextHelper<TNode>(ImmutableArray<Location> locations, int previousIndex)
+            where TNode : CSharpSyntaxNode
+        {
+            for (int i = previousIndex + 1; i < locations.Length; i++)
+            {
+                Location location = locations[i];
+                if (location is null)
+                {
+                    continue;
+                }
+
+                if (location.IsInSource)
+                {
+                    SyntaxToken token = location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start);
+                    if (token.Kind() != SyntaxKind.None)
+                    {
+                        CSharpSyntaxNode node = token.Parent.FirstAncestorOrSelf<TNode>();
+                        if (node != null)
+                            return (i, node.GetReference());
+                    }
+                }
+            }
+
+            return default;
+        }
+
+        internal static (int?, SyntaxReference) DeclaringSyntaxReferenceEnumerableMoveNextHelper<TNode>(Location location, int previousIndex)
+            where TNode : CSharpSyntaxNode
+        {
+            if (previousIndex == -1 && location.IsInSource)
+            {
+                SyntaxToken token = location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start);
+                if (token.Kind() != SyntaxKind.None)
+                {
+                    CSharpSyntaxNode node = token.Parent.FirstAncestorOrSelf<TNode>();
+                    if (node != null)
+                        return (0, node.GetReference());
+                }
+            }
+
+            return default;
         }
 
         /// <summary>
@@ -1279,6 +1324,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return this.DeclaringSyntaxReferences;
+            }
+        }
+
+        SyntaxReferenceEnumerable ISymbol.DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return this.DeclaringSyntaxReferencesEnumerable;
             }
         }
 
