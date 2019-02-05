@@ -151,6 +151,7 @@ namespace Analyzer.Utilities
         public const string SystemDiagnosticsProcessStartInfo = "System.Diagnostics.ProcessStartInfo";
         public const string SystemTextRegularExpressionsRegex = "System.Text.RegularExpressions.Regex";
         public const string SystemRuntimeSerializationNetDataContractSerializer = "System.Runtime.Serialization.NetDataContractSerializer";
+        public const string SystemWebUIObjectStateFormatter = "System.Web.UI.ObjectStateFormatter";
         public const string MicrosoftSecurityApplicationAntiXss = "Microsoft.Security.Application.AntiXss";
         public const string MicrosoftSecurityApplicationAntiXssEncoder = "Microsoft.Security.Application.AntiXssEncoder";
         public const string MicrosoftSecurityApplicationEncoder = "Microsoft.Security.Application.Encoder";
