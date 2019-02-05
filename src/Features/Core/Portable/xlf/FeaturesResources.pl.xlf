@@ -387,6 +387,11 @@
         <target state="new">Use interpolated verbatim string</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_simple_using_statement">
+        <source>Use simple 'using' statement</source>
+        <target state="new">Use simple 'using' statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
         <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
         <target state="new">Warning: Changing namespace may produce invalid code and change code meaning.</target>
@@ -2478,6 +2483,11 @@ Ta wersja jest używana wersja: {2}</target>
       <trans-unit id="updating_usages_in_dependent_projects">
         <source>updating usages in dependent projects</source>
         <target state="new">updating usages in dependent projects</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="using_statement_can_be_simplified">
+        <source>'using' statement can be simplified</source>
+        <target state="new">'using' statement can be simplified</target>
         <note />
       </trans-unit>
     </body>
