@@ -4,7 +4,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Tools.CodeFormatter</RootNamespace>
-    <Description>Command line tool for formatting code files.</Description>
+    <Description>Command line tool for formatting C# and Visual Basic code files based on .editorconfig settings.</Description>
 
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <IsPackable>true</IsPackable>

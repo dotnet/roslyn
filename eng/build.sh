@@ -64,6 +64,7 @@ skip_analyzers=false
 prepare_machine=false
 warn_as_error=false
 properties=""
+disable_parallel_restore=false
 
 docker=false
 args=""
@@ -222,7 +223,7 @@ function BuildSolution {
   # NuGet often exceeds the limit of open files on Mac and Linux
   # https://github.com/NuGet/Home/issues/2163
   if [[ "$UNAME" == "Darwin" || "$UNAME" == "Linux" ]]; then
-    ulimit -n 6500
+    disable_parallel_restore=true
   fi
 
   local quiet_restore=""
@@ -273,6 +274,7 @@ function BuildSolution {
     /p:QuietRestore=$quiet_restore \
     /p:QuietRestoreBinaryLog="$binary_log" \
     /p:TreatWarningsAsErrors=true \
+    /p:RestoreDisableParallel=$disable_parallel_restore \
     $test_runtime \
     $mono_tool \
     $properties
