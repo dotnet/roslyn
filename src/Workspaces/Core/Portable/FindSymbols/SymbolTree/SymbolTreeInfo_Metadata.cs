@@ -163,7 +163,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return GetMetadataChecksumSlow(solution, reference, cancellationToken);
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
         private static Checksum GetMetadataChecksumSlow(Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken)
         {
             return ChecksumCache.GetOrCreate(reference, _ =>
