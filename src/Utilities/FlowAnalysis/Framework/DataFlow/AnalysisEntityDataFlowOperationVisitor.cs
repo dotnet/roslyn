@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(locals.Any() || flowCaptures.Any());
 
             base.ProcessOutOfScopeLocalsAndFlowCaptures(locals, flowCaptures);
-            
+
             var allEntities = PooledHashSet<AnalysisEntity>.GetInstance();
             try
             {
