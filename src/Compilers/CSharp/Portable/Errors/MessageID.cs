@@ -237,16 +237,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             LanguageVersion requiredVersion;
             if (options.IsFeatureEnabled(feature))
             {
-                if (feature.RequiredFeature() is null)
-                {
-                    requiredVersion = feature.RequiredVersion();
-                    if (requiredVersion == LanguageVersion.Preview.MapSpecifiedToEffectiveVersion() &&
-                        options.SpecifiedLanguageVersion == LanguageVersion.Default)
-                    {
-                        return new CSDiagnosticInfo(ErrorCode.WRN_FeatureInPreview, feature.Localize());
-                    }
-                }
-
                 return null;
             }
 
@@ -258,7 +248,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LanguageVersion availableVersion = options.LanguageVersion;
             requiredVersion = feature.RequiredVersion();
-            return new CSDiagnosticInfo(availableVersion.GetErrorCode(), feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
+            return requiredVersion == LanguageVersion.Preview.MapSpecifiedToEffectiveVersion()
+                ? new CSDiagnosticInfo(ErrorCode.ERR_FeatureInPreview, feature.Localize())
+                : new CSDiagnosticInfo(availableVersion.GetErrorCode(), feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
         }
 
         internal static LanguageVersion RequiredVersion(this MessageID feature)

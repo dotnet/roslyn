@@ -216,7 +216,6 @@
                 case ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface:
                 case ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase:
                 case ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList:
-                case ErrorCode.WRN_FeatureInPreview:
                     return true;
                 default:
                     return false;

@@ -1453,7 +1453,7 @@ class C
             InlineData(LanguageVersion.CSharp7, LanguageVersion.LatestMajor),
             InlineData(LanguageVersion.CSharp7_3, LanguageVersion.Latest),
             InlineData(LanguageVersion.CSharp8, LanguageVersion.Preview),
-            InlineData(LanguageVersion.CSharp8, LanguageVersion.Default),
+            InlineData(LanguageVersion.CSharp7_3, LanguageVersion.Default),
             ]
         public void LanguageVersion_MapSpecifiedToEffectiveVersion(LanguageVersion expectedMappedVersion, LanguageVersion input)
         {
@@ -1535,6 +1535,9 @@ class C
             var acceptableSurroundingChar = new[] { '\r', '\n', '(', ')', ' ' };
             foreach (var version in expected)
             {
+                if (version == "latest")
+                    continue;
+
                 var foundIndex = actual.IndexOf(version);
                 Assert.True(foundIndex > 0, $"Missing version '{version}'");
                 Assert.True(Array.IndexOf(acceptableSurroundingChar, actual[foundIndex - 1]) >= 0);
@@ -4153,7 +4156,9 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable+", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
+            parsedArgs.Errors.Verify(
+                // error CS8630: Invalid 'nullable' value: 'Enable' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.3", "8.0").WithLocation(1, 1));
             Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable+", "/langversion:7.0", "a.cs" }, WorkingDirectory);
@@ -4168,7 +4173,9 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
+            parsedArgs.Errors.Verify(
+                                // error CS8630: Invalid 'nullable' value: 'Enable' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.3", "8.0").WithLocation(1, 1));
             Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:", "a.cs" }, WorkingDirectory);

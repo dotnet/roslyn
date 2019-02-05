@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpResources {
@@ -4737,6 +4737,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ExternHasConstructorInitializer {
             get {
                 return ResourceManager.GetString("ERR_ExternHasConstructorInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The feature &apos;{0}&apos; is currently in Preview and *unsupported*. To use Preview features, use the &apos;preview&apos; language version..
+        /// </summary>
+        internal static string ERR_FeatureInPreview {
+            get {
+                return ResourceManager.GetString("ERR_FeatureInPreview", resourceCulture);
             }
         }
         
@@ -14053,24 +14062,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_FailedInclude_Title {
             get {
                 return ResourceManager.GetString("WRN_FailedInclude_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The feature &apos;{0}&apos; is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview..
-        /// </summary>
-        internal static string WRN_FeatureInPreview {
-            get {
-                return ResourceManager.GetString("WRN_FeatureInPreview", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The language feature is in preview and use in production is unsupported..
-        /// </summary>
-        internal static string WRN_FeatureInPreview_Title {
-            get {
-                return ResourceManager.GetString("WRN_FeatureInPreview_Title", resourceCulture);
             }
         }
         

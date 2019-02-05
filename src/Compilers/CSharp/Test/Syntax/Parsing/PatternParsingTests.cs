@@ -1838,18 +1838,16 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void ParenthesizedExpression_03()
         {
-            UsingStatement(@"switch (e) { case (x: ((3))): ; }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+            var expect = new[]
+            { 
+                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // switch (e) { case (x: ((3))): ; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(x: ((3)))").WithArguments("recursive patterns", "8.0").WithLocation(1, 19)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(x: ((3)))").WithArguments("recursive patterns").WithLocation(1, 19)
+            };
+            UsingStatement(@"switch (e) { case (x: ((3))): ; }", TestOptions.RegularWithoutRecursivePatterns, expect);
             checkNodes();
 
-            UsingStatement(@"switch (e) { case (x: ((3))): ; }", TestOptions.RegularDefault,
-                // (1,19): warning CS8650: The feature 'recursive patterns' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
-                // switch (e) { case (x: ((3))): ; }
-                Diagnostic(ErrorCode.WRN_FeatureInPreview, "(x: ((3)))").WithArguments("recursive patterns", "8.0").WithLocation(1, 19)
-                );
+            UsingStatement(@"switch (e) { case (x: ((3))): ; }", TestOptions.RegularDefault, expect);
             checkNodes();
 
             UsingStatement(@"switch (e) { case (x: ((3))): ; }", TestOptions.RegularPreview);
@@ -1925,13 +1923,13 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void ParenthesizedExpression_04()
         {
             UsingStatement(@"switch (e) { case (((x: 3))): ; }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
+                // (1,19): error CS8507: A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.
                 // switch (e) { case (((x: 3))): ; }
                 Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresDisambiguation, "(((x: 3)))").WithLocation(1, 19),
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // switch (e) { case (((x: 3))): ; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(((x: 3)))").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
-                // (1,20): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(((x: 3)))").WithArguments("recursive patterns").WithLocation(1, 19),
+                // (1,20): error CS8507: A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.
                 // switch (e) { case (((x: 3))): ; }
                 Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresDisambiguation, "((x: 3))").WithLocation(1, 20)
                 );
@@ -2014,9 +2012,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void RecursivePattern_01()
         {
             UsingStatement(@"switch (e) { case T(X: 3, Y: 4){L: 5} p: ; }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // switch (e) { case T(X: 3, Y: 4){L: 5} p: ; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "T(X: 3, Y: 4){L: 5} p").WithArguments("recursive patterns", "8.0").WithLocation(1, 19)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T(X: 3, Y: 4){L: 5} p").WithArguments("recursive patterns").WithLocation(1, 19)
                 );
             N(SyntaxKind.SwitchStatement);
             {
@@ -2124,10 +2122,10 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void BrokenPattern_06()
         {
-            UsingStatement(@"switch (e) { case (: ; }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+            UsingStatement(@"switch (e) { case (: ; }", TestOptions.RegularWithoutRecursivePatterns, 
+                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // switch (e) { case (: ; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(: ").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(: ").WithArguments("recursive patterns").WithLocation(1, 19),
                 // (1,20): error CS1001: Identifier expected
                 // switch (e) { case (: ; }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(1, 20),
@@ -2177,9 +2175,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void BrokenPattern_07()
         {
             UsingStatement(@"switch (e) { case (", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // switch (e) { case (
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(").WithArguments("recursive patterns").WithLocation(1, 19),
                 // (1,20): error CS1026: ) expected
                 // switch (e) { case (
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 20),
@@ -2196,10 +2194,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void ParenthesizedExpression_07()
         {
             UsingStatement(@"switch (e) { case (): }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // switch (e) { case (): }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "()").WithArguments("recursive patterns", "8.0").WithLocation(1, 19)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("recursive patterns").WithLocation(1, 19));
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
@@ -2251,9 +2248,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void ParenthesizedExpression_05()
         {
             UsingStatement(@"switch (e) { case (x: ): ; }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // switch (e) { case (x: ): ; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(x: )").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(x: )").WithArguments("recursive patterns").WithLocation(1, 19),
                 // (1,23): error CS8504: Pattern missing
                 // switch (e) { case (x: ): ; }
                 Diagnostic(ErrorCode.ERR_MissingPattern, ")").WithLocation(1, 23)
@@ -2315,9 +2312,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void EmptySwitchExpression()
         {
             UsingExpression("1 switch {}", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,1): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,1): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // 1 switch {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch {}").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1 switch {}").WithArguments("recursive patterns").WithLocation(1, 1)
                 );
             N(SyntaxKind.SwitchExpression);
             {
@@ -2336,9 +2333,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void SwitchExpression01()
         {
             UsingExpression("1 switch {a => b, c => d}", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,1): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,1): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // 1 switch {a => b, c => d}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch {a => b, c => d}").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1 switch {a => b, c => d}").WithArguments("recursive patterns").WithLocation(1, 1)
                 );
             N(SyntaxKind.SwitchExpression);
             {
@@ -2388,9 +2385,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void SwitchExpression02()
         {
             UsingExpression("1 switch { a?b:c => d }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,1): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,1): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // 1 switch { a?b:c => d }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { a?b:c => d }").WithArguments("recursive patterns", "8.0").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1 switch { a?b:c => d }").WithArguments("recursive patterns").WithLocation(1, 1),
                 // (1,13): error CS1003: Syntax error, '=>' expected
                 // 1 switch { a?b:c => d }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>", "?").WithLocation(1, 13),
@@ -2451,9 +2448,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void SwitchExpression03()
         {
             UsingExpression("1 switch { (a, b, c) => d }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,1): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,1): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // 1 switch { (a, b, c) => d }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { (a, b, c) => d }").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1 switch { (a, b, c) => d }").WithArguments("recursive patterns").WithLocation(1, 1)
                 );
             N(SyntaxKind.SwitchExpression);
             {
@@ -2522,9 +2519,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
             // This put the parser into an infinite loop at one time. The precise diagnostics and nodes
             // are not as important as the fact that it terminates.
             UsingStatement("switch (e) { case T( : Q x = n; break; } ", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // switch (e) { case T( : Q x = n; break; } 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "T( : Q x = n").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T( : Q x = n").WithArguments("recursive patterns").WithLocation(1, 19),
                 // (1,22): error CS1001: Identifier expected
                 // switch (e) { case T( : Q x = n; break; } 
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(1, 22),

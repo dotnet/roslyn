@@ -28,55 +28,20 @@ class C : IAsyncEnumerable<int>
     IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
         => throw null;
 }";
+            var expected = new[]
+            {
+                // (7,9): error CS8652: The feature 'async streams' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         await foreach (int i in new C())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("async streams").WithLocation(7, 9)
+            };
+
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.Regular7_3);
-            comp.VerifyDiagnostics(
-                // (7,9): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //         await foreach (int i in new C())
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(7, 9)
-                );
-        }
+            comp.VerifyDiagnostics(expected);
 
-        [Fact]
-        public void TestWithLangVersionDefault()
-        {
-            string source = @"
-using System.Collections.Generic;
-class C : IAsyncEnumerable<int>
-{
-    public static async System.Threading.Tasks.Task Main()
-    {
-        await foreach (int i in new C())
-        {
-        }
-    }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
-        => throw null;
-}";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.RegularDefault);
-            comp.VerifyDiagnostics(
-                // (7,9): warning CS8650: The feature 'async streams' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
-                //         await foreach (int i in new C())
-                Diagnostic(ErrorCode.WRN_FeatureInPreview, "await").WithArguments("async streams", "8.0").WithLocation(7, 9)
-                );
-        }
+            comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.RegularDefault);
+            comp.VerifyDiagnostics(expected);
 
-        [Fact]
-        public void TestWithLangVersionPreview()
-        {
-            string source = @"
-using System.Collections.Generic;
-class C : IAsyncEnumerable<int>
-{
-    public static async System.Threading.Tasks.Task Main()
-    {
-        await foreach (int i in new C())
-        {
-        }
-    }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
-        => throw null;
-}";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
         }
 

@@ -122,6 +122,11 @@
         <target state="new">An expression tree may not contain a tuple == or != operator</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FeatureInPreview">
+        <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
+        <target state="new">The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureIsExperimental">
         <source>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</source>
         <target state="new">Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</target>
@@ -925,16 +930,6 @@
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList_Title">
         <source>Interface is already listed in the interface list with different nullability of reference types.</source>
         <target state="new">Interface is already listed in the interface list with different nullability of reference types.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FeatureInPreview">
-        <source>The feature '{0}' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.</source>
-        <target state="new">The feature '{0}' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FeatureInPreview_Title">
-        <source>The language feature is in preview and use in production is unsupported.</source>
-        <target state="new">The language feature is in preview and use in production is unsupported.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">

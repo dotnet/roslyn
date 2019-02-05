@@ -620,20 +620,20 @@ class c
     }
 }";
 
-            UsingDeclaration(text, options: TestOptions.Regular7_3,
-                // (5,9): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+            var expected = new[]
+            {
+                // (5,9): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         static void F() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 9));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(5, 9)
+            };
+
+            UsingDeclaration(text, options: TestOptions.Regular7_3, expected);
             checkNodes();
 
             UsingDeclaration(text, options: TestOptions.Regular8);
             checkNodes();
 
-            UsingDeclaration(text, options: TestOptions.RegularDefault,
-                // (5,9): warning CS8650: The feature 'static local functions' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
-                //         static void F() { }
-                Diagnostic(ErrorCode.WRN_FeatureInPreview, "static").WithArguments("static local functions", "8.0").WithLocation(5, 9)
-                );
+            UsingDeclaration(text, options: TestOptions.RegularDefault, expected);
             checkNodes();
 
             UsingDeclaration(text, options: TestOptions.RegularPreview);
@@ -700,25 +700,22 @@ class c
     }
 }";
 
-            UsingDeclaration(text, options: TestOptions.Regular7_3,
-                // (5,9): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+            var expected = new[]
+            {
+                // (5,9): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         static async void F1() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 9),
-                // (6,15): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(5, 9),
+                // (6,15): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         async static void F2() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 15));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(6, 15)
+            };
+            UsingDeclaration(text, options: TestOptions.Regular7_3, expected);
             checkNodes();
 
             UsingDeclaration(text, options: TestOptions.Regular8);
             checkNodes();
 
-            UsingDeclaration(text, options: TestOptions.RegularDefault,
-                // (5,9): warning CS8650: The feature 'static local functions' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
-                //         static async void F1() { }
-                Diagnostic(ErrorCode.WRN_FeatureInPreview, "static").WithArguments("static local functions", "8.0").WithLocation(5, 9),
-                // (6,15): warning CS8650: The feature 'static local functions' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
-                //         async static void F2() { }
-                Diagnostic(ErrorCode.WRN_FeatureInPreview, "static").WithArguments("static local functions", "8.0").WithLocation(6, 15));
+            UsingDeclaration(text, options: TestOptions.RegularDefault, expected);
             checkNodes();
 
             UsingDeclaration(text, options: TestOptions.RegularPreview);
@@ -804,25 +801,29 @@ class c
     }
 }";
 
-            UsingDeclaration(text, options: TestOptions.Regular7_3,
-                // (5,9): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+            var expected = new[]
+            {
+                // (5,9): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         static static void F1() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 9),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(5, 9),
                 // (5,16): error CS1031: Type expected
                 //         static static void F1() { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(5, 16),
-                // (5,16): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (5,16): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         static static void F1() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 16),
-                // (6,9): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(5, 16),
+                // (6,9): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         static async static void F2() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(6, 9),
                 // (6,22): error CS1031: Type expected
                 //         static async static void F2() { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(6, 22),
-                // (6,22): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,22): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         static async static void F2() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 22));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(6, 22)
+            };
+
+            UsingDeclaration(text, options: TestOptions.Regular7_3, expected);
             checkNodes();
 
             UsingDeclaration(text, options: TestOptions.Regular8,
@@ -834,25 +835,7 @@ class c
                 Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(6, 22));
             checkNodes();
 
-            UsingDeclaration(text, options: TestOptions.RegularDefault,
-                // (5,9): warning CS8650: The feature 'static local functions' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
-                //         static static void F1() { }
-                Diagnostic(ErrorCode.WRN_FeatureInPreview, "static").WithArguments("static local functions", "8.0").WithLocation(5, 9),
-                // (5,16): error CS1031: Type expected
-                //         static static void F1() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(5, 16),
-                // (5,16): warning CS8650: The feature 'static local functions' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
-                //         static static void F1() { }
-                Diagnostic(ErrorCode.WRN_FeatureInPreview, "static").WithArguments("static local functions", "8.0").WithLocation(5, 16),
-                // (6,9): warning CS8650: The feature 'static local functions' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
-                //         static async static void F2() { }
-                Diagnostic(ErrorCode.WRN_FeatureInPreview, "static").WithArguments("static local functions", "8.0").WithLocation(6, 9),
-                // (6,22): error CS1031: Type expected
-                //         static async static void F2() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(6, 22),
-                // (6,22): warning CS8650: The feature 'static local functions' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
-                //         static async static void F2() { }
-                Diagnostic(ErrorCode.WRN_FeatureInPreview, "static").WithArguments("static local functions", "8.0").WithLocation(6, 22));
+            UsingDeclaration(text, options: TestOptions.RegularDefault, expected);
             checkNodes();
 
             UsingDeclaration(text, options: TestOptions.RegularPreview,
@@ -943,8 +926,8 @@ class c
         void static F() { }
     }
 }";
-
-            UsingDeclaration(text, options: TestOptions.Regular7_3,
+            var expected = new[]
+            {
                 // (5,9): error CS1547: Keyword 'void' cannot be used in this context
                 //         void static F() { }
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 9),
@@ -954,46 +937,19 @@ class c
                 // (5,14): error CS1002: ; expected
                 //         void static F() { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 14),
-                // (5,14): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (5,14): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         void static F() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 14),
-                // (5,22): error CS1001: Identifier expected
-                //         void static F() { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22));
-
-            UsingDeclaration(text, options: TestOptions.Regular8,
-                // (5,9): error CS1547: Keyword 'void' cannot be used in this context
-                //         void static F() { }
-                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 9),
-                // (5,14): error CS1001: Identifier expected
-                //         void static F() { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "static").WithLocation(5, 14),
-                // (5,14): error CS1002: ; expected
-                //         void static F() { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 14),
-                // (5,22): error CS1001: Identifier expected
-                //         void static F() { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22));
-
-            UsingDeclaration(text, options: TestOptions.RegularDefault,
-                // (5,9): error CS1547: Keyword 'void' cannot be used in this context
-                //         void static F() { }
-                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 9),
-                // (5,14): error CS1001: Identifier expected
-                //         void static F() { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "static").WithLocation(5, 14),
-                // (5,14): error CS1002: ; expected
-                //         void static F() { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 14),
-                // (5,14): warning CS8650: The feature 'static local functions' is currently in Preview and use in production is *unsupported*. To restrict the project to the latest *supported* language version, set the language version to Latest. To use Preview features without warnings, set the language version to Preview.
-                //         void static F() { }
-                Diagnostic(ErrorCode.WRN_FeatureInPreview, "static").WithArguments("static local functions", "8.0").WithLocation(5, 14),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(5, 14),
                 // (5,22): error CS1001: Identifier expected
                 //         void static F() { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22)
-                );
+            };
 
-            UsingDeclaration(text, options: TestOptions.RegularPreview,
+            UsingDeclaration(text, options: TestOptions.Regular7_3, expected);
+            UsingDeclaration(text, options: TestOptions.RegularDefault, expected);
+
+            expected = new[]
+            {
                 // (5,9): error CS1547: Keyword 'void' cannot be used in this context
                 //         void static F() { }
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 9),
@@ -1006,7 +962,11 @@ class c
                 // (5,22): error CS1001: Identifier expected
                 //         void static F() { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22)
-                );
+            };
+
+            UsingDeclaration(text, options: TestOptions.Regular8, expected);
+
+            UsingDeclaration(text, options: TestOptions.RegularPreview, expected);
         }
     }
 }

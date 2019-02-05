@@ -1636,7 +1636,7 @@ sealed class [|D|] : B
 @"struct V { }
 abstract class B
 {
-    public abstract void M1(int i = 0, string s = null, int? j = null, V v = default);
+    public abstract void M1(int i = 0, string s = null, int? j = null, V v = default(V));
     public abstract void M2<T>(T? i = null) where T : struct;
 }
 sealed class D : B
