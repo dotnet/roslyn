@@ -1638,11 +1638,6 @@ Informações adicionais: {1}</target>
         <target state="translated">Habilitar _análise de solução completa</target>
         <note />
       </trans-unit>
-      <trans-unit id="Perform_editor_feature_analysis_in_external_process">
-        <source>Perform editor _feature analysis in external process (experimental)</source>
-        <target state="translated">Executar análise de _recurso do editor no processo externo (experimental)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fade_out_unreachable_code">
         <source>Fade out unreachable code</source>
         <target state="translated">Esmaecer código inacessível</target>

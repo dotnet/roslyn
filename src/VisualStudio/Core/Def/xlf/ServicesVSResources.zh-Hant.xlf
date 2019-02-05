@@ -1638,11 +1638,6 @@ Additional information: {1}</source>
         <target state="translated">啟用完整解決方案分析(_A)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Perform_editor_feature_analysis_in_external_process">
-        <source>Perform editor _feature analysis in external process (experimental)</source>
-        <target state="translated">在外部處理序中執編輯器功能分析 (_F)(實驗性)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fade_out_unreachable_code">
         <source>Fade out unreachable code</source>
         <target state="translated">淡出執行不到的程式碼</target>
