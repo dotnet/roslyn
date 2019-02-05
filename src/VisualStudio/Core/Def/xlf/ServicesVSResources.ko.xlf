@@ -1638,11 +1638,6 @@ Additional information: {1}</source>
         <target state="translated">전체 솔루션 분석 사용(_A)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Perform_editor_feature_analysis_in_external_process">
-        <source>Perform editor _feature analysis in external process (experimental)</source>
-        <target state="translated">외부 프로세스에서 편집기 기능 분석 수행(_F)(실험적)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fade_out_unreachable_code">
         <source>Fade out unreachable code</source>
         <target state="translated">접근할 수 없는 코드 페이드 아웃</target>

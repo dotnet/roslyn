@@ -47,7 +47,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, parameters As TestParameters) As (DiagnosticAnalyzer, CodeFixProvider)
             Dim outOfProcess = DirectCast(parameters.fixProviderData, Boolean)
             workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess).
-                                                  WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess).
                                                   WithChangedOption(RemoteFeatureOptions.AddImportEnabled, outOfProcess)
 
             Return MyBase.CreateDiagnosticProviderAndFixer(workspace, parameters)
