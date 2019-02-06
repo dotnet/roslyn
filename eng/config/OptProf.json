@@ -13,14 +13,7 @@
         {
           "container": "TeamEng",
           "testCases": [
-            "TeamEng.OptProfTest.vs_debugger_interop_managedclient",
             "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble"
-          ]
-        },
-        {
-          "container": "VSLanguages",
-          "testCases": [
-            "VSLanguages.Managed.vs_perf_DesignTime_editor_navigate_NavigateTo_cs"
           ]
         },
         {
@@ -29,7 +22,6 @@
             "VSPE.OptProfTests.vs_asl_cs_scenario",
             "VSPE.OptProfTests.vs_asl_vb_scenario",
             "VSPE.OptProfTests.vs_ddbvtqa_vbwi",
-            "VSPE.OptProfTests.vs_env_solution_createnewproject_vb_winformsapp",
             "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs",
             "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest",
             "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment",
@@ -65,7 +57,6 @@
         {
           "container": "TeamEng",
           "testCases": [
-            "TeamEng.OptProfTest.vs_debugger_interop_managedclient",
             "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble"
           ]
         }
@@ -84,7 +75,6 @@
         {
           "container": "TeamEng",
           "testCases": [
-            "TeamEng.OptProfTest.vs_debugger_interop_managedclient",
             "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble"
           ]
         },
@@ -129,14 +119,7 @@
         {
           "container": "TeamEng",
           "testCases": [
-            "TeamEng.OptProfTest.vs_debugger_interop_managedclient",
             "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble"
-          ]
-        },
-        {
-          "container": "VSLanguages",
-          "testCases": [
-            "VSLanguages.Managed.vs_perf_DesignTime_editor_navigate_NavigateTo_cs"
           ]
         },
         {
@@ -145,7 +128,6 @@
             "VSPE.OptProfTests.vs_asl_cs_scenario",
             "VSPE.OptProfTests.vs_asl_vb_scenario",
             "VSPE.OptProfTests.vs_ddbvtqa_vbwi",
-            "VSPE.OptProfTests.vs_env_solution_createnewproject_vb_winformsapp",
             "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs",
             "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest",
             "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment",
@@ -187,14 +169,7 @@
         {
           "container": "TeamEng",
           "testCases": [
-            "TeamEng.OptProfTest.vs_debugger_interop_managedclient",
             "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble"
-          ]
-        },
-        {
-          "container": "VSLanguages",
-          "testCases": [
-            "VSLanguages.Managed.vs_perf_DesignTime_editor_navigate_NavigateTo_cs"
           ]
         },
         {
@@ -203,7 +178,6 @@
             "VSPE.OptProfTests.vs_asl_cs_scenario",
             "VSPE.OptProfTests.vs_asl_vb_scenario",
             "VSPE.OptProfTests.vs_ddbvtqa_vbwi",
-            "VSPE.OptProfTests.vs_env_solution_createnewproject_vb_winformsapp",
             "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs",
             "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest",
             "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment",
