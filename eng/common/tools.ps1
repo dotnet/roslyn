@@ -161,9 +161,10 @@ function GetDotNetInstallScript([string] $dotnetRoot) {
   return $installScript
 }
 
-function InstallDotNetSdk([string] $dotnetRoot, [string] $version) {
+function InstallDotNetSdk([string] $dotnetRoot, [string] $version, [string] $architecture = "") {
   $installScript = GetDotNetInstallScript $dotnetRoot
-  & $installScript -Version $version -InstallDir $dotnetRoot
+  $archArg = if ($architecture) { $architecture } else { "<auto>" }
+  & $installScript -Version $version -InstallDir $dotnetRoot -Architecture $archArg
   if ($lastExitCode -ne 0) {
     Write-Host "Failed to install dotnet cli (exit code '$lastExitCode')." -ForegroundColor Red
     ExitWithExitCode $lastExitCode

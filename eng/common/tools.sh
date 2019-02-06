@@ -153,7 +153,12 @@ function InstallDotNetSdk {
   GetDotNetInstallScript "$root"
   local install_script=$_GetDotNetInstallScript
 
-  bash "$install_script" --version $version --install-dir "$root" || {
+  local arch_arg=""
+  if [[ $# == 3 ]]; then
+    arch_arg="--architecture $3"
+  fi
+
+  bash "$install_script" --version $version --install-dir "$root" $arch_arg || {
     local exit_code=$?
     echo "Failed to install dotnet SDK (exit code '$exit_code')." >&2
     ExitWithExitCode $exit_code
