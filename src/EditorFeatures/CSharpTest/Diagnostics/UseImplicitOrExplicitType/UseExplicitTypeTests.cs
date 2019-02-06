@@ -1071,7 +1071,7 @@ class C
 {
     static void M()
     {
-        [|var|] cc = new Customer { City = ""Madras"" };
+        [|var|] cc = new Customer { City = ""Chennai"" };
     }
 
     private class Customer
@@ -1085,7 +1085,7 @@ class C
 {
     static void M()
     {
-        Customer cc = new Customer { City = ""Madras"" };
+        Customer cc = new Customer { City = ""Chennai"" };
     }
 
     private class Customer
@@ -1134,7 +1134,7 @@ class C
     {
         [|var|] cs = new List<Customer>
         {
-            new Customer { City = ""Madras"" }
+            new Customer { City = ""Chennai"" }
         };
     }
 
@@ -1152,7 +1152,7 @@ class C
     {
         List<Customer> cs = new List<Customer>
         {
-            new Customer { City = ""Madras"" }
+            new Customer { City = ""Chennai"" }
         };
     }
 
