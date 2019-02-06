@@ -152,6 +152,11 @@
         <target state="translated">使用声明后，goto 无法跳转到某个位置。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IllegalSuppression">
+        <source>The suppression operator is not allowed in this context</source>
+        <target state="new">The suppression operator is not allowed in this context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">带有 "in" 修饰符的参数不能用于动态调度的表达式。</target>
@@ -882,16 +887,6 @@
         <target state="translated">编译中不包含 SyntaxTree，因此无法将其删除</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_CantInferNullabilityOfMethodTypeArgs">
-        <source>The nullability of type arguments for method '{0}' cannot be inferred from the usage. Try specifying the type arguments explicitly.</source>
-        <target state="translated">无法从用法中推断出方法“{0}”的类型参数的为 Null 性。请尝试显式指定类型参数。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CantInferNullabilityOfMethodTypeArgs_Title">
-        <source>The nullability of type arguments for method cannot be inferred from the usage. Try specifying the type arguments explicitly.</source>
-        <target state="translated">无法从用法中推断出方法的类型参数的为 Null 性。请尝试显式指定类型参数。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
         <source>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</source>
         <target state="translated">名称 "_" 引用常量，而不引用放弃模式。请使用 "var _" 放弃该值，或使用 "@_" 来引用该名称的常量。</target>
@@ -980,26 +975,6 @@
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' context.</source>
         <target state="translated">应仅在 “#nullable” 上下文中的代码中使用可为 null 的引用类型的注释。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NoBestNullabilityArrayElements">
-        <source>No best nullability found for implicitly-typed array.</source>
-        <target state="translated">找不到隐式类型数组的最佳的为 Null 性。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NoBestNullabilityArrayElements_Title">
-        <source>No best nullability found for implicitly-typed array.</source>
-        <target state="translated">找不到隐式类型数组的最佳的为 Null 性。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NoBestNullabilityConditionalExpression">
-        <source>No best nullability for operands of conditional expression '{0}' and '{1}'.</source>
-        <target state="translated">条件表达式“{0}”和“{1}”的操作数没有最佳的为 Null 性。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NoBestNullabilityConditionalExpression_Title">
-        <source>No best nullability for operands of conditional expression.</source>
-        <target state="translated">条件表达式的操作数没有最佳的为 Null 性。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">

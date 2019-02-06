@@ -152,6 +152,11 @@
         <target state="translated">Um goto não pode saltar para um local antes de uma declaração using.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IllegalSuppression">
+        <source>The suppression operator is not allowed in this context</source>
+        <target state="new">The suppression operator is not allowed in this context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">Os argumentos com o modificador 'in' não podem ser usados em expressões expedidas dinamicamente.</target>
@@ -1177,16 +1182,6 @@
         <target state="translated">A SyntaxTree não faz parte da compilação, portanto, não pode ser removida</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_CantInferNullabilityOfMethodTypeArgs">
-        <source>The nullability of type arguments for method '{0}' cannot be inferred from the usage. Try specifying the type arguments explicitly.</source>
-        <target state="translated">A anulabilidade de argumentos de tipo do método '{0}' não pode ser inferida com base no uso. Tente especificar explicitamente os argumentos de tipo.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CantInferNullabilityOfMethodTypeArgs_Title">
-        <source>The nullability of type arguments for method cannot be inferred from the usage. Try specifying the type arguments explicitly.</source>
-        <target state="translated">A anulabilidade de argumentos de tipo do método não pode ser inferida com base no uso. Tente especificar explicitamente os argumentos de tipo.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
         <source>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</source>
         <target state="translated">O nome '_' refere-se à constante, não ao padrão de descarte. Use 'var _' para descartar o valor ou '@_' para referir-se a uma constante por esse nome.</target>
@@ -1275,26 +1270,6 @@
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' context.</source>
         <target state="translated">A anotação para tipos de referência que permitem valor nulo deve ser usada apenas em código dentro de um contexto '#nullable'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NoBestNullabilityArrayElements">
-        <source>No best nullability found for implicitly-typed array.</source>
-        <target state="translated">Não foi encontrada nenhuma anulabilidade melhor para a matriz do tipo implícita.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NoBestNullabilityArrayElements_Title">
-        <source>No best nullability found for implicitly-typed array.</source>
-        <target state="translated">Não foi encontrada nenhuma anulabilidade melhor para a matriz do tipo implícita.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NoBestNullabilityConditionalExpression">
-        <source>No best nullability for operands of conditional expression '{0}' and '{1}'.</source>
-        <target state="translated">Não há anulabilidade melhor para operandos de expressão condicional '{0}' e '{1}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NoBestNullabilityConditionalExpression_Title">
-        <source>No best nullability for operands of conditional expression.</source>
-        <target state="translated">Não há anulabilidade melhor para operandos de expressão condicional.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">

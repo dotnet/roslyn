@@ -298,6 +298,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return other.Is(Me)
         End Function
 
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind) method.", True)>
+        Public Overloads Shared Operator =(left As TypeSymbol, right As TypeSymbol) As Boolean
+            Throw ExceptionUtilities.Unreachable
+        End Operator
+
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind) method.", True)>
+        Public Overloads Shared Operator <>(left As TypeSymbol, right As TypeSymbol) As Boolean
+            Throw ExceptionUtilities.Unreachable
+        End Operator
+
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind) method.", True)>
+        Public Overloads Shared Operator =(left As Symbol, right As TypeSymbol) As Boolean
+            Throw ExceptionUtilities.Unreachable
+        End Operator
+
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind) method.", True)>
+        Public Overloads Shared Operator <>(left As Symbol, right As TypeSymbol) As Boolean
+            Throw ExceptionUtilities.Unreachable
+        End Operator
+
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind) method.", True)>
+        Public Overloads Shared Operator =(left As TypeSymbol, right As Symbol) As Boolean
+            Throw ExceptionUtilities.Unreachable
+        End Operator
+
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind) method.", True)>
+        Public Overloads Shared Operator <>(left As TypeSymbol, right As Symbol) As Boolean
+            Throw ExceptionUtilities.Unreachable
+        End Operator
+
+        Public Overloads Shared Function Equals(left As TypeSymbol, right As TypeSymbol, comparison As TypeCompareKind) As Boolean
+            Return left.IsSameType(right, comparison)
+        End Function
+
         ''' <summary>
         ''' Lookup an immediately nested type referenced from metadata, names should be
         ''' compared case-sensitively.

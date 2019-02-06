@@ -152,6 +152,11 @@
         <target state="translated">Bir goto, using bildiriminden sonraki bir konuma atlayamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IllegalSuppression">
+        <source>The suppression operator is not allowed in this context</source>
+        <target state="new">The suppression operator is not allowed in this context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">'in' değiştiricisine sahip bağımsız değişkenler dinamik olarak dağıtılan ifadelerde kullanılamaz.</target>
@@ -1177,16 +1182,6 @@
         <target state="translated">SyntaxTree derlemenin bir parçası olmadığından kaldırılamaz</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_CantInferNullabilityOfMethodTypeArgs">
-        <source>The nullability of type arguments for method '{0}' cannot be inferred from the usage. Try specifying the type arguments explicitly.</source>
-        <target state="translated">'{0}' metodunun tür bağımsız değişkenlerinin boş değer atanabilirliği kullanımdan çıkarsanamıyor. Tür bağımsız değişkenlerini açık olarak belirtmeyi deneyin.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CantInferNullabilityOfMethodTypeArgs_Title">
-        <source>The nullability of type arguments for method cannot be inferred from the usage. Try specifying the type arguments explicitly.</source>
-        <target state="translated">Metodun tür bağımsız değişkenlerinin boş değer atanabilirliği kullanımdan çıkarsanamıyor. Tür bağımsız değişkenlerini açık olarak belirtmeyi deneyin.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
         <source>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</source>
         <target state="translated">'_' adı atma desenine değil sabite başvuruyor. Değeri atmak için 'var _' adını ya da bu ada sahip bir sabite başvurmak için '@_' adını kullanın.</target>
@@ -1275,26 +1270,6 @@
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' context.</source>
         <target state="translated">Boş değer atanabilir başvuru türleri için ek açıklama kodda yalnızca bir '#nullable' bağlamı içinde kullanılmalıdır.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NoBestNullabilityArrayElements">
-        <source>No best nullability found for implicitly-typed array.</source>
-        <target state="translated">Türü örtük olarak belirlenmiş dizi için en iyi boş değer atanabilirlik bulunamadı.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NoBestNullabilityArrayElements_Title">
-        <source>No best nullability found for implicitly-typed array.</source>
-        <target state="translated">Türü örtük olarak belirlenmiş dizi için en iyi boş değer atanabilirlik bulunamadı.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NoBestNullabilityConditionalExpression">
-        <source>No best nullability for operands of conditional expression '{0}' and '{1}'.</source>
-        <target state="translated">'{0}' ve '{1}' koşullu ifadesinin işlenenleri için en iyi boş değer atanabilirlik yok.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NoBestNullabilityConditionalExpression_Title">
-        <source>No best nullability for operands of conditional expression.</source>
-        <target state="translated">Koşullu ifadenin işlenenleri için en iyi boş değer atanabilirlik yok.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">

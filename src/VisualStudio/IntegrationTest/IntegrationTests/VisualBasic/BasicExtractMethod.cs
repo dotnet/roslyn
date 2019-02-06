@@ -42,7 +42,8 @@ End Module";
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/33103")]
+        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void SimpleExtractMethod()
         {
             VisualStudio.Editor.SetText(TestSource);

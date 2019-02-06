@@ -141,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If symbol.Arity <> 0 Then
                     ' Special case: dev11 treats types instances of the declaring type in the parameter list
                     ' (And return type, for conversions) as constructed with its own type parameters.
-                    If Not _inParameterOrReturnType AndAlso symbol = symbol.ConstructedFrom Then
+                    If Not _inParameterOrReturnType AndAlso TypeSymbol.Equals(symbol, symbol.ConstructedFrom, TypeCompareKind.ConsiderEverything) Then
                         builder.Append(MetadataHelpers.GenericTypeNameManglingChar)
                         builder.Append(symbol.Arity)
                     Else

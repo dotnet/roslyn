@@ -152,6 +152,11 @@
         <target state="translated">Un'istruzione goto non può passare a una posizione successiva a una dichiarazione using.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IllegalSuppression">
+        <source>The suppression operator is not allowed in this context</source>
+        <target state="new">The suppression operator is not allowed in this context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">Non è possibile usare argomenti con il modificatore 'in' nelle espressioni inviate in modo dinamico.</target>
@@ -1177,16 +1182,6 @@
         <target state="translated">L'elemento SyntaxTree non fa parte della compilazione, di conseguenza non può essere rimosso</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_CantInferNullabilityOfMethodTypeArgs">
-        <source>The nullability of type arguments for method '{0}' cannot be inferred from the usage. Try specifying the type arguments explicitly.</source>
-        <target state="translated">Non è possibile dedurre dall'utilizzo il supporto dei valori Null degli argomenti di tipo per il metodo '{0}'. Provare a specificare gli argomenti di tipo in modo esplicito.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CantInferNullabilityOfMethodTypeArgs_Title">
-        <source>The nullability of type arguments for method cannot be inferred from the usage. Try specifying the type arguments explicitly.</source>
-        <target state="translated">Non è possibile dedurre dall'utilizzo il supporto dei valori Null degli argomenti di tipo per il metodo. Provare a specificare gli argomenti di tipo in modo esplicito.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
         <source>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</source>
         <target state="translated">Il nome '_' fa riferimento alla costante e non al criterio di eliminazione. Usare 'var _' per eliminare il valore oppure '@_' per fare riferimento a una costante in base a tale nome.</target>
@@ -1275,26 +1270,6 @@
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' context.</source>
         <target state="translated">L'annotazione per i tipi riferimento nullable deve essere usata solo nel codice in un contesto '#nullable'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NoBestNullabilityArrayElements">
-        <source>No best nullability found for implicitly-typed array.</source>
-        <target state="translated">Non è stato trovato il supporto dei valori Null ottimale per la matrice tipizzata in modo implicito.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NoBestNullabilityArrayElements_Title">
-        <source>No best nullability found for implicitly-typed array.</source>
-        <target state="translated">Non è stato trovato il supporto dei valori Null ottimale per la matrice tipizzata in modo implicito.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NoBestNullabilityConditionalExpression">
-        <source>No best nullability for operands of conditional expression '{0}' and '{1}'.</source>
-        <target state="translated">Non è stato trovato il supporto dei valori Null ottimale per gli operandi dell'espressione condizionale '{0}' e '{1}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NoBestNullabilityConditionalExpression_Title">
-        <source>No best nullability for operands of conditional expression.</source>
-        <target state="translated">Non è stato trovato il supporto dei valori Null ottimale per gli operandi dell'espressione condizionale.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
