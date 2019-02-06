@@ -199,16 +199,17 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
                 // Produce the indices for the source and metadata symbols in parallel.
                 var isRemoteWorkspace = project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace;
-                Task[] tasks = isRemoteWorkspace ?
-                    UpdateSymbolTreeInfoInServiceProcessAsync(project, cancellationToken) :
-                    UpdateSymbolTreeInfoInCurrentProcessAsync(project, cancellationToken);
+                Task[] tasks = isRemoteWorkspace
+                    ? UpdateSymbolTreeInfoInServiceProcessAsync(project, cancellationToken)
+                    : UpdateSymbolTreeInfoInCurrentProcessAsync(project, cancellationToken);
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
             }
 
             private Task[] UpdateSymbolTreeInfoInCurrentProcessAsync(Project project, CancellationToken cancellationToken)
             {
-                return new Task[] {
+                return new Task[]
+                {
                     UpdateSourceSymbolTreeInfoAsync(project, cancellationToken),
                     UpdateReferencesAsync(project, cancellationToken),
                 };
@@ -216,9 +217,10 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             private Task[] UpdateSymbolTreeInfoInServiceProcessAsync(Project project, CancellationToken cancellationToken)
             {
-                return new Task[] {
-                    Task.Run (() => UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), cancellationToken),
-                    Task.Run (() => UpdateReferencesAsync(project, cancellationToken), cancellationToken),
+                return new Task[]
+                {
+                    Task.Run(() => UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), cancellationToken),
+                    Task.Run(() => UpdateReferencesAsync(project, cancellationToken), cancellationToken),
                 };
             }
 
@@ -247,13 +249,15 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 var tasks = new List<Task>(project.MetadataReferences.Count);
                 var isRemoteWorkspace = project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace;
 
+                // MetadataReferences is stored as ImmutableArray, but exposed as IReadOnlyList
+                // so cast cheaply to avoid boxed enumerator.
                 foreach (var metadataReference in project.MetadataReferences.ToImmutableArrayOrEmpty())
                 {
                     if (metadataReference is PortableExecutableReference portableExecutableReference)
                     {
-                        var task = isRemoteWorkspace ?
-                            UpdateReferenceInServiceProcessAsync(project, portableExecutableReference, cancellationToken) :
-                            UpdateReferenceInCurrentProcessAsync(project, portableExecutableReference, cancellationToken);
+                        var task = isRemoteWorkspace
+                            ? UpdateReferenceInServiceProcessAsync(project, portableExecutableReference, cancellationToken)
+                            : UpdateReferenceInCurrentProcessAsync(project, portableExecutableReference, cancellationToken);
 
                         tasks.Add(task);
                     }
