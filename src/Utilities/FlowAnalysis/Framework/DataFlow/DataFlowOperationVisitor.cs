@@ -742,11 +742,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return defaultValue;
         }
 
-        protected bool TryInferConversion(IConversionOperation operation, out bool alwaysSucceed, out bool alwaysFail)
+        protected bool TryInferConversion(IConversionOperation operation, out ConversionInference inference)
         {
-            // For direct cast, we assume the cast will always succeed.
-            alwaysSucceed = !operation.IsTryCast;
-            alwaysFail = false;
+            inference = ConversionInference.Create(operation);
 
             // Bail out for user defined conversions.
             if (operation.Conversion.IsUserDefined)
@@ -760,14 +758,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return false;
             }
 
-            return TryInferConversion(operation.Operand, operation.Type, operation.IsTryCast, operation, out alwaysSucceed, out alwaysFail);
+            return TryInferConversion(operation.Operand, operation.Type, operation.IsTryCast, operation, out inference);
         }
 
-        protected bool TryInferConversion(IIsPatternOperation operation, out bool alwaysSucceed, out bool alwaysFail)
+        protected bool TryInferConversion(IIsPatternOperation operation, out ConversionInference inference)
         {
             var targetType = operation.Pattern.GetPatternType();
-            return TryInferConversion(operation.Value, targetType, isTryCast: true,
-                operation: operation, alwaysSucceed: out alwaysSucceed, alwaysFail: out alwaysFail);
+            return TryInferConversion(operation.Value, targetType, isTryCast: true, operation, out inference);
         }
 
         private bool TryInferConversion(
@@ -775,12 +772,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ITypeSymbol targetType,
             bool isTryCast,
             IOperation operation,
-            out bool alwaysSucceed,
-            out bool alwaysFail)
+            out ConversionInference inference)
         {
-            // For direct cast, we assume the cast will always succeed.
-            alwaysSucceed = !isTryCast;
-            alwaysFail = false;
+            inference = ConversionInference.Create(targetType, sourceOperand.Type, isTryCast);
 
             // Bail out for throw expression conversion.
             if (sourceOperand.Kind == OperationKind.Throw)
@@ -809,11 +803,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             switch (pointsToValue.NullState)
                             {
                                 case NullAbstractValue.Null:
-                                    alwaysSucceed = true;
+                                    inference.AlwaysSucceed = true;
                                     break;
 
                                 case NullAbstractValue.NotNull:
-                                    alwaysFail = true;
+                                    inference.AlwaysFail = true;
                                     break;
                             }
                         }
@@ -833,10 +827,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 // Infer if a cast will always fail.
                 // We are currently bailing out if an interface or type parameter is involved.
                 bool IsInterfaceOrTypeParameter(ITypeSymbol type) => type.TypeKind == TypeKind.Interface || type.TypeKind == TypeKind.TypeParameter;
-                if (!IsInterfaceOrTypeParameter(targetType) &&
+                if (!inference.IsBoxing &&
+                    !inference.IsUnboxing &&
+                    !IsInterfaceOrTypeParameter(targetType) &&
                     pointsToValue.Locations.All(location => location.IsNull ||
-                        location.IsNoLocation ||
-                        (!IsInterfaceOrTypeParameter(location.LocationTypeOpt) &&
+                        (!location.IsNoLocation &&
+                         !IsInterfaceOrTypeParameter(location.LocationTypeOpt) &&
                          !targetType.DerivesFrom(location.LocationTypeOpt) &&
                          !location.LocationTypeOpt.DerivesFrom(targetType))))
                 {
@@ -848,7 +844,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     // We only set the alwaysFail flag for TryCast as direct casts that are guaranteed to fail will throw an exception and subsequent code will not execute.
                     if (isTryCast)
                     {
-                        alwaysFail = true;
+                        inference.AlwaysFail = true;
                     }
                 }
                 else
@@ -863,7 +859,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             _predicateValueKindCacheBuilder[operation] = PredicateValueKind.AlwaysTrue;
                         }
 
-                        alwaysSucceed = true;
+                        inference.AlwaysSucceed = true;
                     }
                 }
 
@@ -1232,7 +1228,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(operation.IsComparisonOperator());
             Debug.Assert(FlowBranchConditionKind != ControlFlowConditionKind.None);
 
-            var isReferenceEquality = operation.OperatorMethod == null && !operation.Type.HasValueCopySemantics();
+            var leftTypeOpt = operation.LeftOperand.Type;
+            var leftConstantValueOpt = operation.LeftOperand.ConstantValue;
+            var rightTypeOpt = operation.RightOperand.Type;
+            var rightConstantValueOpt = operation.RightOperand.ConstantValue;
+            var isReferenceEquality = operation.OperatorMethod == null &&
+                operation.Type.SpecialType == SpecialType.System_Boolean &&
+                leftTypeOpt != null &&
+                !leftTypeOpt.HasValueCopySemantics() &&
+                rightTypeOpt != null &&
+                !rightTypeOpt.HasValueCopySemantics() &&
+                (!leftConstantValueOpt.HasValue || leftConstantValueOpt.Value != null) &&
+                (!rightConstantValueOpt.HasValue || rightConstantValueOpt.Value != null);
+
             bool equals;
             switch (operation.OperatorKind)
             {

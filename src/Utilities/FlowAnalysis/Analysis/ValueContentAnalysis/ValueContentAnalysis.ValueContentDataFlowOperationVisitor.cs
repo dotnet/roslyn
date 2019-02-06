@@ -107,9 +107,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                     if (equals)
                     {
                         CopyAbstractValue copyValue = GetCopyAbstractValue(target);
-                        if (copyValue.Kind == CopyAbstractValueKind.Known)
+                        if (copyValue.Kind.IsKnown())
                         {
-                            Debug.Assert(copyValue.AnalysisEntities.Contains(targetEntity));
+                            // TODO: File a tracking bug to enable the below assert.
+                            //Debug.Assert(copyValue.AnalysisEntities.Contains(targetEntity));
                             foreach (var analysisEntity in copyValue.AnalysisEntities)
                             {
                                 SetAbstractValue(targetAnalysisData, analysisEntity, currentAssignedValue);

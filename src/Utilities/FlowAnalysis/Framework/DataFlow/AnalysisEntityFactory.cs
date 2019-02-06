@@ -360,6 +360,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             instanceLocationOpt = instancePointsToValue;
                         }
                     }
+
+                    if (instanceLocationOpt == null)
+                    {
+                        return false;
+                    }
                 }
                 else
                 {

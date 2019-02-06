@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// This is done for performance reasons for analyzing methods with extremely large call trees.
         /// https://github.com/dotnet/roslyn-analyzers/issues/1809 tracks improving this heuristic.
         /// </summary>
-        private const uint DefaultMaxInterproceduralLambdaOrLocalFunctionCallChain = 10;
+        private const uint DefaultMaxInterproceduralLambdaOrLocalFunctionCallChain = 3;
 
         private InterproceduralAnalysisConfiguration(
             InterproceduralAnalysisKind interproceduralAnalysisKind,

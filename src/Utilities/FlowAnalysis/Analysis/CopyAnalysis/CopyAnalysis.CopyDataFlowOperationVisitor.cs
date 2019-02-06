@@ -119,12 +119,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 AnalysisEntity analysisEntity,
                 CopyAbstractValue value,
                 Func<AnalysisEntity, CopyAbstractValue> tryGetAddressSharedCopyValue,
-                bool fromPredicate = false,
+                SetCopyAbstractValuePredicateKind? fromPredicateKindOpt = null,
                 bool initializingParameters = false)
             {
                 SetAbstractValue(sourceCopyAnalysisData: copyAnalysisData, targetCopyAnalysisData: copyAnalysisData,
-                    analysisEntity: analysisEntity, value: value, tryGetAddressSharedCopyValue: tryGetAddressSharedCopyValue, fromPredicate: fromPredicate,
-                    initializingParameters: initializingParameters);
+                    analysisEntity, value, tryGetAddressSharedCopyValue, fromPredicateKindOpt, initializingParameters);
             }
 
             private static void SetAbstractValue(
@@ -133,12 +132,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 AnalysisEntity analysisEntity,
                 CopyAbstractValue value,
                 Func<AnalysisEntity, CopyAbstractValue> tryGetAddressSharedCopyValue,
-                bool fromPredicate,
+                SetCopyAbstractValuePredicateKind? fromPredicateKindOpt,
                 bool initializingParameters)
             {
                 sourceCopyAnalysisData.AssertValidCopyAnalysisData(tryGetAddressSharedCopyValue, initializingParameters);
                 targetCopyAnalysisData.AssertValidCopyAnalysisData(tryGetAddressSharedCopyValue, initializingParameters);
-                Debug.Assert(ReferenceEquals(sourceCopyAnalysisData, targetCopyAnalysisData) || fromPredicate);
+                Debug.Assert(ReferenceEquals(sourceCopyAnalysisData, targetCopyAnalysisData) || fromPredicateKindOpt.HasValue);
                 Debug.Assert(tryGetAddressSharedCopyValue != null);
 
                 // Don't track entities if do not know about it's instance location.
@@ -152,12 +151,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                     var validEntities = value.AnalysisEntities.Where(entity => !entity.HasUnknownInstanceLocation).ToImmutableHashSet();
                     if (validEntities.Count < value.AnalysisEntities.Count)
                     {
-                        value = validEntities.Count > 0 ? new CopyAbstractValue(validEntities) : CopyAbstractValue.Unknown;
+                        value = validEntities.Count > 0 ? new CopyAbstractValue(validEntities, value.Kind) : CopyAbstractValue.Unknown;
                     }
                 }
 
                 // Handle updating the existing value if not setting the value from predicate analysis.
-                if (!fromPredicate &&
+                if (!fromPredicateKindOpt.HasValue &&
                     sourceCopyAnalysisData.TryGetValue(analysisEntity, out CopyAbstractValue existingValue))
                 {
                     if (existingValue == value)
@@ -182,7 +181,23 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
                 // Handle setting the new value.
                 var newAnalysisEntities = value.AnalysisEntities.Add(analysisEntity);
-                if (fromPredicate)
+                CopyAbstractValueKind newKind;
+                if (newAnalysisEntities.Count == 1)
+                {
+                    newKind = analysisEntity.Type.IsValueType ?
+                        CopyAbstractValueKind.KnownValueCopy :
+                        CopyAbstractValueKind.KnownReferenceCopy;
+                }
+                else
+                {
+                    newKind = fromPredicateKindOpt != SetCopyAbstractValuePredicateKind.ValueCompare &&
+                        !analysisEntity.Type.IsValueType &&
+                        value.Kind == CopyAbstractValueKind.KnownReferenceCopy ?
+                        CopyAbstractValueKind.KnownReferenceCopy :
+                        CopyAbstractValueKind.KnownValueCopy;
+                }
+
+                if (fromPredicateKindOpt.HasValue)
                 {
                     // Also include the existing values for the analysis entity.
                     if (sourceCopyAnalysisData.TryGetValue(analysisEntity, out existingValue))
@@ -193,6 +208,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                         }
 
                         newAnalysisEntities = newAnalysisEntities.Union(existingValue.AnalysisEntities);
+                        newKind = newKind.MergeIfBothKnown(existingValue.Kind);
                     }
                 }
                 else
@@ -205,7 +221,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                     }
                 }
 
-                var newValue = new CopyAbstractValue(newAnalysisEntities);
+                var newValue = new CopyAbstractValue(newAnalysisEntities, newKind);
                 targetCopyAnalysisData.SetAbstactValueForEntities(newValue, entityBeingAssignedOpt: analysisEntity);
 
                 targetCopyAnalysisData.AssertValidCopyAnalysisData(tryGetAddressSharedCopyValue, initializingParameters);
@@ -223,17 +239,32 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                     }
 
                     var newAnalysisEntities = assignedEntities;
+                    CopyAbstractValueKind newKind;
+                    if (assignedValueOpt.Value.Kind.IsKnown())
+                    {
+                        newKind = assignedValueOpt.Value.Kind;
+                    }
+                    else if (assignedValueOpt.AnalysisEntityOpt == null || assignedValueOpt.AnalysisEntityOpt.Type.IsValueType)
+                    {
+                        newKind = CopyAbstractValueKind.KnownValueCopy;
+                    }
+                    else
+                    {
+                        newKind = CopyAbstractValueKind.KnownReferenceCopy;
+                    }
+
                     foreach (var entity in assignedEntities)
                     {
                         if (CurrentAnalysisData.TryGetValue(entity, out var existingValue))
                         {
                             newAnalysisEntities = newAnalysisEntities.Union(existingValue.AnalysisEntities);
+                            newKind = newKind.MergeIfBothKnown(existingValue.Kind);
                         }
                     }
 
                     copyValue = assignedValueOpt.Value.AnalysisEntities.Count == newAnalysisEntities.Count ?
                         assignedValueOpt.Value :
-                        new CopyAbstractValue(newAnalysisEntities);
+                        new CopyAbstractValue(newAnalysisEntities, newKind);
                 }
                 else
                 {
@@ -283,45 +314,48 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 bool isReferenceEquality,
                 CopyAnalysisData targetAnalysisData)
             {
-                if (GetCopyAbstractValue(leftOperand).Kind != CopyAbstractValueKind.Unknown &&
-                    GetCopyAbstractValue(rightOperand).Kind != CopyAbstractValueKind.Unknown &&
-                    AnalysisEntityFactory.TryCreate(leftOperand, out AnalysisEntity leftEntity) &&
-                    AnalysisEntityFactory.TryCreate(rightOperand, out AnalysisEntity rightEntity))
+                var predicateKind = PredicateValueKind.Unknown;
+
+                var leftCopyValue = GetCopyAbstractValue(leftOperand);
+                var rightCopyValue = GetCopyAbstractValue(rightOperand);
+                if (leftCopyValue.AnalysisEntities.IsEmpty ||
+                    rightCopyValue.AnalysisEntities.IsEmpty)
                 {
-                    var predicateKind = PredicateValueKind.Unknown;
-                    if (!CurrentAnalysisData.TryGetValue(rightEntity, out CopyAbstractValue rightValue))
+                    return predicateKind;
+                }
+
+                if (leftCopyValue == rightCopyValue)
+                {
+                    // We have "a == b && a == b" or "a == b && a != b"
+                    // For both cases, condition on right is always true or always false and redundant.
+                    if (!isReferenceEquality ||
+                        rightCopyValue.Kind == CopyAbstractValueKind.KnownReferenceCopy)
                     {
-                        rightValue = GetDefaultCopyValue(rightEntity);
+                        predicateKind = equals ? PredicateValueKind.AlwaysTrue : PredicateValueKind.AlwaysFalse;
                     }
-                    else if (rightValue.AnalysisEntities.Contains(leftEntity))
+                }
+
+                var setCopyValuePredicateKind = isReferenceEquality ?
+                        SetCopyAbstractValuePredicateKind.ReferenceCompare :
+                        SetCopyAbstractValuePredicateKind.ValueCompare;
+
+                if (predicateKind != PredicateValueKind.Unknown)
+                {
+                    if (!equals)
                     {
-                        // We have "a == b && a == b" or "a == b && a != b"
-                        // For both cases, condition on right is always true or always false and redundant.
-                        // NOTE: CopyAnalysis only tracks value equal entities
-                        if (!isReferenceEquality)
+                        // "a == b && a != b" or "a == b || a != b"
+                        foreach (var entity in rightCopyValue.AnalysisEntities)
                         {
-                            predicateKind = equals ? PredicateValueKind.AlwaysTrue : PredicateValueKind.AlwaysFalse;
+                            SetAbstractValue(targetAnalysisData, entity, CopyAbstractValue.Invalid, TryGetAddressSharedCopyValue, setCopyValuePredicateKind);
                         }
                     }
 
-                    if (predicateKind != PredicateValueKind.Unknown)
-                    {
-                        if (!equals)
-                        {
-                            // "a == b && a != b" or "a == b || a != b"
-                            foreach (var entity in rightValue.AnalysisEntities)
-                            {
-                                SetAbstractValue(targetAnalysisData, entity, CopyAbstractValue.Invalid, TryGetAddressSharedCopyValue, fromPredicate: true);
-                            }
-                        }
+                    return predicateKind;
+                }
 
-                        return predicateKind;
-                    }
-
-                    if (equals)
-                    {
-                        SetAbstractValue(targetAnalysisData, leftEntity, rightValue, TryGetAddressSharedCopyValue, fromPredicate: true);
-                    }
+                if (equals)
+                {
+                    SetAbstractValue(targetAnalysisData, leftCopyValue.AnalysisEntities.First(), rightCopyValue, TryGetAddressSharedCopyValue, setCopyValuePredicateKind);
                 }
 
                 return PredicateValueKind.Unknown;
@@ -346,7 +380,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 // Filter out all the local symbol and flow capture entities from the return value.
                 var returnValueAndPredicateKindOpt = base.GetReturnValueAndPredicateKind();
                 if (returnValueAndPredicateKindOpt.HasValue &&
-                    returnValueAndPredicateKindOpt.Value.Value.Kind == CopyAbstractValueKind.Known)
+                    returnValueAndPredicateKindOpt.Value.Value.Kind.IsKnown())
                 {
                     var entitiesToFilterBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
 
@@ -526,8 +560,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             {
                 var operandValue = Visit(operation.Operand, argument);
 
-                if (TryInferConversion(operation, out bool alwaysSucceed, out bool alwaysFail) &&
-                    ConversionAlwaysSucceeds(alwaysSucceed, alwaysFail, operation.IsTryCast, operation.Type))
+                if (TryInferConversion(operation, out var conversionInference) &&
+                    FlowConversionOperandValue(conversionInference, operation.Type))
                 {
                     return operandValue;
                 }
@@ -537,10 +571,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             public override CopyAbstractValue GetAssignedValueForPattern(IIsPatternOperation operation, CopyAbstractValue operandValue)
             {
-                if (TryInferConversion(operation, out bool alwaysSucceed, out bool alwaysFail))
+                if (TryInferConversion(operation, out var conversionInference))
                 {
-                    var targetType = operation.Pattern.GetPatternType();
-                    if (ConversionAlwaysSucceeds(alwaysSucceed, alwaysFail, isTryCast: true, targetType: targetType))
+                    if (FlowConversionOperandValue(conversionInference, targetType: operation.Pattern.GetPatternType()))
                     {
                         return operandValue;
                     }
@@ -549,18 +582,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 return CopyAbstractValue.Unknown;
             }
 
-            private static bool ConversionAlwaysSucceeds(bool alwaysSucceed, bool alwaysFail, bool isTryCast, ITypeSymbol targetType)
+            private static bool FlowConversionOperandValue(ConversionInference inference, ITypeSymbol targetType)
             {
-                Debug.Assert(!alwaysSucceed || !alwaysFail);
+                Debug.Assert(!inference.AlwaysSucceed || !inference.AlwaysFail);
 
-                // Flow the copy value of the operand to the converted operation if conversion may succeed.
-                if (!alwaysFail)
+                // Flow the copy value of the operand for boxing and unboxing conversions.
+                if (inference.IsBoxing || inference.IsUnboxing)
+                {
+                    return true;
+                }
+
+                // Otherwise, flow the copy value of the operand to the converted operation if conversion may succeed.
+                if (!inference.AlwaysFail)
                 {
                     // For try cast, also ensure conversion always succeeds before flowing copy value.
                     // TODO: For direct cast, we should check if conversion is implicit.
                     // For now, we only flow values for reference type direct cast conversions.
-                    if (isTryCast && alwaysSucceed ||
-                        !isTryCast && targetType.IsReferenceType)
+                    if (inference.IsTryCast && inference.AlwaysSucceed ||
+                        !inference.IsTryCast && targetType.IsReferenceType)
                     {
                         return true;
                     }

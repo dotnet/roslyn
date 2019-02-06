@@ -296,6 +296,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             // reprocess the successor by adding it to the worklist.
                             UpdateInput(resultBuilder, successorBlockOpt, mergedSuccessorInput);
 
+                            if (isBackEdge)
+                            {
+                                // For back edges, analysis data in subsequent iterations needs
+                                // to be merged with analysis data from previous iterations.
+                                var enclosingRegion = successorBlockOpt.EnclosingRegion;
+                                while (enclosingRegion.EnclosingRegion?.FirstBlockOrdinal == successorBlockOpt.Ordinal)
+                                {
+                                    enclosingRegion = enclosingRegion.EnclosingRegion;
+                                }
+
+                                for (int i = successorBlockOpt.Ordinal; i <= enclosingRegion.LastBlockOrdinal; i++)
+                                {
+                                    blockToUniqueInputFlowMap[i] = null;
+                                }
+                            }
+
                             if (uniqueSuccessors.Add(successorBlockOpt))
                             {
                                 worklist.Add(successorBlockOpt.Ordinal);

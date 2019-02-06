@@ -287,24 +287,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 var predicateValueKind = PredicateValueKind.Unknown;
 
                 // Handle "a == null" and "a != null"
-                if (SetValueForComparisonOperator(leftOperand, rightOperand, equals, ref predicateValueKind, targetAnalysisData))
+                if (SetValueForNullCompare(leftOperand, rightOperand, equals, ref predicateValueKind, targetAnalysisData))
                 {
                     return predicateValueKind;
                 }
 
                 // Otherwise, handle "null == a" and "null != a"
-                SetValueForComparisonOperator(rightOperand, leftOperand, equals, ref predicateValueKind, targetAnalysisData);
+                SetValueForNullCompare(rightOperand, leftOperand, equals, ref predicateValueKind, targetAnalysisData);
                 return predicateValueKind;
             }
 
             protected override PredicateValueKind SetValueForIsNullComparisonOperator(IOperation leftOperand, bool equals, PointsToAnalysisData targetAnalysisData)
             {
                 var predicateValueKind = PredicateValueKind.Unknown;
-                SetValueForComparisonOperator(leftOperand, value: NullAbstractValue.Null, equals: equals, predicateValueKind: ref predicateValueKind, targetAnalysisData: targetAnalysisData);
+                SetValueForNullCompare(leftOperand, value: NullAbstractValue.Null, equals: equals, predicateValueKind: ref predicateValueKind, targetAnalysisData: targetAnalysisData);
                 return predicateValueKind;
             }
 
-            private bool SetValueForComparisonOperator(
+            private bool SetValueForNullCompare(
                 IOperation target,
                 IOperation assignedValueOperation,
                 bool equals,
@@ -312,10 +312,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 PointsToAnalysisData targetAnalysisData)
             {
                 NullAbstractValue value = GetNullAbstractValue(assignedValueOperation);
-                return SetValueForComparisonOperator(target, value, equals, ref predicateValueKind, targetAnalysisData);
+                return SetValueForNullCompare(target, value, equals, ref predicateValueKind, targetAnalysisData);
             }
 
-            private bool SetValueForComparisonOperator(
+            private bool SetValueForNullCompare(
                 IOperation target,
                 NullAbstractValue value,
                 bool equals,
@@ -331,18 +331,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     bool inferInTargetAnalysisData = !(value == NullAbstractValue.NotNull && !equals);
 
                     CopyAbstractValue copyValue = GetCopyAbstractValue(target);
-                    if (copyValue.Kind == CopyAbstractValueKind.Known)
+                    if (copyValue.Kind.IsKnown())
                     {
                         foreach (var analysisEntity in copyValue.AnalysisEntities)
                         {
-                            SetValueFromPredicate(analysisEntity, value, equals, inferInTargetAnalysisData,
+                            SetValueForNullCompareFromPredicate(analysisEntity, value, equals, inferInTargetAnalysisData,
                                 ref predicateValueKind, _defaultPointsToValueGenerator,
                                 sourceAnalysisData: CurrentAnalysisData, targetAnalysisData: targetAnalysisData);
                         }
                     }
                     else
                     {
-                        SetValueFromPredicate(targetEntity, value, equals, inferInTargetAnalysisData,
+                        SetValueForNullCompareFromPredicate(targetEntity, value, equals, inferInTargetAnalysisData,
                             ref predicateValueKind, _defaultPointsToValueGenerator,
                             sourceAnalysisData: CurrentAnalysisData, targetAnalysisData: targetAnalysisData);
                     }
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 return false;
             }
 
-            private static void SetValueFromPredicate(
+            private static void SetValueForNullCompareFromPredicate(
                 AnalysisEntity key,
                 NullAbstractValue value,
                 bool equals,
@@ -756,11 +756,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             public override PointsToAbstractValue VisitConversion(IConversionOperation operation, object argument)
             {
                 var value = base.VisitConversion(operation, argument);
+
+                ConversionInference? inferenceOpt = null;
                 if (value.NullState == NullAbstractValue.NotNull)
                 {
-                    if (TryInferConversion(operation, out bool alwaysSucceed, out bool alwaysFail))
+                    if (TryInferConversion(operation, out var conversionInference))
                     {
-                        value = InferConversionCommon(alwaysSucceed, alwaysFail, value, operation.IsTryCast);
+                        inferenceOpt = conversionInference;
+                        value = InferConversionCommon(conversionInference, value);
                     }
                     else
                     {
@@ -768,41 +771,66 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     }
                 }
 
-                return value;
+                return HandleBoxingUnboxing(value, operation, inferenceOpt ?? ConversionInference.Create(operation));
             }
 
             public override PointsToAbstractValue GetAssignedValueForPattern(IIsPatternOperation operation, PointsToAbstractValue operandValue)
             {
+                var value = base.GetAssignedValueForPattern(operation, operandValue);
+
+                ConversionInference? inferenceOpt = null;
                 if (operandValue.NullState == NullAbstractValue.NotNull &&
                     ShouldBeTracked(operation.Value.Type))
                 {
-                    if (TryInferConversion(operation, out bool alwaysSucceed, out bool alwaysFail))
+                    if (TryInferConversion(operation, out var conversionInference))
                     {
-                        return InferConversionCommon(alwaysSucceed, alwaysFail, operandValue, isTryCast: true);
+                        inferenceOpt = conversionInference;
+                        value = InferConversionCommon(conversionInference, operandValue);
                     }
                     else
                     {
-                        return operandValue.MakeMayBeNull();
+                        value = operandValue.MakeMayBeNull();
                     }
                 }
 
-                return base.GetAssignedValueForPattern(operation, operandValue);
+                return HandleBoxingUnboxing(value, operation, inferenceOpt ?? ConversionInference.Create(operation));
             }
 
-            private static PointsToAbstractValue InferConversionCommon(bool alwaysSucceed, bool alwaysFail, PointsToAbstractValue operandValue, bool isTryCast)
+            private static PointsToAbstractValue InferConversionCommon(ConversionInference inference, PointsToAbstractValue operandValue)
             {
-                Debug.Assert(!alwaysSucceed || !alwaysFail);
-                if (alwaysFail)
+                Debug.Assert(!inference.AlwaysSucceed || !inference.AlwaysFail);
+                if (inference.AlwaysFail)
                 {
                     return operandValue.MakeNull();
                 }
-                else if (isTryCast && !alwaysSucceed)
+                else if (inference.IsTryCast && !inference.AlwaysSucceed)
                 {
                     // TryCast which may or may not succeed.
                     return operandValue.MakeMayBeNull();
                 }
 
                 return operandValue;
+            }
+
+            private PointsToAbstractValue HandleBoxingUnboxing(
+                PointsToAbstractValue value,
+                IOperation operation,
+                ConversionInference inference)
+            {
+                if (inference.IsBoxing)
+                {
+                    Debug.Assert(!inference.IsUnboxing);
+                    var location = AbstractLocation.CreateAllocationLocation(operation, operation.Type, DataFlowAnalysisContext);
+                    return PointsToAbstractValue.Create(location, mayBeNull: false);
+                }
+                else if (inference.IsUnboxing)
+                {
+                    return PointsToAbstractValue.NoLocation;
+                }
+                else
+                {
+                    return value;
+                }
             }
 
             public override PointsToAbstractValue VisitFlowCapture(IFlowCaptureOperation operation, object argument)

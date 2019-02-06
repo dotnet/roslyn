@@ -93,14 +93,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 LeavingRegionLocals, LeavingRegionFlowCaptures);
         }
 
+        private static IEnumerable<ControlFlowRegion> GetTransitiveNestedRegions(ControlFlowRegion region)
+        {
+            yield return region;
+
+            foreach (var nestedRegion in region.NestedRegions)
+            {
+                foreach (var transitiveNestedRegion in GetTransitiveNestedRegions(nestedRegion))
+                {
+                    yield return transitiveNestedRegion;
+                }
+            }
+        }
+
         private static IEnumerable<ILocalSymbol> ComputeLeavingRegionLocals(ImmutableArray<ControlFlowRegion> leavingRegions)
         {
-            return leavingRegions.SelectMany(r => r.NestedRegions.Concat(r)).Distinct().SelectMany(r => r.Locals);
+            return leavingRegions.SelectMany(GetTransitiveNestedRegions).Distinct().SelectMany(r => r.Locals);
         }
 
         private static IEnumerable<CaptureId> ComputeLeavingRegionFlowCaptures(ImmutableArray<ControlFlowRegion> leavingRegions)
         {
-            return leavingRegions.SelectMany(r => r.NestedRegions.Concat(r)).Distinct().SelectMany(r => r.CaptureIds);
+            return leavingRegions.SelectMany(GetTransitiveNestedRegions).Distinct().SelectMany(r => r.CaptureIds);
         }
 
         private static ControlFlowConditionKind GetControlFlowConditionKind(ControlFlowBranch branch)
