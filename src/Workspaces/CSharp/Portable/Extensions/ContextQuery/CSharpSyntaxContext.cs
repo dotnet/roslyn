@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isInImportsDirective: IsLeftSideOfUsingAliasDirective(leftToken, cancellationToken),
                 isLabelContext: syntaxTree.IsLabelContext(position, cancellationToken),
                 isTypeArgumentOfConstraintContext: syntaxTree.IsTypeArgumentOfConstraintClause(position, cancellationToken),
-                isRightOfDotOrArrowOrColonColon: isAfterFirstDotOfDotDot || syntaxTree.IsRightOfDotOrArrowOrColonColon(position, cancellationToken),
+                isRightOfDotOrArrowOrColonColon: syntaxTree.IsRightOfDotOrArrowOrColonColon(position, targetToken, cancellationToken),
                 isIsOrAsOrSwitchExpressionContext: syntaxTree.IsIsOrAsOrSwitchExpressionContext(semanticModel, position, leftToken, cancellationToken),
                 isObjectCreationTypeContext: syntaxTree.IsObjectCreationTypeContext(position, leftToken, cancellationToken),
                 isDefiniteCastTypeContext: syntaxTree.IsDefiniteCastTypeContext(position, leftToken, cancellationToken),
