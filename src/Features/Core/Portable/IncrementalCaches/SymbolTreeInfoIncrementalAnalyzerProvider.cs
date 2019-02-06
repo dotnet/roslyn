@@ -272,6 +272,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 return Task.Run(() => UpdateReferenceAsync(project, reference, cancellationToken), cancellationToken);
             }
 
+            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/33172", AllowCaptures = false)]
             private async Task UpdateReferenceAsync(
                 Project project, PortableExecutableReference reference, CancellationToken cancellationToken)
             {
