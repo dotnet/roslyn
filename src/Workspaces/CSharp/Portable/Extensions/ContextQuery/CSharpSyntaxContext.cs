@@ -195,9 +195,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                                             targetToken.Parent.IsKind(SyntaxKind.DestructorDeclaration) &&
                                             targetToken.Parent.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration);
 
-            var isAfterFirstDotOfDotDot = targetToken.IsKind(SyntaxKind.DotDotToken) &&
-                                                position == targetToken.SpanStart + 1;
-
             return new CSharpSyntaxContext(
                 workspace: workspace,
                 semanticModel: semanticModel,
