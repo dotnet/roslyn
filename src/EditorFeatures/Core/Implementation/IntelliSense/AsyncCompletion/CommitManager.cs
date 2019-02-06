@@ -119,6 +119,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Tab, Enter and Null (call invoke commit) are always commit characters. 
             if (typeChar != '\t' && typeChar != '\n' && typeChar != '\0' && !IsCommitCharacter(serviceRules, roslynItem, typeChar, filterText))
             {
+                // Some languages like TypeScript have characters that should dismiss completion. 
+                // Those are implemented by saying that those characters are commit characters, 
+                // and we use the opportunity to process commit as a way to dismiss completion in that case.
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
