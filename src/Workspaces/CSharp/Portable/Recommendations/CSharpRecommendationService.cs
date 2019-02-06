@@ -111,6 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
             else if (node.Kind() == SyntaxKind.RangeExpression)
             {
+                // This code should be executing only if the cursor is between two dots in a dotdot token.
                 return GetSymbolsOffOfExpression(context, ((RangeExpressionSyntax)node).LeftOperand, cancellationToken);
             }
             else if (node.Kind() == SyntaxKind.PointerMemberAccessExpression)
