@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="VsProductVersion" Type="System.String" Scope="User">
-      <Value Profile="(Default)">15</Value>
+      <Value Profile="(Default)">16</Value>
     </Setting>
     <Setting Name="VsRootSuffix" Type="System.String" Scope="User">
       <Value Profile="(Default)">RoslynDev</Value>
