@@ -540,8 +540,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 {
                     var previousOriginalType = this.OriginalSemanticModel.GetTypeInfo(previousOriginalNode).Type;
                     var previousReplacedType = this.SpeculativeSemanticModel.GetTypeInfo(previousReplacedNode).Type;
-
-                    return !Equals(previousOriginalType, previousReplacedType);
+                    if (previousReplacedType != null && previousOriginalType != null)
+                    {
+                        return !previousReplacedType.InheritsFromOrEquals(previousOriginalType);
+                    }
                 }
             }
 
