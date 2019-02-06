@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -191,7 +190,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             {
                                 if (!w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
                                 {
-                                    w.OnDocumentOpened(documentId, textContainer, isCurrentContext: documentId.ProjectId == activeContextProjectId);
+                                    var isCurrentContext = documentId.ProjectId == activeContextProjectId;
+                                    if (w.CurrentSolution.ContainsDocument(documentId))
+                                    {
+                                        w.OnDocumentOpened(documentId, textContainer, isCurrentContext);
+                                    }
+                                    else
+                                    {
+                                        Debug.Assert(w.CurrentSolution.ContainsAdditionalDocument(documentId));
+                                        w.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext);
+                                    }
                                 }
                             }
                         }
@@ -350,9 +358,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     foreach (var documentId in documentIds)
                     {
-                        if (_workspace.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
+                        if (!_workspace._documentsNotFromFiles.Contains(documentId))
                         {
-                            w.OnDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
+                            if (_workspace.IsDocumentOpen(documentId))
+                            {
+                                w.OnDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
+                            }
+                            else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
+                            {
+                                w.OnAdditionalDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
+                            }
                         }
                     }
                 });

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
         private readonly SolutionServices _solutionServices;
         private readonly IReadOnlyList<ProjectId> _projectIds;
         private readonly ImmutableDictionary<ProjectId, ProjectState> _projectIdToProjectStateMap;
-        private readonly ImmutableDictionary<string, ImmutableArray<DocumentId>> _linkedFilesMap;
+        private readonly ImmutableDictionary<string, ImmutableArray<DocumentId>> _filePathToDocumentIdsMap;
         private readonly Lazy<VersionStamp> _lazyLatestProjectVersion;
         private readonly ProjectDependencyGraph _dependencyGraph;
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<ProjectId> projectIds,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
             ImmutableDictionary<ProjectId, CompilationTracker> projectIdToTrackerMap,
-            ImmutableDictionary<string, ImmutableArray<DocumentId>> linkedFilesMap,
+            ImmutableDictionary<string, ImmutableArray<DocumentId>> filePathToDocumentIdsMap,
             ProjectDependencyGraph dependencyGraph,
             Lazy<VersionStamp> lazyLatestProjectVersion)
         {
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
             _projectIds = projectIds.ToImmutableReadOnlyListOrEmpty();
             _projectIdToProjectStateMap = idToProjectStateMap;
             _projectIdToTrackerMap = projectIdToTrackerMap;
-            _linkedFilesMap = linkedFilesMap;
+            _filePathToDocumentIdsMap = filePathToDocumentIdsMap;
             _dependencyGraph = dependencyGraph;
             _lazyLatestProjectVersion = lazyLatestProjectVersion;
 
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis
                 projectIds: null,
                 idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
                 projectIdToTrackerMap: ImmutableDictionary<ProjectId, CompilationTracker>.Empty,
-                linkedFilesMap: ImmutableDictionary.Create<string, ImmutableArray<DocumentId>>(StringComparer.OrdinalIgnoreCase),
+                filePathToDocumentIdsMap: ImmutableDictionary.Create<string, ImmutableArray<DocumentId>>(StringComparer.OrdinalIgnoreCase),
                 dependencyGraph: ProjectDependencyGraph.Empty,
                 lazyLatestProjectVersion: null)
         {
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<ProjectId> projectIds = null,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap = null,
             ImmutableDictionary<ProjectId, CompilationTracker> projectIdToTrackerMap = null,
-            ImmutableDictionary<string, ImmutableArray<DocumentId>> linkedFilesMap = null,
+            ImmutableDictionary<string, ImmutableArray<DocumentId>> filePathToDocumentIdsMap = null,
             ProjectDependencyGraph dependencyGraph = null,
             Lazy<VersionStamp> lazyLatestProjectVersion = null)
         {
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis
             projectIds = projectIds ?? _projectIds;
             idToProjectStateMap = idToProjectStateMap ?? _projectIdToProjectStateMap;
             projectIdToTrackerMap = projectIdToTrackerMap ?? _projectIdToTrackerMap;
-            linkedFilesMap = linkedFilesMap ?? _linkedFilesMap;
+            filePathToDocumentIdsMap = filePathToDocumentIdsMap ?? _filePathToDocumentIdsMap;
             dependencyGraph = dependencyGraph ?? _dependencyGraph;
             lazyLatestProjectVersion = lazyLatestProjectVersion ?? _lazyLatestProjectVersion;
 
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis
                 projectIds == _projectIds &&
                 idToProjectStateMap == _projectIdToProjectStateMap &&
                 projectIdToTrackerMap == _projectIdToTrackerMap &&
-                linkedFilesMap == _linkedFilesMap &&
+                filePathToDocumentIdsMap == _filePathToDocumentIdsMap &&
                 dependencyGraph == _dependencyGraph &&
                 lazyLatestProjectVersion == _lazyLatestProjectVersion)
             {
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis
                 projectIds,
                 idToProjectStateMap,
                 projectIdToTrackerMap,
-                linkedFilesMap,
+                filePathToDocumentIdsMap,
                 dependencyGraph,
                 lazyLatestProjectVersion);
         }
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis
                 _projectIds,
                 _projectIdToProjectStateMap,
                 _projectIdToTrackerMap,
-                _linkedFilesMap,
+                _filePathToDocumentIdsMap,
                 _dependencyGraph,
                 _lazyLatestProjectVersion);
         }
@@ -434,14 +434,14 @@ namespace Microsoft.CodeAnalysis
             }
 
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
-            var newLinkedFilesMap = CreateLinkedFilesMapWithAddedProject(newStateMap[projectId]);
+            var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithAddedProject(newStateMap[projectId]);
 
             return this.Branch(
                 solutionAttributes: newSolutionAttributes,
                 projectIds: newProjectIds,
                 idToProjectStateMap: newStateMap,
                 projectIdToTrackerMap: newTrackerMap,
-                linkedFilesMap: newLinkedFilesMap,
+                filePathToDocumentIdsMap: newFilePathToDocumentIdsMap,
                 dependencyGraph: newDependencyGraph,
                 lazyLatestProjectVersion: new Lazy<VersionStamp>(() => projectState.Version)); // this is the newest!
         }
@@ -483,19 +483,18 @@ namespace Microsoft.CodeAnalysis
             return this.AddProject(newProject.Id, newProject);
         }
 
-        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateLinkedFilesMapWithAddedProject(ProjectState projectState)
+        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedProject(ProjectState projectState)
         {
-            return CreateLinkedFilesMapWithAddedDocuments(projectState, projectState.DocumentIds);
+            var documentIdsAndFilePaths = GetDocumentIdsAndFilePaths(projectState, projectState.DocumentIds, projectState.AdditionalDocumentIds);
+            return CreateFilePathToDocumentIdsMapWithAddedDocuments(documentIdsAndFilePaths);
         }
 
-        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateLinkedFilesMapWithAddedDocuments(ProjectState projectState, IEnumerable<DocumentId> documentIds)
+        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<(DocumentId documentId, string filePath)> documentIdsAndFilePaths)
         {
-            var builder = _linkedFilesMap.ToBuilder();
+            var builder = _filePathToDocumentIdsMap.ToBuilder();
 
-            foreach (var documentId in documentIds)
+            foreach (var (documentId, filePath) in documentIdsAndFilePaths)
             {
-                var filePath = projectState.GetDocumentState(documentId).FilePath;
-
                 if (string.IsNullOrEmpty(filePath))
                 {
                     continue;
@@ -507,6 +506,13 @@ namespace Microsoft.CodeAnalysis
             }
 
             return builder.ToImmutable();
+        }
+
+        private static IEnumerable<(DocumentId documentId, string filePath)> GetDocumentIdsAndFilePaths(ProjectState projectState, IEnumerable<DocumentId> documentIds, IEnumerable<DocumentId> additionalDocumentIds)
+        {
+            var documentIdsAndFilePaths = documentIds.Select(id => (id, projectState.GetDocumentState(id).FilePath));
+            var additionalDocumentIdsAndFilePaths = additionalDocumentIds.Select(id => (id, projectState.GetAdditionalDocumentState(id).FilePath));
+            return documentIdsAndFilePaths.Concat(additionalDocumentIdsAndFilePaths);
         }
 
         /// <summary>
@@ -528,32 +534,29 @@ namespace Microsoft.CodeAnalysis
             var newStateMap = _projectIdToProjectStateMap.Remove(projectId);
             var newDependencyGraph = CreateDependencyGraph(newProjectIds, newStateMap);
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
-            var newLinkedFilesMap = CreateLinkedFilesMapWithRemovedProject(_projectIdToProjectStateMap[projectId]);
+            var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithRemovedProject(_projectIdToProjectStateMap[projectId]);
 
             return this.Branch(
                 solutionAttributes: newSolutionAttributes,
                 projectIds: newProjectIds,
                 idToProjectStateMap: newStateMap,
                 projectIdToTrackerMap: newTrackerMap.Remove(projectId),
-                linkedFilesMap: newLinkedFilesMap,
+                filePathToDocumentIdsMap: newFilePathToDocumentIdsMap,
                 dependencyGraph: newDependencyGraph);
         }
 
-        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateLinkedFilesMapWithRemovedProject(ProjectState projectState)
+        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedProject(ProjectState projectState)
         {
-            return CreateLinkedFilesMapWithRemovedDocuments(projectState, projectState.DocumentIds);
+            var documentIdsAndFilePaths = GetDocumentIdsAndFilePaths(projectState, projectState.DocumentIds, projectState.AdditionalDocumentIds);
+            return CreateFilePathToDocumentIdsMapWithRemovedDocuments(documentIdsAndFilePaths);
         }
 
-        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateLinkedFilesMapWithRemovedDocuments(
-            ProjectState projectState,
-            IEnumerable<DocumentId> documentIds)
+        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedDocuments(IEnumerable<(DocumentId documentId, string filePath)> documentIdsAndFilePaths)
         {
-            var builder = _linkedFilesMap.ToBuilder();
+            var builder = _filePathToDocumentIdsMap.ToBuilder();
 
-            foreach (var documentId in documentIds)
+            foreach (var (documentId, filePath) in documentIdsAndFilePaths)
             {
-                var filePath = projectState.GetDocumentState(documentId).FilePath;
-
                 if (string.IsNullOrEmpty(filePath))
                 {
                     continue;
@@ -561,7 +564,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (!builder.TryGetValue(filePath, out var documentIdsWithPath) || !documentIdsWithPath.Contains(documentId))
                 {
-                    throw new ArgumentException("The given documentId was not found in the linkedFilesMap.");
+                    throw new ArgumentException($"The given documentId was not found in '{nameof(_filePathToDocumentIdsMap)}'.");
                 }
 
                 if (documentIdsWithPath.Length == 1)
@@ -1160,7 +1163,7 @@ namespace Microsoft.CodeAnalysis
 
                 newSolutionState = newSolutionState.ForkProject(newProjectState,
                     CompilationTranslationAction.AddDocuments(newDocumentStatesForProject),
-                    newLinkedFilesMap: CreateLinkedFilesMapWithAddedDocuments(newProjectState, documentInfosInProject.Select(d => d.Id)));
+                    newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithAddedDocuments(documentInfosInProject.Select(d => (d.Id, newProjectState.GetDocumentState(d.Id).FilePath))));
             }
 
             return newSolutionState;
@@ -1183,8 +1186,10 @@ namespace Microsoft.CodeAnalysis
                 _solutionServices);
 
             var newProject = oldProject.AddAdditionalDocument(state);
+            var addedDocumentIdAndFilePath = SpecializedCollections.SingletonEnumerable((documentInfo.Id, newProject.GetAdditionalDocumentState(documentInfo.Id).FilePath));
 
-            return this.ForkProject(newProject);
+            return this.ForkProject(newProject,
+                    newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithAddedDocuments(addedDocumentIdAndFilePath));
         }
 
         /// <summary>
@@ -1197,11 +1202,12 @@ namespace Microsoft.CodeAnalysis
             var oldProject = this.GetProjectState(documentId.ProjectId);
             var oldDocument = oldProject.GetDocumentState(documentId);
             var newProject = oldProject.RemoveDocument(documentId);
+            var removedDocumentIdAndFilePath = SpecializedCollections.SingletonEnumerable((documentId, oldProject.GetDocumentState(documentId).FilePath));
 
             return this.ForkProject(
                 newProject,
                 CompilationTranslationAction.RemoveDocument(oldDocument),
-                newLinkedFilesMap: CreateLinkedFilesMapWithRemovedDocuments(oldProject, SpecializedCollections.SingletonEnumerable(documentId)));
+                newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentIdAndFilePath));
         }
 
         /// <summary>
@@ -1213,8 +1219,10 @@ namespace Microsoft.CodeAnalysis
 
             var oldProject = this.GetProjectState(documentId.ProjectId);
             var newProject = oldProject.RemoveAdditionalDocument(documentId);
+            var removedDocumentIdAndFilePath = SpecializedCollections.SingletonEnumerable((documentId, oldProject.GetAdditionalDocumentState(documentId).FilePath));
 
-            return this.ForkProject(newProject);
+            return this.ForkProject(newProject,
+                newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentIdAndFilePath));
         }
 
         /// <summary>
@@ -1548,7 +1556,7 @@ namespace Microsoft.CodeAnalysis
             ProjectState newProjectState,
             CompilationTranslationAction translate = null,
             ProjectDependencyGraph newDependencyGraph = null,
-            ImmutableDictionary<string, ImmutableArray<DocumentId>> newLinkedFilesMap = null,
+            ImmutableDictionary<string, ImmutableArray<DocumentId>> newFilePathToDocumentIdsMap = null,
             bool forkTracker = true)
         {
             var projectId = newProjectState.Id;
@@ -1575,7 +1583,7 @@ namespace Microsoft.CodeAnalysis
                 idToProjectStateMap: newStateMap,
                 projectIdToTrackerMap: newTrackerMap,
                 dependencyGraph: newDependencyGraph,
-                linkedFilesMap: newLinkedFilesMap ?? _linkedFilesMap,
+                filePathToDocumentIdsMap: newFilePathToDocumentIdsMap ?? _filePathToDocumentIdsMap,
                 lazyLatestProjectVersion: newLatestProjectVersion);
         }
 
@@ -1590,7 +1598,7 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray.Create<DocumentId>();
             }
 
-            return _linkedFilesMap.TryGetValue(filePath, out var documentIds)
+            return _filePathToDocumentIdsMap.TryGetValue(filePath, out var documentIds)
                 ? documentIds
                 : ImmutableArray.Create<DocumentId>();
         }
