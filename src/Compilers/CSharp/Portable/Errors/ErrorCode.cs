@@ -1625,6 +1625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DiscardPatternInSwitchStatement = 8523,
         #endregion diagnostics introduced for recursive patterns
 
+        ERR_IllegalSuppression = 8598,
         WRN_IllegalPPWarningSafeOnly = 8599,
         WRN_ConvertingNullableToNonNullable = 8600,
         WRN_NullReferenceAssignment = 8601,
@@ -1652,7 +1653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitNullableAttribute = 8623,
         // Available = 8624,
         WRN_NullAsNonNullable = 8625,
-        WRN_NoBestNullabilityConditionalExpression = 8626,
+        // Available = 8626,
         ERR_NullableUnconstrainedTypeParameter = 8627,
         ERR_AnnotationDisallowedInObjectCreation = 8628,
         WRN_NullableValueTypeMayBeNull = 8629,
@@ -1664,8 +1665,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TripleDotNotAllowed = 8635,
         ERR_BadNullableContextOption = 8636,
         ERR_NullableDirectiveQualifierExpected = 8637,
-        WRN_CantInferNullabilityOfMethodTypeArgs = 8638,
-        WRN_NoBestNullabilityArrayElements = 8639,
+        // Available = 8638,
+        // Available = 8639,
         ERR_ExpressionTreeCantContainRefStruct = 8640,
         ERR_ElseCannotStartStatement = 8641,
         ERR_ExpressionTreeCantContainNullCoalescingAssignment = 8642,

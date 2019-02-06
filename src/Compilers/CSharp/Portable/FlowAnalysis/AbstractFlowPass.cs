@@ -545,10 +545,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ((BoundTupleExpression)node).VisitAllElements((x, self) => self.VisitLvalue(x), this);
                     break;
 
-                case BoundKind.SuppressNullableWarningExpression:
-                    VisitLvalue(((BoundSuppressNullableWarningExpression)node).Expression);
-                    break;
-
                 default:
                     VisitRvalue(node);
                     break;
@@ -2628,12 +2624,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetState(UnreachableState());
             Visit(node.Argument);
             SetState(savedState);
-            return null;
-        }
-
-        public override BoundNode VisitSuppressNullableWarningExpression(BoundSuppressNullableWarningExpression node)
-        {
-            VisitRvalue(node.Expression);
             return null;
         }
 

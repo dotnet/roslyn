@@ -276,8 +276,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateFromEndIndexExpressionOperation((BoundFromEndIndexExpression)boundNode);
                 case BoundKind.RangeExpression:
                     return CreateRangeExpressionOperation((BoundRangeExpression)boundNode);
-                case BoundKind.SuppressNullableWarningExpression:
-                    return CreateSuppressNullableWarningExpressionOperation((BoundSuppressNullableWarningExpression)boundNode);
                 case BoundKind.SwitchSection:
                     return CreateBoundSwitchSectionOperation((BoundSwitchSection)boundNode);
                 case BoundKind.SwitchExpression:
@@ -2010,17 +2008,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 boundRange.Type,
                 boundRange.MethodOpt,
                 isImplicit: boundRange.WasCompilerGenerated);
-        }
-
-        private IOperation CreateSuppressNullableWarningExpressionOperation(BoundSuppressNullableWarningExpression boundSuppression)
-        {
-            return new CSharpLazySuppressNullableWarningOperation(
-                operationFactory: this,
-                boundSuppression,
-                _semanticModel,
-                boundSuppression.Syntax,
-                boundSuppression.Type,
-                isImplicit: boundSuppression.WasCompilerGenerated);
         }
 
         private IOperation CreateBoundDiscardPatternOperation(BoundDiscardPattern boundNode)

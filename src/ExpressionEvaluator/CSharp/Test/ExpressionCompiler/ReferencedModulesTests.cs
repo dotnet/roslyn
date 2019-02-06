@@ -1315,8 +1315,7 @@ namespace System
     {
     }
 }";
-                // https://github.com/dotnet/roslyn/issues/30030: C#8 projects require System.Attribute.
-                var comp = CreateEmptyCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7, references: new[] { refLib, AssemblyMetadata.Create(module).GetReference() });
+                var comp = CreateEmptyCompilation(source, options: TestOptions.DebugDll, references: new[] { refLib, AssemblyMetadata.Create(module).GetReference() });
                 comp.VerifyDiagnostics();
 
                 using (var runtime = RuntimeInstance.Create(new[] { comp.ToModuleInstance(), moduleInstance }))
@@ -1368,8 +1367,9 @@ namespace System
 
         // References to missing assembly from PDB custom debug info.
         [WorkItem(13275, "https://github.com/dotnet/roslyn/issues/13275")]
-        [Fact]
-        public void CorLibWithAssemblyReferences_Pdb()
+        [Theory]
+        [MemberData(nameof(NonNullTypesTrueAndFalseReleaseDll))]
+        public void CorLibWithAssemblyReferences_Pdb(CSharpCompilationOptions options)
         {
             string sourceLib =
 @"namespace Namespace
@@ -1398,7 +1398,7 @@ namespace System
 }";
             // Create a custom corlib with a reference to compilation
             // above and a reference to the actual mscorlib.
-            var compCorLib = CreateEmptyCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib });
+            var compCorLib = CreateEmptyCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib }, options: options);
             compCorLib.VerifyDiagnostics();
             var objectType = compCorLib.SourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Object");
             Assert.NotNull(objectType.BaseType());

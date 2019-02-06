@@ -2878,7 +2878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> boundInitializerExpressions = BindArrayInitializerExpressions(initializer, diagnostics, dimension: 1, rank: rank);
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, out _, ref useSiteDiagnostics);
+            TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
             if ((object)bestType == null || bestType.SpecialType == SpecialType.System_Void) // Dev10 also reports ERR_ImplicitlyTypedArrayNoBestType for void.
@@ -2905,7 +2905,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> boundInitializerExpressions = BindArrayInitializerExpressions(initializer, diagnostics, dimension: 1, rank: 1);
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, out _, ref useSiteDiagnostics);
+            TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
             if ((object)bestType == null || bestType.SpecialType == SpecialType.System_Void)
