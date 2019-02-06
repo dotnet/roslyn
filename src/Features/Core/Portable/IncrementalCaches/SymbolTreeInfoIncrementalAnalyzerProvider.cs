@@ -198,13 +198,28 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 Debug.Assert(SupportAnalysis(project));
 
                 // Produce the indices for the source and metadata symbols in parallel.
-                var tasks = new Task[]
-                {
-                    GetTask(project, () => UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), cancellationToken),
-                    GetTask(project, () => UpdateReferencesAsync(project, cancellationToken), cancellationToken)
-                };
+                var isRemoteWorkspace = project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace;
+                Task[] tasks = isRemoteWorkspace ?
+                    UpdateSymbolTreeInfoInServiceProcessAsync(project, cancellationToken) :
+                    UpdateSymbolTreeInfoInCurrentProcessAsync(project, cancellationToken);
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
+            }
+
+            private Task[] UpdateSymbolTreeInfoInCurrentProcessAsync(Project project, CancellationToken cancellationToken)
+            {
+                return new Task[] {
+                    UpdateSourceSymbolTreeInfoAsync(project, cancellationToken),
+                    UpdateReferencesAsync(project, cancellationToken),
+                };
+            }
+
+            private Task[] UpdateSymbolTreeInfoInServiceProcessAsync(Project project, CancellationToken cancellationToken)
+            {
+                return new Task[] {
+                    Task.Run (() => UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), cancellationToken),
+                    Task.Run (() => UpdateReferencesAsync(project, cancellationToken), cancellationToken),
+                };
             }
 
             private async Task UpdateSourceSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
@@ -225,30 +240,36 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 }
             }
 
-            private Task GetTask(Project project, Func<Task> func, CancellationToken cancellationToken)
-            {
-                var isRemoteWorkspace = project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace;
-                return isRemoteWorkspace
-                    ? Task.Run(func, cancellationToken)
-                    : func();
-            }
-
-            [PerformanceSensitive("FILLME", AllowGenericEnumeration = false)]
+            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/33172", AllowGenericEnumeration = false, AllowCaptures = false)]
             private Task UpdateReferencesAsync(Project project, CancellationToken cancellationToken)
             {
                 // Process all metadata references. If it remote workspace, do this in parallel.
                 var tasks = new List<Task>(project.MetadataReferences.Count);
+                var isRemoteWorkspace = project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace;
 
                 foreach (var metadataReference in project.MetadataReferences.ToImmutableArrayOrEmpty())
                 {
                     if (metadataReference is PortableExecutableReference portableExecutableReference)
                     {
-                        tasks.Add(
-                            GetTask(project, () => UpdateReferenceAsync(project, portableExecutableReference, cancellationToken), cancellationToken));
+                        var task = isRemoteWorkspace ?
+                            UpdateReferenceInServiceProcessAsync(project, portableExecutableReference, cancellationToken) :
+                            UpdateReferenceInCurrentProcessAsync(project, portableExecutableReference, cancellationToken);
+
+                        tasks.Add(task);
                     }
                 }
 
                 return Task.WhenAll(tasks);
+            }
+
+            private Task UpdateReferenceInCurrentProcessAsync(Project project, PortableExecutableReference reference, CancellationToken cancellationToken)
+            {
+                return UpdateReferenceAsync(project, reference, cancellationToken);
+            }
+
+            private Task UpdateReferenceInServiceProcessAsync(Project project, PortableExecutableReference reference, CancellationToken cancellationToken)
+            {
+                return Task.Run(() => UpdateReferenceAsync(project, reference, cancellationToken), cancellationToken);
             }
 
             private async Task UpdateReferenceAsync(
