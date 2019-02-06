@@ -529,6 +529,68 @@ class A
             UncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments: true);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
+        [WorkItem(31669, "https://github.com/dotnet/roslyn/issues/31669")]
+        public void Uncomment_BlockWithSingleInsideAndSelectionIncludesNewLines()
+        {
+            var code = @"
+class A
+{
+|start|
+    /*
+    void M()
+    {
+            // A comment
+            // Another comment
+    }
+    */
+|end|
+}";
+
+            var expectedChanges = new[]
+            {
+                new TextChange(new TextSpan(20, 2), string.Empty),
+                new TextChange(new TextSpan(114, 2), string.Empty),
+            };
+
+            var expectedSelectedSpans = new[]
+            {
+                Span.FromBounds(20, 112)
+            };
+
+            UncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
+        [WorkItem(31669, "https://github.com/dotnet/roslyn/issues/31669")]
+        public void Uncomment_BlockWithSingleInsideAndSelectionStartsWithSpaces()
+        {
+            var code = @"
+class A
+{
+|start|    /*
+    void M()
+    {
+            // A comment
+            // Another comment
+    }
+    */
+|end|}";
+
+            var expectedChanges = new[]
+            {
+                new TextChange(new TextSpan(18, 2), string.Empty),
+                new TextChange(new TextSpan(112, 2), string.Empty),
+            };
+
+            var expectedSelectedSpans = new[]
+            {
+                Span.FromBounds(18, 110)
+            };
+
+            UncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments: true);
+        }
+
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
         [WorkItem(31669, "https://github.com/dotnet/roslyn/issues/31669")]
