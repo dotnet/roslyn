@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.Operations
         internal override IOperation VisitPropertySubpattern(IPropertySubpatternOperation operation, object argument)
         {
             return new PropertySubpatternOperation(
-                semanticModel: null,
+                semanticModel: ((Operation)operation).OwningSemanticModel,
                 operation.Syntax,
                 operation.IsImplicit,
                 Visit(operation.Member),

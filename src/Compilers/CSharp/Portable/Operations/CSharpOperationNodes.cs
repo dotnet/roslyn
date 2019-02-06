@@ -1516,7 +1516,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override ImmutableArray<IPropertySubpatternOperation> CreatePropertySubpatterns()
         {
             return _boundRecursivePattern.Properties.IsDefault ? ImmutableArray<IPropertySubpatternOperation>.Empty :
-                _boundRecursivePattern.Properties.SelectAsArray((p, fac) => fac.CreatePropertySubpattern(p), _operationFactory);
+                _boundRecursivePattern.Properties.SelectAsArray((p, fac) => fac.CreatePropertySubpattern(p, MatchedType), _operationFactory);
         }
     }
 
@@ -1524,20 +1524,23 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private readonly BoundSubpattern _subpattern;
         private readonly CSharpOperationFactory _operationFactory;
+        private readonly ITypeSymbol _matchedType;
 
         public CSharpLazyPropertySubpatternOperation(
             CSharpOperationFactory operationFactory,
             BoundSubpattern subpattern,
+            ITypeSymbol matchedType,
             SyntaxNode syntax,
             SemanticModel semanticModel)
-            : base(semanticModel, syntax, false)
+            : base(semanticModel, syntax, isImplicit: false)
         {
             _subpattern = subpattern;
             _operationFactory = operationFactory;
+            _matchedType = matchedType;
         }
         public override IOperation CreateMember()
         {
-            return _operationFactory.CreatePropertySubpatternMember(_subpattern.Symbol, Syntax);
+            return _operationFactory.CreatePropertySubpatternMember(_subpattern.Symbol, _matchedType, Syntax);
         }
 
         public override IPatternOperation CreatePattern()

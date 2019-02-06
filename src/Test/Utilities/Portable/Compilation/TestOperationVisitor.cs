@@ -1197,12 +1197,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal override void VisitPropertySubpattern(IPropertySubpatternOperation operation)
         {
-            Assert.True(operation.Member is IMemberReferenceOperation);
+            Assert.True(operation.Member is IMemberReferenceOperation || operation.Member is IInvalidOperation);
             var member = (IMemberReferenceOperation)operation.Member;
             switch (member.Member)
             {
-                case null: // error case
-                    break;
                 case IFieldSymbol field:
                 case IPropertySymbol prop:
                 case IErrorTypeSymbol error:

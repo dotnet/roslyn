@@ -5818,7 +5818,7 @@ oneMoreTime:
 
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)
         {
-            if (operation.ReferenceKind == InstanceReferenceKind.ImplicitReceiver || operation.ReferenceKind == InstanceReferenceKind.PatternInput)
+            if (operation.ReferenceKind == InstanceReferenceKind.ImplicitReceiver)
             {
                 // When we're in an object or collection initializer, we need to replace the instance reference with a reference to the object being initialized
                 Debug.Assert(operation.IsImplicit);
@@ -6419,14 +6419,12 @@ oneMoreTime:
         public override IOperation VisitIsPattern(IIsPatternOperation operation, int? captureIdForResult)
         {
             EvalStackFrame frame = PushStackFrame();
-            var capturedValue = VisitAndCapture(operation.Value);
-            var previousImplicitInstance = _currentImplicitInstance;
-            _currentImplicitInstance = new ImplicitInstanceInfo(capturedValue);
+            PushOperand(Visit(operation.Value));
             var visitedPattern = (IPatternOperation)Visit(operation.Pattern);
-            _currentImplicitInstance = previousImplicitInstance;
+            IOperation visitedValue = PopOperand();
             PopStackFrame(frame);
-            return new IsPatternOperation(capturedValue, visitedPattern, semanticModel: null,
-                                          operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new IsPatternOperation(visitedValue, visitedPattern, semanticModel: null,
+                                           operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitInvalid(IInvalidOperation operation, int? captureIdForResult)
@@ -6630,14 +6628,11 @@ oneMoreTime:
             RegionBuilder resultCaptureRegion = _currentRegion;
             int captureOutput = captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
             var capturedInput = VisitAndCapture(operation.Value);
-            var previousImplicitInstance = _currentImplicitInstance;
-            var switchImplicitInstance = new ImplicitInstanceInfo(capturedInput);
             var afterSwitch = new BasicBlockBuilder(BasicBlockKind.Block);
 
             foreach (var arm in operation.Arms)
             {
                 // START scope (arm locals)
-                _currentImplicitInstance = switchImplicitInstance;
                 var armScopeRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: arm.Locals);
                 EnterRegion(armScopeRegion);
                 var afterArm = new BasicBlockBuilder(BasicBlockKind.Block);
@@ -6662,8 +6657,6 @@ oneMoreTime:
                     _currentBasicBlock = null;
                     PopStackFrameAndLeaveRegion(frame);
                 }
-
-                _currentImplicitInstance = previousImplicitInstance;
 
                 // captureOutput = e
                 VisitAndCapture(arm.Value, captureOutput);
