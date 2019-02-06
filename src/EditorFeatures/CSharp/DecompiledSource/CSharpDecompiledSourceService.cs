@@ -63,7 +63,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 
             if (assemblyLocation == null)
             {
-                var reference = compilation.GetMetadataReference(symbol.ContainingAssembly);
+                var referencedAssemblySymbol = compilation.GetReferencedAssemblySymbols().FirstOrDefault(referenced => referenced.Identity.Equals(symbol.ContainingAssembly?.Identity));
+                var reference = compilation.GetMetadataReference(referencedAssemblySymbol);
                 assemblyLocation = (reference as PortableExecutableReference)?.FilePath;
                 if (assemblyLocation == null)
                 {
