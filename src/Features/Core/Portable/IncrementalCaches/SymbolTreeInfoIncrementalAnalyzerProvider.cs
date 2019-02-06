@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     // We still want to cache that result so that don't try to continuously produce
                     // this info over and over again.
                     metadataInfo = new MetadataInfo(info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
-                    _metadataPathToInfo.AddOrUpdate(key, metadataInfo, (_1, _2) => metadataInfo);
+                    _metadataPathToInfo[key] = metadataInfo;
                 }
 
                 // Keep track that this dll is referenced by this project.
