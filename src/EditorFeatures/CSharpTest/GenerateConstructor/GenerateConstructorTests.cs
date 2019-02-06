@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.GenerateConstructor;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -19,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructor
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new GenerateConstructorCodeFixProvider());
+
+        private readonly NamingStylesTestOptionSets options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithSimpleArgument()
@@ -2984,13 +2987,13 @@ class D
 
 class D
 {
-    private int _i;
-    private string _s;
+    private int i;
+    private string s;
 
     public D(int i, string s)
     {
-        _i = i;
-        _s = s;
+        this.i = i;
+        this.s = s;
     }
 }");
         }
@@ -3474,6 +3477,70 @@ internal class Class
     }}
 }}
 ");
+        }
+
+        [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateFieldNoNamingStyle()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        string s = "";
+        new Prog[||]ram(s);
+    }
+}",
+@"
+class Program
+{
+    private string s;
+
+    public Program(string s)
+    {
+        this.s = s;
+    }
+
+    static void Main(string[] args)
+    {
+        string s = "";
+        new Program(s);
+    }
+}");
+        }
+
+        [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateFieldWithNamingStyle()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        string s = "";
+        new Prog[||]ram(s);
+    }
+}",
+@"
+class Program
+{
+    private string _s;
+
+    public Program(string s)
+    {
+        _s = s;
+    }
+
+    static void Main(string[] args)
+    {
+        string s = "";
+        new Program(s);
+    }
+}", options: options.FieldNamesAreCamelCaseWithUnderscore);
         }
     }
 }

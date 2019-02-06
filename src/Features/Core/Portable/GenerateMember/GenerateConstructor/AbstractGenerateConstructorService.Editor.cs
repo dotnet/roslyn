@@ -8,12 +8,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 {
@@ -79,13 +82,19 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
             internal async Task<(Document, bool addedFields)> GetEditAsync()
             {
+                // Get naming rule for generating fields
+                var rules = await _document.Document.GetNamingRulesAsync(
+                    FallbackNamingRules.RefactoringMatchLookupRules, _cancellationToken).ConfigureAwait(false);
+                var fieldNamingRule = rules.Where(c => c.SymbolSpecification.AppliesTo(new SymbolKindOrTypeKind(SymbolKind.Field),
+                    DeclarationModifiers.None, Accessibility.Private)).First();
+
                 // See if there's an accessible base constructor that would accept these
                 // types, then just call into that instead of generating fields.
                 //
                 // then, see if there are any constructors that would take the first 'n' arguments
                 // we've provided.  If so, delegate to those, and then create a field for any
                 // remaining arguments.  Try to match from largest to smallest.
-                var edit = await GenerateThisOrBaseDelegatingConstructorAsync().ConfigureAwait(false);
+                var edit = await GenerateThisOrBaseDelegatingConstructorAsync(fieldNamingRule).ConfigureAwait(false);
                 if (edit.document != null)
                 {
                     return edit;
@@ -93,16 +102,16 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 // Otherwise, just generate a normal constructor that assigns any provided
                 // parameters into fields.
-                return await GenerateFieldDelegatingConstructorAsync().ConfigureAwait(false);
+                return await GenerateFieldDelegatingConstructorAsync(fieldNamingRule).ConfigureAwait(false);
             }
 
-            private async Task<(Document document, bool addedFields)> GenerateThisOrBaseDelegatingConstructorAsync()
+            private async Task<(Document document, bool addedFields)> GenerateThisOrBaseDelegatingConstructorAsync(NamingRule fieldNamingRule)
             {
                 // We don't have to deal with the zero length case, since there's nothing to
                 // delegate.  It will fall out of the GenerateFieldDelegatingConstructor above.
                 for (int i = _state.Arguments.Length; i >= 1; i--)
                 {
-                    var edit = await GenerateThisOrBaseDelegatingConstructorAsync(i).ConfigureAwait(false);
+                    var edit = await GenerateThisOrBaseDelegatingConstructorAsync(i, fieldNamingRule).ConfigureAwait(false);
                     if (edit.document != null)
                     {
                         return edit;
@@ -112,11 +121,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 return default;
             }
 
-            private async Task<(Document document, bool addedFields)> GenerateThisOrBaseDelegatingConstructorAsync(int argumentCount)
+            private async Task<(Document document, bool addedFields)> GenerateThisOrBaseDelegatingConstructorAsync(
+                int argumentCount, NamingRule fieldNamingRule)
             {
                 (Document document, bool addedField) edit;
-                if ((edit = await GenerateDelegatingConstructorAsync(argumentCount, _state.TypeToGenerateIn).ConfigureAwait(false)).document != null ||
-                    (edit = await GenerateDelegatingConstructorAsync(argumentCount, _state.TypeToGenerateIn.BaseType).ConfigureAwait(false)).document != null)
+                if ((edit = await GenerateDelegatingConstructorAsync(argumentCount, _state.TypeToGenerateIn,
+                        fieldNamingRule).ConfigureAwait(false)).document != null ||
+                    (edit = await GenerateDelegatingConstructorAsync(argumentCount, _state.TypeToGenerateIn.BaseType,
+                        fieldNamingRule).ConfigureAwait(false)).document != null)
                 {
                     return edit;
                 }
@@ -125,8 +137,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             }
 
             private async Task<(Document, bool addedFields)> GenerateDelegatingConstructorAsync(
-                int argumentCount,
-                INamedTypeSymbol namedType)
+                int argumentCount, INamedTypeSymbol namedType, NamingRule fieldNamingRule)
             {
                 if (namedType == null)
                 {
@@ -184,7 +195,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 // Try to map those parameters to fields.
                 this.GetParameters(remainingArguments, remainingAttributeArguments,
-                    remainingParameterTypes, remainingParameterNames,
+                    remainingParameterTypes, remainingParameterNames, fieldNamingRule,
                     out var parameterToExistingFieldMap, out var parameterToNewFieldMap, out var remainingParameters);
 
                 var fields = _withFields
@@ -224,7 +235,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 return (result, fields.Length > 0);
             }
 
-            private async Task<(Document, bool addedFields)> GenerateFieldDelegatingConstructorAsync()
+            private async Task<(Document, bool addedFields)> GenerateFieldDelegatingConstructorAsync(NamingRule fieldNamingRule)
             {
                 var arguments = _state.Arguments;
                 var parameterTypes = _state.ParameterTypes;
@@ -232,7 +243,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var typeParametersNames = _state.TypeToGenerateIn.GetAllTypeParameters().Select(t => t.Name).ToImmutableArray();
                 var parameterNames = GetParameterNames(arguments, typeParametersNames);
 
-                GetParameters(arguments, _state.AttributeArguments, parameterTypes, parameterNames,
+                GetParameters(arguments, _state.AttributeArguments, parameterTypes, parameterNames, fieldNamingRule,
                     out var parameterToExistingFieldMap, out var parameterToNewFieldMap, out var parameters);
 
                 var provider = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language);
@@ -272,6 +283,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 ImmutableArray<TAttributeArgumentSyntax>? attributeArguments,
                 ImmutableArray<ITypeSymbol> parameterTypes,
                 ImmutableArray<ParameterName> parameterNames,
+                NamingRule fieldNamingRule,
                 out Dictionary<string, ISymbol> parameterToExistingFieldMap,
                 out Dictionary<string, string> parameterToNewFieldMap,
                 out ImmutableArray<IParameterSymbol> parameters)
@@ -286,14 +298,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     // manner, then case insensitively.
                     if (!TryFindMatchingField(
                             arguments, attributeArguments, parameterNames, parameterTypes, i, parameterToExistingFieldMap,
-                            parameterToNewFieldMap, caseSensitive: true, newParameterNames: out parameterNames))
+                            parameterToNewFieldMap, caseSensitive: true, newParameterNames: out parameterNames, fieldNamingRule))
                     {
                         if (!TryFindMatchingField(
                                 arguments, attributeArguments, parameterNames, parameterTypes, i, parameterToExistingFieldMap,
-                                parameterToNewFieldMap, caseSensitive: false, newParameterNames: out parameterNames))
+                                parameterToNewFieldMap, caseSensitive: false, newParameterNames: out parameterNames, fieldNamingRule))
                         {
-                            parameterToNewFieldMap[parameterNames[i].BestNameForParameter] =
-                                parameterNames[i].NameBasedOnArgument;
+                            // If no matching field was found, use the fieldNamingRule to create suitable name
+                            parameterToNewFieldMap[parameterNames[i].BestNameForParameter] = fieldNamingRule.NamingStyle.MakeCompliant(parameterNames[i].NameBasedOnArgument).First();
                         }
                     }
 
@@ -322,10 +334,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 Dictionary<string, ISymbol> parameterToExistingFieldMap,
                 Dictionary<string, string> parameterToNewFieldMap,
                 bool caseSensitive,
-                out ImmutableArray<ParameterName> newParameterNames)
+                out ImmutableArray<ParameterName> newParameterNames,
+                NamingRule fieldNamingRule)
             {
                 var parameterName = parameterNames[index];
                 var parameterType = parameterTypes[index];
+                var expectedFieldName = fieldNamingRule.NamingStyle.MakeCompliant(parameterName.NameBasedOnArgument).First();
                 var isFixed = _service.IsNamedArgument(arguments[index]);
                 var newParameterNamesList = parameterNames.ToList();
 
@@ -340,7 +354,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 {
                     var ignoreAccessibility = type.Equals(_state.TypeToGenerateIn);
                     var symbol = type.GetMembers()
-                                     .FirstOrDefault(s => s.Name.Equals(parameterName.NameBasedOnArgument, comparison));
+                                     .FirstOrDefault(s => s.Name.Equals(expectedFieldName, comparison));
 
                     if (symbol != null)
                     {
@@ -356,11 +370,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                                 // Uh-oh.  Now we have a problem.  We can't assign this parameter to
                                 // this field.  So we need to create a new field.  Find a name not in
                                 // use so we can assign to that.  
-                                var newFieldName = NameGenerator.EnsureUniqueness(
-                                    attributeArguments != null
-                                        ? _service.GenerateNameForArgument(_document.SemanticModel, attributeArguments.Value[index], _cancellationToken)
-                                        : _service.GenerateNameForArgument(_document.SemanticModel, arguments[index], _cancellationToken),
-                                    GetUnavailableMemberNames().Concat(parameterToNewFieldMap.Values));
+                                var baseName = attributeArguments != null
+                                ? _service.GenerateNameForArgument(_document.SemanticModel, attributeArguments.Value[index], _cancellationToken)
+                                : _service.GenerateNameForArgument(_document.SemanticModel, arguments[index], _cancellationToken);
+                                var baseWithNamingStyle = fieldNamingRule.NamingStyle.MakeCompliant(baseName).First();
+                                var newFieldName = NameGenerator.EnsureUniqueness(baseWithNamingStyle, GetUnavailableMemberNames().Concat(parameterToNewFieldMap.Values));
 
                                 if (isFixed)
                                 {
@@ -370,8 +384,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                                 }
                                 else
                                 {
-                                    // Can change the parameter name, so do so.
-                                    var newParameterName = new ParameterName(newFieldName, isFixed: false);
+                                    // Can change the parameter name, so do so.  
+                                    // But first remove any prefix added due to field naming styles
+                                    var newParameterName = new ParameterName(newFieldName.Substring(fieldNamingRule.NamingStyle.Prefix.Length), isFixed: false);
                                     newParameterNamesList[index] = newParameterName;
                                     parameterToNewFieldMap[newParameterName.BestNameForParameter] = newFieldName;
                                 }

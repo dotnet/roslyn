@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructor
     Public Class GenerateConstructorTests
@@ -13,6 +14,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructo
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New GenerateConstructorCodeFixProvider())
         End Function
+
+        Private ReadOnly options As NamingStylesTestOptionSets = New NamingStylesTestOptionSets(LanguageNames.VisualBasic)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestGenerateIntoContainingType() As Task
@@ -1315,12 +1318,12 @@ Public Class MyAttribute
 
     Private v1 As Boolean
     Private v2 As Integer
-    Private Topic As String
+    Private topic As String
 
     Public Sub New(v1 As Boolean, v2 As Integer, Topic As String)
         Me.v1 = v1
         Me.v2 = v2
-        Me.Topic = Topic
+        Me.topic = Topic
     End Sub
 End Class
 <MyAttribute(true, 1, Topic:=""hello"")>
@@ -1812,6 +1815,54 @@ End Class",
         Me.New(a, b, c)
     End Sub
 End Class")
+        End Function
+
+        <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function CreateFieldDefaultNamingStyle() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Sub Test()
+        Dim x As Integer = 1
+        Dim obj As New C([|x|])
+    End Sub
+End Class",
+"Class C
+    Private x As Integer
+
+    Public Sub New(x As Integer)
+        Me.x = x
+    End Sub
+
+    Sub Test()
+        Dim x As Integer = 1
+        Dim obj As New C(x)
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function CreateFieldSpecifiedNamingStyle() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Sub Test()
+        Dim x As Integer = 1
+        Dim obj As New C([|x|])
+    End Sub
+End Class",
+"Class C
+    Private _x As Integer
+
+    Public Sub New(x As Integer)
+        _x = x
+    End Sub
+
+    Sub Test()
+        Dim x As Integer = 1
+        Dim obj As New C(x)
+    End Sub
+End Class", options:=options.FieldNamesAreCamelCaseWithUnderscore)
         End Function
     End Class
 End Namespace
