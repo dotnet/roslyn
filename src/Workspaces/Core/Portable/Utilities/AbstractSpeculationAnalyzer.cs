@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Determines if the symbol is a non-overridable, non static method on System.Object (e.g. GetType)
         /// </summary>
-        private bool IsSymbolSystemObjectInstanceMethod(ISymbol symbol)
+        private static bool IsSymbolSystemObjectInstanceMethod(ISymbol symbol)
         {
             return symbol != null
                 && symbol.IsKind(SymbolKind.Method)
