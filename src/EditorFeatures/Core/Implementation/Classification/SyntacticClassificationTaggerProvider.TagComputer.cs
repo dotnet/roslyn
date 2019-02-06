@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             private void EnqueueParseSnapshotTask(Document newDocument)
             {
-                if (newDocument != null)
+                if (newDocument != null && newDocument.SupportsSyntaxTree)
                 {
                     _workQueue.EnqueueBackgroundTask(c => this.EnqueueParseSnapshotWorkerAsync(newDocument, c), GetType() + ".EnqueueParseSnapshotTask.1", CancellationToken.None);
                 }
