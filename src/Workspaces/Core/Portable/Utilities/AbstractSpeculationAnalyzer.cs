@@ -527,7 +527,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         /// <summary>
-        /// Determine if removing the cast could cause the semantics of System.Object method call.
+        /// Determine if removing the cast could cause the semantics of System.Object method call to change.
+        /// E.g. Dim b = CStr(1).GetType() is necessary, but the GetType method symbol info resolves to the same with or without the cast.
         /// </summary>
         private bool ReplacementBreaksSystemObjectMethodResolution(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode previousOriginalNode, SyntaxNode previousReplacedNode)
         {
