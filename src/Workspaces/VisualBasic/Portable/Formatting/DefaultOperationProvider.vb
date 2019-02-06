@@ -37,11 +37,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             Dim combinedTrivia = previousToken.TrailingTrivia.Concat(currentToken.LeadingTrivia)
-
-            If ColonTriviaFollowedByLineContinuation(combinedTrivia) Then
-                Return FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines)
-            End If
-
             Dim lastTrivia = combinedTrivia.LastOrDefault(AddressOf ColonOrLineContinuationTrivia)
             If lastTrivia.RawKind = SyntaxKind.ColonTrivia Then
                 Return FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines)
@@ -100,21 +95,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Private Function ColonOrLineContinuationTrivia(trivia As SyntaxTrivia) As Boolean
             Return trivia.RawKind = SyntaxKind.ColonTrivia OrElse trivia.RawKind = SyntaxKind.LineContinuationTrivia
-        End Function
-
-        Private Function ColonTriviaFollowedByLineContinuation(triviaList As IEnumerable(Of SyntaxTrivia)) As Boolean
-            Dim previousTrivia As SyntaxTrivia = Nothing
-            For Each trivia In triviaList
-                If previousTrivia.RawKind = SyntaxKind.None OrElse trivia.RawKind = SyntaxKind.None Then
-                    Continue For
-                End If
-
-                If previousTrivia.RawKind = SyntaxKind.ColonTrivia AndAlso trivia.RawKind = SyntaxKind.LineContinuationTrivia Then
-                    Return True
-                End If
-            Next
-
-            Return False
         End Function
 
         Private Function ContainEndOfLine(previousToken As SyntaxToken, nextToken As SyntaxToken) As Boolean
