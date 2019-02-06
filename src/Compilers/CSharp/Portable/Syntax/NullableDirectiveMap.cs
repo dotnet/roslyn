@@ -18,18 +18,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private readonly ImmutableArray<(int Position, bool? State)> _directives;
 
-        private readonly bool _isGenerated;
+        private readonly bool _isGeneratedCode;
 
-        internal static NullableDirectiveMap Create(SyntaxTree tree)
+        internal static NullableDirectiveMap Create(SyntaxTree tree, bool isGeneratedCode)
         {
-            var isGenerated = GetIsGenerated(tree);
             var directives = GetDirectives(tree);
 
-            var empty = isGenerated ? EmptyGenerated : EmptyNonGenerated;
-            return directives.IsEmpty ? empty : new NullableDirectiveMap(directives, isGenerated);
+            var empty = isGeneratedCode ? EmptyGenerated : EmptyNonGenerated;
+            return directives.IsEmpty ? empty : new NullableDirectiveMap(directives, isGeneratedCode);
         }
 
-        private NullableDirectiveMap(ImmutableArray<(int Position, bool? State)> directives, bool isGenerated)
+        private NullableDirectiveMap(ImmutableArray<(int Position, bool? State)> directives, bool isGeneratedCode)
         {
 #if DEBUG
             for (int i = 1; i < directives.Length; i++)
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 #endif
             _directives = directives;
-            _isGenerated = isGenerated;
+            _isGeneratedCode = isGeneratedCode;
         }
 
         /// <summary>
@@ -64,9 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 state = _directives[index].State;
             }
 
-            if (state == null && _isGenerated)
+            if (state == null && _isGeneratedCode)
             {
-                // generate files are always implicitly disabled
+                // generated files are always implicitly disabled
                 state = false;
             }
 
@@ -108,14 +107,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 builder.Add((nn.Location.SourceSpan.End, state));
             }
             return builder.ToImmutableAndFree();
-        }
-
-        private static bool GetIsGenerated(SyntaxTree tree)
-        {
-            Func<SyntaxTrivia, bool> isComment = trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia;
-            var isGenerated = GeneratedCodeUtilities.IsGeneratedCode(tree, isComment, cancellationToken: default);
-
-            return isGenerated;
         }
 
         private sealed class PositionComparer : IComparer<(int Position, bool? State)>
