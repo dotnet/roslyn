@@ -2,6 +2,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -749,6 +750,85 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        public void IVariableDeclaration_InvalidIgnoredDimensions_InArrayOfArrays()
+        {
+            string source = @"
+using System;
+class C
+{
+    void M1()
+    {
+        /*<bind>*/int[][10] x;/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[][10] x')
+  Ignored Dimensions(1):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32[][] x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+        Initializer: 
+          null
+  Initializer: 
+    null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(7,24): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         /*<bind>*/int[][10] x;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[10]").WithLocation(7, 24),
+                // file.cs(7,29): warning CS0168: The variable 'x' is declared but never used
+                //         /*<bind>*/int[][10] x;/*</bind>*/
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 29)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredDimensions_2ndDimensionOfMultidimensionalArray()
+        {
+            string source = @"
+using System;
+class C
+{
+    void M1()
+    {
+        /*<bind>*/int[,10] x;/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[,10] x')
+  Ignored Dimensions(2):
+      IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+        Children(0)
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32[,] x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+        Initializer: 
+          null
+  Initializer: 
+    null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(7,22): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         /*<bind>*/int[,10] x;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[,10]").WithLocation(7, 22),
+                // file.cs(7,23): error CS0443: Syntax error; value expected
+                //         /*<bind>*/int[,10] x;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ValueExpected, "").WithLocation(7, 23),
+                // file.cs(7,28): warning CS0168: The variable 'x' is declared but never used
+                //         /*<bind>*/int[,10] x;/*</bind>*/
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void IVariableDeclaration_InvalidIgnoredDimensionsWithInitializer_VerifyChildren()
         {
             string source = @"
@@ -789,6 +869,208 @@ class C
             Assert.Equal(2, declaration.Children.Count());
             Assert.Equal(OperationKind.Literal, declaration.Children.First().Kind);
             Assert.Equal(OperationKind.VariableDeclarator, declaration.Children.ElementAt(1).Kind);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredDimensions_VerifyInvalidDimensions()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int[/*<bind>*/10/*</bind>*/] x;
+    }
+}
+";
+
+            var compilation = CreateEmptyCompilation(source);
+            (var operation, _) = GetOperationAndSyntaxForTest<LiteralExpressionSyntax>(compilation);
+            var declaration = (ILiteralOperation)operation;
+            Assert.True(declaration.ConstantValue.HasValue);
+            Assert.Equal(10, declaration.ConstantValue.Value);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredDimensions_TestSemanticModel()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int[10] x;
+        int[M2()]
+    }
+
+    int M2() => 42;
+}
+";
+
+            var tree = Parse(source, options: TestOptions.Regular);
+            var comp = CreateCompilation(tree);
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var literalExpr = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
+
+            Assert.Equal(@"10", literalExpr.ToString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(literalExpr).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(literalExpr).ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, model.GetConversion(literalExpr));
+
+            var invocExpr = nodes.OfType<InvocationExpressionSyntax>().ElementAt(0);
+
+            Assert.Equal(@"M2()", invocExpr.ToString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(invocExpr).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(invocExpr).ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, model.GetConversion(invocExpr));
+
+            var invocInfo = model.GetSymbolInfo(invocExpr);
+            Assert.NotNull(invocInfo.Symbol);
+            Assert.Equal(SymbolKind.Method, invocInfo.Symbol.Kind);
+            Assert.Equal("M2", invocInfo.Symbol.MetadataName);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredDimensions_OutVarDeclaration()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        /*<bind>*/int[M2(out var z)] x;/*</bind>*/
+        z = 34;
+    }
+    
+    public int M2(out int i) => i = 42;
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[M2(out var z)] x')
+  Ignored Dimensions(1):
+      IInvocationOperation ( System.Int32 C.M2(out System.Int32 i)) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M2(out var z)')
+        Instance Receiver: 
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
+        Arguments(1):
+            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out var z')
+              IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var z')
+                ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'z')
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32[] x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+        Initializer: 
+          null
+  Initializer: 
+    null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(6,22): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         /*<bind>*/int[M2(out var z)] x;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[M2(out var z)]").WithLocation(6, 22),
+                // file.cs(6,34): warning CS0219: The variable 'z' is assigned but its value is never used
+                //         /*<bind>*/int[M2(out var z)] x;/*</bind>*/
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z").WithArguments("z").WithLocation(6, 34),
+                // file.cs(6,38): warning CS0168: The variable 'x' is declared but never used
+                //         /*<bind>*/int[M2(out var z)] x;/*</bind>*/
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 38)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredDimensions_DeclarationPattern()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int y = 10;
+        /*<bind>*/int[y is int z] x;/*</bind>*/
+        z = 34;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[y is int z] x')
+  Ignored Dimensions(1):
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'y is int z')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'y is int z')
+            Value: 
+              ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
+            Pattern: 
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32[] x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+        Initializer: 
+          null
+  Initializer: 
+    null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(6,13): warning CS0219: The variable 'y' is assigned but its value is never used
+                //         int y = 10;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(6, 13),
+                // file.cs(7,22): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         /*<bind>*/int[y is int z] x;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[y is int z]").WithLocation(7, 22),
+                // file.cs(7,35): warning CS0168: The variable 'x' is declared but never used
+                //         /*<bind>*/int[y is int z] x;/*</bind>*/
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 35)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredDimensions_NestedArrayType()
+        {
+            string source = @"
+class C
+{
+#nullable enable
+    void M1()
+    {
+        /*<bind>*/int[10]?[20]? x;/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[10]?[20]? x')
+  Ignored Dimensions(2):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20, IsInvalid) (Syntax: '20')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32[]?[]? x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+        Initializer: 
+          null
+  Initializer: 
+    null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(7,22): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         /*<bind>*/int[10]?[20]? x;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[10]").WithLocation(7, 22),
+                // file.cs(7,27): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         /*<bind>*/int[10]?[20]? x;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[20]").WithLocation(7, 27),
+                // file.cs(7,33): warning CS0168: The variable 'x' is declared but never used
+                //         /*<bind>*/int[10]?[20]? x;/*</bind>*/
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 33)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         #endregion

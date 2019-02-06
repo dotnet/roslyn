@@ -226,6 +226,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ExpressionVariableFinder.FindExpressionVariables(this, locals, vdecl, localDeclarationBinder);
                             }
 
+                            if (decl.Declaration.Type is ArrayTypeSyntax arrayTypeSyntax)
+                            {
+                                foreach (var rankSpecifier in arrayTypeSyntax.RankSpecifiers)
+                                {
+                                    foreach (var expression in rankSpecifier.Sizes)
+                                    {
+                                        ExpressionVariableFinder.FindExpressionVariables(this, locals, expression, enclosingBinder.GetBinder(expression) ?? enclosingBinder);
+                                    }
+                                }
+                            }
+
                         }
                         break;
 

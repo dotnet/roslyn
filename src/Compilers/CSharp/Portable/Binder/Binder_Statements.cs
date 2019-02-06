@@ -1085,31 +1085,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (bindType)
             {
-                ImmutableArray<BoundExpression> dimensionsOpt;
-                if (typeSyntax is ArrayTypeSyntax arrayTypeSyntax && arrayTypeSyntax.RankSpecifiers.Count > 0)
-                {
-                    var sizes = ArrayBuilder<BoundExpression>.GetInstance();
-                    // We don't want to report any errors from this, as the syntax is invalid anyway
-                    var dummyDiagnostics = DiagnosticBag.GetInstance();
-                    foreach (var expressionSyntax in arrayTypeSyntax.RankSpecifiers[0].Sizes)
-                    {
-                        var size = BindArrayRankSpecifier(expressionSyntax, typeSyntax, dummyDiagnostics);
-                        if (size != null)
-                            sizes.Add(size);
-                    }
+                var invalidDimensions = ArrayBuilder<BoundExpression>.GetInstance();
 
-                    dummyDiagnostics.Free();
-                    dimensionsOpt = sizes.ToImmutableAndFree();
-                }
-                else
-                {
-                    dimensionsOpt = ImmutableArray<BoundExpression>.Empty;
-                }
+                // We don't want to report any errors from this, as the syntax is invalid anyway
+                var dummyDiagnostics = DiagnosticBag.GetInstance();
 
-                boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, dimensionsOpt, type: declTypeOpt.TypeSymbol);
+                GetInvalidDimensions(typeSyntax, invalidDimensions, dummyDiagnostics);
+
+                dummyDiagnostics.Free();
+
+                boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, dimensionsOpt: invalidDimensions.ToImmutableAndFree(), type: declTypeOpt.TypeSymbol);
             }
 
             return new BoundLocalDeclaration(associatedSyntaxNode, localSymbol, boundDeclType, initializerOpt, arguments, hasErrors);
+
+            void GetInvalidDimensions(TypeSyntax node, ArrayBuilder<BoundExpression> invalidDimensions, DiagnosticBag diagnosticsBag)
+            {
+                foreach (var child in node.ChildNodesAndTokens())
+                {
+                    if (child.AsNode() is TypeSyntax childNode)
+                    {
+                        GetInvalidDimensions(childNode, invalidDimensions, diagnosticsBag);
+                    }
+                }
+                if (node is ArrayTypeSyntax arrayTypeSyntax)
+                {
+                    foreach (var rankSpecifier in arrayTypeSyntax.RankSpecifiers)
+                    foreach (var expressionSyntax in rankSpecifier.Sizes)
+                    {
+                        var size = BindArrayDimension(expressionSyntax, typeSyntax, diagnosticsBag);
+                        if (size != null)
+                        {
+                            invalidDimensions.Add(size);
+                        }
+                    }
+                }
+            }
         }
 
         internal ImmutableArray<BoundExpression> BindDeclaratorArguments(VariableDeclaratorSyntax declarator, DiagnosticBag diagnostics)
