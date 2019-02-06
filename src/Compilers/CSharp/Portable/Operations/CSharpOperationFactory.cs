@@ -2040,7 +2040,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 default:
                     // We should expose the symbol in this case somehow:
                     // https://github.com/dotnet/roslyn/issues/33175
-                    return OperationFactory.CreateInvalidOperation(_semanticModel, nameSyntax, ImmutableArray<IOperation>.Empty, isImplicit: true);
+                    return OperationFactory.CreateInvalidOperation(_semanticModel, nameSyntax, ImmutableArray<IOperation>.Empty, isImplicit);
             }
         }
     }

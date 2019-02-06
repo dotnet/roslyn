@@ -1516,7 +1516,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override ImmutableArray<IPropertySubpatternOperation> CreatePropertySubpatterns()
         {
             return _boundRecursivePattern.Properties.IsDefault ? ImmutableArray<IPropertySubpatternOperation>.Empty :
-                _boundRecursivePattern.Properties.SelectAsArray((p, fac) => fac.CreatePropertySubpattern(p, MatchedType), _operationFactory);
+                _boundRecursivePattern.Properties.SelectAsArray((p, recursivePattern) => recursivePattern._operationFactory.CreatePropertySubpattern(p, recursivePattern.MatchedType), this);
         }
     }
 

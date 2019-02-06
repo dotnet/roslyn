@@ -1044,7 +1044,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
       PropertySubpatterns (1):
           IPropertySubpatternOperation (OperationKind.None, Type: null, IsInvalid) (Syntax: 'NotFound: int x')
             Member: 
-              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'NotFound')
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'NotFound')
                 Children(0)
             Pattern: 
               IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: ?, DeclaredSymbol: System.Int32 x, MatchesNull: False)
@@ -1127,6 +1127,57 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
             Pattern: 
               IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'var x') (InputType: ?, DeclaredSymbol: ? x, MatchesNull: True)
 ";
+
+            VerifyOperationTreeForTest<IsPatternExpressionSyntax>(compilation, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void IsPattern_BadRecursivePattern_03()
+        {
+            var vbSource = @"
+Public Class C1
+    Public Property Prop(index As Integer) As Integer
+        Get
+            Return 1
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+";
+
+            var vbCompilation = CreateVisualBasicCompilation(vbSource);
+
+            var source = @"
+class C
+{
+    void M1(object o, bool b)
+    {
+        b = /*<bind>*/o is C1 { Prop: var x }/*</bind>*/;
+    }
+}";
+
+            var compilation = CreateCompilation(source, new[] { vbCompilation.EmitToImageReference() });
+            compilation.VerifyDiagnostics(
+                // (6,33): error CS0154: The property or indexer 'Prop' cannot be used in this context because it lacks the get accessor
+                //         b = /*<bind>*/o is C1 { Prop: var x }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "Prop").WithArguments("Prop").WithLocation(6, 33));
+
+            var expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o is C1 { Prop: var x }')
+  Value: 
+    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
+  Pattern: 
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: 'C1 { Prop: var x }') (InputType: System.Object, DeclaredSymbol: null, MatchedType: C1, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Prop: var x')
+            Member: 
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Prop')
+                Children(0)
+            Pattern: 
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var x') (InputType: ?, DeclaredSymbol: ? x, MatchesNull: True)";
 
             VerifyOperationTreeForTest<IsPatternExpressionSyntax>(compilation, expectedOperationTree);
         }

@@ -1197,7 +1197,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal override void VisitPropertySubpattern(IPropertySubpatternOperation operation)
         {
-            Assert.True(operation.Member is IMemberReferenceOperation || operation.Member is IInvalidOperation);
+            Assert.NotNull(operation.Pattern);
+            var children = new IOperation[] { operation.Member, operation.Pattern };
+            AssertEx.Equal(children, operation.Children);
+
+            if (operation.Member.Kind == OperationKind.Invalid)
+            {
+                return;
+            }
+
+            Assert.True(operation.Member is IMemberReferenceOperation);
             var member = (IMemberReferenceOperation)operation.Member;
             switch (member.Member)
             {
@@ -1209,10 +1218,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     Assert.True(false, $"Unexpected symbol {symbol}");
                     break;
             }
-
-            Assert.NotNull(operation.Pattern);
-            var children = new IOperation[] { operation.Member, operation.Pattern };
-            AssertEx.Equal(children, operation.Children);
         }
 
         public override void VisitSwitchExpression(ISwitchExpressionOperation operation)
