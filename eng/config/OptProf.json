@@ -4,13 +4,6 @@
       "name": "Roslyn.VisualStudio.Setup.vsix",
       "tests": [
         {
-          "container": "DDRIT.RPS.CSharp",
-          "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner",
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
-          ]
-        },
-        {
           "container": "TeamEng",
           "testCases": [
             "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble"
@@ -48,13 +41,6 @@
       "name": "ExpressionEvaluatorPackage.vsix",
       "tests": [
         {
-          "container": "DDRIT.RPS.CSharp",
-          "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner",
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
-          ]
-        },
-        {
           "container": "TeamEng",
           "testCases": [
             "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble"
@@ -66,13 +52,6 @@
       "name": "Microsoft.CodeAnalysis.Compilers.vsix",
       "tests": [
         {
-          "container": "DDRIT.RPS.CSharp",
-          "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner",
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
-          ]
-        },
-        {
           "container": "TeamEng",
           "testCases": [
             "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble"
@@ -82,18 +61,6 @@
           "container": "VSPE",
           "testCases": [
             "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment"
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Roslyn.VisualStudio.InteractiveComponents.vsix",
-      "tests": [
-        {
-          "container": "DDRIT.RPS.CSharp",
-          "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner",
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
           ]
         }
       ]
@@ -109,13 +76,6 @@
         }
       ],
       "tests": [
-        {
-          "container": "DDRIT.RPS.CSharp",
-          "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner",
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
-          ]
-        },
         {
           "container": "TeamEng",
           "testCases": [
@@ -160,13 +120,6 @@
       ],
       "tests": [
         {
-          "container": "DDRIT.RPS.CSharp",
-          "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner",
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
-          ]
-        },
-        {
           "container": "TeamEng",
           "testCases": [
             "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble"
@@ -196,125 +149,6 @@
           "testCases": [
             "Microsoft.Test.Performance.XamlOptProfCreateTests.UwpCreateProject_DesignerIsolated",
             "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated"
-          ]
-        }
-      ]
-    },
-    {
-      "assembly": "Microsoft.Build.Conversion.Core.dll",
-      "instrumentationArguments": [
-        {
-          "relativeInstallationFolder": "MSBuild/Current/Bin",
-          "instrumentationExecutable": "Common7/IDE/vsn.exe"
-        }
-      ],
-      "tests": [
-        {
-          "container": "DDRIT.RPS.CSharp",
-          "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
-          ]
-        }
-      ]
-    },
-    {
-      "assembly": "Microsoft.Build.dll",
-      "instrumentationArguments": [
-        {
-          "relativeInstallationFolder": "MSBuild/Current/Bin",
-          "instrumentationExecutable": "Common7/IDE/vsn.exe"
-        }
-      ],
-      "tests": [
-        {
-          "container": "DDRIT.RPS.CSharp",
-          "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
-          ]
-        }
-      ]
-    },
-    {
-      "assembly": "Microsoft.Build.Engine.dll",
-      "instrumentationArguments": [
-        {
-          "relativeInstallationFolder": "MSBuild/Current/Bin",
-          "instrumentationExecutable": "Common7/IDE/vsn.exe"
-        }
-      ],
-      "tests": [
-        {
-          "container": "DDRIT.RPS.CSharp",
-          "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
-          ]
-        }
-      ]
-    },
-    {
-      "assembly": "Microsoft.Build.Framework.dll",
-      "instrumentationArguments": [
-        {
-          "relativeInstallationFolder": "MSBuild/Current/Bin",
-          "instrumentationExecutable": "Common7/IDE/vsn.exe"
-        }
-      ],
-      "tests": [
-        {
-          "container": "DDRIT.RPS.CSharp",
-          "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
-          ]
-        }
-      ]
-    },
-    {
-      "assembly": "Microsoft.Build.Tasks.Core.dll",
-      "instrumentationArguments": [
-        {
-          "relativeInstallationFolder": "MSBuild/Current/Bin",
-          "instrumentationExecutable": "Common7/IDE/vsn.exe"
-        }
-      ],
-      "tests": [
-        {
-          "container": "DDRIT.RPS.CSharp",
-          "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
-          ]
-        }
-      ]
-    },
-    {
-      "assembly": "Microsoft.Build.Utilities.Core.dll",
-      "instrumentationArguments": [
-        {
-          "relativeInstallationFolder": "MSBuild/Current/Bin",
-          "instrumentationExecutable": "Common7/IDE/vsn.exe"
-        }
-      ],
-      "tests": [
-        {
-          "container": "DDRIT.RPS.CSharp",
-          "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
-          ]
-        }
-      ]
-    },
-    {
-      "assembly": "System.Threading.Tasks.Dataflow.dll",
-      "instrumentationArguments": [
-        {
-          "relativeInstallationFolder": "MSBuild/Current/Bin",
-          "instrumentationExecutable": "Common7/IDE/vsn.exe"
-        }
-      ],
-      "tests": [
-        {
-          "container": "DDRIT.RPS.CSharp",
-          "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
           ]
         }
       ]
