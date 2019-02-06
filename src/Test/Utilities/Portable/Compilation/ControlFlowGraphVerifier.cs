@@ -1800,7 +1800,6 @@ endRegion:
                 case OperationKind.Discard:
                 case OperationKind.ReDim:
                 case OperationKind.ReDimClause:
-                case OperationKind.FromEndIndex:
                 case OperationKind.Range:
                 case OperationKind.RecursivePattern:
                 case OperationKind.DiscardPattern:

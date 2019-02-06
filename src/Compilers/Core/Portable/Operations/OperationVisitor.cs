@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.Operations
             DefaultVisit(operation);
         }
 
-        public virtual void VisitFromEndIndexOperation(IFromEndIndexOperation operation)
+        internal virtual void VisitFromEndIndexOperation(IFromEndIndexOperation operation)
         {
             DefaultVisit(operation);
         }
@@ -1193,7 +1193,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitFromEndIndexOperation(IFromEndIndexOperation operation, TArgument argument)
+        internal virtual TResult VisitFromEndIndexOperation(IFromEndIndexOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
