@@ -1803,7 +1803,7 @@ public class C
 {
     void M()
     {
-        throw null!!;
+        throw null!;
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
@@ -2073,7 +2073,23 @@ class C
     {
         throw e; // 7
     }
-    void M6()
+    void M6<TException>(TException? e) where TException : Interface
+    {
+        throw e; // 8
+    }
+    void M7<TException>(TException e) where TException : Interface?
+    {
+        throw e; // 9
+    }
+    void M8<TException>(TException e) where TException : Interface
+    {
+        throw e; // 10
+    }
+    void M9<T>(T e)
+    {
+        throw e; // 11
+    }
+    void M10()
     {
         try
         {
@@ -2083,6 +2099,7 @@ class C
             throw;
         }
     }
+    interface Interface { }
 }";
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (6,24): error CS8597: Possible null value.
@@ -2108,7 +2125,97 @@ class C
                 Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(24, 15),
                 // (28,15): error CS8597: Possible null value.
                 //         throw e; // 7
-                Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(28, 15)
+                Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(28, 15),
+                // (30,25): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     void M6<TException>(TException? e) where TException : Interface
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "TException?").WithLocation(30, 25),
+                // (32,15): error CS0155: The type caught or thrown must be derived from System.Exception
+                //         throw e; // 8
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "e").WithLocation(32, 15),
+                // (32,15): error CS8597: Possible null value.
+                //         throw e; // 8
+                Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(32, 15),
+                // (36,15): error CS0155: The type caught or thrown must be derived from System.Exception
+                //         throw e; // 9
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "e").WithLocation(36, 15),
+                // (36,15): error CS8597: Possible null value.
+                //         throw e; // 9
+                Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(36, 15),
+                // (40,15): error CS0155: The type caught or thrown must be derived from System.Exception
+                //         throw e; // 10
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "e").WithLocation(40, 15),
+                // (44,15): error CS0155: The type caught or thrown must be derived from System.Exception
+                //         throw e; // 11
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "e").WithLocation(44, 15),
+                // (44,15): error CS8597: Possible null value.
+                //         throw e; // 11
+                Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(44, 15)
+                );
+        }
+
+        [Fact, WorkItem(32877, "https://github.com/dotnet/roslyn/issues/32877")]
+        public void CatchClause()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        try { }
+        catch (System.Exception? e) { throw e; }
+    }
+    void M2()
+    {
+        try { }
+        catch (System.Exception? e) { throw; }
+    }
+    void M3()
+    {
+        try { }
+        catch (System.Exception? e)
+        {
+            e = null;
+            throw e; // 1
+        }
+    }
+    void M4()
+    {
+        try { }
+        catch (System.Exception e)
+        {
+            e = null; // 2
+            throw e; // 3
+        }
+    }
+    void M5()
+    {
+        try { }
+        catch (System.Exception e)
+        {
+            e = null; // 4
+            throw; // this rethrows the original exception, not an NRE
+        }
+    }
+}";
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (12,34): warning CS0168: The variable 'e' is declared but never used
+                //         catch (System.Exception? e) { throw; }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(12, 34),
+                // (20,19): error CS8597: Possible null value.
+                //             throw e; // 1
+                Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(20, 19),
+                // (28,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             e = null; // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(28, 17),
+                // (29,19): error CS8597: Possible null value.
+                //             throw e; // 3
+                Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(29, 19),
+                // (35,33): warning CS0168: The variable 'e' is declared but never used
+                //         catch (System.Exception e)
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(35, 33),
+                // (37,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             e = null; // 4
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(37, 17)
                 );
         }
 
@@ -2472,7 +2579,7 @@ class C
             var source = @"
 public class C
 {
-    public void M(out string? x) => throw null;
+    public void M(out string? x) => throw null!;
     public void M2()
     {
         string y;
@@ -6441,10 +6548,10 @@ class E
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
                 // (38,41): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //     public static string? NMethod(string? ns) => throw null;
+                //     public static string? NMethod(string? ns) => throw null!;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(38, 41),
                 // (38,25): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //     public static string? NMethod(string? ns) => throw null;
+                //     public static string? NMethod(string? ns) => throw null!;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(38, 25),
                 // (47,25): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         External.Method(null) /*T:string!*/; // warn 1
@@ -78121,7 +78228,7 @@ class B : A
             var source =
 @"class Pair<T, U> where U : class
 {
-    internal void Deconstruct(out T t, out U? u) => throw null;
+    internal void Deconstruct(out T t, out U? u) => throw null!;
 }
 class Program
 {
@@ -78148,7 +78255,7 @@ class Program
             var source =
 @"class Pair<T, U>
 {
-    internal void Deconstruct(out T t, out U u) => throw null;
+    internal void Deconstruct(out T t, out U u) => throw null!;
 }
 class Program
 {
@@ -78181,7 +78288,7 @@ class Program
             var source =
 @"class Pair<T, U>
 {
-    internal void Deconstruct(out T t, out U u) => throw null;
+    internal void Deconstruct(out T t, out U u) => throw null!;
 }
 class Program
 {
@@ -78211,7 +78318,7 @@ class Program
             var source =
 @"class Pair<T, U>
 {
-    internal void Deconstruct(out T t, out U u) => throw null;
+    internal void Deconstruct(out T t, out U u) => throw null!;
 }
 class Program
 {
@@ -78243,7 +78350,7 @@ class Program
             var source =
 @"class Pair<T, U>
 {
-    internal void Deconstruct(out T t, out U u) => throw null;
+    internal void Deconstruct(out T t, out U u) => throw null!;
 }
 class Program
 {
@@ -78273,7 +78380,7 @@ class Program
             var source =
 @"class Pair<T, U>
 {
-    internal void Deconstruct(out T t, out U u) => throw null;
+    internal void Deconstruct(out T t, out U u) => throw null!;
 }
 class Program
 {
@@ -78302,7 +78409,7 @@ class Program
             var source =
 @"class Pair<T, U>
 {
-    internal void Deconstruct(out T t, out U u) => throw null;
+    internal void Deconstruct(out T t, out U u) => throw null!;
 }
 class Program
 {
@@ -78358,7 +78465,7 @@ class Program
             var source =
 @"class Pair<T, U>
 {
-    internal void Deconstruct(out T t, out U u) => throw null;
+    internal void Deconstruct(out T t, out U u) => throw null!;
 }
 class Program
 {
@@ -78390,7 +78497,7 @@ class Program
             var source =
 @"struct Pair<T, U>
 {
-    internal void Deconstruct(out T t, out U u) => throw null;
+    internal void Deconstruct(out T t, out U u) => throw null!;
 }
 class Program
 {
@@ -78576,7 +78683,7 @@ class Program
 }
 static class E
 {
-    internal static void Deconstruct(this Pair<object?, object>? p, out object x, out object? y) => throw null;
+    internal static void Deconstruct(this Pair<object?, object>? p, out object x, out object? y) => throw null!;
 }
 class Program
 {
@@ -78604,7 +78711,7 @@ class Program
 }
 static class E
 {
-    internal static void Deconstruct<T, U>(this Pair<T, U> p, out T t, out U u) => throw null;
+    internal static void Deconstruct<T, U>(this Pair<T, U> p, out T t, out U u) => throw null!;
 }
 class Program
 {
@@ -78630,7 +78737,7 @@ class Program
 }
 static class E
 {
-    internal static void Deconstruct<T, U>(this Pair<T, U> p, out T t, out U u) => throw null;
+    internal static void Deconstruct<T, U>(this Pair<T, U> p, out T t, out U u) => throw null!;
 }
 class Program
 {
@@ -78659,7 +78766,7 @@ static class E
 {
     internal static void Deconstruct<T, U>(this Pair<T, U> p, out T t, out U u)
         where T : class
-        => throw null;
+        => throw null!;
 }
 class Program
 {
@@ -78828,7 +78935,7 @@ class Program
 @"#pragma warning disable 8618
 class Pair<T, U>
 {
-    internal void Deconstruct(out T t, out U u) => throw null;
+    internal void Deconstruct(out T t, out U u) => throw null!;
     internal T First;
     internal U Second;
 }
@@ -78883,7 +78990,7 @@ class Program
 #pragma warning disable 8618
 class Pair
 {
-    internal void Deconstruct(out object x, out object y) => throw null;
+    internal void Deconstruct(out object x, out object y) => throw null!;
     internal object First;
     internal object Second;
 }
@@ -79202,7 +79309,7 @@ class Program
             var source =
 @"class C
 {
-    internal void Deconstruct(out object x, out object y, out object z) => throw null;
+    internal void Deconstruct(out object x, out object y, out object z) => throw null!;
 }
 class Program
 {
@@ -79229,7 +79336,7 @@ class Program
             var source =
 @"class C
 {
-    internal void Deconstruct(out object x, out object y) => throw null;
+    internal void Deconstruct(out object x, out object y) => throw null!;
 }
 class Program
 {
@@ -79818,7 +79925,7 @@ class Program
 {
     internal static T P
     {
-        get => throw null;
+        get => throw null!;
         set { }
     }
 }
