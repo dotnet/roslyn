@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                             document.Project, cancellationToken).ConfigureAwait(false);
 
                         var newInfo = cachedInfo.WithChecksum(checksum);
-                        _projectToInfo.AddOrUpdate(document.Project.Id, newInfo, (_1, _2) => newInfo);
+                        _projectToInfo[document.Project.Id] = newInfo;
                         return;
                     }
                 }
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
                     // Mark that we're up to date with this project.  Future calls with the same 
                     // semantic version can bail out immediately.
-                    _projectToInfo.AddOrUpdate(project.Id, projectInfo, (_1, _2) => projectInfo);
+                    _projectToInfo[project.Id] = projectInfo;
                 }
             }
 
