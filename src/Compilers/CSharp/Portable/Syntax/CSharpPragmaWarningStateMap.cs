@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             // Captures the general reporting option, accumulated of all #pragma up to the current directive.
             var accumulatedGeneralWarningState = PragmaWarningState.Default;
 
-            // In generated files, we set nullable warnings to disabled by default
+            // Generated files have a default nullable warning state that is "disabled".
             if (isGeneratedCode)
             {
                 accumulatedNullableWarningState(SyntaxKind.DisableKeyword);

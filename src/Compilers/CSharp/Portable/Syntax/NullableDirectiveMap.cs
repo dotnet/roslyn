@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     internal sealed class NullableDirectiveMap
     {
-        private static readonly NullableDirectiveMap EmptyGenerated = new NullableDirectiveMap(ImmutableArray<(int Position, bool? State)>.Empty, true);
+        private static readonly NullableDirectiveMap EmptyGenerated = new NullableDirectiveMap(ImmutableArray<(int Position, bool? State)>.Empty, isGeneratedCode: true);
 
-        private static readonly NullableDirectiveMap EmptyNonGenerated = new NullableDirectiveMap(ImmutableArray<(int Position, bool? State)>.Empty, false);
+        private static readonly NullableDirectiveMap EmptyNonGenerated = new NullableDirectiveMap(ImmutableArray<(int Position, bool? State)>.Empty, isGeneratedCode: false);
 
 
         private readonly ImmutableArray<(int Position, bool? State)> _directives;
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             if (state == null && _isGeneratedCode)
             {
-                // generated files are always implicitly disabled
+                // Generated files have a default nullable context that is "disabled".
                 state = false;
             }
 
