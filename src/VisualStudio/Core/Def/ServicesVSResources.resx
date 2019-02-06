@@ -948,9 +948,6 @@ Additional information: {1}</value>
   <data name="Enable_full_solution_analysis" xml:space="preserve">
     <value>Enable full solution _analysis</value>
   </data>
-  <data name="Perform_editor_feature_analysis_in_external_process" xml:space="preserve">
-    <value>Perform editor _feature analysis in external process (experimental)</value>
-  </data>
   <data name="Fade_out_unreachable_code" xml:space="preserve">
     <value>Fade out unreachable code</value>
   </data>
