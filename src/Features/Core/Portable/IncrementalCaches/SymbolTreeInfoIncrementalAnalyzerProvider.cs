@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 Debug.Assert(SupportAnalysis(project));
 
                 // Produce the indices for the source and metadata symbols in parallel.
-                var tasks = new List<Task>
+                var tasks = new Task[]
                 {
                     GetTask(project, () => UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), cancellationToken),
                     GetTask(project, () => UpdateReferencesAync(project, cancellationToken), cancellationToken)
@@ -233,15 +233,19 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     : func();
             }
 
+            [PerformanceSensitive("FILLME", AllowGenericEnumeration = false)]
             private Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
             {
                 // Process all metadata references. If it remote workspace, do this in parallel.
-                var tasks = new List<Task>();
+                var tasks = new List<Task>(project.MetadataReferences.Count);
 
-                foreach (var reference in project.MetadataReferences.OfType<PortableExecutableReference>())
+                foreach (var metadataReference in project.MetadataReferences.ToImmutableArrayOrEmpty())
                 {
-                    tasks.Add(
-                        GetTask(project, () => UpdateReferenceAsync(project, reference, cancellationToken), cancellationToken));
+                    if (metadataReference is PortableExecutableReference portableExecutableReference)
+                    {
+                        tasks.Add(
+                            GetTask(project, () => UpdateReferenceAsync(project, portableExecutableReference, cancellationToken), cancellationToken));
+                    }
                 }
 
                 return Task.WhenAll(tasks);
