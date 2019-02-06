@@ -48,21 +48,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         public static async Task<RemoteHostClient> CreateAsync(
             Workspace workspace, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, cancellationToken))
+            try
             {
-                var primary = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
-                var timeout = TimeSpan.FromMilliseconds(workspace.Options.GetOption(RemoteHostOptions.RequestServiceTimeoutInMS));
+                using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, cancellationToken))
+                {
+                    var primary = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
+                    var timeout = TimeSpan.FromMilliseconds(workspace.Options.GetOption(RemoteHostOptions.RequestServiceTimeoutInMS));
 
-                // Retry (with timeout) until we can connect to RemoteHost (service hub process). 
-                // we are seeing cases where we failed to connect to service hub process when a machine is under heavy load.
-                // (see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/481103 as one of example)
-                var instance = await Connections.RetryRemoteCallAsync<IOException, ServiceHubRemoteHostClient>(
-                    workspace, () => CreateWorkerAsync(workspace, primary, timeout, cancellationToken), timeout, cancellationToken).ConfigureAwait(false);
+                    // Retry (with timeout) until we can connect to RemoteHost (service hub process). 
+                    // we are seeing cases where we failed to connect to service hub process when a machine is under heavy load.
+                    // (see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/481103 as one of example)
+                    var instance = await Connections.RetryRemoteCallAsync<IOException, ServiceHubRemoteHostClient>(
+                        workspace, () => CreateWorkerAsync(workspace, primary, timeout, cancellationToken), timeout, cancellationToken).ConfigureAwait(false);
 
-                instance.Started();
+                    instance.Started();
 
-                // return instance
-                return instance;
+                    // return instance
+                    return instance;
+                }
+            }
+            catch (SoftCrashException)
+            {
+                // at this point, we should have shown info bar (RemoteHostCrashInfoBar.ShowInfoBar) to users
+                // returning null here will disable OOP for this VS session. 
+                // * Note * this is not trying to recover the exception. but giving users to time
+                // to clean up before restart VS
+                return null;
             }
         }
 

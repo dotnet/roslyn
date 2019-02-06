@@ -265,6 +265,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsReturnStatement(SyntaxNode node)
             => node.Kind() == SyntaxKind.ReturnStatement;
 
+        public bool IsStatement(SyntaxNode node)
+           => node is StatementSyntax;
+
         public bool IsExecutableStatement(SyntaxNode node)
             => node is StatementSyntax;
 

@@ -30,7 +30,8 @@ End Structure";
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/30544")]
+        [Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyNavBar()
         {
             SetUpEditor(TestSource);
@@ -71,7 +72,8 @@ End Structure";
             VisualStudio.Editor.Verify.CurrentLineText("Public Property $$B As Integer", assertCaretPosition: true, trimWhitespace: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/30544")]
+        [Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void CodeSpit()
         {
             SetUpEditor(TestSource);

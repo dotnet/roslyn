@@ -1080,5 +1080,100 @@ internal sealed class CustomSerializingType : ISerializable
     }
 }");
         }
+
+        [WorkItem(32851, "https://github.com/dotnet/roslyn/issues/32851")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Parameter_Used_SemanticError()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    void M(int [|x|])
+    {
+        // CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type.
+        Invoke<string>(() => x);
+
+        T Invoke<T>(Func<T> a) { return a(); }
+    }
+}");
+        }
+
+        [WorkItem(32851, "https://github.com/dotnet/roslyn/issues/32851")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Parameter_Unused_SemanticError()
+        {
+            await TestDiagnosticsAsync(
+@"class C
+{
+    void M(int [|x|])
+    {
+        // CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type.
+        Invoke<string>(() => 0);
+
+        T Invoke<T>(Func<T> a) { return a(); }
+    }
+}",
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [WorkItem(32973, "https://github.com/dotnet/roslyn/issues/32973")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task OutParameter_LocalFunction()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    public static bool M(out int x)
+    {
+        return LocalFunction(out x);
+
+        bool LocalFunction(out int [|y|])
+        {
+            y = 0;
+            return true;
+        }
+    }
+}");
+        }
+
+        [WorkItem(32973, "https://github.com/dotnet/roslyn/issues/32973")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task RefParameter_Unused_LocalFunction()
+        {
+            await TestDiagnosticsAsync(
+@"class C
+{
+    public static bool M(ref int x)
+    {
+        return LocalFunction(ref x);
+
+        bool LocalFunction(ref int [|y|])
+        {
+            return true;
+        }
+    }
+}",
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [WorkItem(32973, "https://github.com/dotnet/roslyn/issues/32973")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task RefParameter_Used_LocalFunction()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    public static bool M(ref int x)
+    {
+        return LocalFunction(ref x);
+
+        bool LocalFunction(ref int [|y|])
+        {
+            y = 0;
+            return true;
+        }
+    }
+}");
+        }
     }
 }
