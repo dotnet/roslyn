@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 var tasks = new Task[]
                 {
                     GetTask(project, () => UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), cancellationToken),
-                    GetTask(project, () => UpdateReferencesAync(project, cancellationToken), cancellationToken)
+                    GetTask(project, () => UpdateReferencesAsync(project, cancellationToken), cancellationToken)
                 };
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             }
 
             [PerformanceSensitive("FILLME", AllowGenericEnumeration = false)]
-            private Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
+            private Task UpdateReferencesAsync(Project project, CancellationToken cancellationToken)
             {
                 // Process all metadata references. If it remote workspace, do this in parallel.
                 var tasks = new List<Task>(project.MetadataReferences.Count);
