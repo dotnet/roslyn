@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
@@ -553,16 +552,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 return BinaryOperatorKind.None;
             }
-        }
-
-        internal IPropertySubpatternOperation CreatePropertySubpattern(BoundSubpattern subpattern)
-        {
-            Symbol symbol = subpattern.Symbol;
-            BoundPattern pattern = subpattern.Pattern;
-            SyntaxNode syntax = subpattern.Syntax;
-            bool isImplicit = subpattern.WasCompilerGenerated;
-
-            return new CSharpLazyPropertySubpatternOperation(this, syntax, symbol, pattern, _semanticModel);
         }
     }
 }

@@ -8158,7 +8158,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyMember == s_unset)
                 {
-                    Interlocked.CompareExchange(ref _lazyMember, CreateMember(), s_unset);
+                    var member = CreateMember();
+                    SetParentOperation(member, this);
+                    Interlocked.CompareExchange(ref _lazyMember, member, s_unset);
                 }
 
                 return _lazyMember;
@@ -8170,7 +8172,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (_lazyPattern == s_unsetPattern)
                 {
-                    Interlocked.CompareExchange(ref _lazyPattern, CreatePattern(), s_unsetPattern);
+                    var pattern = CreatePattern();
+                    SetParentOperation(pattern, this);
+                    Interlocked.CompareExchange(ref _lazyPattern, pattern, s_unsetPattern);
                 }
 
                 return _lazyPattern;

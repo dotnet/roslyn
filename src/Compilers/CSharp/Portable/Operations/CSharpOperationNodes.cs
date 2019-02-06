@@ -1504,8 +1504,8 @@ namespace Microsoft.CodeAnalysis.Operations
                    syntax: boundRecursivePattern.Syntax,
                    isImplicit: boundRecursivePattern.WasCompilerGenerated)
         {
-            this._operationFactory = operationFactory;
-            this._boundRecursivePattern = boundRecursivePattern;
+            _operationFactory = operationFactory;
+            _boundRecursivePattern = boundRecursivePattern;
 
         }
         public override ImmutableArray<IPatternOperation> CreateDeconstructionSubpatterns()
@@ -1522,56 +1522,27 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class CSharpLazyPropertySubpatternOperation : LazyPropertySubpatternOperation
     {
-        private readonly Symbol _symbol;
-        private readonly BoundPattern _pattern;
+        private readonly BoundSubpattern _subpattern;
         private readonly CSharpOperationFactory _operationFactory;
-        private readonly SemanticModel _semanticModel;
 
         public CSharpLazyPropertySubpatternOperation(
             CSharpOperationFactory operationFactory,
+            BoundSubpattern subpattern,
             SyntaxNode syntax,
-            Symbol symbol,
-            BoundPattern pattern,
             SemanticModel semanticModel)
             : base(semanticModel, syntax, false)
         {
-            this._symbol = symbol;
-            this._pattern = pattern;
-            this._operationFactory = operationFactory;
+            _subpattern = subpattern;
+            _operationFactory = operationFactory;
         }
         public override IOperation CreateMember()
         {
-            var nameSyntax = (Syntax is SubpatternSyntax subpatSyntax ? subpatSyntax.NameColon?.Name : null) ?? Syntax;
-            bool isImplicit = nameSyntax != Syntax;
-            switch (_symbol)
-            {
-                case FieldSymbol field:
-                    {
-                        var constantValue = field.ConstantValue is null ? default(Optional<object>) : new Optional<object>(field.ConstantValue);
-                        var receiver = new InstanceReferenceOperation(
-                            InstanceReferenceKind.PatternInput, OwningSemanticModel, nameSyntax, field.ContainingType, constantValue, isImplicit: true);
-                        return new FieldReferenceOperation(
-                            field, isDeclaration: false, receiver, this.OwningSemanticModel, nameSyntax, field.Type.TypeSymbol, constantValue, isImplicit: isImplicit);
-                    }
-                case PropertySymbol property:
-                    {
-                        var receiver = new InstanceReferenceOperation(
-                            InstanceReferenceKind.PatternInput, OwningSemanticModel, nameSyntax, property.ContainingType, constantValue: default, isImplicit: true);
-                        return new PropertyReferenceOperation(
-                            property, receiver, ImmutableArray<IArgumentOperation>.Empty, this.OwningSemanticModel, nameSyntax, property.Type.TypeSymbol,
-                            constantValue: default, isImplicit: isImplicit);
-                    }
-                case null:
-                    return null;
-                default:
-                    // PROTOTYPE(ngafter): how are errors handled here?
-                    throw ExceptionUtilities.UnexpectedValue(_symbol);
-            }
+            return _operationFactory.CreatePropertySubpatternMember(_subpattern.Symbol, Syntax);
         }
 
         public override IPatternOperation CreatePattern()
         {
-            return (IPatternOperation)_operationFactory.Create(this._pattern);
+            return (IPatternOperation)_operationFactory.Create(_subpattern.Pattern);
         }
     }
 
@@ -1592,8 +1563,8 @@ namespace Microsoft.CodeAnalysis.Operations
                    syntax: boundITuplePattern.Syntax,
                    isImplicit: boundITuplePattern.WasCompilerGenerated)
         {
-            this._operationFactory = operationFactory;
-            this._boundITuplePattern = boundITuplePattern;
+            _operationFactory = operationFactory;
+            _boundITuplePattern = boundITuplePattern;
 
         }
         public override ImmutableArray<IPatternOperation> CreateDeconstructionSubpatterns()
@@ -1661,8 +1632,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public CSharpLazySwitchExpressionOperation(CSharpOperationFactory operationFactory, BoundSwitchExpression boundSwitchExpression, SemanticModel semanticModel)
             : base(boundSwitchExpression.Type, semanticModel, boundSwitchExpression.Syntax, boundSwitchExpression.WasCompilerGenerated)
         {
-            this._operationFactory = operationFactory;
-            this._switchExpression = boundSwitchExpression;
+            _operationFactory = operationFactory;
+            _switchExpression = boundSwitchExpression;
         }
 
         protected override IOperation CreateValue()
@@ -1683,8 +1654,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public CSharpLazySwitchExpressionArmOperation(CSharpOperationFactory operationFactory, BoundSwitchExpressionArm boundSwitchExpressionArm, SemanticModel semanticModel)
             : base(boundSwitchExpressionArm.Locals.Cast<CSharp.Symbols.LocalSymbol, ILocalSymbol>(), semanticModel, boundSwitchExpressionArm.Syntax, boundSwitchExpressionArm.WasCompilerGenerated)
         {
-            this._operationFactory = operationFactory;
-            this._switchExpressionArm = boundSwitchExpressionArm;
+            _operationFactory = operationFactory;
+            _switchExpressionArm = boundSwitchExpressionArm;
         }
 
         protected override IOperation CreateGuard()

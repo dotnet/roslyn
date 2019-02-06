@@ -14,8 +14,10 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         /// <summary>
         /// The member being matched in a property subpattern.  This can be a <see cref="IMemberReferenceOperation"/>
-        /// in non-error cases, or PROTOTYPE(ngafter) WHAT in error cases.
+        /// in non-error cases, or an <see cref="IInvalidOperation"/> in error cases.
         /// </summary>
+        // The symbol should be exposed for error cases somehow:
+        // https://github.com/dotnet/roslyn/issues/33175
         IOperation Member { get; }
 
         /// <summary>
