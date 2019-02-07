@@ -34,9 +34,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     return 0;
                 }
 
+                int maxKnownCount = Math.Max(oldValue.KnownValuesCount, newValue.KnownValuesCount);
                 int result = 0;
-                int i;
-                for (i = 0; i < oldValue.KnownValuesCount && i < newValue.KnownValuesCount; i++)
+                for (int i = 0; i < maxKnownCount; i++)
                 {
                     if (oldValue[i] == newValue[i])
                     {
@@ -44,46 +44,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     }
                     else if (oldValue[i] < newValue[i])
                     {
-                        if (result > 0)
-                        {
-                            // Previously encountered a non-monotonic merge.  Don't overwrite result.
-                        }
-                        else
-                        {
-                            result = -1;
-                        }
+                        result = -1;
                     }
                     else
                     {
                         Debug.Assert(oldValue[i] > newValue[i]);
                         FireNonMonotonicAssertIfNeeded(assertMonotonicity);
-                        result = 1;
-                    }
-                }
-
-                for (; i < oldValue.KnownValuesCount; i++)
-                {
-                    // The missing elements in newValue.PropertyAbstractValues are implicitly Unknown.
-                    if (oldValue[i] > PropertySetAbstractValueKind.Unknown)
-                    {
-                        FireNonMonotonicAssertIfNeeded(assertMonotonicity);
-                        result = 1;
-                    }
-                }
-
-                for (; i < newValue.KnownValuesCount; i++)
-                {
-                    // The missing elements in oldValue.PropertyAbstractValues are implicitly Unknown.
-                    if (newValue[i] > PropertySetAbstractValueKind.Unknown)
-                    {
-                        if (result > 0)
-                        {
-                            // Previously encountered a non-monotonic merge.  Don't overwrite result.
-                        }
-                        else
-                        {
-                            result = -1;
-                        }
+                        return 1;
                     }
                 }
 
@@ -95,26 +62,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 Debug.Assert(value1 != null);
                 Debug.Assert(value2 != null);
 
-                ArrayBuilder<PropertySetAbstractValueKind> builder = ArrayBuilder<PropertySetAbstractValueKind>.GetInstance(
-                    Math.Max(value1.KnownValuesCount, value2.KnownValuesCount));
+                int maxKnownCount = Math.Max(value1.KnownValuesCount, value2.KnownValuesCount);
+                ArrayBuilder<PropertySetAbstractValueKind> builder = ArrayBuilder<PropertySetAbstractValueKind>.GetInstance(maxKnownCount);
                 try
                 {
-                    int i;
-                    for (i = 0; i < value1.KnownValuesCount && i < value2.KnownValuesCount; i++)
+                    for (int i = 0; i < maxKnownCount; i++)
                     {
                         builder.Add(this.MergeKind(value1[i], value2[i]));
-                    }
-
-                    for (; i < value1.KnownValuesCount; i++)
-                    {
-                        // The missing elements in value2.PropertyAbstractValues are implicitly Unknown.
-                        builder.Add(this.MergeKind(value1[i], PropertySetAbstractValueKind.Unknown));
-                    }
-
-                    for (; i < value2.KnownValuesCount; i++)
-                    {
-                        // The missing elements in value1.PropertyAbstractValues are implicitly Unknown.
-                        builder.Add(this.MergeKind(PropertySetAbstractValueKind.Unknown, value2[i]));
                     }
 
                     return PropertySetAbstractValue.GetInstance(builder);
