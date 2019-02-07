@@ -347,7 +347,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 var documentFileNamesAdded = ImmutableArray.CreateBuilder<string>();
-                var documentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer, bool isAdditionalDocument)>();
+                var documentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
+                var additionalDocumentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
 
                 _workspace.ApplyBatchChangeToProject(Id, solution =>
                 {
@@ -355,7 +356,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         solution,
                         documentFileNamesAdded,
                         documentsToOpen,
-                        isUpdatingAdditionalDocuments: false,
                         (s, documents) => solution.AddDocuments(documents),
                         (s, id) =>
                         {
@@ -368,8 +368,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     solution = _additionalFiles.UpdateSolutionForBatch(
                         solution,
                         documentFileNamesAdded,
-                        documentsToOpen,
-                        isUpdatingAdditionalDocuments: true,
+                        additionalDocumentsToOpen,
                         (s, documents) =>
                         {
                             foreach (var document in documents)
@@ -472,19 +471,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return solution;
                 });
 
-                foreach (var (documentId, textContainer, isAdditionalDocument) in documentsToOpen)
+                foreach (var (documentId, textContainer) in documentsToOpen)
                 {
-                    _workspace.ApplyChangeToWorkspace(w =>
-                    {
-                        if (!isAdditionalDocument)
-                        {
-                            w.OnDocumentOpened(documentId, textContainer);
-                        }
-                        else
-                        {
-                            w.OnAdditionalDocumentOpened(documentId, textContainer);
-                        }
-                    });
+                    _workspace.ApplyChangeToWorkspace(w => w.OnDocumentOpened(documentId, textContainer));
+                }
+
+                foreach (var (documentId, textContainer) in additionalDocumentsToOpen)
+                {
+                    _workspace.ApplyChangeToWorkspace(w => w.OnAdditionalDocumentOpened(documentId, textContainer));
                 }
 
                 // Check for those files being opened to start wire-up if necessary
@@ -1444,8 +1438,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             internal Solution UpdateSolutionForBatch(
                 Solution solution,
                 ImmutableArray<string>.Builder documentFileNamesAdded,
-                List<(DocumentId documentId, SourceTextContainer textContainer, bool isAdditionalDocument)> documentsToOpen,
-                bool isUpdatingAdditionalDocuments,
+                List<(DocumentId documentId, SourceTextContainer textContainer)> documentsToOpen,
                 Func<Solution, ImmutableArray<DocumentInfo>, Solution> addDocuments,
                 Func<Solution, DocumentId, Solution> removeDocument)
             {
@@ -1458,7 +1451,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     if (_sourceTextContainersToDocumentIds.TryGetKey(documentInfo.Id, out var textContainer))
                     {
-                        documentsToOpen.Add((documentInfo.Id, textContainer, isUpdatingAdditionalDocuments));
+                        documentsToOpen.Add((documentInfo.Id, textContainer));
                     }
                 }
 

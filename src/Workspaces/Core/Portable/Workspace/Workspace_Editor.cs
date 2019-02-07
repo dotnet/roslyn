@@ -495,6 +495,8 @@ namespace Microsoft.CodeAnalysis
                 var oldDocument = oldSolution.GetAdditionalDocument(documentId);
                 var oldText = oldDocument.GetTextSynchronously(CancellationToken.None);
 
+                AddToOpenDocumentMap(documentId);
+
                 // keep open document text alive by using PreserveIdentity
                 var newText = textContainer.CurrentText;
                 Solution currentSolution;
@@ -629,6 +631,15 @@ namespace Microsoft.CodeAnalysis
             return text;
         }
 
+        private SourceText GetOpenAdditionalDocumentText(Solution solution, DocumentId documentId)
+        {
+            CheckDocumentIsOpen(documentId);
+            var doc = solution.GetAdditionalDocument(documentId);
+            // text should always be preserved, so TryGetText will succeed.
+            doc.TryGetText(out var text);
+            return text;
+        }
+
         /// <summary>
         ///  This method is called during OnSolutionReload.  Override this method if you want to manipulate
         ///  the reloaded solution.
@@ -643,6 +654,10 @@ namespace Microsoft.CodeAnalysis
                 if (newSolution.ContainsDocument(docId))
                 {
                     newSolution = newSolution.WithDocumentText(docId, this.GetOpenDocumentText(oldSolution, docId), PreservationMode.PreserveIdentity);
+                }
+                else if (newSolution.ContainsAdditionalDocument(docId))
+                {
+                    newSolution = newSolution.WithAdditionalDocumentText(docId, this.GetOpenAdditionalDocumentText(oldSolution, docId), PreservationMode.PreserveIdentity);
                 }
             }
 
@@ -660,6 +675,10 @@ namespace Microsoft.CodeAnalysis
                 if (newSolution.ContainsDocument(docId))
                 {
                     newSolution = newSolution.WithDocumentText(docId, this.GetOpenDocumentText(oldSolution, docId), PreservationMode.PreserveIdentity);
+                }
+                else if (newSolution.ContainsAdditionalDocument(docId))
+                {
+                    newSolution = newSolution.WithAdditionalDocumentText(docId, this.GetOpenAdditionalDocumentText(oldSolution, docId), PreservationMode.PreserveIdentity);
                 }
             }
 

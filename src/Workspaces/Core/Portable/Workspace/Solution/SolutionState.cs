@@ -485,35 +485,30 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedProject(ProjectState projectState)
         {
-            var documentIdsAndFilePaths = GetDocumentIdsAndFilePaths(projectState, projectState.DocumentIds, projectState.AdditionalDocumentIds);
-            return CreateFilePathToDocumentIdsMapWithAddedDocuments(documentIdsAndFilePaths);
+            return CreateFilePathToDocumentIdsMapWithAddedDocuments(GetDocumentStates(projectState));
         }
 
-        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<(DocumentId documentId, string filePath)> documentIdsAndFilePaths)
+        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
         {
             var builder = _filePathToDocumentIdsMap.ToBuilder();
 
-            foreach (var (documentId, filePath) in documentIdsAndFilePaths)
+            foreach (var documentState in documentStates)
             {
-                if (string.IsNullOrEmpty(filePath))
+                if (string.IsNullOrEmpty(documentState.FilePath))
                 {
                     continue;
                 }
 
-                builder[filePath] = builder.TryGetValue(filePath, out var documentIdsWithPath)
-                    ? documentIdsWithPath.Add(documentId)
-                    : ImmutableArray.Create(documentId);
+                builder[documentState.FilePath] = builder.TryGetValue(documentState.FilePath, out var documentIdsWithPath)
+                    ? documentIdsWithPath.Add(documentState.Id)
+                    : ImmutableArray.Create(documentState.Id);
             }
 
             return builder.ToImmutable();
         }
 
-        private static IEnumerable<(DocumentId documentId, string filePath)> GetDocumentIdsAndFilePaths(ProjectState projectState, IEnumerable<DocumentId> documentIds, IEnumerable<DocumentId> additionalDocumentIds)
-        {
-            var documentIdsAndFilePaths = documentIds.Select(id => (id, projectState.GetDocumentState(id).FilePath));
-            var additionalDocumentIdsAndFilePaths = additionalDocumentIds.Select(id => (id, projectState.GetAdditionalDocumentState(id).FilePath));
-            return documentIdsAndFilePaths.Concat(additionalDocumentIdsAndFilePaths);
-        }
+        private static IEnumerable<TextDocumentState> GetDocumentStates(ProjectState projectState)
+            => projectState.DocumentStates.Values.Concat(projectState.AdditionalDocumentStates.Values);
 
         /// <summary>
         /// Create a new solution instance without the project specified.
@@ -547,33 +542,32 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedProject(ProjectState projectState)
         {
-            var documentIdsAndFilePaths = GetDocumentIdsAndFilePaths(projectState, projectState.DocumentIds, projectState.AdditionalDocumentIds);
-            return CreateFilePathToDocumentIdsMapWithRemovedDocuments(documentIdsAndFilePaths);
+            return CreateFilePathToDocumentIdsMapWithRemovedDocuments(GetDocumentStates(projectState));
         }
 
-        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedDocuments(IEnumerable<(DocumentId documentId, string filePath)> documentIdsAndFilePaths)
+        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedDocuments(IEnumerable<TextDocumentState> documentStates)
         {
             var builder = _filePathToDocumentIdsMap.ToBuilder();
 
-            foreach (var (documentId, filePath) in documentIdsAndFilePaths)
+            foreach (var documentState in documentStates)
             {
-                if (string.IsNullOrEmpty(filePath))
+                if (string.IsNullOrEmpty(documentState.FilePath))
                 {
                     continue;
                 }
 
-                if (!builder.TryGetValue(filePath, out var documentIdsWithPath) || !documentIdsWithPath.Contains(documentId))
+                if (!builder.TryGetValue(documentState.FilePath, out var documentIdsWithPath) || !documentIdsWithPath.Contains(documentState.Id))
                 {
                     throw new ArgumentException($"The given documentId was not found in '{nameof(_filePathToDocumentIdsMap)}'.");
                 }
 
                 if (documentIdsWithPath.Length == 1)
                 {
-                    builder.Remove(filePath);
+                    builder.Remove(documentState.FilePath);
                 }
                 else
                 {
-                    builder[filePath] = documentIdsWithPath.Remove(documentId);
+                    builder[documentState.FilePath] = documentIdsWithPath.Remove(documentState.Id);
                 }
             }
 
@@ -1163,7 +1157,7 @@ namespace Microsoft.CodeAnalysis
 
                 newSolutionState = newSolutionState.ForkProject(newProjectState,
                     CompilationTranslationAction.AddDocuments(newDocumentStatesForProject),
-                    newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithAddedDocuments(documentInfosInProject.Select(d => (d.Id, newProjectState.GetDocumentState(d.Id).FilePath))));
+                    newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithAddedDocuments(documentInfosInProject.Select(d => newProjectState.GetDocumentState(d.Id))));
             }
 
             return newSolutionState;
@@ -1186,10 +1180,10 @@ namespace Microsoft.CodeAnalysis
                 _solutionServices);
 
             var newProject = oldProject.AddAdditionalDocument(state);
-            var addedDocumentIdAndFilePath = SpecializedCollections.SingletonEnumerable((documentInfo.Id, newProject.GetAdditionalDocumentState(documentInfo.Id).FilePath));
+            var documentStates = SpecializedCollections.SingletonEnumerable(newProject.GetAdditionalDocumentState(documentInfo.Id));
 
             return this.ForkProject(newProject,
-                    newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithAddedDocuments(addedDocumentIdAndFilePath));
+                    newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithAddedDocuments(documentStates));
         }
 
         /// <summary>
@@ -1202,12 +1196,12 @@ namespace Microsoft.CodeAnalysis
             var oldProject = this.GetProjectState(documentId.ProjectId);
             var oldDocument = oldProject.GetDocumentState(documentId);
             var newProject = oldProject.RemoveDocument(documentId);
-            var removedDocumentIdAndFilePath = SpecializedCollections.SingletonEnumerable((documentId, oldProject.GetDocumentState(documentId).FilePath));
+            var documentStates = SpecializedCollections.SingletonEnumerable(oldProject.GetDocumentState(documentId));
 
             return this.ForkProject(
                 newProject,
                 CompilationTranslationAction.RemoveDocument(oldDocument),
-                newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentIdAndFilePath));
+                newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithRemovedDocuments(documentStates));
         }
 
         /// <summary>
@@ -1219,10 +1213,10 @@ namespace Microsoft.CodeAnalysis
 
             var oldProject = this.GetProjectState(documentId.ProjectId);
             var newProject = oldProject.RemoveAdditionalDocument(documentId);
-            var removedDocumentIdAndFilePath = SpecializedCollections.SingletonEnumerable((documentId, oldProject.GetAdditionalDocumentState(documentId).FilePath));
+            var documentStates = SpecializedCollections.SingletonEnumerable(GetAdditionalDocumentState(documentId));
 
             return this.ForkProject(newProject,
-                newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentIdAndFilePath));
+                newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithRemovedDocuments(documentStates));
         }
 
         /// <summary>

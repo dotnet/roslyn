@@ -350,7 +350,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var moniker = _runningDocumentTable.GetDocumentMoniker(cookie);
                 _workspace.ApplyChangeToWorkspace(w =>
                 {
-                    var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
+                    var documentIds = w.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
                     if (documentIds.IsDefaultOrEmpty)
                     {
                         return;
@@ -358,14 +358,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     foreach (var documentId in documentIds)
                     {
-                        if (!_workspace._documentsNotFromFiles.Contains(documentId))
+                        if (w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
                         {
-                            if (_workspace.IsDocumentOpen(documentId))
+                            if (w.CurrentSolution.ContainsDocument(documentId))
                             {
                                 w.OnDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
                             }
-                            else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
+                            else
                             {
+                                Debug.Assert(w.CurrentSolution.ContainsAdditionalDocument(documentId));
                                 w.OnAdditionalDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
                             }
                         }
