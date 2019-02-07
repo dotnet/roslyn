@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             // The editor requires the current top buffer.
             // TODO it seems to be a hack. It should be removed.
             // Here is an issue to track: https://github.com/dotnet/roslyn/issues/31189
-            // Starting debugigng for the second time, we already have the property set.
+            // Starting debugging for the second time, we already have the property set.
             _innerTextView.Properties[CompletionRoot] = bufferGraph.TopBuffer;
         }
 
@@ -368,6 +368,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             {
                 this.ClosedInternal?.Invoke(this, EventArgs.Empty);
             }
+        }
+
+        public void CleanupSetProperties()
+        {
+            _innerTextView.Properties.RemoveProperty(CompletionRoot);
         }
 
         public void QueuePostLayoutAction(Action action) => _innerTextView.QueuePostLayoutAction(action);
