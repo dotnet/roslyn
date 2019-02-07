@@ -1206,6 +1206,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Lower Signature Help.
+        /// </summary>
+        internal static string Lower_Signature_Help {
+            get {
+                return ResourceManager.GetString("Lower_Signature_Help", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Modify any highlighted location to begin renaming..
         /// </summary>
         internal static string Modify_any_highlighted_location_to_begin_renaming {
@@ -1932,6 +1941,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Updating_files {
             get {
                 return ResourceManager.GetString("Updating_files", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upper Signature Help.
+        /// </summary>
+        internal static string Upper_Signature_Help {
+            get {
+                return ResourceManager.GetString("Upper_Signature_Help", resourceCulture);
             }
         }
         

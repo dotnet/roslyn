@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName)]
     [Name(PredefinedCommandHandlerNames.Completion)]
-    [Order(After = PredefinedCommandHandlerNames.SignatureHelp)]
+    [Order(After = PredefinedCommandHandlerNames.UpperSignatureHelp)]
     internal sealed class InteractiveCompletionCommandHandler : AbstractCompletionCommandHandler
     {
         [ImportingConstructor]
