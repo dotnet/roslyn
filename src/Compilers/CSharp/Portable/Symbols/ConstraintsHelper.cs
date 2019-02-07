@@ -499,7 +499,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (type.Kind == SymbolKind.NamedType)
             {
-                ((NamedTypeSymbol)type).CheckConstraints(args.CurrentCompilation, args.Conversions, args.Location, args.Diagnostics);
+                bool includeNullability = type.DeclaringCompilation?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) == true;
+                ((NamedTypeSymbol)type).CheckConstraints(args.CurrentCompilation, args.Conversions.WithNullability(includeNullability), args.Location, args.Diagnostics);
             }
             return false; // continue walking types
         }
