@@ -2,10 +2,11 @@
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Scripting.Test
+namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
     public class ScriptOptionsTests : TestBase
     {
