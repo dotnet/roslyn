@@ -40,7 +40,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
 
-            return kinds.SetItem(index, kind);
+            if (kinds[index] == kind)
+            {
+                return kinds;
+            }
+            else
+            {
+                return kinds.SetItem(index, kind);
+            }
         }
     }
 }

@@ -1,37 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
-    //using ConstructorInvocationCallback = Func<IMethodSymbol, IReadOnlyList<ValueContentAbstractValue>, PropertySetAbstractValueKind[]>;
-
     /// <summary>
-    /// Maps a constructor invocation to <see cref="PropertySetAbstractValueKind" />s.
+    /// Maps a constructor invocation to <see cref="PropertySetAbstractValueKind"/>s for the properties being tracked by PropertySetAnalysis.
     /// </summary>
+#pragma warning disable CA1812 // Is too instantiated.
     internal sealed class ConstructorMapper
+#pragma warning restore CA1812
     {
-        public delegate ImmutableArray<PropertySetAbstractValueKind> ConstructorInvocationCallback(
+        public delegate ImmutableArray<PropertySetAbstractValueKind> ValueContentAbstractValueCallback(
             IMethodSymbol constructorMethodSymbol,
             IReadOnlyList<ValueContentAbstractValue> argumentValueContentAbstractValues);
 
         /// <summary>
-        /// Constructs using a callback to examine constructor invocations to determine <see cref="PropertySetAbstractValueKind"/>s.
+        /// Initializes a <see cref="ConstructorMapper"/> that maps a constructor invocation's arguments' <see cref="ValueContentAbstractValue"/> to <see cref="PropertySetAbstractValueKind"/>s for the properties being tracked by PropertySetAnalysis.
         /// </summary>
-        /// <param name="callback"></param>
-        public ConstructorMapper(ConstructorInvocationCallback callback)
+        /// <param name="mapFromValueContentAbstractValueCallback">Callback that implements the mapping.</param>
+        public ConstructorMapper(ValueContentAbstractValueCallback mapFromValueContentAbstractValue)
         {
-            this.OnConstructorInvocation = callback ?? throw new ArgumentNullException(nameof(callback));
+            this.MapFromConstructorInvocation = mapFromValueContentAbstractValue ?? throw new ArgumentNullException(nameof(mapFromValueContentAbstractValue));
         }
 
         /// <summary>
-        /// Constructs using constant <see cref="PropertySetAbstractValueKind"/>s whenever the type is constructed.
+        /// Initializes a <see cref="ConstructorMapper"/> using constant <see cref="PropertySetAbstractValueKind"/>s whenever the type being tracked by PropertySetAnalysis is instantiated.
         /// </summary>
-        /// <param name="propertyAbstractValues"></param>
+        /// <param name="propertyAbstractValues">Constant <see cref="PropertySetAbstractValueKind"/>s, in the same order that the corresponding <see cref="PropertyMapperCollection"/> was initialized with.</param>
         public ConstructorMapper(ImmutableArray<PropertySetAbstractValueKind> propertyAbstractValues)
         {
             this.PropertyAbstractValues = propertyAbstractValues;
@@ -44,6 +44,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         {
         }
 
+
+        public ValueContentAbstractValueCallback MapFromConstructorInvocation { get; }
+
+        public ImmutableArray<PropertySetAbstractValueKind> PropertyAbstractValues { get; }
+
+
+
         internal void Validate(int propertyCount)
         {
             if (this.PropertyAbstractValues != null)
@@ -55,8 +62,36 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             }
         }
 
-        public ConstructorInvocationCallback OnConstructorInvocation { get; }
+        internal ImmutableArray<PropertySetAbstractValueKind> Compute(IObjectCreationOperation objectCreationOperation)
+        {
+            if (this.PropertyAbstractValues != null)
+            {
+                return this.PropertyAbstractValues;
+            }
+            else
+            {
+                Debug.Fail("TODO handle ValueContentAbstractValues for arguments");
+                return this.MapFromConstructorInvocation(objectCreationOperation.Constructor, null);
+            }
+        }
 
-        public ImmutableArray<PropertySetAbstractValueKind> PropertyAbstractValues { get; }
+        public override int GetHashCode()
+        {
+            return HashUtilities.Combine(
+                this.PropertyAbstractValues,
+                MapFromConstructorInvocation.GetHashCodeOrDefault());
+        }
+
+        public override bool Equals(object obj)
+        {
+            return this.Equals(obj as ConstructorMapper);
+        }
+
+        public bool Equals(ConstructorMapper other)
+        {
+            return other != null
+                && this.MapFromConstructorInvocation == other.MapFromConstructorInvocation
+                && this.PropertyAbstractValues == other.PropertyAbstractValues;
+        }
     }
 }
