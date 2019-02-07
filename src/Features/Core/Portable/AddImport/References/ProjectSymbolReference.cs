@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     if (SearchResult.DesiredNameMatchesSourceName(document))
                     {
                         // The name doesn't change.  This is a normal priority action.
-                        return CodeActionPriority.Medium;
+                        return CodeActionPriority.High;
                     }
                 }
 
