@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                 using (var stream = FileUtilities.OpenAsyncRead(path))
                 using (var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken).ConfigureAwait(false))
 #pragma warning disable CA3075 // Insecure DTD processing in XML
+                // s_xmlReaderSettings is compliant with CA3075 (no resolver, prohibit DTD) but the analyzer doesn't pick it up correctly
                 using (var xmlReader = XmlReader.Create(readStream, s_xmlReaderSettings))
 #pragma warning restore CA3075 // Insecure DTD processing in XML
                 {
