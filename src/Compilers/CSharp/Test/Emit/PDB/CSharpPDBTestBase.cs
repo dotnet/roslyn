@@ -40,8 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             var endRow = endLine.LineNumber + 1;
             var endColumn = span.End - endLine.Start + 1;
 
-            var doc = new XmlDocument();
-            doc.LoadXml(pdb);
+            var doc = new XmlDocument() { XmlResolver = null };
+            using (var sr = new System.IO.StringReader(pdb))
+            using (var reader = new XmlTextReader(sr) { DtdProcessing = DtdProcessing.Prohibit })
+            {
+                doc.Load(reader);
+            }
 
             foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
             {

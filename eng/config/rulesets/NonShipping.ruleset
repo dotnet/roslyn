@@ -43,4 +43,10 @@
     <Rule Id="CA2213" Action="None" />
     <Rule Id="CA1063" Action="None" />
   </Rules>
+  <!-- Don't worry about custom exceptions in tests -->
+  <Rules AnalyzerId="Microsoft.NetFramework.Analyzers" RuleNamespace="Microsoft.NetFramework.Analyzers">
+    <Rule Id="CA2235" Action="None" />
+    <Rule Id="CA2237" Action="None" />
+    <Rule Id="CA1058" Action="None" />
+  </Rules>
 </RuleSet>
