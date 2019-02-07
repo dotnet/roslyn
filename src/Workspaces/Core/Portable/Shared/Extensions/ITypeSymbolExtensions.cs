@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IEnumerable<SymbolAndProjectId> FindImplementationsForInterfaceMember(
             this SymbolAndProjectId<ITypeSymbol> typeSymbolAndProjectId,
             ISymbol interfaceMember,
-            Workspace workspace,
+            Solution solution,
             CancellationToken cancellationToken)
         {
             // This method can return multiple results.  Consider the case of:
@@ -153,14 +153,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // instantiations of that method.
             var originalInterfaceType = interfaceMember.ContainingType.OriginalDefinition;
             var originalInterfaceMember = interfaceMember.OriginalDefinition;
+
             var constructedInterfaces = typeSymbol.AllInterfaces.Where(i =>
                 SymbolEquivalenceComparer.Instance.Equals(i.OriginalDefinition, originalInterfaceType));
+
+            // Try to get the compilation for the symbol we're searching for, 
+            // which can help identify matches with the call to SymbolFinder.OriginalSymbolsMatch
+            var typeSymbolProject = solution.GetProject(typeSymbolAndProjectId.ProjectId);
+            var typeSymbolCompilation = typeSymbolProject?.GetCompilationAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
             foreach (var constructedInterface in constructedInterfaces)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var constructedInterfaceMember = constructedInterface.GetMembers().FirstOrDefault(m =>
-                    SymbolEquivalenceComparer.Instance.Equals(m.OriginalDefinition, originalInterfaceMember));
+                    SymbolFinder.OriginalSymbolsMatch(m, interfaceMember, solution, typeSymbolCompilation, null, cancellationToken));
 
                 if (constructedInterfaceMember == null)
                 {
@@ -177,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                     if (seenTypeDeclaringInterface)
                     {
-                        var result = FindImplementations(workspace, constructedInterfaceMember, currentType);
+                        var result = FindImplementations(solution.Workspace, constructedInterfaceMember, currentType);
 
                         if (result != null)
                         {
