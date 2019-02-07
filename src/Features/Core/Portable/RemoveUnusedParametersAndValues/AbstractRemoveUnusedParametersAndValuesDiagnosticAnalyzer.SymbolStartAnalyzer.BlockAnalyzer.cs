@@ -173,7 +173,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     //  4. Bail out if there is language specific syntax to indicate an explicit discard.
                     //     For example, VB call statement is used to explicitly ignore the value returned by
                     //     an invocation by prefixing the invocation with keyword "Call".
-                    if (_symbolStartAnalyzer._compilationAnalyzer.IsCallStatement(expressionStatement))
+                    //     Similarly, we do not want to flag an expression of a C# expression body.
+                    if (_symbolStartAnalyzer._compilationAnalyzer.IsCallStatement(expressionStatement) ||
+                        _symbolStartAnalyzer._compilationAnalyzer.IsExpressionOfExpressionBody(expressionStatement))
                     {
                         return;
                     }

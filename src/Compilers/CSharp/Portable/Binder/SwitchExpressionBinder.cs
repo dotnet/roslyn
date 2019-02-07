@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var commonType = BestTypeInferrer.GetBestType(typesInOrder, Conversions, out _, ref useSiteDiagnostics);
+            var commonType = BestTypeInferrer.GetBestType(typesInOrder, Conversions, ref useSiteDiagnostics);
             diagnostics.Add(SwitchExpressionSyntax, useSiteDiagnostics);
             if (commonType is null)
             {

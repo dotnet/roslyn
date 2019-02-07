@@ -208,17 +208,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Check that two nullable annotations are "compatible", which means they could be the same. Return the
-        /// nullable annotation to be used as a result. Also returns through <paramref name="hadNullabilityMismatch"/>
-        /// whether the caller should report a warning because there was an actual mismatch (e.g. nullable vs non-nullable).
+        /// nullable annotation to be used as a result.
         /// This uses the invariant merging rules.
         /// </summary>
-        public static NullableAnnotation EnsureCompatible(this NullableAnnotation a, NullableAnnotation b, out bool hadNullabilityMismatch)
+        public static NullableAnnotation EnsureCompatible(this NullableAnnotation a, NullableAnnotation b)
         {
             Debug.Assert(a.IsSpeakable());
             Debug.Assert(b.IsSpeakable());
-
-            hadNullabilityMismatch = (a == NullableAnnotation.Annotated && b == NullableAnnotation.NotAnnotated) ||
-                (a == NullableAnnotation.NotAnnotated && b == NullableAnnotation.Annotated);
 
             if (a == NullableAnnotation.NotAnnotated || b == NullableAnnotation.NotAnnotated)
             {
@@ -234,14 +230,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Check that two nullable annotations are "compatible", which means they could be the same. Return the
-        /// nullable annotation to be used as a result. Also returns through <paramref name="hadNullabilityMismatch"/>
-        /// whether the caller should report a warning because there was an actual mismatch (e.g. nullable vs non-nullable).
+        /// Check that two nullable annotations are "compatible", which means they could be the same.
         /// This method can handle unspeakable types (for merging tuple types).
         /// </summary>
-        public static NullableAnnotation EnsureCompatibleForTuples<T>(this NullableAnnotation a, NullableAnnotation b, T type, Func<T, bool> isPossiblyNullableReferenceTypeTypeParameter, out bool hadNullabilityMismatch)
+        public static NullableAnnotation EnsureCompatibleForTuples<T>(this NullableAnnotation a, NullableAnnotation b, T type, Func<T, bool> isPossiblyNullableReferenceTypeTypeParameter)
         {
-            hadNullabilityMismatch = false;
             if (a == b)
             {
                 return a;
@@ -285,7 +278,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(a.IsAnyNullable() != b.IsAnyNullable());
             }
 
-            hadNullabilityMismatch = true;
             return NullableAnnotation.NotAnnotated;
         }
     }
@@ -534,32 +526,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Merges top-level and nested nullability from an otherwise identical type.
-        /// <paramref name="hadNullabilityMismatch"/> is true if there was conflict
-        /// merging nullability and warning should be reported by the caller.
         /// </summary>
-        internal TypeSymbolWithAnnotations MergeNullability(TypeSymbolWithAnnotations other, VarianceKind variance, out bool hadNullabilityMismatch)
+        internal TypeSymbolWithAnnotations MergeNullability(TypeSymbolWithAnnotations other, VarianceKind variance)
         {
             Debug.Assert(this.NullableAnnotation.IsSpeakable());
             Debug.Assert(other.NullableAnnotation.IsSpeakable());
 
             TypeSymbol typeSymbol = other.TypeSymbol;
-            NullableAnnotation nullableAnnotation = MergeNullableAnnotation(this.NullableAnnotation, other.NullableAnnotation, variance, out bool hadTopLevelMismatch);
-            TypeSymbol type = TypeSymbol.MergeNullability(typeSymbol, variance, out bool hadNestedMismatch);
+            NullableAnnotation nullableAnnotation = MergeNullableAnnotation(this.NullableAnnotation, other.NullableAnnotation, variance);
+            TypeSymbol type = TypeSymbol.MergeNullability(typeSymbol, variance);
             Debug.Assert((object)type != null);
-            hadNullabilityMismatch = hadTopLevelMismatch | hadNestedMismatch;
             return Create(type, nullableAnnotation, CustomModifiers);
         }
 
         /// <summary>
         /// Merges nullability.
-        /// <paramref name="hadNullabilityMismatch"/> is true if there was conflict.
         /// </summary>
-        private static NullableAnnotation MergeNullableAnnotation(NullableAnnotation a, NullableAnnotation b, VarianceKind variance, out bool hadNullabilityMismatch)
+        private static NullableAnnotation MergeNullableAnnotation(NullableAnnotation a, NullableAnnotation b, VarianceKind variance)
         {
             Debug.Assert(a.IsSpeakable());
             Debug.Assert(b.IsSpeakable());
 
-            hadNullabilityMismatch = false;
             switch (variance)
             {
                 case VarianceKind.In:
@@ -567,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case VarianceKind.Out:
                     return a.JoinForFixingLowerBounds(b);
                 case VarianceKind.None:
-                    return a.EnsureCompatible(b, out hadNullabilityMismatch);
+                    return a.EnsureCompatible(b);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(variance);
             }

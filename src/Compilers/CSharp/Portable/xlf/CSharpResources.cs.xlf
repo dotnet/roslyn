@@ -892,16 +892,6 @@
         <target state="new">SyntaxTree is not part of the compilation, so it cannot be removed</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_CantInferNullabilityOfMethodTypeArgs">
-        <source>The nullability of type arguments for method '{0}' cannot be inferred from the usage. Try specifying the type arguments explicitly.</source>
-        <target state="new">The nullability of type arguments for method '{0}' cannot be inferred from the usage. Try specifying the type arguments explicitly.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CantInferNullabilityOfMethodTypeArgs_Title">
-        <source>The nullability of type arguments for method cannot be inferred from the usage. Try specifying the type arguments explicitly.</source>
-        <target state="new">The nullability of type arguments for method cannot be inferred from the usage. Try specifying the type arguments explicitly.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
         <source>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</source>
         <target state="new">The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</target>
@@ -990,26 +980,6 @@
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' context.</source>
         <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' context.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NoBestNullabilityArrayElements">
-        <source>No best nullability found for implicitly-typed array.</source>
-        <target state="new">No best nullability found for implicitly-typed array.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NoBestNullabilityArrayElements_Title">
-        <source>No best nullability found for implicitly-typed array.</source>
-        <target state="new">No best nullability found for implicitly-typed array.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NoBestNullabilityConditionalExpression">
-        <source>No best nullability for operands of conditional expression '{0}' and '{1}'.</source>
-        <target state="new">No best nullability for operands of conditional expression '{0}' and '{1}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NoBestNullabilityConditionalExpression_Title">
-        <source>No best nullability for operands of conditional expression.</source>
-        <target state="new">No best nullability for operands of conditional expression.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">

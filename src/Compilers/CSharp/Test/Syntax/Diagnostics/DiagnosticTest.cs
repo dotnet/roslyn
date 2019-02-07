@@ -288,14 +288,11 @@ class X
                         case ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
                         case ErrorCode.WRN_NullAsNonNullable:
-                        case ErrorCode.WRN_NoBestNullabilityConditionalExpression:
                         case ErrorCode.WRN_NullableValueTypeMayBeNull:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
                         case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
                         case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
-                        case ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs:
-                        case ErrorCode.WRN_NoBestNullabilityArrayElements:
                         case ErrorCode.WRN_CaseConstantNamedUnderscore:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
