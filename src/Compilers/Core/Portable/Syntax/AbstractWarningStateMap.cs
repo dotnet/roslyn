@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Syntax
         /// <summary>
         /// Records if this state map is for generated code, which can have differing semantics in some cases
         /// </summary>
-        protected bool _isGeneratedCode;
+        protected readonly bool _isGeneratedCode;
 
         protected AbstractWarningStateMap(SyntaxTree syntaxTree, bool isGeneratedCode)
         {
