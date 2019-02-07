@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -627,7 +628,8 @@ namespace Microsoft.CodeAnalysis
             CheckDocumentIsOpen(documentId);
             var doc = solution.GetDocument(documentId);
             // text should always be preserved, so TryGetText will succeed.
-            doc.TryGetText(out var text);
+            var success = doc.TryGetText(out var text);
+            Debug.Assert(success);
             return text;
         }
 
@@ -636,7 +638,8 @@ namespace Microsoft.CodeAnalysis
             CheckDocumentIsOpen(documentId);
             var doc = solution.GetAdditionalDocument(documentId);
             // text should always be preserved, so TryGetText will succeed.
-            doc.TryGetText(out var text);
+            var success = doc.TryGetText(out var text);
+            Debug.Assert(success);
             return text;
         }
 

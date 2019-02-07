@@ -907,7 +907,7 @@ class D { }
 
                 // Make sure that additional documents are included in GetOpenDocumentIds.
                 var openDocumentIds = workspace.GetOpenDocumentIds();
-                Assert.Equal(1, openDocumentIds.Count());
+                Assert.Single(openDocumentIds);
                 Assert.Equal(additionalDoc.Id, openDocumentIds.Single());
 
                 workspace.OnAdditionalDocumentClosed(additionalDoc.Id, TextLoader.From(TextAndVersion.Create(text, version)));
@@ -1002,11 +1002,11 @@ class D { }
                 workspace.AddTestProject(project1);
 
                 var documentIdsWithFilePath = workspace.CurrentSolution.GetDocumentIdsWithFilePath(docFilePath);
-                Assert.Equal(1, documentIdsWithFilePath.Count());
+                Assert.Single(documentIdsWithFilePath);
                 Assert.Equal(document.Id, documentIdsWithFilePath.Single());
 
                 documentIdsWithFilePath = workspace.CurrentSolution.GetDocumentIdsWithFilePath(additionalDocFilePath);
-                Assert.Equal(1, documentIdsWithFilePath.Count());
+                Assert.Single(documentIdsWithFilePath);
                 Assert.Equal(additionalDoc.Id, documentIdsWithFilePath.Single());
             }
         }
