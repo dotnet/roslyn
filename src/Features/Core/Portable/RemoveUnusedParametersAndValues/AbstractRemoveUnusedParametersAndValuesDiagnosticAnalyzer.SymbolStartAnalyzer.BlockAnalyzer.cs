@@ -568,6 +568,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     // This is true if the expression for the assigned value has no side effects.
                     bool IsRemovableAssignmentWithoutSideEffects(IOperation unusedSymbolWriteOperation)
                     {
+                        if (_symbolStartAnalyzer._compilationAnalyzer.ShouldBailOutFromRemovableAssignmentAnalysis(unusedSymbolWriteOperation))
+                        {
+                            return false;
+                        }
+
                         if (unusedSymbolWriteOperation.Parent is IAssignmentOperation assignment &&
                             assignment.Target == unusedSymbolWriteOperation)
                         {

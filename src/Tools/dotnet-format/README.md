@@ -4,7 +4,17 @@
 
 ### How To Install
 
-The `dotnet-format` nuget package is currently being hosted on myget. You can visit the [dotnet-format myget page](https://dotnet.myget.org/feed/roslyn/package/nuget/dotnet-format) to get the latest version number.
+The `dotnet-format` nuget package is currently in beta and published to nuget.org. You can visit the [dotnet-format nuget page](https://www.nuget.org/packages/dotnet-format/) to get the latest version number.
+
+You can install the tool using the following command.
+
+```console
+dotnet tool install -g dotnet-format --version 3.0.0-beta4-19105-10
+```
+
+#### Installing Development Builds
+
+Development builds of `dotnet-format` are being hosted on myget. You can visit the [dotnet-format myget page](https://dotnet.myget.org/feed/roslyn/package/nuget/dotnet-format) to get the latest version number.
 
 You can install the tool using the following command.
 
@@ -55,8 +65,8 @@ cd Tools
 cd dotnet-format
 dotnet pack -c release -o nupkg /p:SemanticVersioningV1=false
 # The final line from the build will read something like
-# Successfully created package '..\roslyn\src\Tools\dotnet-code-format\nupkg\dotnet-format.2.11.0-dev.nupkg'.
-# Use the value that is in the form `2.11.0-dev` as the version in the next command.
+# Successfully created package '..\roslyn\src\Tools\dotnet-code-format\nupkg\dotnet-format.3.0.0-dev.nupkg'.
+# Use the value that is in the form `3.0.0-dev` as the version in the next command.
 dotnet tool install --add-source .\nupkg -g dotnet-format --version <version>
 dotnet format
 ```
