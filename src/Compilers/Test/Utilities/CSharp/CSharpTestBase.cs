@@ -2034,6 +2034,18 @@ namespace System
 
         #region Theory Helpers
 
+        public static IEnumerable<object[]> NonNullTypesEnableDisable
+        {
+            get
+            {
+                return new List<object[]>()
+                {
+                    new object[] { NonNullTypesOn() },
+                    new object[] { NonNullTypesOff() }
+                };
+            }
+        }
+
         public static IEnumerable<object[]> NonNullTypesTrueAndFalseDebugDll
         {
             get

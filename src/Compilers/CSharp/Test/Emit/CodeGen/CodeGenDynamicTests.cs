@@ -711,11 +711,12 @@ public class C
             });
         }
 
-        [Fact]
+        [Theory]
+        [MemberData(nameof(NonNullTypesEnableDisable))]
         [WorkItem(625282, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/625282")]
-        public void GenericIterator()
+        public void GenericIterator(string nullableDirective)
         {
-            string source = @"
+            string source = nullableDirective + Environment.NewLine + @"
 using System.Collections.Generic;
 
 class C
@@ -856,10 +857,11 @@ public class C
             });
         }
 
-        [Fact]
-        public void GenericContainer1()
+        [Theory]
+        [MemberData(nameof(NonNullTypesEnableDisable))]
+        public void GenericContainer1(string nullableDirective)
         {
-            string source = @"
+            string source = nullableDirective + Environment.NewLine + @"
 public class C
 {
     public T M<T>(dynamic d)
@@ -892,10 +894,11 @@ public class C
 ");
         }
 
-        [Fact]
-        public void GenericContainer2()
+        [Theory]
+        [MemberData(nameof(NonNullTypesEnableDisable))]
+        public void GenericContainer2(string nullableDirective)
         {
-            string source = @"
+            string source = nullableDirective + Environment.NewLine + @"
 public class E<P, Q, R> {}
 
 public class C<U>
@@ -947,10 +950,11 @@ public class C<U>
 ");
         }
 
-        [Fact]
-        public void GenericContainer3()
+        [Theory]
+        [MemberData(nameof(NonNullTypesEnableDisable))]
+        public void GenericContainer3(string nullableDirective)
         {
-            string source = @"
+            string source = nullableDirective + Environment.NewLine + @"
 public class C<U>
 {
     public dynamic M(dynamic d)
@@ -1011,11 +1015,12 @@ class C
             CompileAndVerifyWithCSharp(source);
         }
 
-        [Fact]
+        [Theory]
+        [MemberData(nameof(NonNullTypesEnableDisable))]
         [WorkItem(627091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627091")]
-        public void GenericContainer_Lambda()
+        public void GenericContainer_Lambda(string nullableDirective)
         {
-            string source = @"
+            string source = nullableDirective + Environment.NewLine + @"
 class C
 {
     static void Goo<T>(T a, dynamic b)
