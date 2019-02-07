@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestHelpers;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
 {
@@ -6100,6 +6101,257 @@ public class C
         return (LocalFunction, true);
     }
 }", optionName);
+        }
+
+        [WorkItem(32923, "https://github.com/dotnet/roslyn/issues/32923")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedLocal_ForEach()
+        {
+            await TestDiagnosticsAsync(
+@"using System;
+
+public struct S
+{
+    public Enumerator GetEnumerator() => throw new NotImplementedException();
+
+    public struct Enumerator
+    {
+        public Enumerator(S sequence) => throw new NotImplementedException();
+        public int Current => throw new NotImplementedException();
+        public bool MoveNext() => throw new NotImplementedException();
+    }
+}
+
+class C
+{
+    void M(S s)
+    {
+        foreach (var [|x|] in s)
+        {
+        }
+    }
+}", new TestParameters(options: PreferDiscard, retainNonFixableDiagnostics: true),
+    Diagnostic("IDE0059"));
+        }
+
+        [WorkItem(32923, "https://github.com/dotnet/roslyn/issues/32923")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData("_", nameof(PreferDiscard))]
+        [InlineData("_", nameof(PreferUnusedLocal))]
+        [InlineData("_1", nameof(PreferDiscard))]
+        [InlineData("_1", nameof(PreferUnusedLocal))]
+        public async Task UnusedLocal_SpecialName_01(string variableName, string optionName)
+        {
+            await TestDiagnosticMissingAsync(
+$@"using System;
+
+public struct S
+{{
+    public Enumerator GetEnumerator() => throw new NotImplementedException();
+
+    public struct Enumerator
+    {{
+        public Enumerator(S sequence) => throw new NotImplementedException();
+        public int Current => throw new NotImplementedException();
+        public bool MoveNext() => throw new NotImplementedException();
+    }}
+}}
+
+class C
+{{
+    void M(S s)
+    {{
+        foreach (var [|{variableName}|] in s)
+        {{
+        }}
+    }}
+}}", new TestParameters(options: GetOptions(optionName), retainNonFixableDiagnostics: true));
+        }
+
+        [WorkItem(32923, "https://github.com/dotnet/roslyn/issues/32923")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData("_", nameof(PreferDiscard))]
+        [InlineData("_", nameof(PreferUnusedLocal))]
+        [InlineData("_3", nameof(PreferDiscard))]
+        [InlineData("_3", nameof(PreferUnusedLocal))]
+        public async Task UnusedLocal_SpecialName_02(string variableName, string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+$@"using System;
+
+public class C
+{{
+    public void M(int p)
+    {{
+        var [|{variableName}|] = p;
+    }}
+}}", optionName);
+        }
+
+        [WorkItem(32959, "https://github.com/dotnet/roslyn/issues/32959")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UsedVariable_BailOutOnSemanticError()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int [|x|] = 1;
+        
+        // CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type.
+        Invoke<string>(() => x);
+
+        T Invoke<T>(Func<T> a) { return a(); }
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(32959, "https://github.com/dotnet/roslyn/issues/32959")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedVariable_BailOutOnSemanticError()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int [|x|] = 1;
+        
+        // CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type.
+        Invoke<string>(() => 0);
+
+        T Invoke<T>(Func<T> a) { return a(); }
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(32946, "https://github.com/dotnet/roslyn/issues/32946")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DelegateEscape_01()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    Action[] M()
+    {
+        var [|j|] = 0;
+        return new Action[1] { () => Console.WriteLine(j) };
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(32946, "https://github.com/dotnet/roslyn/issues/32946")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DelegateEscape_02()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    Action[] M(Action[] actions)
+    {
+        var [|j|] = 0;
+        actions[0] = () => Console.WriteLine(j);
+        return actions;
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(32946, "https://github.com/dotnet/roslyn/issues/32946")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DelegateEscape_03()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    Action[,] M(Action[,] actions)
+    {
+        var [|j|] = 0;
+        actions[0, 0] = () => Console.WriteLine(j);
+        return actions;
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(32946, "https://github.com/dotnet/roslyn/issues/32946")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DelegateEscape_04()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    List<Action> M()
+    {
+        var [|j|] = 0;
+        return new List<Action> { () => Console.WriteLine(j) };
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(32946, "https://github.com/dotnet/roslyn/issues/32946")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DelegateEscape_05()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    List<Action> M()
+    {
+        var [|j|] = 0;
+        var list = new List<Action>();
+        list.Add(() => Console.WriteLine(j));
+        return list;
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(32924, "https://github.com/dotnet/roslyn/issues/32924")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DelegateEscape_06()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int [|j|] = 0;
+        Console.CancelKeyPress += (s, e) => e.Cancel = j != 0;
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(32924, "https://github.com/dotnet/roslyn/issues/32924")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DelegateEscape_07()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int [|j|] = 0;
+        Console.CancelKeyPress += LocalFunctionHandler;
+        return;
+
+        void LocalFunctionHandler(object s, ConsoleCancelEventArgs e) => e.Cancel = j != 0;
+    }
+}", options: PreferDiscard);
         }
     }
 }
