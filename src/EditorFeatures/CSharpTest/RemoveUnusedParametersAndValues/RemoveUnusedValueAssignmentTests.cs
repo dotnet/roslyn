@@ -6353,5 +6353,55 @@ class C
     }
 }", options: PreferDiscard);
         }
+
+        [WorkItem(32856, "https://github.com/dotnet/roslyn/issues/32856")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task RedundantAssignment_IfStatementParent()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int j)
+    {
+        if (M2())
+            [|j|] = 0;
+    }
+
+    bool M2() => true;
+}",
+@"class C
+{
+    void M(int j)
+    {
+        if (M2())
+            _ = 0;
+    }
+
+    bool M2() => true;
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(32856, "https://github.com/dotnet/roslyn/issues/32856")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task RedundantAssignment_LoopStatementParent()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int j, int[] array)
+    {
+        for (int i = 0; i < array.Length; i++)
+            [|j|] = i;
+    }
+}",
+@"class C
+{
+    void M(int j, int[] array)
+    {
+        for (int i = 0; i < array.Length; i++)
+            _ = i;
+    }
+}", options: PreferDiscard);
+        }
     }
 }

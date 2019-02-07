@@ -134,7 +134,7 @@
       </trans-unit>
       <trans-unit id="Go_to_Definition">
         <source>Go to Definition</source>
-        <target state="translated">Vai alla definizione</target>
+        <target state="translated">Vai a definizione</target>
         <note />
       </trans-unit>
       <trans-unit id="Import_Directives">
@@ -269,7 +269,7 @@
       </trans-unit>
       <trans-unit id="VB_Coding_Conventions">
         <source>VB Coding Conventions</source>
-        <target state="new">VB Coding Conventions</target>
+        <target state="translated">Convenzioni di scrittura codice VB</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">

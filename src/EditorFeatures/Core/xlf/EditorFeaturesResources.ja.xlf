@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Do_not_show_this_message_again">
         <source>Do not show this message again</source>
-        <target state="translated">今後このメッセージを表示しない</target>
+        <target state="translated">今後、このメッセージを表示しない</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Paste_Tracking">
         <source>Paste Tracking</source>
-        <target state="new">Paste Tracking</target>
+        <target state="translated">追跡の貼り付け</target>
         <note />
       </trans-unit>
       <trans-unit id="Preprocessor_Text">
@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
-        <target state="new">String - Escape Character</target>
+        <target state="translated">String - Escape Character</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_Static">
