@@ -229,9 +229,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 // without disabling the diagnostic completely.
                 // We ignore parameter names that start with an underscore and are optionally followed by an integer,
                 // such as '_', '_1', '_2', etc.
-                if (parameter.Name.StartsWith("_") &&
-                    (parameter.Name.Length == 1 ||
-                     uint.TryParse(parameter.Name.Substring(1), out _)))
+                if (IsSymbolWithSpecialDiscardName(parameter))
                 {
                     return false;
                 }
