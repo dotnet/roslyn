@@ -8,6 +8,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
     {
         public static ScriptOptions WithLanguageVersion(this ScriptOptions options, LanguageVersion languageVersion)
         {
+            if (options.ParseOptions is CSharpParseOptions csharpParseOptions && csharpParseOptions.LanguageVersion == languageVersion)
+                return options;
+
             return options.WithParseOptions(new CSharpParseOptions(kind: SourceCodeKind.Script, languageVersion: languageVersion));
         }
     }
