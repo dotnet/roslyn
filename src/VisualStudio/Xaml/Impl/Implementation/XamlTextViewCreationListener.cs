@@ -165,6 +165,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             var info = _rdt.Value.GetDocumentInfo(docCookie);
             var buffer = TryGetTextBufferFromDocData(info.DocData);
 
+            // If the file extension changed which causes the content type to change
+            // (e.g. from .xaml to .cs) we should not add the new document to Xaml project.
             if (buffer != null && buffer.ContentType.IsOfType(ContentTypeNames.XamlContentType))
             {
                 project.AddSourceFile(newMoniker);
