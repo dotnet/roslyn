@@ -46,8 +46,6 @@ param (
     [string]$officialBuildId = "",
     [string]$officialSkipApplyOptimizationData = "",
     [string]$officialSkipTests = "",
-    [string]$vsDropName = "",
-    [string]$vsDropAccessToken = "",
 
     # Test actions
     [switch]$test32,
@@ -97,13 +95,11 @@ function Print-Usage() {
     Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
     Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
     Write-Host "  -warnAsError              Treat all warnings as errors"
-    Write-Host ""    
+    Write-Host ""
     Write-Host "Official build settings:"
     Write-Host "  -officialBuildId                            An official build id, e.g. 20190102.3"
     Write-Host "  -officialSkipTests <bool>                   Pass 'true' to not run tests"
     Write-Host "  -officialSkipApplyOptimizationData <bool>   Pass 'true' to not apply optimization data"
-    Write-Host "  -vsDropName                                 Visual Studio product drop name"
-    Write-Host "  -vsDropAccessToken                          Visual Studio drop access token"
     Write-Host ""
     Write-Host "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -120,12 +116,12 @@ function Process-Arguments() {
         if ((Get-Variable $argName -Scope Script).Value) {
             if (!$officialBuildId) {
                 Write-Host "$argName can only be specified for official builds"
-                exit 1          
+                exit 1
             }
         } else {
             if ($officialBuildId) {
                 Write-Host "$argName must be specified in official builds"
-                exit 1          
+                exit 1
             }
         }
     }
@@ -135,21 +131,22 @@ function Process-Arguments() {
        exit 0
     }
 
-    OfficialBuildOnly "vsDropName"
-    OfficialBuildOnly "vsDropAccessToken"
     OfficialBuildOnly "officialSkipTests"
     OfficialBuildOnly "officialSkipApplyOptimizationData"
 
     if ($officialBuildId) {
+        $script:useGlobalNuGetCache = $false
         $script:procdump = $true
         $script:testDesktop = ![System.Boolean]::Parse($officialSkipTests)
         $script:applyOptimizationData = ![System.Boolean]::Parse($officialSkipApplyOptimizationData)
-        $script:buildOptimizationData = $true
     } else {
-        $script:vsDropName = "Products/DummyDrop"
-        $script:applyOptimizationData = $script:buildOptimizationData = $ci -and $configuration -eq "Release" -and $msbuildEngine -eq "vs"
+        $script:applyOptimizationData = $false
     }
-    
+
+    if ($ci) {
+        $script:binaryLog = $true
+    }
+
     if ($test32 -and $test64) {
         Write-Host "Cannot combine -test32 and -test64"
         exit 1
@@ -186,7 +183,7 @@ function Process-Arguments() {
 function BuildSolution() {
     # Roslyn.sln can't be built with dotnet due to WPF and VSIX build task dependencies
     $solution = if ($msbuildEngine -eq 'dotnet') { "Compilers.sln" } else { "Roslyn.sln" }
-    
+
     Write-Host "$($solution):"
 
     $bl = if ($binaryLog) { "/bl:" + (Join-Path $LogDir "Build.binlog") } else { "" }
@@ -195,11 +192,10 @@ function BuildSolution() {
     $toolsetBuildProj = InitializeToolset
     $quietRestore = !$ci
     $testTargetFrameworks = if ($testCoreClr) { "netcoreapp2.1" } else { "" }
-    
-    # Do not set the property to true explicitly, since that would override value projects might set.
-    $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" } 
 
-    $optDataDir = if ($applyOptimizationData) { $IbcOptimizationDataDir } else { "" }
+    # Do not set these properties to true explicitly, since that would override values set in projects.
+    $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" } 
+    $suppressPartialNgenOptimization = if (!$applyOptimizationData) { "/p:ApplyPartialNgenOptimization=false" } else { "" }
 
     # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
     # We don't pass /warnaserror to msbuild ($warnAsError is set to $false by default above), but set 
@@ -224,89 +220,16 @@ function BuildSolution() {
         /p:QuietRestore=$quietRestore `
         /p:QuietRestoreBinaryLog=$binaryLog `
         /p:TestTargetFrameworks=$testTargetFrameworks `
-        /p:VisualStudioDropName=$vsDropName `
         /p:TreatWarningsAsErrors=true `
-        /p:IbcOptimizationDataDir=$optDataDir `
+        $suppressPartialNgenOptimization `
         $suppressExtensionDeployment `
         @properties
 }
 
-function Restore-OptProfData() {
-    $dropToolDir = Get-PackageDir "Drop.App"
-    $dropToolPath = Join-Path $dropToolDir "lib\net45\drop.exe"
-
-    if (!(Test-Path $dropToolPath)) {
-
-        # Only report error when running in an official build.
-        # Allows to test optimization data operations locally by running 
-        # cibuild.cmd after manually restoring internal tools project.
-        if (!$officialBuildId) {
-            $script:applyOptimizationData = $false
-            return
-        }
-
-        Write-Host "Internal tool not found: '$dropToolPath'." -ForegroundColor Red 
-        Write-Host "Run nuget restore `"$EngRoot\internal\Toolset.csproj`"." -ForegroundColor DarkGray 
-        ExitWithExitCode 1
-    }
-    
-    function find-latest-drop($drops) {
-         $result = $null
-         [DateTime]$latest = [DateTime]::New(0)
-         foreach ($drop in $drops) {
-             $dt = [DateTime]::Parse($drop.CreatedDateUtc)
-             if ($result -eq $null -or ($drop.UploadComplete -and !$drop.DeletePending -and ($dt -gt $latest))) {
-                 $result = $drop
-                 $latest = $dt
-             }
-         }
-
-         return $result
-    }
-   
-    Write-Host "Acquiring optimization data"
-
-    Create-Directory $IbcOptimizationDataDir
-
-    $dropServiceUrl = "https://devdiv.artifacts.visualstudio.com"
-    $dropNamePrefix = "OptimizationData/dotnet/roslyn/master-vs-deps"
-    $patAuth = if ($officialBuildId) { "--patAuth `"$vsDropAccessToken`"" } else { "" }
-
-    $dropsJsonPath = Join-Path $LogDir "OptimizationDataDrops.json"
-    $logFile = Join-Path $LogDir "OptimizationDataAcquisition.log"
-
-    Exec-Console $dropToolPath "list --dropservice `"$dropServiceUrl`" $patAuth --pathPrefixFilter `"$dropNamePrefix`" --toJsonFile `"$dropsJsonPath`" --traceto `"$logFile`""
-    $dropsJson = Get-Content -Raw -Path $dropsJsonPath | ConvertFrom-Json
-    
-    $latestDrop = find-latest-drop($dropsJson)
-    
-    if ($latestDrop -eq $null) {
-        Write-Host "No drop matching given name found: $dropServiceUrl/$dropNamePrefix/*" -ForegroundColor Red 
-        ExitWithExitCode 1
-    }
-    
-    # Temporarily hardcoding the drop location name to the last good Preview2 drop. The pipeline that generates new new OptProf drops is generating incomplete data.
-    #$latestDropName = $($latestDrop.Name)
-    $latestDropName = "OptimizationData/dotnet/roslyn/master-vs-deps/75e3797e1105a4da4c10dddda76c3b9398f7725a/223453/935479/1"
-
-    Write-Host "Downloading optimization data from service $dropServiceUrl drop $latestDropName"
-    Exec-Console $dropToolPath "get --dropservice `"$dropServiceUrl`" $patAuth --name `"$latestDropName`" --dest `"$IbcOptimizationDataDir`" --traceto `"$logFile`""
-}
-
-function Build-OptProfData() {
+# Set VSO variables used by MicroBuildBuildVSBootstrapper pipeline task
+function Set-OptProfVariables() {
     $insertionDir = Join-Path $VSSetupDir "Insertion"
-    $optProfDataDir = Join-Path $ArtifactsDir "OptProf\$configuration\Data"
-
-    $optProfConfigFile = Join-Path $EngRoot "config\OptProf.json"
-    $optProfToolDir = Get-PackageDir "RoslynTools.OptProf"
-    $optProfToolExe = Join-Path $optProfToolDir "tools\roslyn.optprof.exe"
-
-    Write-Host "Generating optimization data using '$optProfConfigFile' into '$optProfDataDir'"
-    Exec-Console $optProfToolExe "--configFile $optProfConfigFile --insertionFolder $insertionDir --outputFolder $optProfDataDir"
-
-    # Set VSO variables used by MicroBuildBuildVSBootstrapper pipeline task
     $manifestList = [string]::Join(',', (Get-ChildItem "$insertionDir\*.vsman"))
-
     Write-Host "##vso[task.setvariable variable=VisualStudio.SetupManifestList;]$manifestList"
 }
 
@@ -439,7 +362,7 @@ function Deploy-VsixViaTool() {
     Write-Host "Installing all Roslyn VSIX"
 
     # VSIX files need to be installed in this specific order:
-    $orderedVsixFileNames = @(	
+    $orderedVsixFileNames = @(
         "Roslyn.Compilers.Extension.vsix",
         "Roslyn.VisualStudio.Setup.vsix",
         "Roslyn.VisualStudio.Setup.Dependencies.vsix",
@@ -511,10 +434,6 @@ try {
         Prepare-TempDir
     }
 
-    if ($applyOptimizationData -and $restore) {
-        Restore-OptProfData
-    }
-
     if ($bootstrap) {
         $bootstrapDir = Make-BootstrapBuild
     }
@@ -522,9 +441,9 @@ try {
     if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish -or $testCoreClr) {
         BuildSolution
     }
-    
-    if ($buildOptimizationData -and $build) {
-        Build-OptProfData
+
+    if ($ci -and $build -and $msbuildEngine -eq "vs") {
+        Set-OptProfVariables
     }
 
     if ($testDesktop -or $testVsi -or $testIOperation) {

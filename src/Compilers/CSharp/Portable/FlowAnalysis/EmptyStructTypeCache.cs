@@ -114,8 +114,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             //       unless necessary.
             foreach (var member in type.OriginalDefinition.GetMembersUnordered())
             {
-                var field = GetActualInstanceField(member, type);
-
+                if (member.IsStatic)
+                {
+                    continue;
+                }
+                var field = GetActualField(member, type);
                 if ((object)field != null)
                 {
                     var actualFieldType = field.Type.TypeSymbol;
@@ -141,17 +144,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<FieldSymbol>();
             }
 
-            return GetStructInstanceFields(nts);
+            return GetStructFields(nts, includeStatic: false);
         }
 
-        public IEnumerable<FieldSymbol> GetStructInstanceFields(NamedTypeSymbol type)
+        public IEnumerable<FieldSymbol> GetStructFields(NamedTypeSymbol type, bool includeStatic)
         {
             // PERF: we get members of the OriginalDefinition to not create substituted members/types 
             //       unless necessary.
             foreach (var member in type.OriginalDefinition.GetMembersUnordered())
             {
-                var field = GetActualInstanceField(member, type);
-
+                if (!includeStatic && member.IsStatic)
+                {
+                    continue;
+                }
+                var field = GetActualField(member, type);
                 if ((object)field != null)
                 {
                     yield return field;
@@ -159,29 +165,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private FieldSymbol GetActualInstanceField(Symbol member, NamedTypeSymbol type)
+        private FieldSymbol GetActualField(Symbol member, NamedTypeSymbol type)
         {
-            if (!member.IsStatic)
+            switch (member.Kind)
             {
-                switch (member.Kind)
-                {
-                    case SymbolKind.Field:
-                        var field = (FieldSymbol)member;
-                        // Do not report virtual tuple fields.
-                        // They are additional aliases to the fields of the underlying struct or nested extensions.
-                        // and as such are already accounted for via the nonvirtual fields.
-                        if (field.IsVirtualTupleField)
-                        {
-                            return null;
-                        }
+                case SymbolKind.Field:
+                    var field = (FieldSymbol)member;
+                    // Do not report virtual tuple fields.
+                    // They are additional aliases to the fields of the underlying struct or nested extensions.
+                    // and as such are already accounted for via the nonvirtual fields.
+                    if (field.IsVirtualTupleField)
+                    {
+                        return null;
+                    }
 
-                        return (field.IsFixedSizeBuffer || ShouldIgnoreStructField(field, field.Type.TypeSymbol)) ? null : field.AsMember(type);
+                    return (field.IsFixedSizeBuffer || ShouldIgnoreStructField(field, field.Type.TypeSymbol)) ? null : field.AsMember(type);
 
-                    case SymbolKind.Event:
-                        EventSymbol eventSymbol = (EventSymbol)member;
-                        return (!eventSymbol.HasAssociatedField || ShouldIgnoreStructField(eventSymbol, eventSymbol.Type.TypeSymbol)) ? null : eventSymbol.AssociatedField.AsMember(type);
-                }
+                case SymbolKind.Event:
+                    var eventSymbol = (EventSymbol)member;
+                    return (!eventSymbol.HasAssociatedField || ShouldIgnoreStructField(eventSymbol, eventSymbol.Type.TypeSymbol)) ? null : eventSymbol.AssociatedField.AsMember(type);
             }
+
             return null;
         }
 

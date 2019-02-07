@@ -376,6 +376,11 @@ function GetNuGetPackageCachePath() {
   return $env:NUGET_PACKAGES
 }
 
+# Returns a full path to an Arcade SDK task project file.
+function GetSdkTaskProject([string]$taskName) {
+  return Join-Path (Split-Path (InitializeToolset) -Parent) "SdkTasks\$taskName.proj"
+}
+
 function InitializeToolset() {
   if (Test-Path variable:global:_ToolsetBuildProj) {
     return $global:_ToolsetBuildProj
@@ -394,7 +399,7 @@ function InitializeToolset() {
   }
 
   if (-not $restore) {
-    Write-Host  "Toolset version $toolsetVersion has not been restored."
+    Write-Host "Toolset version $toolsetVersion has not been restored." -ForegroundColor Red
     ExitWithExitCode 1
   }
 
