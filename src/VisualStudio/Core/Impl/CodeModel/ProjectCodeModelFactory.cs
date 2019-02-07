@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Shell;
@@ -74,6 +75,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             _projectCodeModels.TryGetValue(id, out var projectCodeModel);
             return projectCodeModel;
+        }
+
+        public EnvDTE.FileCodeModel GetOrCreateFileCodeModel(ProjectId id, string filePath)
+        {
+            return GetProjectCodeModel(id).GetOrCreateFileCodeModel(filePath).Handle;
         }
 
         public void ScheduleDeferredCleanupTask(Action a)
