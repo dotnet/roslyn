@@ -223,13 +223,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static void CheckFeatureAvailability(this MessageID feature, LanguageVersion availableVersion, DiagnosticBag diagnostics, Location errorLocation)
+        internal static void CheckFeatureAvailability(this MessageID feature, DiagnosticBag diagnostics, Location errorLocation)
         {
-            LanguageVersion requiredVersion = feature.RequiredVersion();
-            if (requiredVersion > availableVersion)
+            var diag = GetFeatureAvailabilityDiagnosticInfo(feature, (CSharpParseOptions)errorLocation.SourceTree.Options);
+            if (diag != null)
             {
-                diagnostics.Add(availableVersion.GetErrorCode(), errorLocation, feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
+                diagnostics.Add(diag, errorLocation);
             }
+        }
+
+        internal static CSDiagnosticInfo GetFeatureAvailabilityDiagnosticInfo(this MessageID feature, CSharpParseOptions options)
+        {
+            LanguageVersion requiredVersion;
+            if (options.IsFeatureEnabled(feature))
+            {
+                return null;
+            }
+
+            string requiredFeature = feature.RequiredFeature();
+            if (requiredFeature != null)
+            {
+                return new CSDiagnosticInfo(ErrorCode.ERR_FeatureIsExperimental, feature.Localize(), requiredFeature);
+            }
+
+            LanguageVersion availableVersion = options.LanguageVersion;
+            requiredVersion = feature.RequiredVersion();
+            return requiredVersion == LanguageVersion.Preview.MapSpecifiedToEffectiveVersion()
+                ? new CSDiagnosticInfo(ErrorCode.ERR_FeatureInPreview, feature.Localize())
+                : new CSDiagnosticInfo(availableVersion.GetErrorCode(), feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
         }
 
         internal static LanguageVersion RequiredVersion(this MessageID feature)

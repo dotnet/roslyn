@@ -206,11 +206,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
             else if (token.Parent is ConstructorDeclarationSyntax constructorDeclaration && constructorDeclaration.Identifier == token)
             {
-                return ClassificationTypeNames.MethodName;
+                return constructorDeclaration.IsParentKind(SyntaxKind.ClassDeclaration)
+                    ? ClassificationTypeNames.ClassName
+                    : ClassificationTypeNames.StructName;
             }
             else if (token.Parent is DestructorDeclarationSyntax destructorDeclaration && destructorDeclaration.Identifier == token)
             {
-                return ClassificationTypeNames.MethodName;
+                return destructorDeclaration.IsParentKind(SyntaxKind.ClassDeclaration)
+                    ? ClassificationTypeNames.ClassName
+                    : ClassificationTypeNames.StructName;
             }
             else if (token.Parent is LocalFunctionStatementSyntax localFunctionStatement && localFunctionStatement.Identifier == token)
             {
