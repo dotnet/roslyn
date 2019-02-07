@@ -82,7 +82,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        public HostWorkspaceServices WorkspaceServices => _workspaceServices;
+        /// <summary>
+        /// Returns the active path to the rule set file that is being used by this project, or null if there isn't a rule set file.
+        /// </summary>
+        public string EffectiveRuleSetFilePath => _ruleSetFile?.Target.Value.FilePath;
 
         private void ReparseCommandLine_NoLock()
         {
@@ -114,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var sourceSearchPaths = ImmutableArray<string>.Empty;
 
             var referenceResolver = new WorkspaceMetadataFileReferenceResolver(
-                    WorkspaceServices.GetRequiredService<IMetadataService>(),
+                    _workspaceServices.GetRequiredService<IMetadataService>(),
                     new RelativePathResolver(referenceSearchPaths, _commandLineArgumentsForCommandLine.BaseDirectory));
 
             var compilationOptions = _commandLineArgumentsForCommandLine.CompilationOptions

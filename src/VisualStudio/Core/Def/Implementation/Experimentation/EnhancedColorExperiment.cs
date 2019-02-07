@@ -10,7 +10,6 @@ using EnvDTE;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
@@ -26,28 +25,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
     [TextViewRole(PredefinedTextViewRoles.Analyzable)]
     internal class EnhancedColorExperiment : ForegroundThreadAffinitizedObject, IWpfTextViewConnectionListener, IDisposable
     {
-        private const string UseEnhancedColorsFlight = "UseEnhancedColors";
-        private const string StopEnhancedColorsFlight = "StopEnhancedColors";
         private const string UseEnhancedColorsSetting = "WindowManagement.Options.UseEnhancedColorsForManagedLanguages";
 
-        private readonly IExperimentationService _experimentationService;
         private readonly IServiceProvider _serviceProvider;
 
         private EnhancedColorApplier _colorApplier;
         private ISettingsManager _settingsManager;
 
         private bool _isDisposed = false;
-        private bool _inUseEnhancedColorsFlight;
-        private bool _inStopEnhancedColorsFlight;
         private bool _hasTextViewOpened;
 
         [ImportingConstructor]
         [Obsolete]
-        private EnhancedColorExperiment(IThreadingContext threadingContext, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, VisualStudioExperimentationService experimentationService)
+        private EnhancedColorExperiment(IThreadingContext threadingContext, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
             : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
-            _experimentationService = experimentationService;
         }
 
         public void Dispose()
@@ -66,21 +59,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                 _hasTextViewOpened = true;
 
                 _colorApplier = new EnhancedColorApplier(_serviceProvider);
-
-                // Check which experimental flights we are in
-                _inUseEnhancedColorsFlight = _experimentationService.IsExperimentEnabled(UseEnhancedColorsFlight);
-                _inStopEnhancedColorsFlight = _experimentationService.IsExperimentEnabled(StopEnhancedColorsFlight);
-
                 _settingsManager = (ISettingsManager)_serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
 
-                // Do not hook settings changed if we have stopped the experiment. 
-                // We will simply remove the enhanced colors if they are applied.
-                if (!_inStopEnhancedColorsFlight)
-                {
-                    // We need to update the theme whenever the Preview Setting changes or the VS Theme changes.
-                    _settingsManager.GetSubset(UseEnhancedColorsSetting).SettingChangedAsync += UseEnhancedColorsSettingChangedAsync;
-                    VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
-                }
+                // We need to update the theme whenever the Preview Setting changes or the VS Theme changes.
+                _settingsManager.GetSubset(UseEnhancedColorsSetting).SettingChangedAsync += UseEnhancedColorsSettingChangedAsync;
+                VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
 
                 VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, UpdateThemeColors);
             }
@@ -117,15 +100,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
             var useEnhancedColorsSetting = _settingsManager.GetValueOrDefault(UseEnhancedColorsSetting, defaultValue: 0);
 
             // useEnhancedColorsSetting
-            //  0 -> use value from flight.
-            //  1 -> always use enhanced colors (unless the kill flight is active).
-            // -1 -> never use enhanced colors.
-            var inEnhancedFlightOrOptIn = _inUseEnhancedColorsFlight || useEnhancedColorsSetting == 1;
-            var inStopFlightOrOptOut = _inStopEnhancedColorsFlight || useEnhancedColorsSetting == -1;
+            //  0 -> use enhanced colors.
+            //  1 -> use enhanced colors.
+            // -1 -> don't use enhanced colors.
 
             // Try to set colors appropriately. We will only set colors if the user
             // has not customized colors and we consider ourselves the color owner.
-            if (!inStopFlightOrOptOut && inEnhancedFlightOrOptIn)
+            if (useEnhancedColorsSetting != -1)
             {
                 _colorApplier.TrySetEnhancedColors(currentThemeId);
             }
@@ -246,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.OperatorOverloaded, DarkThemeMethodYellow);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.ControlKeyword, DarkThemeControlKeywordPurple);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.StructName, DarkThemeStructMint);
-                    UpdateColorItem(colorItemMap, ClassificationTypeNames.StaticSymbol, DefaultForegroundColor, DefaultBackgroundColor, isBold: true);
+                    UpdateColorItem(colorItemMap, ClassificationTypeNames.StaticSymbol, DefaultForegroundColor, DefaultBackgroundColor);
                 }
                 else
                 {
@@ -257,7 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.ExtensionMethodName, LightThemeMethodYellow);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.OperatorOverloaded, LightThemeMethodYellow);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.ControlKeyword, LightThemeControlKeywordPurple);
-                    UpdateColorItem(colorItemMap, ClassificationTypeNames.StaticSymbol, DefaultForegroundColor, DefaultBackgroundColor, isBold: true);
+                    UpdateColorItem(colorItemMap, ClassificationTypeNames.StaticSymbol, DefaultForegroundColor, DefaultBackgroundColor);
                 }
             }
 

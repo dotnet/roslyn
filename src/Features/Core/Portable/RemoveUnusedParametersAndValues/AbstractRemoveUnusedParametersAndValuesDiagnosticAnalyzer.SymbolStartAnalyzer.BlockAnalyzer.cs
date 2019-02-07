@@ -137,8 +137,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                     // Bail out cases for report unused expression value:
 
-                    //  1. Null type and void returning method invocations: no value being dropped here.
+                    //  1. Null type, error type and void returning method invocations: no value being dropped here.
                     if (value.Type == null ||
+                        value.Type.IsErrorType() ||
                         value.Type.SpecialType == SpecialType.System_Void)
                     {
                         return;
@@ -567,6 +568,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     // This is true if the expression for the assigned value has no side effects.
                     bool IsRemovableAssignmentWithoutSideEffects(IOperation unusedSymbolWriteOperation)
                     {
+                        if (_symbolStartAnalyzer._compilationAnalyzer.ShouldBailOutFromRemovableAssignmentAnalysis(unusedSymbolWriteOperation))
+                        {
+                            return false;
+                        }
+
                         if (unusedSymbolWriteOperation.Parent is IAssignmentOperation assignment &&
                             assignment.Target == unusedSymbolWriteOperation)
                         {

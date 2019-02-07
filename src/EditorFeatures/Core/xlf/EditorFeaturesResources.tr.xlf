@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Change_configuration">
         <source>Change configuration</source>
-        <target state="translated">Yapılandırmayı değiştir</target>
+        <target state="translated">Değiştir yapılandırma</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_cleanup_is_not_configured">
@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
-        <target state="translated">Biçim Belgesi ek temizleme gerçekleştirdi</target>
+        <target state="translated">Biçimi belge ek temizleme işlemi</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Paste_Tracking">
         <source>Paste Tracking</source>
-        <target state="new">Paste Tracking</target>
+        <target state="translated">İzleme Yapıştır</target>
         <note />
       </trans-unit>
       <trans-unit id="Preprocessor_Text">
@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
-        <target state="new">String - Escape Character</target>
+        <target state="translated">String - Escape Character</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_Static">
@@ -679,7 +679,7 @@
       </trans-unit>
       <trans-unit id="Insert_new_line">
         <source>Insert new line</source>
-        <target state="translated">Yeni satır ekle</target>
+        <target state="translated">Yeni Satır Ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Documentation_Comment">
@@ -990,7 +990,7 @@
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
         <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="translated">Yapı "out/ref" parametrelerini oluşturmayarak hatayı düzeltebiliriz.
+        <target state="translated">Yapı "out/ref" parametrelerini yapmayarak hatayı düzeltebiliriz. 
 Devam etmek istiyor musunuz?</target>
         <note />
       </trans-unit>
@@ -1231,7 +1231,7 @@ Devam etmek istiyor musunuz?</target>
       </trans-unit>
       <trans-unit id="Execute_In_Interactive">
         <source>Execute In Interactive</source>
-        <target state="translated">Etkileşimli Pencerede Yürüt</target>
+        <target state="translated">Etkileşimli içinde Yürüt</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_Interface">

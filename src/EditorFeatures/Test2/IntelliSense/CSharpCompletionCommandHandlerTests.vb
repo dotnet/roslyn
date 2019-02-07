@@ -4347,6 +4347,32 @@ class C
             End Using
         End Function
 
+        <WorkItem(11959, "https://github.com/dotnet/roslyn/issues/11959")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestGenericAsyncTaskDeclaration(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+namespace A.B
+{
+    class TestClass { }
+}
+
+namespace A
+{
+    class C
+    {
+        async Task&lt;A$$ Method()
+        { }
+    }
+}
+                              </Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertSelectedCompletionItem(displayText:="B", isSoftSelected:=True)
+            End Using
+        End Function
+
         <WorkItem(15348, "https://github.com/dotnet/roslyn/issues/15348")>
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
