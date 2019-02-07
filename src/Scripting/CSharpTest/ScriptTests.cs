@@ -924,10 +924,24 @@ i", options);
         }
 
         [Fact]
-        public void CreateScriptWithNullableContext()
+        public void CreateScriptWithNullableContextWithoutCSharp8()
         {
             var script = CSharpScript.Create(@"#nullable enable
-                string x = null;");
+                string x = null;", ScriptOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_3));
+            var compilation = script.GetCompilation();
+
+            compilation.VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").
+                    WithArguments("nullable reference types", "8.0").
+                    WithLocation(1, 2)
+            );
+        }
+
+        [Fact]
+        public void CreateScriptWithNullableContextWithCSharp8()
+        {
+            var script = CSharpScript.Create(@"#nullable enable
+                string x = null;", ScriptOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
             var compilation = script.GetCompilation();
 
             compilation.VerifyDiagnostics(
