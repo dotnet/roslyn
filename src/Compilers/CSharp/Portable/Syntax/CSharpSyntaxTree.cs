@@ -611,24 +611,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool IsGeneratedCode()
         {
-            if (_lazyIsGeneratedCode == -1)
+            if (_lazyIsGeneratedCode == null)
             {
                 // Create the generated code status on demand
-                bool isGenerated = GeneratedCodeUtilities.IsGeneratedCode(
+                _lazyIsGeneratedCode = GeneratedCodeUtilities.IsGeneratedCode(
                            this,
                            isComment: trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia,
                            cancellationToken: default);
-
-                Interlocked.CompareExchange(ref _lazyIsGeneratedCode, isGenerated ? 1 : 0, -1);
             }
 
-            return _lazyIsGeneratedCode == 1;
+            return _lazyIsGeneratedCode.Value;
         }
 
         private CSharpLineDirectiveMap _lazyLineDirectiveMap;
         private CSharpPragmaWarningStateMap _lazyPragmaWarningStateMap;
         private NullableDirectiveMap _lazyNullableDirectiveMap;
-        private int _lazyIsGeneratedCode = -1;
+        private bool? _lazyIsGeneratedCode = null;
 
         private LinePosition GetLinePosition(int position)
         {
