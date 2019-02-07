@@ -1967,9 +1967,9 @@ class C
 ";
             var c = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             c.VerifyDiagnostics(
-                // (6,15): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // (6,15): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         string? x = null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(6, 15),
                 // (6,17): warning CS0219: The variable 'x' is assigned but its value is never used
                 //         string? x = null;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 17)
@@ -3417,48 +3417,48 @@ class C { }
                 // (6,18): error CS8650: It is not legal to use nullable reference type 'string?' in an is-type expression; use the underlying type 'string' instead.
                 //         _ = x is string? ? 1 : 2;  // error 1: is a nullable reference type
                 Diagnostic(ErrorCode.ERR_IsNullableType, "string?").WithArguments("string").WithLocation(6, 18),
-                // (6,24): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // (6,24): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = x is string? ? 1 : 2;  // error 1: is a nullable reference type
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(6, 24),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(6, 24),
                 // (7,18): error CS8650: It is not legal to use nullable reference type 'string?' in an is-type expression; use the underlying type 'string' instead.
                 //         _ = x is string ? ? 1 : 2; // error 2: is a nullable reference type
                 Diagnostic(ErrorCode.ERR_IsNullableType, "string ?").WithArguments("string").WithLocation(7, 18),
-                // (7,25): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // (7,25): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = x is string ? ? 1 : 2; // error 2: is a nullable reference type
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(7, 25),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(7, 25),
                 // (9,18): error CS8651: It is not legal to use nullable reference type 'string?' in an as expression; use the underlying type 'string' instead.
                 //         _ = x as string ? ?? x;    // error 3: as a nullable reference type
                 Diagnostic(ErrorCode.ERR_AsNullableType, "string ?").WithArguments("string").WithLocation(9, 18),
-                // (9,25): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // (9,25): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = x as string ? ?? x;    // error 3: as a nullable reference type
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(9, 25),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(9, 25),
                 // (14,18): error CS8650: It is not legal to use nullable reference type 'object[]?' in an is-type expression; use the underlying type 'object[]' instead.
                 //         _ = y is object[]? ? 1 : 2;   // error 4
                 Diagnostic(ErrorCode.ERR_IsNullableType, "object[]?").WithArguments("object[]").WithLocation(14, 18),
-                // (14,26): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // (14,26): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = y is object[]? ? 1 : 2;   // error 4
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(14, 26),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(14, 26),
                 // (15,18): error CS8650: It is not legal to use nullable reference type 'object[]?' in an is-type expression; use the underlying type 'object[]' instead.
                 //         _ = y is object[] ? ? 1 : 2;  // error 5
                 Diagnostic(ErrorCode.ERR_IsNullableType, "object[] ?").WithArguments("object[]").WithLocation(15, 18),
-                // (15,27): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // (15,27): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = y is object[] ? ? 1 : 2;  // error 5
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(15, 27),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(15, 27),
                 // (17,18): error CS8651: It is not legal to use nullable reference type 'object[]?' in an as expression; use the underlying type 'object[]' instead.
                 //         _ = y as object[] ? ?? y;     // error 6
                 Diagnostic(ErrorCode.ERR_AsNullableType, "object[] ?").WithArguments("object[]").WithLocation(17, 18),
-                // (17,27): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // (17,27): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = y as object[] ? ?? y;     // error 6
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(17, 27),
-                // (22,21): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(17, 27),
+                // (22,21): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = z is T[]?[] ? 1 : 2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(22, 21),
-                // (23,22): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(22, 21),
+                // (23,22): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = z is T[] ? [] ? 1 : 2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(23, 22),
-                // (25,22): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(23, 22),
+                // (25,22): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = z as T[] ? [] ?? z;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(25, 22)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(25, 22)
                 );
 
             comp = CreateCompilation(source, options: WithNonNullTypesTrue());
@@ -3731,22 +3731,34 @@ class C2
     }
 }
 ";
-            var c = CreateCompilation(new[] { source });
-            c.VerifyDiagnostics(
+            var expected = new[]
+            {
                 // (15,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         z = null; // 1
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(15, 13),
                 // (16,9): warning CS8602: Possible dereference of a null reference.
                 //         z.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(16, 9)
-                );
+            };
+
+            var c = CreateCompilation(new[] { source });
+            c.VerifyDiagnostics(expected);
+
+            c = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            c.VerifyDiagnostics(expected);
+
+            expected = new[]
+            {
+                // (10,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // #nullable enable
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(10, 2)
+            };
 
             var c2 = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
-            c2.VerifyDiagnostics(
-                // (10,2): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
-                // #nullable enable
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(10, 2)
-                );
+            c2.VerifyDiagnostics(expected);
+
+            var c3 = CreateCompilation(source, parseOptions: TestOptions.RegularDefault, skipUsesIsNullable: true);
+            c3.VerifyDiagnostics(expected);
         }
 
         [Fact]
@@ -21904,7 +21916,7 @@ class C
         [Fact]
         public void Array_06()
         {
-            CSharpCompilation c = CreateCompilation(@"
+            const string source = @"
 class C
 {
     static void Main()
@@ -21927,22 +21939,28 @@ class C
         return u3;
     }
 }
-", parseOptions: TestOptions.Regular7);
-
-            c.VerifyDiagnostics(
-                // (10,18): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+";
+            var expected = new[]
+            {
+                // (10,18): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         object []? u1 = null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(10, 18),
-                // (15,20): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(10, 18),
+                // (15,20): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         object [][]? u2 = null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(15, 20),
-                // (20,18): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(15, 20),
+                // (20,18): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         object []?[]? u3 = null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(20, 18),
-                // (20,21): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(20, 18),
+                // (20,21): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         object []?[]? u3 = null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(20, 21)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(20, 21)
+            };
+
+            var c = CreateCompilation(source, parseOptions: TestOptions.Regular7);
+            c.VerifyDiagnostics(expected);
+
+            c = CreateCompilation(source, parseOptions: TestOptions.RegularDefault);
+            c.VerifyDiagnostics(expected);
         }
 
         [Fact]
@@ -36247,27 +36265,27 @@ class Program
                 new[] { source },
                 parseOptions: TestOptions.Regular7, skipUsesIsNullable: true);
             comp.VerifyDiagnostics(
-                // (5,11): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // (5,11): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         G(null!); // 2, 3
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "null!").WithArguments("nullable reference types", "8.0").WithLocation(5, 11),
-                // (6,11): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "null!").WithArguments("nullable reference types").WithLocation(5, 11),
+                // (6,11): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         G((null as string)!); // 4, 5
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "(null as string)!").WithArguments("nullable reference types", "8.0").WithLocation(6, 11),
-                // (7,11): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(null as string)!").WithArguments("nullable reference types").WithLocation(6, 11),
+                // (7,11): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         G(default(string)!); // 6, 7
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default(string)!").WithArguments("nullable reference types", "8.0").WithLocation(7, 11),
-                // (8,11): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "default(string)!").WithArguments("nullable reference types").WithLocation(7, 11),
+                // (8,11): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         G(default!); // 8, 9, 10
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default!").WithArguments("nullable reference types", "8.0").WithLocation(8, 11),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "default!").WithArguments("nullable reference types").WithLocation(8, 11),
                 // (8,11): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //         G(default!); // 8, 9, 10
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(8, 11),
-                // (9,11): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // (9,11): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         G(s!); // 11, 12
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "s!").WithArguments("nullable reference types", "8.0").WithLocation(9, 11),
-                // (3,25): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s!").WithArguments("nullable reference types").WithLocation(9, 11),
+                // (3,25): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static void F(string? s) // 1
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(3, 25)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(3, 25)
                 );
 
             comp = CreateCompilation(
@@ -37217,18 +37235,18 @@ struct S2<T>
                 new[] { source },
                 parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
-                // (5,11): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // (5,11): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         G(1!);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "1!").WithArguments("nullable reference types", "8.0").WithLocation(5, 11),
-                // (6,11): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1!").WithArguments("nullable reference types").WithLocation(5, 11),
+                // (6,11): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         G(((int?)null)!);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "((int?)null)!").WithArguments("nullable reference types", "8.0").WithLocation(6, 11),
-                // (7,11): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "((int?)null)!").WithArguments("nullable reference types").WithLocation(6, 11),
+                // (7,11): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         G(default(S)!);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default(S)!").WithArguments("nullable reference types", "8.0").WithLocation(7, 11),
-                // (8,13): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "default(S)!").WithArguments("nullable reference types").WithLocation(7, 11),
+                // (8,13): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = new S2<object>()!;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "new S2<object>()!").WithArguments("nullable reference types", "8.0").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S2<object>()!").WithArguments("nullable reference types").WithLocation(8, 13));
         }
 
         [Fact, WorkItem(29642, "https://github.com/dotnet/roslyn/issues/29642")]
@@ -37308,15 +37326,15 @@ class C
             // Feature disabled (C# 7).
             comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
-                // (6,13): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // (6,13): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = tStruct!;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "tStruct!").WithArguments("nullable reference types", "8.0").WithLocation(6, 13),
-                // (7,13): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "tStruct!").WithArguments("nullable reference types").WithLocation(6, 13),
+                // (7,13): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = tRef!;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "tRef!").WithArguments("nullable reference types", "8.0").WithLocation(7, 13),
-                // (8,13): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "tRef!").WithArguments("nullable reference types").WithLocation(7, 13),
+                // (8,13): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = tUnconstrained!;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "tUnconstrained!").WithArguments("nullable reference types", "8.0").WithLocation(8, 13)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "tUnconstrained!").WithArguments("nullable reference types").WithLocation(8, 13)
                 );
         }
 
@@ -38936,24 +38954,24 @@ public class D
 ";
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7, skipUsesIsNullable: true);
             comp.VerifyDiagnostics(
-                // (2,2): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // (2,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // #nullable enable
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(2, 2),
-                // (9,2): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(2, 2),
+                // (9,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // #nullable enable
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(9, 2),
-                // (12,2): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(9, 2),
+                // (12,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // #nullable enable
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(12, 2),
-                // (15,2): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(12, 2),
+                // (15,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // #nullable enable
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(15, 2),
-                // (18,2): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(15, 2),
+                // (18,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // #nullable enable
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(18, 2),
-                // (20,2): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(18, 2),
+                // (20,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // #nullable disable
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(20, 2)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(20, 2)
                 );
         }
 
@@ -49048,16 +49066,19 @@ class B<T1> where T1 : class?
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
             var expected = new[] {
-                // (4,29): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (4,29): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // class B<T1> where T1 : class?
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(4, 29),
-                // (6,54): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(4, 29),
+                // (6,54): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static void F2<T2>(T2 t2) where T2 : class?
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(6, 54),
-                // (8,44): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(6, 54),
+                // (8,44): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         void F3<T3>(T3 t3) where T3 : class?
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(8, 44)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(8, 44)
             };
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.RegularDefault, skipUsesIsNullable: true);
             comp.VerifyDiagnostics(expected);
 
             comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
@@ -49067,6 +49088,17 @@ class B<T1> where T1 : class?
                 Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enable", "7.3", "8.0").WithLocation(1, 1),
                 }).ToArray()
                 );
+
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.RegularDefault, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(expected
+                .Concat(new[] {
+                // error CS8630: Invalid 'NullableContextOptions' value: 'Enable' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enable", "7.3", "8.0").WithLocation(1, 1),
+                }).ToArray()
+                );
+
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -51731,12 +51763,12 @@ class B
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7_3);
             var expected = new[]
             {
-                // (4,44): error CS8370: Feature 'object generic type constraint' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (4,44): error CS8652: The feature 'object generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static void F1<T1>() where T1 : object
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "object").WithArguments("object generic type constraint", "8.0").WithLocation(4, 44),
-                // (8,44): error CS8370: Feature 'object generic type constraint' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "object").WithArguments("object generic type constraint").WithLocation(4, 44),
+                // (8,44): error CS8652: The feature 'object generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static void F2<T2>() where T2 : System.Object
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "System.Object").WithArguments("object generic type constraint", "8.0").WithLocation(8, 44)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Object").WithArguments("object generic type constraint").WithLocation(8, 44)
             };
 
             comp.VerifyDiagnostics(expected);
@@ -78936,6 +78968,332 @@ class Program
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         c.F = c.F; // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(10, 9));
+        }
+
+        [Fact]
+        [WorkItem(26651, "https://github.com/dotnet/roslyn/issues/26651")]
+        public void StaticMember_01()
+        {
+            var source =
+@"class Program
+{
+    static readonly string? F = null;
+    static readonly int? G = null;
+    static void Main()
+    {
+        if (F != null)
+            F.ToString();
+        if (G != null)
+            _ = G.Value;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(26651, "https://github.com/dotnet/roslyn/issues/26651")]
+        public void StaticMember_02()
+        {
+            var source =
+@"#pragma warning disable 0649
+class C<T>
+{
+    static T F;
+    static void M()
+    {
+        if (F == null) return;
+        F.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(26651, "https://github.com/dotnet/roslyn/issues/26651")]
+        public void StaticMember_03()
+        {
+            var source =
+@"#pragma warning disable 0649
+class C<T>
+{
+    internal static T F;
+}
+class Program
+{
+    static void F1<T1>()
+    {
+        C<T1>.F.ToString(); // 1
+        C<T1>.F.ToString();
+    }
+    static void F2<T2>() where T2 : class
+    {
+        C<T2?>.F.ToString(); // 2
+        C<T2>.F.ToString();
+    }
+    static void F3<T3>() where T3 : class
+    {
+        C<T3>.F.ToString();
+        C<T3?>.F.ToString();
+    }
+    static void F4<T4>() where T4 : struct
+    {
+        _ = C<T4?>.F.Value; // 3
+        _ = C<T4?>.F.Value;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         C<T1>.F.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "C<T1>.F").WithLocation(10, 9),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         C<T2?>.F.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "C<T2?>.F").WithLocation(15, 9),
+                // (25,13): warning CS8629: Nullable value type may be null.
+                //         _ = C<T4?>.F.Value; // 3
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "C<T4?>.F.Value").WithLocation(25, 13));
+        }
+
+        [Fact]
+        [WorkItem(26651, "https://github.com/dotnet/roslyn/issues/26651")]
+        public void StaticMember_04()
+        {
+            var source =
+@"#pragma warning disable 0649
+class C<T>
+{
+    internal static T F;
+}
+class Program
+{
+    static void F1<T1>()
+    {
+        C<T1>.F = default; // 1
+        C<T1>.F.ToString(); // 2
+    }
+    static void F2<T2>() where T2 : class, new()
+    {
+        C<T2?>.F = new T2();
+        C<T2?>.F.ToString();
+    }
+    static void F3<T3>() where T3 : class, new()
+    {
+        C<T3>.F = new T3();
+        C<T3>.F.ToString();
+    }
+    static void F4<T4>() where T4 : class
+    {
+        C<T4>.F = null; // 3
+        C<T4>.F.ToString(); // 4
+    }
+    static void F5<T5>() where T5 : struct
+    {
+        C<T5?>.F = default(T5);
+        _ = C<T5?>.F.Value;
+    }
+    static void F6<T6>() where T6 : new()
+    {
+        C<T6>.F = new T6();
+        C<T6>.F.ToString();
+    }
+    static void F7()
+    {
+        C<string>.F = null; // 5
+        _ = C<string>.F.Length; // 6
+    }
+    static void F8()
+    {
+        C<int?>.F = 3;
+        _ = C<int?>.F.Value;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,19): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         C<T1>.F = default; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(10, 19),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         C<T1>.F.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "C<T1>.F").WithLocation(11, 9),
+                // (25,19): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         C<T4>.F = null; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(25, 19),
+                // (26,9): warning CS8602: Possible dereference of a null reference.
+                //         C<T4>.F.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "C<T4>.F").WithLocation(26, 9),
+                // (40,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         C<string>.F = null; // 5
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(40, 23),
+                // (41,13): warning CS8602: Possible dereference of a null reference.
+                //         _ = C<string>.F.Length; // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "C<string>.F").WithLocation(41, 13));
+        }
+
+        [Fact]
+        [WorkItem(26651, "https://github.com/dotnet/roslyn/issues/26651")]
+        public void StaticMember_05()
+        {
+            var source =
+@"class C<T>
+{
+    internal static T P
+    {
+        get => throw null;
+        set { }
+    }
+}
+class Program
+{
+    static void F1<T1>()
+    {
+        C<T1>.P = default; // 1
+        C<T1>.P.ToString(); // 2
+    }
+    static void F2<T2>() where T2 : class, new()
+    {
+        C<T2?>.P = new T2();
+        C<T2?>.P.ToString();
+    }
+    static void F3<T3>() where T3 : class, new()
+    {
+        C<T3>.P = new T3();
+        C<T3>.P.ToString();
+    }
+    static void F4<T4>() where T4 : class
+    {
+        C<T4>.P = null; // 3
+        C<T4>.P.ToString(); // 4
+    }
+    static void F5<T5>() where T5 : struct
+    {
+        C<T5?>.P = default(T5);
+        _ = C<T5?>.P.Value;
+    }
+    static void F6<T6>() where T6 : new()
+    {
+        C<T6>.P = new T6();
+        C<T6>.P.ToString();
+    }
+    static void F7()
+    {
+        C<string>.P = null; // 5
+        _ = C<string>.P.Length; // 6
+    }
+    static void F8()
+    {
+        C<int?>.P = 3;
+        _ = C<int?>.P.Value;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,19): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         C<T1>.P = default; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(13, 19),
+                // (14,9): warning CS8602: Possible dereference of a null reference.
+                //         C<T1>.P.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "C<T1>.P").WithLocation(14, 9),
+                // (28,19): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         C<T4>.P = null; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(28, 19),
+                // (29,9): warning CS8602: Possible dereference of a null reference.
+                //         C<T4>.P.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "C<T4>.P").WithLocation(29, 9),
+                // (43,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         C<string>.P = null; // 5
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(43, 23),
+                // (44,13): warning CS8602: Possible dereference of a null reference.
+                //         _ = C<string>.P.Length; // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "C<string>.P").WithLocation(44, 13));
+        }
+
+        [Fact]
+        [WorkItem(26651, "https://github.com/dotnet/roslyn/issues/26651")]
+        public void StaticMember_06()
+        {
+            var source =
+@"#pragma warning disable 0649
+struct S<T>
+{
+    internal static T F;
+}
+class Program
+{
+    static void F1<T1>()
+    {
+        S<T1>.F = default; // 1
+        S<T1>.F.ToString(); // 2
+    }
+    static void F2<T2>() where T2 : class, new()
+    {
+        S<T2?>.F = new T2();
+        S<T2?>.F.ToString();
+    }
+    static void F3<T3>() where T3 : class
+    {
+        S<T3>.F = null; // 3
+        S<T3>.F.ToString(); // 4
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,19): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         S<T1>.F = default; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(10, 19),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         S<T1>.F.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "S<T1>.F").WithLocation(11, 9),
+                // (20,19): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         S<T3>.F = null; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(20, 19),
+                // (21,9): warning CS8602: Possible dereference of a null reference.
+                //         S<T3>.F.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "S<T3>.F").WithLocation(21, 9));
+        }
+
+        [Fact]
+        [WorkItem(26651, "https://github.com/dotnet/roslyn/issues/26651")]
+        public void StaticMember_07()
+        {
+            var source =
+@"struct S<T>
+{
+    internal static T P { get; set; }
+}
+class Program
+{
+    static void F1<T1>()
+    {
+        S<T1>.P = default; // 1
+        S<T1>.P.ToString(); // 2
+    }
+    static void F2<T2>() where T2 : class, new()
+    {
+        S<T2?>.P = new T2();
+        S<T2?>.P.ToString();
+    }
+    static void F3<T3>() where T3 : class
+    {
+        S<T3>.P = null; // 3
+        S<T3>.P.ToString(); // 4
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,19): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         S<T1>.P = default; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(9, 19),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         S<T1>.P.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "S<T1>.P").WithLocation(10, 9),
+                // (19,19): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         S<T3>.P = null; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(19, 19),
+                // (20,9): warning CS8602: Possible dereference of a null reference.
+                //         S<T3>.P.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "S<T3>.P").WithLocation(20, 9));
         }
     }
 }

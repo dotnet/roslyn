@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpResources {
@@ -4737,6 +4737,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ExternHasConstructorInitializer {
             get {
                 return ResourceManager.GetString("ERR_ExternHasConstructorInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The feature &apos;{0}&apos; is currently in Preview and *unsupported*. To use Preview features, use the &apos;preview&apos; language version..
+        /// </summary>
+        internal static string ERR_FeatureInPreview {
+            get {
+                return ResourceManager.GetString("ERR_FeatureInPreview", resourceCulture);
             }
         }
         

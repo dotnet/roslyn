@@ -3629,7 +3629,7 @@ class Test
 }").VerifyDiagnostics();
 
             string expectedOperationTree = @"
-IFromEndIndexOperation (OperationKind.FromEndIndex, Type: System.Index) (Syntax: '^arg')
+IFromEndIndexOperation (OperationKind.None, Type: System.Index) (Syntax: '^arg')
   Operand: 
     IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'arg')
 ";
@@ -3652,7 +3652,7 @@ class Test
 }").VerifyDiagnostics();
 
             string expectedOperationTree = @"
-IFromEndIndexOperation (IsLifted) (OperationKind.FromEndIndex, Type: System.Index?) (Syntax: '^arg')
+IFromEndIndexOperation (IsLifted) (OperationKind.None, Type: System.Index?) (Syntax: '^arg')
   Operand: 
     IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'arg')
 ";
@@ -3675,7 +3675,7 @@ class Test
 }").VerifyDiagnostics();
 
             string expectedOperationTree = @"
-IFromEndIndexOperation (OperationKind.FromEndIndex, Type: System.Index) (Syntax: '^arg')
+IFromEndIndexOperation (OperationKind.None, Type: System.Index) (Syntax: '^arg')
   Operand: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'arg')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

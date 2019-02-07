@@ -1728,14 +1728,16 @@ endRegion:
 
                 case OperationKind.InstanceReference:
                     // Implicit instance receivers, except for anonymous type creations, are expected to have been removed when dealing with creations.
-                    return ((IInstanceReferenceOperation)n).ReferenceKind == InstanceReferenceKind.ContainingTypeInstance ||
-                        ((IInstanceReferenceOperation)n).ReferenceKind == InstanceReferenceKind.ImplicitReceiver &&
-                        n.Type.IsAnonymousType &&
-                        n.Parent is IPropertyReferenceOperation propertyReference &&
-                        propertyReference.Instance == n &&
-                        propertyReference.Parent is ISimpleAssignmentOperation simpleAssignment &&
-                        simpleAssignment.Target == propertyReference &&
-                        simpleAssignment.Parent.Kind == OperationKind.AnonymousObjectCreation;
+                    var instanceReference = (IInstanceReferenceOperation)n;
+                    return instanceReference.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance ||
+                        instanceReference.ReferenceKind == InstanceReferenceKind.PatternInput ||
+                        (instanceReference.ReferenceKind == InstanceReferenceKind.ImplicitReceiver &&
+                         n.Type.IsAnonymousType &&
+                         n.Parent is IPropertyReferenceOperation propertyReference &&
+                         propertyReference.Instance == n &&
+                         propertyReference.Parent is ISimpleAssignmentOperation simpleAssignment &&
+                         simpleAssignment.Target == propertyReference &&
+                         simpleAssignment.Parent.Kind == OperationKind.AnonymousObjectCreation);
 
                 case OperationKind.None:
                     return !(n is IPlaceholderOperation);
@@ -1800,7 +1802,6 @@ endRegion:
                 case OperationKind.Discard:
                 case OperationKind.ReDim:
                 case OperationKind.ReDimClause:
-                case OperationKind.FromEndIndex:
                 case OperationKind.Range:
                 case OperationKind.RecursivePattern:
                 case OperationKind.DiscardPattern:

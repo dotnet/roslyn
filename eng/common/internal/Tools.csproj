@@ -5,8 +5,10 @@
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.DotNet.IBCMerge" Version="$(MicrosoftDotNetIBCMergeVersion)" />
-    <PackageReference Include="Drop.App" Version="$(DropAppVersion)" ExcludeAssets="all" />
+    <!-- Clear references, the SDK may add some depending on UsuingToolXxx settings, but we only want to restore the following -->
+    <PackageReference Remove="@(PackageReference)"/>
+    <PackageReference Include="Microsoft.DotNet.IBCMerge" Version="$(MicrosoftDotNetIBCMergeVersion)" Condition="'$(UsingToolIbcOptimization)' == 'true'" />
+    <PackageReference Include="Drop.App" Version="$(DropAppVersion)" ExcludeAssets="all" Condition="'$(UsingToolVisualStudioIbcTraining)' == 'true'"/>
   </ItemGroup>
   <PropertyGroup>
     <RestoreSources>

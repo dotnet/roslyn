@@ -171,8 +171,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         protected void RemoveFile(string filename)
         {
-            AssertIsForeground();
-
             // We have tests that assert that XOML files should not get added; this was similar
             // behavior to how ASP.NET projects would add .aspx files even though we ultimately ignored
             // them. XOML support is planned to go away for Dev16, but for now leave the logic there.
