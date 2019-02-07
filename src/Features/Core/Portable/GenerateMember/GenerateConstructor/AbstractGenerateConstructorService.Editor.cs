@@ -390,9 +390,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                                     // Can change the parameter name, so do so.  
                                     // But first remove any prefix added due to field naming styles
                                     var fieldNameMinusPrefix = newFieldName.Substring(fieldNamingRule.NamingStyle.Prefix.Length);
-                                    var proposedParameterName = parameterNamingRule.SymbolSpecification != null
-                                        ? parameterNamingRule.NamingStyle.MakeCompliant(fieldNameMinusPrefix).First()
-                                        : fieldNameMinusPrefix;
+                                    var proposedParameterName = parameterNamingRule.NamingStyle.MakeCompliant(fieldNameMinusPrefix).First();
                                     var newParameterName = new ParameterName(proposedParameterName, isFixed: false);
                                     newParameterNamesList[index] = newParameterName;
                                     parameterToNewFieldMap[newParameterName.BestNameForParameter] = newFieldName;
