@@ -868,6 +868,7 @@ End Class")
         End Function
 
         <WorkItem(542055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542055")>
+        <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestDetectAssignmentToSharedFieldFromInstanceConstructor() As Task
             Await TestInRegularAndScriptAsync(
@@ -885,10 +886,10 @@ End Class",
     End Sub
 End Class
 Class A
-    Private P1 As Integer
+    Private p As Integer
 
     Public Sub New(P As Integer)
-        P1 = P
+        Me.p = P
     End Sub
 
     Shared Property P As Integer
@@ -1302,6 +1303,7 @@ End Class")
         End Function
 
         <WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")>
+        <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestAttributesWithNamedArguments() As Task
             Await TestInRegularAndScriptAsync(
@@ -1862,6 +1864,35 @@ End Class",
         Dim x As Integer = 1
         Dim obj As New C(x)
     End Sub
+End Class", options:=options.FieldNamesAreCamelCaseWithUnderscore)
+        End Function
+
+        <WorkItem(542055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542055")>
+        <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestFieldWithNamingStyleAlreadyExists() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    Sub Test()
+        Dim x = New A([|P|]:=5)
+    End Sub
+End Class
+Class A
+    Shared Property _p As Integer
+End Class",
+"Class Program
+    Sub Test()
+        Dim x = New A(P:=5)
+    End Sub
+End Class
+Class A
+    Private _p1 As Integer
+
+    Public Sub New(P As Integer)
+        _p1 = P
+    End Sub
+
+    Shared Property _p As Integer
 End Class", options:=options.FieldNamesAreCamelCaseWithUnderscore)
         End Function
     End Class

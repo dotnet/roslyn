@@ -2957,6 +2957,7 @@ class D : B
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         [WorkItem(11563, "https://github.com/dotnet/roslyn/issues/11563")]
+        [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
         public async Task StripUnderscoresFromParameterNames()
         {
             await TestInRegularAndScriptAsync(
@@ -3542,5 +3543,40 @@ class Program
     }
 }", options: options.FieldNamesAreCamelCaseWithUnderscore);
         }
+
+        [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestFieldWithNamingStyleExists()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    private string _s;
+
+    static void Main(string[] args)
+    {
+        string s = "";
+        new Prog[||]ram(s);
+    }
+}",
+@"
+class Program
+{
+    private string _s;
+
+    public Program(string s)
+    {
+        _s = s;
+    }
+
+    static void Main(string[] args)
+    {
+        string s = "";
+        new Program(s);
+    }
+}", options: options.FieldNamesAreCamelCaseWithUnderscore);
+        }
+
     }
 }
