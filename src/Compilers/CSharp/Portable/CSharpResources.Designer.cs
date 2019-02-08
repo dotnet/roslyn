@@ -11654,6 +11654,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to unmanaged constructed types.
+        /// </summary>
+        internal static string IDS_FeatureUnmanagedConstructedTypes {
+            get {
+                return ResourceManager.GetString("IDS_FeatureUnmanagedConstructedTypes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to unmanaged generic type constraints.
         /// </summary>
         internal static string IDS_FeatureUnmanagedGenericTypeConstraint {
