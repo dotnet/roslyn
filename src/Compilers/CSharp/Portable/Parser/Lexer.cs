@@ -939,7 +939,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void CheckFeatureAvailability(MessageID feature)
         {
-            var info = feature.GetFeatureAvailabilityDiagnosticInfo(Options);
+            var info = feature.GetFeatureAvailabilityDiagnosticInfoOpt(Options);
             if (info != null)
             {
                 AddError(info.Code, info.Arguments);
