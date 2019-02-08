@@ -53037,6 +53037,72 @@ delegate C<object?> D(C<object?> p); // 8
         }
 
         [Fact]
+        [WorkItem(32953, "https://github.com/dotnet/roslyn/issues/32953")]
+        public void Constraints_71()
+        {
+            var source = @"
+#nullable enable
+#pragma warning disable 8019
+
+using static C1<A>;
+using static C1<A?>; // 1
+using static C2<A>;
+using static C2<A?>;
+using static C3<A>; // 2       
+using static C3<A?>;
+using static C4<A>;
+using static C4<A?>;
+
+class A { } 
+static class C1<T> where T : A { } 
+static class C2<T> where T : A? { } 
+static class C3<T> where T : class { } 
+static class C4<T> where T : class? { } 
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,14): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'C1<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
+                // using static C1<A?>; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "C1<A?>").WithArguments("C1<T>", "A", "T", "A?").WithLocation(6, 14),
+                // (10,14): warning CS8634: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'C3<T>'. Nullability of type argument 'A?' doesn't match 'class' constraint.
+                // using static C3<A?>;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "C3<A?>").WithArguments("C3<T>", "T", "A?").WithLocation(10, 14));
+        }
+
+        [Fact]
+        [WorkItem(32953, "https://github.com/dotnet/roslyn/issues/32953")]
+        public void Constraints_72()
+        {
+            var source = @"
+#nullable enable
+#pragma warning disable 8019
+
+using D1 = C1<A>;
+using D2 = C1<A?>; // 1
+using D3 = C2<A>;
+using D4 = C2<A?>;
+using D5 = C3<A>; // 2       
+using D6 = C3<A?>;
+using D7 = C4<A>;
+using D8 = C4<A?>;
+
+class A { } 
+static class C1<T> where T : A { } 
+static class C2<T> where T : A? { } 
+static class C3<T> where T : class { } 
+static class C4<T> where T : class? { } 
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,7): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'C1<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
+                // using D2 = C1<A?>; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "D2").WithArguments("C1<T>", "A", "T", "A?").WithLocation(6, 7),
+                // (10,7): warning CS8634: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'C3<T>'. Nullability of type argument 'A?' doesn't match 'class' constraint.
+                // using D6 = C3<A?>;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "D6").WithArguments("C3<T>", "T", "A?").WithLocation(10, 7));
+        }
+
+        [Fact]
         public void UnconstrainedTypeParameter_Local()
         {
             var source =
