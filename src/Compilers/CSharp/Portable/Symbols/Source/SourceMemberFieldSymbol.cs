@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var options = (CSharpParseOptions)SyntaxTree.Options;
             bool includeNullability = options.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-            Type.CheckAllConstraints(DeclaringCompilation, conversions.WithNullability(includeNullability), ErrorLocation, diagnostics);
+            Type.CheckAllConstraints(DeclaringCompilation, conversions, includeNullability, ErrorLocation, diagnostics);
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
         }
     }

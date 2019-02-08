@@ -578,6 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var corLibrary = _compilation.SourceAssembly.CorLibrary;
             var conversions = new TypeConversions(corLibrary);
+            bool includeNullability = _compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
             foreach (var @using in Usings)
             {
                 // Check if `using static` directives meet constraints.
@@ -585,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var typeSymbol = (TypeSymbol)@using.NamespaceOrType;
                     var location = @using.UsingDirective?.Name.Location ?? NoLocation.Singleton;
-                    typeSymbol.CheckAllConstraints(_compilation, conversions, location, semanticDiagnostics);
+                    typeSymbol.CheckAllConstraints(_compilation, conversions, includeNullability, location, semanticDiagnostics);
                 }
             }
 

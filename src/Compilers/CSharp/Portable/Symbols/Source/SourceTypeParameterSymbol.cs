@@ -261,6 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var corLibrary = this.ContainingAssembly.CorLibrary;
             var conversions = new TypeConversions(corLibrary);
+            bool includeNullability = DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
             var location = _locations[0];
 
             foreach (var constraintType in constraintTypes)
@@ -270,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!diagnostics.Add(location, useSiteDiagnostics))
                 {
-                    constraintType.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
+                    constraintType.CheckAllConstraints(DeclaringCompilation, conversions, includeNullability, location, diagnostics);
                 }
             }
         }
