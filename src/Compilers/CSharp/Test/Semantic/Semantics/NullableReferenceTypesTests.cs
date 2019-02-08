@@ -4303,6 +4303,9 @@ class C<T> where T : class
 }
 ";
             var expectedDiagnostics = new[] {
+                // (36,21): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     event MyDelegate? Event; // warn 20
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(36, 21),
                 // (5,18): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     static string? P // warn 3
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 18),
@@ -4318,9 +4321,6 @@ class C<T> where T : class
                 // (34,30): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     static string M3(C<string?> x, C<string> y) => throw null; // warn 17
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(34, 30),
-                // (36,21): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //     event MyDelegate? Event; // warn 20
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(36, 21),
                 // (40,47): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public static C<T?> operator +(C<T> x, C<T?> y) => throw null; // warn 24 and 25
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(40, 47),
@@ -4420,9 +4420,15 @@ class C<T> where T : class
                 // (43,14): warning CS8634: The type 'T?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'T?' doesn't match 'class' constraint.
                 //         D3(C<T?> x) => throw null; // warn 26
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "T?").WithArguments("C<T>", "T", "T?").WithLocation(43, 14),
+                // (45,36): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                //     public string? this[C<string?> x] { get => throw null; } // warn 27 and 28
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "x").WithArguments("C<T>", "T", "string?").WithLocation(45, 36),
                 // (35,35): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
                 //     delegate string? MyDelegate(C<string?> x); // warn 18 and 19
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "string?").WithArguments("C<T>", "T", "string?").WithLocation(35, 35),
+                // (39,11): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                //     class D2 : C<string?> { } // warn 23
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "D2").WithArguments("C<T>", "T", "string?").WithLocation(39, 11),
                 // (18,25): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
                 //         string? local(C<string?>? x) // warn 7, 8 and 9
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "string?").WithArguments("C<T>", "T", "string?").WithLocation(18, 25),
@@ -53101,8 +53107,13 @@ class B
 ";
             var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
-            // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
             comp1.VerifyDiagnostics(
+                // (8,18): warning CS8631: The type 'ID<string?>' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'ID<string?>' doesn't match constraint type 'ID<string>'.
+                // public interface IB : IA<ID<string?>> // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "IB").WithArguments("IA<TA>", "ID<string>", "TA", "ID<string?>").WithLocation(8, 18),
+                // (11,18): warning CS8631: The type 'ID<string>?' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'ID<string>?' doesn't match constraint type 'ID<string>'.
+                // public interface IC : IA<ID<string>?> // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "IC").WithArguments("IA<TA>", "ID<string>", "TA", "ID<string>?").WithLocation(11, 18),
                 // (24,12): warning CS8631: The type 'ID<string?>' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'ID<string?>' doesn't match constraint type 'ID<string>'.
                 //         IA<ID<string?>> x1; // 3
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "ID<string?>").WithArguments("IA<TA>", "ID<string>", "TA", "ID<string?>").WithLocation(24, 12),
@@ -53170,8 +53181,10 @@ class B
 }
 ";
             var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
             comp1.VerifyDiagnostics(
+                // (8,18): warning CS8634: The type 'string?' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                // public interface IB : IA<string?> // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "IB").WithArguments("IA<TA>", "TA", "string?").WithLocation(8, 18),
                 // (18,12): warning CS8634: The type 'string?' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
                 //         IA<string?> x1; // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "string?").WithArguments("IA<TA>", "TA", "string?").WithLocation(18, 12),
@@ -53324,8 +53337,13 @@ class B<TB1, TB2, TB3> where TB1 : ID<string?> where TB2 : ID<string>? where TB3
 ";
             var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
-            // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
             comp1.VerifyDiagnostics(
+                // (8,18): warning CS8631: The type 'TIB' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TIB' doesn't match constraint type 'ID<string>'.
+                // public interface IB<TIB> : IA<TIB> where TIB : ID<string?> // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "IB").WithArguments("IA<TA>", "ID<string>", "TA", "TIB").WithLocation(8, 18),
+                // (11,18): warning CS8631: The type 'TIC' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TIC' doesn't match constraint type 'ID<string>'.
+                // public interface IC<TIC> : IA<TIC> where TIC : ID<string>? // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "IC").WithArguments("IA<TA>", "ID<string>", "TA", "TIC").WithLocation(11, 18),
                 // (24,12): warning CS8631: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match constraint type 'ID<string>'.
                 //         IA<TB1> x1; // 3
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "TB1").WithArguments("IA<TA>", "ID<string>", "TA", "TB1").WithLocation(24, 12),
@@ -53388,8 +53406,10 @@ class B<TB1, TB2> where TB1 : C? where TB2 : C
 }
 ";
             var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
             comp1.VerifyDiagnostics(
+                // (8,18): warning CS8634: The type 'TIB' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TIB' doesn't match 'class' constraint.
+                // public interface IB<TIB> : IA<TIB> where TIB : C? // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "IB").WithArguments("IA<TA>", "TA", "TIB").WithLocation(8, 18),
                 // (21,12): warning CS8634: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match 'class' constraint.
                 //         IA<TB1> x1; // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "TB1").WithArguments("IA<TA>", "TA", "TB1").WithLocation(21, 12),
@@ -53770,8 +53790,10 @@ class B<TB1, TB2> where TB1 : class? where TB2 : class
 }
 ";
             var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
             comp1.VerifyDiagnostics(
+                // (8,18): warning CS8634: The type 'TIB' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TIB' doesn't match 'class' constraint.
+                // public interface IB<TIB> : IA<TIB> where TIB : class? // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "IB").WithArguments("IA<TA>", "TA", "TIB").WithLocation(8, 18),
                 // (18,12): warning CS8634: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match 'class' constraint.
                 //         IA<TB1> x1; // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "TB1").WithArguments("IA<TA>", "TA", "TB1").WithLocation(18, 12),
@@ -53946,8 +53968,13 @@ public interface IF
 ";
             var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
-            // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
             comp1.VerifyDiagnostics(
+                // (8,18): warning CS8631: The type 'TIB' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TIB' doesn't match constraint type 'ID<string>'.
+                // public interface IB<TIB> : IA<TIB> where TIB : IE?, ID<string?>, IF? // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "IB").WithArguments("IA<TA>", "ID<string>", "TA", "TIB").WithLocation(8, 18),
+                // (11,18): warning CS8631: The type 'TIC' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TIC' doesn't match constraint type 'ID<string>'.
+                // public interface IC<TIC> : IA<TIC> where TIC : IE?, ID<string>?, IF? // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "IC").WithArguments("IA<TA>", "ID<string>", "TA", "TIC").WithLocation(11, 18),
                 // (28,12): warning CS8631: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match constraint type 'ID<string>'.
                 //         IA<TB1> x1; // 3
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "TB1").WithArguments("IA<TA>", "ID<string>", "TA", "TB1").WithLocation(28, 12),
@@ -54420,8 +54447,10 @@ class B
 }
 ";
             var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
             comp1.VerifyDiagnostics(
+                // (8,18): warning CS8631: The type 'string?' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                // public interface IB : IA<string?> // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "IB").WithArguments("IA<TA>", "object", "TA", "string?").WithLocation(8, 18),
                 // (18,12): warning CS8631: The type 'string?' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
                 //         IA<string?> x1; // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("IA<TA>", "object", "TA", "string?").WithLocation(18, 12),
@@ -56177,9 +56206,22 @@ class B4<T> : A<T?, T?>, I<T?, T?>
 {
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29678: Should report warnings that `T?`
-            // does not satisfy `where T : class` constraint or `where U : T` constraint.
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (15,7): warning CS8631: The type 'T?' cannot be used as type parameter 'U' in the generic type or method 'I<T, U>'. Nullability of type argument 'T?' doesn't match constraint type 'T'.
+                // class B2<T> : A<T, T?>, I<T, T?>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "B2").WithArguments("I<T, U>", "T", "U", "T?").WithLocation(15, 7),
+                // (19,7): warning CS8634: The type 'T?' cannot be used as type parameter 'T' in the generic type or method 'A<T, U>'. Nullability of type argument 'T?' doesn't match 'class' constraint.
+                // class B3<T> : A<T?, T>, I<T?, T>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "B3").WithArguments("A<T, U>", "T", "T?").WithLocation(19, 7),
+                // (19,7): warning CS8634: The type 'T?' cannot be used as type parameter 'T' in the generic type or method 'I<T, U>'. Nullability of type argument 'T?' doesn't match 'class' constraint.
+                // class B3<T> : A<T?, T>, I<T?, T>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "B3").WithArguments("I<T, U>", "T", "T?").WithLocation(19, 7),
+                // (23,7): warning CS8634: The type 'T?' cannot be used as type parameter 'T' in the generic type or method 'A<T, U>'. Nullability of type argument 'T?' doesn't match 'class' constraint.
+                // class B4<T> : A<T?, T?>, I<T?, T?>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "B4").WithArguments("A<T, U>", "T", "T?").WithLocation(23, 7),
+                // (23,7): warning CS8634: The type 'T?' cannot be used as type parameter 'T' in the generic type or method 'I<T, U>'. Nullability of type argument 'T?' doesn't match 'class' constraint.
+                // class B4<T> : A<T?, T?>, I<T?, T?>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "B4").WithArguments("I<T, U>", "T", "T?").WithLocation(23, 7));
         }
 
         // `class C<T> where T : class, T?` from metadata.
@@ -56332,9 +56374,15 @@ class C<T> where T : class
                 // (9,41): error CS0405: Duplicate constraint 'I<T>' for type parameter 'U'
                 //     static void F6<U>() where U : I<T>, I<T?> { }
                 Diagnostic(ErrorCode.ERR_DuplicateBound, "I<T?>").WithArguments("I<T>", "U").WithLocation(9, 41),
+                // (10,20): warning CS8634: The type 'T?' cannot be used as type parameter 'T' in the generic type or method 'I<T>'. Nullability of type argument 'T?' doesn't match 'class' constraint.
+                //     static void F7<U>() where U : I<T?>, I<T> { }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "U").WithArguments("I<T>", "T", "T?").WithLocation(10, 20),
                 // (10,42): error CS0405: Duplicate constraint 'I<T>' for type parameter 'U'
                 //     static void F7<U>() where U : I<T?>, I<T> { }
                 Diagnostic(ErrorCode.ERR_DuplicateBound, "I<T>").WithArguments("I<T>", "U").WithLocation(10, 42),
+                // (11,20): warning CS8634: The type 'T?' cannot be used as type parameter 'T' in the generic type or method 'I<T>'. Nullability of type argument 'T?' doesn't match 'class' constraint.
+                //     static void F8<U>() where U : I<T?>, I<T?> { }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "U").WithArguments("I<T>", "T", "T?").WithLocation(11, 20),
                 // (11,42): error CS0405: Duplicate constraint 'I<T>' for type parameter 'U'
                 //     static void F8<U>() where U : I<T?>, I<T?> { }
                 Diagnostic(ErrorCode.ERR_DuplicateBound, "I<T?>").WithArguments("I<T>", "U").WithLocation(11, 42));
@@ -56521,12 +56569,24 @@ class C4<T, U> : I<T?>, I<U?> where T : class where U : class { }";
                 // (2,7): error CS0695: 'C1<T, U>' cannot implement both 'I<T>' and 'I<U>' because they may unify for some type parameter substitutions
                 // class C1<T, U> : I<T>, I<U> where T : class where U : class { }
                 Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C1").WithArguments("C1<T, U>", "I<T>", "I<U>").WithLocation(2, 7),
+                // (3,7): warning CS8634: The type 'U?' cannot be used as type parameter 'T' in the generic type or method 'I<T>'. Nullability of type argument 'U?' doesn't match 'class' constraint.
+                // class C2<T, U> : I<T>, I<U?> where T : class where U : class { }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "C2").WithArguments("I<T>", "T", "U?").WithLocation(3, 7),
                 // (3,7): error CS0695: 'C2<T, U>' cannot implement both 'I<T>' and 'I<U?>' because they may unify for some type parameter substitutions
                 // class C2<T, U> : I<T>, I<U?> where T : class where U : class { }
                 Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C2").WithArguments("C2<T, U>", "I<T>", "I<U?>").WithLocation(3, 7),
-                // (4,7): error CS0695: 'C3<T, U>' cannot implement both 'I<T?>' and 'I<U?>' because they may unify for some type parameter substitutions
+                // (4,7): warning CS8634: The type 'T?' cannot be used as type parameter 'T' in the generic type or method 'I<T>'. Nullability of type argument 'T?' doesn't match 'class' constraint.
+                // class C3<T, U> : I<T?>, I<U> where T : class where U : class { }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "C3").WithArguments("I<T>", "T", "T?").WithLocation(4, 7),
+                // (4,7): error CS0695: 'C3<T, U>' cannot implement both 'I<T?>' and 'I<U>' because they may unify for some type parameter substitutions
                 // class C3<T, U> : I<T?>, I<U> where T : class where U : class { }
                 Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C3").WithArguments("C3<T, U>", "I<T?>", "I<U>").WithLocation(4, 7),
+                // (5,7): warning CS8634: The type 'T?' cannot be used as type parameter 'T' in the generic type or method 'I<T>'. Nullability of type argument 'T?' doesn't match 'class' constraint.
+                // class C4<T, U> : I<T?>, I<U?> where T : class where U : class { }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "C4").WithArguments("I<T>", "T", "T?").WithLocation(5, 7),
+                // (5,7): warning CS8634: The type 'U?' cannot be used as type parameter 'T' in the generic type or method 'I<T>'. Nullability of type argument 'U?' doesn't match 'class' constraint.
+                // class C4<T, U> : I<T?>, I<U?> where T : class where U : class { }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "C4").WithArguments("I<T>", "T", "U?").WithLocation(5, 7),
                 // (5,7): error CS0695: 'C4<T, U>' cannot implement both 'I<T?>' and 'I<U?>' because they may unify for some type parameter substitutions
                 // class C4<T, U> : I<T?>, I<U?> where T : class where U : class { }
                 Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C4").WithArguments("C4<T, U>", "I<T?>", "I<U?>").WithLocation(5, 7));
@@ -56905,7 +56965,10 @@ class B4 : A<string?>
             comp.VerifyDiagnostics(
                 // (11,20): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // class B2 : A<string?>
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(11, 20)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(11, 20),
+                // (27,7): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'A<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                // class B4 : A<string?>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "B4").WithArguments("A<T>", "T", "string?").WithLocation(27, 7)
                 );
             verifyAllConstraintTypes();
 
@@ -56923,7 +56986,10 @@ class B4 : A<string?>
             comp.VerifyDiagnostics(
                 // (11,20): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // class B2 : A<string?>
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(11, 20)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(11, 20),
+                // (27,7): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'A<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                // class B4 : A<string?>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "B4").WithArguments("A<T>", "T", "string?").WithLocation(27, 7)
                 );
             verifyAllConstraintTypes();
 
@@ -57340,8 +57406,16 @@ class B4<T> where T : A2<T?, T> { }";
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 27),
                 // (3,26): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // class B2<T> where T : A2<T?, T> { } // 2
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(3, 26)
-                );
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(3, 26),
+                // (5,10): warning CS8634: The type 'T?' cannot be used as type parameter 'U' in the generic type or method 'A1<T, U>'. Nullability of type argument 'T?' doesn't match 'class' constraint.
+                // class B3<T> where T : A1<T, T?> { }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "T").WithArguments("A1<T, U>", "U", "T?").WithLocation(5, 10),
+                // (5,10): warning CS8631: The type 'T?' cannot be used as type parameter 'U' in the generic type or method 'A1<T, U>'. Nullability of type argument 'T?' doesn't match constraint type 'T'.
+                // class B3<T> where T : A1<T, T?> { }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "T").WithArguments("A1<T, U>", "T", "U", "T?").WithLocation(5, 10),
+                // (7,10): warning CS8634: The type 'T?' cannot be used as type parameter 'T' in the generic type or method 'A2<T, U>'. Nullability of type argument 'T?' doesn't match 'class' constraint.
+                // class B4<T> where T : A2<T?, T> { }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "T").WithArguments("A2<T, U>", "T", "T?").WithLocation(7, 10));
         }
 
         // Boxing conversion.
