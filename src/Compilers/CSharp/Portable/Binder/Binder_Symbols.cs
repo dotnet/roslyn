@@ -428,10 +428,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                             Error(diagnostics, ErrorCode.ERR_BadConstraintType, node);
                         }
-                        else if (elementType.IsManagedType)
+                        else
                         {
-                            // "Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')"
-                            Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, elementType.TypeSymbol);
+                            CheckManagedAddr(elementType.TypeSymbol, node, diagnostics);
                         }
 
                         return TypeSymbolWithAnnotations.Create(new PointerTypeSymbol(elementType));
@@ -2225,7 +2224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, DiagnosticBag diagnostics, Location location)
         {
-            CSDiagnosticInfo error = feature.GetFeatureAvailabilityDiagnosticInfo((CSharpParseOptions)tree.Options);
+            CSDiagnosticInfo error = GetFeatureAvailabilityDiagnosticInfo(tree, feature);
 
             if (error is null)
             {
@@ -2234,6 +2233,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             diagnostics.Add(new CSDiagnostic(error, location));
             return false;
+        }
+
+        internal static CSDiagnosticInfo GetLanguageVersionDiagnosticInfo(LanguageVersion availableVersion, MessageID feature)
+        {
+            LanguageVersion requiredVersion = feature.RequiredVersion();
+            if (requiredVersion > availableVersion)
+            {
+                return new CSDiagnosticInfo(availableVersion.GetErrorCode(), feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
+            }
+
+            return null;
+        }
+
+        private static CSDiagnosticInfo GetFeatureAvailabilityDiagnosticInfo(SyntaxTree tree, MessageID feature)
+        {
+            CSharpParseOptions options = (CSharpParseOptions)tree.Options;
+
+            if (options.IsFeatureEnabled(feature))
+            {
+                return null;
+            }
+
+            string requiredFeature = feature.RequiredFeature();
+            if (requiredFeature != null)
+            {
+                return new CSDiagnosticInfo(ErrorCode.ERR_FeatureIsExperimental, feature.Localize(), requiredFeature);
+            }
+
+            return GetLanguageVersionDiagnosticInfo(options.LanguageVersion, feature);
         }
     }
 }
