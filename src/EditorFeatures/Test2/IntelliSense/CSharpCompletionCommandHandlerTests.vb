@@ -154,7 +154,7 @@ class c : $$
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                               <Document>
 using System;
-      
+
 class c { $$
                               </Document>)
 
@@ -246,7 +246,7 @@ class c { void M() { this$$.ToString() } }
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestTypingDotAfterExistingDot(completionImplementation As CompletionImplementation) As Task
             ' Starting C# 8.0 two dots are considered as a DotDotToken of a Range expression.
-            ' A test above (TestTypingDotBeforeExistingDot) verifies that the completion happens 
+            ' A test above (TestTypingDotBeforeExistingDot) verifies that the completion happens
             ' if we type dot before a single dot.
             ' However, we should not have a completion if typing dot after a dot.
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
@@ -1581,7 +1581,7 @@ class @return
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                   <Document><![CDATA[
 using System;
- 
+
 class Program
 {
     static void Main(string[] args)
@@ -1603,7 +1603,7 @@ class Program
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                   <Document><![CDATA[
 using System;
- 
+
 class Program
 {
     static void Main(string[] args)
@@ -1719,7 +1719,7 @@ class Goo
         object m = null;
         Method(obj:m, $$
     }
- 
+
     void Method(object obj, int num = 23, string str = "")
     {
     }
@@ -1943,7 +1943,7 @@ interface IGoo<T>
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                               <Document>
 using System;
- 
+
 class Program
 {
     void Main()
@@ -2510,14 +2510,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
- 
+
 class Program
 {
     $$
- 
+
     static void Main(string[] args)
     {
-      
+
     }
 }]]></Document>)
 
@@ -2893,7 +2893,7 @@ class C
                 state.SendBackspace()
 
                 ' Send a backspace that goes beyond the session's applicable span
-                ' before the model computation has finished. Then, allow the 
+                ' before the model computation has finished. Then, allow the
                 ' computation to complete. There should still be no session.
                 state.SendBackspace()
                 slowProvider.checkpoint.Release()
@@ -2987,7 +2987,7 @@ class C
     {
         $$]]></Document>)
                 ' Note: the caret is at the file, so the Select All command's movement
-                ' of the caret to the end of the selection isn't responsible for 
+                ' of the caret to the end of the selection isn't responsible for
                 ' dismissing the session.
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
@@ -3024,11 +3024,11 @@ $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.T
             ' In inline diff view, typing delete next to a "deletion",
             ' can cause our CommandChain to be called with a subjectbuffer
             ' and TextView such that the textView's caret can't be mapped
-            ' into our subject buffer. 
+            ' into our subject buffer.
             '
-            ' To test this, we create a projection buffer with 2 source 
+            ' To test this, we create a projection buffer with 2 source
             ' spans: one of "text" content type and one based on a C#
-            ' buffer. We create a TextView with that projection as 
+            ' buffer. We create a TextView with that projection as
             ' its buffer, setting the caret such that it maps only
             ' into the "text" buffer. We then call the completionImplementation
             ' command handlers with commandargs based on that TextView
@@ -3250,7 +3250,7 @@ class Program
 
     void goo(bool x) { }
 
-    void Main(string[] args) 
+    void Main(string[] args)
     {
         goo($$) // Not "Equals"
     }
@@ -3688,7 +3688,7 @@ class C
 
                     AddHandler provider.ProviderCalled, providerCalledHandler
 
-                    ' SendCommitUniqueCompletionListItem is a synchronous operation. 
+                    ' SendCommitUniqueCompletionListItem is a synchronous operation.
                     ' It guarantees that ProviderCalled will be triggered and after that the completion will hang waiting for a task to be resolved.
                     ' In the new completion, when pressed <ctrl>-<space>, we have to wait for the aggregate operation to complete.
                     ' 1. Hang here.
@@ -3719,7 +3719,7 @@ class C
             ' 5. Check that the commit is not yet provided: there is 'Sys' but no 'System'
             ' 6. The next statement in the UI thread after CommitIfUnique is typing 'a'.
             ' 7. Simulate unblocking the provider.
-            ' 8. Verify that 
+            ' 8. Verify that
             ' 8.a. The old completion adds 'a' to 'Sys' and displays 'Sysa'. CommitIfUnique is canceled because it was interrupted by typing 'a'.
             ' 8.b. The new completion completes CommitIfUnique and then adds 'a'.
             Dim tcs = New TaskCompletionSource(Of Boolean)
@@ -3778,7 +3778,7 @@ class C
 
                     AddHandler provider.ProviderCalled, providerCalledHandler
 
-                    ' SendCommitUniqueCompletionListItem is a synchronous operation. 
+                    ' SendCommitUniqueCompletionListItem is a synchronous operation.
                     ' It guarantees that ProviderCalled will be triggered and after that the completion will hang waiting for a task to be resolved.
                     ' In the new completion, when pressed <ctrl>-<space>, we have to wait for the aggregate operation to complete.
                     ' 1. Hang here.
@@ -4428,7 +4428,7 @@ namespace A
 class C
 {
     void M()
-    {    
+    {
         object o = 1;
         switch(o)
         {
@@ -4510,7 +4510,7 @@ class C
     public double Ma(double m) => m;
 
     public void Test()
-    {    
+    {
         $$
     }
 }
@@ -4533,7 +4533,7 @@ class C
     public double M(double some) => m;
 
     public void Test()
-    {    
+    {
         $$
     }
 }

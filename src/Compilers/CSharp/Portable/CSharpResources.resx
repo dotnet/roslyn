@@ -216,6 +216,9 @@
   <data name="IDS_FeatureAsyncStreams" xml:space="preserve">
     <value>async streams</value>
   </data>
+  <data name="IDS_FeatureUnmanagedConstructedTypes" xml:space="preserve">
+    <value>unmanaged constructed types</value>
+  </data>
   <data name="IDS_FeatureDefaultLiteral" xml:space="preserve">
     <value>default literal</value>
   </data>

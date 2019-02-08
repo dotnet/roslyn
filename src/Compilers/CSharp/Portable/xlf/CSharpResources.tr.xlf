@@ -797,6 +797,11 @@
         <target state="translated">null birleştirme işlecinde kısıtlanmamış tür parametreleri</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUnmanagedConstructedTypes">
+        <source>unmanaged constructed types</source>
+        <target state="new">unmanaged constructed types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">
         <source>unmanaged generic type constraints</source>
         <target state="translated">unmanaged genel tür kısıtlamaları</target>

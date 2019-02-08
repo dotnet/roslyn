@@ -99,13 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsManagedType
-        {
-            get
-            {
-                return false;
-            }
-        }
+        internal sealed override ManagedKind ManagedKind => ManagedKind.Unmanaged;
 
         public sealed override bool IsRefLikeType
         {
