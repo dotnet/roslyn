@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     case BoundSwitchLabel label:
                         {
-                            appendSource(label.ExpressionOpt);
+                            appendSource(label.Pattern);
                             break;
                         }
                     case BoundUnaryOperator unary:

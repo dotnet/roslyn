@@ -49,15 +49,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (type.SpecialType == SpecialType.System_Void)
             {
-                diagnostics.Add(ErrorCode.ERR_FieldCantHaveVoidType, TypeSyntax.Location);
+                diagnostics.Add(ErrorCode.ERR_FieldCantHaveVoidType, TypeSyntax?.Location ?? this.Locations[0]);
             }
             else if (type.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
-                diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeSyntax.Location, type);
+                diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeSyntax?.Location ?? this.Locations[0], type);
             }
-            else if (type.IsByRefLikeType && (this.IsStatic || !containingType.IsByRefLikeType))
+            else if (type.IsRefLikeType && (this.IsStatic || !containingType.IsRefLikeType))
             {
-                diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeSyntax.Location, type);
+                diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeSyntax?.Location ?? this.Locations[0], type);
             }
             else if (IsConst && !type.CanBeConst())
             {
@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var binderFactory = compilation.GetBinderFactory(SyntaxTree);
                 var binder = binderFactory.GetBinder(typeSyntax);
 
-                binder = binder.WithContainingMemberOrLambda(this);
+                binder = binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
                 if (!ContainingType.IsScriptClass)
                 {
                     type = binder.BindType(typeSyntax, diagnosticsForFirstDeclarator);
@@ -570,6 +570,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return false;
+        }
+
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        {
+            var options = (CSharpParseOptions)SyntaxTree.Options;
+            bool includeNullability = options.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
+            Type.CheckAllConstraints(DeclaringCompilation, conversions.WithNullability(includeNullability), ErrorLocation, diagnostics);
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
         }
     }
 }

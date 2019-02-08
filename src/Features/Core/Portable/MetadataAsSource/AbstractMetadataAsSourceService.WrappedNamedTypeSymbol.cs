@@ -144,6 +144,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public new INamedTypeSymbol OriginalDefinition => this;
 
             public bool IsSerializable => throw new NotImplementedException();
+
+            public bool IsRefLikeType => throw new NotImplementedException();
+
+            public bool IsUnmanagedType => throw new NotImplementedException();
         }
     }
 }

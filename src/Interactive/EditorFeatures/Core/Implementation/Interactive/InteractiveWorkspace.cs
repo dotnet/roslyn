@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             base.ClearSolution();
         }
 
-        internal void ClearOpenDocument(DocumentId documentId)
+        internal new void ClearOpenDocument(DocumentId documentId)
         {
             base.ClearOpenDocument(documentId);
         }

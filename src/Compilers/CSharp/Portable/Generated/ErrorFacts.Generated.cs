@@ -181,6 +181,12 @@
                 case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                 case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
                 case ErrorCode.WRN_DefaultLiteralConvertedToNullIsNotIntended:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustive:
+                case ErrorCode.WRN_CaseConstantNamedUnderscore:
+                case ErrorCode.WRN_IsTypeNamedUnderscore:
+                case ErrorCode.WRN_GivenExpressionNeverMatchesPattern:
+                case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
+                case ErrorCode.WRN_IllegalPPWarningSafeOnly:
                 case ErrorCode.WRN_ConvertingNullableToNonNullable:
                 case ErrorCode.WRN_NullReferenceAssignment:
                 case ErrorCode.WRN_NullReferenceReceiver:
@@ -201,16 +207,15 @@
                 case ErrorCode.WRN_NullabilityMismatchInArgument:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
-                case ErrorCode.WRN_SuppressionOperatorNotReferenceType:
                 case ErrorCode.WRN_NullAsNonNullable:
-                case ErrorCode.WRN_NoBestNullabilityConditionalExpression:
                 case ErrorCode.WRN_NullableValueTypeMayBeNull:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
                 case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
                 case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
-                case ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs:
-                case ErrorCode.WRN_NoBestNullabilityArrayElements:
+                case ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface:
+                case ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase:
+                case ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList:
                     return true;
                 default:
                     return false;

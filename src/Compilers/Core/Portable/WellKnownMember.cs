@@ -486,6 +486,13 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitUnsafeOnCompleted,
         System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T,
 
+        System_Runtime_CompilerServices_ITuple__get_Item,
+        System_Runtime_CompilerServices_ITuple__get_Length,
+
+        System_InvalidOperationException__ctor,
+        System_Runtime_CompilerServices_SwitchExpressionException__ctor,
+        System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
+
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

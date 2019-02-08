@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -100,6 +101,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return csharpKind == kind1 || csharpKind == kind2 || csharpKind == kind3 || csharpKind == kind4 || csharpKind == kind5 || csharpKind == kind6;
         }
 
+        public static bool IsKind(this SyntaxNode node, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4, SyntaxKind kind5, SyntaxKind kind6, SyntaxKind kind7)
+        {
+            if (node == null)
+            {
+                return false;
+            }
+
+            var csharpKind = node.Kind();
+            return csharpKind == kind1 || csharpKind == kind2 || csharpKind == kind3 || csharpKind == kind4 || csharpKind == kind5 || csharpKind == kind6 || csharpKind == kind7;
+        }
+
         public static bool IsKind(this SyntaxNode node, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4, SyntaxKind kind5, SyntaxKind kind6, SyntaxKind kind7, SyntaxKind kind8, SyntaxKind kind9, SyntaxKind kind10, SyntaxKind kind11)
         {
             if (node == null)
@@ -166,6 +178,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return (anonymousObjectCreationExpression.OpenBraceToken, anonymousObjectCreationExpression.CloseBraceToken);
                 case InitializerExpressionSyntax initializeExpressionNode:
                     return (initializeExpressionNode.OpenBraceToken, initializeExpressionNode.CloseBraceToken);
+#if !CODE_STYLE
+                case SwitchExpressionSyntax switchExpression:
+                    return (switchExpression.OpenBraceToken, switchExpression.CloseBraceToken);
+#else
+                case SyntaxNode node0 when node0.IsKind(SyntaxKindEx.SwitchExpression):
+                    return (node0.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.OpenBraceToken)),
+                            node0.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.CloseBraceToken)));
+#endif
+#if !CODE_STYLE
+                case PropertyPatternClauseSyntax property:
+                    return (property.OpenBraceToken, property.CloseBraceToken);
+#else
+                case SyntaxNode property when property.IsKind(SyntaxKindEx.PropertyPatternClause):
+                    return (property.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.OpenBraceToken)),
+                            property.ChildTokens().SingleOrDefault(token => token.IsKind(SyntaxKind.CloseBraceToken)));
+#endif
             }
 
             return default;
@@ -173,8 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsEmbeddedStatementOwner(this SyntaxNode node)
         {
-            return
-                   node is DoStatementSyntax ||
+            return node is DoStatementSyntax ||
                    node is ElseClauseSyntax ||
                    node is FixedStatementSyntax ||
                    node is CommonForEachStatementSyntax ||

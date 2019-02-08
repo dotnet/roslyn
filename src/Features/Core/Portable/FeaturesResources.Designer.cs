@@ -2260,6 +2260,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Local function can be made static.
+        /// </summary>
+        internal static string Local_function_can_be_made_static {
+            get {
+                return ResourceManager.GetString("Local_function_can_be_made_static", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to local variable.
         /// </summary>
         internal static string local_variable {
@@ -2323,6 +2332,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Make local function &apos;static&apos;.
+        /// </summary>
+        internal static string Make_local_function_static {
+            get {
+                return ResourceManager.GetString("Make_local_function_static", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Make method synchronous.
         /// </summary>
         internal static string Make_method_synchronous {
@@ -2337,6 +2355,42 @@ namespace Microsoft.CodeAnalysis {
         internal static string Member_name_can_be_simplified {
             get {
                 return ResourceManager.GetString("Member_name_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Merge with nested &apos;{0}&apos; statement.
+        /// </summary>
+        internal static string Merge_with_nested_0_statement {
+            get {
+                return ResourceManager.GetString("Merge_with_nested_0_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Merge with next &apos;{0}&apos; statement.
+        /// </summary>
+        internal static string Merge_with_next_0_statement {
+            get {
+                return ResourceManager.GetString("Merge_with_next_0_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Merge with outer &apos;{0}&apos; statement.
+        /// </summary>
+        internal static string Merge_with_outer_0_statement {
+            get {
+                return ResourceManager.GetString("Merge_with_outer_0_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Merge with previous &apos;{0}&apos; statement.
+        /// </summary>
+        internal static string Merge_with_previous_0_statement {
+            get {
+                return ResourceManager.GetString("Merge_with_previous_0_statement", resourceCulture);
             }
         }
         
@@ -2915,6 +2969,33 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pull &apos;{0}&apos; up.
+        /// </summary>
+        internal static string Pull_0_up {
+            get {
+                return ResourceManager.GetString("Pull_0_up", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pull &apos;{0}&apos; up to &apos;{1}&apos;.
+        /// </summary>
+        internal static string Pull_0_up_to_1 {
+            get {
+                return ResourceManager.GetString("Pull_0_up_to_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pull members up to base type....
+        /// </summary>
+        internal static string Pull_members_up_to_base_type {
+            get {
+                return ResourceManager.GetString("Pull_members_up_to_base_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to range variable.
         /// </summary>
         internal static string range_variable {
@@ -3421,6 +3502,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Specified_file_not_found_colon_0 {
             get {
                 return ResourceManager.GetString("Specified_file_not_found_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Split into consecutive &apos;{0}&apos; statements.
+        /// </summary>
+        internal static string Split_into_consecutive_0_statements {
+            get {
+                return ResourceManager.GetString("Split_into_consecutive_0_statements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Split into nested &apos;{0}&apos; statements.
+        /// </summary>
+        internal static string Split_into_nested_0_statements {
+            get {
+                return ResourceManager.GetString("Split_into_nested_0_statements", resourceCulture);
             }
         }
         
@@ -4304,6 +4403,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use simple &apos;using&apos; statement.
+        /// </summary>
+        internal static string Use_simple_using_statement {
+            get {
+                return ResourceManager.GetString("Use_simple_using_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use &apos;throw&apos; expression.
         /// </summary>
         internal static string Use_throw_expression {
@@ -4345,6 +4453,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Using_ref_structs_will_prevent_the_debug_session_from_continuing {
             get {
                 return ResourceManager.GetString("Using_ref_structs_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;using&apos; statement can be simplified.
+        /// </summary>
+        internal static string using_statement_can_be_simplified {
+            get {
+                return ResourceManager.GetString("using_statement_can_be_simplified", resourceCulture);
             }
         }
         

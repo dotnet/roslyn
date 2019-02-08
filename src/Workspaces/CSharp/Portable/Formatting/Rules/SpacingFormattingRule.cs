@@ -65,22 +65,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For Method Call
-            if (currentToken.IsOpenParenInArgumentList())
+            //   MethodName ( args )
+            // Or Positional Pattern
+            //   x is TypeName ( args )
+            if (currentToken.IsOpenParenInArgumentListOrPositionalPattern())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceAfterMethodCallName);
             }
 
-            if (previousToken.IsOpenParenInArgumentList() && currentToken.IsCloseParenInArgumentList())
+            if (previousToken.IsOpenParenInArgumentListOrPositionalPattern() && currentToken.IsCloseParenInArgumentListOrPositionalPattern())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses);
             }
 
-            if (previousToken.IsOpenParenInArgumentList())
+            if (previousToken.IsOpenParenInArgumentListOrPositionalPattern())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinMethodCallParentheses);
             }
 
-            if (currentToken.IsCloseParenInArgumentList())
+            if (currentToken.IsCloseParenInArgumentListOrPositionalPattern())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinMethodCallParentheses);
             }

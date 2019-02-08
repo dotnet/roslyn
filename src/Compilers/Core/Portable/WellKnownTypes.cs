@@ -276,6 +276,10 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_IsUnmanagedAttribute,
 
         Microsoft_VisualBasic_Conversion,
+        System_Runtime_CompilerServices_NonNullTypesAttribute,
+        System_AttributeTargets,
+        Microsoft_CodeAnalysis_EmbeddedAttribute,
+        System_Runtime_CompilerServices_ITuple,
 
         System_Index,
         System_Range,
@@ -293,6 +297,9 @@ namespace Microsoft.CodeAnalysis
         System_Threading_Tasks_ValueTask,
         System_Runtime_CompilerServices_AsyncIteratorMethodBuilder,
         System_Threading_CancellationToken,
+
+        System_InvalidOperationException,
+        System_Runtime_CompilerServices_SwitchExpressionException,
 
         NextAvailable,
 
@@ -566,6 +573,10 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.IsUnmanagedAttribute",
 
             "Microsoft.VisualBasic.Conversion",
+            "System.Runtime.CompilerServices.NonNullTypesAttribute",
+            "System.AttributeTargets",
+            "Microsoft.CodeAnalysis.EmbeddedAttribute",
+            "System.Runtime.CompilerServices.ITuple",
 
             "System.Index",
             "System.Range",
@@ -583,6 +594,9 @@ namespace Microsoft.CodeAnalysis
             "System.Threading.Tasks.ValueTask",
             "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder",
             "System.Threading.CancellationToken",
+
+            "System.InvalidOperationException",
+            "System.Runtime.CompilerServices.SwitchExpressionException"
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis.CSharp {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CSharp.CSharpFeaturesResources", typeof(CSharpFeaturesResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CSharp.CSharpFeaturesResources", typeof(CSharpFeaturesResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -107,6 +106,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add [Obsolete].
+        /// </summary>
+        internal static string Add_Obsolete {
+            get {
+                return ResourceManager.GetString("Add_Obsolete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add parentheses.
         /// </summary>
         internal static string Add_parentheses_around_conditional_expression_in_interpolated_string {
@@ -130,6 +138,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Add_this {
             get {
                 return ResourceManager.GetString("Add_this", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Allow unsafe code in this project.
+        /// </summary>
+        internal static string Allow_unsafe_code_in_this_project {
+            get {
+                return ResourceManager.GetString("Allow_unsafe_code_in_this_project", resourceCulture);
             }
         }
         
@@ -788,6 +805,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Make_private_field_readonly_when_possible {
             get {
                 return ResourceManager.GetString("Make_private_field_readonly_when_possible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make &apos;ref struct&apos;.
+        /// </summary>
+        internal static string Make_ref_struct {
+            get {
+                return ResourceManager.GetString("Make_ref_struct", resourceCulture);
             }
         }
         

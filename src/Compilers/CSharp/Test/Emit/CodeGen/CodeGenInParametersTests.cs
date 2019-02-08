@@ -1537,9 +1537,9 @@ class Program
 
             var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (14,44): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.RefReturning(ref int)' because it returns by reference
+                // (14,19): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.RefReturning(ref int)' because it returns by reference
                 //             M1(in RefReturning(ref local), await GetT(2), 3);
-                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await GetT(2)").WithArguments("Program.RefReturning(ref int)").WithLocation(14, 44)
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "RefReturning(ref local)").WithArguments("Program.RefReturning(ref int)").WithLocation(14, 19)
                 );
         }
 

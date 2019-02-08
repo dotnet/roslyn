@@ -286,6 +286,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        // Replace with IsStatic after fixing https://github.com/dotnet/roslyn/issues/27719.
+        internal bool IsStaticLocalFunction => _syntax.Modifiers.Any(SyntaxKind.StaticKeyword);
+
         internal override TypeSymbol IteratorElementType
         {
             get

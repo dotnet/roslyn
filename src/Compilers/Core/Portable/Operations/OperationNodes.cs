@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+// Despite its name, this file IS NOT (yet) automatically generated.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -7833,9 +7835,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseConstantPatternOperation : Operation, IConstantPatternOperation
     {
-        protected BaseConstantPatternOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.ConstantPattern, semanticModel, syntax, type, constantValue, isImplicit)
+        protected BaseConstantPatternOperation(ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(OperationKind.ConstantPattern, semanticModel, syntax, type: default, constantValue: default, isImplicit)
         {
+            InputType = inputType;
         }
 
         public override IEnumerable<IOperation> Children
@@ -7852,6 +7855,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Constant value of the pattern.
         /// </summary>
         public abstract IOperation Value { get; }
+
+        public ITypeSymbol InputType { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitConstantPattern(this);
@@ -7867,8 +7873,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class ConstantPatternOperation : BaseConstantPatternOperation, IConstantPatternOperation
     {
-        public ConstantPatternOperation(IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public ConstantPatternOperation(ITypeSymbol inputType, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(inputType, semanticModel, syntax, isImplicit)
         {
             Value = SetParentOperation(value, this);
         }
@@ -7883,8 +7889,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _lazyValueInterlocked = s_unset;
 
-        public LazyConstantPatternOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyConstantPatternOperation(ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(inputType, semanticModel, syntax, isImplicit)
         {
         }
 
@@ -7911,11 +7917,22 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class DeclarationPatternOperation : Operation, IDeclarationPatternOperation
     {
-        public DeclarationPatternOperation(ISymbol declaredSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.DeclarationPattern, semanticModel, syntax, type, constantValue, isImplicit)
+        public DeclarationPatternOperation(
+            ITypeSymbol inputType,
+            ITypeSymbol matchedType,
+            ISymbol declaredSymbol,
+            bool matchesNull,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(OperationKind.DeclarationPattern, semanticModel, syntax, type: default, constantValue: default, isImplicit)
         {
+            InputType = inputType;
+            MatchedType = matchedType;
             DeclaredSymbol = declaredSymbol;
+            MatchesNull = matchesNull;
         }
+        public bool MatchesNull { get; }
         /// <summary>
         /// Symbol declared by the pattern.
         /// </summary>
@@ -7927,6 +7944,11 @@ namespace Microsoft.CodeAnalysis.Operations
                 return Array.Empty<IOperation>();
             }
         }
+
+        public ITypeSymbol MatchedType { get; }
+
+        public ITypeSymbol InputType { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitDeclarationPattern(this);
@@ -7934,6 +7956,229 @@ namespace Microsoft.CodeAnalysis.Operations
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitDeclarationPattern(this, argument);
+        }
+    }
+
+    internal abstract partial class BaseRecursivePatternOperation : Operation, IRecursivePatternOperation
+    {
+        public BaseRecursivePatternOperation(
+            ITypeSymbol inputType,
+            ITypeSymbol matchedType,
+            ISymbol deconstructSymbol,
+            ISymbol declaredSymbol,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(OperationKind.RecursivePattern, semanticModel, syntax, type: default, constantValue: default, isImplicit)
+        {
+            InputType = inputType;
+            MatchedType = matchedType;
+            DeconstructSymbol = deconstructSymbol;
+            DeclaredSymbol = declaredSymbol;
+        }
+        public ITypeSymbol InputType { get; }
+        public ITypeSymbol MatchedType { get; }
+        public ISymbol DeconstructSymbol { get; }
+        public abstract ImmutableArray<IPatternOperation> DeconstructionSubpatterns { get; }
+        public abstract ImmutableArray<IPropertySubpatternOperation> PropertySubpatterns { get; }
+        public ISymbol DeclaredSymbol { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                foreach (var p in DeconstructionSubpatterns)
+                {
+                    yield return p;
+                }
+
+                foreach (var p in PropertySubpatterns)
+                {
+                    yield return p;
+                }
+            }
+        }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitRecursivePattern(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitRecursivePattern(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# recursive pattern.
+    /// </summary>
+    internal sealed partial class RecursivePatternOperation : BaseRecursivePatternOperation
+    {
+        public RecursivePatternOperation(
+            ITypeSymbol inputType,
+            ITypeSymbol matchedType,
+            ISymbol deconstructSymbol,
+            ImmutableArray<IPatternOperation> deconstructionSubpatterns,
+            ImmutableArray<IPropertySubpatternOperation> propertySubpatterns,
+            ISymbol declaredSymbol, SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(inputType, matchedType, deconstructSymbol, declaredSymbol, semanticModel, syntax, isImplicit)
+        {
+            SetParentOperation(deconstructionSubpatterns, this);
+            DeconstructionSubpatterns = deconstructionSubpatterns;
+            SetParentOperation(propertySubpatterns, this);
+            PropertySubpatterns = propertySubpatterns;
+        }
+        public override ImmutableArray<IPatternOperation> DeconstructionSubpatterns { get; }
+        public override ImmutableArray<IPropertySubpatternOperation> PropertySubpatterns { get; }
+    }
+
+    internal abstract partial class LazyRecursivePatternOperation : BaseRecursivePatternOperation
+    {
+        private ImmutableArray<IPatternOperation> _lazyDeconstructionSubpatterns;
+        private ImmutableArray<IPropertySubpatternOperation> _lazyPropertySubpatterns;
+        public LazyRecursivePatternOperation(
+            ITypeSymbol inputType,
+            ITypeSymbol matchedType,
+            ISymbol deconstructSymbol,
+            ISymbol declaredSymbol,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(inputType, matchedType, deconstructSymbol, declaredSymbol, semanticModel, syntax, isImplicit)
+        {
+        }
+        public abstract ImmutableArray<IPatternOperation> CreateDeconstructionSubpatterns();
+        public abstract ImmutableArray<IPropertySubpatternOperation> CreatePropertySubpatterns();
+        public override ImmutableArray<IPatternOperation> DeconstructionSubpatterns
+        {
+            get
+            {
+                if (_lazyDeconstructionSubpatterns.IsDefault)
+                {
+                    var deconstructionSubpatterns = CreateDeconstructionSubpatterns();
+                    foreach (var d in deconstructionSubpatterns)
+                    {
+                        SetParentOperation(d, this);
+                    }
+
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyDeconstructionSubpatterns, deconstructionSubpatterns);
+                }
+
+                return _lazyDeconstructionSubpatterns;
+            }
+        }
+        public override ImmutableArray<IPropertySubpatternOperation> PropertySubpatterns
+        {
+            get
+            {
+                if (_lazyPropertySubpatterns.IsDefault)
+                {
+                    var propertySubpatterns = CreatePropertySubpatterns();
+                    foreach (var propertySubpattern in propertySubpatterns)
+                    {
+                        SetParentOperation(propertySubpattern, this);
+                    }
+
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyPropertySubpatterns, propertySubpatterns);
+                }
+
+                return _lazyPropertySubpatterns;
+            }
+        }
+    }
+
+    internal abstract partial class BasePropertySubpatternOperation : Operation, IPropertySubpatternOperation
+    {
+        public BasePropertySubpatternOperation(
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(OperationKind.None, semanticModel, syntax, type: default, constantValue: default, isImplicit)
+        {
+        }
+        public abstract IOperation Member { get; }
+        public abstract IPatternOperation Pattern { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                if (Member != null)
+                    yield return Member;
+
+                if (Pattern != null)
+                    yield return Pattern;
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitPropertySubpattern(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitPropertySubpattern(this, argument);
+        }
+    }
+
+    internal sealed partial class PropertySubpatternOperation : BasePropertySubpatternOperation
+    {
+        public PropertySubpatternOperation(
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit,
+            IOperation member,
+            IPatternOperation pattern)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            SetParentOperation(member, this);
+            Member = member;
+            SetParentOperation(pattern, this);
+            Pattern = pattern;
+        }
+        public override IOperation Member { get; }
+        public override IPatternOperation Pattern { get; }
+    }
+
+    internal abstract partial class LazyPropertySubpatternOperation : BasePropertySubpatternOperation
+    {
+        private IOperation _lazyMember = s_unset;
+        private IPatternOperation _lazyPattern = s_unsetPattern;
+        public LazyPropertySubpatternOperation(
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+        }
+        public abstract IOperation CreateMember();
+        public abstract IPatternOperation CreatePattern();
+        public override IOperation Member
+        {
+            get
+            {
+                if (_lazyMember == s_unset)
+                {
+                    var member = CreateMember();
+                    SetParentOperation(member, this);
+                    Interlocked.CompareExchange(ref _lazyMember, member, s_unset);
+                }
+
+                return _lazyMember;
+            }
+        }
+        public override IPatternOperation Pattern
+        {
+            get
+            {
+                if (_lazyPattern == s_unsetPattern)
+                {
+                    var pattern = CreatePattern();
+                    SetParentOperation(pattern, this);
+                    Interlocked.CompareExchange(ref _lazyPattern, pattern, s_unsetPattern);
+                }
+
+                return _lazyPattern;
+            }
         }
     }
 
@@ -8040,6 +8285,224 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
 
                 return _lazyGuardExpressionInterlocked;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# switch expression.
+    /// </summary>
+    internal abstract partial class BaseSwitchExpressionOperation : Operation, ISwitchExpressionOperation
+    {
+        public BaseSwitchExpressionOperation(
+            ITypeSymbol type,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(OperationKind.SwitchExpression, semanticModel, syntax, type: type, constantValue: default, isImplicit)
+        {
+        }
+        public abstract IOperation Value { get; }
+        public abstract ImmutableArray<ISwitchExpressionArmOperation> Arms { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Value;
+                foreach (var arm in Arms)
+                {
+                    yield return arm;
+                }
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitSwitchExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitSwitchExpression(this, argument);
+        }
+    }
+
+    internal sealed partial class SwitchExpressionOperation : BaseSwitchExpressionOperation
+    {
+        public SwitchExpressionOperation(
+            ITypeSymbol type,
+            IOperation value,
+            ImmutableArray<ISwitchExpressionArmOperation> arms,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(type, semanticModel, syntax, isImplicit)
+        {
+            Value = SetParentOperation(value, this);
+            Arms = SetParentOperation(arms, this);
+        }
+        public override IOperation Value { get; }
+        public override ImmutableArray<ISwitchExpressionArmOperation> Arms { get; }
+    }
+
+    internal abstract partial class LazySwitchExpressionOperation : BaseSwitchExpressionOperation
+    {
+        private IOperation _lazyValue = s_unset;
+        private ImmutableArray<ISwitchExpressionArmOperation> _lazyArms = default;
+        public LazySwitchExpressionOperation(
+            ITypeSymbol type,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(type, semanticModel, syntax, isImplicit)
+        {
+        }
+        protected abstract IOperation CreateValue();
+        protected abstract ImmutableArray<ISwitchExpressionArmOperation> CreateArms();
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValue == s_unset)
+                {
+                    var value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValue, value, s_unset);
+                }
+
+                return _lazyValue;
+            }
+        }
+        public override ImmutableArray<ISwitchExpressionArmOperation> Arms
+        {
+            get
+            {
+                if (_lazyArms.IsDefault)
+                {
+                    var arms = CreateArms();
+                    SetParentOperation(arms, this);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyArms, arms);
+                }
+
+                return _lazyArms;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# switch expression arm.
+    /// </summary>
+    internal abstract partial class BaseSwitchExpressionArmOperation : Operation, ISwitchExpressionArmOperation
+    {
+        public BaseSwitchExpressionArmOperation(
+            ImmutableArray<ILocalSymbol> locals,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(OperationKind.SwitchExpressionArm, semanticModel, syntax, type: default, constantValue: default, isImplicit)
+        {
+            this.Locals = locals;
+        }
+        public ImmutableArray<ILocalSymbol> Locals { get; }
+        public abstract IPatternOperation Pattern { get; }
+        public abstract IOperation Guard { get; }
+        public abstract IOperation Value { get; }
+
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Pattern;
+                if (Guard != null)
+                    yield return Guard;
+                yield return Value;
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitSwitchExpressionArm(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitSwitchExpressionArm(this, argument);
+        }
+    }
+
+    internal sealed partial class SwitchExpressionArmOperation : BaseSwitchExpressionArmOperation
+    {
+        public SwitchExpressionArmOperation(
+            ImmutableArray<ILocalSymbol> locals,
+            IPatternOperation pattern,
+            IOperation guard,
+            IOperation value,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(locals, semanticModel, syntax, isImplicit)
+        {
+            Pattern = SetParentOperation(pattern, this);
+            Guard = SetParentOperation(guard, this);
+            Value = SetParentOperation(value, this);
+        }
+        public sealed override IPatternOperation Pattern { get; }
+        public sealed override IOperation Guard { get; }
+        public sealed override IOperation Value { get; }
+    }
+
+    internal abstract partial class LazySwitchExpressionArmOperation : BaseSwitchExpressionArmOperation
+    {
+        private IPatternOperation _lazyPattern = s_unsetPattern;
+        private IOperation _lazyGuard = s_unset;
+        private IOperation _lazyValue = s_unset;
+        public LazySwitchExpressionArmOperation(
+            ImmutableArray<ILocalSymbol> locals,
+            SemanticModel semanticModel,
+            SyntaxNode syntax,
+            bool isImplicit)
+            : base(locals, semanticModel, syntax, isImplicit)
+        {
+        }
+        protected abstract IPatternOperation CreatePattern();
+        protected abstract IOperation CreateGuard();
+        protected abstract IOperation CreateValue();
+        public override IPatternOperation Pattern
+        {
+            get
+            {
+                if (_lazyPattern == s_unsetPattern)
+                {
+                    var pattern = CreatePattern();
+                    SetParentOperation(pattern, this);
+                    Interlocked.CompareExchange(ref _lazyPattern, pattern, s_unsetPattern);
+                }
+
+                return _lazyPattern;
+            }
+        }
+        public override IOperation Guard
+        {
+            get
+            {
+                if (_lazyGuard == s_unset)
+                {
+                    var guard = CreateGuard();
+                    SetParentOperation(guard, this);
+                    Interlocked.CompareExchange(ref _lazyGuard, guard, s_unset);
+                }
+
+                return _lazyGuard;
+            }
+        }
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValue == s_unset)
+                {
+                    var value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValue, value, s_unset);
+                }
+
+                return _lazyValue;
             }
         }
     }
@@ -8824,6 +9287,25 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
+    internal sealed class DiscardPatternOperation : Operation, IDiscardPatternOperation
+    {
+        public DiscardPatternOperation(ITypeSymbol inputType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(OperationKind.DiscardPattern, semanticModel, syntax, type: default, constantValue: default, isImplicit)
+        {
+            InputType = inputType;
+        }
+        public ITypeSymbol InputType { get; }
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitDiscardPattern(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitDiscardPattern(this, argument);
+        }
+    }
+
     /// <summary>
     /// Represents a standalone VB query Aggregate operation with more than one item in Into clause.
     /// </summary>
@@ -9011,8 +9493,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal abstract class BaseFromEndIndexOperation : Operation, IFromEndIndexOperation
     {
-        protected BaseFromEndIndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
-                    base(OperationKind.FromEndIndex, semanticModel, syntax, type, constantValue: default, isImplicit: isImplicit)
+        protected BaseFromEndIndexOperation(bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol, bool isImplicit) :
+                    base(OperationKind.None, semanticModel, syntax, type, constantValue: default, isImplicit: isImplicit)
         {
             IsLifted = isLifted;
             Symbol = symbol;
@@ -9047,8 +9529,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed class FromEndIndexOperation : BaseFromEndIndexOperation
     {
-        public FromEndIndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation operand, IMethodSymbol symbol) :
-                    base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+        public FromEndIndexOperation(bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation operand, IMethodSymbol symbol, bool isImplicit) :
+                    base(isLifted, semanticModel, syntax, type, symbol, isImplicit)
         {
             Operand = Operation.SetParentOperation(operand, this);
         }
@@ -9060,8 +9542,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private IOperation _operandInterlocked = s_unset;
 
-        public LazyFromEndIndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
-            base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+        public LazyFromEndIndexOperation(bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol, bool isImplicit) :
+            base(isLifted, semanticModel, syntax, type, symbol, isImplicit)
         {
         }
 
@@ -9085,7 +9567,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal abstract class BaseRangeOperation : Operation, IRangeOperation
     {
-        protected BaseRangeOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
+        protected BaseRangeOperation(bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol, bool isImplicit) :
                     base(OperationKind.Range, semanticModel, syntax, type, constantValue: default, isImplicit: isImplicit)
         {
             IsLifted = isLifted;
@@ -9128,8 +9610,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed class RangeOperation : BaseRangeOperation
     {
-        public RangeOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation leftOperand, IOperation rightOperand, IMethodSymbol symbol) :
-                    base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+        public RangeOperation(bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation leftOperand, IOperation rightOperand, IMethodSymbol symbol, bool isImplicit) :
+                    base(isLifted, semanticModel, syntax, type, symbol, isImplicit)
         {
             LeftOperand = Operation.SetParentOperation(leftOperand, this);
             RightOperand = Operation.SetParentOperation(rightOperand, this);
@@ -9144,8 +9626,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _leftOperandInterlocked = s_unset;
         private IOperation _rightOperandInterlocked = s_unset;
 
-        public LazyRangeOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
-            base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+        public LazyRangeOperation(bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol, bool isImplicit) :
+            base(isLifted, semanticModel, syntax, type, symbol, isImplicit)
         {
         }
 

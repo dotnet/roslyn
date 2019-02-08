@@ -6,6 +6,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -105,7 +106,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         }
                     }
 
-                    throw new InvalidOperationException();
+                    FatalError.ReportWithoutCrash(
+                        new InvalidOperationException($"Can't find an intersection. Visible spans count: {spans.Count}"));
+
+                    return _noopRule;
                 }
             }
 

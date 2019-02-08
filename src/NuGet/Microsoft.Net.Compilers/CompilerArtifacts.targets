@@ -56,10 +56,16 @@
       <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Threading.Tasks.Extensions.dll"/>
       <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Buffers.dll"/>
       <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Memory.dll"/>
-      <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Numerics.Vectors.dll"/>
+      <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Numerics.Vectors.dll"/>      
+      
+      <!--
+        System.Numerics.Vector requires JIT, since its size is dynamic and based on the underlying CPU support.
+      -->
+      <_NoNGen Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Numerics.Vectors.dll"/>
       
       <CompilerArtifact Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.*.dll" Exclude="@(_NoOptimizationData)" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteNgenOptimizationData="true"/>
-      <CompilerArtifact Include="@(_NoOptimizationData)" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteNgenOptimizationData="false"/>
+      <CompilerArtifact Include="@(_NoOptimizationData)" Exclude="@(_NoNGen)" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteNgenOptimizationData="false"/>
+      <CompilerArtifact Include="@(_NoNGen)" />
     </ItemGroup>
   </Target>
 </Project>

@@ -19,8 +19,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             // # nullable |
             // # nullable e|
-            return previousToken1.Kind() == SyntaxKind.NullableKeyword &&
-                previousToken2.Kind() == SyntaxKind.HashToken;
+            if (previousToken1.Kind() == SyntaxKind.NullableKeyword &&
+                previousToken2.Kind() == SyntaxKind.HashToken)
+            {
+                return true;
+            }
+
+            var previousToken3 = previousToken2.GetPreviousToken(includeSkipped: true);
+
+            return
+               // # pragma warning |
+               // # pragma warning e|
+               previousToken1.Kind() == SyntaxKind.WarningKeyword &&
+               previousToken2.Kind() == SyntaxKind.PragmaKeyword &&
+               previousToken3.Kind() == SyntaxKind.HashToken;
         }
     }
 }

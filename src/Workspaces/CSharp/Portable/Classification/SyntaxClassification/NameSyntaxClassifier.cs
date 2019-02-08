@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             // For Namespace parts, we want don't want to classify the QualifiedNameSyntax
             // nodes, we instead wait for the each IdentifierNameSyntax node to avoid
             // creating overlapping ClassifiedSpans.
-            if (symbol is INamespaceSymbol namespaceSymbol && 
+            if (symbol is INamespaceSymbol namespaceSymbol &&
                 name is IdentifierNameSyntax identifierNameSyntax)
             {
                 // Do not classify the global:: namespace. It is already syntactically classified as a keyword.
@@ -257,6 +257,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
         private static string GetClassificationForMethod(IMethodSymbol methodSymbol)
         {
+            // Classify constructors by their containing type. We do not need to worry about
+            // destructors because their declaration is handled by syntactic classification
+            // and they cannot be invoked, so their is no usage to semantically classify.
+            if (methodSymbol.MethodKind == MethodKind.Constructor)
+            {
+                return methodSymbol.ContainingType?.GetClassification() ?? ClassificationTypeNames.MethodName;
+            }
+
             // Note: We only classify an extension method if it is in reduced form.
             // If an extension method is called as a static method invocation (e.g. Enumerable.Select(...)),
             // it is classified as an ordinary method.

@@ -62,10 +62,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                             !currentToken.IsParenInParenthesizedExpression() &&
                             !currentToken.IsCommaInInitializerExpression() &&
                             !currentToken.IsCommaInAnyArgumentsList() &&
+                            !currentToken.IsCommaInTupleExpression() &&
                             !currentToken.IsParenInArgumentList() &&
                             !currentToken.IsDotInMemberAccess() &&
                             !currentToken.IsCloseParenInStatement() &&
-                            !currentToken.IsEqualsTokenInAutoPropertyInitializers())
+                            !currentToken.IsEqualsTokenInAutoPropertyInitializers() &&
+                            !currentToken.IsColonInCasePatternSwitchLabel() && // no newline required before colon in pattern-switch-label (ex: `case {<pattern>}:`)
+                            !currentToken.IsColonInSwitchExpressionArm())  // no newline required before colon in switch-expression-arm (ex: `{<pattern>}: expression`)
                         {
                             return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                         }
@@ -88,6 +91,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (previousToken.IsCommaInInitializerExpression())
             {
                 return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+            }
+
+            // , * in switch expression arm
+            // ```
+            // e switch
+            // {
+            //     pattern1: expression1, // newline with minimum of 1 line (each arm must be on its own line)
+            //     pattern2: expression2 ...
+            // ```
+            if (previousToken.IsCommaInSwitchExpression())
+            {
+                return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+            }
+
+            // , * in property sub-pattern
+            // ```
+            // e is
+            // {
+            //     property1: pattern1, // newline so the next line should be indented same as this one
+            //     property2: pattern2, property3: pattern3, ... // but with minimum 0 lines so each property isn't forced to its own line
+            // ```
+            if (previousToken.IsCommaInPropertyPatternClause())
+            {
+                return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
             }
 
             // else * except else if case
@@ -281,7 +308,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                                                SyntaxKind.DefaultSwitchLabel,
                                                SyntaxKind.LabeledStatement,
                                                SyntaxKind.AttributeTargetSpecifier,
-                                               SyntaxKind.NameColon))
+                                               SyntaxKind.NameColon,
+                                               SyntaxKindEx.SwitchExpressionArm))
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }

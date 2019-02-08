@@ -2208,7 +2208,7 @@ IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: Function C.op_UnaryNe
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact>
         Public Sub LogicalNotFlow_01()
@@ -2248,7 +2248,7 @@ Block[B2] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact>
         Public Sub LogicalNotFlow_02()

@@ -96,6 +96,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
             private void OnReferenceFound(ISymbol symbol, IOperation operation)
             {
+                Debug.Assert(symbol != null);
+
                 var valueUsageInfo = operation.GetValueUsageInfo();
                 var isReadFrom = valueUsageInfo.IsReadFrom();
                 var isWrittenTo = valueUsageInfo.IsWrittenTo();
@@ -214,6 +216,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
             public override void VisitLocalReference(ILocalReferenceOperation operation)
             {
+                if (operation.Local.IsRef)
+                {
+                    // Bail out for ref locals.
+                    // We need points to analysis for analyzing writes to ref locals, which is currently not supported.
+                    return;
+                }
+
                 OnReferenceFound(operation.Local, operation);
             }
 
@@ -247,7 +256,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
             public override void VisitDeclarationPattern(IDeclarationPatternOperation operation)
             {
-                OnReferenceFound(operation.DeclaredSymbol, operation);
+                if (operation.DeclaredSymbol != null)
+                {
+                    OnReferenceFound(operation.DeclaredSymbol, operation);
+                }
             }
 
             public override void VisitInvocation(IInvocationOperation operation)

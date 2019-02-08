@@ -834,17 +834,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.SuppressNullableWarningExpression:
-                    {
-                        var innerExpression = ((BoundSuppressNullableWarningExpression)sourceExpression).Expression;
-                        var innerConversion = ClassifyImplicitBuiltInConversionFromExpression(innerExpression, innerExpression.Type, destination, ref useSiteDiagnostics);
-                        if (innerConversion.Exists)
-                        {
-                            return innerConversion;
-                        }
-                        break;
-                    }
-
                 case BoundKind.ExpressionWithNullability:
                     {
                         var innerExpression = ((BoundExpressionWithNullability)sourceExpression).Expression;
@@ -1915,7 +1904,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination,
                 ref useSiteDiagnostics,
                 ConversionKind.ImplicitTupleLiteral,
-                (ConversionsBase conversions, BoundExpression s, TypeSymbolWithAnnotations d, ref HashSet<DiagnosticInfo> u, bool a) => conversions.ClassifyImplicitConversionFromExpression(s, d.TypeSymbol, ref u),
+                (ConversionsBase conversions, BoundExpression s, TypeSymbolWithAnnotations d, ref HashSet<DiagnosticInfo> u, bool a)
+                    => conversions.ClassifyImplicitConversionFromExpression(s, d.TypeSymbol, ref u),
                 arg: false);
         }
 

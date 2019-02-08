@@ -1624,7 +1624,7 @@ Dim z6 = New List(Of Integer) With {.Capacity = 2}"
                 Keyword("With"),
                 Punctuation.OpenCurly,
                 Keyword("Key"),
-                Keyword("If"),
+                ControlKeyword("If"),
                 Punctuation.OpenParen,
                 Identifier("k"),
                 Operators.GreaterThan,
@@ -1664,7 +1664,7 @@ Dim z6 = New List(Of Integer) With {.Capacity = 2}"
                 Keyword("With"),
                 Punctuation.OpenCurly,
                 Keyword("Key"),
-                Keyword("If"),
+                ControlKeyword("If"),
                 Punctuation.OpenParen,
                 Keyword("True"),
                 Punctuation.Comma,
@@ -1956,6 +1956,40 @@ End Enum"
                 Punctuation.CloseParen,
                 Keyword("As"),
                 Keyword("Integer"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestTernaryConditionalExpression() As Task
+            Dim code = "Dim i = If(True, 1, 2)"
+
+            Await TestInMethodAsync(code,
+                Keyword("Dim"),
+                Local("i"),
+                Operators.Equals,
+                ControlKeyword("If"),
+                Punctuation.OpenParen,
+                Keyword("True"),
+                Punctuation.Comma,
+                Number("1"),
+                Punctuation.Comma,
+                Number("2"),
+                Punctuation.CloseParen)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestForStatement() As Task
+            Dim code =
+"For i = 0 To 10
+Exit For"
+            Await TestInMethodAsync(code,
+                ControlKeyword("For"),
+                Identifier("i"),
+                Operators.Equals,
+                Number("0"),
+                ControlKeyword("To"),
+                Number("10"),
+                ControlKeyword("Exit"),
+                ControlKeyword("For"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>

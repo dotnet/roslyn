@@ -188,33 +188,20 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private List<T> AddOperations<T>(List<SyntaxNode> nodes, Action<List<T>, SyntaxNode> addOperations, CancellationToken cancellationToken)
         {
-            using (var localOperations = new ThreadLocal<List<T>>(() => new List<T>(), trackAllValues: true))
-            using (var localList = new ThreadLocal<List<T>>(() => new List<T>(), trackAllValues: false))
+            var operations = new List<T>();
+            var list = new List<T>();
+
+            foreach (var n in nodes)
             {
-                // find out which executor we want to use.
-                foreach (var n in nodes)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
+                addOperations(list, n);
 
-                    var list = localList.Value;
-                    addOperations(list, n);
-
-                    foreach (var element in list)
-                    {
-                        if (element != null)
-                        {
-                            localOperations.Value.Add(element);
-                        }
-                    }
-
-                    list.Clear();
-                }
-
-                var operations = new List<T>(localOperations.Values.Sum(v => v.Count));
-                operations.AddRange(localOperations.Values.SelectMany(v => v));
-
-                return operations;
+                list.RemoveAll(item => item == null);
+                operations.AddRange(list);
+                list.Clear();
             }
+
+            return operations;
         }
 
         private TokenPairWithOperations[] CreateTokenOperation(
@@ -456,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             if (operation.LineOperation != null)
             {
-                if (!context.IsWrappingSuppressed(spanBetweenTokens))
+                if (!context.IsWrappingSuppressed(spanBetweenTokens, triviaInfo.TreatAsElastic))
                 {
                     // TODO : need to revisit later for the case where line and space operations
                     // are conflicting each other by forcing new lines and removing new lines.
@@ -471,7 +458,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             if (operation.SpaceOperation != null)
             {
-                if (!context.IsSpacingSuppressed(spanBetweenTokens))
+                if (!context.IsSpacingSuppressed(spanBetweenTokens, triviaInfo.TreatAsElastic))
                 {
                     applier.Apply(operation.SpaceOperation, operation.PairIndex);
                 }

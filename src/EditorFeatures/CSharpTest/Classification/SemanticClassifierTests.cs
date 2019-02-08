@@ -526,7 +526,7 @@ class C
 class C
 {
 }",
-                Namespace("System"), 
+                Namespace("System"),
                 Class("Obsolete"));
         }
 
@@ -540,7 +540,7 @@ class A
 {
     [Obsolete]
 }",
-                Namespace("System"), 
+                Namespace("System"),
                 Class("Obsolete"));
         }
 
@@ -555,7 +555,7 @@ class A
 class MyAttribute : Attribute
 {
 }",
-                Namespace("System"), 
+                Namespace("System"),
                 Class("My"),
                 Class("Attribute"));
         }
@@ -578,13 +578,11 @@ class Base
 class Derived : Base
 {
 }",
-                Namespace("System"), 
+                Namespace("System"),
                 Class("Base"),
                 Class("My"),
-                Method("My"),
                 Class("Derived"),
                 Class("My"),
-                Method("My"),
                 Class("Attribute"),
                 Class("Base"));
         }
@@ -1118,7 +1116,7 @@ class C
     global::System.String f;
 }",
                 Namespace("System"),
-                Namespace("System"), 
+                Namespace("System"),
                 Class("String"));
         }
 
@@ -1142,9 +1140,9 @@ class C
             await TestAsync(code,
                 code,
                 Options.Regular,
-                Namespace("System"), 
+                Namespace("System"),
                 Class("Str"),
-                Namespace("System"), 
+                Namespace("System"),
                 Class("String"),
                 Class("Str"),
                 Class("Nested"),
@@ -1156,6 +1154,37 @@ class C
                 Namespace("System"),
                 Class("String"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task Constructors()
+        {
+            await TestAsync(
+@"struct S
+{
+    public int i;
+
+    public S(int i)
+    {
+        this.i = i;
+    }
+}
+
+class C
+{
+    public C()
+    {
+        var s = new S(1);
+        var c = new C();
+    }
+}",
+                Field("i"),
+                Parameter("i"),
+                Keyword("var"),
+                Struct("S"),
+                Keyword("var"),
+                Class("C"));
+        }
+
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TypesOfClassMembers()
@@ -1765,7 +1794,7 @@ class Obsolete : Attribute
 class ObsoleteAttribute : Attribute
 {
 }",
-                Namespace("System"), 
+                Namespace("System"),
                 Class("Serializable"),
                 Class("SerializableAttribute"),
                 Class("Obsolete"),
@@ -2408,7 +2437,7 @@ class MyClass
     public MyClass(int x)
     {
     }
-}", Method("MyClass"));
+}", Class("MyClass"));
         }
 
         [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
@@ -2426,7 +2455,7 @@ class MyClass
     }
 }",
     Class("MyClass"),
-    Method("MyClass"));
+    Class("MyClass"));
         }
 
         [WorkItem(13174, "https://github.com/dotnet/roslyn/issues/13174")]
@@ -2462,7 +2491,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/30855"), Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestVarInPattern1()
         {
             await TestAsync(
@@ -2479,7 +2508,7 @@ class Program
         }
 
         [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/30855"), Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestVarInPattern2()
         {
             await TestAsync(

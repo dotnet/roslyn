@@ -96,15 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitForStatement(node);
         }
 
-        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-        {
-            if (IsInside)
-            {
-                _labelsInside.Add(node.BreakLabel);
-            }
-            return base.VisitSwitchStatement(node);
-        }
-
         public override BoundNode VisitWhileStatement(BoundWhileStatement node)
         {
             if (IsInside)
