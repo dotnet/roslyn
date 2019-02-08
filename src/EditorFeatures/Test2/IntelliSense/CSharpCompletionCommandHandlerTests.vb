@@ -1711,8 +1711,6 @@ class C
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function NoKeywordsOrSymbolsAfterNamedParameterWithCSharp7(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
-                        <Workspace>
-                            <Project Language="C#" CommonReferences="true" LanguageVersion="7">
                                 <Document>
 class Goo
 {
@@ -1726,9 +1724,7 @@ class Goo
     {
     }
 }
-                              </Document>
-                            </Project>
-                        </Workspace>)
+                              </Document>, languageVersion:=LanguageVersion.CSharp7)
 
                 state.SendTypeChars("a")
                 Await state.AssertCompletionSession()
