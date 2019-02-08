@@ -1,8 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.QuickInfo
 Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.Text
@@ -15,6 +17,7 @@ Imports QuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
+    <UseExportProvider>
     Public Class IntellisenseQuickInfoBuilderTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -323,6 +326,112 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             AssertEqualAdornments(expected, container)
         End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(33001, "https://github.com/dotnet/roslyn/issues/33001")>
+        Public Async Sub BuildQuickInfoFromSymbol()
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            using System.IO;
+                            using System.Threading;
+                            class MyClass {
+                                /// &lt;summary&gt;
+                                /// Documentation line 1.&lt;br/&gt;
+                                /// Documentation line 2.
+                                /// &lt;para&gt;Documentation paragraph 2.&lt;br/&gt;
+                                /// Documentation paragraph 2
+                                /// line 2.&lt;/para&gt;
+                                /// &lt;para&gt;Documentation paragraph 3.&lt;/para&gt;
+                                /// &lt;/summary&gt;
+                                /// &lt;exception cref="IOException"&gt;If something fails&lt;/exception&gt;
+                                void MyMethod(CancellationToken cancellationToken = default(CancellationToken)) {
+                                    MyM$$ethod();
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim codeAnalysisQuickInfoItem = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+
+            Dim trackingSpan = New Mock(Of ITrackingSpan) With {
+                .DefaultValue = DefaultValue.Mock
+            }
+
+            Dim intellisenseQuickInfo = Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, Nothing, Nothing, CancellationToken.None)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ContainerElement(
+                        ContainerElementStyle.Wrapped,
+                        New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPrivate)),
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "["),
+                            New ClassifiedTextRun(ClassificationTypeNames.StructName, "CancellationToken"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "cancellationToken"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "="),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "default"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                            New ClassifiedTextRun(ClassificationTypeNames.StructName, "CancellationToken"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "]"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
+                    New ContainerElement(
+                        ContainerElementStyle.Stacked,
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Text, "Documentation line 1.")),
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Text, "Documentation line 2.")))),
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "Documentation paragraph 2.")),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "Documentation paragraph 2 line 2."))),
+                New ClassifiedTextElement(
+                    New ClassifiedTextRun(ClassificationTypeNames.Text, "Documentation paragraph 3.")),
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, FeaturesResources.Exceptions_colon)),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, "  "),
+                        New ClassifiedTextRun(ClassificationTypeNames.ClassName, "IOException"))))
+
+            AssertEqualAdornments(expected, container)
+        End Sub
+
+        Private Async Function GetQuickInfoItemAsync(workspaceDefinition As XElement, language As String) As Task(Of QuickInfoItem)
+            Using workspace = TestWorkspace.Create(workspaceDefinition)
+                Dim solution = workspace.CurrentSolution
+                Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
+                Dim cursorPosition = cursorDocument.CursorPosition.Value
+                Dim cursorBuffer = cursorDocument.TextBuffer
+
+                Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
+
+                Dim languageServiceProvider = workspace.Services.GetLanguageServices(language)
+                Dim quickInfoService = languageServiceProvider.GetRequiredService(Of QuickInfoService)
+
+                Return Await quickInfoService.GetQuickInfoAsync(document, cursorPosition, CancellationToken.None).ConfigureAwait(False)
+            End Using
+        End Function
 
         Private Shared Sub AssertEqualAdornments(expected As Object, actual As Object)
             Assert.IsType(expected.GetType, actual)
