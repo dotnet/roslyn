@@ -6925,10 +6925,9 @@ class Program
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-                // (13,26): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (13,26): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         fixed (void* p = a)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "a").WithArguments("unmanaged constructed types", "8.0").WithLocation(13, 26)
-            );
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a").WithArguments("unmanaged constructed types").WithLocation(13, 26));
         }
 
         [Fact]
