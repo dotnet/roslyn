@@ -264,6 +264,46 @@ This is part of the summary, too.";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        public void See3()
+        {
+            var comment = @"See <see langword=""true"" />";
+
+            var expected = "See true";
+
+            TestFormat(comment, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        public void See4()
+        {
+            var comment = @"See <see href=""https://github.com"" />";
+
+            var expected = "See https://github.com";
+
+            TestFormat(comment, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        public void See5()
+        {
+            var comment = @"See <see href=""https://github.com"">GitHub</see>";
+
+            var expected = "See GitHub";
+
+            TestFormat(comment, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        public void See6()
+        {
+            var comment = @"See <see href=""https://github.com""></see>";
+
+            var expected = "See https://github.com";
+
+            TestFormat(comment, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void SeeAlso1()
         {
             var comment = @"See also <seealso cref=""T:System.Object"" />";
@@ -279,6 +319,46 @@ This is part of the summary, too.";
             var comment = @"See also <seealso />";
 
             var expected = @"See also";
+
+            TestFormat(comment, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        public void SeeAlso3()
+        {
+            var comment = @"See also <seealso langword=""true"" />";
+
+            var expected = "See also true";
+
+            TestFormat(comment, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        public void SeeAlso4()
+        {
+            var comment = @"See also <seealso href=""https://github.com"" />";
+
+            var expected = "See also https://github.com";
+
+            TestFormat(comment, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        public void SeeAlso5()
+        {
+            var comment = @"See also <seealso href=""https://github.com"">GitHub</seealso>";
+
+            var expected = "See also GitHub";
+
+            TestFormat(comment, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        public void SeeAlso6()
+        {
+            var comment = @"See also <seealso href=""https://github.com""></seealso>";
+
+            var expected = "See also https://github.com";
 
             TestFormat(comment, expected);
         }
