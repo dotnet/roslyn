@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.UnitTests.TestFiles;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -365,22 +364,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public async Task TestAddMetadataReferencesAsync()
         {
-            var csharpReference = MetadataReference.CreateFromImage(Resources.Dlls.CSharpProject);
+            var mefReference = TestReferences.NetFx.v4_0_30319.System_Core;
             var solution = CreateSolution();
             var project1 = ProjectId.CreateNewId();
             solution = solution.AddProject(project1, "goo", "goo.dll", LanguageNames.CSharp);
             solution = solution.AddMetadataReference(project1, s_mscorlib);
 
-            // For CSharp Reference
-            solution = solution.AddMetadataReference(project1, csharpReference);
-            var assemblyReference = (IAssemblySymbol)solution.GetProject(project1).GetCompilationAsync().Result.GetAssemblyOrModuleSymbol(csharpReference);
+            solution = solution.AddMetadataReference(project1, mefReference);
+            var assemblyReference = (IAssemblySymbol)solution.GetProject(project1).GetCompilationAsync().Result.GetAssemblyOrModuleSymbol(mefReference);
             var namespacesAndTypes = assemblyReference.GlobalNamespace.GetAllNamespacesAndTypes(CancellationToken.None);
             var foundSymbol = from symbol in namespacesAndTypes
-                              where symbol.Name.Equals("CSharpClass")
+                              where symbol.Name.Equals("Enumerable")
                               select symbol;
             Assert.Equal(1, foundSymbol.Count());
-            solution = solution.RemoveMetadataReference(project1, csharpReference);
-            assemblyReference = (IAssemblySymbol)solution.GetProject(project1).GetCompilationAsync().Result.GetAssemblyOrModuleSymbol(csharpReference);
+            solution = solution.RemoveMetadataReference(project1, mefReference);
+            assemblyReference = (IAssemblySymbol)solution.GetProject(project1).GetCompilationAsync().Result.GetAssemblyOrModuleSymbol(mefReference);
             Assert.Null(assemblyReference);
 
             await ValidateSolutionAndCompilationsAsync(solution);

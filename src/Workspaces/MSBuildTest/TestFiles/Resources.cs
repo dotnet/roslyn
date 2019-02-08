@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
     {
         private static Stream GetResourceStream(string name)
         {
-            var resourceName = $"Microsoft.CodeAnalysis.UnitTests.Resources.{name}";
+            var resourceName = $"Microsoft.CodeAnalysis.MSBuild.UnitTests.Resources.{name}";
 
             var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
             if (resourceStream != null)

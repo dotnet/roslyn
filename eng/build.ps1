@@ -403,11 +403,11 @@ function Ensure-ProcDump() {
 }
 
 function Prepare-TempDir() {
-    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\.editorconfig") $TempDir
-    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.props") $TempDir
-    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.targets") $TempDir
-    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.rsp") $TempDir
-    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\NuGet.Config") $TempDir
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\.editorconfig") $TempDir
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.props") $TempDir
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.targets") $TempDir
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.rsp") $TempDir
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\NuGet.Config") $TempDir
 }
 
 function List-Processes() {
