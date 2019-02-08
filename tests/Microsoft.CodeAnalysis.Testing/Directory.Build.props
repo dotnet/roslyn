@@ -2,7 +2,7 @@
 <Project>  
   <PropertyGroup>
     <ImportNetSdkFromRepoToolset>false</ImportNetSdkFromRepoToolset>
-    <NoWarn>$(NoWarn);NU5125</NoWarn>
+    <NoWarn>$(NoWarn);NU5125;NU3005</NoWarn>
 
     <!-- Opt-out repo features -->
     <UsingToolXliff>false</UsingToolXliff>
