@@ -73,7 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddPunctuation(SyntaxKind.EqualsToken);
                 AddSpace();
 
-                AddConstantValue(symbol.Type, symbol.ConstantValue, preferNumericValueOrExpandedFlagsForEnum: IsEnumMember(symbol));
+                AddConstantValue(
+                    symbol.Type,
+                    symbol.ConstantValue,
+                    preferNumericValueOrExpandedFlagsForEnum: IsEnumMember(symbol),
+                    allowDefaultLiteral: format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral));
             }
         }
 
@@ -603,7 +607,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddPunctuation(SyntaxKind.EqualsToken);
                     AddSpace();
 
-                    AddConstantValue(symbol.Type, symbol.ExplicitDefaultValue);
+                    AddConstantValue(
+                        symbol.Type,
+                        symbol.ExplicitDefaultValue,
+                        preferNumericValueOrExpandedFlagsForEnum: false,
+                        allowDefaultLiteral: format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral));
                 }
             }
 
