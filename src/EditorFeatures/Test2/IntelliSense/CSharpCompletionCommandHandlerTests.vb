@@ -1662,7 +1662,7 @@ class C
         Public Async Function NoKeywordsOrSymbolsAfterNamedParameterWithCSharp7(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                         <Workspace>
-                            <Project Language="C#" CommonReferences="true" LanguageVersion="7">
+                            <Project Language="C#" CommonReferences="true">
                                 <Document>
 class Goo
 {
@@ -1678,7 +1678,7 @@ class Goo
 }
                               </Document>
                             </Project>
-                        </Workspace>)
+                        </Workspace>, languageVersion:=LanguageVersion.CSharp7)
 
                 state.SendTypeChars("a")
                 Await state.AssertCompletionSession()
@@ -1689,7 +1689,7 @@ class Goo
         End Function
 
         <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/pull/29820"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function KeywordsOrSymbolsAfterNamedParameter(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                                 <Document>
@@ -1705,7 +1705,7 @@ class Goo
     {
     }
 }
-                              </Document>, languageVersion:=LanguageVersion.CSharp7)
+                              </Document>)
 
                 state.SendTypeChars("a")
                 Await state.AssertCompletionSession()
