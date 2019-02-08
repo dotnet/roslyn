@@ -1492,7 +1492,10 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundRecursivePattern _boundRecursivePattern;
 
-        public CSharpLazyRecursivePatternOperation(CSharpOperationFactory operationFactory, BoundRecursivePattern boundRecursivePattern, SemanticModel semanticModel)
+        public CSharpLazyRecursivePatternOperation(
+            CSharpOperationFactory operationFactory,
+            BoundRecursivePattern boundRecursivePattern,
+            SemanticModel semanticModel)
             : base(inputType: boundRecursivePattern.InputType,
                    matchedType: boundRecursivePattern.DeclaredType?.Type ?? boundRecursivePattern.InputType.StrippedType(),
                    deconstructSymbol: boundRecursivePattern.DeconstructMethod,
@@ -1501,8 +1504,8 @@ namespace Microsoft.CodeAnalysis.Operations
                    syntax: boundRecursivePattern.Syntax,
                    isImplicit: boundRecursivePattern.WasCompilerGenerated)
         {
-            this._operationFactory = operationFactory;
-            this._boundRecursivePattern = boundRecursivePattern;
+            _operationFactory = operationFactory;
+            _boundRecursivePattern = boundRecursivePattern;
 
         }
         public override ImmutableArray<IPatternOperation> CreateDeconstructionSubpatterns()
@@ -1510,15 +1513,44 @@ namespace Microsoft.CodeAnalysis.Operations
             return _boundRecursivePattern.Deconstruction.IsDefault ? ImmutableArray<IPatternOperation>.Empty :
                 _boundRecursivePattern.Deconstruction.SelectAsArray((p, fac) => (IPatternOperation)fac.Create(p.Pattern), _operationFactory);
         }
-        public override ImmutableArray<(ISymbol, IPatternOperation)> CreatePropertySubpatterns()
+        public override ImmutableArray<IPropertySubpatternOperation> CreatePropertySubpatterns()
         {
-            return _boundRecursivePattern.Properties.IsDefault ? ImmutableArray<(ISymbol, IPatternOperation)>.Empty :
-                _boundRecursivePattern.Properties.SelectAsArray((p, fac) => ((ISymbol)p.Symbol, (IPatternOperation)fac.Create(p.Pattern)), _operationFactory);
+            return _boundRecursivePattern.Properties.IsDefault ? ImmutableArray<IPropertySubpatternOperation>.Empty :
+                _boundRecursivePattern.Properties.SelectAsArray((p, recursivePattern) => recursivePattern._operationFactory.CreatePropertySubpattern(p, recursivePattern.MatchedType), this);
+        }
+    }
+
+    internal sealed partial class CSharpLazyPropertySubpatternOperation : LazyPropertySubpatternOperation
+    {
+        private readonly BoundSubpattern _subpattern;
+        private readonly CSharpOperationFactory _operationFactory;
+        private readonly ITypeSymbol _matchedType;
+
+        public CSharpLazyPropertySubpatternOperation(
+            CSharpOperationFactory operationFactory,
+            BoundSubpattern subpattern,
+            ITypeSymbol matchedType,
+            SyntaxNode syntax,
+            SemanticModel semanticModel)
+            : base(semanticModel, syntax, isImplicit: false)
+        {
+            _subpattern = subpattern;
+            _operationFactory = operationFactory;
+            _matchedType = matchedType;
+        }
+        public override IOperation CreateMember()
+        {
+            return _operationFactory.CreatePropertySubpatternMember(_subpattern.Symbol, _matchedType, Syntax);
+        }
+
+        public override IPatternOperation CreatePattern()
+        {
+            return (IPatternOperation)_operationFactory.Create(_subpattern.Pattern);
         }
     }
 
     /// <summary>
-    /// Represents a C# recursive pattern.
+    /// Represents a C# recursive pattern using ITuple.
     /// </summary>
     internal sealed partial class CSharpLazyITuplePatternOperation : LazyRecursivePatternOperation
     {
@@ -1534,8 +1566,8 @@ namespace Microsoft.CodeAnalysis.Operations
                    syntax: boundITuplePattern.Syntax,
                    isImplicit: boundITuplePattern.WasCompilerGenerated)
         {
-            this._operationFactory = operationFactory;
-            this._boundITuplePattern = boundITuplePattern;
+            _operationFactory = operationFactory;
+            _boundITuplePattern = boundITuplePattern;
 
         }
         public override ImmutableArray<IPatternOperation> CreateDeconstructionSubpatterns()
@@ -1543,9 +1575,9 @@ namespace Microsoft.CodeAnalysis.Operations
             return _boundITuplePattern.Subpatterns.IsDefault ? ImmutableArray<IPatternOperation>.Empty :
                 _boundITuplePattern.Subpatterns.SelectAsArray((p, fac) => (IPatternOperation)fac.Create(p.Pattern), _operationFactory);
         }
-        public override ImmutableArray<(ISymbol, IPatternOperation)> CreatePropertySubpatterns()
+        public override ImmutableArray<IPropertySubpatternOperation> CreatePropertySubpatterns()
         {
-            return ImmutableArray<(ISymbol, IPatternOperation)>.Empty;
+            return ImmutableArray<IPropertySubpatternOperation>.Empty;
         }
     }
 
@@ -1603,8 +1635,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public CSharpLazySwitchExpressionOperation(CSharpOperationFactory operationFactory, BoundSwitchExpression boundSwitchExpression, SemanticModel semanticModel)
             : base(boundSwitchExpression.Type, semanticModel, boundSwitchExpression.Syntax, boundSwitchExpression.WasCompilerGenerated)
         {
-            this._operationFactory = operationFactory;
-            this._switchExpression = boundSwitchExpression;
+            _operationFactory = operationFactory;
+            _switchExpression = boundSwitchExpression;
         }
 
         protected override IOperation CreateValue()
@@ -1625,8 +1657,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public CSharpLazySwitchExpressionArmOperation(CSharpOperationFactory operationFactory, BoundSwitchExpressionArm boundSwitchExpressionArm, SemanticModel semanticModel)
             : base(boundSwitchExpressionArm.Locals.Cast<CSharp.Symbols.LocalSymbol, ILocalSymbol>(), semanticModel, boundSwitchExpressionArm.Syntax, boundSwitchExpressionArm.WasCompilerGenerated)
         {
-            this._operationFactory = operationFactory;
-            this._switchExpressionArm = boundSwitchExpressionArm;
+            _operationFactory = operationFactory;
+            _switchExpressionArm = boundSwitchExpressionArm;
         }
 
         protected override IOperation CreateGuard()
