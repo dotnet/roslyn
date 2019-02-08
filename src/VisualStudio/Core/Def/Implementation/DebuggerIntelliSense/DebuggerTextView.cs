@@ -359,7 +359,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             return _innerTextView.GetTextViewLineContainingBufferPosition(bufferPosition);
         }
 
-        public void DisconnectFromIntellisenseControllers()
+        public void Cleanup()
         {
             // The innerTextView of the immediate window never closes, but we want
             // our completion subscribers to unsubscribe from events when this
@@ -368,10 +368,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             {
                 this.ClosedInternal?.Invoke(this, EventArgs.Empty);
             }
-        }
-
-        public void CleanupSetProperties()
-        {
+            
             _innerTextView.Properties.RemoveProperty(CompletionRoot);
         }
 
