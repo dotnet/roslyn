@@ -1709,7 +1709,7 @@ class Goo
 
                 state.SendTypeChars("a")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAny(displayText:="num", displayTextSuffix:=":"))
+                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "num" AndAlso i.DisplayTextSuffix = ":"))
                 Assert.True(state.CompletionItemsContainsAny({"System"}))
                 Assert.True(state.CompletionItemsContainsAny({"int"}))
             End Using
