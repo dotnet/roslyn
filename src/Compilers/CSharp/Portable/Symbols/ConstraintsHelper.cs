@@ -459,24 +459,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this TypeSymbol type,
             CSharpCompilation compilation,
             ConversionsBase conversions,
-            bool includeNullability,
             Location location,
             DiagnosticBag diagnostics)
         {
-            type.VisitType(s_checkConstraintsSingleTypeFunc, new CheckConstraintsArgs(compilation, conversions, includeNullability, location, diagnostics));
+            bool includeNullability = compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
+            CheckAllConstraints(type, compilation, conversions, includeNullability, location, diagnostics);
         }
 
         public static bool CheckAllConstraints(
             this TypeSymbol type,
             CSharpCompilation compilation,
-            ConversionsBase conversions,
-            bool includeNullability)
+            ConversionsBase conversions)
         {
             var diagnostics = DiagnosticBag.GetInstance();
-            type.CheckAllConstraints(compilation, conversions, includeNullability, NoLocation.Singleton, diagnostics);
+
+            // Nullability checks can only add warnings here so skip them for this check as we are only
+            // concerned with errors.
+            CheckAllConstraints(type, compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics);
             bool ok = !diagnostics.HasAnyErrors();
             diagnostics.Free();
             return ok;
+        }
+
+        public static void CheckAllConstraints(
+            this TypeSymbol type,
+            CSharpCompilation compilation,
+            ConversionsBase conversions,
+            bool includeNullability,
+            Location location,
+            DiagnosticBag diagnostics)
+        {
+            type.VisitType(s_checkConstraintsSingleTypeFunc, new CheckConstraintsArgs(compilation, conversions, includeNullability, location, diagnostics));
         }
 
         private readonly struct CheckConstraintsArgs

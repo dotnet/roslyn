@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var explicitInterfaceSpecifier = this.ExplicitInterfaceSpecifier;
                 Debug.Assert(explicitInterfaceSpecifier != null);
-                _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, includeNullability, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
+                _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
             }
 
             if (!_explicitInterfaceImplementations.IsEmpty)

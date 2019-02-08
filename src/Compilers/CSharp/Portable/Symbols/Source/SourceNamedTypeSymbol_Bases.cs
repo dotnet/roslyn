@@ -106,8 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var corLibrary = this.ContainingAssembly.CorLibrary;
                 var conversions = new TypeConversions(corLibrary);
                 var location = singleDeclaration.NameLocation;
-                bool includeNullability = DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-                localBase.CheckAllConstraints(DeclaringCompilation, conversions, includeNullability, location, diagnostics);
+                localBase.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
             }
         }
 
@@ -132,7 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var corLibrary = this.ContainingAssembly.CorLibrary;
                 var conversions = new TypeConversions(corLibrary);
                 var location = singleDeclaration.NameLocation;
-                bool includeNullability = DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
 
                 foreach (var pair in interfaces)
                 {
@@ -140,11 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     foreach (var @interface in set)
                     {
-<<<<<<< HEAD
                         @interface.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
-=======
-                        @interface.CheckAllConstraints(conversions, includeNullability, location, diagnostics);
->>>>>>> Make nullability explicit constraint parameter
                     }
 
                     if (set.Count > 1)

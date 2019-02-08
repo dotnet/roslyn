@@ -57031,10 +57031,7 @@ class B4 : A<string?>
             comp.VerifyDiagnostics(
                 // (11,20): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // class B2 : A<string?>
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(11, 20),
-                // (27,7): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'A<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
-                // class B4 : A<string?>
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "B4").WithArguments("A<T>", "T", "string?").WithLocation(27, 7)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(11, 20)
                 );
             verifyAllConstraintTypes();
 
@@ -57063,7 +57060,10 @@ class B4 : A<string?>
             comp.VerifyDiagnostics(
                 // (11,20): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // class B2 : A<string?>
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(11, 20)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(11, 20),
+                // (27,7): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'A<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                // class B4 : A<string?>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "B4").WithArguments("A<T>", "T", "string?").WithLocation(27, 7)
                 );
             verifyAllConstraintTypes();
 

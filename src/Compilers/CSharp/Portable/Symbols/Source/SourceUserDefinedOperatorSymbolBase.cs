@@ -644,12 +644,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // method name location for any such errors. We'll do the same for return
             // type errors but for parameter errors, we'll use the parameter location.
 
-            bool includeNullability = DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-            this.ReturnType.CheckAllConstraints(DeclaringCompilation, conversions, includeNullability, this.Locations[0], diagnostics);
+            this.ReturnType.CheckAllConstraints(DeclaringCompilation, conversions, this.Locations[0], diagnostics);
 
             foreach (var parameter in this.Parameters)
             {
-                parameter.Type.CheckAllConstraints(DeclaringCompilation, conversions, includeNullability, parameter.Locations[0], diagnostics);
+                parameter.Type.CheckAllConstraints(DeclaringCompilation, conversions, parameter.Locations[0], diagnostics);
             }
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
