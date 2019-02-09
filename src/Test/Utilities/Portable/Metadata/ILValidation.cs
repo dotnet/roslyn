@@ -304,7 +304,6 @@ namespace Roslyn.Test.Utilities
         {
             string[] lines = source?.Split(new[] { "\r\n" }, StringSplitOptions.None);
             var doc = new XmlDocument() { XmlResolver = null };
-            using (var sr = new StringReader(pdbXml))
             using (var reader = new XmlTextReader(new StringReader(pdbXml)) { DtdProcessing = DtdProcessing.Prohibit })
             {
                 doc.Load(reader);
