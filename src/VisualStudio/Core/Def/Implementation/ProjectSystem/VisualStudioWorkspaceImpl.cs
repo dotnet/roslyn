@@ -31,6 +31,7 @@ using Microsoft.VisualStudio.Text.Projection;
 using Roslyn.Utilities;
 using VSLangProj;
 using VSLangProj140;
+using VSLangProj80;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using OleInterop = Microsoft.VisualStudio.OLE.Interop;
 
@@ -373,19 +374,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return false;
         }
 
+        protected override bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, CodeAnalysis.Project project)
+        {
+            return project.LanguageServices.GetRequiredService<ICompilationOptionsChangingService>().CanApplyChange(oldOptions, newOptions);
+        }
+
         protected override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, CodeAnalysis.Project project)
         {
-            var parseOptionsService = project.LanguageServices.GetService<IParseOptionsService>();
-            if (parseOptionsService == null)
-            {
-                return false;
-            }
-
-            // Currently, only changes to the LanguageVersion of parse options are supported.
-            var newLanguageVersion = parseOptionsService.GetLanguageVersion(newOptions);
-            var updated = parseOptionsService.WithLanguageVersion(oldOptions, newLanguageVersion);
-
-            return newOptions == updated;
+            return project.LanguageServices.GetRequiredService<IParseOptionsChangingService>().CanApplyChange(oldOptions, newOptions);
         }
 
         private void AddTextBufferCloneServiceToBuffer(object sender, TextBufferCreatedEventArgs e)
@@ -409,6 +405,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 case ApplyChangesKind.AddAdditionalDocument:
                 case ApplyChangesKind.RemoveAdditionalDocument:
                 case ApplyChangesKind.ChangeAdditionalDocument:
+                case ApplyChangesKind.ChangeCompilationOptions:
                 case ApplyChangesKind.ChangeParseOptions:
                     return true;
 
@@ -470,6 +467,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return analyzerReference.FullPath;
         }
 
+        protected override void ApplyCompilationOptionsChanged(ProjectId projectId, CompilationOptions options)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            var compilationOptionsService = CurrentSolution.GetProject(projectId).LanguageServices.GetRequiredService<ICompilationOptionsChangingService>();
+            var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
+            compilationOptionsService.Apply(options, storage);
+        }
+
         protected override void ApplyParseOptionsChanged(ProjectId projectId, ParseOptions options)
         {
             if (projectId == null)
@@ -482,30 +496,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(options));
             }
 
-            var parseOptionsService = CurrentSolution.GetProject(projectId).LanguageServices.GetService<IParseOptionsService>();
-            Contract.ThrowIfNull(parseOptionsService, nameof(parseOptionsService));
-
-            string newVersion = parseOptionsService.GetLanguageVersion(options);
-
-            GetProjectData(projectId, out var hierarchy, out var project);
-            foreach (string configurationName in (object[])project.ConfigurationManager.ConfigurationRowNames)
-            {
-                switch (CurrentSolution.GetProject(projectId).Language)
-                {
-                    case LanguageNames.CSharp:
-                        var csharpProperties = (VSLangProj80.CSharpProjectConfigurationProperties3)project.ConfigurationManager
-                            .ConfigurationRow(configurationName).Item(1).Object;
-
-                        if (newVersion != csharpProperties.LanguageVersion)
-                        {
-                            csharpProperties.LanguageVersion = newVersion;
-                        }
-                        break;
-
-                    case LanguageNames.VisualBasic:
-                        throw new InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_Visual_Basic_parse_options);
-                }
-            }
+            var parseOptionsService = CurrentSolution.GetProject(projectId).LanguageServices.GetRequiredService<IParseOptionsChangingService>();
+            var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
+            parseOptionsService.Apply(options, storage);
         }
 
         protected override void ApplyAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference)

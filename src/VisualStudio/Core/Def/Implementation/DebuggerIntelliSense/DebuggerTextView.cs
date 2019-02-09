@@ -42,7 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             // The editor requires the current top buffer.
             // TODO it seems to be a hack. It should be removed.
             // Here is an issue to track: https://github.com/dotnet/roslyn/issues/31189
-            _innerTextView.Properties.AddProperty(CompletionRoot, bufferGraph.TopBuffer);
+            // Starting debugging for the second time, we already have the property set.
+            _innerTextView.Properties[CompletionRoot] = bufferGraph.TopBuffer;
         }
 
         /// <summary>
@@ -358,7 +359,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             return _innerTextView.GetTextViewLineContainingBufferPosition(bufferPosition);
         }
 
-        public void DisconnectFromIntellisenseControllers()
+        public void Cleanup()
         {
             // The innerTextView of the immediate window never closes, but we want
             // our completion subscribers to unsubscribe from events when this
@@ -367,6 +368,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             {
                 this.ClosedInternal?.Invoke(this, EventArgs.Empty);
             }
+            
+            _innerTextView.Properties.RemoveProperty(CompletionRoot);
         }
 
         public void QueuePostLayoutAction(Action action) => _innerTextView.QueuePostLayoutAction(action);

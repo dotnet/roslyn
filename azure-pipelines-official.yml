@@ -26,22 +26,16 @@ jobs:
   steps:
   - task: NuGetToolInstaller@0
     inputs:
-      versionSpec: '4.9.2' 
-
-  - task: NuGetCommand@2
-    displayName: 'Clear NuGet caches'
-    inputs:
-      command: custom
-      arguments: 'locals all -clear'
+      versionSpec: '4.9.2'
 
   - task: NuGetCommand@2
     displayName: Restore internal tools
     inputs:
       command: restore
       feedsToUse: config
-      restoreSolution: 'eng\internal\Toolset.csproj'
+      restoreSolution: 'eng\common\internal\Tools.csproj'
       nugetConfigPath: 'NuGet.config'
-      restoreDirectory: '$(UserProfile)\.nuget\packages'
+      restoreDirectory: '$(Build.SourcesDirectory)\.packages'
 
   - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@1
     inputs:
@@ -65,8 +59,10 @@ jobs:
               -officialBuildId $(Build.BuildNumber)
               -officialSkipTests $(SkipTests)
               -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
-              -vsDropName $(VisualStudio.DropName)
-              -vsDropAccessToken $(System.AccessToken)
+              /p:RepositoryName=$(Build.Repository.Name)
+              /p:VisualStudioIbcSourceBranchName="master-vs-deps"
+              /p:VisualStudioDropAccessToken=$(System.AccessToken)
+              /p:VisualStudioDropName=$(VisualStudio.DropName)
               /p:DotNetSignType=$(SignType)
               /p:DotNetPublishToBlobFeed=true
               /p:DotNetPublishBlobFeedKey=$(dotnetfeed-storage-access-key-1)
@@ -74,6 +70,8 @@ jobs:
               /p:PublishToSymbolServer=true
               /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
               /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
+              /p:IbcOptimizationDataDir=$(Build.SourcesDirectory)\.o\\
+              /p:VisualStudioIbcDropId=75e3797e1105a4da4c10dddda76c3b9398f7725a/223453/935479/1
     displayName: Build
     condition: succeeded()
 
@@ -81,7 +79,7 @@ jobs:
     displayName: Publish Assets
     inputs:
       filePath: 'eng\publish-assets.ps1'
-      arguments: '-configuration $(BuildConfiguration) -branchName "$(Build.SourceBranch)" -mygetApiKey $(Roslyn.MyGetApiKey) -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
+      arguments: '-configuration $(BuildConfiguration) -branchName "$(Build.SourceBranchName)" -mygetApiKey $(Roslyn.MyGetApiKey) -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
     condition: succeeded()
 
   # Publish OptProf configuration files
@@ -118,12 +116,12 @@ jobs:
   # Publish run settings
   - task: PowerShell@2
     inputs:
-      filePath: eng\generate-optprof-run-settings.ps1
+      filePath: eng\common\sdk-task.ps1
       arguments: -configuration $(BuildConfiguration)
-                 -vsDropName $(VisualStudio.DropName)
-                 -bootstrapperInfo $(Build.StagingDirectory)\MicroBuild\Output\BootstrapperInfo.json
-      failOnStderr: true
-    displayName: 'OptProf - Generate runsettings file'
+                 -task VisualStudio.BuildIbcTrainingSettings
+                 /p:VisualStudioDropName=$(VisualStudio.DropName)
+                 /p:BootstrapperInfoPath=$(Build.StagingDirectory)\MicroBuild\Output\BootstrapperInfo.json
+    displayName: 'OptProf - Build IBC training settings'
     condition: succeeded()
 
   # Publish bootstrapper info

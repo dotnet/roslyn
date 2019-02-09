@@ -5,6 +5,8 @@ Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CSharpCompilationOptions(
 Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.NullableContextOptions.get -> Microsoft.CodeAnalysis.CSharp.NullableContextOptions
 Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithNullableContextOptions(Microsoft.CodeAnalysis.CSharp.NullableContextOptions options) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8 = 800 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
+Microsoft.CodeAnalysis.CSharp.LanguageVersion.Preview = 2147483646 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
+Microsoft.CodeAnalysis.CSharp.LanguageVersion.LatestMajor = 2147483645 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.NullableContextOptions
 Microsoft.CodeAnalysis.CSharp.NullableContextOptions.Disable = 0 -> Microsoft.CodeAnalysis.CSharp.NullableContextOptions
 Microsoft.CodeAnalysis.CSharp.NullableContextOptions.Enable = 1 -> Microsoft.CodeAnalysis.CSharp.NullableContextOptions
