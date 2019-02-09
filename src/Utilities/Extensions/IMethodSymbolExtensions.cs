@@ -422,6 +422,19 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
+        public static bool IsLambdaOrLocalFunction(this IMethodSymbol method)
+        {
+            switch (method.MethodKind)
+            {
+                case MethodKind.LambdaMethod:
+                case MethodKind.LocalFunction:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
         public static int GetParameterIndex(this IMethodSymbol methodSymbol, IParameterSymbol parameterSymbol)
         {
             for (var i = 0; i < methodSymbol.Parameters.Length; i++)

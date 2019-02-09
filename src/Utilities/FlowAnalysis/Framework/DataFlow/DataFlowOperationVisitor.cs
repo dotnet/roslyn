@@ -195,7 +195,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 interproceduralThisOrMeInstanceForCallerOpt: analysisContext.InterproceduralAnalysisDataOpt?.ThisOrMeInstanceForCallerOpt?.Instance,
                 interproceduralCallStackOpt: analysisContext.InterproceduralAnalysisDataOpt?.CallStack,
                 interproceduralCapturedVariablesMapOpt: analysisContext.InterproceduralAnalysisDataOpt?.CapturedVariablesMap,
-                interproceduralGetAnalysisEntityForFlowCaptureOpt: analysisContext.InterproceduralAnalysisDataOpt?.GetAnalysisEntityForFlowCapture);
+                interproceduralGetAnalysisEntityForFlowCaptureOpt: analysisContext.InterproceduralAnalysisDataOpt?.GetAnalysisEntityForFlowCapture,
+                getInterproceduralCallStackForOwningSymbol: GetInterproceduralCallStackForOwningSymbol);
         }
 
         public override int GetHashCode() => HashUtilities.Combine(GetType().GetHashCode(), DataFlowAnalysisContext.GetHashCode());
@@ -1661,7 +1662,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     newMethodsBeingAnalyzed,
                     getCachedAbstractValueFromCaller: GetCachedAbstractValue,
                     getInterproceduralControlFlowGraph: GetInterproceduralControlFlowGraph,
-                    getAnalysisEntityForFlowCapture: GetAnalysisEntityForFlowCapture);
+                    getAnalysisEntityForFlowCapture: GetAnalysisEntityForFlowCapture,
+                    getInterproceduralCallStackForOwningSymbol: GetInterproceduralCallStackForOwningSymbol);
 
                 // Local functions.
                 (AnalysisEntity, PointsToAbstractValue)? GetInvocationInstance()
@@ -1733,31 +1735,42 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 ImmutableDictionary<ISymbol, PointsToAbstractValue> GetCapturedVariablesMap()
                 {
-                    var capturedVariables = isLambdaOrLocalFunction ? cfg.OriginalOperation.GetCaptures(invokedMethod) : ImmutableHashSet<ISymbol>.Empty;
-
-                    if (capturedVariables.IsEmpty)
+                    if (!isLambdaOrLocalFunction)
                     {
                         return ImmutableDictionary<ISymbol, PointsToAbstractValue>.Empty;
                     }
-                    else
+
+                    PooledHashSet<ISymbol> capturedVariables = cfg.OriginalOperation.GetCaptures(invokedMethod);
+                    try
                     {
-                        var builder = ImmutableDictionary.CreateBuilder<ISymbol, PointsToAbstractValue>();
-                        foreach (var capturedVariable in capturedVariables)
+                        if (capturedVariables.Count == 0)
                         {
-                            if (capturedVariable.Kind == SymbolKind.NamedType)
+                            return ImmutableDictionary<ISymbol, PointsToAbstractValue>.Empty;
+                        }
+                        else
+                        {
+                            var builder = ImmutableDictionary.CreateBuilder<ISymbol, PointsToAbstractValue>();
+                            foreach (var capturedVariable in capturedVariables)
                             {
-                                // ThisOrMeInstance capture can be skipped here
-                                // as we already pass down the invocation instance through "GetInvocationInstance".
-                                continue;
+                                if (capturedVariable.Kind == SymbolKind.NamedType)
+                                {
+                                    // ThisOrMeInstance capture can be skipped here
+                                    // as we already pass down the invocation instance through "GetInvocationInstance".
+                                    continue;
+                                }
+
+                                var success = AnalysisEntityFactory.TryCreateForSymbolDeclaration(capturedVariable, out var capturedEntity);
+                                Debug.Assert(success);
+
+                                builder.Add(capturedVariable, capturedEntity.InstanceLocation);
                             }
 
-                            var success = AnalysisEntityFactory.TryCreateForSymbolDeclaration(capturedVariable, out var capturedEntity);
-                            Debug.Assert(success);
-
-                            builder.Add(capturedVariable, capturedEntity.InstanceLocation);
+                            return builder.ToImmutable();
                         }
-
-                        return builder.ToImmutable();
+                    }
+                    finally
+                    {
+                        capturedVariables.Free();
                     }
                 }
 
@@ -2426,6 +2439,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             return cfg;
+        }
+
+        private ImmutableStack<IOperation> GetInterproceduralCallStackForOwningSymbol(IMethodSymbol forOwningSymbol)
+        {
+            if (OwningSymbol.Equals(forOwningSymbol))
+            {
+                return DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.CallStack;
+            }
+
+            return DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.GetInterproceduralCallStackForOwningSymbol(forOwningSymbol);
         }
 
         public virtual TAbstractAnalysisValue VisitInvocation_LocalFunction(

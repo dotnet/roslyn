@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private readonly AnalysisEntity _interproceduralThisOrMeInstanceForCallerOpt;
         private readonly ImmutableStack<IOperation> _interproceduralCallStackOpt;
         private readonly Func<IOperation, AnalysisEntity> _interproceduralGetAnalysisEntityForFlowCaptureOpt;
+        private readonly Func<IMethodSymbol, ImmutableStack<IOperation>> _getInterproceduralCallStackForOwningSymbol;
 
         public AnalysisEntityFactory(
             ControlFlowGraph controlFlowGraph,
@@ -39,7 +40,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             AnalysisEntity interproceduralThisOrMeInstanceForCallerOpt,
             ImmutableStack<IOperation> interproceduralCallStackOpt,
             ImmutableDictionary<ISymbol, PointsToAbstractValue> interproceduralCapturedVariablesMapOpt,
-            Func<IOperation, AnalysisEntity> interproceduralGetAnalysisEntityForFlowCaptureOpt)
+            Func<IOperation, AnalysisEntity> interproceduralGetAnalysisEntityForFlowCaptureOpt,
+            Func<IMethodSymbol, ImmutableStack<IOperation>> getInterproceduralCallStackForOwningSymbol)
         {
             _controlFlowGraph = controlFlowGraph;
             _getPointsToAbstractValueOpt = getPointsToAbstractValueOpt;
@@ -48,6 +50,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             _interproceduralThisOrMeInstanceForCallerOpt = interproceduralThisOrMeInstanceForCallerOpt;
             _interproceduralCallStackOpt = interproceduralCallStackOpt;
             _interproceduralGetAnalysisEntityForFlowCaptureOpt = interproceduralGetAnalysisEntityForFlowCaptureOpt;
+            _getInterproceduralCallStackForOwningSymbol = getInterproceduralCallStackForOwningSymbol;
 
             _analysisEntityMap = new Dictionary<IOperation, AnalysisEntity>();
             _captureIdEntityMap = new Dictionary<CaptureId, AnalysisEntity>();
@@ -392,7 +395,23 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     }
                     else
                     {
-                        var location = AbstractLocation.CreateSymbolLocation(symbolOpt, _interproceduralCallStackOpt);
+                        // For locals and parameters of lambda/local functions, the symbol instance location
+                        // should also include the interprocedural call stack because we might have recursive invocations
+                        // to the same method such that the symbol declarations from both the current and prior
+                        // invocation of the method in the call stack are distinct entities.
+                        // For regular method invocations, we don't need the interprocedural call stack because we filter out
+                        // all the analysis entities for locals and parameters of the caller prior to the invocation.
+                        var interproceduralCallStackForSymbolDeclaration = ImmutableStack<IOperation>.Empty;
+                        if (_interproceduralCallStackOpt != null &&
+                            symbolOpt.ContainingSymbol is IMethodSymbol method &&
+                            method.IsLambdaOrLocalFunction())
+                        {
+                            interproceduralCallStackForSymbolDeclaration = _getInterproceduralCallStackForOwningSymbol(method);
+                            Debug.Assert(interproceduralCallStackForSymbolDeclaration != null);
+                            Debug.Assert(!interproceduralCallStackForSymbolDeclaration.IsEmpty);
+                        }
+
+                        var location = AbstractLocation.CreateSymbolLocation(symbolOpt, interproceduralCallStackForSymbolDeclaration);
                         instanceLocationOpt = PointsToAbstractValue.Create(location, mayBeNull: false);
                     }
 

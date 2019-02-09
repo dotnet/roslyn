@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ImmutableHashSet<TAnalysisContext> methodsBeingAnalyzed,
             Func<IOperation, TAbstractAnalysisValue> getCachedAbstractValueFromCaller,
             Func<IMethodSymbol, ControlFlowGraph> getInterproceduralControlFlowGraph,
-            Func<IOperation, AnalysisEntity> getAnalysisEntityForFlowCapture)
+            Func<IOperation, AnalysisEntity> getAnalysisEntityForFlowCapture,
+            Func<IMethodSymbol, ImmutableStack<IOperation>> getInterproceduralCallStackForOwningSymbol)
         {
             Debug.Assert(initialAnalysisData != null);
             Debug.Assert(!arguments.IsDefault);
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(getCachedAbstractValueFromCaller != null);
             Debug.Assert(getInterproceduralControlFlowGraph != null);
             Debug.Assert(getAnalysisEntityForFlowCapture != null);
+            Debug.Assert(getInterproceduralCallStackForOwningSymbol != null);
 
             InitialAnalysisData = initialAnalysisData;
             InvocationInstanceOpt = invocationInstanceOpt;
@@ -59,6 +61,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             GetCachedAbstractValueFromCaller = getCachedAbstractValueFromCaller;
             GetInterproceduralControlFlowGraph = getInterproceduralControlFlowGraph;
             GetAnalysisEntityForFlowCapture = getAnalysisEntityForFlowCapture;
+            GetInterproceduralCallStackForOwningSymbol = getInterproceduralCallStackForOwningSymbol;
         }
 
         public TAnalysisData InitialAnalysisData { get; }
@@ -72,6 +75,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public Func<IOperation, TAbstractAnalysisValue> GetCachedAbstractValueFromCaller { get; }
         public Func<IMethodSymbol, ControlFlowGraph> GetInterproceduralControlFlowGraph { get; }
         public Func<IOperation, AnalysisEntity> GetAnalysisEntityForFlowCapture { get; }
+        public Func<IMethodSymbol, ImmutableStack<IOperation>> GetInterproceduralCallStackForOwningSymbol { get; }
 
         protected override void ComputeHashCodeParts(ArrayBuilder<int> builder)
         {
