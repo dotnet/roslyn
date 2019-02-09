@@ -11,25 +11,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     ' there is no way for a user to be remove this provider.
     '
     ' to reduce number of unnecessary heap allocations, most of them just return null.
-    Friend Class DefaultOperationProvider
-        Implements IFormattingRule
+    Friend NotInheritable Class DefaultOperationProvider
+        Inherits CompatAbstractFormattingRule
 
-        Public Sub New()
+        Public Shared ReadOnly Instance As New DefaultOperationProvider()
+
+        Private Sub New()
         End Sub
 
-        Public Sub AddSuppressOperations(operations As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, nextAction As NextAction(Of SuppressOperation)) Implements IFormattingRule.AddSuppressOperations
+        Public Overrides Sub AddSuppressOperationsSlow(operations As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextSuppressOperationAction)
         End Sub
 
-        Public Sub AddAnchorIndentationOperations(operations As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, nextAction As NextAction(Of AnchorIndentationOperation)) Implements IFormattingRule.AddAnchorIndentationOperations
+        Public Overrides Sub AddAnchorIndentationOperationsSlow(operations As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextAnchorIndentationOperationAction)
         End Sub
 
-        Public Sub AddIndentBlockOperations(operations As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, nextAction As NextAction(Of IndentBlockOperation)) Implements IFormattingRule.AddIndentBlockOperations
+        Public Overrides Sub AddIndentBlockOperationsSlow(operations As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextIndentBlockOperationAction)
         End Sub
 
-        Public Sub AddAlignTokensOperations(operations As List(Of AlignTokensOperation), node As SyntaxNode, optionSet As OptionSet, nextAction As NextAction(Of AlignTokensOperation)) Implements IFormattingRule.AddAlignTokensOperations
+        Public Overrides Sub AddAlignTokensOperationsSlow(operations As List(Of AlignTokensOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextAlignTokensOperationAction)
         End Sub
 
-        Public Function GetAdjustNewLinesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, nextOperation As NextOperation(Of AdjustNewLinesOperation)) As AdjustNewLinesOperation Implements IFormattingRule.GetAdjustNewLinesOperation
+        Public Overrides Function GetAdjustNewLinesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
             If previousToken.Parent Is Nothing Then
                 Return Nothing
             End If
@@ -147,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         ' return 1 space for every token pairs as a default operation
-        Public Function GetAdjustSpacesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, nextOperation As NextOperation(Of AdjustSpacesOperation)) As AdjustSpacesOperation Implements IFormattingRule.GetAdjustSpacesOperation
+        Public Overrides Function GetAdjustSpacesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
             If previousToken.Kind = SyntaxKind.ColonToken AndAlso
                TypeOf previousToken.Parent Is LabelStatementSyntax AndAlso
                currentToken.Kind <> SyntaxKind.EndOfFileToken Then
