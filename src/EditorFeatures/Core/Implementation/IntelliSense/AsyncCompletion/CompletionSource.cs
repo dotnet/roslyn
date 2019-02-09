@@ -45,11 +45,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         private readonly ITextView _textView;
         private readonly bool _isDebuggerTextView;
+        private readonly ImmutableHashSet<string> _roles;
 
         internal CompletionSource(ITextView textView, IThreadingContext threadingContext) : base(threadingContext)
         {
             _textView = textView;
             _isDebuggerTextView = textView is IDebuggerTextView;
+            _roles = textView.Roles.ToImmutableHashSet();
         }
 
         public AsyncCompletionData.CompletionStartData InitializeCompletion(
@@ -176,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 document,
                 triggerLocation,
                 roslynTrigger,
-                _textView.Roles.ToImmutableHashSet(),
+                _roles,
                 GetOptions(document.Project.Solution.Workspace),
                 cancellationToken).ConfigureAwait(false);
 
