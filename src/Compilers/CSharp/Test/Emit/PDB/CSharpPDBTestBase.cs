@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 
             var doc = new XmlDocument() { XmlResolver = null };
             using (var sr = new System.IO.StringReader(pdb))
-            using (var reader = new XmlTextReader(sr) { DtdProcessing = DtdProcessing.Prohibit })
+            using (var reader = new XmlTextReader(new StringReader(pdb)) { DtdProcessing = DtdProcessing.Prohibit })
             {
                 doc.Load(reader);
             }
