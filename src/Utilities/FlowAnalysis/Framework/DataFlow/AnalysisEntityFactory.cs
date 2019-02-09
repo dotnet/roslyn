@@ -347,8 +347,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 if (instanceOpt.Type.IsValueType)
                 {
-                    if (TryCreate(instanceOpt, out parentOpt))
+                    if (TryCreate(instanceOpt, out var instanceEntityOpt) &&
+                        instanceEntityOpt.Type.IsValueType)
                     {
+                        parentOpt = instanceEntityOpt;
                         instanceLocationOpt = parentOpt.InstanceLocation;
                     }
                     else
