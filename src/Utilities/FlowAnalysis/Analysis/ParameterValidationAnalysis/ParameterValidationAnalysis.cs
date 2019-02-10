@@ -92,7 +92,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             foreach (var block in analysisContext.ControlFlowGraph.Blocks)
             {
                 var data = new ParameterValidationAnalysisData(dataFlowAnalysisResult[block].Data);
-                _ = Flow(newOperationVisitor, block, data);
+                data = Flow(newOperationVisitor, block, data);
+
+                if (block.FallThroughSuccessor != null)
+                {
+                    var fallThroughData = block.ConditionalSuccessor != null ? AnalysisDomain.Clone(data) : data;
+                    _ = FlowBranch(newOperationVisitor, block.FallThroughSuccessor, fallThroughData);
+                }
+
+                if (block.ConditionalSuccessor != null)
+                {
+                    _ = FlowBranch(newOperationVisitor, block.FallThroughSuccessor, data);
+                }
             }
 
             return new ParameterValidationAnalysisResult(dataFlowAnalysisResult, newOperationVisitor.HazardousParameterUsages);
