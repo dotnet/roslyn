@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                         CopyAbstractValue copyValue = GetCopyAbstractValue(target);
                         if (copyValue.Kind.IsKnown())
                         {
-                            // TODO: File a tracking bug to enable the below assert.
+                            // https://github.com/dotnet/roslyn-analyzers/issues/2106 tracks enabling the below assert.
                             //Debug.Assert(copyValue.AnalysisEntities.Contains(targetEntity));
                             foreach (var analysisEntity in copyValue.AnalysisEntities)
                             {
