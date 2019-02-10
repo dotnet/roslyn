@@ -479,30 +479,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             protected override void ApplyInterproceduralAnalysisResultCore(CopyAnalysisData resultData)
             {
-                var processedEntities = PooledHashSet<AnalysisEntity>.GetInstance();
-                try
+                using (var mergedData = GetClonedAnalysisData(resultData))
                 {
-                    foreach (var kvp in resultData.CoreAnalysisData)
+                    foreach (var kvp in CurrentAnalysisData.CoreAnalysisData)
                     {
                         var entity = kvp.Key;
-                        var newCopyValue = kvp.Value;
-                        if (processedEntities.Add(entity))
+                        var copyValue = kvp.Value;
+                        if (!mergedData.CoreAnalysisData.ContainsKey(entity))
                         {
-                            var currentCopyValue = GetAbstractValue(entity);
-                            if (currentCopyValue != newCopyValue)
-                            {
-                                CurrentAnalysisData.SetAbstactValueForEntities(newCopyValue, entityBeingAssignedOpt: null);
-                            }
-
-                            processedEntities.AddRange(newCopyValue.AnalysisEntities);
+                            mergedData.SetAbstactValueForEntities(copyValue, entityBeingAssignedOpt: null);
                         }
                     }
 
-                    AssertValidCopyAnalysisData(CurrentAnalysisData);
-                }
-                finally
-                {
-                    processedEntities.Free();
+                    AssertValidCopyAnalysisData(mergedData);
+
+                    CurrentAnalysisData.CoreAnalysisData.Clear();
+                    CurrentAnalysisData.CoreAnalysisData.AddRange(mergedData.CoreAnalysisData);
                 }
             }
 

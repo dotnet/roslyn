@@ -2441,7 +2441,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return cfg;
         }
 
-        private ImmutableStack<IOperation> GetInterproceduralCallStackForOwningSymbol(IMethodSymbol forOwningSymbol)
+        private ImmutableStack<IOperation> GetInterproceduralCallStackForOwningSymbol(ISymbol forOwningSymbol)
         {
             if (OwningSymbol.Equals(forOwningSymbol))
             {

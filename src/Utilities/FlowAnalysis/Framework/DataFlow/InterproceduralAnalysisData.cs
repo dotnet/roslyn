@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Func<IOperation, TAbstractAnalysisValue> getCachedAbstractValueFromCaller,
             Func<IMethodSymbol, ControlFlowGraph> getInterproceduralControlFlowGraph,
             Func<IOperation, AnalysisEntity> getAnalysisEntityForFlowCapture,
-            Func<IMethodSymbol, ImmutableStack<IOperation>> getInterproceduralCallStackForOwningSymbol)
+            Func<ISymbol, ImmutableStack<IOperation>> getInterproceduralCallStackForOwningSymbol)
         {
             Debug.Assert(initialAnalysisData != null);
             Debug.Assert(!arguments.IsDefault);
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public Func<IOperation, TAbstractAnalysisValue> GetCachedAbstractValueFromCaller { get; }
         public Func<IMethodSymbol, ControlFlowGraph> GetInterproceduralControlFlowGraph { get; }
         public Func<IOperation, AnalysisEntity> GetAnalysisEntityForFlowCapture { get; }
-        public Func<IMethodSymbol, ImmutableStack<IOperation>> GetInterproceduralCallStackForOwningSymbol { get; }
+        public Func<ISymbol, ImmutableStack<IOperation>> GetInterproceduralCallStackForOwningSymbol { get; }
 
         protected override void ComputeHashCodeParts(ArrayBuilder<int> builder)
         {
