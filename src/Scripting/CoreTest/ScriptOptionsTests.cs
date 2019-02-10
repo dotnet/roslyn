@@ -5,7 +5,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Text;
-using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -152,6 +153,14 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         }
 
         [Fact]
+        public void Imports_Are_AppliedTo_CompilationOption()
+        {
+            var scriptOptions = ScriptOptions.Default.WithImports(new[] { "System", "System.IO" });
+            var compilation = CSharpScript.Create(string.Empty, scriptOptions).GetCompilation();
+            Assert.Equal(scriptOptions.Imports, compilation.Options.GetImports());
+        }
+
+        [Fact]
         public void WithEmitDebugInformation_SetsEmitDebugInformation()
         {
             Assert.True(ScriptOptions.Default.WithEmitDebugInformation(true).EmitDebugInformation);
@@ -167,7 +176,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         }
 
         [Fact]
-
         public void WithFileEncoding_SetsWithFileEncoding()
         {
             var options = ScriptOptions.Default.WithFileEncoding(Encoding.ASCII);
@@ -198,6 +206,15 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
             Assert.Same(options, options.WithAllowUnsafe(allowUnsafe));
         }
 
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void AllowUnsafe_Is_AppliedTo_CompilationOption(bool allowUnsafe)
+        {
+            var scriptOptions = ScriptOptions.Default.WithAllowUnsafe(allowUnsafe);
+            var compilation = (CSharpCompilation)CSharpScript.Create(string.Empty, scriptOptions).GetCompilation();
+            Assert.Equal(scriptOptions.AllowUnsafe, compilation.Options.AllowUnsafe);
+        }
 
         [Fact]
         public void WithCheckOverflow_SetsCheckOverflow()
@@ -214,6 +231,16 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         {
             var options = ScriptOptions.Default.WithCheckOverflow(checkOverflow);
             Assert.Same(options, options.WithCheckOverflow(checkOverflow));
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void CheckOverflow_Is_AppliedTo_CompilationOption(bool checkOverflow)
+        {
+            var scriptOptions = ScriptOptions.Default.WithCheckOverflow(checkOverflow);
+            var compilation = CSharpScript.Create(string.Empty, scriptOptions).GetCompilation();
+            Assert.Equal(scriptOptions.CheckOverflow, compilation.Options.CheckOverflow);
         }
 
         [Theory]
@@ -235,6 +262,16 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         }
 
         [Theory]
+        [InlineData(OptimizationLevel.Debug)]
+        [InlineData(OptimizationLevel.Release)]
+        public void OptimizationLevel_Is_AppliedTo_CompilationOption(OptimizationLevel optimizationLevel)
+        {
+            var scriptOptions = ScriptOptions.Default.WithOptimizationLevel(optimizationLevel);
+            var compilation = CSharpScript.Create(string.Empty, scriptOptions).GetCompilation();
+            Assert.Equal(scriptOptions.OptimizationLevel, compilation.Options.OptimizationLevel);
+        }
+
+        [Theory]
         [InlineData(0)]
         [InlineData(1)]
         [InlineData(2)]
@@ -246,7 +283,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
             Assert.Equal(ScriptOptions.Default.WarningLevel, 4);
         }
 
-
         [Theory]
         [InlineData(0)]
         [InlineData(1)]
@@ -257,6 +293,19 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         {
             var options = ScriptOptions.Default.WithWarningLevel(warningLevel);
             Assert.Same(options, options.WithWarningLevel(warningLevel));
+        }
+        
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        [InlineData(4)]
+        public void WarningLevel_Is_AppliedTo_CompilationOption(int warningLevel)
+        {
+            var scriptOptions = ScriptOptions.Default.WithWarningLevel(warningLevel);
+            var compilation = CSharpScript.Create(string.Empty, scriptOptions).GetCompilation();
+            Assert.Equal(scriptOptions.WarningLevel, compilation.Options.WarningLevel);
         }
     }
 }
