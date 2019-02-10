@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
@@ -102,15 +103,61 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             public override PropertySetAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object argument)
             {
                 PropertySetAbstractValue abstractValue = base.VisitObjectCreation(operation, argument);
-                if (operation.Type == this.TrackedTypeSymbol)
+                if (operation.Type != this.TrackedTypeSymbol)
                 {
-                    ImmutableArray<PropertySetAbstractValueKind> kinds = this.DataFlowAnalysisContext.ConstructorMapper.Compute(operation);
-                    abstractValue = PropertySetAbstractValue.GetInstance(kinds);
-                    PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(operation);
-                    this.SetAbstractValue(pointsToAbstractValue, abstractValue);
                     return abstractValue;
                 }
 
+                ConstructorMapper constructorMapper = this.DataFlowAnalysisContext.ConstructorMapper;
+                ImmutableArray<PropertySetAbstractValueKind> kinds;
+                if (!constructorMapper.PropertyAbstractValues.IsDefault)
+                {
+                    kinds = constructorMapper.PropertyAbstractValues;
+                }
+                else if (constructorMapper.MapFromNullAbstractValue != null)
+                {
+                    ArrayBuilder<NullAbstractValue> builder = ArrayBuilder<NullAbstractValue>.GetInstance();
+                    try
+                    {
+                        foreach (IArgumentOperation argumentOperation in operation.Arguments)
+                        {
+                            builder.Add(this.GetNullAbstractValue(argumentOperation));
+                        }
+
+                        kinds = constructorMapper.MapFromNullAbstractValue(operation.Constructor, builder);
+                    }
+                    finally
+                    {
+                        builder.Free();
+                    }
+                }
+                else if (constructorMapper.MapFromValueContentAbstractValue != null)
+                {
+                    Debug.Assert(this.DataFlowAnalysisContext.ValueContentAnalysisResultOpt != null);
+                    ArrayBuilder<ValueContentAbstractValue> builder = ArrayBuilder<ValueContentAbstractValue>.GetInstance();
+                    try
+                    {
+                        foreach (IArgumentOperation argumentOperation in operation.Arguments)
+                        {
+                            builder.Add(this.GetValueContentAbstractValue(argumentOperation));
+                        }
+
+                        kinds = constructorMapper.MapFromValueContentAbstractValue(operation.Constructor, builder);
+                    }
+                    finally
+                    {
+                        builder.Free();
+                    }
+                }
+                else
+                {
+                    Debug.Fail("Unhandled ConstructorMapper");
+                    return abstractValue;
+                }
+
+                abstractValue = PropertySetAbstractValue.GetInstance(kinds);
+                PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(operation);
+                this.SetAbstractValue(pointsToAbstractValue, abstractValue);
                 return abstractValue;
             }
 
@@ -124,26 +171,45 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         out PropertyMapper propertyMapper,
                         out int index))
                 {
-                    if (propertyMapper.RequiresValueContentAnalysis)
+                    PropertySetAbstractValueKind propertySetAbstractValueKind;
+
+                    if (propertyMapper.MapFromNullAbstractValue != null)
                     {
-                        Debug.Fail("TODO: Handle ValueContentAbstractValues");
+                        propertySetAbstractValueKind = propertyMapper.MapFromNullAbstractValue(
+                            this.GetNullAbstractValue(operation.Value));
+                    }
+                    else if (propertyMapper.MapFromValueContentAbstractValue != null)
+                    {
+                        Debug.Assert(this.DataFlowAnalysisContext.ValueContentAnalysisResultOpt != null);
+                        propertySetAbstractValueKind = propertyMapper.MapFromValueContentAbstractValue(
+                            this.GetValueContentAbstractValue(operation.Value));
                     }
                     else
                     {
-                        // PropertyMapper is either for ValueContentAbstractValue or NullAbstractValue.
-                        Debug.Assert(propertyMapper.MapFromNullAbstractValue != null);
-
-                        PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(propertyReferenceOperation.Instance);
-                        NullAbstractValue nullAbstractValue = this.GetNullAbstractValue(operation.Value);
-                        PropertySetAbstractValueKind propertySetAbstractValueKind = propertyMapper.MapFromNullAbstractValue(nullAbstractValue);
-
-                        foreach (AbstractLocation location in pointsToAbstractValue.Locations)
-                        {
-                            PropertySetAbstractValue propertySetAbstractValue = this.GetAbstractValue(location);
-                            propertySetAbstractValue = propertySetAbstractValue.ReplaceAt(index, propertySetAbstractValueKind);
-                            this.SetAbstractValue(location, propertySetAbstractValue);
-                        }
+                        Debug.Fail("Unhandled PropertyMapper");
+                        return baseValue;
                     }
+
+                    baseValue = null;
+                    PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(propertyReferenceOperation.Instance);
+                    foreach (AbstractLocation location in pointsToAbstractValue.Locations)
+                    {
+                        PropertySetAbstractValue propertySetAbstractValue = this.GetAbstractValue(location);
+                        propertySetAbstractValue = propertySetAbstractValue.ReplaceAt(index, propertySetAbstractValueKind);
+
+                        if (baseValue == null)
+                        {
+                            baseValue = propertySetAbstractValue;
+                        }
+                        else
+                        {
+                            baseValue = this.DataFlowAnalysisContext.ValueDomain.Merge(baseValue, propertySetAbstractValue);
+                        }
+
+                        this.SetAbstractValue(location, propertySetAbstractValue);
+                    }
+
+                    return baseValue ?? PropertySetAbstractValue.Unknown.ReplaceAt(index, propertySetAbstractValueKind);
                 }
 
                 return baseValue;
@@ -186,6 +252,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
 
                 return baseValue;
+            }
+
+            private ValueContentAbstractValue GetValueContentAbstractValue(IOperation operation)
+            {
+                Debug.Assert(
+                    this.DataFlowAnalysisContext.ValueContentAnalysisResultOpt != null,
+                    "PropertySetAnalysis should have computed ValueContentAnalysisResult if attempting to access it");
+                return this.DataFlowAnalysisContext.ValueContentAnalysisResultOpt[operation];
             }
         }
     }

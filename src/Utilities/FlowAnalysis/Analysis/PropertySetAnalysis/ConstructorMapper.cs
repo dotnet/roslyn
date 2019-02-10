@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -18,15 +19,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         public delegate ImmutableArray<PropertySetAbstractValueKind> ValueContentAbstractValueCallback(
             IMethodSymbol constructorMethodSymbol,
             IReadOnlyList<ValueContentAbstractValue> argumentValueContentAbstractValues);
-
-        /// <summary>
-        /// Initializes a <see cref="ConstructorMapper"/> that maps a constructor invocation's arguments' <see cref="ValueContentAbstractValue"/> to <see cref="PropertySetAbstractValueKind"/>s for the properties being tracked by PropertySetAnalysis.
-        /// </summary>
-        /// <param name="mapFromValueContentAbstractValueCallback">Callback that implements the mapping.</param>
-        public ConstructorMapper(ValueContentAbstractValueCallback mapFromValueContentAbstractValue)
-        {
-            this.MapFromConstructorInvocation = mapFromValueContentAbstractValue ?? throw new ArgumentNullException(nameof(mapFromValueContentAbstractValue));
-        }
+        public delegate ImmutableArray<PropertySetAbstractValueKind> NullAbstractValueCallback(
+            IMethodSymbol constructorMethodSymbol,
+            IReadOnlyList<NullAbstractValue> argumentValueContentAbstractValues);
 
         /// <summary>
         /// Initializes a <see cref="ConstructorMapper"/> using constant <see cref="PropertySetAbstractValueKind"/>s whenever the type being tracked by PropertySetAnalysis is instantiated.
@@ -38,6 +33,24 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         }
 
         /// <summary>
+        /// Initializes a <see cref="ConstructorMapper"/> that maps a constructor invocation's arguments' <see cref="ValueContentAbstractValue"/>s to <see cref="PropertySetAbstractValueKind"/>s for the properties being tracked by PropertySetAnalysis.
+        /// </summary>
+        /// <param name="mapFromValueContentAbstractValueCallback">Callback that implements the mapping.</param>
+        public ConstructorMapper(ValueContentAbstractValueCallback mapFromValueContentAbstractValue)
+        {
+            this.MapFromValueContentAbstractValue = mapFromValueContentAbstractValue ?? throw new ArgumentNullException(nameof(mapFromValueContentAbstractValue));
+        }
+
+        /// <summary>
+        /// Initializes a <see cref="ConstructorMapper"/> that maps a constructor invocation's arguments' <see cref="NullAbstractValue"/>s to <see cref="PropertySetAbstractValueKind"/>s for the properties being tracked by PropertySetAnalysis.
+        /// </summary>
+        /// <param name="mapFromNullAbstractValueCallback">Callback that implements the mapping.</param>
+        public ConstructorMapper(NullAbstractValueCallback mapFromNullAbstractValue)
+        {
+            this.MapFromNullAbstractValue = mapFromNullAbstractValue ?? throw new ArgumentNullException(nameof(mapFromNullAbstractValue));
+        }
+
+        /// <summary>
         /// Doesn't construct.
         /// </summary>
         private ConstructorMapper()
@@ -45,11 +58,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         }
 
 
-        public ValueContentAbstractValueCallback MapFromConstructorInvocation { get; }
+        public ValueContentAbstractValueCallback MapFromValueContentAbstractValue { get; }
+
+        public NullAbstractValueCallback MapFromNullAbstractValue { get; }
 
         public ImmutableArray<PropertySetAbstractValueKind> PropertyAbstractValues { get; }
 
-
+        internal bool RequiresValueContentAnalysis => this.MapFromValueContentAbstractValue != null;
 
         internal void Validate(int propertyCount)
         {
@@ -71,7 +86,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             else
             {
                 Debug.Fail("TODO handle ValueContentAbstractValues for arguments");
-                return this.MapFromConstructorInvocation(objectCreationOperation.Constructor, null);
+                return this.MapFromValueContentAbstractValue(objectCreationOperation.Constructor, null);
             }
         }
 
@@ -79,7 +94,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         {
             return HashUtilities.Combine(
                 this.PropertyAbstractValues,
-                MapFromConstructorInvocation.GetHashCodeOrDefault());
+                MapFromValueContentAbstractValue.GetHashCodeOrDefault());
         }
 
         public override bool Equals(object obj)
@@ -90,7 +105,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         public bool Equals(ConstructorMapper other)
         {
             return other != null
-                && this.MapFromConstructorInvocation == other.MapFromConstructorInvocation
+                && this.MapFromValueContentAbstractValue == other.MapFromValueContentAbstractValue
                 && this.PropertyAbstractValues == other.PropertyAbstractValues;
         }
     }
