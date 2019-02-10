@@ -44,7 +44,7 @@ class TestClass {
                 }.RunAsync();
             });
 
-            Assert.Equal("items not equal.  expected:'8747' actual:'8746'", failure.Message);
+            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}items not equal.  expected:'8747' actual:'8746'", failure.Message);
         }
 
         [Fact]
@@ -63,7 +63,7 @@ class TestClass {
 
             // This isn't the best message - it's reporting a mismatch in the number of SyntaxTrivia in the traling
             // trivia list of the open brace token preceding 'base'.
-            Assert.Equal("items not equal.  expected:'1' actual:'0'", failure.Message);
+            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}items not equal.  expected:'1' actual:'0'", failure.Message);
         }
 
         [Fact]
@@ -92,7 +92,7 @@ class TestClass {
                 }.RunAsync();
             });
 
-            Assert.Equal("items not equal.  expected:'8747' actual:'8746'", failure.Message);
+            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}items not equal.  expected:'8747' actual:'8746'", failure.Message);
         }
 
         [Fact]

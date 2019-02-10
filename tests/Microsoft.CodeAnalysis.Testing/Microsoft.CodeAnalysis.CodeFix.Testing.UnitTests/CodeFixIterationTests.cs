@@ -145,7 +145,7 @@ class TestClass {
                 }.RunAsync();
             });
 
-            Assert.Equal("The upper limit for the number of code fix iterations was exceeded", exception.Message);
+            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}The upper limit for the number of code fix iterations was exceeded", exception.Message);
         }
 
         [Theory]
@@ -182,7 +182,7 @@ class TestClass {
                 }.RunAsync();
             });
 
-            Assert.Equal(message, exception.Message);
+            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}{message}", exception.Message);
         }
 
         [Fact]
@@ -209,7 +209,7 @@ class TestClass {
                 }.RunAsync();
             });
 
-            Assert.Equal("Expected '1' iterations but found '2' iterations.", exception.Message);
+            Assert.Equal($"Context: Fix all in document{Environment.NewLine}Expected '1' iterations but found '2' iterations.", exception.Message);
         }
 
         [Theory]
@@ -240,7 +240,7 @@ class TestClass {
                 }.RunAsync();
             });
 
-            Assert.Equal(message, exception.Message);
+            Assert.Equal($"Context: Fix all in document{Environment.NewLine}{message}", exception.Message);
         }
 
         [Fact]
@@ -310,7 +310,7 @@ class TestClass2 {
                 }.RunAsync();
             });
 
-            Assert.Equal("Expected '1' iterations but found '2' iterations.", exception.Message);
+            Assert.Equal($"Context: Fix all in document{Environment.NewLine}Expected '1' iterations but found '2' iterations.", exception.Message);
         }
 
         [Fact]
@@ -348,7 +348,7 @@ class TestClass2 {
                 }.RunAsync();
             });
 
-            Assert.Equal("Expected '2' iterations but found '1' iterations.", exception.Message);
+            Assert.Equal($"Context: Fix all in project{Environment.NewLine}Expected '2' iterations but found '1' iterations.", exception.Message);
         }
 
         /// <summary>
