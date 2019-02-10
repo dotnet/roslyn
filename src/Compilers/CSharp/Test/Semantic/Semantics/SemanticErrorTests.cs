@@ -1646,6 +1646,40 @@ class A
             }
         }
 
+        [Fact]
+        public void CS0221ERR_ConstOutOfRangeCheckedNullableInt()
+        {
+            // Confirm that we truncate the constant value before performing the range check
+            var template =
+@"public class C
+{
+    void M()
+    {
+        System.Console.WriteLine((int?)int.MinValue);
+        System.Console.WriteLine((int?)double.MinValue); //CS0221
+        System.Console.WriteLine((int?)int.MaxValue);
+        System.Console.WriteLine((int?)double.MaxValue); //CS0221
+    }
+}
+";
+            var integralTypes = new Type[]
+            {
+                typeof(char),
+                typeof(sbyte),
+                typeof(byte),
+                typeof(short),
+                typeof(ushort),
+                typeof(int),
+                typeof(uint),
+            };
+
+            foreach (Type t in integralTypes)
+            {
+                DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(template.Replace("System.Int32", t.ToString()),
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_ConstOutOfRangeChecked, Line = 6, Column = 34 },
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_ConstOutOfRangeChecked, Line = 8, Column = 34 });
+            }
+        }
         // Note that the errors for Int64 and UInt64 are not
         // exactly the same as for Int32, etc. above, but the
         // differences match the native compiler.
