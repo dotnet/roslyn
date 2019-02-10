@@ -296,6 +296,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             IEnumerable<AnalysisEntity> dependentAnalysisEntities;
             if (AnalysisEntityFactory.TryCreate(assignedValueOperation, out AnalysisEntity valueAnalysisEntity))
             {
+                if (!valueAnalysisEntity.Type.HasValueCopySemantics())
+                {
+                    // Unboxing conversion from assigned value (reference type) to target (value copy semantics).
+                    // We do not need to transfer any data for such a case as there is no entity for unboxed value.
+                    return;
+                }
+
                 dependentAnalysisEntities = GetChildAnalysisEntities(valueAnalysisEntity);
             }
             else

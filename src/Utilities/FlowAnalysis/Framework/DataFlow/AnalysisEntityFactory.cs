@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private readonly AnalysisEntity _interproceduralThisOrMeInstanceForCallerOpt;
         private readonly ImmutableStack<IOperation> _interproceduralCallStackOpt;
         private readonly Func<IOperation, AnalysisEntity> _interproceduralGetAnalysisEntityForFlowCaptureOpt;
+        private readonly Func<ISymbol, ImmutableStack<IOperation>> _getInterproceduralCallStackForOwningSymbol;
 
         public AnalysisEntityFactory(
             ControlFlowGraph controlFlowGraph,
@@ -39,7 +40,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             AnalysisEntity interproceduralThisOrMeInstanceForCallerOpt,
             ImmutableStack<IOperation> interproceduralCallStackOpt,
             ImmutableDictionary<ISymbol, PointsToAbstractValue> interproceduralCapturedVariablesMapOpt,
-            Func<IOperation, AnalysisEntity> interproceduralGetAnalysisEntityForFlowCaptureOpt)
+            Func<IOperation, AnalysisEntity> interproceduralGetAnalysisEntityForFlowCaptureOpt,
+            Func<ISymbol, ImmutableStack<IOperation>> getInterproceduralCallStackForOwningSymbol)
         {
             _controlFlowGraph = controlFlowGraph;
             _getPointsToAbstractValueOpt = getPointsToAbstractValueOpt;
@@ -48,6 +50,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             _interproceduralThisOrMeInstanceForCallerOpt = interproceduralThisOrMeInstanceForCallerOpt;
             _interproceduralCallStackOpt = interproceduralCallStackOpt;
             _interproceduralGetAnalysisEntityForFlowCaptureOpt = interproceduralGetAnalysisEntityForFlowCaptureOpt;
+            _getInterproceduralCallStackForOwningSymbol = getInterproceduralCallStackForOwningSymbol;
 
             _analysisEntityMap = new Dictionary<IOperation, AnalysisEntity>();
             _captureIdEntityMap = new Dictionary<CaptureId, AnalysisEntity>();
@@ -347,8 +350,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 if (instanceOpt.Type.IsValueType)
                 {
-                    if (TryCreate(instanceOpt, out parentOpt))
+                    if (TryCreate(instanceOpt, out var instanceEntityOpt) &&
+                        instanceEntityOpt.Type.IsValueType)
                     {
+                        parentOpt = instanceEntityOpt;
                         instanceLocationOpt = parentOpt.InstanceLocation;
                     }
                     else
@@ -359,6 +364,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         {
                             instanceLocationOpt = instancePointsToValue;
                         }
+                    }
+
+                    if (instanceLocationOpt == null)
+                    {
+                        return false;
                     }
                 }
                 else
@@ -385,7 +395,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     }
                     else
                     {
-                        var location = AbstractLocation.CreateSymbolLocation(symbolOpt, _interproceduralCallStackOpt);
+                        // Symbol instance location for locals and parameters should also include the interprocedural call stack because
+                        // we might have recursive invocations to the same method and the symbol declarations
+                        // from both the current and prior invocation of the method in the call stack should be distinct entities.
+                        ImmutableStack<IOperation> interproceduralCallStackForSymbolDeclaration;
+                        if (_interproceduralCallStackOpt != null &&
+                            (symbolOpt.Kind == SymbolKind.Local || symbolOpt.Kind == SymbolKind.Parameter))
+                        {
+                            interproceduralCallStackForSymbolDeclaration = _getInterproceduralCallStackForOwningSymbol(symbolOpt.ContainingSymbol);
+                            Debug.Assert(!symbolOpt.ContainingSymbol.IsLambdaOrLocalFunction() ||
+                                interproceduralCallStackForSymbolDeclaration != null &&
+                                !interproceduralCallStackForSymbolDeclaration.IsEmpty);
+                        }
+                        else
+                        {
+                            interproceduralCallStackForSymbolDeclaration = ImmutableStack<IOperation>.Empty;
+                        }
+
+                        var location = AbstractLocation.CreateSymbolLocation(symbolOpt, interproceduralCallStackForSymbolDeclaration);
                         instanceLocationOpt = PointsToAbstractValue.Create(location, mayBeNull: false);
                     }
 

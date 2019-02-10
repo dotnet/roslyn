@@ -19,6 +19,9 @@ namespace Analyzer.Utilities
         internal static int Combine<T>(ImmutableArray<T> array) => Combine(array, 0);
         internal static int Combine<T>(ImmutableArray<T> array, int currentKey) => Combine(array, array.Length, currentKey);
 
+        public static int Combine<T>(params T[] sequence)
+            => Combine(sequence, sequence.Length, currentKey: 0);
+
         public static int Combine<T>(IEnumerable<T> sequence, int length, int currentKey)
         {
             var hashCode = Combine(length, currentKey);

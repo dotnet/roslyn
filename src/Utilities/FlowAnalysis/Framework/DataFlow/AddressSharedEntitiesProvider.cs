@@ -40,7 +40,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             if (parameter.RefKind != RefKind.None &&
                 assignedValueOpt?.AnalysisEntityOpt != null)
             {
-                var copyValue = new CopyAbstractValue(ComputeAddressSharedEntities());
+                var addressSharedEntities = ComputeAddressSharedEntities();
+                var isReferenceCopy = !addressSharedEntities.Any(a => a.Type.IsValueType);
+                var copyValue = new CopyAbstractValue(addressSharedEntities, isReferenceCopy);
                 foreach (var entity in copyValue.AnalysisEntities)
                 {
                     _addressSharedEntitiesBuilder[entity] = copyValue;

@@ -133,6 +133,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 if (coreAnalysisData.TryGetValue(kvp.Key, out var currentValue))
                 {
                     var newCopyEntities = currentValue.AnalysisEntities;
+                    var newKind = currentValue.Kind;
                     foreach (var predicatedCopyEntity in predicatedValue.AnalysisEntities)
                     {
                         // Predicate copy value has an entity which is not part of the current copy value.
@@ -142,6 +143,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                             if (coreAnalysisData.TryGetValue(predicatedCopyEntity, out var predicatedCopyEntityValue))
                             {
                                 newCopyEntities = newCopyEntities.Union(predicatedCopyEntityValue.AnalysisEntities);
+                                newKind = newKind.MergeIfBothKnown(predicatedCopyEntityValue.Kind);
                             }
                             else
                             {
@@ -153,7 +155,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                     // Check if we need to change the current copy value.
                     if (newCopyEntities.Count != currentValue.AnalysisEntities.Count)
                     {
-                        var newCopyValue = new CopyAbstractValue(newCopyEntities);
+                        var newCopyValue = new CopyAbstractValue(newCopyEntities, newKind);
                         foreach (var copyEntity in newCopyEntities)
                         {
                             coreAnalysisData[copyEntity] = newCopyValue;
