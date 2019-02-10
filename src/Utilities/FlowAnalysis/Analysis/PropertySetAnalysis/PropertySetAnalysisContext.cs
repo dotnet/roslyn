@@ -36,10 +36,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             ControlFlowGraph parentControlFlowGraphOpt,
             InterproceduralBinaryFormatterAnalysisData interproceduralAnalysisDataOpt,
             string typeToTrackMetadataName,
-            bool isNewInstanceFlagged,
-            string propertyToSetFlag,
-            bool isNullPropertyFlagged,
-            ImmutableHashSet<string> methodNamesToCheckForFlaggedUsage)
+            ConstructorMapper constructorMapper,
+            PropertyMapperCollection propertyMappers,
+            HazardousUsageEvaluatorCollection hazardousUsageEvaluators)
             : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis,
                   predicateAnalysis: false, copyAnalysisResultOpt: null, pointsToAnalysisResultOpt: pointsToAnalysisResultOpt,
                   getOrComputeAnalysisResult: getOrComputeAnalysisResult,
@@ -47,10 +46,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                   interproceduralAnalysisDataOpt: interproceduralAnalysisDataOpt)
         {
             this.TypeToTrackMetadataName = typeToTrackMetadataName;
-            this.IsNewInstanceFlagged = isNewInstanceFlagged;
-            this.PropertyToSetFlag = propertyToSetFlag;
-            this.IsNullPropertyFlagged = isNullPropertyFlagged;
-            this.MethodNamesToCheckForFlaggedUsage = methodNamesToCheckForFlaggedUsage;
+            this.ConstructorMapper = constructorMapper;
+            this.PropertyMappers = propertyMappers;
+            this.HazardousUsageEvaluators = hazardousUsageEvaluators;
         }
 
         public static PropertySetAnalysisContext Create(
@@ -63,11 +61,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             PointsToAnalysisResult pointsToAnalysisResultOpt,
             Func<PropertySetAnalysisContext, PropertySetAnalysisResult> getOrComputeAnalysisResult,
             string typeToTrackMetadataName,
-            bool isNewInstanceFlagged,
-            string propertyToSetFlag,
-            bool isNullPropertyFlagged,
-            ImmutableHashSet<string> methodNamesToCheckForFlaggedUsage)
-
+            ConstructorMapper constructorMapper,
+            PropertyMapperCollection propertyMappers,
+            HazardousUsageEvaluatorCollection hazardousUsageEvaluators)
         {
             return new PropertySetAnalysisContext(
                 valueDomain,
@@ -81,10 +77,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 parentControlFlowGraphOpt: null,
                 interproceduralAnalysisDataOpt: null,
                 typeToTrackMetadataName: typeToTrackMetadataName,
-                isNewInstanceFlagged: isNewInstanceFlagged,
-                propertyToSetFlag: propertyToSetFlag,
-                isNullPropertyFlagged: isNullPropertyFlagged,
-                methodNamesToCheckForFlaggedUsage: methodNamesToCheckForFlaggedUsage);
+                constructorMapper: constructorMapper,
+                propertyMappers: propertyMappers,
+                hazardousUsageEvaluators: hazardousUsageEvaluators);
         }
 
         public override PropertySetAnalysisContext ForkForInterproceduralAnalysis(
@@ -103,10 +98,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 PessimisticAnalysis, pointsToAnalysisResultOpt, GetOrComputeAnalysisResult, ControlFlowGraph,
                 interproceduralAnalysisData,
                 this.TypeToTrackMetadataName,
-                this.IsNewInstanceFlagged,
-                this.PropertyToSetFlag,
-                this.IsNullPropertyFlagged,
-                this.MethodNamesToCheckForFlaggedUsage);
+                this.ConstructorMapper,
+                this.PropertyMappers,
+                this.HazardousUsageEvaluators);
         }
 
         /// <summary>
@@ -115,34 +109,27 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         public string TypeToTrackMetadataName { get; }
 
         /// <summary>
-        /// How newly created instances should be considered: flagged or unflagged.
+        /// How constructor invocations map to <see cref="PropertySetAbstractValueKind"/>s.
         /// </summary>
-        public bool IsNewInstanceFlagged { get; }
+        public ConstructorMapper ConstructorMapper { get; }
 
         /// <summary>
-        /// Name of the property that when assigned to, may change the abstract value.
+        /// How property assignments map to <see cref="PropertySetAbstractValueKind"/>.
         /// </summary>
-        public string PropertyToSetFlag { get; }
+        public PropertyMapperCollection PropertyMappers { get; }
 
         /// <summary>
-        /// Whether to change the abstract value of the instance to flagged or not flagged,
-        /// when the <see cref="PropertyToSetFlag"/> property is set to null or non-null.
+        /// When and how to evaluate <see cref="PropertySetAbstractValueKind"/>s to for hazardous usages.
         /// </summary>
-        public bool IsNullPropertyFlagged { get; }
-
-        /// <summary>
-        /// Method names for invocations that check whether the instance is flagged or maybe flagged.
-        /// </summary>
-        public ImmutableHashSet<string> MethodNamesToCheckForFlaggedUsage { get; }
+        public HazardousUsageEvaluatorCollection HazardousUsageEvaluators { get; }
 
 #pragma warning disable CA1307 // Specify StringComparison - string.GetHashCode(StringComparison) not available in all projects that reference this shared project
         protected override void ComputeHashCodePartsSpecific(ArrayBuilder<int> builder)
         {
             builder.Add(TypeToTrackMetadataName.GetHashCode());
-            builder.Add(IsNewInstanceFlagged.GetHashCode());
-            builder.Add(PropertyToSetFlag.GetHashCode());
-            builder.Add(IsNullPropertyFlagged.GetHashCode());
-            builder.Add(HashUtilities.Combine(MethodNamesToCheckForFlaggedUsage));
+            builder.Add(ConstructorMapper.GetHashCode());
+            builder.Add(PropertyMappers.GetHashCode());
+            builder.Add(HazardousUsageEvaluators.GetHashCode());
         }
 #pragma warning restore CA1307 // Specify StringComparison
     }

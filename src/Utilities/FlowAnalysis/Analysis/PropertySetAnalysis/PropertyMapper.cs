@@ -1,31 +1,98 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
     /// <summary>
-    /// Information for mapping an object's property assigned value to a <see cref="PropertySetAbstractValue"/>.
+    /// Information for mapping an object's property's assigned value to a <see cref="PropertySetAbstractValueKind"/>.
     /// </summary>
+#pragma warning disable CA1812 // Is too instantiated.
     internal sealed class PropertyMapper
+#pragma warning restore CA1812
     {
-        public PropertyMapper(string propertyName, Func<ValueContentAbstractValue, PropertySetAbstractValue> mapFromValueContentAbstractValue)
+        /// <summary>
+        /// Mapping from <see cref="ValueContentAbstractValue"/> to a <see cref="PropertySetAbstractValueKind"/>
+        /// </summary>
+        /// <param name="valueContentAbstractValue">Property's assigned value's <see cref="ValueContentAbstractValue"/>.</param>
+        /// <returns>What the property's assigned value should map to.</returns>
+        public delegate PropertySetAbstractValueKind ValueContentAbstractValueCallback(ValueContentAbstractValue valueContentAbstractValue);
+
+        /// <summary>
+        /// Mapping from <see cref="NullAbstractValue"/> to a <see cref="PropertySetAbstractValueKind"/>
+        /// </summary>
+        /// <param name="valueContentAbstractValue">Property's assigned value's <see cref="ValueContentAbstractValue"/>.</param>
+        /// <returns>What the property's assigned value should map to.</returns>
+        public delegate PropertySetAbstractValueKind NullAbstractValueCallback(NullAbstractValue nullAbstractValue);
+
+        /// <summary>
+        /// Initializes a <see cref="PropertyMapper"/> that maps a property's assigned value's <see cref="ValueContentAbstractValue"/> to a <see cref="PropertySetAbstractValueKind"/>.
+        /// </summary>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="mapFromValueContentAbstractValueCallback">Callback that implements the mapping.</param>
+        public PropertyMapper(string propertyName, ValueContentAbstractValueCallback mapFromValueContentAbstractValueCallback)
         {
             PropertyName = propertyName ?? throw new ArgumentNullException(nameof(propertyName));
-            MapFromValueContentAbstractValue = mapFromValueContentAbstractValue ?? throw new ArgumentNullException(nameof(mapFromValueContentAbstractValue));
+            MapFromValueContentAbstractValue = mapFromValueContentAbstractValueCallback ?? throw new ArgumentNullException(nameof(mapFromValueContentAbstractValueCallback));
         }
 
-        public PropertyMapper(string propertyName, Func<bool, PropertySetAbstractValue> mapFromNullOrNonNull)
+        /// <summary>
+        /// Initializes a <see cref="PropertyMapper"/> that maps a property's assigned value's <see cref="NullAbstractValue"/> to a <see cref="PropertySetAbstractValueKind"/>.
+        /// </summary>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="mapFromNullAbstractValueCallback">Callback that implements the mapping.</param>
+        public PropertyMapper(string propertyName, NullAbstractValueCallback mapFromNullAbstractValueCallback)
         {
             PropertyName = propertyName ?? throw new ArgumentNullException(nameof(propertyName));
-            MapFromNullOrNonNull = mapFromNullOrNonNull ?? throw new ArgumentNullException(nameof(mapFromNullOrNonNull));
+            MapFromNullAbstractValue = mapFromNullAbstractValueCallback ?? throw new ArgumentNullException(nameof(mapFromNullAbstractValueCallback));
         }
 
+        /// <summary>
+        /// Doesn't construct.
+        /// </summary>
+        private PropertyMapper()
+        {
+        }
+
+        /// <summary>
+        /// Name of the property.
+        /// </summary>
         public string PropertyName { get; }
 
-        public Func<ValueContentAbstractValue, PropertySetAbstractValue> MapFromValueContentAbstractValue { get; }
+        /// <summary>
+        /// Callback for mapping from <see cref="ValueContentAbstractValue"/> to a <see cref="PropertySetAbstractValueKind"/>, or null.
+        /// </summary>
+        public ValueContentAbstractValueCallback MapFromValueContentAbstractValue { get; }
 
-        public Func<bool, PropertySetAbstractValue> MapFromNullOrNonNull { get; }
+        /// <summary>
+        /// Callback for mapping from <see cref="NullAbstractValue"/> to a <see cref="PropertySetAbstractValueKind"/>, or null.
+        /// </summary>
+        public NullAbstractValueCallback MapFromNullAbstractValue { get; }
+
+        /// <summary>
+        /// Indicates that this <see cref="PropertyMapper"/> uses <see cref="ValueContentAbstractValue"/>.
+        /// </summary>
+        public bool RequiresValueContentAnalysis => this.MapFromValueContentAbstractValue != null;
+
+        public override int GetHashCode()
+        {
+            return HashUtilities.Combine(
+                this.PropertyName.GetHashCodeOrDefault(),
+                HashUtilities.Combine(this.MapFromValueContentAbstractValue.GetHashCodeOrDefault(),
+                this.MapFromNullAbstractValue.GetHashCodeOrDefault()));
+        }
+
+        public override bool Equals(object obj)
+        {
+            return this.Equals(obj as PropertyMapper);
+        }
+
+        public bool Equals(PropertyMapper other)
+        {
+            return other != null
+                && this.PropertyName == other.PropertyName
+                && this.MapFromValueContentAbstractValue == other.MapFromValueContentAbstractValue
+                && this.MapFromNullAbstractValue == other.MapFromNullAbstractValue;
+        }
     }
 }

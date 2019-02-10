@@ -1,23 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Threading;
-using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
-using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
     using PropertySetAnalysisData = DictionaryAnalysisData<AbstractLocation, PropertySetAbstractValue>;
-    using InterproceduralBinaryFormatterAnalysisData = InterproceduralAnalysisData<DictionaryAnalysisData<AbstractLocation, PropertySetAbstractValue>, PropertySetAnalysisContext, PropertySetAbstractValue>;
     using PropertySetAnalysisDomain = MapAbstractDomain<AbstractLocation, PropertySetAbstractValue>;
-    using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
 
     /// <summary>
     /// Dataflow analysis to track <see cref="PropertySetAbstractValue"/> of <see cref="AbstractLocation"/>/<see cref="IOperation"/> instances.
@@ -31,38 +23,37 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         {
         }
 
-        public static ImmutableDictionary<(Location Location, IMethodSymbol method), PropertySetAbstractValue> GetOrComputeHazardousParameterUsages(
-            ControlFlowGraph cfg,
-            Compilation compilation,
-            ISymbol owningSymbol,
-            AnalyzerOptions analyzerOptions,
-            DiagnosticDescriptor rule,
-            string typeToTrackMetadataName,
-            bool isNewInstanceFlagged,
-            string propertyToSetFlag,
-            bool isNullPropertyFlagged,
-            ImmutableHashSet<string> methodNamesToCheckForFlaggedUsage,
-            CancellationToken cancellationToken,
-            InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.ContextSensitive,
-            uint defaultMaxInterproceduralMethodCallChain = 1, // By default, we only want to track method calls one level down.
-            bool pessimisticAnalysis = false)
-        {
-            var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
-                   analyzerOptions, rule, interproceduralAnalysisKind, cancellationToken, defaultMaxInterproceduralMethodCallChain);
-            return GetOrComputeHazardousParameterUsages(cfg, compilation, owningSymbol,
-                typeToTrackMetadataName, isNewInstanceFlagged, propertyToSetFlag, isNullPropertyFlagged,
-                methodNamesToCheckForFlaggedUsage, interproceduralAnalysisConfig, pessimisticAnalysis);
-        }
+        //public static ImmutableDictionary<(Location Location, IMethodSymbol method), PropertySetAbstractValue> GetOrComputeHazardousParameterUsages(
+        //    ControlFlowGraph cfg,
+        //    Compilation compilation,
+        //    ISymbol owningSymbol,
+        //    AnalyzerOptions analyzerOptions,
+        //    DiagnosticDescriptor rule,
+        //    string typeToTrackMetadataName,
+        //    bool isNewInstanceFlagged,
+        //    string propertyToSetFlag,
+        //    bool isNullPropertyFlagged,
+        //    ImmutableHashSet<string> methodNamesToCheckForFlaggedUsage,
+        //    CancellationToken cancellationToken,
+        //    InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.ContextSensitive,
+        //    uint defaultMaxInterproceduralMethodCallChain = 1, // By default, we only want to track method calls one level down.
+        //    bool pessimisticAnalysis = false)
+        //{
+        //    var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
+        //           analyzerOptions, rule, interproceduralAnalysisKind, cancellationToken, defaultMaxInterproceduralMethodCallChain);
+        //    return GetOrComputeHazardousParameterUsages(cfg, compilation, owningSymbol,
+        //        typeToTrackMetadataName, isNewInstanceFlagged, propertyToSetFlag, isNullPropertyFlagged,
+        //        methodNamesToCheckForFlaggedUsage, interproceduralAnalysisConfig, pessimisticAnalysis);
+        //}
 
-        public static ImmutableDictionary<(Location Location, IMethodSymbol method), PropertySetAbstractValue> GetOrComputeHazardousParameterUsages(
+        public static ImmutableDictionary<(Location Location, IMethodSymbol method), HazardousUsageEvaluationResult> GetOrComputeHazardousUsages(
             ControlFlowGraph cfg,
             Compilation compilation,
             ISymbol owningSymbol,
             string typeToTrackMetadataName,
-            bool isNewInstanceFlagged,
-            string propertyToSetFlag,
-            bool isNullPropertyFlagged,
-            ImmutableHashSet<string> methodNamesToCheckForFlaggedUsage,
+            ConstructorMapper constructorMapper,
+            PropertyMapperCollection propertyMappers,
+            HazardousUsageEvaluatorCollection hazardousUsageEvaluators,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis = false)
         {
@@ -73,10 +64,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             var analysisContext = PropertySetAnalysisContext.Create(PropertySetAbstractValueDomain.Default,
                 wellKnownTypeProvider, cfg, owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis, pointsToAnalysisResult, GetOrComputeResultForAnalysisContext,
                 typeToTrackMetadataName,
-                isNewInstanceFlagged,
-                propertyToSetFlag,
-                isNullPropertyFlagged,
-                methodNamesToCheckForFlaggedUsage);
+                constructorMapper,
+                propertyMappers,
+                hazardousUsageEvaluators);
             var result = GetOrComputeResultForAnalysisContext(analysisContext);
             return result.HazardousUsages;
         }

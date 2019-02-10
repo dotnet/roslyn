@@ -61,6 +61,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             var worklist = new SortedSet<int>();
             var pendingBlocksNeedingAtLeastOnePass = new SortedSet<int>(cfg.Blocks.Select(b => b.Ordinal));
 
+            // Map from Ordinal -> (Ordinal, ControlFlowConditionKind)? with following semantics:
+            //  1. Key is a valid basic block ordinal.
+            //  2. Value tuple indicates the following:
+            //      a. Non-null tuple value: Indicates a unique branch entering the block, with following tuple values:
+            //         i. Ordinal of the single unique block from which analysis data has been transferred into the Key, 
+            //            which is normally a predecessor but can be a non-predecessor block for finally/catch.
+            //         ii. ControlFlowConditionKind indicating the nature of branch, i.e. conditional or fall through.
+            //             This is required as CFG can have both conditional and fall through branches
+            //             with the same source and destination blocks.
+            //      b. Null tuple value: Block had analysis data flowing into it from multiple different branches.
+            //     
+            //  This map allows us to optimize the number of merge operations. We can avoid merge and directly
+            //  overwrite analysis data into a successor if successor block has no entry or entry with non-null tuple value
+            //  with the matching input branch.
+            var blockToUniqueInputFlowMap = PooledDictionary<int, (int Ordinal, ControlFlowConditionKind BranchKind)?>.GetInstance();
+
             try
             {
 
@@ -131,6 +147,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                                 Debug.Assert(block.EnclosingRegion.Kind == ControlFlowRegionKind.Catch || block.EnclosingRegion.Kind == ControlFlowRegionKind.Filter);
                                 Debug.Assert(block.EnclosingRegion.FirstBlockOrdinal == block.Ordinal);
                                 input = catchBlockInputDataMap[enclosingTryAndCatchRegion];
+
+                                // Mark that all input into successorBlockOpt requires a merge.
+                                blockToUniqueInputFlowMap[block.Ordinal] = null;
                             }
                         }
 
@@ -192,7 +211,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                             // Perf: We can stop tracking data for entities whose lifetime is limited by the leaving regions.
                             //       Below invocation explicitly drops such data from destination input.
-                            newSuccessorInput = OperationVisitor.OnLeavingRegions(successorWithBranch.LeavingRegions, block, newSuccessorInput);
+                            newSuccessorInput = OperationVisitor.OnLeavingRegions(successorWithBranch.LeavingRegionLocals,
+                                successorWithBranch.LeavingRegionFlowCaptures, block, newSuccessorInput);
 
                             var isBackEdge = block.Ordinal >= successorBlockOpt.Ordinal;
                             if (isUnreachableBlock && !unreachableBlocks.Contains(successorBlockOpt.Ordinal))
@@ -216,10 +236,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                                 continue;
                             }
 
-                            TAnalysisData mergedSuccessorInput;
+                            var blockToSuccessorBranchKind = successorWithBranch.ControlFlowConditionKind;
                             var currentSuccessorInput = resultBuilder[successorBlockOpt];
-                            if (currentSuccessorInput != null)
+
+                            // We need to merge the incoming analysis data if both the following conditions are satisfied:
+                            //  1. Successor already has a non-null input from prior analysis iteration.
+                            //  2. 'blockToPreviousInputBlockMap' has an entry for successor block such that one of the following conditions are satisfied:
+                            //      a. Value is null, indicating it already had analysis data flow in from multiple branches OR
+                            //      b. Value is non-null, indicating it has unique input from prior analysis, but the prior input
+                            //         analysis data was from a different branch, i.e. either different source block or different condition kind.
+                            var needsMerge = currentSuccessorInput != null &&
+                                blockToUniqueInputFlowMap.TryGetValue(successorBlockOpt.Ordinal, out var uniqueInputBranchOpt) &&
+                                (uniqueInputBranchOpt == null ||
+                                 uniqueInputBranchOpt.Value.Ordinal != block.Ordinal ||
+                                 uniqueInputBranchOpt.Value.BranchKind != blockToSuccessorBranchKind);
+
+                            TAnalysisData mergedSuccessorInput;
+                            if (needsMerge)
                             {
+                                // Mark that all input into successorBlockOpt requires a merge as we have non-unique input flow branches into successor block.
+                                blockToUniqueInputFlowMap[successorBlockOpt.Ordinal] = null;
+
                                 // Check if the current input data for the successor block is equal to the new input data from this branch.
                                 // If so, we don't need to propagate new input data from this branch.
                                 if (AnalysisDomain.Equals(currentSuccessorInput, newSuccessorInput))
@@ -248,7 +285,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             }
                             else
                             {
+                                Debug.Assert(currentSuccessorInput == null || AnalysisDomain.Compare(currentSuccessorInput, newSuccessorInput) <= 0);
                                 mergedSuccessorInput = newSuccessorInput;
+
+                                // Mark that all input into successorBlockOpt can skip merge as long as it from the current input flow branch.
+                                blockToUniqueInputFlowMap[successorBlockOpt.Ordinal] = (block.Ordinal, blockToSuccessorBranchKind);
                             }
 
                             // Input to successor has changed, so we need to update its new input and
@@ -289,6 +330,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 inputDataFromInfeasibleBranchesMap.Values.Dispose();
                 inputDataFromInfeasibleBranchesMap.Free();
                 unreachableBlocks.Free();
+                blockToUniqueInputFlowMap.Free();
             }
 
             // Local functions.
@@ -453,8 +495,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 {
                     var firstFinally = branch.FinallyRegions[0];
                     var destination = cfg.Blocks[firstFinally.FirstBlockOrdinal];
-                    return branch.With(destination, enteringRegions: ImmutableArray<ControlFlowRegion>.Empty,
-                        leavingRegions: ImmutableArray<ControlFlowRegion>.Empty, finallyRegions: ImmutableArray<ControlFlowRegion>.Empty);
+                    return branch.WithEmptyRegions(destination);
                 }
                 else
                 {

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
@@ -41,6 +40,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             if (ReferenceEquals(oldValue, newValue))
             {
                 return 0;
+            }
+
+            if (newValue.Count < oldValue.Count)
+            {
+                FireNonMonotonicAssertIfNeeded(assertMonotonicity);
+                return 1;
             }
 
             // Ensure that every key in oldValue exists in newValue and the value corresponding to that key
