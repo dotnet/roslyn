@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
@@ -34,6 +35,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         {
         }
 
+        private ImmutableDictionary<string, (int Index, PropertyMapper PropertyMapper)> PropertyMappersWithIndex { get; }
+
+        internal bool RequiresValueContentAnalysis
+        {
+            get
+            {
+                return this.PropertyMappersWithIndex.Values.Any(t => t.PropertyMapper.RequiresValueContentAnalysis);
+            }
+        }
+
         internal bool TryGetPropertyMapper(string propertyName, out PropertyMapper propertyMapper, out int index)
         {
             if (this.PropertyMappersWithIndex.TryGetValue(propertyName, out (int Index, PropertyMapper PropertyMapper) tuple))
@@ -49,7 +60,5 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 return false;
             }
         }
-
-        private ImmutableDictionary<string, (int Index, PropertyMapper PropertyMapper)> PropertyMappersWithIndex { get; }
     }
 }

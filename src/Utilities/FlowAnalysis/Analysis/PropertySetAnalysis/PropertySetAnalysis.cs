@@ -5,11 +5,14 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
     using PropertySetAnalysisData = DictionaryAnalysisData<AbstractLocation, PropertySetAbstractValue>;
     using PropertySetAnalysisDomain = MapAbstractDomain<AbstractLocation, PropertySetAbstractValue>;
+    using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
+    using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
 
     /// <summary>
     /// Dataflow analysis to track <see cref="PropertySetAbstractValue"/> of <see cref="AbstractLocation"/>/<see cref="IOperation"/> instances.
@@ -23,30 +26,20 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         {
         }
 
-        //public static ImmutableDictionary<(Location Location, IMethodSymbol method), PropertySetAbstractValue> GetOrComputeHazardousParameterUsages(
-        //    ControlFlowGraph cfg,
-        //    Compilation compilation,
-        //    ISymbol owningSymbol,
-        //    AnalyzerOptions analyzerOptions,
-        //    DiagnosticDescriptor rule,
-        //    string typeToTrackMetadataName,
-        //    bool isNewInstanceFlagged,
-        //    string propertyToSetFlag,
-        //    bool isNullPropertyFlagged,
-        //    ImmutableHashSet<string> methodNamesToCheckForFlaggedUsage,
-        //    CancellationToken cancellationToken,
-        //    InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.ContextSensitive,
-        //    uint defaultMaxInterproceduralMethodCallChain = 1, // By default, we only want to track method calls one level down.
-        //    bool pessimisticAnalysis = false)
-        //{
-        //    var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
-        //           analyzerOptions, rule, interproceduralAnalysisKind, cancellationToken, defaultMaxInterproceduralMethodCallChain);
-        //    return GetOrComputeHazardousParameterUsages(cfg, compilation, owningSymbol,
-        //        typeToTrackMetadataName, isNewInstanceFlagged, propertyToSetFlag, isNullPropertyFlagged,
-        //        methodNamesToCheckForFlaggedUsage, interproceduralAnalysisConfig, pessimisticAnalysis);
-        //}
-
-        public static ImmutableDictionary<(Location Location, IMethodSymbol method), HazardousUsageEvaluationResult> GetOrComputeHazardousUsages(
+        /// <summary>
+        /// Gets hazardous usages of an object based on a set of its properties.
+        /// </summary>
+        /// <param name="cfg">Control flow graph of the code.</param>
+        /// <param name="compilation">Compilation containing the code.</param>
+        /// <param name="owningSymbol">Symbol of the code to examine.</param>
+        /// <param name="typeToTrackMetadataName">Name of the type to track.</param>
+        /// <param name="constructorMapper">How constructor invocations map to <see cref="PropertySetAbstractValueKind"/>s.</param>
+        /// <param name="propertyMappers">How property assignments map to <see cref="PropertySetAbstractValueKind"/>.</param>
+        /// <param name="hazardousUsageEvaluators">When and how to evaluate <see cref="PropertySetAbstractValueKind"/>s to for hazardous usages.</param>
+        /// <param name="interproceduralAnalysisConfig">Interprocedural dataflow analysis configuration.</param>
+        /// <param name="pessimisticAnalysis">Whether to be pessimistic.</param>
+        /// <returns>Dictionary of <see cref="Location"/> and <see cref="IMethodSymbol"/> pairs mapping to the kind of hazardous usage (Flagged or MaybeFlagged).</returns>
+        public static ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> GetOrComputeHazardousUsages(
             ControlFlowGraph cfg,
             Compilation compilation,
             ISymbol owningSymbol,
@@ -58,11 +51,40 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             bool pessimisticAnalysis = false)
         {
             var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
-            var pointsToAnalysisResult = PointsToAnalysis.GetOrComputeResult(
-                cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisConfig, pessimisticAnalysis);
 
-            var analysisContext = PropertySetAnalysisContext.Create(PropertySetAbstractValueDomain.Default,
-                wellKnownTypeProvider, cfg, owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis, pointsToAnalysisResult, GetOrComputeResultForAnalysisContext,
+            PointsToAnalysisResult pointsToAnalysisResult;
+            ValueContentAnalysisResult valueContentAnalysisResultOpt;
+            if (!constructorMapper.RequiresValueContentAnalysis && !propertyMappers.RequiresValueContentAnalysis)
+            {
+                pointsToAnalysisResult = PointsToAnalysis.GetOrComputeResult(
+                    cfg,
+                    owningSymbol,
+                    wellKnownTypeProvider,
+                    interproceduralAnalysisConfig,
+                    pessimisticAnalysis);
+                valueContentAnalysisResultOpt = null;
+            }
+            else
+            {
+                valueContentAnalysisResultOpt = ValueContentAnalysis.GetOrComputeResult(
+                    cfg,
+                    owningSymbol,
+                    wellKnownTypeProvider,
+                    interproceduralAnalysisConfig,
+                    out var copyAnalysisResult,
+                    out pointsToAnalysisResult);
+            }
+
+            var analysisContext = PropertySetAnalysisContext.Create(
+                PropertySetAbstractValueDomain.Default,
+                wellKnownTypeProvider,
+                cfg,
+                owningSymbol,
+                interproceduralAnalysisConfig,
+                pessimisticAnalysis,
+                pointsToAnalysisResult,
+                valueContentAnalysisResultOpt,
+                GetOrComputeResultForAnalysisContext,
                 typeToTrackMetadataName,
                 constructorMapper,
                 propertyMappers,

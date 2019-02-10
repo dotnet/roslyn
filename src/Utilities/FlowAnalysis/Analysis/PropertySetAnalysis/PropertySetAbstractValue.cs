@@ -8,10 +8,19 @@ using Microsoft.CodeAnalysis;
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
     /// <summary>
-    /// 
+    /// Abstract value for a set properties on an object instance, with each
+    /// individual property represented by a <see 
+    /// cref="PropertySetAbstractValueKind"/>.
     /// </summary>
     /// <remarks>
-    /// Note that <see cref="KnownPropertyAbstractValues"/> may be "incomplete", e.g. it doesn't cover all properties.  In such cases, missing elements are <see cref="PropertySetAbstractValueKind.Unknown"/>.</remarks>
+    /// Note that <see cref="KnownPropertyAbstractValues"/> may be
+    /// "incomplete", i.e. it doesn't cover all properties.  In such cases,
+    /// missing elements are implicitly <see 
+    /// cref="PropertySetAbstractValueKind.Unknown"/>.
+    /// 
+    /// The reason for the "sparse" array is so that the Unknown value doesn't
+    /// have to be aware of how many properties are being tracked.
+    /// </remarks>
     internal class PropertySetAbstractValue
     {
         public static readonly PropertySetAbstractValue Unknown = new PropertySetAbstractValue();
@@ -46,8 +55,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// </remarks>
         private ImmutableArray<PropertySetAbstractValueKind> KnownPropertyAbstractValues { get; }
 
+        /// <summary>
+        /// Count of how many properties' abstract values are tracked by this instance.
+        /// </summary>
         public int KnownValuesCount => this.KnownPropertyAbstractValues.Length;
 
+        /// <summary>
+        /// Gets an individual property's <see cref="PropertySetAbstractValueKind"/>.
+        /// </summary>
+        /// <param name="index">Index of the property, from the corresponding
+        /// <see cref="PropertyMapperCollection"/>'s initialization.</param>
+        /// <returns>The property's <see cref="PropertySetAbstractValueKind"/>.</returns>
         public PropertySetAbstractValueKind this[int index]
         {
             get
@@ -68,7 +86,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             }
         }
 
-        public PropertySetAbstractValue ReplaceAt(int index, PropertySetAbstractValueKind kind)
+        internal PropertySetAbstractValue ReplaceAt(int index, PropertySetAbstractValueKind kind)
         {
             Debug.Assert(index >= 0);
 
@@ -87,7 +105,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             {
                 kinds.AddRange(this.KnownPropertyAbstractValues);
 
-                for (int i = kinds.Count; i < newLength; i++)
+                while (kinds.Count < newLength)
                 {
                     kinds.Add(PropertySetAbstractValueKind.Unknown);
                 }
