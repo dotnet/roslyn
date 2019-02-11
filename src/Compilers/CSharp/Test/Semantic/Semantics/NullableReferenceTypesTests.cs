@@ -17,6 +17,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     [CompilerTrait(CompilerFeature.NullableReferenceTypes)]
     public class NullableReferenceTypesTests : CSharpTestBase
     {
+        private const string Tuple2NonNullable =
+                    @"
+
+namespace System
+{
+#nullable enable
+    // struct with two values
+    public struct ValueTuple<T1, T2>
+        where T1 : object
+        where T2 : object
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public override string ToString()
+        {
+            return """";
+        }
+    }
+
+#nullable disable
+}
+
+            ";
+
         [Fact, WorkItem(31297, "https://github.com/dotnet/roslyn/issues/31297")]
         public void SuppressNullableWarning_RefSpanReturn()
         {
@@ -53100,6 +53131,92 @@ static class C4<T> where T : class? { }
                 // (10,7): warning CS8634: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'C3<T>'. Nullability of type argument 'A?' doesn't match 'class' constraint.
                 // using D6 = C3<A?>;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "D6").WithArguments("C3<T>", "T", "A?").WithLocation(10, 7));
+        }
+
+        [Fact]
+        [WorkItem(32953, "https://github.com/dotnet/roslyn/issues/32953")]
+        public void Constraints_73()
+        {
+            var source = @"
+#nullable enable
+class C<T> {
+    void M1((string, string?) p) { } // 1
+    void M2((string, string) p) { }
+    void M3(C<(string, string?)> p) { } // 2
+    void M4(C<(string, string)> p) { }
+}
+";
+            var compilation = CreateCompilation(Tuple2NonNullable + source, targetFramework: TargetFramework.Mscorlib46);
+            compilation.VerifyDiagnostics(
+                // (32,31): warning CS8631: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //     void M1((string, string?) p) { } // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "p").WithArguments("System.ValueTuple<T1, T2>", "object", "T2", "string?").WithLocation(32, 31),
+                // (34,34): warning CS8631: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //     void M3(C<(string, string?)> p) { } // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "p").WithArguments("System.ValueTuple<T1, T2>", "object", "T2", "string?").WithLocation(34, 34));
+        }
+
+        [Fact]
+        [WorkItem(32953, "https://github.com/dotnet/roslyn/issues/32953")]
+        public void Constraints_74()
+        {
+            var source = @"
+#nullable enable
+class C<T> where T : object { }
+class D1 {
+    D1((string, string?) p) { } // 1
+    D1(C<(string, string?)> p) { } // 2
+    D1(C<string?> p) { } // 3
+}
+class D2 {
+    D2((string, string) p) { }
+    D2(C<(string, string)> p) { }
+    D2(C<string> p) { }
+}
+";
+            var compilation = CreateCompilation(Tuple2NonNullable + source, targetFramework: TargetFramework.Mscorlib46);
+            compilation.VerifyDiagnostics(
+                // (33,26): warning CS8631: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //     D1((string, string?) p) { } // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "p").WithArguments("System.ValueTuple<T1, T2>", "object", "T2", "string?").WithLocation(33, 26),
+                // (34,29): warning CS8631: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //     D1(C<(string, string?)> p) { } // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "p").WithArguments("System.ValueTuple<T1, T2>", "object", "T2", "string?").WithLocation(34, 29),
+                // (35,10): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //     D1(C<string?> p) { } // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("C<T>", "object", "T", "string?").WithLocation(35, 10),
+                // (35,19): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //     D1(C<string?> p) { } // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "p").WithArguments("C<T>", "object", "T", "string?").WithLocation(35, 19));
+        }
+
+        [Fact]
+        [WorkItem(32953, "https://github.com/dotnet/roslyn/issues/32953")]
+        public void Constraints_75()
+        {
+            var source = @"
+#nullable enable
+class C<T> where T : object { }
+class D1 {
+    public static implicit operator D1(C<string> c) => new D1();
+    public static implicit operator C<string>(D1 D1) => new C<string>();
+}
+class D2 {
+    public static implicit operator D2(C<string?> c) => new D2(); // 1
+    public static implicit operator C<string?>(D2 D2) => new C<string?>(); // 2, 3
+}
+";
+            var compilation = CreateCompilation(Tuple2NonNullable + source, targetFramework: TargetFramework.Mscorlib46);
+            compilation.VerifyDiagnostics(
+                // (37,51): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //     public static implicit operator D2(C<string?> c) => new D2(); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "c").WithArguments("C<T>", "object", "T", "string?").WithLocation(37, 51),
+                // (38,37): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //     public static implicit operator C<string?>(D2 D2) => new C<string?>(); // 2, 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "C<string?>").WithArguments("C<T>", "object", "T", "string?").WithLocation(38, 37),
+                // (38,64): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //     public static implicit operator C<string?>(D2 D2) => new C<string?>(); // 2, 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("C<T>", "object", "T", "string?").WithLocation(38, 64));
         }
 
         [Fact]
