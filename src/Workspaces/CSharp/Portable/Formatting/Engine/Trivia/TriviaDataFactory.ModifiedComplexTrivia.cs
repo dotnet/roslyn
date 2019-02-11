@@ -71,7 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             public override void Format(
                 FormattingContext context,
                 ChainedFormattingRules formattingRules,
-                Action<int, TriviaData> formattingResultApplier,
+                Action<int, TokenStream, TriviaData> formattingResultApplier,
+                TokenStream tokenStream,
                 CancellationToken cancellationToken,
                 int tokenPairIndex = TokenPairIndexNotNeeded)
             {
@@ -90,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
 
                 formattingResultApplier(tokenPairIndex,
+                    tokenStream,
                     new FormattedComplexTrivia(
                         context,
                         formattingRules,

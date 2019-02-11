@@ -252,15 +252,15 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            void beginningOfTreeTriviaInfoApplier(int i, TriviaData info)
+            void beginningOfTreeTriviaInfoApplier(int i, TokenStream ts, TriviaData info)
             {
-                tokenStream.ApplyBeginningOfTreeChange(info);
+                ts.ApplyBeginningOfTreeChange(info);
             }
 
             // remove all leading indentation
             var triviaInfo = tokenStream.GetTriviaDataAtBeginningOfTree().WithIndentation(0, context, _formattingRules, cancellationToken);
 
-            triviaInfo.Format(context, _formattingRules, beginningOfTreeTriviaInfoApplier, cancellationToken);
+            triviaInfo.Format(context, _formattingRules, beginningOfTreeTriviaInfoApplier, tokenStream, cancellationToken);
         }
 
         private void ApplyEndOfTreeTriviaOperation(
@@ -271,36 +271,41 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            void endOfTreeTriviaInfoApplier(int i, TriviaData info)
+            void endOfTreeTriviaInfoApplier(int i, TokenStream ts, TriviaData info)
             {
-                tokenStream.ApplyEndOfTreeChange(info);
+                ts.ApplyEndOfTreeChange(info);
             }
 
             // remove all trailing indentation
             var triviaInfo = tokenStream.GetTriviaDataAtEndOfTree().WithIndentation(0, context, _formattingRules, cancellationToken);
 
-            triviaInfo.Format(context, _formattingRules, endOfTreeTriviaInfoApplier, cancellationToken);
+            triviaInfo.Format(context, _formattingRules, endOfTreeTriviaInfoApplier, tokenStream, cancellationToken);
         }
 
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowCaptures = false)]
         private void ApplyTriviaOperations(FormattingContext context, TokenStream tokenStream, CancellationToken cancellationToken)
         {
-            // trivia formatting result appliers
-            void regularApplier(int tokenPairIndex, TriviaData info)
+            void regularApplier(int tokenPairIndex, TriviaData info, TokenStream ts)
             {
-                tokenStream.ApplyChange(tokenPairIndex, info);
+                ts.ApplyChange(tokenPairIndex, info);
             }
 
-            // trivia formatting applier
-            void triviaFormatter(int tokenPairIndex)
+            void triviaFormatter(int tokenPairIndex, FormattingContext ctx, ChainedFormattingRules formattingRules, TokenStream ts, CancellationToken ct)
             {
-                var triviaInfo = tokenStream.GetTriviaData(tokenPairIndex);
-                triviaInfo.Format(context, _formattingRules, regularApplier, cancellationToken, tokenPairIndex);
+                var triviaInfo = ts.GetTriviaData(tokenPairIndex);
+                triviaInfo.Format(
+                    ctx,
+                    formattingRules,
+                    (int tokenPairIndex1, TokenStream ts2, TriviaData info) => regularApplier(tokenPairIndex1, info, ts2),
+                    ts,
+                    ct,
+                    tokenPairIndex);
             }
 
             for (var i = 0; i < tokenStream.TokenCount - 1; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                triviaFormatter(i);
+                triviaFormatter(i, context, _formattingRules, tokenStream, cancellationToken);
             }
         }
 

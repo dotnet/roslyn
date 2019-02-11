@@ -57,11 +57,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             Public Overrides Sub Format(context As FormattingContext,
                                         formattingRules As ChainedFormattingRules,
-                                        formattingResultApplier As Action(Of Integer, TriviaData),
+                                        formattingResultApplier As Action(Of Integer, TokenStream, TriviaData),
+                                        tokenStream As TokenStream,
                                         cancellationToken As CancellationToken,
                                         Optional tokenPairIndex As Integer = TokenPairIndexNotNeeded)
                 If Me.ContainsChanges Then
-                    formattingResultApplier(tokenPairIndex, Me)
+                    formattingResultApplier(tokenPairIndex, tokenStream, Me)
                 End If
             End Sub
         End Class
