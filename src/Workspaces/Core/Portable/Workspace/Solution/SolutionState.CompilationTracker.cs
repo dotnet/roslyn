@@ -640,7 +640,16 @@ namespace Microsoft.CodeAnalysis
                                 if (metadataReference != null)
                                 {
                                     newReferences.Add(metadataReference);
-                                    if (!metadataReferenceToProjectId.ContainsKey(metadataReference))
+                                    if (metadataReferenceToProjectId.TryGetValue(metadataReference, out var alreadyReferencedProjectId))
+                                    {
+                                        if (alreadyReferencedProjectId != projectReference.ProjectId)
+                                        {
+                                            var alreadyReferencedProject = solution.GetProjectState(alreadyReferencedProjectId);
+
+                                            throw new InvalidOperationException($"Unable to resolve duplicate project references in {this.ProjectState.Name} project. Same metadata reference was obtained for different referenced projects: {alreadyReferencedProject.Name} and {referencedProject.Name}");
+                                        }
+                                    }
+                                    else
                                     {
                                         metadataReferenceToProjectId.Add(metadataReference, projectReference.ProjectId);
                                     }
