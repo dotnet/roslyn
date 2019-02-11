@@ -53203,7 +53203,7 @@ class D2 {
     public static implicit operator C<string?>(D2 D2) => new C<string?>(); // 2, 3
 }
 ";
-            var compilation = CreateCompilation(new[] { Tuple2NonNullable, source }, targetFramework: TargetFramework.Mscorlib46);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib46);
             compilation.VerifyDiagnostics(
                 // (9,51): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
                 //     public static implicit operator D2(C<string?> c) => new D2(); // 1
