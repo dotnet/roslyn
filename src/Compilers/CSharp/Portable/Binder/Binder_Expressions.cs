@@ -2228,9 +2228,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 var underlyingExpr = BindCastCore(node, operand, underlyingTargetType, wasCompilerGenerated: false, diagnostics: bag);
-                if (underlyingExpr.HasErrors || bag.HasAnyErrors())
+                if ((underlyingExpr.HasErrors || bag.HasAnyErrors()))
                 {
-                    Error(diagnostics, ErrorCode.ERR_NoExplicitConv, node, operand.Type, targetType.TypeSymbol);
+                    ErrorCode errorCode = ErrorCode.ERR_NoExplicitConv;
+                    if (underlyingExpr.ConstantValue == ConstantValue.Bad)
+                    {
+                        errorCode = ErrorCode.ERR_ConstOutOfRangeChecked;
+                    }
+
+                    Error(diagnostics, errorCode, node, operand.Type, targetType.TypeSymbol);
 
                     return new BoundConversion(
                         node,

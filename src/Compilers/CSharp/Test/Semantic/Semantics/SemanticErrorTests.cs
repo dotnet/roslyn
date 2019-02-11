@@ -1643,7 +1643,7 @@ class A
                 DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(template.Replace("System.Int32", t.ToString()),
                     new ErrorDescription { Code = (int)ErrorCode.ERR_ConstOutOfRangeChecked, Line = 6, Column = 34 },
                     new ErrorDescription { Code = (int)ErrorCode.ERR_ConstOutOfRangeChecked, Line = 8, Column = 34 });
-            }
+            }   
         }
 
         [Fact]
@@ -1662,23 +1662,10 @@ class A
     }
 }
 ";
-            var integralTypes = new Type[]
-            {
-                typeof(char),
-                typeof(sbyte),
-                typeof(byte),
-                typeof(short),
-                typeof(ushort),
-                typeof(int),
-                typeof(uint),
-            };
 
-            foreach (Type t in integralTypes)
-            {
-                DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(template.Replace("System.Int32", t.ToString()),
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_ConstOutOfRangeChecked, Line = 6, Column = 34 },
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_ConstOutOfRangeChecked, Line = 8, Column = 34 });
-            }
+            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(template,
+                new ErrorDescription { Code = (int)ErrorCode.ERR_ConstOutOfRangeChecked, Line = 6, Column = 34 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_ConstOutOfRangeChecked, Line = 8, Column = 34 });
         }
         // Note that the errors for Int64 and UInt64 are not
         // exactly the same as for Int32, etc. above, but the
