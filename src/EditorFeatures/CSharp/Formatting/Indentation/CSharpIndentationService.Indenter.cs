@@ -251,6 +251,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                             return GetIndentationFromCommaSeparatedList(token);
                         }
 
+                    case SyntaxKind.CloseParenToken:
+                        {
+                            if (token.Parent.IsKind(SyntaxKind.ArgumentList))
+                            {
+                                return GetDefaultIndentationFromToken(token.Parent.GetFirstToken(includeZeroWidth: true));
+                            }
+
+                            // default case
+                            return GetDefaultIndentationFromToken(token);
+                        }
+
                     default:
                         {
                             return GetDefaultIndentationFromToken(token);
