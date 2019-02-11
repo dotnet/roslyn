@@ -556,6 +556,38 @@ struct MyStruct2
         TestValue = 0;
     }
 }");
+        }[Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        public async Task StructDeclaration_ChangedOrderOfConstructorDeclaration()
+        {
+            await TestInRegularAndScriptAsync(
+@"struct [|MyStruct|]
+{
+    public readonly int Value;
+
+    public void Test()
+    {
+        this = new MyStruct(5);
+    }
+
+    public MyStruct(int value)
+    {
+        Value = value;
+    }
+}",
+@"struct MyStruct
+{
+    public int Value;
+
+    public void Test()
+    {
+        this = new MyStruct(5);
+    }
+
+    public MyStruct(int value)
+    {
+        Value = value;
+    }
+}");
         }
     }
 }
