@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
                     input.AppendLine(line);
 
-                    var tree = _scriptCompiler.ParseSubmission(SourceText.From(input.ToString()), options, cancellationToken);
+                    var tree = _scriptCompiler.ParseSubmission(SourceText.From(input.ToString()), options.ParseOptions, cancellationToken);
                     if (_scriptCompiler.IsCompleteSubmission(tree))
                     {
                         break;
