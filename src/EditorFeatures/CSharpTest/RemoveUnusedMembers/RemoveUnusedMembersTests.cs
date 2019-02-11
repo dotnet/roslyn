@@ -2085,6 +2085,26 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(32727, "https://github.com/dotnet/roslyn/issues/32727")]
+        public async Task NestedStructLayoutTypeWithReference()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System.Runtime.InteropServices;
+
+class Program
+{
+    private const int [|MAX_PATH|] = 260;
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct ProcessEntry32
+    {
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = MAX_PATH)]
+        public string szExeFile;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FixAllFields_Document()
         {
             await TestInRegularAndScriptAsync(
@@ -2241,6 +2261,58 @@ static class MyClass3
         </Document>
     </Project>
 </Workspace>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(32702, "https://github.com/dotnet/roslyn/issues/32702")]
+        public async Task UsedExtensionMethod_ReferencedFromPartialMethod()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+static partial class B
+{
+    static partial void PartialMethod();
+}
+        </Document>
+        <Document>
+static partial class B
+{
+    static partial void PartialMethod()
+    {
+        UsedMethod();
+    }
+
+    private static void [|UsedMethod|]() { }
+}
+        </Document>
+    </Project>
+</Workspace>");
+        }
+
+        [Fact, WorkItem(32842, "https://github.com/dotnet/roslyn/issues/32842")]
+        public async Task FieldIsRead_NullCoalesceAssignment()
+        {
+            await TestDiagnosticMissingAsync(@"
+public class MyClass
+{
+    private MyClass [|_field|];
+    public MyClass Property => _field ??= new MyClass();
+}", new TestParameters(retainNonFixableDiagnostics: true, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
+        }
+
+        [Fact, WorkItem(32842, "https://github.com/dotnet/roslyn/issues/32842")]
+        public async Task FieldIsNotRead_NullCoalesceAssignment()
+        {
+            await TestDiagnosticsAsync(@"
+public class MyClass
+{
+    private MyClass [|_field|];
+    public void M() => _field ??= new MyClass();
+}", new TestParameters(retainNonFixableDiagnostics: true, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)),
+    expected: Diagnostic("IDE0052"));
         }
     }
 }

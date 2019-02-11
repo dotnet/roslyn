@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "dotnet-format (--dry-run)": {
+      "commandName": "Project",
+      "commandLineArgs": "-w Roslyn.sln -v detailed --dry-run",
+      "workingDirectory": "$(SolutionDir)"
+    },
+    "dotnet-format": {
+      "commandName": "Project",
+      "commandLineArgs": "-w Roslyn.sln -v detailed",
+      "workingDirectory": "$(SolutionDir)"
+    }
+  }
+}

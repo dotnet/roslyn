@@ -1838,85 +1838,98 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void ParenthesizedExpression_03()
         {
-            UsingStatement(@"switch (e) { case (x: ((3))): ; }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+            var expect = new[]
+            { 
+                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // switch (e) { case (x: ((3))): ; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(x: ((3)))").WithArguments("recursive patterns", "8.0").WithLocation(1, 19)
-                );
-            N(SyntaxKind.SwitchStatement);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(x: ((3)))").WithArguments("recursive patterns").WithLocation(1, 19)
+            };
+            UsingStatement(@"switch (e) { case (x: ((3))): ; }", TestOptions.RegularWithoutRecursivePatterns, expect);
+            checkNodes();
+
+            UsingStatement(@"switch (e) { case (x: ((3))): ; }", TestOptions.RegularDefault, expect);
+            checkNodes();
+
+            UsingStatement(@"switch (e) { case (x: ((3))): ; }", TestOptions.RegularPreview);
+            checkNodes();
+
+            void checkNodes()
             {
-                N(SyntaxKind.SwitchKeyword);
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.SwitchStatement);
                 {
-                    N(SyntaxKind.IdentifierToken, "e");
-                }
-                N(SyntaxKind.CloseParenToken);
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.SwitchSection);
-                {
-                    N(SyntaxKind.CasePatternSwitchLabel);
+                    N(SyntaxKind.SwitchKeyword);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.RecursivePattern);
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SwitchSection);
+                    {
+                        N(SyntaxKind.CasePatternSwitchLabel);
                         {
-                            N(SyntaxKind.PositionalPatternClause);
+                            N(SyntaxKind.CaseKeyword);
+                            N(SyntaxKind.RecursivePattern);
                             {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.Subpattern);
+                                N(SyntaxKind.PositionalPatternClause);
                                 {
-                                    N(SyntaxKind.NameColon);
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Subpattern);
                                     {
-                                        N(SyntaxKind.IdentifierName);
+                                        N(SyntaxKind.NameColon);
                                         {
-                                            N(SyntaxKind.IdentifierToken, "x");
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "x");
+                                            }
+                                            N(SyntaxKind.ColonToken);
                                         }
-                                        N(SyntaxKind.ColonToken);
-                                    }
-                                    N(SyntaxKind.ConstantPattern);
-                                    {
-                                        N(SyntaxKind.ParenthesizedExpression);
+                                        N(SyntaxKind.ConstantPattern);
                                         {
-                                            N(SyntaxKind.OpenParenToken);
                                             N(SyntaxKind.ParenthesizedExpression);
                                             {
                                                 N(SyntaxKind.OpenParenToken);
-                                                N(SyntaxKind.NumericLiteralExpression);
+                                                N(SyntaxKind.ParenthesizedExpression);
                                                 {
-                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.NumericLiteralExpression);
+                                                    {
+                                                        N(SyntaxKind.NumericLiteralToken, "3");
+                                                    }
+                                                    N(SyntaxKind.CloseParenToken);
                                                 }
                                                 N(SyntaxKind.CloseParenToken);
                                             }
-                                            N(SyntaxKind.CloseParenToken);
                                         }
                                     }
+                                    N(SyntaxKind.CloseParenToken);
                                 }
-                                N(SyntaxKind.CloseParenToken);
                             }
+                            N(SyntaxKind.ColonToken);
                         }
-                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
                     }
-                    N(SyntaxKind.EmptyStatement);
-                    {
-                        N(SyntaxKind.SemicolonToken);
-                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.CloseBraceToken);
+                EOF();
             }
-            EOF();
         }
 
         [Fact]
         public void ParenthesizedExpression_04()
         {
             UsingStatement(@"switch (e) { case (((x: 3))): ; }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
+                // (1,19): error CS8507: A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.
                 // switch (e) { case (((x: 3))): ; }
                 Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresDisambiguation, "(((x: 3)))").WithLocation(1, 19),
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // switch (e) { case (((x: 3))): ; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(((x: 3)))").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
-                // (1,20): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(((x: 3)))").WithArguments("recursive patterns").WithLocation(1, 19),
+                // (1,20): error CS8507: A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.
                 // switch (e) { case (((x: 3))): ; }
                 Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresDisambiguation, "((x: 3))").WithLocation(1, 20)
                 );
@@ -1999,9 +2012,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void RecursivePattern_01()
         {
             UsingStatement(@"switch (e) { case T(X: 3, Y: 4){L: 5} p: ; }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // switch (e) { case T(X: 3, Y: 4){L: 5} p: ; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "T(X: 3, Y: 4){L: 5} p").WithArguments("recursive patterns", "8.0").WithLocation(1, 19)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T(X: 3, Y: 4){L: 5} p").WithArguments("recursive patterns").WithLocation(1, 19)
                 );
             N(SyntaxKind.SwitchStatement);
             {
@@ -2109,10 +2122,10 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void BrokenPattern_06()
         {
-            UsingStatement(@"switch (e) { case (: ; }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+            UsingStatement(@"switch (e) { case (: ; }", TestOptions.RegularWithoutRecursivePatterns, 
+                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // switch (e) { case (: ; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(: ").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(: ").WithArguments("recursive patterns").WithLocation(1, 19),
                 // (1,20): error CS1001: Identifier expected
                 // switch (e) { case (: ; }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(1, 20),
@@ -2162,9 +2175,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void BrokenPattern_07()
         {
             UsingStatement(@"switch (e) { case (", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // switch (e) { case (
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(").WithArguments("recursive patterns").WithLocation(1, 19),
                 // (1,20): error CS1026: ) expected
                 // switch (e) { case (
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 20),
@@ -2181,10 +2194,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void ParenthesizedExpression_07()
         {
             UsingStatement(@"switch (e) { case (): }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // switch (e) { case (): }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "()").WithArguments("recursive patterns", "8.0").WithLocation(1, 19)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "()").WithArguments("recursive patterns").WithLocation(1, 19));
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
@@ -2236,9 +2248,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void ParenthesizedExpression_05()
         {
             UsingStatement(@"switch (e) { case (x: ): ; }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // switch (e) { case (x: ): ; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(x: )").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(x: )").WithArguments("recursive patterns").WithLocation(1, 19),
                 // (1,23): error CS8504: Pattern missing
                 // switch (e) { case (x: ): ; }
                 Diagnostic(ErrorCode.ERR_MissingPattern, ")").WithLocation(1, 23)
@@ -2300,9 +2312,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void EmptySwitchExpression()
         {
             UsingExpression("1 switch {}", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,1): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,1): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // 1 switch {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch {}").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1 switch {}").WithArguments("recursive patterns").WithLocation(1, 1)
                 );
             N(SyntaxKind.SwitchExpression);
             {
@@ -2321,9 +2333,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void SwitchExpression01()
         {
             UsingExpression("1 switch {a => b, c => d}", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,1): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,1): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // 1 switch {a => b, c => d}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch {a => b, c => d}").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1 switch {a => b, c => d}").WithArguments("recursive patterns").WithLocation(1, 1)
                 );
             N(SyntaxKind.SwitchExpression);
             {
@@ -2373,9 +2385,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void SwitchExpression02()
         {
             UsingExpression("1 switch { a?b:c => d }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,1): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,1): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // 1 switch { a?b:c => d }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { a?b:c => d }").WithArguments("recursive patterns", "8.0").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1 switch { a?b:c => d }").WithArguments("recursive patterns").WithLocation(1, 1),
                 // (1,13): error CS1003: Syntax error, '=>' expected
                 // 1 switch { a?b:c => d }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>", "?").WithLocation(1, 13),
@@ -2436,9 +2448,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void SwitchExpression03()
         {
             UsingExpression("1 switch { (a, b, c) => d }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,1): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,1): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // 1 switch { (a, b, c) => d }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { (a, b, c) => d }").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1 switch { (a, b, c) => d }").WithArguments("recursive patterns").WithLocation(1, 1)
                 );
             N(SyntaxKind.SwitchExpression);
             {
@@ -2507,9 +2519,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
             // This put the parser into an infinite loop at one time. The precise diagnostics and nodes
             // are not as important as the fact that it terminates.
             UsingStatement("switch (e) { case T( : Q x = n; break; } ", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,19): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // switch (e) { case T( : Q x = n; break; } 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "T( : Q x = n").WithArguments("recursive patterns", "8.0").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T( : Q x = n").WithArguments("recursive patterns").WithLocation(1, 19),
                 // (1,22): error CS1001: Identifier expected
                 // switch (e) { case T( : Q x = n; break; } 
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(1, 22),
@@ -2767,7 +2779,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
         public void ParseFuzz()
         {
             Random random = new Random();
-            for (int i = 0; i < 2000; i++)
+            for (int i = 0; i < 4000; i++)
             {
                 string source = $"class C{{void M(){{switch(e){{case {makePattern0()}:T v = e;}}}}}}";
                 try
@@ -2836,7 +2848,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                     }
                 }
             }
-            string makePattern0() => makePattern(random.Next(5));
+            string makePattern0() => makePattern(random.Next(6));
         }
 
         [Fact]
@@ -6118,6 +6130,233 @@ case KeyValuePair<String, DateTime>[] pairs2:
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void IsNullableArray01()
+        {
+            // OK, this means `(o is A[]) ? b : c` because nullable types are not permitted for a pattern's type
+            UsingExpression("o is A[] ? b : c");
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "o");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.ArrayType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "A");
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void IsNullableArray02()
+        {
+            // error: 'cannot use nullable reference type for a pattern' or 'expected :'
+            UsingExpression("o is A[] ? b && c",
+                // (1,18): error CS1003: Syntax error, ':' expected
+                // o is A[] ? b && c
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 18),
+                // (1,18): error CS1733: Expected expression
+                // o is A[] ? b && c
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 18)
+                );
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "o");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.ArrayType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "A");
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.LogicalAndExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.AmpersandAmpersandToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                    }
+                }
+                M(SyntaxKind.ColonToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void IsNullableArray03()
+        {
+            // OK, this means `(o is A[][]) ? b : c`
+            UsingExpression("o is A[][] ? b : c");
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "o");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.ArrayType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "A");
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void IsNullableType01()
+        {
+            UsingExpression("o is A ? b : c");
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "o");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "A");
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void IsNullableType02()
+        {
+            UsingExpression("o is A? ? b : c");
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "o");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "A");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
             }
             EOF();
         }

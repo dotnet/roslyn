@@ -156,8 +156,8 @@
   <data name="Could_not_format_0_Format_currently_supports_only_CSharp_and_Visual_Basic_projects" xml:space="preserve">
     <value>Could not format '{0}'. Format currently supports only C# and Visual Basic projects.</value>
   </data>
-  <data name="Format_complete_in_0_ms" xml:space="preserve">
-    <value>Format complete in {0}ms.</value>
+  <data name="Formatted_0_of_1_files_in_2_ms" xml:space="preserve">
+    <value>Formatted {0} of {1} files in {2}ms.</value>
   </data>
   <data name="Loading_workspace" xml:space="preserve">
     <value>Loading workspace.</value>
@@ -179,5 +179,8 @@
   </data>
   <data name="Maximum_number_of_workspace_warnings_to_log_has_been_reached_Set_the_verbosity_option_to_the_diagnostic_level_to_see_all_warnings" xml:space="preserve">
     <value>Maximum number of workspace warnings to log has been reached. Set the --verbosity option to the 'diagnostic' level to see all warnings.</value>
+  </data>
+  <data name="Format_files_but_do_not_save_changes_to_disk" xml:space="preserve">
+    <value>Format files, but do not save changes to disk.</value>
   </data>
 </root>

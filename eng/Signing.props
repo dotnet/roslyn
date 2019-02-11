@@ -10,19 +10,24 @@
     Non-default certificates.
   -->
   <ItemGroup>
-    <FileSignInfo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.dll" CertificateName="WindowsPhone623"/>
-    <FileSignInfo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.dll" CertificateName="WindowsPhone623"/>
-    <FileSignInfo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.dll" CertificateName="WindowsPhone623"/>
+    <!-- Expression Compiler dependencies that run in remote debugger must be signed with Microsoft101240624 certificate in order to work on Windows 10S -->
 
-    <FileSignInfo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll" PublicKeyToken="31bf3856ad364e35" TargetFramework=".NETStandard,Version=v2.0" CertificateName="WindowsPhone623"/>
-    <FileSignInfo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll" PublicKeyToken="31bf3856ad364e35" TargetFramework=".NETStandard,Version=v2.0" CertificateName="WindowsPhone623"/>
-    <FileSignInfo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.dll" PublicKeyToken="31bf3856ad364e35" TargetFramework=".NETStandard,Version=v2.0" CertificateName="WindowsPhone623"/>
-    <FileSignInfo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.dll" PublicKeyToken="31bf3856ad364e35" TargetFramework=".NETStandard,Version=v2.0" CertificateName="WindowsPhone623"/>
+    <FileSignInfo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.dll" CertificateName="Microsoft101240624"/>
+    <FileSignInfo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.dll" CertificateName="Microsoft101240624"/>
+    <FileSignInfo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.dll" CertificateName="Microsoft101240624"/>
+
+    <FileSignInfo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll" PublicKeyToken="31bf3856ad364e35" TargetFramework=".NETStandard,Version=v2.0" CertificateName="Microsoft101240624"/>
+    <FileSignInfo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll" PublicKeyToken="31bf3856ad364e35" TargetFramework=".NETStandard,Version=v2.0" CertificateName="Microsoft101240624"/>
+    <FileSignInfo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.dll" PublicKeyToken="31bf3856ad364e35" TargetFramework=".NETStandard,Version=v2.0" CertificateName="Microsoft101240624"/>
+    <FileSignInfo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.dll" PublicKeyToken="31bf3856ad364e35" TargetFramework=".NETStandard,Version=v2.0" CertificateName="Microsoft101240624"/>
 
     <FileSignInfo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll" PublicKeyToken="31bf3856ad364e35" TargetFramework=".NETFramework,Version=v2.0" CertificateName="MicrosoftSHA1Win8WinBlue"/>
     <FileSignInfo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll" PublicKeyToken="31bf3856ad364e35" TargetFramework=".NETFramework,Version=v2.0" CertificateName="MicrosoftSHA1Win8WinBlue"/>
     <FileSignInfo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.dll" PublicKeyToken="31bf3856ad364e35" TargetFramework=".NETFramework,Version=v2.0" CertificateName="MicrosoftSHA1Win8WinBlue"/>
     <FileSignInfo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.dll" PublicKeyToken="31bf3856ad364e35" TargetFramework=".NETFramework,Version=v4.5" CertificateName="MicrosoftSHA1Win8WinBlue"/>
+
+    <FileSignInfo Include="System.Collections.Immutable.dll" CertificateName="Microsoft101240624"/>
+    <FileSignInfo Include="System.Reflection.Metadata.dll" CertificateName="Microsoft101240624"/>
 
     <!-- Sign 3rd party dlls with 3rd party cert -->
     <FileSignInfo Include="ICSharpCode.Decompiler.dll" CertificateName="3PartySHA2" />

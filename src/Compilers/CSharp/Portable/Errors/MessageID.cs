@@ -173,6 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_Disposable = MessageBase + 12753,
         IDS_FeatureUsingDeclarations = MessageBase + 12754,
         IDS_FeatureStaticLocalFunctions = MessageBase + 12755,
+        IDS_FeatureNameShadowingInNestedFunctions = MessageBase + 12756,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -222,13 +223,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static void CheckFeatureAvailability(this MessageID feature, LanguageVersion availableVersion, DiagnosticBag diagnostics, Location errorLocation)
+        internal static void CheckFeatureAvailability(this MessageID feature, DiagnosticBag diagnostics, Location errorLocation)
         {
-            LanguageVersion requiredVersion = feature.RequiredVersion();
-            if (requiredVersion > availableVersion)
+            var diag = GetFeatureAvailabilityDiagnosticInfo(feature, (CSharpParseOptions)errorLocation.SourceTree.Options);
+            if (diag != null)
             {
-                diagnostics.Add(availableVersion.GetErrorCode(), errorLocation, feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
+                diagnostics.Add(diag, errorLocation);
             }
+        }
+
+        internal static CSDiagnosticInfo GetFeatureAvailabilityDiagnosticInfo(this MessageID feature, CSharpParseOptions options)
+        {
+            LanguageVersion requiredVersion;
+            if (options.IsFeatureEnabled(feature))
+            {
+                return null;
+            }
+
+            string requiredFeature = feature.RequiredFeature();
+            if (requiredFeature != null)
+            {
+                return new CSDiagnosticInfo(ErrorCode.ERR_FeatureIsExperimental, feature.Localize(), requiredFeature);
+            }
+
+            LanguageVersion availableVersion = options.LanguageVersion;
+            requiredVersion = feature.RequiredVersion();
+            return requiredVersion == LanguageVersion.Preview.MapSpecifiedToEffectiveVersion()
+                ? new CSDiagnosticInfo(ErrorCode.ERR_FeatureInPreview, feature.Localize())
+                : new CSDiagnosticInfo(availableVersion.GetErrorCode(), feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
         }
 
         internal static LanguageVersion RequiredVersion(this MessageID feature)
@@ -252,6 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureRecursivePatterns:
                 case MessageID.IDS_FeatureUsingDeclarations:
                 case MessageID.IDS_FeatureStaticLocalFunctions:
+                case MessageID.IDS_FeatureNameShadowingInNestedFunctions:
                     return LanguageVersion.CSharp8;
 
                 // C# 7.3 features.

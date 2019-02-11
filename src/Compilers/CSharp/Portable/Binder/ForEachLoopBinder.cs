@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol getEnumeratorMethod = builder.GetEnumeratorMethod;
             if (IsAsync)
             {
-                BoundExpression placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, builder.MoveNextMethod?.ReturnType.TypeSymbol ?? CreateErrorType());
+                var placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, builder.MoveNextMethod?.ReturnType.TypeSymbol ?? CreateErrorType());
                 awaitInfo = BindAwaitInfo(placeholder, _syntax.Expression, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
 
                 if (!hasErrors && awaitInfo.GetResult?.ReturnType.SpecialType != SpecialType.System_Boolean)
@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ConstantValue.NotAvailable,
                 builder.CollectionType);
 
-            if (builder.NeedsDisposeMethod && IsAsync)
+            if (builder.NeedsDisposal && IsAsync)
             {
                 hasErrors |= GetAwaitDisposeAsyncInfo(ref builder, diagnostics);
             }
@@ -503,8 +503,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool GetAwaitDisposeAsyncInfo(ref ForEachEnumeratorInfo.Builder builder, DiagnosticBag diagnostics)
         {
-            BoundExpression placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression,
-                this.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask, diagnostics, this._syntax));
+            var awaitableType = builder.DisposeMethod is null
+                ? this.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask, diagnostics, this._syntax)
+                : builder.DisposeMethod.ReturnType.TypeSymbol;
+
+            var placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, awaitableType);
 
             bool hasErrors = false;
             builder.DisposeAwaitableInfo = BindAwaitInfo(placeholder, _syntax.Expression, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
@@ -712,26 +715,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     builder.ElementType = ((PropertySymbol)builder.CurrentPropertyGetter.AssociatedSymbol).Type;
 
-                    // NOTE: if IDisposable is not available at all, no diagnostics will be reported - we will just assume that
-                    // the enumerator is not disposable.  If it has IDisposable in its interface list, there will be a diagnostic there.
-                    // If IDisposable is available but its Dispose method is not, then diagnostics will be reported only if the enumerator
-                    // is potentially disposable.
+                    GetDisposalInfoForEnumerator(ref builder, collectionExpr, isAsync, diagnostics);
 
-                    var useSiteDiagnosticBag = DiagnosticBag.GetInstance();
-                    TypeSymbol enumeratorType = builder.GetEnumeratorMethod.ReturnType.TypeSymbol;
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-
-                    if (!enumeratorType.IsSealed ||
-                        this.Conversions.ClassifyImplicitConversionFromType(enumeratorType,
-                            isAsync ? this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable) : this.Compilation.GetSpecialType(SpecialType.System_IDisposable),
-                            ref useSiteDiagnostics).IsImplicit)
-                    {
-                        builder.NeedsDisposeMethod = true;
-                        diagnostics.AddRange(useSiteDiagnosticBag);
-                    }
-                    useSiteDiagnosticBag.Free();
-
-                    diagnostics.Add(_syntax, useSiteDiagnostics);
                     return EnumeratorResult.Succeeded;
                 }
 
@@ -826,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // We don't know the runtime type, so we will have to insert a runtime check for IDisposable (with a conditional call to IDisposable.Dispose).
-                builder.NeedsDisposeMethod = true;
+                builder.NeedsDisposal = true;
                 return EnumeratorResult.Succeeded;
             }
 
@@ -842,6 +827,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return EnumeratorResult.FailedNotReported;
+        }
+
+        private void GetDisposalInfoForEnumerator(ref ForEachEnumeratorInfo.Builder builder, BoundExpression expr, bool isAsync, DiagnosticBag diagnostics)
+        {
+            // NOTE: if IDisposable is not available at all, no diagnostics will be reported - we will just assume that
+            // the enumerator is not disposable.  If it has IDisposable in its interface list, there will be a diagnostic there.
+            // If IDisposable is available but its Dispose method is not, then diagnostics will be reported only if the enumerator
+            // is potentially disposable.
+
+            TypeSymbol enumeratorType = builder.GetEnumeratorMethod.ReturnType.TypeSymbol;
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+            // For async foreach, we don't do the runtime check
+            if ((!enumeratorType.IsSealed && !isAsync) ||
+                this.Conversions.ClassifyImplicitConversionFromType(enumeratorType,
+                    isAsync ? this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable) : this.Compilation.GetSpecialType(SpecialType.System_IDisposable),
+                    ref useSiteDiagnostics).IsImplicit)
+            {
+                builder.NeedsDisposal = true;
+            }
+            else if (enumeratorType.IsRefLikeType || isAsync)
+            {
+                // if it wasn't directly convertable to IDisposable, see if it is pattern-disposable
+                // again, we throw away any binding diagnostics, and assume it's not disposable if we encounter errors
+                var patternDisposeDiags = new DiagnosticBag();
+                var receiver = new BoundDisposableValuePlaceholder(_syntax, enumeratorType);
+                MethodSymbol disposeMethod = TryFindDisposePatternMethod(receiver, _syntax, isAsync, patternDisposeDiags);
+                if (!(disposeMethod is null))
+                {
+                    builder.NeedsDisposal = true;
+                    builder.DisposeMethod = disposeMethod;
+                }
+                patternDisposeDiags.Free();
+            }
+
+            diagnostics.Add(_syntax, useSiteDiagnostics);
         }
 
         private MethodSymbol GetGetEnumeratorMethod(NamedTypeSymbol collectionType, DiagnosticBag diagnostics, bool isAsync, CSharpSyntaxNode errorLocationSyntax)
@@ -893,7 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol.Equals(builder.GetEnumeratorMethod.ReturnType.TypeSymbol, this.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerator), TypeCompareKind.ConsiderEverything2));
 
             // We don't know the runtime type, so we will have to insert a runtime check for IDisposable (with a conditional call to IDisposable.Dispose).
-            builder.NeedsDisposeMethod = true;
+            builder.NeedsDisposal = true;
             return builder;
         }
 

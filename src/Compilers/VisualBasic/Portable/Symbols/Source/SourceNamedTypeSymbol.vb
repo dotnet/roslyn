@@ -1344,7 +1344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     For Each typeSyntax In types
                         Dim bt = binder.BindTypeSyntax(typeSyntax, diag, suppressUseSiteError:=True)
-                        If bt = base Then
+                        If TypeSymbol.Equals(bt, base, TypeCompareKind.ConsiderEverything) Then
                             Return typeSyntax.GetLocation()
                         End If
                     Next
@@ -1761,7 +1761,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If Interlocked.CompareExchange(Me._lazyEnumUnderlyingType, underlyingType, Nothing) Is Nothing Then
                         ContainingSourceModule.AddDiagnostics(tempDiags, CompilationStage.Declare)
                     Else
-                        Debug.Assert(underlyingType = Me._lazyEnumUnderlyingType)
+                        Debug.Assert(TypeSymbol.Equals(underlyingType, Me._lazyEnumUnderlyingType, TypeCompareKind.ConsiderEverything))
                         underlyingType = Me._lazyEnumUnderlyingType
                     End If
 

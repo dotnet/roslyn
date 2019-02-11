@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundDecisionDag decisionDag,
                 BoundExpression loweredSwitchGoverningExpression,
                 ArrayBuilder<BoundStatement> result,
-                out BoundExpression savedInputExpressionOpt)
+                out BoundExpression savedInputExpression)
             {
                 // Note that a when-clause can contain an assignment to a
                 // pattern variable declared in a different when-clause (e.g. in the same section, or
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (canShareTemps)
                 {
-                    decisionDag = ShareTempsAndEvaluateInput(loweredSwitchGoverningExpression, decisionDag, expr => result.Add(_factory.ExpressionStatement(expr)), out savedInputExpressionOpt);
+                    decisionDag = ShareTempsAndEvaluateInput(loweredSwitchGoverningExpression, decisionDag, expr => result.Add(_factory.ExpressionStatement(expr)), out savedInputExpression);
                 }
                 else
                 {
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression inputTemp = _tempAllocator.GetTemp(InputTemp(loweredSwitchGoverningExpression));
                     Debug.Assert(inputTemp != loweredSwitchGoverningExpression);
                     result.Add(_factory.Assignment(inputTemp, loweredSwitchGoverningExpression));
-                    savedInputExpressionOpt = inputTemp;
+                    savedInputExpression = inputTemp;
                 }
 
                 // In a switch statement, there is a hidden sequence point after evaluating the input at the start of

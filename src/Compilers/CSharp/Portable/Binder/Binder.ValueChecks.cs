@@ -204,13 +204,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                     break;
-
-                case BoundKind.SuppressNullableWarningExpression:
-                    {
-                        var outer = (BoundSuppressNullableWarningExpression)expr;
-                        var inner = CheckValue(outer.Expression, valueKind, diagnostics);
-                        return outer.Update(inner, inner.Type);
-                    }
             }
 
             bool hasResolutionErrors = false;
@@ -291,6 +284,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private static bool IsLegalSuppressionValueKind(BindValueKind valueKind)
+        {
+            // Need to review allowed uses of the suppression operator
+            // Tracked by https://github.com/dotnet/roslyn/issues/31297
+
+            switch (valueKind)
+            {
+                case BindValueKind.RValue:
+                case BindValueKind.RValueOrMethodGroup:
+                case BindValueKind.RefOrOut:
+                    return true;
+            }
+
+            // all others are illegal
+            return false;
+        }
+
         /// <summary>
         /// The purpose of this method is to determine if the expression satisfies desired capabilities. 
         /// If it is not then this code gives an appropriate error message.
@@ -313,6 +323,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (expr.IsSuppressed && !IsLegalSuppressionValueKind(valueKind))
+            {
+                Error(diagnostics, ErrorCode.ERR_IllegalSuppression, node);
+                return false;
+            }
+
             switch (expr.Kind)
             {
                 // we need to handle properties and event in a special way even in an RValue case because of getters
@@ -322,11 +338,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.EventAccess:
                     return CheckEventValueKind((BoundEventAccess)expr, valueKind, diagnostics);
-
-                case BoundKind.SuppressNullableWarningExpression:
-                    // https://github.com/dotnet/roslyn/issues/29710 We can reach this assertion
-                    Debug.Assert(false);
-                    return CheckValueKind(node, ((BoundSuppressNullableWarningExpression)expr).Expression, valueKind, checkingReceiver, diagnostics);
             }
 
             // easy out for a very common RValue case.
@@ -2381,6 +2392,11 @@ moreArguments:
                 case BoundKind.ImplicitReceiver:
                     // binder uses this as a placeholder when binding members inside an object initializer
                     // just say it does not escape anywhere, so that we do not get false errors.
+                    return scopeOfTheContainingExpression;
+
+                case BoundKind.DisposableValuePlaceholder:
+                    // Disposable value placeholder is only ever used to lookup a pattern dispose method
+                    // then immediately discarded. The actual expression will be generated during lowering 
                     return scopeOfTheContainingExpression;
 
                 case BoundKind.PointerElementAccess:

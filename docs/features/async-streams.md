@@ -64,6 +64,9 @@ Just like in iterator methods, there are several restrictions on where a yield s
 
 An asynchronous `using` is lowered just like a regular `using`, except that `Dispose()` is replaced with `await DisposeAsync()`.
 
+Note that pattern-based lookup for `DisposeAsync` binds to instance methods that can be invoked without arguments.
+Extension methods do not contribute. The result of `DisposeAsync` must be awaitable.
+
 ### Detailed design for `await foreach` statement
 
 An `await foreach` is lowered just like a regular `foreach`, except that:
@@ -71,8 +74,9 @@ An `await foreach` is lowered just like a regular `foreach`, except that:
 - `MoveNext()` is replaced with `await MoveNextAsync()`
 - `Dispose()` is replaced with `await DisposeAsync()`
 
-Note that pattern-based lookup for `GetAsyncEnumerator` and `MoveNextAsync` do not place particular requirements on those methods,
-as long as they could be invoked without arguments.
+Note that pattern-based lookup for `GetAsyncEnumerator`, `MoveNextAsync` and `DisposeAsync` binds to instance methods that can be invoked without arguments.
+Extension methods do not contribute. The result of `MoveNextAsync` and `DisposeAsync` must be awaitable.
+Disposal for `await foreach` does not include a fallback to a runtime check for an interface implementation.
 
 Asynchronous foreach loops are disallowed on collections of type dynamic,
 as there is no asynchronous equivalent of the non-generic `IEnumerable` interface.

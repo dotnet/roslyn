@@ -157,6 +157,8 @@ A warning is reported when using the `!` operator absent a `NonNullTypes` contex
 
 Unnecessary usages of `!` do not produce any diagnostics, including `!!`.
 
+A suppressed expression `e!` can be target-typed if the operand expression `e` can be target-typed.
+
 ### Explicit cast
 Explicit cast to `?` changes top-level nullability.
 Explicit cast to `!` does not change top-level nullability and may produce W warning.
@@ -190,7 +192,7 @@ Merging equivalent but not identical types is done as follows:
 - Merging `dynamic` and `object` results in the type `dynamic`.
 - Merging tuple types that differ in element names is specified elsewhere.
 - Merging equivalent types that differ in nullability is performed as follows: merging the types `Tn` and `Um` (where `n` and `m` are differing nullability annotations) results in the type `Vk` where `V` is the result of merging `T` and `U` using the invariant rule, and `k` is as follows:
- - if either `n` or `m` are non-nullable, non-nullable. In this case, if the other is nullable, a warning should be produced.
+ - if either `n` or `m` are non-nullable, non-nullable.
  - if either `n` or `m` are nullable, nullable.
  - otherwise oblivious.
 - Merging constructed generic types is performed as follows: Merging the types `K<A1, A2, ...>` and `K<B1, B2, ...>` results in the type `K<C1, C2, ...>` where `Ci` is the result of merging `Ai` and `Bi` by the invariant rule.
@@ -234,16 +236,12 @@ It is intended that these merging rules are associative and commutative, so that
 > ***Open issue***: these rules do not describe the handling of merging pointer types.
 
 ### Array creation
-The calculation of the _best type_ element nullability uses the Conversions rules above.
-The top-level and nested nullability are calculated independently.
-The top-level nullability is the most relaxed of the elements, where `!` is a `~` is a `?`.
-The nested nullability is the merged nullability of the best common type. If there is a merge conflict,
-the nested nullability is `~` and a warning is reported.
+The calculation of the _best type_ element nullability uses the Conversions rules above and the covariant merging rules.
 ```c#
 var w = new [] { notNull, oblivious }; // ~[]!
 var x = new [] { notNull, maybeNull, oblivious }; // ?[]!
 var y = new [] { enumerableOfNotNull, enumerableOfMaybeNull, enumerableOfOblivious }; // IEnumerable<?>!
-var z = new [] { listOfNotNull, listOfMaybeNull, listOfOblivious }; // List<~>!, warning
+var z = new [] { listOfNotNull, listOfMaybeNull, listOfOblivious }; // List<~>!
 ```
 
 ### Null-coalescing operator
