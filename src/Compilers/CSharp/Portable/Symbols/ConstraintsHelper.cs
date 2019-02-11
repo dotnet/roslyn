@@ -918,8 +918,8 @@ hasRelatedInterfaces:
                 }
                 else if (managedKind == ManagedKind.UnmanagedWithGenerics)
                 {
-                    var csCompilation = (CSharpCompilation)currentCompilation;
-                    var csDiagnosticInfo = Binder.GetLanguageVersionDiagnosticInfo(csCompilation.LanguageVersion, MessageID.IDS_FeatureUnmanagedConstructedTypes);
+                    var csDiagnosticInfo = MessageID.IDS_FeatureUnmanagedConstructedTypes
+                        .GetFeatureAvailabilityDiagnosticInfoOpt((CSharpCompilation)currentCompilation);
                     if (csDiagnosticInfo != null)
                     {
                         var typeParameterDiagnosticInfo = new TypeParameterDiagnosticInfo(typeParameter, csDiagnosticInfo);
