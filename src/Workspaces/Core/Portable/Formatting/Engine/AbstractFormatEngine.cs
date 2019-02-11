@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowCaptures = false)]
         private void ApplyTriviaOperations(FormattingContext context, CancellationToken cancellationToken)
         {
-            void regularApplier(int tokenPairIndex, TriviaData info, TokenStream ts)
+            void regularApplier(int tokenPairIndex, TokenStream ts, TriviaData info)
             {
                 ts.ApplyChange(tokenPairIndex, info);
             }
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 triviaInfo.Format(
                     ctx,
                     formattingRules,
-                    (int tokenPairIndex1, TokenStream ts, TriviaData info) => regularApplier(tokenPairIndex1, info, ts),
+                    (int tokenPairIndex1, TokenStream ts, TriviaData info) => regularApplier(tokenPairIndex1, ts, info),
                     ct,
                     tokenPairIndex);
             }
