@@ -7403,7 +7403,8 @@ switch (e)
         [Fact]
         public void SwitchExpressionPrecedence_02()
         {
-            // The left-hand-side of a switch is a relational, so `b` ends up on the left and the `a ==` expression has a switch on the right.
+            // The left-hand-side of a switch is equality, which binds more loosely than the relational `switch`,
+            // so `b` ends up on the left of the `switch` and the `a ==` expression has a switch on the right.
             UsingExpression("a == b switch { true => 1 }");
             N(SyntaxKind.EqualsExpression);
             {

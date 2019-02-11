@@ -9073,8 +9073,7 @@ tryAgain:
             {
                 // Operator ".." here can either be a prefix unary operator or a stand alone empty range:
                 var opToken = this.EatToken();
-                var opKind = SyntaxKind.RangeExpression;
-                newPrecedence = GetPrecedence(opKind);
+                newPrecedence = GetPrecedence(SyntaxKind.RangeExpression);
 
                 ExpressionSyntax rightOperand;
                 if (CanStartExpression())
@@ -9090,8 +9089,7 @@ tryAgain:
             }
             else if (IsAwaitExpression())
             {
-                var opKind = SyntaxKind.AwaitExpression;
-                newPrecedence = GetPrecedence(opKind);
+                newPrecedence = GetPrecedence(SyntaxKind.AwaitExpression);
                 var awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
                 awaitToken = CheckFeatureAvailability(awaitToken, MessageID.IDS_FeatureAsync);
                 var operand = this.ParseSubExpression(newPrecedence);
@@ -9138,7 +9136,7 @@ tryAgain:
                 var tk = this.CurrentToken.ContextualKind;
 
                 bool isAssignmentOperator = false;
-                SyntaxKind opKind = leftOperand.Kind;
+                SyntaxKind opKind;
                 if (IsExpectedBinaryOperator(tk))
                 {
                     opKind = SyntaxFacts.GetBinaryExpression(tk);
