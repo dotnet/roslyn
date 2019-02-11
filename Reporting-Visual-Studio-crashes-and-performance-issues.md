@@ -84,7 +84,9 @@ For best results in capturing the performance, follow these steps:
 7. Once complete, there will be several attachments to your feedback. Attach any additional files that may help reproduce the problem (a sample project, screenshots, videos, etc.).
 8. Submit the feedback.
 
-⚠️ Do not attach performance traces to existing feedback items. Please create a new feedback item for each performance trace you would like to submit. If you were requested to provide a performance trace in order to resolve a previous feedback item, simply reply to the request with a link to the new feedback item where the performance trace is attached.
+⚠️ Do not directly attach performance traces to existing feedback items on Developer Community website. Requesting/providing additional information is a supported workflow in Visual Studio's built-in Report a Problem tool. If a performance trace is required in order to resolve a previous feedback item, we will set the state of the feedback item to "Need More Info", which can be responded to in the same way as reporting a new problem. For detailed instruction, please refer to ["Need More Info" section](https://docs.microsoft.com/en-us/visualstudio/ide/how-to-report-a-problem-with-visual-studio-2017?view=vs-2017#when-further-information-is-needed-need-more-info) in Report a Problem tool's document.
+
+
 
 :bulb: **Most valuable feedback:** For almost all performance issues, the most valuable feedback is a high-level description of what you were trying to do, along with the performance trace (*.etl.zip) which captures the behavior during that time.
 
