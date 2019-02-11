@@ -68,6 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return False
         End Function
 
+        <PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowImplicitBoxing:=False)>
         Private Function GetTrailingColonTrivia(statement As StatementSyntax) As SyntaxTrivia?
             If Not statement.HasTrailingTrivia Then
                 Return Nothing
