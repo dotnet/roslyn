@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 
                     if (containsReadonlyModifier)
                     {
-                        editor.SetModifiers(fieldDeclaration, fieldDeclarationModifiers - DeclarationModifiers.ReadOnly);
+                        editor.SetModifiers(fieldDeclaration, fieldDeclarationModifiers.WithIsReadOnly(false));
                     }
                 }
             }
