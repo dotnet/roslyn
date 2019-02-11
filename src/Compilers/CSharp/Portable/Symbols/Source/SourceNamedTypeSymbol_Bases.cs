@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var corLibrary = this.ContainingAssembly.CorLibrary;
                 var conversions = new TypeConversions(corLibrary);
                 var location = singleDeclaration.NameLocation;
+
                 localBase.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
             }
         }

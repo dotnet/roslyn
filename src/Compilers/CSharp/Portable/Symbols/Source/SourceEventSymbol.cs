@@ -668,7 +668,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
             var location = this.Locations[0];
-            bool includeNullability = DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
 
             this.CheckModifiersAndType(diagnostics);
             this.Type.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);

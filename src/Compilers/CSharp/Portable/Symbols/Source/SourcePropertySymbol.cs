@@ -1408,7 +1408,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 var diagnostics = DiagnosticBag.GetInstance();
                                 var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
-                                bool includeNullability = DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
                                 this.Type.CheckAllConstraints(DeclaringCompilation, conversions, _location, diagnostics);
 
                                 var type = this.Type.TypeSymbol;

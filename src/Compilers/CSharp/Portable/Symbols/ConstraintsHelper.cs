@@ -821,52 +821,6 @@ hasRelatedInterfaces:
                 skipParameters);
         }
 
-        private struct ConversionsUtil
-        {
-            private ConversionsBase _conversionsWithoutNullability;
-            private ConversionsBase _conversionsWithNullability;
-
-            public ConversionsBase ConversionsWithoutNullability
-            {
-                get
-                {
-                    if (_conversionsWithoutNullability is null)
-                    {
-                        _conversionsWithoutNullability = _conversionsWithNullability.WithNullability(false);
-                    }
-
-                    return _conversionsWithoutNullability;
-                }
-            }
-
-            public ConversionsBase ConversionsWithNullability
-            {
-                get
-                {
-                    if (_conversionsWithNullability is null)
-                    {
-                        _conversionsWithNullability = _conversionsWithoutNullability.WithNullability(true);
-                    }
-
-                    return _conversionsWithNullability;
-                }
-            }
-
-            public ConversionsUtil(ConversionsBase conversions)
-            {
-                if (conversions.IncludeNullability)
-                {
-                    _conversionsWithNullability = conversions;
-                    _conversionsWithoutNullability = null;
-                }
-                else
-                {
-                    _conversionsWithNullability = null;
-                    _conversionsWithoutNullability = conversions;
-                }
-            }
-        }
-
         /// <summary>
         /// Check type parameter constraints for the containing type or method symbol.
         /// </summary>
@@ -903,7 +857,6 @@ hasRelatedInterfaces:
 
             int n = typeParameters.Length;
             bool succeeded = true;
-            var util = new ConversionsUtil(conversions);
 
             for (int i = 0; i < n; i++)
             {
@@ -915,7 +868,7 @@ hasRelatedInterfaces:
                 var typeArgument = typeArguments[i];
                 var typeParameter = typeParameters[i];
 
-                if (!CheckConstraints(containingSymbol, ref util, includeNullability, substitution, typeParameter, typeArgument, currentCompilation, diagnosticsBuilder, warningsBuilderOpt, ref useSiteDiagnosticsBuilder,
+                if (!CheckConstraints(containingSymbol, conversions, includeNullability, substitution, typeParameter, typeArgument, currentCompilation, diagnosticsBuilder, warningsBuilderOpt, ref useSiteDiagnosticsBuilder,
                                       ignoreTypeConstraintsDependentOnTypeParametersOpt))
                 {
                     succeeded = false;
@@ -928,7 +881,7 @@ hasRelatedInterfaces:
         // See TypeBind::CheckSingleConstraint.
         private static bool CheckConstraints(
             Symbol containingSymbol,
-            ref ConversionsUtil conversions,
+            ConversionsBase conversions,
             bool includeNullability,
             TypeMap substitution,
             TypeParameterSymbol typeParameter,
@@ -1024,11 +977,11 @@ hasRelatedInterfaces:
 
             foreach (var constraintType in constraintTypes)
             {
-                if (SatisfiesConstraintType(conversions.ConversionsWithoutNullability, typeArgument, constraintType, ref useSiteDiagnostics))
+                if (SatisfiesConstraintType(conversions.WithNullability(false), typeArgument, constraintType, ref useSiteDiagnostics))
                 {
                     if (includeNullability && warningsBuilderOpt != null)
                     {
-                        if (!SatisfiesConstraintType(conversions.ConversionsWithNullability, typeArgument, constraintType, ref useSiteDiagnostics) ||
+                        if (!SatisfiesConstraintType(conversions.WithNullability(true), typeArgument, constraintType, ref useSiteDiagnostics) ||
                             (typeArgument.GetValueNullableAnnotation().IsAnyNullable() && !typeArgument.IsValueType &&
                              TypeParameterSymbol.IsNotNullableIfReferenceTypeFromConstraintType(constraintType) == true))
                         {

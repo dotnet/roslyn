@@ -54682,7 +54682,6 @@ class B<TB1, TB2> where TB2 : object
 }
 ";
             var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
             comp1.VerifyDiagnostics(
                 // (8,18): warning CS8631: The type 'TIB' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TIB' doesn't match constraint type 'object'.
                 // public interface IB<TIB> : IA<TIB> // 1
@@ -56625,7 +56624,7 @@ class C4<T, U> : I<T?>, I<U?> where T : struct where U : class { }";
         public void TypeUnification_05()
         {
             var source =
-@"interface I<T> where T : class { }
+@"interface I<T> where T : class? { }
 class C1<T, U> : I<T>, I<U> where T : class where U : class { }
 class C2<T, U> : I<T>, I<U?> where T : class where U : class { }
 class C3<T, U> : I<T?>, I<U> where T : class where U : class { }
@@ -56635,24 +56634,12 @@ class C4<T, U> : I<T?>, I<U?> where T : class where U : class { }";
                 // (2,7): error CS0695: 'C1<T, U>' cannot implement both 'I<T>' and 'I<U>' because they may unify for some type parameter substitutions
                 // class C1<T, U> : I<T>, I<U> where T : class where U : class { }
                 Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C1").WithArguments("C1<T, U>", "I<T>", "I<U>").WithLocation(2, 7),
-                // (3,7): warning CS8634: The type 'U?' cannot be used as type parameter 'T' in the generic type or method 'I<T>'. Nullability of type argument 'U?' doesn't match 'class' constraint.
-                // class C2<T, U> : I<T>, I<U?> where T : class where U : class { }
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "C2").WithArguments("I<T>", "T", "U?").WithLocation(3, 7),
                 // (3,7): error CS0695: 'C2<T, U>' cannot implement both 'I<T>' and 'I<U?>' because they may unify for some type parameter substitutions
                 // class C2<T, U> : I<T>, I<U?> where T : class where U : class { }
                 Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C2").WithArguments("C2<T, U>", "I<T>", "I<U?>").WithLocation(3, 7),
-                // (4,7): warning CS8634: The type 'T?' cannot be used as type parameter 'T' in the generic type or method 'I<T>'. Nullability of type argument 'T?' doesn't match 'class' constraint.
-                // class C3<T, U> : I<T?>, I<U> where T : class where U : class { }
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "C3").WithArguments("I<T>", "T", "T?").WithLocation(4, 7),
                 // (4,7): error CS0695: 'C3<T, U>' cannot implement both 'I<T?>' and 'I<U>' because they may unify for some type parameter substitutions
                 // class C3<T, U> : I<T?>, I<U> where T : class where U : class { }
                 Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C3").WithArguments("C3<T, U>", "I<T?>", "I<U>").WithLocation(4, 7),
-                // (5,7): warning CS8634: The type 'T?' cannot be used as type parameter 'T' in the generic type or method 'I<T>'. Nullability of type argument 'T?' doesn't match 'class' constraint.
-                // class C4<T, U> : I<T?>, I<U?> where T : class where U : class { }
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "C4").WithArguments("I<T>", "T", "T?").WithLocation(5, 7),
-                // (5,7): warning CS8634: The type 'U?' cannot be used as type parameter 'T' in the generic type or method 'I<T>'. Nullability of type argument 'U?' doesn't match 'class' constraint.
-                // class C4<T, U> : I<T?>, I<U?> where T : class where U : class { }
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "C4").WithArguments("I<T>", "T", "U?").WithLocation(5, 7),
                 // (5,7): error CS0695: 'C4<T, U>' cannot implement both 'I<T?>' and 'I<U?>' because they may unify for some type parameter substitutions
                 // class C4<T, U> : I<T?>, I<U?> where T : class where U : class { }
                 Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C4").WithArguments("C4<T, U>", "I<T?>", "I<U?>").WithLocation(5, 7));
