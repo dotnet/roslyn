@@ -2228,7 +2228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 var underlyingExpr = BindCastCore(node, operand, underlyingTargetType, wasCompilerGenerated: false, diagnostics: bag);
-                if ((underlyingExpr.HasErrors || bag.HasAnyErrors()))
+                if (underlyingExpr.HasErrors || bag.HasAnyErrors())
                 {
                     Error(diagnostics, GetErrorCode(underlyingExpr.ConstantValue), node, operand.Type, targetType.TypeSymbol);
 
