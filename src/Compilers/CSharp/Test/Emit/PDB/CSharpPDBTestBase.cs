@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             var endColumn = span.End - endLine.Start + 1;
 
             var doc = new XmlDocument() { XmlResolver = null };
-            using (var reader = new XmlTextReader(new StringReader(pdb)) { DtdProcessing = DtdProcessing.Prohibit })
+            using (var reader = new XmlTextReader(new System.IO.StringReader(pdb)) { DtdProcessing = DtdProcessing.Prohibit })
             {
                 doc.Load(reader);
             }
