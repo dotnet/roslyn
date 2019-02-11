@@ -1643,7 +1643,7 @@ class A
                 DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(template.Replace("System.Int32", t.ToString()),
                     new ErrorDescription { Code = (int)ErrorCode.ERR_ConstOutOfRangeChecked, Line = 6, Column = 34 },
                     new ErrorDescription { Code = (int)ErrorCode.ERR_ConstOutOfRangeChecked, Line = 8, Column = 34 });
-            }   
+            }
         }
 
         [Fact]

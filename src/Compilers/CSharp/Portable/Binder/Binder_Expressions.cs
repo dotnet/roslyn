@@ -2209,8 +2209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This particular check is done in the binder because it involves conversion processing rules (like overflow
         /// checking and constant folding) which are not handled by Conversions.
         /// </summary>
-        private BoundExpression BindExplicitNullableCastFromNonNullable(ExpressionSyntax node, BoundExpression operand,
-            TypeSymbolWithAnnotations targetType, DiagnosticBag diagnostics)
+        private BoundExpression BindExplicitNullableCastFromNonNullable(ExpressionSyntax node, BoundExpression operand, TypeSymbolWithAnnotations targetType, DiagnosticBag diagnostics)
         {
             Debug.Assert(!targetType.IsNull && targetType.IsNullableType());
             Debug.Assert((object)operand.Type != null && !operand.Type.IsNullableType());
@@ -2219,19 +2218,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // built in conversion.
             HashSet<DiagnosticInfo> unused = null;
             TypeSymbolWithAnnotations underlyingTargetType = targetType.GetNullableUnderlyingType();
-            var underlyingConversion =
-                Conversions.ClassifyBuiltInConversion(operand.Type, underlyingTargetType.TypeSymbol, ref unused);
+            var underlyingConversion = Conversions.ClassifyBuiltInConversion(operand.Type, underlyingTargetType.TypeSymbol, ref unused);
             if (!underlyingConversion.Exists)
             {
-                return BindCastCore(node, operand, targetType, wasCompilerGenerated: operand.WasCompilerGenerated,
-                    diagnostics: diagnostics);
+                return BindCastCore(node, operand, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
             }
 
             var bag = DiagnosticBag.GetInstance();
             try
             {
-                var underlyingExpr = BindCastCore(node, operand, underlyingTargetType, wasCompilerGenerated: false,
-                    diagnostics: bag);
+                var underlyingExpr = BindCastCore(node, operand, underlyingTargetType, wasCompilerGenerated: false, diagnostics: bag);
                 if ((underlyingExpr.HasErrors || bag.HasAnyErrors()))
                 {
                     Error(diagnostics, GetErrorCode(underlyingExpr.ConstantValue), node, operand.Type, targetType.TypeSymbol);
@@ -2254,12 +2250,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (underlyingExpr.ConstantValue != null)
                 {
                     underlyingExpr.WasCompilerGenerated = true;
-                    return BindCastCore(node, underlyingExpr, targetType,
-                        wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
+                    return BindCastCore(node, underlyingExpr, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
                 }
 
-                return BindCastCore(node, operand, targetType, wasCompilerGenerated: operand.WasCompilerGenerated,
-                    diagnostics: diagnostics);
+                return BindCastCore(node, operand, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
             }
             finally
             {
