@@ -43,16 +43,41 @@ class Test1 : I1
 
 - Declaring types within interfaces. **Protected** and **protected internal** accessibility is not supported.
 
-- Implementing interface methods in derived interfaces by using explicit implementation syntax, accessibility is private, allowed modifiers: **extern** and **async**.
+- Implementing interface methods in derived interfaces by using explicit implementation syntax, accessibility matches accessibility of the implemented member, allowed modifiers: **extern** and **async**.
 
-- Implementing interface properties and indexers in derived interfaces by using explicit implementation syntax, accessibility is private, allowed modifiers: **extern**.
+- Implementing interface properties and indexers in derived interfaces by using explicit implementation syntax, accessibility matches accessibility of the implemented member, allowed modifiers: **extern**.
 
-- Implementing interface events in derived interfaces by using explicit implementation syntax, accessibility is private, no allowed modifiers.
+- Implementing interface events in derived interfaces by using explicit implementation syntax, accessibility matches accessibility of the implemented member, no allowed modifiers.
 
 - Declaring static fields, auto-properties and field-like events (**protected** modifier is not allowed).
 
 - Declaring operators ```+ - ! ~ ++ -- true false * / % & | ^ << >> > < >= <=``` in interfaces.
 
+- Base access
+The following forms of base-access are added (https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-11-14.md)
+```
+    base ( <type-syntax> )  .   identifier
+    base ( <type-syntax> )   [   argument-list   ]
+```
+
+The type-syntax can refer to one of the base classes of the containing type, or one of the interfaces implemented or inherited by the containing type.
+
+When the type-syntax refers to a class, the member lookup rules, overload resolution rules and IL emit match the rules for the 7.3 supported
+forms of base-access. The only difference is the specified base class is used instead of the immediate base class, the most derived implementation is
+found in that class, etc.
+
+When the type-syntax refers to an interface: 
+1. The member lookup is performed in that interface, using the regular member lookup rules within interfaces, with an exception that members of
+   System.Object do not participate in the lookup.
+2. Regular overload resolution is performed for members returned by the lookup process, virtual or abstract members are not replaced with most
+   derived implementations at this step (unlike the case when the type-syntax refers to a class). If result of overload resolution is a virtual
+   or abstract method, it must have a most specific implementation within the interface type, an error is reported otherwise. The most specific
+   implementation must be accessible at the call site.
+3. During IL emit a **call** (non-virtual call) instruction is used to invoke methods. If result of overload resolution on the previous step is
+   virtual or abstract method, the most specific implementation of the method is used as the target for the instruction.
+   
+Given the accessibility requirements for the most specific interface implementation, accessibility of implementations provided in derived interfaces
+is changed to match accessibility of implemented members, prior to this change the accessibility was private.
 
 **Open issues and work items** are tracked in https://github.com/dotnet/roslyn/issues/17952.
 

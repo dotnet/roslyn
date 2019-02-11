@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundBaseReference Base()
         {
             Debug.Assert((object)CurrentFunction != null && !CurrentFunction.IsStatic);
-            return new BoundBaseReference(Syntax, CurrentFunction.ThisParameter.Type.TypeSymbol.BaseTypeNoUseSiteDiagnostics) { WasCompilerGenerated = true };
+            return new BoundBaseReference(Syntax, explicitBaseReferenceOpt: null, CurrentFunction.ThisParameter.Type.TypeSymbol.BaseTypeNoUseSiteDiagnostics) { WasCompilerGenerated = true };
         }
 
         public BoundBadExpression BadExpression(TypeSymbol type)

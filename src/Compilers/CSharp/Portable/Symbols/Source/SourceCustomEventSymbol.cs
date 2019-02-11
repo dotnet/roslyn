@@ -165,6 +165,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _explicitInterfaceImplementations; }
         }
 
+        public override Accessibility DeclaredAccessibility
+        {
+            get
+            {
+                if (!_explicitInterfaceImplementations.IsDefaultOrEmpty && ContainingType.IsInterface)
+                {
+                    Debug.Assert(_explicitInterfaceImplementations.Length == 1);
+                    return _explicitInterfaceImplementations[0].DeclaredAccessibility;
+                }
+
+                return base.DeclaredAccessibility;
+            }
+        }
+
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);

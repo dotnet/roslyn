@@ -2518,5 +2518,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return PragmaWarningDirectiveTrivia(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, nullableKeyword, errorCodes: default, endOfDirectiveToken, isActive);
         }
+
+        /// <summary>Creates a new BaseExpressionSyntax instance.</summary>
+        public static BaseExpressionSyntax BaseExpression()
+        {
+            return BaseExpression(null);
+        }
+
+        /// <summary>Creates a new BaseExpressionSyntax instance.</summary>
+        public static BaseExpressionSyntax BaseExpression(SyntaxToken token)
+        {
+            return BaseExpression(token, null);
+        }
     }
 }

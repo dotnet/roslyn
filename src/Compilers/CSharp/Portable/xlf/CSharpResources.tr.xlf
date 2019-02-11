@@ -202,6 +202,11 @@
         <target state="new">'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NotBaseOrImplementedInterface">
+        <source>'{0}' is not base type or interface of {1}.</source>
+        <target state="new">'{0}' is not base type or interface of {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'safeonly', 'disable', or 'restore'</source>
         <target state="new">Expected 'enable', 'safeonly', 'disable', or 'restore'</target>
@@ -365,6 +370,11 @@
       <trans-unit id="HDN_NullCheckIsProbablyAlwaysTrue_Title">
         <source>Result of the comparison is possibly always true.</source>
         <target state="new">Result of the comparison is possibly always true.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_BaseTypeInBaseExpression">
+        <source>specifying base type in base expression</source>
+        <target state="new">specifying base type in base expression</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_Disposable">

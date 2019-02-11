@@ -96,7 +96,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Accessibility DeclaredAccessibility
         {
-            get { return this.AssociatedSymbol.DeclaredAccessibility; }
+            get
+            {
+                if (!_explicitInterfaceImplementations.IsDefaultOrEmpty && ContainingType.IsInterface)
+                {
+                    Debug.Assert(_explicitInterfaceImplementations.Length == 1);
+                    return _explicitInterfaceImplementations[0].DeclaredAccessibility;
+                }
+
+                return this.AssociatedSymbol.DeclaredAccessibility;
+            }
         }
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations

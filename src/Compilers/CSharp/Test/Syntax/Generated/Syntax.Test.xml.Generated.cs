@@ -154,9 +154,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ThisExpression(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.ThisKeyword));
         }
         
+        private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BaseExpressionTypeClauseSyntax GenerateBaseExpressionTypeClause()
+        {
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.BaseExpressionTypeClause(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+        }
+        
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BaseExpressionSyntax GenerateBaseExpression()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.BaseExpression(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.BaseKeyword));
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.BaseExpression(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.BaseKeyword), null);
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LiteralExpressionSyntax GenerateLiteralExpression()
@@ -1417,11 +1422,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
         
         [Fact]
+        public void TestBaseExpressionTypeClauseFactoryAndProperties()
+        {
+            var node = GenerateBaseExpressionTypeClause();
+            
+            Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
+            Assert.NotNull(node.BaseType);
+            Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind);
+            
+            AttachAndCheckDiagnostics(node);
+        }
+        
+        [Fact]
         public void TestBaseExpressionFactoryAndProperties()
         {
             var node = GenerateBaseExpression();
             
             Assert.Equal(SyntaxKind.BaseKeyword, node.Token.Kind);
+            Assert.Null(node.TypeClause);
             
             AttachAndCheckDiagnostics(node);
         }
@@ -4566,6 +4584,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestThisExpressionIdentityRewriter()
         {
             var oldNode = GenerateThisExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            Assert.Same(oldNode, newNode);
+        }
+        
+        [Fact]
+        public void TestBaseExpressionTypeClauseTokenDeleteRewriter()
+        {
+            var oldNode = GenerateBaseExpressionTypeClause();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+            
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+        
+        [Fact]
+        public void TestBaseExpressionTypeClauseIdentityRewriter()
+        {
+            var oldNode = GenerateBaseExpressionTypeClause();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
             
@@ -9558,9 +9602,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ThisExpression(SyntaxFactory.Token(SyntaxKind.ThisKeyword));
         }
         
+        private static BaseExpressionTypeClauseSyntax GenerateBaseExpressionTypeClause()
+        {
+            return SyntaxFactory.BaseExpressionTypeClause(SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+        }
+        
         private static BaseExpressionSyntax GenerateBaseExpression()
         {
-            return SyntaxFactory.BaseExpression(SyntaxFactory.Token(SyntaxKind.BaseKeyword));
+            return SyntaxFactory.BaseExpression(SyntaxFactory.Token(SyntaxKind.BaseKeyword), default(BaseExpressionTypeClauseSyntax));
         }
         
         private static LiteralExpressionSyntax GenerateLiteralExpression()
@@ -10821,12 +10870,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
         
         [Fact]
+        public void TestBaseExpressionTypeClauseFactoryAndProperties()
+        {
+            var node = GenerateBaseExpressionTypeClause();
+            
+            Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
+            Assert.NotNull(node.BaseType);
+            Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
+            var newNode = node.WithOpenParenToken(node.OpenParenToken).WithBaseType(node.BaseType).WithCloseParenToken(node.CloseParenToken);
+            Assert.Equal(node, newNode);
+        }
+        
+        [Fact]
         public void TestBaseExpressionFactoryAndProperties()
         {
             var node = GenerateBaseExpression();
             
             Assert.Equal(SyntaxKind.BaseKeyword, node.Token.Kind());
-            var newNode = node.WithToken(node.Token);
+            Assert.Null(node.TypeClause);
+            var newNode = node.WithToken(node.Token).WithTypeClause(node.TypeClause);
             Assert.Equal(node, newNode);
         }
         
@@ -13970,6 +14032,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestThisExpressionIdentityRewriter()
         {
             var oldNode = GenerateThisExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            Assert.Same(oldNode, newNode);
+        }
+        
+        [Fact]
+        public void TestBaseExpressionTypeClauseTokenDeleteRewriter()
+        {
+            var oldNode = GenerateBaseExpressionTypeClause();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+            
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+        
+        [Fact]
+        public void TestBaseExpressionTypeClauseIdentityRewriter()
+        {
+            var oldNode = GenerateBaseExpressionTypeClause();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
             

@@ -5769,6 +5769,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_DefaultInterfaceImplementation" xml:space="preserve">
     <value>default interface implementation</value>
   </data>
+  <data name="IDS_BaseTypeInBaseExpression" xml:space="preserve">
+    <value>specifying base type in base expression</value>
+  </data>
   <data name="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation" xml:space="preserve">
     <value>Target runtime doesn't support default interface implementation.</value>
   </data>
@@ -5789,5 +5792,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PrivateVirtualAccessor" xml:space="preserve">
     <value>'{0}': virtual properties in interfaces cannot have private accessors</value>
+  </data>
+  <data name="ERR_NotBaseOrImplementedInterface" xml:space="preserve">
+    <value>'{0}' is not base type or interface of {1}.</value>
   </data>
 </root>
