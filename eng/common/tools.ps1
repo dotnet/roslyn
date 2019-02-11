@@ -210,7 +210,7 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
     $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
 
     InitializeVisualStudioEnvironmentVariables $vsInstallDir $vsMajorVersion
-  } elseif ($install) {
+  } else {
 
     if (Get-Member -InputObject $GlobalJson.tools -Name "xcopy-msbuild") {
       $xcopyMSBuildVersion = $GlobalJson.tools.'xcopy-msbuild'
@@ -220,9 +220,10 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
       $xcopyMSBuildVersion = "$vsMajorVersion.$($vsMinVersion.Minor).0-alpha"
     }
 
-    $vsInstallDir = InstallXCopyMSBuild $xcopyMSBuildVersion
-  } else {
-    throw "Unable to find Visual Studio that has required version and components installed"
+    $vsInstallDir = InitializeXCopyMSBuild $xcopyMSBuildVersion $install
+    if ($vsInstallDir -eq $null) {
+      throw "Unable to find Visual Studio that has required version and components installed"
+    }
   }
 
   $msbuildVersionDir = if ([int]$vsMajorVersion -lt 16) { "$vsMajorVersion.0" } else { "Current" }
@@ -240,12 +241,20 @@ function InitializeVisualStudioEnvironmentVariables([string] $vsInstallDir, [str
   }
 }
 
-function InstallXCopyMSBuild([string] $packageVersion) {
+function InstallXCopyMSBuild([string]$packageVersion) {
+  return InitializeXCopyMSBuild $packageVersion -install $true
+}
+
+function InitializeXCopyMSBuild([string]$packageVersion, [bool]$install) {
   $packageName = "RoslynTools.MSBuild"
   $packageDir = Join-Path $ToolsDir "msbuild\$packageVersion"
   $packagePath = Join-Path $packageDir "$packageName.$packageVersion.nupkg"
 
   if (!(Test-Path $packageDir)) {
+    if (!$install) {
+      return $null
+    }
+
     Create-Directory $packageDir
     Write-Host "Downloading $packageName $packageVersion"
     Invoke-WebRequest "https://dotnet.myget.org/F/roslyn-tools/api/v2/package/$packageName/$packageVersion/" -OutFile $packagePath
