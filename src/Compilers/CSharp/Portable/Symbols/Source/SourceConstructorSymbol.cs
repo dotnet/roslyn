@@ -84,9 +84,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // for the parameters should be safe.
             var bodyBinder = binderFactory.GetBinder(parameterList, syntax, this).WithContainingMemberOrLambda(this);
 
+            // Constraint checking for parameter and return types must be delayed until
+            // the method has been added to the containing type member list since
+            // evaluating the constraints may depend on accessing this method from
+            // the container (comparing this method to others to find overrides for
+            // instance). Constraints are checked in AfterAddingTypeMembersChecks.
+            var signatureBinder = bodyBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
+
             SyntaxToken arglistToken;
             _lazyParameters = ParameterHelpers.MakeParameters(
-                bodyBinder, this, parameterList, out arglistToken,
+                signatureBinder, this, parameterList, out arglistToken,
                 allowRefOrOut: true,
                 allowThis: false,
                 addRefReadOnlyModifier: false,
