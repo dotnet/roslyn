@@ -81,9 +81,9 @@ End Class
         [Fact]
         public async Task TestCSharpAnalyzerNotConfigurableWithoutSuppressionPasses()
         {
-            await new CSharpAnalyzerTest<NotConfigurableFirstLineDiagnosticAnalyzer>
+            await new CSharpAnalyzerTest<NotConfigurableReplaceThisWithBaseAnalyzer>
             {
-                TestCode = CSharpFirstLineDiagnosticTestCode,
+                TestCode = ReplaceThisWithBaseTestCode,
             }.RunAsync();
         }
 
@@ -231,32 +231,39 @@ End Class
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-        private class FirstLineDiagnosticAnalyzer : DiagnosticAnalyzer
+        private class NotConfigurableReplaceThisWithBaseAnalyzer : DiagnosticAnalyzer
         {
             internal static readonly DiagnosticDescriptor Descriptor =
-                new DiagnosticDescriptor("FirstLine", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                new DiagnosticDescriptor("ThisToBase", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true, customTags: new[] { WellKnownDiagnosticTags.NotConfigurable });
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
 
             public override void Initialize(AnalysisContext context)
             {
                 context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-                context.RegisterSyntaxTreeAction(HandleSyntaxTree);
+
+                context.RegisterSyntaxNodeAction(HandleThisExpression, CSharp.SyntaxKind.ThisExpression);
+                context.RegisterSyntaxNodeAction(HandleMyClassExpression, VisualBasic.SyntaxKind.MyClassExpression);
             }
 
-            private void HandleSyntaxTree(SyntaxTreeAnalysisContext context)
+            private void HandleThisExpression(SyntaxNodeAnalysisContext context)
             {
-                context.ReportDiagnostic(Diagnostic.Create(
-                    Descriptor,
-                    Location.Create(context.Tree, new TextSpan(0, 0))));
+                var node = (CSharp.Syntax.ThisExpressionSyntax)context.Node;
+                context.ReportDiagnostic(Diagnostic.Create(Descriptor, node.Token.GetLocation()));
+            }
+
+            private void HandleMyClassExpression(SyntaxNodeAnalysisContext context)
+            {
+                var node = (VisualBasic.Syntax.MyClassExpressionSyntax)context.Node;
+                context.ReportDiagnostic(Diagnostic.Create(Descriptor, node.Keyword.GetLocation()));
             }
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-        private class NotConfigurableFirstLineDiagnosticAnalyzer : DiagnosticAnalyzer
+        private class FirstLineDiagnosticAnalyzer : DiagnosticAnalyzer
         {
             internal static readonly DiagnosticDescriptor Descriptor =
-                new DiagnosticDescriptor("FirstLine", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true, customTags: new[] { WellKnownDiagnosticTags.NotConfigurable });
+                new DiagnosticDescriptor("FirstLine", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
 
