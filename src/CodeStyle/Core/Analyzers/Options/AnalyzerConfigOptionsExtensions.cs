@@ -40,12 +40,8 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                if (editorConfigStorageLocation.TryGetOption(
-                    stringValue,
-                    typeof(T),
-                    out var rawValue))
+                if (editorConfigStorageLocation.TryGetOption(stringValue, typeof(T), out value))
                 {
-                    value = (T)rawValue;
                     return true;
                 }
             }

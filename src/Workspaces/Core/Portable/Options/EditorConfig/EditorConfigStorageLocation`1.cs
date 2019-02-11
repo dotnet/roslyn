@@ -54,26 +54,28 @@ namespace Microsoft.CodeAnalysis.Options
         {
             if (allRawConventions.TryGetValue(KeyName, out object value))
             {
-                return TryGetOption(value.ToString(), type, out result);
+                var ret = TryGetOption(value.ToString(), type, out var typedResult);
+                result = typedResult;
+                return ret;
             }
 
             result = null;
             return false;
         }
 
-        internal bool TryGetOption(string value, Type type, out object result)
+        internal bool TryGetOption(string value, Type type, out T result)
         {
             var optionalValue = _parseValue(value, type);
             if (optionalValue.HasValue)
             {
                 result = optionalValue.Value;
+                return result != null;
             }
             else
             {
-                result = null;
+                result = default;
+                return false;
             }
-
-            return result != null;
         }
 
         /// <summary>
