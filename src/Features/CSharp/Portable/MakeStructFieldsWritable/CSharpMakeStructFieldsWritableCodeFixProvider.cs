@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -33,7 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             SyntaxEditor editor,
             CancellationToken cancellationToken)
         {
-
             foreach (var diagnostic in diagnostics)
             {
                 var diagnosticNode = diagnostic.Location.FindNode(cancellationToken);
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
                 foreach (var fieldDeclaration in fieldDeclarations)
                 {
                     var fieldDeclarationModifiers = editor.Generator.GetModifiers(fieldDeclaration);
-                    var containsReadonlyModifier = 
+                    var containsReadonlyModifier =
                         (fieldDeclarationModifiers & DeclarationModifiers.ReadOnly) == DeclarationModifiers.ReadOnly;
 
                     if (containsReadonlyModifier)
@@ -65,5 +66,4 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             }
         }
     }
-
 }

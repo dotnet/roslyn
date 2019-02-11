@@ -1,4 +1,5 @@
-﻿
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeQuality;
@@ -22,9 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        {
-            return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-        }
+            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
         public override bool OpenFileOnly(Workspace workspace) => true;
 
@@ -36,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 
         private sealed class SymbolAnalyzer
         {
-            private bool _hasTypeInstanceAssigment = false;
-            private INamedTypeSymbol _namedTypeSymbol;
+            private bool _hasTypeInstanceAssigment;
+            private readonly INamedTypeSymbol _namedTypeSymbol;
             private SymbolAnalyzer(INamedTypeSymbol namedTypeSymbol)
             {
                 _namedTypeSymbol = namedTypeSymbol;
@@ -54,23 +53,28 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
                     var namedTypeSymbol = (INamedTypeSymbol)symbolStartContext.Symbol;
 
                     // We are only interested in struct declarations
-                    if (namedTypeSymbol.TypeKind != TypeKind.Struct) return;
+                    if (namedTypeSymbol.TypeKind != TypeKind.Struct)
+                    {
+                        return;
+                    }
                     //We check if struct contains any 'readonly' fields
-                    if (!HasReadonlyField(namedTypeSymbol)) return;
+                    if (!HasReadonlyField(namedTypeSymbol))
+                    {
+                        return;
+                    }
 
                     var symbolAnalyzer = new SymbolAnalyzer(namedTypeSymbol);
                     symbolAnalyzer.RegisterActions(symbolStartContext);
-
                 }, SymbolKind.NamedType);
             }
 
             private static bool HasReadonlyField(INamedTypeSymbol namedTypeSymbol)
             {
                 return namedTypeSymbol
-                .GetMembers()
-                .OfType<IFieldSymbol>()
-                .Where(field => field.AssociatedSymbol == null)
-                .Any(field => field.IsReadOnly);
+                    .GetMembers()
+                    .OfType<IFieldSymbol>()
+                    .Where(field => field.AssociatedSymbol == null)
+                    .Any(field => field.IsReadOnly);
             }
 
             private void RegisterActions(SymbolStartAnalysisContext symbolStartContext)
