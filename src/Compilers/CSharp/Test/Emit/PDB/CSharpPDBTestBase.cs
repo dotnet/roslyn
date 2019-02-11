@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.IO;
 using System.Linq;
 using System.Xml;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             var endColumn = span.End - endLine.Start + 1;
 
             var doc = new XmlDocument() { XmlResolver = null };
-            using (var reader = new XmlTextReader(new System.IO.StringReader(pdb)) { DtdProcessing = DtdProcessing.Prohibit })
+            using (var reader = new XmlTextReader(new StringReader(pdb)) { DtdProcessing = DtdProcessing.Prohibit })
             {
                 doc.Load(reader);
             }
