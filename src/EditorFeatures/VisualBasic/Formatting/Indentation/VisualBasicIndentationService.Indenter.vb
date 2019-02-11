@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 
             Public Sub New(syntaxFacts As ISyntaxFactsService,
                            syntaxTree As SyntaxTree,
-                           rules As IEnumerable(Of IFormattingRule),
+                           rules As IEnumerable(Of AbstractFormattingRule),
                            optionSet As OptionSet,
                            line As TextLine,
                            cancellationToken As CancellationToken)

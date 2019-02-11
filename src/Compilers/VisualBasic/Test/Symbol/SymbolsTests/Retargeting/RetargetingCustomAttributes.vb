@@ -94,10 +94,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
                 Assert.NotSame(OldMsCorLib_debuggerTypeProxyAttributeType, NewMsCorLib_debuggerTypeProxyAttributeType)
 
                 OldMsCorLib_debuggerTypeProxyAttributeCtor = DirectCast(OldMsCorLib_debuggerTypeProxyAttributeType.GetMembers(".ctor").
-                    Where(Function(m) DirectCast(m, MethodSymbol).ParameterCount = 1 AndAlso DirectCast(m, MethodSymbol).Parameters(0).Type = OldMsCorLib_systemType).[Single](), MethodSymbol)
+                    Where(Function(m) DirectCast(m, MethodSymbol).ParameterCount = 1 AndAlso TypeSymbol.Equals(DirectCast(m, MethodSymbol).Parameters(0).Type, OldMsCorLib_systemType, TypeCompareKind.ConsiderEverything)).[Single](), MethodSymbol)
 
                 NewMsCorLib_debuggerTypeProxyAttributeCtor = DirectCast(NewMsCorLib_debuggerTypeProxyAttributeType.GetMembers(".ctor").
-                    Where(Function(m) DirectCast(m, MethodSymbol).ParameterCount = 1 AndAlso DirectCast(m, MethodSymbol).Parameters(0).Type = NewMsCorLib_systemType).[Single](), MethodSymbol)
+                    Where(Function(m) DirectCast(m, MethodSymbol).ParameterCount = 1 AndAlso TypeSymbol.Equals(DirectCast(m, MethodSymbol).Parameters(0).Type, NewMsCorLib_systemType, TypeCompareKind.ConsiderEverything)).[Single](), MethodSymbol)
 
                 Assert.NotSame(OldMsCorLib_debuggerTypeProxyAttributeCtor, NewMsCorLib_debuggerTypeProxyAttributeCtor)
             End Sub

@@ -4741,6 +4741,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The feature &apos;{0}&apos; is currently in Preview and *unsupported*. To use Preview features, use the &apos;preview&apos; language version..
+        /// </summary>
+        internal static string ERR_FeatureInPreview {
+            get {
+                return ResourceManager.GetString("ERR_FeatureInPreview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Feature &apos;{0}&apos; is experimental and unsupported; use &apos;/features:{1}&apos; to enable..
         /// </summary>
         internal static string ERR_FeatureIsExperimental {
@@ -5430,6 +5439,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_IllegalStatement {
             get {
                 return ResourceManager.GetString("ERR_IllegalStatement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The suppression operator is not allowed in this context.
+        /// </summary>
+        internal static string ERR_IllegalSuppression {
+            get {
+                return ResourceManager.GetString("ERR_IllegalSuppression", resourceCulture);
             }
         }
         
@@ -11636,6 +11654,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to unmanaged constructed types.
+        /// </summary>
+        internal static string IDS_FeatureUnmanagedConstructedTypes {
+            get {
+                return ResourceManager.GetString("IDS_FeatureUnmanagedConstructedTypes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to unmanaged generic type constraints.
         /// </summary>
         internal static string IDS_FeatureUnmanagedGenericTypeConstraint {
@@ -12937,24 +12964,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_CantHaveManifestForModule_Title {
             get {
                 return ResourceManager.GetString("WRN_CantHaveManifestForModule_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The nullability of type arguments for method &apos;{0}&apos; cannot be inferred from the usage. Try specifying the type arguments explicitly..
-        /// </summary>
-        internal static string WRN_CantInferNullabilityOfMethodTypeArgs {
-            get {
-                return ResourceManager.GetString("WRN_CantInferNullabilityOfMethodTypeArgs", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The nullability of type arguments for method cannot be inferred from the usage. Try specifying the type arguments explicitly..
-        /// </summary>
-        internal static string WRN_CantInferNullabilityOfMethodTypeArgs_Title {
-            get {
-                return ResourceManager.GetString("WRN_CantInferNullabilityOfMethodTypeArgs_Title", resourceCulture);
             }
         }
         
@@ -14878,42 +14887,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_NoAnalyzerInAssembly_Title {
             get {
                 return ResourceManager.GetString("WRN_NoAnalyzerInAssembly_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No best nullability found for implicitly-typed array..
-        /// </summary>
-        internal static string WRN_NoBestNullabilityArrayElements {
-            get {
-                return ResourceManager.GetString("WRN_NoBestNullabilityArrayElements", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No best nullability found for implicitly-typed array..
-        /// </summary>
-        internal static string WRN_NoBestNullabilityArrayElements_Title {
-            get {
-                return ResourceManager.GetString("WRN_NoBestNullabilityArrayElements_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No best nullability for operands of conditional expression &apos;{0}&apos; and &apos;{1}&apos;..
-        /// </summary>
-        internal static string WRN_NoBestNullabilityConditionalExpression {
-            get {
-                return ResourceManager.GetString("WRN_NoBestNullabilityConditionalExpression", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No best nullability for operands of conditional expression..
-        /// </summary>
-        internal static string WRN_NoBestNullabilityConditionalExpression_Title {
-            get {
-                return ResourceManager.GetString("WRN_NoBestNullabilityConditionalExpression_Title", resourceCulture);
             }
         }
         

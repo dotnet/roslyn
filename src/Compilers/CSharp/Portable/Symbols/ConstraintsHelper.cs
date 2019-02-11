@@ -457,19 +457,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static void CheckAllConstraints(
             this TypeSymbol type,
+            CSharpCompilation compilation,
             ConversionsBase conversions,
             Location location,
             DiagnosticBag diagnostics)
         {
-            type.VisitType(s_checkConstraintsSingleTypeFunc, new CheckConstraintsArgs(type.DeclaringCompilation, conversions, location, diagnostics));
+            type.VisitType(s_checkConstraintsSingleTypeFunc, new CheckConstraintsArgs(compilation, conversions, location, diagnostics));
         }
 
         public static bool CheckAllConstraints(
             this TypeSymbol type,
+            CSharpCompilation compilation,
             ConversionsBase conversions)
         {
             var diagnostics = DiagnosticBag.GetInstance();
-            type.CheckAllConstraints(conversions, NoLocation.Singleton, diagnostics);
+            type.CheckAllConstraints(compilation, conversions, NoLocation.Singleton, diagnostics);
             bool ok = !diagnostics.HasAnyErrors();
             diagnostics.Free();
             return ok;
@@ -905,11 +907,26 @@ hasRelatedInterfaces:
                 }
             }
 
-            if (typeParameter.HasUnmanagedTypeConstraint && (typeArgument.IsManagedType || !typeArgument.TypeSymbol.IsNonNullableValueType()))
+            if (typeParameter.HasUnmanagedTypeConstraint)
             {
-                // "The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'"
-                diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.TypeSymbol)));
-                return false;
+                var managedKind = typeArgument.TypeSymbol.ManagedKind;
+                if (managedKind == ManagedKind.Managed || !typeArgument.TypeSymbol.IsNonNullableValueType())
+                {
+                    // "The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'"
+                    diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.TypeSymbol)));
+                    return false;
+                }
+                else if (managedKind == ManagedKind.UnmanagedWithGenerics)
+                {
+                    var csDiagnosticInfo = MessageID.IDS_FeatureUnmanagedConstructedTypes
+                        .GetFeatureAvailabilityDiagnosticInfoOpt((CSharpCompilation)currentCompilation);
+                    if (csDiagnosticInfo != null)
+                    {
+                        var typeParameterDiagnosticInfo = new TypeParameterDiagnosticInfo(typeParameter, csDiagnosticInfo);
+                        diagnosticsBuilder.Add(typeParameterDiagnosticInfo);
+                        return false;
+                    }
+                }
             }
 
             if (typeParameter.HasValueTypeConstraint && !typeArgument.TypeSymbol.IsNonNullableValueType())

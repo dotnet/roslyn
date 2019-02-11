@@ -6547,18 +6547,28 @@ oneMoreTime:
                 operation.Syntax, IsImplicit(operation));
         }
 
-        public override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, int? argument)
+        internal override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, int? argument)
         {
             return new RecursivePatternOperation(
                 inputType: operation.InputType,
                 matchedType: operation.MatchedType,
                 operation.DeconstructSymbol,
                 operation.DeconstructionSubpatterns.SelectAsArray(p => (IPatternOperation)Visit(p)),
-                operation.PropertySubpatterns.SelectAsArray(p => (p.Item1, (IPatternOperation)Visit(p.Item2))),
+                operation.PropertySubpatterns.SelectAsArray(p => (IPropertySubpatternOperation)Visit(p)),
                 operation.DeclaredSymbol,
                 semanticModel: null,
                 operation.Syntax,
                 IsImplicit(operation));
+        }
+
+        internal override IOperation VisitPropertySubpattern(IPropertySubpatternOperation operation, int? argument)
+        {
+            return new PropertySubpatternOperation(
+                semanticModel: null,
+                operation.Syntax,
+                IsImplicit(operation),
+                Visit(operation.Member),
+                (IPatternOperation)Visit(operation.Pattern));
         }
 
         public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, int? captureIdForResult)
@@ -6567,7 +6577,7 @@ oneMoreTime:
                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
-        public override IOperation VisitFromEndIndexOperation(IFromEndIndexOperation operation, int? argument)
+        internal override IOperation VisitFromEndIndexOperation(IFromEndIndexOperation operation, int? argument)
         {
             return new FromEndIndexOperation(operation.IsLifted, semanticModel: null, operation.Syntax, operation.Type, Visit(operation.Operand), operation.Symbol, isImplicit: IsImplicit(operation));
         }
@@ -6588,12 +6598,6 @@ oneMoreTime:
             IOperation visitedLeftOperand = operation.LeftOperand is null ? null : PopOperand();
 
             return new RangeOperation(operation.IsLifted, semanticModel: null, operation.Syntax, operation.Type, visitedLeftOperand, visitedRightOperand, operation.Method, isImplicit: IsImplicit(operation));
-        }
-
-        public override IOperation VisitSuppressNullableWarningOperation(ISuppressNullableWarningOperation operation, int? argument)
-        {
-            IOperation visitedExpression = Visit(operation.Expression);
-            return new SuppressNullableWarningOperation(semanticModel: null, operation.Syntax, operation.Type, visitedExpression, operation.ConstantValue, isImplicit: IsImplicit(operation));
         }
 
         public override IOperation VisitSwitchExpression(ISwitchExpressionOperation operation, int? captureIdForResult)

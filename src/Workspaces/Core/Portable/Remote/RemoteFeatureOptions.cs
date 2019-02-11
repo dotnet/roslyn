@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -10,14 +9,6 @@ namespace Microsoft.CodeAnalysis.Remote
     internal static class RemoteFeatureOptions
     {
         private const string LocalRegistryPath = @"Roslyn\Features\Remote\";
-
-        /// <summary>
-        /// Global switch that determines of OOP can be used for a language feature. Exposed through
-        /// user visible switch to let people opt-in/out of this behavior.
-        /// </summary>
-        public static readonly Option<bool> OutOfProcessAllowed = new Option<bool>(
-            nameof(RemoteFeatureOptions), nameof(OutOfProcessAllowed), defaultValue: false,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OutOfProcessAllowed)));
 
         // Individual feature switches.  Not exposed to the user.  Supplied as an escape hatch for
         // features if necessary.  If all features use OOP then no indices will need to be built
