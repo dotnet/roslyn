@@ -78,11 +78,10 @@ namespace Microsoft.CodeAnalysis.Formatting
                 FormattingContext context,
                 ChainedFormattingRules formattingRules,
                 Action<int, TokenStream, TriviaData> formattingResultApplier,
-                TokenStream tokenStream,
                 CancellationToken cancellationToken,
                 int tokenPairIndex = TokenPairIndexNotNeeded)
             {
-                formattingResultApplier(tokenPairIndex, tokenStream, new FormattedWhitespace(this.OptionSet, this.LineBreaks, this.Spaces, this.Language));
+                formattingResultApplier(tokenPairIndex, context.TokenStream, new FormattedWhitespace(this.OptionSet, this.LineBreaks, this.Spaces, this.Language));
             }
         }
     }

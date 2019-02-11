@@ -72,7 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 FormattingContext context,
                 ChainedFormattingRules formattingRules,
                 Action<int, TokenStream, TriviaData> formattingResultApplier,
-                TokenStream tokenStream,
                 CancellationToken cancellationToken,
                 int tokenPairIndex = TokenPairIndexNotNeeded)
             {
@@ -91,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
 
                 formattingResultApplier(tokenPairIndex,
-                    tokenStream,
+                    context.TokenStream,
                     new FormattedComplexTrivia(
                         context,
                         formattingRules,

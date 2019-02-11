@@ -101,7 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 FormattingContext context,
                 ChainedFormattingRules formattingRules,
                 Action<int, TokenStream, TriviaData> formattingResultApplier,
-                TokenStream tokenStream,
                 CancellationToken cancellationToken,
                 int tokenPairIndex = TokenPairIndexNotNeeded)
             {
@@ -110,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return;
                 }
 
-                formattingResultApplier(tokenPairIndex, tokenStream, Format(context, formattingRules, this.LineBreaks, this.Spaces, cancellationToken));
+                formattingResultApplier(tokenPairIndex, context.TokenStream, Format(context, formattingRules, this.LineBreaks, this.Spaces, cancellationToken));
             }
 
             public override List<SyntaxTrivia> GetTriviaList(CancellationToken cancellationToken)

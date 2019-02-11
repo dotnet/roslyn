@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             FormattingContext context,
             ChainedFormattingRules formattingRules,
             Action<int, TokenStream, TriviaData> formattingResultApplier,
-            TokenStream tokenStream,
             CancellationToken cancellationToken,
             int tokenPairIndex = TokenPairIndexNotNeeded);
     }
