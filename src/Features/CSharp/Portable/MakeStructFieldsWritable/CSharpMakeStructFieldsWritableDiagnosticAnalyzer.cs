@@ -75,15 +75,27 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 
             private void RegisterActions(SymbolStartAnalysisContext symbolStartContext)
             {
-                symbolStartContext.RegisterOperationAction(AnalyzeAssignment, OperationKind.SimpleAssignment);
+                symbolStartContext.RegisterOperationBlockStartAction(blockAction =>
+                {
+                    var isConstructor = false;
+                    blockAction.RegisterOperationAction(
+                        _ => isConstructor = true, OperationKind.ConstructorBody);
+                    blockAction.RegisterOperationAction(
+                        operationAction => AnalyzeAssignment(operationAction, isConstructor), OperationKind.SimpleAssignment);
+                });
                 symbolStartContext.RegisterSymbolEndAction(SymbolEndAction);
             }
 
-            private void AnalyzeAssignment(OperationAnalysisContext operationContext)
+            private void AnalyzeAssignment(OperationAnalysisContext operationContext, bool isConstructor)
             {
                 // We are looking for assignment to 'this' outside the constructor scope
+                if (isConstructor)
+                {
+                    return;
+                }
+
                 var operationAssigmnent = (IAssignmentOperation)operationContext.Operation;
-                _hasTypeInstanceAssigment = operationAssigmnent.Target is IInstanceReferenceOperation instance &&
+                _hasTypeInstanceAssigment |= operationAssigmnent.Target is IInstanceReferenceOperation instance &&
                                             instance.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance;
             }
 
