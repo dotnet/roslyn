@@ -82,13 +82,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
             internal async Task<(Document, bool addedFields)> GetEditAsync()
             {
-                // Get naming rule for generating fields
+                // Get naming rule for generating fields and parameters
                 var rules = await _document.Document.GetNamingRulesAsync(
                     FallbackNamingRules.RefactoringMatchLookupRules, _cancellationToken).ConfigureAwait(false);
                 var fieldNamingRule = rules.Where(c => c.SymbolSpecification.AppliesTo(new SymbolKindOrTypeKind(SymbolKind.Field),
                     DeclarationModifiers.None, Accessibility.Private)).First();
                 var parameterNamingRule = rules.Where(c => c.SymbolSpecification.AppliesTo(new SymbolKindOrTypeKind(SymbolKind.Parameter),
-                    DeclarationModifiers.None, Accessibility.NotApplicable)).FirstOrDefault();
+                    DeclarationModifiers.None, Accessibility.NotApplicable)).First();
 
                 // See if there's an accessible base constructor that would accept these
                 // types, then just call into that instead of generating fields.
