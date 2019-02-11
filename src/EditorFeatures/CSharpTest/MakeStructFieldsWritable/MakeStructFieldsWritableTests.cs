@@ -558,7 +558,9 @@ struct MyStruct2
         TestValue = 0;
     }
 }");
-        }[Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
         public async Task StructDeclaration_ChangedOrderOfConstructorDeclaration()
         {
             await TestInRegularAndScriptAsync(
