@@ -509,5 +509,53 @@ struct MyStruct2
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        public async Task StructDeclaration_MixedFields_MixedAssigmentsInMethods()
+        {
+            await TestInRegularAndScriptAsync(
+@"struct [|MyStruct|]
+{
+    public readonly int Value;
+    public int TestValue;
+
+    public MyStruct(int value)
+    {
+        Value = value;
+        TestValue = 100;
+    }
+
+    public void Test()
+    {
+        this = new MyStruct(5);
+    }
+
+    public void Test2()
+    {
+        TestValue = 0;
+    }
+}",
+@"struct MyStruct
+{
+    public int Value;
+    public int TestValue;
+
+    public MyStruct(int value)
+    {
+        Value = value;
+        TestValue = 100;
+    }
+
+    public void Test()
+    {
+        this = new MyStruct(5);
+    }
+
+    public void Test2()
+    {
+        TestValue = 0;
+    }
+}");
+        }
     }
 }
