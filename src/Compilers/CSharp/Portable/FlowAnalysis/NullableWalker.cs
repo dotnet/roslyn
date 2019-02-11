@@ -2496,7 +2496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < numArguments; i++)
             {
-                (ParameterSymbol parameter, _) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
+                (ParameterSymbol? parameter, _) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
                 FlowAnalysisAnnotations annotations = parameter?.FlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None;
 
                 annotations = removeInapplicableAnnotations(parameter, annotations);
@@ -2515,7 +2515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return builder == null ? default : builder.ToImmutableAndFree();
 
-            FlowAnalysisAnnotations removeInapplicableAnnotations(ParameterSymbol parameter, FlowAnalysisAnnotations annotations)
+            FlowAnalysisAnnotations removeInapplicableAnnotations(ParameterSymbol? parameter, FlowAnalysisAnnotations annotations)
             {
                 // Ignore NotNullWhenTrue that is inapplicable
                 annotations = removeInapplicableNotNullWhenSense(parameter, annotations, sense: true);
@@ -2538,7 +2538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return annotations;
             }
 
-            FlowAnalysisAnnotations removeInapplicableNotNullWhenSense(ParameterSymbol parameter, FlowAnalysisAnnotations annotations, bool sense)
+            FlowAnalysisAnnotations removeInapplicableNotNullWhenSense(ParameterSymbol? parameter, FlowAnalysisAnnotations annotations, bool sense)
             {
                 if (parameter is null)
                 {
@@ -2853,7 +2853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             for (int i = 0; i < arguments.Length; i++)
             {
-                (ParameterSymbol parameter, TypeSymbolWithAnnotations parameterType) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
+                (ParameterSymbol? parameter, TypeSymbolWithAnnotations parameterType) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
                 if (parameter is null)
                 {
                     continue;
