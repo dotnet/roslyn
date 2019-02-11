@@ -78,6 +78,15 @@ End Class
             Assert.Equal(expected, exception.Message);
         }
 
+        [Fact]
+        public async Task TestCSharpAnalyzerNotConfigurableWithoutSuppressionPasses()
+        {
+            await new CSharpAnalyzerTest<NotConfigurableFirstLineDiagnosticAnalyzer>
+            {
+                TestCode = CSharpFirstLineDiagnosticTestCode,
+            }.RunAsync();
+        }
+
         [Theory]
         [InlineData(GeneratedCodeAnalysisFlags.None)]
         [InlineData(GeneratedCodeAnalysisFlags.Analyze)]
@@ -226,6 +235,28 @@ End Class
         {
             internal static readonly DiagnosticDescriptor Descriptor =
                 new DiagnosticDescriptor("FirstLine", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+                context.RegisterSyntaxTreeAction(HandleSyntaxTree);
+            }
+
+            private void HandleSyntaxTree(SyntaxTreeAnalysisContext context)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    Descriptor,
+                    Location.Create(context.Tree, new TextSpan(0, 0))));
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        private class NotConfigurableFirstLineDiagnosticAnalyzer : DiagnosticAnalyzer
+        {
+            internal static readonly DiagnosticDescriptor Descriptor =
+                new DiagnosticDescriptor("FirstLine", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true, customTags: new[] { WellKnownDiagnosticTags.NotConfigurable });
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
 
