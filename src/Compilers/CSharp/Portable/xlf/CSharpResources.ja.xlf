@@ -8889,8 +8889,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_MismatchedRefEscapeInTernary">
-        <source>Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes</source>
-        <target state="translated">ref 三項演算子のブランチから、互換性のない宣言スコープを持つ変数を参照することはできません</target>
+        <source>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</source>
+        <target state="needs-review-translation">ref 三項演算子のブランチから、互換性のない宣言スコープを持つ変数を参照することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeStackAlloc">
