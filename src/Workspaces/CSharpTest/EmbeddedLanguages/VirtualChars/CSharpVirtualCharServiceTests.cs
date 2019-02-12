@@ -166,6 +166,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
         }
 
         [Fact]
+        public void TestValidHex1EscapeInInterpolatedString()
+        {
+            Test(@"$""\xa""", @"['\u000A',[2,5]]");
+        }
+
+        [Fact]
         public void TestValidHex2Escape()
         {
             Test(@"""\xaa""", @"['\u00AA',[1,5]]");

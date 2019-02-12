@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 }
 
                 var endIndex = index;
-                for (var i = 0; i < 4; i++)
+                for (var i = 0; i < 4 && endIndex < tokenText.Length; i++)
                 {
                     var ch2 = tokenText[index + i];
                     if (!IsHexDigit(ch2))
