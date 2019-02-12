@@ -1,100 +1,126 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.VisualBasic.Testing;
 using Test.Utilities;
 using Xunit;
 
 namespace Roslyn.Diagnostics.Analyzers.UnitTests
 {
-    public class DeclarePublicAPIAnalyzerTests : CodeFixTestBase
+    public class DeclarePublicAPIAnalyzerTests
     {
-        protected override CodeFixProvider GetCSharpCodeFixProvider()
+        private static DiagnosticResult GetAdditionalFileResultAt(int line, int column, string path, DiagnosticDescriptor descriptor, params object[] arguments)
         {
-            return new DeclarePublicAPIFix();
+            return new DiagnosticResult(descriptor)
+                .WithLocation(path, line, column)
+                .WithArguments(arguments);
         }
 
-        protected override CodeFixProvider GetBasicCodeFixProvider()
+        private static DiagnosticResult GetCSharpResultAt(int line, int column, DiagnosticDescriptor descriptor, params object[] arguments)
         {
-            return new DeclarePublicAPIFix();
+            return new DiagnosticResult(descriptor)
+                .WithLocation(line, column)
+                .WithArguments(arguments);
         }
 
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+        private static DiagnosticResult GetBasicResultAt(int line, int column, DiagnosticDescriptor descriptor, params object[] arguments)
         {
-            return new DeclarePublicAPIAnalyzer();
+            return new DiagnosticResult(descriptor)
+                .WithLocation(line, column)
+                .WithArguments(arguments);
         }
 
-        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
+        private async Task VerifyBasicAsync(string source, string shippedApiText, string unshippedApiText, params DiagnosticResult[] expected)
         {
-            return new DeclarePublicAPIAnalyzer();
+            var test = new VisualBasicCodeFixTest<DeclarePublicAPIAnalyzer, DeclarePublicAPIFix, XUnitVerifier>
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles =
+                    {
+                        (DeclarePublicAPIAnalyzer.ShippedFileName, shippedApiText),
+                        (DeclarePublicAPIAnalyzer.UnshippedFileName, unshippedApiText),
+                    },
+                }
+            };
+
+            test.Exclusions &= ~AnalysisExclusions.GeneratedCode;
+            test.ExpectedDiagnostics.AddRange(expected);
+            await test.RunAsync();
         }
 
-        private TestAdditionalDocument GetShippedAdditionalTextFile(string shippedApiText = "", string shippedApiFilePath = DeclarePublicAPIAnalyzer.ShippedFileName)
+        private async Task VerifyCSharpAsync(string source, string shippedApiText, string unshippedApiText, params DiagnosticResult[] expected)
         {
-            return new TestAdditionalDocument(
-                filePath: shippedApiFilePath,
-                fileName: DeclarePublicAPIAnalyzer.ShippedFileName,
-                text: shippedApiText);
+            var test = new CSharpCodeFixTest<DeclarePublicAPIAnalyzer, DeclarePublicAPIFix, XUnitVerifier>
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles =
+                    {
+                        (DeclarePublicAPIAnalyzer.ShippedFileName, shippedApiText),
+                        (DeclarePublicAPIAnalyzer.UnshippedFileName, unshippedApiText),
+                    },
+                }
+            };
+
+            test.Exclusions &= ~AnalysisExclusions.GeneratedCode;
+            test.ExpectedDiagnostics.AddRange(expected);
+            await test.RunAsync();
         }
 
-        private TestAdditionalDocument GetUnshippedAdditionalTextFile(string unshippedApiText = "", string unshippedApiFilePath = DeclarePublicAPIAnalyzer.UnshippedFileName)
+        private async Task VerifyCSharpAsync(string source, string shippedApiText, string unshippedApiText, string shippedApiFilePath, string unshippedApiFilePath, params DiagnosticResult[] expected)
         {
-            return new TestAdditionalDocument(
-                filePath: unshippedApiFilePath,
-                fileName: DeclarePublicAPIAnalyzer.UnshippedFileName,
-                text: unshippedApiText);
+            var test = new CSharpCodeFixTest<DeclarePublicAPIAnalyzer, DeclarePublicAPIFix, XUnitVerifier>
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles =
+                    {
+                        (shippedApiFilePath, shippedApiText),
+                        (unshippedApiFilePath, unshippedApiText),
+                    },
+                }
+            };
+
+            test.ExpectedDiagnostics.AddRange(expected);
+            await test.RunAsync();
         }
 
-        private IEnumerable<TestAdditionalDocument> GetAdditionalTextFiles(
-            string shippedApiText = "",
-            string unshippedApiText = "",
-            string shippedApiFilePath = DeclarePublicAPIAnalyzer.ShippedFileName,
-            string unshippedApiFilePath = DeclarePublicAPIAnalyzer.UnshippedFileName)
+        private async Task VerifyCSharpAdditionalFileFixAsync(string source, string shippedApiText, string oldUnshippedApiText, string newUnshippedApiText)
         {
-            yield return GetShippedAdditionalTextFile(shippedApiText, shippedApiFilePath);
-            yield return GetUnshippedAdditionalTextFile(unshippedApiText, unshippedApiFilePath);
+            await VerifyAdditionalFileFixAsync(LanguageNames.CSharp, source, shippedApiText, oldUnshippedApiText, newUnshippedApiText);
         }
 
-        private void VerifyBasic(string source, string shippedApiText, string unshippedApiText, params DiagnosticResult[] expected)
+        private async Task VerifyAdditionalFileFixAsync(string language, string source, string shippedApiText, string oldUnshippedApiText, string newUnshippedApiText)
         {
-            var additionalFiles = GetAdditionalTextFiles(shippedApiText, unshippedApiText);
-            Verify(source, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), additionalFiles, compilationOptions: null, parseOptions: null, expected: expected);
-        }
+            var test = language == LanguageNames.CSharp
+                ? new CSharpCodeFixTest<DeclarePublicAPIAnalyzer, DeclarePublicAPIFix, XUnitVerifier>()
+                : (CodeFixTest<XUnitVerifier>)new VisualBasicCodeFixTest<DeclarePublicAPIAnalyzer, DeclarePublicAPIFix, XUnitVerifier>();
 
-        private void VerifyCSharp(string source, string shippedApiText, string unshippedApiText, params DiagnosticResult[] expected)
-        {
-            var additionalFiles = GetAdditionalTextFiles(shippedApiText, unshippedApiText);
-            Verify(source, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), additionalFiles, compilationOptions: null, parseOptions: null, expected: expected);
-        }
+            test.Exclusions &= ~AnalysisExclusions.GeneratedCode;
 
-        private void VerifyCSharp(string source, string shippedApiText, string unshippedApiText, string shippedApiFilePath, string unshippedApiFilePath, params DiagnosticResult[] expected)
-        {
-            var additionalFiles = GetAdditionalTextFiles(shippedApiText, unshippedApiText, shippedApiFilePath, unshippedApiFilePath);
-            Verify(source, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), additionalFiles, compilationOptions: null, parseOptions: null, expected: expected);
-        }
+            test.TestState.Sources.Add(source);
+            test.TestState.AdditionalFiles.Add((DeclarePublicAPIAnalyzer.ShippedFileName, shippedApiText));
+            test.TestState.AdditionalFiles.Add((DeclarePublicAPIAnalyzer.UnshippedFileName, oldUnshippedApiText));
 
-        private void VerifyCSharpAdditionalFileFix(string source, string shippedApiText, string oldUnshippedApiText, string newUnshippedApiText, bool onlyFixFirstFixableDiagnostic = false)
-        {
-            VerifyAdditionalFileFix(LanguageNames.CSharp, source, shippedApiText, oldUnshippedApiText, newUnshippedApiText, onlyFixFirstFixableDiagnostic);
-        }
+            test.FixedState.AdditionalFiles.Add((DeclarePublicAPIAnalyzer.ShippedFileName, shippedApiText));
+            test.FixedState.AdditionalFiles.Add((DeclarePublicAPIAnalyzer.UnshippedFileName, newUnshippedApiText));
 
-        private void VerifyAdditionalFileFix(string language, string source, string shippedApiText, string oldUnshippedApiText, string newUnshippedApiText, bool onlyFixFirstFixableDiagnostic)
-        {
-            var analyzer = language == LanguageNames.CSharp ? GetCSharpDiagnosticAnalyzer() : GetBasicDiagnosticAnalyzer();
-            var fixer = language == LanguageNames.CSharp ? GetCSharpCodeFixProvider() : GetBasicCodeFixProvider();
-            var additionalFiles = GetAdditionalTextFiles(shippedApiText, oldUnshippedApiText);
-            var newAdditionalFileToVerify = GetUnshippedAdditionalTextFile(newUnshippedApiText);
-            VerifyAdditionalFileFix(language, analyzer, fixer, source, additionalFiles, newAdditionalFileToVerify, onlyFixFirstFixableDiagnostic: onlyFixFirstFixableDiagnostic);
+            await test.RunAsync();
         }
 
         #region Diagnostic tests
 
         [Fact]
-        public void SimpleMissingType()
+        public async Task SimpleMissingType()
         {
             var source = @"
 public class C
@@ -106,11 +132,11 @@ public class C
             var shippedText = @"";
             var unshippedText = @"";
 
-            VerifyCSharp(source, shippedText, unshippedText, GetCSharpResultAt(2, 14, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "C"));
+            await VerifyCSharpAsync(source, shippedText, unshippedText, GetCSharpResultAt(2, 14, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "C"));
         }
 
         [Fact]
-        public void SimpleMissingMember_CSharp()
+        public async Task SimpleMissingMember_CSharp()
         {
             var source = @"
 public class C
@@ -125,7 +151,7 @@ public class C
             var shippedText = @"";
             var unshippedText = @"";
 
-            VerifyCSharp(source, shippedText, unshippedText,
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
                 // Test0.cs(2,14): error RS0016: Symbol 'C' is not part of the declared API.
                 GetCSharpResultAt(2, 14, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "C"),
                 // Test0.cs(2,14): warning RS0016: Symbol 'implicit constructor for C' is not part of the declared API.
@@ -143,7 +169,7 @@ public class C
         }
 
         [Fact(Skip = "821"), WorkItem(821, "https://github.com/dotnet/roslyn-analyzers/issues/821")]
-        public void SimpleMissingMember_Basic()
+        public async Task SimpleMissingMember_Basic()
         {
             var source = @"
 Imports System
@@ -171,7 +197,7 @@ End Class
             var shippedText = @"";
             var unshippedText = @"";
 
-            VerifyBasic(source, shippedText, unshippedText,
+            await VerifyBasicAsync(source, shippedText, unshippedText,
                 // Test0.vb(4,14): warning RS0016: Symbol 'C' is not part of the declared API.
                 GetBasicResultAt(4, 14, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "C"),
                 // Test0.vb(5,12): warning RS0016: Symbol 'Field' is not part of the declared API.
@@ -187,7 +213,7 @@ End Class
         }
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
-        public void ShippedTextWithImplicitConstructor()
+        public async Task ShippedTextWithImplicitConstructor()
         {
             var source = @"
 public class C
@@ -201,13 +227,13 @@ C
 C -> void()";
             var unshippedText = @"";
 
-            VerifyCSharp(source, shippedText, unshippedText,
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
                 // PublicAPI.Shipped.txt(3,1): warning RS0017: Symbol 'C -> void()' is part of the declared API, but is either not public or could not be found
                 GetAdditionalFileResultAt(3, 1, DeclarePublicAPIAnalyzer.ShippedFileName, DeclarePublicAPIAnalyzer.RemoveDeletedApiRule, "C -> void()"));
         }
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
-        public void ShippedTextForImplicitConstructor()
+        public async Task ShippedTextForImplicitConstructor()
         {
             var source = @"
 public class C
@@ -220,11 +246,11 @@ C
 C.C() -> void";
             var unshippedText = @"";
 
-            VerifyCSharp(source, shippedText, unshippedText);
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
-        public void UnshippedTextForImplicitConstructor()
+        public async Task UnshippedTextForImplicitConstructor()
         {
             var source = @"
 public class C
@@ -237,11 +263,11 @@ C";
             var unshippedText = @"
 C.C() -> void";
 
-            VerifyCSharp(source, shippedText, unshippedText);
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
-        public void ShippedTextWithMissingImplicitConstructor()
+        public async Task ShippedTextWithMissingImplicitConstructor()
         {
             var source = @"
 public class C
@@ -254,13 +280,13 @@ C";
             var unshippedText = @"";
 
             var arg = string.Format(RoslynDiagnosticsAnalyzersResources.PublicImplicitConstructorErrorMessageName, "C");
-            VerifyCSharp(source, shippedText, unshippedText,
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
                 // Test0.cs(2,14): warning RS0016: Symbol 'implicit constructor for C' is not part of the declared API.
                 GetCSharpResultAt(2, 14, DeclarePublicAPIAnalyzer.DeclareNewApiRule, arg));
         }
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
-        public void ShippedTextWithImplicitConstructorAndBreakingCodeChange()
+        public async Task ShippedTextWithImplicitConstructorAndBreakingCodeChange()
         {
             var source = @"
 public class C
@@ -274,13 +300,13 @@ C
 C.C() -> void";
             var unshippedText = @"";
 
-            VerifyCSharp(source, shippedText, unshippedText,
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
                 // PublicAPI.Shipped.txt(3,1): warning RS0017: Symbol 'C.C() -> void' is part of the declared API, but is either not public or could not be found
                 GetAdditionalFileResultAt(3, 1, DeclarePublicAPIAnalyzer.ShippedFileName, DeclarePublicAPIAnalyzer.RemoveDeletedApiRule, "C.C() -> void"));
         }
 
         [Fact]
-        public void SimpleMember()
+        public async Task SimpleMember()
         {
             var source = @"
 public class C
@@ -301,11 +327,11 @@ C.Method() -> void
 ";
             var unshippedText = @"";
 
-            VerifyCSharp(source, shippedText, unshippedText);
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
         [Fact]
-        public void SplitBetweenShippedUnshipped()
+        public async Task SplitBetweenShippedUnshipped()
         {
             var source = @"
 public class C
@@ -327,11 +353,11 @@ C.Property.set -> void
 C.Method() -> void
 ";
 
-            VerifyCSharp(source, shippedText, unshippedText);
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
         [Fact]
-        public void EnumSplitBetweenFiles()
+        public async Task EnumSplitBetweenFiles()
         {
             var source = @"
 public enum E 
@@ -352,11 +378,11 @@ E.V2 = 2 -> E
 E.V3 = 3 -> E
 ";
 
-            VerifyCSharp(source, shippedText, unshippedText);
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
         [Fact]
-        public void SimpleRemovedMember()
+        public async Task SimpleRemovedMember()
         {
             var source = @"
 public class C
@@ -379,11 +405,11 @@ C.Method() -> void
 {DeclarePublicAPIAnalyzer.RemovedApiPrefix}C.Method() -> void
 ";
 
-            VerifyCSharp(source, shippedText, unshippedText);
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
         [Fact]
-        public void ApiFileShippedWithRemoved()
+        public async Task ApiFileShippedWithRemoved()
         {
             var source = @"
 public class C
@@ -403,14 +429,14 @@ C.Property.set -> void
 
             string unshippedText = $@"";
 
-            VerifyCSharp(source, shippedText, unshippedText,
-                // error RS0024: The contents of the public API files are invalid: The shipped API file can't have removed members
-                GetGlobalResult(DeclarePublicAPIAnalyzer.PublicApiFilesInvalid, DeclarePublicAPIAnalyzer.InvalidReasonShippedCantHaveRemoved));
+            var expected = new DiagnosticResult(DeclarePublicAPIAnalyzer.PublicApiFilesInvalid)
+                .WithArguments(DeclarePublicAPIAnalyzer.InvalidReasonShippedCantHaveRemoved);
+            await VerifyCSharpAsync(source, shippedText, unshippedText, expected);
         }
 
         [Fact]
         [WorkItem(312, "https://github.com/dotnet/roslyn-analyzers/issues/312")]
-        public void DuplicateSymbolInSameAPIFile()
+        public async Task DuplicateSymbolInSameAPIFile()
         {
             var source = @"
 public class C
@@ -430,19 +456,16 @@ C.Property.get -> int
 
             var unshippedText = @"";
 
-            VerifyCSharp(source, shippedText, unshippedText,
-                // Warning RS0025: The symbol 'C.Property.get -> int' appears more than once in the public API files.
-                GetResultAt(
-                    DeclarePublicAPIAnalyzer.ShippedFileName,
-                    DeclarePublicAPIAnalyzer.DuplicateSymbolInApiFiles.Id,
-                    string.Format(DeclarePublicAPIAnalyzer.DuplicateSymbolInApiFiles.MessageFormat.ToString(), "C.Property.get -> int"),
-                    DeclarePublicAPIAnalyzer.ShippedFileName + "(6,1)",
-                    DeclarePublicAPIAnalyzer.ShippedFileName + "(4,1)"));
+            var expected = new DiagnosticResult(DeclarePublicAPIAnalyzer.DuplicateSymbolInApiFiles)
+                .WithLocation(DeclarePublicAPIAnalyzer.ShippedFileName, 6, 1)
+                .WithLocation(DeclarePublicAPIAnalyzer.ShippedFileName, 4, 1)
+                .WithArguments("C.Property.get -> int");
+            await VerifyCSharpAsync(source, shippedText, unshippedText, expected);
         }
 
         [Fact]
         [WorkItem(312, "https://github.com/dotnet/roslyn-analyzers/issues/312")]
-        public void DuplicateSymbolInDifferentAPIFiles()
+        public async Task DuplicateSymbolInDifferentAPIFiles()
         {
             var source = @"
 public class C
@@ -463,18 +486,15 @@ C.Property.set -> void
             var unshippedText = @"
 C.Property.get -> int";
 
-            VerifyCSharp(source, shippedText, unshippedText,
-                // Warning RS0025: The symbol 'C.Property.get -> int' appears more than once in the public API files.
-                GetResultAt(
-                    DeclarePublicAPIAnalyzer.ShippedFileName,
-                    DeclarePublicAPIAnalyzer.DuplicateSymbolInApiFiles.Id,
-                    string.Format(DeclarePublicAPIAnalyzer.DuplicateSymbolInApiFiles.MessageFormat.ToString(), "C.Property.get -> int"),
-                    DeclarePublicAPIAnalyzer.UnshippedFileName + "(2,1)",
-                    DeclarePublicAPIAnalyzer.ShippedFileName + "(5,1)"));
+            var expected = new DiagnosticResult(DeclarePublicAPIAnalyzer.DuplicateSymbolInApiFiles)
+                .WithLocation(DeclarePublicAPIAnalyzer.UnshippedFileName, 2, 1)
+                .WithLocation(DeclarePublicAPIAnalyzer.ShippedFileName, 5, 1)
+                .WithArguments("C.Property.get -> int");
+            await VerifyCSharpAsync(source, shippedText, unshippedText, expected);
         }
 
         [Fact, WorkItem(773, "https://github.com/dotnet/roslyn-analyzers/issues/773")]
-        public void ApiFileShippedWithNonExistentMembers()
+        public async Task ApiFileShippedWithNonExistentMembers()
         {
             // Type C has no public member "Method", but the shipped API has an entry for it.
             var source = @"
@@ -496,13 +516,13 @@ C.Method() -> void
 ";
             string unshippedText = $@"";
 
-            VerifyCSharp(source, shippedText, unshippedText,
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
                 // PublicAPI.Shipped.txt(7,1): warning RS0017: Symbol 'C.Method() -> void' is part of the declared API, but is either not public or could not be found
                 GetAdditionalFileResultAt(7, 1, DeclarePublicAPIAnalyzer.ShippedFileName, DeclarePublicAPIAnalyzer.RemoveDeletedApiRule, "C.Method() -> void"));
         }
 
         [Fact, WorkItem(773, "https://github.com/dotnet/roslyn-analyzers/issues/773")]
-        public void ApiFileShippedWithNonExistentMembers_TestFullPath()
+        public async Task ApiFileShippedWithNonExistentMembers_TestFullPath()
         {
             // Type C has no public member "Method", but the shipped API has an entry for it.
             var source = @"
@@ -528,13 +548,13 @@ C.Method() -> void
             string unshippedText = $@"";
             var unshippedFilePath = Path.Combine(tempPath, DeclarePublicAPIAnalyzer.UnshippedFileName);
 
-            VerifyCSharp(source, shippedText, unshippedText, shippedFilePath, unshippedFilePath,
+            await VerifyCSharpAsync(source, shippedText, unshippedText, shippedFilePath, unshippedFilePath,
                 // <%TEMP_PATH%>\PublicAPI.Shipped.txt(7,1): warning RS0017: Symbol 'C.Method() -> void' is part of the declared API, but is either not public or could not be found
                 GetAdditionalFileResultAt(7, 1, shippedFilePath, DeclarePublicAPIAnalyzer.RemoveDeletedApiRule, "C.Method() -> void"));
         }
 
         [Fact]
-        public void TypeForwardsAreProcessed1()
+        public async Task TypeForwardsAreProcessed1()
         {
             var source = @"
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.StringComparison))]
@@ -551,11 +571,11 @@ System.StringComparison.OrdinalIgnoreCase = 5 -> System.StringComparison (forwar
 ";
             string unshippedText = $@"";
 
-            VerifyCSharp(source, shippedText, unshippedText);
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
         [Fact]
-        public void TypeForwardsAreProcessed2()
+        public async Task TypeForwardsAreProcessed2()
         {
             var source = @"
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.StringComparer))]
@@ -579,11 +599,11 @@ System.StringComparer.StringComparer() -> void (forwarded, contained in mscorlib
 ";
             string unshippedText = $@"";
 
-            VerifyCSharp(source, shippedText, unshippedText);
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
         [Fact, WorkItem(851, "https://github.com/dotnet/roslyn-analyzers/issues/851")]
-        public void TestAvoidMultipleOverloadsWithOptionalParameters()
+        public async Task TestAvoidMultipleOverloadsWithOptionalParameters()
         {
             var source = @"
 public class C
@@ -638,7 +658,7 @@ C.Method6(int p1 = 0) -> object
 C.Method6<T>(int p1 = 0) -> T
 ";
 
-            VerifyCSharp(source, shippedText, unshippedText,
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
                 // Test0.cs(5,17): warning RS0016: Symbol 'Method1' is not part of the declared API.
                 GetCSharpResultAt(5, 17, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "Method1"),
                 // Test0.cs(8,17): warning RS0016: Symbol 'Method1' is not part of the declared API.
@@ -656,7 +676,7 @@ C.Method6<T>(int p1 = 0) -> T
         }
 
         [Fact, WorkItem(851, "https://github.com/dotnet/roslyn-analyzers/issues/851")]
-        public void TestOverloadWithOptionalParametersShouldHaveMostParameters()
+        public async Task TestOverloadWithOptionalParametersShouldHaveMostParameters()
         {
             var source = @"
 public class C
@@ -718,7 +738,7 @@ C.Method5(string p1) -> void
 C.Method6(string p1) -> void
 ";
 
-            VerifyCSharp(source, shippedText, unshippedText,
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
                 // Test0.cs(21,17): warning RS0027: Symbol 'Method4' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                 GetCSharpResultAt(21, 17, DeclarePublicAPIAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters, "Method4", DeclarePublicAPIAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters.HelpLinkUri),
                 // Test0.cs(26,17): warning RS0027: Symbol 'Method5' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
@@ -734,7 +754,7 @@ C.Method6(string p1) -> void
         #region Fix tests
 
         [Fact]
-        public void TestSimpleMissingMember_Fix()
+        public async Task TestSimpleMissingMember_Fix()
         {
             var source = @"
 public class C
@@ -744,7 +764,7 @@ public class C
     public void Method() { } 
     public int ArrowExpressionProperty => 0;
 
-    public int NewField; // Newly added field, not in current public API.
+    public int {|RS0016:NewField|}; // Newly added field, not in current public API.
 }
 ";
 
@@ -765,11 +785,11 @@ C.NewField -> int
 C.Property.get -> int
 C.Property.set -> void";
 
-            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
         [Fact]
-        public void TestAddAndRemoveMembers_CSharp_Fix()
+        public async Task TestAddAndRemoveMembers_CSharp_Fix()
         {
             // Unshipped file has a state 'ObsoleteField' entry and a missing 'NewField' entry.
             var source = @"
@@ -780,7 +800,7 @@ public class C
     public void Method() { } 
     public int ArrowExpressionProperty => 0;
 
-    public int NewField;
+    public int {|RS0016:NewField|};
 }
 ";
             var shippedText = @"";
@@ -789,7 +809,7 @@ C.ArrowExpressionProperty.get -> int
 C.C() -> void
 C.Field -> int
 C.Method() -> void
-C.ObsoleteField -> int
+{|RS0017:C.ObsoleteField -> int|}
 C.Property.get -> int
 C.Property.set -> void";
             var fixedUnshippedText = @"C
@@ -801,14 +821,14 @@ C.NewField -> int
 C.Property.get -> int
 C.Property.set -> void";
 
-            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
         [Fact]
-        public void TestSimpleMissingType_Fix()
+        public async Task TestSimpleMissingType_Fix()
         {
             var source = @"
-public class C
+public class {|RS0016:C|}
 {
     private C() { }
 }
@@ -818,20 +838,20 @@ public class C
             var unshippedText = @"";
             var fixedUnshippedText = @"C";
 
-            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
         [Fact]
-        public void TestMultipleMissingTypeAndMember_Fix()
+        public async Task TestMultipleMissingTypeAndMember_Fix()
         {
             var source = @"
-public class C
+public class {|RS0016:C|}
 {
     private C() { }
-    public int Field;
+    public int {|RS0016:Field|};
 }
 
-public class C2 { }
+public class {|RS0016:{|RS0016:C2|}|} { }
 ";
 
             var shippedText = @"";
@@ -841,30 +861,30 @@ C.Field -> int
 C2
 C2.C2() -> void";
 
-            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
         [Fact]
-        public void TestChangingMethodSignatureForAnUnshippedMethod_Fix()
+        public async Task TestChangingMethodSignatureForAnUnshippedMethod_Fix()
         {
             var source = @"
 public class C
 {
     private C() { }
-    public void Method(int p1){ }
+    public void {|RS0016:Method|}(int p1){ }
 }
 ";
 
             var shippedText = @"C";
             // previously method had no params, so the fix should remove the previous overload.
-            var unshippedText = @"C.Method() -> void";
+            var unshippedText = @"{|RS0017:C.Method() -> void|}";
             var fixedUnshippedText = @"C.Method(int p1) -> void";
 
-            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
         [Fact]
-        public void TestChangingMethodSignatureForAnUnshippedMethodWithShippedOverloads_Fix()
+        public async Task TestChangingMethodSignatureForAnUnshippedMethodWithShippedOverloads_Fix()
         {
             var source = @"
 public class C
@@ -872,7 +892,7 @@ public class C
     private C() { }
     public void Method(int p1){ }
     public void Method(int p1, int p2){ }
-    public void Method(char p1){ }
+    public void {|RS0016:Method|}(char p1){ }
 }
 ";
 
@@ -880,20 +900,20 @@ public class C
 C.Method(int p1) -> void
 C.Method(int p1, int p2) -> void";
             // previously method had no params, so the fix should remove the previous overload.
-            var unshippedText = @"C.Method() -> void";
+            var unshippedText = @"{|RS0017:C.Method() -> void|}";
             var fixedUnshippedText = @"C.Method(char p1) -> void";
 
-            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
         [Fact]
-        public void TestAddingNewPublicOverload_Fix()
+        public async Task TestAddingNewPublicOverload_Fix()
         {
             var source = @"
 public class C
 {
     private C() { }
-    public void Method(){ }
+    public void {|RS0016:Method|}(){ }
     internal void Method(int p1){ }
     internal void Method(int p1, int p2){ }
     public void Method(char p1){ }
@@ -907,25 +927,25 @@ C.Method(char p1) -> void";
 C.Method() -> void
 C.Method(char p1) -> void";
 
-            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
         [Fact]
-        public void TestMissingTypeAndMemberAndNestedMembers_Fix()
+        public async Task TestMissingTypeAndMemberAndNestedMembers_Fix()
         {
             var source = @"
-public class C
+public class {|RS0016:C|}
 {
     private C() { }
-    public int Field;
+    public int {|RS0016:Field|};
 
     public class CC
     {
-        public int Field;
+        public int {|RS0016:Field|};
     }
 }
 
-public class C2 { }
+public class {|RS0016:{|RS0016:C2|}|} { }
 ";
 
             var shippedText = @"C.CC
@@ -937,24 +957,24 @@ C.Field -> int
 C2
 C2.C2() -> void";
 
-            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
         [Fact]
-        public void TestMissingNestedGenericMembersAndStaleMembers_Fix()
+        public async Task TestMissingNestedGenericMembersAndStaleMembers_Fix()
         {
             var source = @"
-public class C
+public class {|RS0016:C|}
 {
     private C() { }
-    public CC<int> Field;
+    public CC<int> {|RS0016:Field|};
     private C3.C4 Field2;
     private C3.C4 Method(C3.C4 p1) { throw new System.NotImplementedException(); }
 
     public class CC<T>
     {
-        public int Field;
-        public CC<int> Field2;
+        public int {|RS0016:Field|};
+        public CC<int> {|RS0016:Field2|};
     }
     
     public class C3
@@ -963,7 +983,7 @@ public class C
     }
 }
 
-public class C2 { }
+public class {|RS0016:{|RS0016:C2|}|} { }
 ";
 
             var shippedText = @"";
@@ -973,8 +993,8 @@ C.C3.C4
 C.C3.C4.C4() -> void
 C.CC<T>
 C.CC<T>.CC() -> void
-C.Field2 -> C.C3.C4
-C.Method(C.C3.C4 p1) -> C.C3.C4
+{|RS0017:C.Field2 -> C.C3.C4|}
+{|RS0017:C.Method(C.C3.C4 p1) -> C.C3.C4|}
 ";
             var fixedUnshippedText = @"C
 C.C3
@@ -990,17 +1010,17 @@ C2
 C2.C2() -> void
 ";
 
-            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
         [Fact]
-        public void TestWithExistingUnshippedNestedMembers_Fix()
+        public async Task TestWithExistingUnshippedNestedMembers_Fix()
         {
             var source = @"
-public class C
+public class {|RS0016:C|}
 {
     private C() { }
-    public int Field;
+    public int {|RS0016:Field|};
 
     public class CC
     {
@@ -1008,7 +1028,7 @@ public class C
     }
 }
 
-public class C2 { }
+public class {|RS0016:{|RS0016:C2|}|} { }
 ";
 
             var shippedText = @"";
@@ -1023,17 +1043,17 @@ C.Field -> int
 C2
 C2.C2() -> void";
 
-            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
         [Fact]
-        public void TestWithExistingUnshippedNestedGenericMembers_Fix()
+        public async Task TestWithExistingUnshippedNestedGenericMembers_Fix()
         {
             var source = @"
 public class C
 {
     private C() { }
-    public class CC
+    public class {|RS0016:CC|}
     {
         public int Field;
     }
@@ -1059,17 +1079,17 @@ C.CC.Field -> int
 C.CC<T>
 C.CC<T>.Field -> int";
 
-            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText, onlyFixFirstFixableDiagnostic: true);
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
         [Fact]
-        public void TestWithExistingShippedNestedMembers_Fix()
+        public async Task TestWithExistingShippedNestedMembers_Fix()
         {
             var source = @"
-public class C
+public class {|RS0016:C|}
 {
     private C() { }
-    public int Field;
+    public int {|RS0016:Field|};
 
     public class CC
     {
@@ -1077,7 +1097,7 @@ public class C
     }
 }
 
-public class C2 { }
+public class {|RS0016:{|RS0016:C2|}|} { }
 ";
 
             var shippedText = @"C.CC
@@ -1089,17 +1109,17 @@ C.Field -> int
 C2
 C2.C2() -> void";
 
-            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
         [Fact]
-        public void TestOnlyRemoveStaleSiblingEntries_Fix()
+        public async Task TestOnlyRemoveStaleSiblingEntries_Fix()
         {
             var source = @"
-public class C
+public class {|RS0016:C|}
 {
     private C() { }
-    public int Field;
+    public int {|RS0016:Field|};
 
     public class CC
     {
@@ -1107,37 +1127,37 @@ public class C
     }
 }
 
-public class C2 { }
+public class {|RS0016:{|RS0016:C2|}|} { }
 ";
 
             var shippedText = @"";
             var unshippedText = @"
 C.CC
 C.CC.CC() -> void
-C.CC.Field -> int";
+{|RS0017:C.CC.Field -> int|}";
             var fixedUnshippedText = @"C
 C.CC
 C.CC.CC() -> void
-C.CC.Field -> int
+{|RS0017:C.CC.Field -> int|}
 C.Field -> int
 C2
 C2.C2() -> void";
 
-            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
         [Theory]
         [InlineData("", "")]
         [InlineData("\r\n", "\r\n")]
         [InlineData("\r\n\r\n", "\r\n")]
-        public void TestPreserveTrailingNewline(string originalEndOfFile, string expectedEndOfFile)
+        public async Task TestPreserveTrailingNewline(string originalEndOfFile, string expectedEndOfFile)
         {
             var source = @"
 public class C
 {
     public int Property { get; }
 
-    public int NewField; // Newly added field, not in current public API.
+    public int {|RS0016:NewField|}; // Newly added field, not in current public API.
 }
 ";
 
@@ -1150,14 +1170,14 @@ C.C() -> void
 C.NewField -> int
 C.Property.get -> int{expectedEndOfFile}";
 
-            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
         [Fact]
-        public void MissingType_A()
+        public async Task MissingType_A()
         {
             var source = @"
-public class A { }
+public class {|RS0016:{|RS0016:A|}|} { }
 public class B { }
 public class D { }
 ";
@@ -1173,15 +1193,15 @@ B
 B.B() -> void
 D
 D.D() -> void";
-            VerifyCSharpAdditionalFileFix(source, shippedApiText: "", oldUnshippedApiText: unshippedText, newUnshippedApiText: expectedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedApiText: "", oldUnshippedApiText: unshippedText, newUnshippedApiText: expectedUnshippedText);
         }
 
         [Fact]
-        public void MissingType_C()
+        public async Task MissingType_C()
         {
             var source = @"
 public class B { }
-public class C { }
+public class {|RS0016:{|RS0016:C|}|} { }
 public class D { }
 ";
 
@@ -1196,16 +1216,16 @@ C
 C.C() -> void
 D
 D.D() -> void";
-            VerifyCSharpAdditionalFileFix(source, shippedApiText: "", oldUnshippedApiText: unshippedText, newUnshippedApiText: expectedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedApiText: "", oldUnshippedApiText: unshippedText, newUnshippedApiText: expectedUnshippedText);
         }
 
         [Fact]
-        public void MissingType_E()
+        public async Task MissingType_E()
         {
             var source = @"
 public class B { }
 public class D { }
-public class E { }
+public class {|RS0016:{|RS0016:E|}|} { }
 ";
 
             var unshippedText = @"B
@@ -1219,14 +1239,14 @@ D
 D.D() -> void
 E
 E.E() -> void";
-            VerifyCSharpAdditionalFileFix(source, shippedApiText: "", oldUnshippedApiText: unshippedText, newUnshippedApiText: expectedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedApiText: "", oldUnshippedApiText: unshippedText, newUnshippedApiText: expectedUnshippedText);
         }
 
         [Fact]
-        public void MissingType_Unordered_A()
+        public async Task MissingType_Unordered_A()
         {
             var source = @"
-public class A { }
+public class {|RS0016:{|RS0016:A|}|} { }
 public class B { }
 public class D { }
 ";
@@ -1242,15 +1262,15 @@ D
 D.D() -> void
 B
 B.B() -> void";
-            VerifyCSharpAdditionalFileFix(source, shippedApiText: "", oldUnshippedApiText: unshippedText, newUnshippedApiText: expectedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedApiText: "", oldUnshippedApiText: unshippedText, newUnshippedApiText: expectedUnshippedText);
         }
 
         [Fact]
-        public void MissingType_Unordered_C()
+        public async Task MissingType_Unordered_C()
         {
             var source = @"
 public class B { }
-public class C { }
+public class {|RS0016:{|RS0016:C|}|} { }
 public class D { }
 ";
 
@@ -1265,16 +1285,16 @@ D
 D.D() -> void
 B
 B.B() -> void";
-            VerifyCSharpAdditionalFileFix(source, shippedApiText: "", oldUnshippedApiText: unshippedText, newUnshippedApiText: expectedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedApiText: "", oldUnshippedApiText: unshippedText, newUnshippedApiText: expectedUnshippedText);
         }
 
         [Fact]
-        public void MissingType_Unordered_E()
+        public async Task MissingType_Unordered_E()
         {
             var source = @"
 public class B { }
 public class D { }
-public class E { }
+public class {|RS0016:{|RS0016:E|}|} { }
 ";
 
             var unshippedText = @"D
@@ -1288,7 +1308,7 @@ B
 B.B() -> void
 E
 E.E() -> void";
-            VerifyCSharpAdditionalFileFix(source, shippedApiText: "", oldUnshippedApiText: unshippedText, newUnshippedApiText: expectedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedApiText: "", oldUnshippedApiText: unshippedText, newUnshippedApiText: expectedUnshippedText);
         }
 
         #endregion
