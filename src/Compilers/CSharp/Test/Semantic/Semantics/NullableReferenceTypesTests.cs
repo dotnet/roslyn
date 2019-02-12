@@ -53217,6 +53217,108 @@ class D2 {
         }
 
         [Fact]
+        [WorkItem(33303, "https://github.com/dotnet/roslyn/issues/33303")]
+        public void Constraints_76()
+        {
+            var source = @"
+#nullable enable
+#pragma warning disable 8600, 219
+class C {
+    void TupleLiterals() {
+        string s1 = string.Empty;
+        string? s2 = null;
+        var t1 = (s1, s1); 
+        var t2 = (s1, s2);  // 1
+        var t3 = (s2, s1);  // 2
+        var t4 = (s2, s2);  // 3, 4
+        var t5 = ((string)null, s1);  // 5
+    }
+}
+";
+            var compilation = CreateCompilation(new[] { Tuple2NonNullable, source }, targetFramework: TargetFramework.Mscorlib46);
+            compilation.VerifyDiagnostics(
+                // (9,18): warning CS8631: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //         var t2 = (s1, s2);  // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "(s1, s2)").WithArguments("System.ValueTuple<T1, T2>", "object", "T2", "string?").WithLocation(9, 18),
+                // (10,18): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //         var t3 = (s2, s1);  // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "(s2, s1)").WithArguments("System.ValueTuple<T1, T2>", "object", "T1", "string?").WithLocation(10, 18),
+                // (11,18): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //         var t4 = (s2, s2);  // 3, 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "(s2, s2)").WithArguments("System.ValueTuple<T1, T2>", "object", "T1", "string?").WithLocation(11, 18),
+                // (11,18): warning CS8631: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //         var t4 = (s2, s2);  // 3, 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "(s2, s2)").WithArguments("System.ValueTuple<T1, T2>", "object", "T2", "string?").WithLocation(11, 18),
+                // (12,18): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //         var t5 = ((string)null, s1);  // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "((string)null, s1)").WithArguments("System.ValueTuple<T1, T2>", "object", "T1", "string?").WithLocation(12, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(33303, "https://github.com/dotnet/roslyn/issues/33303")]
+        public void Constraints_77()
+        {
+            var source = @"
+using System;
+#nullable enable
+#pragma warning disable 168
+class C {
+    void TupleTypes() {
+        (string?, string) t1;
+        Type t2 = typeof((string?, string));
+    }
+}
+";
+            var compilation = CreateCompilation(new[] { Tuple2NonNullable, source }, targetFramework: TargetFramework.Mscorlib46);
+            compilation.VerifyDiagnostics(
+                // (7,10): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //         (string?, string) t1;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("System.ValueTuple<T1, T2>", "object", "T1", "string?").WithLocation(7, 10),
+                // (8,27): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //         Type t2 = typeof((string?, string));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("System.ValueTuple<T1, T2>", "object", "T1", "string?").WithLocation(8, 27)
+                );
+        }
+
+        [Fact]
+        [WorkItem(33303, "https://github.com/dotnet/roslyn/issues/33303")]
+        public void Constraints_78()
+        {
+            var source = @"
+#nullable enable
+#pragma warning disable 8600
+class C {
+    void Deconstruction() {
+        string s1;
+        string? s2;
+        C c = new C();
+        (s1, s1) = (string.Empty, string.Empty);
+        (s2, s1) = ((string)null, string.Empty);
+        var v1 = (s2, s1) = ((string)null, string.Empty); // 1
+        (s2, s1) = c;
+        (string? s3, string s4) = c;
+        var v2 = (s2, s1) = c; // 2
+    }
+
+    public void Deconstruct(out string? s1, out string s2) {
+        s1 = null;
+        s2 = string.Empty;
+    }
+}
+";
+            var compilation = CreateCompilation(new[] { Tuple2NonNullable, source }, targetFramework: TargetFramework.Mscorlib46);
+            compilation.VerifyDiagnostics(
+                // (11,19): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //         var v1 = (s2, s1) = ((string)null, string.Empty); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "s2").WithArguments("System.ValueTuple<T1, T2>", "object", "T1", "string?").WithLocation(11, 19),
+                // (14,19): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //         var v2 = (s2, s1) = c; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "s2").WithArguments("System.ValueTuple<T1, T2>", "object", "T1", "string?").WithLocation(14, 19)
+                );
+        }
+
+        [Fact]
         public void UnconstrainedTypeParameter_Local()
         {
             var source =

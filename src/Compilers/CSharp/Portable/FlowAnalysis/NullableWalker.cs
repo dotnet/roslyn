@@ -3519,7 +3519,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.State[slot] = NullableAnnotation.NotNullable;
                     TrackNullableStateOfTupleElements(slot, tupleOpt, arguments, elementTypes, useRestField: false);
                 }
-                _resultType = TypeSymbolWithAnnotations.Create(tupleOpt.WithElementTypes(elementTypes), NullableAnnotation.NotNullable);
+
+                tupleOpt = tupleOpt.WithElementTypes(elementTypes);
+                var locations = tupleOpt.TupleElements.SelectAsArray(x => x.Locations.IsEmpty ? node.Syntax.Location : x.Locations[0]);
+                tupleOpt.CheckConstraints(_conversions, includeNullability: true, node.Syntax, locations, compilation, Diagnostics);
+                _resultType = TypeSymbolWithAnnotations.Create(tupleOpt, NullableAnnotation.NotNullable);
             }
         }
 

@@ -106,10 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var constructedType = Create(underlyingType, elementNames, errorPositions, locationOpt, elementLocations);
             if (shouldCheckConstraints && diagnostics != null)
             {
-                // https://github.com/dotnet/roslyn/issues/33303
-                // Need to follow up on checking tuple constraints within a method body which may cause us to revisit the 
-                // explicit false below.
-                constructedType.CheckConstraints(compilation.Conversions, includeNullability: false, syntax, elementLocations, compilation, diagnostics);
+                bool includeNullability = compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
+                constructedType.CheckConstraints(compilation.Conversions, includeNullability, syntax, elementLocations, compilation, diagnostics);
             }
 
             return constructedType;
