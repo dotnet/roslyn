@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Notification
                 }
             }
 
-            public bool ConfirmMessageBox(
+            public bool? ConfirmMessageBox(
                 string message,
                 string title = null,
                 NotificationSeverity severity = NotificationSeverity.Warning)
@@ -70,7 +70,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Notification
                 else
                 {
                     var image = SeverityToImage(severity);
-                    return MessageBox.Show(message, title, MessageBoxButton.YesNo, image) == MessageBoxResult.Yes;
+                    switch (MessageBox.Show(message, title, MessageBoxButton.YesNoCancel, image))
+                    {
+                        case MessageBoxResult.Yes:
+                            return true;
+
+                        case MessageBoxResult.No:
+                            return false;
+
+                        case MessageBoxResult.Cancel:
+                        default:
+                            return null;
+                    }
                 }
             }
 

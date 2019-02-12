@@ -123,7 +123,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 if (allowDecompilation && !project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.AcceptedDecompilerDisclaimer))
                 {
                     var notificationService = project.Solution.Workspace.Services.GetService<INotificationService>();
-                    allowDecompilation = notificationService.ConfirmMessageBox(ServicesVSResources.Decompiler_Legal_Notice_Message, ServicesVSResources.Decompiler_Legal_Notice_Title, NotificationSeverity.Warning);
+                    var allowDecompilationOrCancel = notificationService.ConfirmMessageBox(ServicesVSResources.Decompiler_Legal_Notice_Message, ServicesVSResources.Decompiler_Legal_Notice_Title, NotificationSeverity.Warning);
+                    if (allowDecompilationOrCancel == null)
+                    {
+                        return false;
+                    }
+
+                    allowDecompilation = allowDecompilationOrCancel.Value;
                     if (allowDecompilation)
                     {
                         project.Solution.Workspace.Options = project.Solution.Workspace.Options.WithChangedOption(FeatureOnOffOptions.AcceptedDecompilerDisclaimer, true);

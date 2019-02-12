@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification
                 }
             }
 
-            public bool ConfirmMessageBox(string message, string title = null, NotificationSeverity severity = NotificationSeverity.Warning)
+            public bool? ConfirmMessageBox(string message, string title = null, NotificationSeverity severity = NotificationSeverity.Warning)
             {
                 _uiShellService.EnableModeless(0);
                 try
@@ -104,14 +104,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification
                         pszText: message,
                         pszHelpFile: null,
                         dwHelpContextID: 0, // required to be 0, as per MSDN documentation
-                        msgbtn: OLEMSGBUTTON.OLEMSGBUTTON_YESNO,
+                        msgbtn: OLEMSGBUTTON.OLEMSGBUTTON_YESNOCANCEL,
                         msgdefbtn: OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST,
                         msgicon: icon,
                         fSysAlert: 0, // Not system modal
                         pnResult: out var dialogResult);
 
-                    // The dialogResult is 6 when the Yes button is clicked.
-                    return dialogResult == 6;
+                    switch ((DialogResult)dialogResult)
+                    {
+                        case DialogResult.Yes:
+                            return true;
+
+                        case DialogResult.No:
+                            return false;
+
+                        case DialogResult.Cancel:
+                        default:
+                            return null;
+                    }
                 }
                 finally
                 {

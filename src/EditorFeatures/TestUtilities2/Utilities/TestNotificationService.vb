@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         Public ConfirmBoxTitle As String
         Public ConfirmBoxSeverity As NotificationSeverity
 
-        Public DesiredConfirmBoxResult As Boolean
+        Public DesiredConfirmBoxResult As Boolean?
 
         Public Sub SendNotification(message As String, Optional title As String = Nothing, Optional severity As NotificationSeverity = NotificationSeverity.Warning) Implements INotificationService.SendNotification
             MessageText = message
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             MessageSeverity = severity
         End Sub
 
-        Public Function ConfirmMessageBox(message As String, Optional title As String = Nothing, Optional severity As NotificationSeverity = NotificationSeverity.Warning) As Boolean Implements INotificationService.ConfirmMessageBox
+        Public Function ConfirmMessageBox(message As String, Optional title As String = Nothing, Optional severity As NotificationSeverity = NotificationSeverity.Warning) As Boolean? Implements INotificationService.ConfirmMessageBox
             ConfirmBoxText = message
             ConfirmBoxTitle = title
             ConfirmBoxSeverity = severity

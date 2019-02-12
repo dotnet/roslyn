@@ -18,13 +18,13 @@ namespace Microsoft.CodeAnalysis.Notification
             NotificationSeverity severity = NotificationSeverity.Warning);
 
         /// <summary>
-        /// Displays a message box with a yes/no question to the user.
+        /// Displays a message box with a yes/no/cancel question to the user.
         /// </summary>
         /// <param name="message">The message shown within the message box.</param>
         /// <param name="title">The title bar to be shown in the message box. May be ignored by some implementations.</param>
         /// <param name="severity">The severity of the message.</param>
-        /// <returns>true if yes was clicked, false otherwise.</returns>
-        bool ConfirmMessageBox(
+        /// <returns><see langword="true"/> if yes was clicked, <see langword="false"/> if no was clicked; otherwise <see langword="null"/> if the user cancelled the dialog.</returns>
+        bool? ConfirmMessageBox(
             string message,
             string title = null,
             NotificationSeverity severity = NotificationSeverity.Warning);

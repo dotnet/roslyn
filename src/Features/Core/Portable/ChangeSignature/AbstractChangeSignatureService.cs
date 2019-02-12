@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             if (hasLocationsInMetadata)
             {
                 var notificationService = context.Solution.Workspace.Services.GetService<INotificationService>();
-                if (!notificationService.ConfirmMessageBox(FeaturesResources.This_symbol_has_related_definitions_or_references_in_metadata_Changing_its_signature_may_result_in_build_errors_Do_you_want_to_continue, severity: NotificationSeverity.Warning))
+                if (notificationService.ConfirmMessageBox(FeaturesResources.This_symbol_has_related_definitions_or_references_in_metadata_Changing_its_signature_may_result_in_build_errors_Do_you_want_to_continue, severity: NotificationSeverity.Warning) != true)
                 {
                     return false;
                 }
