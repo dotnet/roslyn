@@ -174,12 +174,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var roslynTrigger = Helpers.GetRoslynTrigger(trigger, triggerLocation);
 
+            var workspace = document.Project.Solution.Workspace;
+
             var completionList = await completionService.GetCompletionsAsync(
                 document,
                 triggerLocation,
                 roslynTrigger,
                 _roles,
-                GetOptions(document.Project.Solution.Workspace),
+                _isDebuggerTextView ? workspace.Options.WithDebuggerCompletionOptions() : workspace.Options,
                 cancellationToken).ConfigureAwait(false);
 
             if (completionList == null)
@@ -256,9 +258,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             return IntelliSense.Helpers.BuildClassifiedTextElement(description.TaggedParts);
         }
-
-        public OptionSet GetOptions(Workspace workspace)
-            => _isDebuggerTextView ? workspace.Options.WithDebuggerCompletionOptions() : workspace.Options;
 
         private VSCompletionItem Convert(
             Document document,
