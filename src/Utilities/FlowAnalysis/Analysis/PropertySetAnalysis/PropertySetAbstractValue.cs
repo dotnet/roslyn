@@ -37,6 +37,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             return new PropertySetAbstractValue(arrayBuilder.ToImmutable());
         }
 
+        public static PropertySetAbstractValue GetInstance(PropertySetAbstractValueKind v1)
+        {
+            // TODO: Pool instances.
+            return GetInstance(ImmutableArray.Create<PropertySetAbstractValueKind>(v1));
+        }
+
+        public static PropertySetAbstractValue GetInstance(PropertySetAbstractValueKind v1, PropertySetAbstractValueKind v2)
+        {
+            // TODO: Pool instances.
+            return GetInstance(ImmutableArray.Create<PropertySetAbstractValueKind>(v1, v2));
+        }
+
         private PropertySetAbstractValue(ImmutableArray<PropertySetAbstractValueKind> propertyAbstractValues)
         {
             this.KnownPropertyAbstractValues = propertyAbstractValues;

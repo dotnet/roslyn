@@ -57,22 +57,22 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <summary>
         /// Name of the property.
         /// </summary>
-        public string PropertyName { get; }
+        internal string PropertyName { get; }
 
         /// <summary>
         /// Callback for mapping from <see cref="ValueContentAbstractValue"/> to a <see cref="PropertySetAbstractValueKind"/>, or null.
         /// </summary>
-        public ValueContentAbstractValueCallback MapFromValueContentAbstractValue { get; }
+        internal ValueContentAbstractValueCallback MapFromValueContentAbstractValue { get; }
 
         /// <summary>
         /// Callback for mapping from <see cref="NullAbstractValue"/> to a <see cref="PropertySetAbstractValueKind"/>, or null.
         /// </summary>
-        public NullAbstractValueCallback MapFromNullAbstractValue { get; }
+        internal NullAbstractValueCallback MapFromNullAbstractValue { get; }
 
         /// <summary>
-        /// Indicates that this <see cref="PropertyMapper"/> uses <see cref="ValueContentAbstractValue"/>.
+        /// Indicates that this <see cref="PropertyMapper"/> uses <see cref="ValueContentAbstractValue"/>s.
         /// </summary>
-        public bool RequiresValueContentAnalysis => this.MapFromValueContentAbstractValue != null;
+        internal bool RequiresValueContentAnalysis => this.MapFromValueContentAbstractValue != null;
 
         public override int GetHashCode()
         {

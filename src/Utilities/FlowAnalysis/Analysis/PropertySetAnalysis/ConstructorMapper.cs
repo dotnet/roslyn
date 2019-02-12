@@ -16,12 +16,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
     internal sealed class ConstructorMapper
 #pragma warning restore CA1812
     {
-        public delegate ImmutableArray<PropertySetAbstractValueKind> ValueContentAbstractValueCallback(
+        public delegate PropertySetAbstractValue ValueContentAbstractValueCallback(
             IMethodSymbol constructorMethodSymbol,
-            IReadOnlyList<ValueContentAbstractValue> argumentValueContentAbstractValues);
-        public delegate ImmutableArray<PropertySetAbstractValueKind> NullAbstractValueCallback(
+            IReadOnlyList<ValueContentAbstractValue> argumentValueContentAbstractValues,
+            IReadOnlyList<NullAbstractValue> argumentNullAbstractValues);
+        public delegate PropertySetAbstractValue NullAbstractValueCallback(
             IMethodSymbol constructorMethodSymbol,
-            IReadOnlyList<NullAbstractValue> argumentValueContentAbstractValues);
+            IReadOnlyList<NullAbstractValue> argumentNullAbstractValues);
 
         /// <summary>
         /// Initializes a <see cref="ConstructorMapper"/> using constant <see cref="PropertySetAbstractValueKind"/>s whenever the type being tracked by PropertySetAnalysis is instantiated.
@@ -57,13 +58,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         {
         }
 
+        internal ValueContentAbstractValueCallback MapFromValueContentAbstractValue { get; }
 
-        public ValueContentAbstractValueCallback MapFromValueContentAbstractValue { get; }
+        internal NullAbstractValueCallback MapFromNullAbstractValue { get; }
 
-        public NullAbstractValueCallback MapFromNullAbstractValue { get; }
+        internal ImmutableArray<PropertySetAbstractValueKind> PropertyAbstractValues { get; }
 
-        public ImmutableArray<PropertySetAbstractValueKind> PropertyAbstractValues { get; }
-
+        /// <summary>
+        /// Indicates that this <see cref="ConstructorMapper"/> uses <see cref="ValueContentAbstractValue"/>s.
+        /// </summary>
         internal bool RequiresValueContentAnalysis => this.MapFromValueContentAbstractValue != null;
 
         internal void Validate(int propertyCount)
@@ -77,24 +80,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             }
         }
 
-        internal ImmutableArray<PropertySetAbstractValueKind> Compute(IObjectCreationOperation objectCreationOperation)
-        {
-            if (this.PropertyAbstractValues != null)
-            {
-                return this.PropertyAbstractValues;
-            }
-            else
-            {
-                Debug.Fail("TODO handle ValueContentAbstractValues for arguments");
-                return this.MapFromValueContentAbstractValue(objectCreationOperation.Constructor, null);
-            }
-        }
-
         public override int GetHashCode()
         {
-            return HashUtilities.Combine(
-                this.PropertyAbstractValues,
-                MapFromValueContentAbstractValue.GetHashCodeOrDefault());
+            return HashUtilities.Combine(this.PropertyAbstractValues,
+                HashUtilities.Combine(this.MapFromValueContentAbstractValue.GetHashCodeOrDefault(),
+                this.MapFromNullAbstractValue.GetHashCodeOrDefault()));
         }
 
         public override bool Equals(object obj)
@@ -106,6 +96,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         {
             return other != null
                 && this.MapFromValueContentAbstractValue == other.MapFromValueContentAbstractValue
+                && this.MapFromNullAbstractValue == other.MapFromNullAbstractValue
                 && this.PropertyAbstractValues == other.PropertyAbstractValues;
         }
     }
