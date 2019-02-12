@@ -165,6 +165,11 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName("System.IDisposable");
         }
 
+        public static INamedTypeSymbol IDeserializationCallback(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Runtime.Serialization.IDeserializationCallback");
+        }
+
         public static INamedTypeSymbol ISerializable(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Runtime.Serialization.ISerializable");
@@ -508,6 +513,16 @@ namespace Analyzer.Utilities
         public static INamedTypeSymbol IImmutableStack(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Collections.Immutable.IImmutableStack`1");
+        }
+
+        public static INamedTypeSymbol SystemIOFile(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.IO.File");
+        }
+
+        public static INamedTypeSymbol SystemReflectionAssembly(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Reflection.Assembly");
         }
 
         public static ImmutableHashSet<INamedTypeSymbol> IImmutableInterfaces(Compilation compilation)

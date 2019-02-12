@@ -1,13 +1,19 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Diagnostics;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
-using Test.Utilities;
 using Xunit;
+using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.CodeFixVerifier<
+    Roslyn.Diagnostics.Analyzers.DoNotMixAttributesFromDifferentVersionsOfMEFAnalyzer,
+    Roslyn.Diagnostics.CSharp.Analyzers.CSharpDoNotMixAttributesFromDifferentVersionsOfMEFFixer>;
+using VerifyVB = Microsoft.CodeAnalysis.VisualBasic.Testing.XUnit.CodeFixVerifier<
+    Roslyn.Diagnostics.Analyzers.DoNotMixAttributesFromDifferentVersionsOfMEFAnalyzer,
+    Roslyn.Diagnostics.VisualBasic.Analyzers.BasicDoNotMixAttributesFromDifferentVersionsOfMEFFixer>;
 
 namespace Roslyn.Diagnostics.Analyzers.UnitTests
 {
-    public class DoNotMixAttributesFromDifferentVersionsOfMEFTests : DiagnosticAnalyzerTestBase
+    public class DoNotMixAttributesFromDifferentVersionsOfMEFTests
     {
         private const string CSharpWellKnownAttributesDefinition = @"
 namespace System.Composition
@@ -149,22 +155,12 @@ Public Class SystemComponentModelCompositionMetadataAttribute
 End Class
 ";
 
-        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
-        {
-            return new DoNotMixAttributesFromDifferentVersionsOfMEFAnalyzer();
-        }
-
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return new DoNotMixAttributesFromDifferentVersionsOfMEFAnalyzer();
-        }
-
         #region No Diagnostic Tests
 
         [Fact]
-        public void NoDiagnosticCases_SingleMefAttribute()
+        public async Task NoDiagnosticCases_SingleMefAttribute()
         {
-            VerifyCSharp(@"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 
 [System.Composition.Export(typeof(C))]
@@ -178,7 +174,7 @@ public class C2
 }
 " + CSharpWellKnownAttributesDefinition);
 
-            VerifyBasic(@"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System
 
 <System.Composition.Export(GetType(C))> _
@@ -192,9 +188,9 @@ End Class
         }
 
         [Fact]
-        public void NoDiagnosticCases_SingleMefAttributeAndValidMetadataAttribute()
+        public async Task NoDiagnosticCases_SingleMefAttributeAndValidMetadataAttribute()
         {
-            VerifyCSharp(@"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 
 [System.Composition.Export(typeof(C))]
@@ -210,7 +206,7 @@ public class C2
 }
 " + CSharpWellKnownAttributesDefinition);
 
-            VerifyBasic(@"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System
 
 <System.Composition.Export(GetType(C))> _
@@ -226,9 +222,9 @@ End Class
         }
 
         [Fact]
-        public void NoDiagnosticCases_SingleMefAttributeAndAnotherExportAttribute()
+        public async Task NoDiagnosticCases_SingleMefAttributeAndAnotherExportAttribute()
         {
-            VerifyCSharp(@"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 
 [System.Composition.Export(typeof(C)), MyNamespace.Export(typeof(C))]
@@ -250,7 +246,7 @@ namespace MyNamespace
 }
 " + CSharpWellKnownAttributesDefinition);
 
-            VerifyBasic(@"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System
 
 <System.Composition.Export(GetType(C)), MyNamespace.Export(GetType(C))> _
@@ -272,9 +268,9 @@ End Namespace
         }
 
         [Fact]
-        public void NoDiagnosticCases_SingleMefAttributeOnTypeAndValidMefAttributeOnMember()
+        public async Task NoDiagnosticCases_SingleMefAttributeOnTypeAndValidMefAttributeOnMember()
         {
-            VerifyCSharp(@"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 
 public class B { }
@@ -300,7 +296,7 @@ public class C2
 }
 " + CSharpWellKnownAttributesDefinition);
 
-            VerifyBasic(@"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Public Class B
 End Class
 
@@ -327,37 +323,37 @@ End Class
         }
 
         [Fact]
-        public void NoDiagnosticCases_UnresolvedTypes()
+        public async Task NoDiagnosticCases_UnresolvedTypes()
         {
-            VerifyCSharp(@"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 
 public class B { }
 
-[System.Composition.Export(typeof(C))]
+[System.{|CS0234:Composition|}.Export(typeof(C))]
 public class C
 {
-    [System.ComponentModel.Composition.Import]
+    [System.ComponentModel.{|CS0234:Composition|}.Import]
     public B PropertyB { get; }
 }
-", TestValidationMode.AllowCompileErrors);
+");
 
-            VerifyBasic(@"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Public Class B
 End Class
 
-<System.Composition.Export(GetType(C))> _
+<{|BC30002:System.Composition.Export|}(GetType(C))> _
 Public Class C
-	<System.ComponentModel.Composition.Import> _
+	<{|BC30002:System.ComponentModel.Composition.Import|}> _
 	Public ReadOnly Property PropertyB() As B
 End Class
-", TestValidationMode.AllowCompileErrors);
+");
         }
 
         [Fact]
-        public void NoDiagnosticCases_MultiMefMetadataAttribute()
+        public async Task NoDiagnosticCases_MultiMefMetadataAttribute()
         {
-            VerifyCSharp(@"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 
 [System.ComponentModel.Composition.Export(typeof(C)), MyNamespace.MultiMefMetadataAttribute]
@@ -374,7 +370,7 @@ namespace MyNamespace
 }
 " + CSharpWellKnownAttributesDefinition);
 
-            VerifyBasic(@"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System
 
 <System.ComponentModel.Composition.Export(GetType(C)), MyNamespace.MultiMefMetadataAttribute> _
@@ -395,9 +391,9 @@ End Namespace
         #region Diagnostic Tests
 
         [Fact]
-        public void DiagnosticCases_BadMetadataAttribute()
+        public async Task DiagnosticCases_BadMetadataAttribute()
         {
-            VerifyCSharp(@"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 
 [System.Composition.Export(typeof(C))]
@@ -417,7 +413,7 @@ public class C2
     // Test0.cs(11,2): warning RS0006: Attribute 'SystemCompositionMetadataAttribute' comes from a different version of MEF than the export attribute on 'C2'
     GetCSharpResultAt(11, 2, "SystemCompositionMetadataAttribute", "C2"));
 
-            VerifyBasic(@"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System
 
 <System.Composition.Export(GetType(C))> _
@@ -437,9 +433,9 @@ End Class
         }
 
         [Fact]
-        public void DiagnosticCases_BadMefAttributeOnMember()
+        public async Task DiagnosticCases_BadMefAttributeOnMember()
         {
-            VerifyCSharp(@"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 
 public class B { }
@@ -474,7 +470,7 @@ public class C2
     GetCSharpResultAt(22, 6, "ImportAttribute", "C2")
 );
 
-            VerifyBasic(@"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Public Class B
 End Class
 
@@ -510,9 +506,9 @@ End Class
         }
 
         [Fact]
-        public void DiagnosticCases_BadMefAttributeOnParameter()
+        public async Task DiagnosticCases_BadMefAttributeOnParameter()
         {
-            VerifyCSharp(@"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 
 public class B { }
@@ -542,7 +538,7 @@ public class C2
     // Test0.cs(20,16): warning RS0006: Attribute 'ImportAttribute' comes from a different version of MEF than the export attribute on 'C2'
     GetCSharpResultAt(20, 16, "ImportAttribute", "C2"));
 
-            VerifyBasic(@"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Public Class B
 End Class
 
@@ -574,16 +570,20 @@ End Class
 
         #endregion
 
-        private static new DiagnosticResult GetCSharpResultAt(int line, int column, string attributeName, string typeName)
+        private static DiagnosticResult GetCSharpResultAt(int line, int column, string attributeName, string typeName)
         {
-            var message = string.Format(RoslynDiagnosticsAnalyzersResources.DoNotMixAttributesFromDifferentVersionsOfMEFMessage, attributeName, typeName);
-            return DiagnosticAnalyzerTestBase.GetCSharpResultAt(line, column, RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId, message);
+            return new DiagnosticResult(RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId, DiagnosticSeverity.Warning)
+                .WithLocation(line, column)
+                .WithMessageFormat(RoslynDiagnosticsAnalyzersResources.DoNotMixAttributesFromDifferentVersionsOfMEFMessage)
+                .WithArguments(attributeName, typeName);
         }
 
-        private static new DiagnosticResult GetBasicResultAt(int line, int column, string attributeName, string typeName)
+        private static DiagnosticResult GetBasicResultAt(int line, int column, string attributeName, string typeName)
         {
-            var message = string.Format(RoslynDiagnosticsAnalyzersResources.DoNotMixAttributesFromDifferentVersionsOfMEFMessage, attributeName, typeName);
-            return DiagnosticAnalyzerTestBase.GetBasicResultAt(line, column, RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId, message);
+            return new DiagnosticResult(RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId, DiagnosticSeverity.Warning)
+                .WithLocation(line, column)
+                .WithMessageFormat(RoslynDiagnosticsAnalyzersResources.DoNotMixAttributesFromDifferentVersionsOfMEFMessage)
+                .WithArguments(attributeName, typeName);
         }
     }
 }
