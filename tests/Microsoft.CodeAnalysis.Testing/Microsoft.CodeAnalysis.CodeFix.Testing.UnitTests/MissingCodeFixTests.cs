@@ -71,7 +71,7 @@ namespace MyNamespace {
                 }.RunAsync();
             });
 
-            Assert.Equal("Expected '0' iterations but found '1' iterations.", exception.Message);
+            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}Expected '0' iterations but found '1' iterations.", exception.Message);
 
             // Test through the verifier
             exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -79,7 +79,7 @@ namespace MyNamespace {
                 await Verify<CodeFixOfferedProvider>.VerifyCodeFixAsync(testCode, expected, testCode);
             });
 
-            Assert.Equal("Expected '0' iterations but found '1' iterations.", exception.Message);
+            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}Expected '0' iterations but found '1' iterations.", exception.Message);
         }
 
         /// <summary>
@@ -138,7 +138,7 @@ namespace MyNamespace {
                 }.RunAsync();
             });
 
-            Assert.Equal("Expected '1' iterations but found '0' iterations.", exception.Message);
+            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}Expected '1' iterations but found '0' iterations.", exception.Message);
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
