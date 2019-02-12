@@ -94,15 +94,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
             Test("$@\"{{\"", "['{',[3,5]]");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29172")]
-        public void TestReverseInterpolatedVerbatimString()
+        [Fact]
+        public void TestBracesInReverseInterpolatedVerbatimSimpleString()
         {
-            // This will need to be fixed once @$ strings come online.
-            // This is tracked with https://github.com/dotnet/roslyn/issues/29172
-            var token = GetStringToken("@$\"{{\"", allowFailure: true);
-            Assert.True(token == default);
-
-            TestFailure("@$\"{{\"");
+            Test("@$\"{{\"", "['{',[3,5]]");
         }
 
         [Fact]
