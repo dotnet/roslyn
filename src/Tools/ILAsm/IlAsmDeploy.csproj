@@ -16,6 +16,7 @@
     <NoBuild>true</NoBuild>
 
     <PublishDir>$(ArtifactsDir)tools\ILAsm\$(Configuration)\</PublishDir>
+    <ApplicationManifest>$(RepositoryEngineeringDir)config\app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <Choose>
