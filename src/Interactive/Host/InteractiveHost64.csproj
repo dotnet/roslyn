@@ -6,6 +6,7 @@
     <Prefer32Bit>false</Prefer32Bit>
     <OutputType>Exe</OutputType>
     <TargetFramework>net472</TargetFramework>
+    <ApplicationManifest>$(RepositoryEngineeringDir)config\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
