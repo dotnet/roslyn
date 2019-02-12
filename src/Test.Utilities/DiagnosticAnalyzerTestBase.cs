@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Utilities;
-using TestResources.NetFX;
 using Xunit;
 
 namespace Test.Utilities
@@ -29,18 +28,6 @@ namespace Test.Utilities
             RemoveSystemData = 0b100
         }
 
-        private static readonly MetadataReference s_corlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
-        private static readonly MetadataReference s_systemCoreReference = MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location);
-        private static readonly MetadataReference s_systemXmlReference = MetadataReference.CreateFromFile(typeof(System.Xml.XmlDocument).Assembly.Location);
-        private static readonly MetadataReference s_systemXmlDataReference = MetadataReference.CreateFromFile(typeof(System.Data.Rule).Assembly.Location);
-        private static readonly MetadataReference s_csharpSymbolsReference = MetadataReference.CreateFromFile(typeof(CSharpCompilation).Assembly.Location);
-        private static readonly MetadataReference s_visualBasicSymbolsReference = MetadataReference.CreateFromFile(typeof(VisualBasicCompilation).Assembly.Location);
-        private static readonly MetadataReference s_visualBasicReference = MetadataReference.CreateFromFile(typeof(Microsoft.VisualBasic.Devices.ComputerInfo).Assembly.Location);
-        private static readonly MetadataReference s_codeAnalysisReference = MetadataReference.CreateFromFile(typeof(Compilation).Assembly.Location);
-        private static readonly MetadataReference s_workspacesReference = MetadataReference.CreateFromFile(typeof(Workspace).Assembly.Location);
-        private static readonly MetadataReference s_immutableCollectionsReference = MetadataReference.CreateFromFile(typeof(ImmutableArray<int>).Assembly.Location);
-        private static readonly MetadataReference s_systemDiagnosticsDebugReference = MetadataReference.CreateFromFile(typeof(Debug).Assembly.Location);
-        private static readonly MetadataReference s_systemDataReference = MetadataReference.CreateFromFile(typeof(System.Data.DataSet).Assembly.Location);
         protected static readonly CompilationOptions s_CSharpDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
         protected static readonly CompilationOptions s_CSharpUnsafeCodeDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAllowUnsafe(true);
         protected static readonly CompilationOptions s_visualBasicDefaultOptions = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
@@ -68,48 +55,6 @@ namespace Test.Utilities
         /// </summary>
         /// <returns></returns>
         protected abstract DiagnosticAnalyzer GetBasicDiagnosticAnalyzer();
-
-        private static MetadataReference s_systemRuntimeFacadeRef;
-        public static MetadataReference SystemRuntimeFacadeRef
-        {
-            get
-            {
-                if (s_systemRuntimeFacadeRef == null)
-                {
-                    s_systemRuntimeFacadeRef = AssemblyMetadata.CreateFromImage(ReferenceAssemblies_V45_Facades.System_Runtime).GetReference(display: "System.Runtime.dll");
-                }
-
-                return s_systemRuntimeFacadeRef;
-            }
-        }
-
-        private static MetadataReference s_systemThreadingFacadeRef;
-        public static MetadataReference SystemThreadingFacadeRef
-        {
-            get
-            {
-                if (s_systemThreadingFacadeRef == null)
-                {
-                    s_systemThreadingFacadeRef = AssemblyMetadata.CreateFromImage(ReferenceAssemblies_V45_Facades.System_Threading).GetReference(display: "System.Threading.dll");
-                }
-
-                return s_systemThreadingFacadeRef;
-            }
-        }
-
-        private static MetadataReference s_systemThreadingTasksFacadeRef;
-        public static MetadataReference SystemThreadingTaskFacadeRef
-        {
-            get
-            {
-                if (s_systemThreadingTasksFacadeRef == null)
-                {
-                    s_systemThreadingTasksFacadeRef = AssemblyMetadata.CreateFromImage(ReferenceAssemblies_V45_Facades.System_Threading_Tasks).GetReference(display: "System.Threading.Tasks.dll");
-                }
-
-                return s_systemThreadingTasksFacadeRef;
-            }
-        }
 
         protected bool PrintActualDiagnosticsOnFailure { get; set; }
 
@@ -405,39 +350,39 @@ namespace Test.Utilities
 
             Project project = (addToSolution ?? new AdhocWorkspace().CurrentSolution)
                 .AddProject(projectId, projectName, projectName, language)
-                .AddMetadataReference(projectId, s_corlibReference)
-                .AddMetadataReference(projectId, s_systemCoreReference)
-                .AddMetadataReference(projectId, s_systemXmlReference)
-                .AddMetadataReference(projectId, s_codeAnalysisReference)
-                .AddMetadataReference(projectId, SystemRuntimeFacadeRef)
-                .AddMetadataReference(projectId, SystemThreadingFacadeRef)
-                .AddMetadataReference(projectId, SystemThreadingTaskFacadeRef)
-                .AddMetadataReference(projectId, s_workspacesReference)
-                .AddMetadataReference(projectId, s_systemDiagnosticsDebugReference)
+                .AddMetadataReference(projectId, MetadataReferences.CorlibReference)
+                .AddMetadataReference(projectId, MetadataReferences.SystemCoreReference)
+                .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXmlReference)
+                .AddMetadataReference(projectId, MetadataReferences.CodeAnalysisReference)
+                .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemRuntimeFacadeRef)
+                .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemThreadingFacadeRef)
+                .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemThreadingTaskFacadeRef)
+                .AddMetadataReference(projectId, AdditionalMetadataReferences.WorkspacesReference)
+                .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemDiagnosticsDebugReference)
                 .WithProjectCompilationOptions(projectId, options)
                 .WithProjectParseOptions(projectId, parseOptions)
                 .GetProject(projectId);
 
             if ((referenceFlags & ReferenceFlags.RemoveCodeAnalysis) != ReferenceFlags.RemoveCodeAnalysis)
             {
-                MetadataReference symbolsReference = language == LanguageNames.CSharp ? s_csharpSymbolsReference : s_visualBasicSymbolsReference;
+                MetadataReference symbolsReference = language == LanguageNames.CSharp ? AdditionalMetadataReferences.CSharpSymbolsReference : AdditionalMetadataReferences.VisualBasicSymbolsReference;
                 project = project.AddMetadataReference(symbolsReference);
             }
 
             if ((referenceFlags & ReferenceFlags.RemoveImmutable) != ReferenceFlags.RemoveImmutable)
             {
-                project = project.AddMetadataReference(s_immutableCollectionsReference);
+                project = project.AddMetadataReference(MetadataReferences.SystemCollectionsImmutableReference);
             }
 
             if ((referenceFlags & ReferenceFlags.RemoveSystemData) != ReferenceFlags.RemoveSystemData)
             {
-                project = project.AddMetadataReference(s_systemDataReference)
-                    .AddMetadataReference(s_systemXmlDataReference);
+                project = project.AddMetadataReference(AdditionalMetadataReferences.SystemDataReference)
+                    .AddMetadataReference(AdditionalMetadataReferences.SystemXmlDataReference);
             }
 
             if (language == LanguageNames.VisualBasic)
             {
-                project = project.AddMetadataReference(s_visualBasicReference);
+                project = project.AddMetadataReference(MetadataReferences.MicrosoftVisualBasicReference);
             }
 
             int count = 0;
