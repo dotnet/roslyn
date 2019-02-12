@@ -51,20 +51,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             // This method is only used to generate a comment at the top of Metadata-as-Source documents and
             // previous submissions are never viewed as metadata (i.e. we always have compilations) so there's no
             // need to consume compilation.ScriptCompilationInfo.PreviousScriptCompilation.
-            var assemblyReference = TryGetAssemblyReference(compilation, assemblySymbol);
+            var assemblyReference = compilation.GetMetadataReference(assemblySymbol);
             return assemblyReference?.Display ?? FeaturesResources.location_unknown;
-        }
-
-        public static MetadataReference TryGetAssemblyReference(Compilation compilation, IAssemblySymbol assemblySymbol)
-        {
-            return compilation.References.Where(r =>
-            {
-                var referencedSymbol = compilation.GetAssemblyOrModuleSymbol(r) as IAssemblySymbol;
-                return
-                    referencedSymbol != null &&
-                    referencedSymbol.MetadataName == assemblySymbol.MetadataName;
-            })
-            .FirstOrDefault();
         }
 
         public static INamedTypeSymbol GetTopLevelContainingNamedType(ISymbol symbol)
