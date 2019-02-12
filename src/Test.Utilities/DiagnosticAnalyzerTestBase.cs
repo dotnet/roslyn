@@ -192,7 +192,7 @@ namespace Test.Utilities
 
                 Assert.True(int.TryParse(tokens[2], out int column) && line >= -1, "Column must be >= -1 in location string: " + str);
 
-                builder.Add((path, new LinePosition(line, column)));
+                builder.Add((path, new LinePosition(line - 1, column - 1)));
             }
 
             return builder.ToArray();
