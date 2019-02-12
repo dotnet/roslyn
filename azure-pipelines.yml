@@ -164,7 +164,7 @@ jobs:
       condition: succeeded()
 
 - job: Linux_Test
-  pool: DotNetCore-Linux
+  pool: dnceng-linux-external-temp
   strategy:
     maxParallel: 2
     matrix:
