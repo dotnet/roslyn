@@ -2,6 +2,7 @@
 
 using System;
 using System.ComponentModel.Design;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -41,11 +42,54 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
     [ProvideMenuResource("Menus.ctmenu", version: 16)]
     internal class RoslynPackage : AbstractPackage
     {
+        // The randomly-generated key name is used for serializing the ILSpy decompiler EULA preference to the .SUO
+        // file. It doesn't have any semantic meaning, but is intended to not conflict with any other extension that
+        // might be saving an "ILSpy" named stream to the same file.
+        // note: must be <= 31 characters long
+        private const string DecompilerEulaOptionKey = "ILSpy-234190A6EE66";
+        private const byte DecompilerEulaOptionVersion = 1;
+
         private VisualStudioWorkspace _workspace;
         private WorkspaceFailureOutputPane _outputPane;
         private IComponentModel _componentModel;
         private RuleSetEventHandler _ruleSetEventHandler;
         private IDisposable _solutionEventMonitor;
+
+        public RoslynPackage()
+        {
+            // We need to register an option in order for OnLoadOptions/OnSaveOptions to be called
+            AddOptionKey(DecompilerEulaOptionKey);
+        }
+
+        public bool IsDecompilerEulaAccepted { get; set; }
+
+        protected override void OnLoadOptions(string key, Stream stream)
+        {
+            if (key == DecompilerEulaOptionKey)
+            {
+                if (stream.ReadByte() == DecompilerEulaOptionVersion)
+                {
+                    IsDecompilerEulaAccepted = stream.ReadByte() == 1;
+                }
+                else
+                {
+                    IsDecompilerEulaAccepted = false;
+                }
+            }
+
+            base.OnLoadOptions(key, stream);
+        }
+
+        protected override void OnSaveOptions(string key, Stream stream)
+        {
+            if (key == DecompilerEulaOptionKey)
+            {
+                stream.WriteByte(DecompilerEulaOptionVersion);
+                stream.WriteByte(IsDecompilerEulaAccepted ? (byte)1 : (byte)0);
+            }
+
+            base.OnSaveOptions(key, stream);
+        }
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
