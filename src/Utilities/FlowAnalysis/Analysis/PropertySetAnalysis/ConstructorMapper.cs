@@ -40,6 +40,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         public ConstructorMapper(ValueContentAbstractValueCallback mapFromValueContentAbstractValue)
         {
             this.MapFromValueContentAbstractValue = mapFromValueContentAbstractValue ?? throw new ArgumentNullException(nameof(mapFromValueContentAbstractValue));
+            this.PropertyAbstractValues = ImmutableArray<PropertySetAbstractValueKind>.Empty;
         }
 
         /// <summary>
@@ -49,6 +50,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         public ConstructorMapper(NullAbstractValueCallback mapFromNullAbstractValue)
         {
             this.MapFromNullAbstractValue = mapFromNullAbstractValue ?? throw new ArgumentNullException(nameof(mapFromNullAbstractValue));
+            this.PropertyAbstractValues = ImmutableArray<PropertySetAbstractValueKind>.Empty;
         }
 
         /// <summary>
@@ -71,7 +73,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
         internal void Validate(int propertyCount)
         {
-            if (this.PropertyAbstractValues != null)
+            if (!this.PropertyAbstractValues.IsEmpty)
             {
                 if (this.PropertyAbstractValues.Length != propertyCount)
                 {

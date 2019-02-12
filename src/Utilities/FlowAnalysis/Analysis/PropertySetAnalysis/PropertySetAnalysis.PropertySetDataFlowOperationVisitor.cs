@@ -109,7 +109,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
 
                 ConstructorMapper constructorMapper = this.DataFlowAnalysisContext.ConstructorMapper;
-                if (!constructorMapper.PropertyAbstractValues.IsDefault)
+                if (!constructorMapper.PropertyAbstractValues.IsEmpty)
                 {
                     abstractValue = PropertySetAbstractValue.GetInstance(constructorMapper.PropertyAbstractValues);
                 }
