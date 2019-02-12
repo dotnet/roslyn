@@ -119,14 +119,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Check whether decompilation is supported for the project. We currently only support this for C# projects.
             if (project.LanguageServices.GetService<IDecompiledSourceService>() != null)
             {
+                var eulaService = project.Solution.Workspace.Services.GetRequiredService<IDecompilerEulaService>();
                 allowDecompilation = project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources) && !symbol.IsFromSource();
-                if (allowDecompilation && !project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.AcceptedDecompilerDisclaimer))
+                if (allowDecompilation && !ThreadingContext.JoinableTaskFactory.Run(() => eulaService.IsAcceptedAsync(cancellationToken)))
                 {
                     var notificationService = project.Solution.Workspace.Services.GetService<INotificationService>();
                     allowDecompilation = notificationService.ConfirmMessageBox(ServicesVSResources.Decompiler_Legal_Notice_Message, ServicesVSResources.Decompiler_Legal_Notice_Title, NotificationSeverity.Warning);
                     if (allowDecompilation)
                     {
-                        project.Solution.Workspace.Options = project.Solution.Workspace.Options.WithChangedOption(FeatureOnOffOptions.AcceptedDecompilerDisclaimer, true);
+                        ThreadingContext.JoinableTaskFactory.Run(() => eulaService.MarkAcceptedAsync(cancellationToken));
                     }
                 }
             }

@@ -96,10 +96,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly Option<int> UseNullableReferenceTypeAnalysis = new Option<int>(
             nameof(FeatureOnOffOptions), nameof(UseNullableReferenceTypeAnalysis), defaultValue: 0,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.CSharp.{nameof(UseNullableReferenceTypeAnalysis)}"));
-
-        // Note: no storage location since this is intentionally a session variable
-        public static readonly Option<bool> AcceptedDecompilerDisclaimer = new Option<bool>(
-            nameof(FeatureOnOffOptions), nameof(AcceptedDecompilerDisclaimer), defaultValue: false);
     }
 
     [ExportOptionProvider, Shared]
@@ -125,7 +121,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.RefactoringVerification,
             FeatureOnOffOptions.StreamingGoToImplementation,
             FeatureOnOffOptions.NavigateToDecompiledSources,
-            FeatureOnOffOptions.AcceptedDecompilerDisclaimer,
             FeatureOnOffOptions.UseEnhancedColors);
     }
 }
