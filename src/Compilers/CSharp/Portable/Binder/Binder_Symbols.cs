@@ -428,10 +428,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                             Error(diagnostics, ErrorCode.ERR_BadConstraintType, node);
                         }
-                        else if (elementType.IsManagedType)
+                        else
                         {
-                            // "Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')"
-                            Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, elementType.TypeSymbol);
+                            CheckManagedAddr(elementType.TypeSymbol, node, diagnostics);
                         }
 
                         return TypeSymbolWithAnnotations.Create(new PointerTypeSymbol(elementType));
@@ -2224,16 +2223,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, DiagnosticBag diagnostics, Location location)
-        {
-            CSDiagnosticInfo error = feature.GetFeatureAvailabilityDiagnosticInfo((CSharpParseOptions)tree.Options);
-
-            if (error is null)
-            {
-                return true;
-            }
-
-            diagnostics.Add(new CSDiagnostic(error, location));
-            return false;
-        }
+            => feature.CheckFeatureAvailability(diagnostics, location);
     }
 }

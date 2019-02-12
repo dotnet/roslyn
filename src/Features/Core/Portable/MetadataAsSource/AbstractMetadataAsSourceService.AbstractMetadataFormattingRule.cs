@@ -10,13 +10,13 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal partial class AbstractMetadataAsSourceService
     {
-        protected abstract class AbstractFormattingRule : Formatting.Rules.AbstractFormattingRule
+        protected abstract class AbstractMetadataFormattingRule : AbstractFormattingRule
         {
             protected abstract AdjustNewLinesOperation GetAdjustNewLinesOperationBetweenMembersAndUsings(SyntaxToken token1, SyntaxToken token2);
             protected abstract bool IsNewLine(char c);
 
             public override AdjustNewLinesOperation GetAdjustNewLinesOperation(
-                    SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustNewLinesOperation> nextOperation)
+                    SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 if (previousToken.RawKind == 0 || currentToken.RawKind == 0)
                 {

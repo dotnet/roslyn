@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -11,7 +12,7 @@ using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpgradeProject
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
     public partial class UpgradeProjectTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
@@ -31,9 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
                 var (_, action) = await GetCodeActionsAsync(workspace, parameters);
                 var operations = await VerifyActionAndGetOperationsAsync(action, default);
 
-                var appliedChanges = ApplyOperationsAndGetSolution(workspace, operations);
-                var oldSolution = appliedChanges.Item1;
-                var newSolution = appliedChanges.Item2;
+                var (oldSolution, newSolution) = ApplyOperationsAndGetSolution(workspace, operations);
                 Assert.All(newSolution.Projects.Where(p => p.Language == LanguageNames.CSharp),
                     p => Assert.Equal(expected, ((CSharpParseOptions)p.ParseOptions).SpecifiedLanguageVersion));
 

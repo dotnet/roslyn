@@ -27,6 +27,11 @@
         <target state="translated">単一行のコントロール ステートメントに対する波かっこの追加/削除を行います</target>
         <note />
       </trans-unit>
+      <trans-unit id="Allow_unsafe_code_in_this_project">
+        <source>Allow unsafe code in this project</source>
+        <target state="new">Allow unsafe code in this project</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_expression_block_body_preferences">
         <source>Apply expression/block body preferences</source>
         <target state="translated">式/ブロック本体の基本設定を適用します</target>
@@ -81,6 +86,11 @@
         <source>Make private fields readonly when possible</source>
         <target state="translated">可能な場合、private フィールドを読み取り専用にする</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Make_ref_struct">
+        <source>Make 'ref struct'</source>
+        <target state="new">Make 'ref struct'</target>
+        <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>

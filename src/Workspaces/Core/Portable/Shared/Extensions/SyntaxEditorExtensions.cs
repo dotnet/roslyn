@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             //    in the document, all will be verified.
             // 2. Cannot include ArgumentSyntax because it could affect generic argument inference.
             return node.FirstAncestorOrSelf<SyntaxNode>(
-                n => syntaxFacts.IsStatement(n) ||
+                n => syntaxFacts.IsExecutableStatement(n) ||
                      syntaxFacts.IsParameter(n) ||
                      syntaxFacts.IsVariableDeclarator(n) ||
                      n.Parent == null);

@@ -117,6 +117,11 @@
 	<target state="new">Members</target>
         <note />
       </trans-unit>
+      <trans-unit id="Modifier_preferences_colon">
+        <source>Modifier preferences:</source>
+        <target state="new">Modifier preferences:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Namespace_0">
         <source>Namespace: '{0}'</source>
 	<target state="new">Namespace: '{0}'</target>
@@ -155,6 +160,21 @@
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
         <target state="translated">建議使用範圍運算子</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly_fields">
+        <source>Prefer readonly fields</source>
+        <target state="new">Prefer readonly fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simple_using_statement">
+        <source>Prefer simple 'using' statement</source>
+        <target state="new">Prefer simple 'using' statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_static_local_functions">
+        <source>Prefer static local functions</source>
+        <target state="new">Prefer static local functions</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_Members_Up">
@@ -255,6 +275,11 @@
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
         <source>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</source>
         <target state="translated">我們發現您暫止了 '{0}'。重設按鍵對應以繼續巡覽和重構。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
+        <source>This workspace does not support updating Visual Basic compilation options.</source>
+        <target state="new">This workspace does not support updating Visual Basic compilation options.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
@@ -1613,11 +1638,6 @@ Additional information: {1}</source>
         <target state="translated">啟用完整解決方案分析(_A)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Perform_editor_feature_analysis_in_external_process">
-        <source>Perform editor _feature analysis in external process (experimental)</source>
-        <target state="translated">在外部處理序中執編輯器功能分析 (_F)(實驗性)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fade_out_unreachable_code">
         <source>Fade out unreachable code</source>
         <target state="translated">淡出執行不到的程式碼</target>
@@ -1746,16 +1766,6 @@ I agree to all of the foregoing:</source>
       <trans-unit id="CantApplyChangesUnexpectedError">
         <source>Can't apply changes -- unexpected error: '{0}'</source>
         <target state="translated">無法套用變更 -- 未預期的錯誤: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Field_preferences_colon">
-        <source>Field preferences:</source>
-        <target state="translated">欄位喜好設定:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_readonly">
-        <source>Prefer readonly</source>
-        <target state="translated">偏好唯讀</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">
