@@ -158,7 +158,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 SymbolEquivalenceComparer.Instance.Equals(i.OriginalDefinition, originalInterfaceType));
 
             // Try to get the compilation for the symbol we're searching for, 
-            // which can help identify matches with the call to SymbolFinder.OriginalSymbolsMatch
+            // which can help identify matches with the call to SymbolFinder.OriginalSymbolsMatch.
+            // OriginalSymbolMatch allows types to be matched across different assemblies
+            // if they are considered to be the same type, which provides a more accurate
+            // implementations list for interfaces. 
             var typeSymbolProject = solution.GetProject(typeSymbolAndProjectId.ProjectId);
             var typeSymbolCompilation = typeSymbolProject?.GetCompilationAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
@@ -166,7 +169,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var constructedInterfaceMember = constructedInterface.GetMembers().FirstOrDefault(m =>
-                    SymbolFinder.OriginalSymbolsMatch(m, interfaceMember, solution, typeSymbolCompilation, null, cancellationToken));
+                    SymbolFinder.OriginalSymbolsMatch(
+                        m,
+                        interfaceMember,
+                        solution,
+                        typeSymbolCompilation,
+                        symbolToMatchCompilation: null,
+                        cancellationToken));
 
                 if (constructedInterfaceMember == null)
                 {
