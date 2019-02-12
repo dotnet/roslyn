@@ -13,9 +13,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Venus
     [ExportLanguageService(typeof(IAdditionalFormattingRuleLanguageService), LanguageNames.CSharp), Shared]
     internal class CSharpAdditionalFormattingRuleLanguageService : IAdditionalFormattingRuleLanguageService
     {
-        public IFormattingRule GetAdditionalCodeGenerationRule()
+        public AbstractFormattingRule GetAdditionalCodeGenerationRule()
         {
-            return new BlankLineInGeneratedMethodFormattingRule();
+            return BlankLineInGeneratedMethodFormattingRule.Instance;
         }
     }
 }
