@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis
                         //
                         return ValueUsageInfo.Write;
 
-                    case IRecursivePatternOperation _:
+                    case IOperation iop when iop.GetType().GetInterfaces().Any(i => i.Name == "IRecursivePatternOperation"):
                         // A declaration pattern within a recursive pattern is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj' below:

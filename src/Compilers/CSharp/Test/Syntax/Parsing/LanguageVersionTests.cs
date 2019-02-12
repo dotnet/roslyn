@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var highest = Enum.
                 GetValues(typeof(LanguageVersion)).
                 Cast<LanguageVersion>().
-                Where(x => x != LanguageVersion.Latest).
+                Where(x => x != LanguageVersion.Latest && x != LanguageVersion.Preview && x != LanguageVersion.LatestMajor).
                 Max();
 
             Assert.Equal(LanguageVersionFacts.CurrentVersion, highest);

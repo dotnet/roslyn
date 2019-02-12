@@ -1231,7 +1231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(containingSlot != -1);
             Debug.Assert(!state.IsAssigned(containingSlot));
             VariableIdentifier variable = variableBySlot[containingSlot];
-            NamedTypeSymbol structType = (NamedTypeSymbol)VariableType(variable.Symbol).TypeSymbol;
+            TypeSymbol structType = VariableType(variable.Symbol).TypeSymbol;
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(structType))
             {
                 if (_emptyStructTypeCache.IsEmptyStructType(field.Type.TypeSymbol)) continue;

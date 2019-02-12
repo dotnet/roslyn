@@ -468,20 +468,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             void reportNullableReferenceTypesIfNeeded(SyntaxToken questionToken, TypeSymbolWithAnnotations typeArgument = default)
             {
                 bool isNullableEnabled = IsNullableEnabled(questionToken);
+                var location = questionToken.GetLocation();
 
                 // Inside a method body or other executable code, we can question IsValueType without causing cycles.
                 if (!typeArgument.IsNull && !ShouldCheckConstraints)
                 {
-                    diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(Compilation, isNullableEnabled, typeArgument), questionToken.GetLocation());
+                    LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(isNullableEnabled, typeArgument, location, diagnostics);
                 }
                 else
                 {
-                    DiagnosticInfo info = LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(Compilation, isNullableEnabled, typeArgument);
-
-                    if (!(info is null))
-                    {
-                        diagnostics.Add(info, questionToken.GetLocation());
-                    }
+                    LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(isNullableEnabled, typeArgument, location, diagnostics);
                 }
             }
         }
@@ -2229,7 +2225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, DiagnosticBag diagnostics, Location location)
         {
-            CSDiagnosticInfo error = GetFeatureAvailabilityDiagnosticInfo(tree, feature);
+            CSDiagnosticInfo error = feature.GetFeatureAvailabilityDiagnosticInfo((CSharpParseOptions)tree.Options);
 
             if (error is null)
             {
@@ -2238,31 +2234,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             diagnostics.Add(new CSDiagnostic(error, location));
             return false;
-        }
-
-        private static CSDiagnosticInfo GetFeatureAvailabilityDiagnosticInfo(SyntaxTree tree, MessageID feature)
-        {
-            CSharpParseOptions options = (CSharpParseOptions)tree.Options;
-
-            if (options.IsFeatureEnabled(feature))
-            {
-                return null;
-            }
-
-            string requiredFeature = feature.RequiredFeature();
-            if (requiredFeature != null)
-            {
-                return new CSDiagnosticInfo(ErrorCode.ERR_FeatureIsExperimental, feature.Localize(), requiredFeature);
-            }
-
-            LanguageVersion availableVersion = options.LanguageVersion;
-            LanguageVersion requiredVersion = feature.RequiredVersion();
-            if (requiredVersion > availableVersion)
-            {
-                return new CSDiagnosticInfo(availableVersion.GetErrorCode(), feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
-            }
-
-            return null;
         }
     }
 }
