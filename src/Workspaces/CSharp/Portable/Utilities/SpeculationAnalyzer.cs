@@ -497,6 +497,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         /// <summary>
         /// Checks if the conversion might change the resultant boxed type.
+        /// Similar boxing checks are performed elsewhere, but in this case we need to perform the check on the entire conditional expression.
+        /// This will make sure the resultant cast is proper for the type of the conditional expression.
         /// </summary>
         private bool ReplacementBreaksBoxingInConditionalExpression(TypeInfo originalExpressionTypeInfo, TypeInfo newExpressionTypeInfo, ExpressionSyntax previousOriginalNode, ExpressionSyntax previousReplacedNode)
         {
