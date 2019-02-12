@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.CodingConventions" Version="$(MicrosoftVisualStudioCodingConventionsVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(MicrosoftCodeAnalysisCommonFixedVersion)" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
   </ItemGroup>
   <ItemGroup>
     <!--
@@ -30,6 +31,7 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="InternalUtilities\ExceptionUtilities.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IReadOnlySet.cs" Link="InternalUtilities\IReadOnlySet.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\KeyValuePairUtil.cs" Link="InternalUtilities\KeyValuePairUtil.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\PerformanceSensitiveAttribute.cs" Link="PerformanceSensitiveAttribute.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs" Link="InternalUtilities\SpecializedCollections.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Collection.cs" Link="InternalUtilities\SpecializedCollections.Empty.Collection.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.cs" Link="InternalUtilities\SpecializedCollections.Empty.cs" />
@@ -158,6 +160,7 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxTokenExtensions.cs" Link="Formatting\SyntaxTokenExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxTreeExtensions_SharedWithCodeStyle.cs" Link="Formatting\SyntaxTreeExtensions_SharedWithCodeStyle.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxTriviaExtensions.cs" Link="Formatting\SyntaxTriviaExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SyntaxTriviaListExtensions.cs" Link="Formatting\SyntaxTriviaListExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\TextLineExtensions.cs" Link="Formatting\TextLineExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\NormalizedTextSpanCollection.cs" Link="Formatting\NormalizedTextSpanCollection.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\AliasSymbolCache.cs" Link="AliasSymbolCache.cs" />
