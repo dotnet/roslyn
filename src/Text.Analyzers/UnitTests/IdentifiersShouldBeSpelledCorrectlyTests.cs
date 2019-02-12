@@ -4,19 +4,16 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Test.Utilities;
 using Text.CSharp.Analyzers;
 using Text.VisualBasic.Analyzers;
+using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.CodeFixVerifier<
+    Text.CSharp.Analyzers.CSharpIdentifiersShouldBeSpelledCorrectlyAnalyzer,
+    Text.CSharp.Analyzers.CSharpIdentifiersShouldBeSpelledCorrectlyFixer>;
+using VerifyVB = Microsoft.CodeAnalysis.VisualBasic.Testing.XUnit.CodeFixVerifier<
+    Text.VisualBasic.Analyzers.BasicIdentifiersShouldBeSpelledCorrectlyAnalyzer,
+    Text.VisualBasic.Analyzers.BasicIdentifiersShouldBeSpelledCorrectlyFixer>;
 
 namespace Text.Analyzers.UnitTests
 {
-    public class IdentifiersShouldBeSpelledCorrectlyTests : DiagnosticAnalyzerTestBase
+    public class IdentifiersShouldBeSpelledCorrectlyTests
     {
-        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
-        {
-            return new BasicIdentifiersShouldBeSpelledCorrectlyAnalyzer();
-        }
-
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return new CSharpIdentifiersShouldBeSpelledCorrectlyAnalyzer();
-        }
     }
 }
