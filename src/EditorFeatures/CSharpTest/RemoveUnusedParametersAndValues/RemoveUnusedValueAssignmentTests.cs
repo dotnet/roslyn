@@ -6403,5 +6403,104 @@ class C
     }
 }", options: PreferDiscard);
         }
+
+        [WorkItem(33299, "https://github.com/dotnet/roslyn/issues/33299")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task NullCoalesceAssignment_01()
+        {
+            await TestMissingInRegularAndScriptWithAllOptionsAsync(
+@"class C
+{
+    public static void M(C x)
+    {
+        [|x|] = M2();
+        x ??= new C();
+    }
+
+    private static C M2() => null;
+}
+", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [WorkItem(33299, "https://github.com/dotnet/roslyn/issues/33299")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task NullCoalesceAssignment_02()
+        {
+            await TestMissingInRegularAndScriptWithAllOptionsAsync(
+@"class C
+{
+    public static C M(C x)
+    {
+        [|x|] ??= new C();
+        return x;
+    }
+}
+", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [WorkItem(33299, "https://github.com/dotnet/roslyn/issues/33299")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task NullCoalesceAssignment_03()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public static void M(C x)
+    {
+        [|x|] ??= new C();
+    }
+}
+",
+@"class C
+{
+    public static void M(C x)
+    {
+        _ = x ?? new C();
+    }
+}
+", optionName: nameof(PreferDiscard), parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [WorkItem(33299, "https://github.com/dotnet/roslyn/issues/33299")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task NullCoalesceAssignment_04()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public static C M(C x)
+    {
+        return [|x|] ??= new C();
+    }
+}
+",
+@"class C
+{
+    public static C M(C x)
+    {
+        return x ?? new C();
+    }
+}
+", optionName: nameof(PreferDiscard), parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [WorkItem(33299, "https://github.com/dotnet/roslyn/issues/33299")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task NullCoalesceAssignment_05()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public static C M(C x)
+        => [|x|] ??= new C();
+}
+",
+@"class C
+{
+    public static C M(C x)
+        => x ?? new C();
+}
+", optionName: nameof(PreferDiscard), parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
     }
 }
