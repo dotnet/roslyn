@@ -24,10 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // new Index(0, fromEnd: false)
-                left = F.New(
-                    WellKnownMember.System_Index__ctor,
-                    ImmutableArray.Create<BoundExpression>(F.Literal(0), F.Literal(false)));
+                left = newIndexZero(fromEnd: false);
             }
 
             var right = node.RightOperand;
@@ -37,10 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // new Index(0, fromEnd: true)
-                right = F.New(
-                    WellKnownMember.System_Index__ctor,
-                    ImmutableArray.Create<BoundExpression>(F.Literal(0), F.Literal(true)));
+                right = newIndexZero(fromEnd: true);
             }
 
             var operands = ImmutableArray.Create(left, right);
@@ -70,6 +64,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return rangeCreation;
             }
+
+            BoundExpression newIndexZero(bool fromEnd) =>
+                // new Index(0, fromEnd: fromEnd)
+                F.New(
+                    WellKnownMember.System_Index__ctor,
+                    ImmutableArray.Create<BoundExpression>(F.Literal(0), F.Literal(fromEnd)));
 
             BoundExpression tryOptimizeOperand(BoundExpression operand)
             {
