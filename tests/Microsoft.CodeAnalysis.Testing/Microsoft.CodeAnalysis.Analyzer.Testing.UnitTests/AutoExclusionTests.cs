@@ -80,6 +80,15 @@ End Class
             Assert.Equal(expected, exception.Message);
         }
 
+        [Fact]
+        public async Task TestCSharpAnalyzerNotConfigurableWithoutSuppressionPasses()
+        {
+            await new CSharpAnalyzerTest<NotConfigurableReplaceThisWithBaseAnalyzer>
+            {
+                TestCode = ReplaceThisWithBaseTestCode,
+            }.RunAsync();
+        }
+
         [Theory]
         [InlineData(GeneratedCodeAnalysisFlags.None)]
         [InlineData(GeneratedCodeAnalysisFlags.Analyze)]
@@ -207,6 +216,35 @@ End Class
             public override void Initialize(AnalysisContext context)
             {
                 context.ConfigureGeneratedCodeAnalysis(_generatedCodeAnalysisFlags);
+
+                context.RegisterSyntaxNodeAction(HandleThisExpression, CSharp.SyntaxKind.ThisExpression);
+                context.RegisterSyntaxNodeAction(HandleMyClassExpression, VisualBasic.SyntaxKind.MyClassExpression);
+            }
+
+            private void HandleThisExpression(SyntaxNodeAnalysisContext context)
+            {
+                var node = (CSharp.Syntax.ThisExpressionSyntax)context.Node;
+                context.ReportDiagnostic(Diagnostic.Create(Descriptor, node.Token.GetLocation()));
+            }
+
+            private void HandleMyClassExpression(SyntaxNodeAnalysisContext context)
+            {
+                var node = (VisualBasic.Syntax.MyClassExpressionSyntax)context.Node;
+                context.ReportDiagnostic(Diagnostic.Create(Descriptor, node.Keyword.GetLocation()));
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        private class NotConfigurableReplaceThisWithBaseAnalyzer : DiagnosticAnalyzer
+        {
+            internal static readonly DiagnosticDescriptor Descriptor =
+                new DiagnosticDescriptor("ThisToBase", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true, customTags: new[] { WellKnownDiagnosticTags.NotConfigurable });
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
                 context.RegisterSyntaxNodeAction(HandleThisExpression, CSharp.SyntaxKind.ThisExpression);
                 context.RegisterSyntaxNodeAction(HandleMyClassExpression, VisualBasic.SyntaxKind.MyClassExpression);
