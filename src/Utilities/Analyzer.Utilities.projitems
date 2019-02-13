@@ -9,7 +9,6 @@
     <Import_RootNamespace>Analyzer.Utilities</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)AbstractVersionCheckAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.AssemblyMetricData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.EventMetricData.cs" />
@@ -59,12 +58,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)WellKnownTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WordParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WordParserOptions.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)AnalyzerUtilitiesResources.resx">
-      <GenerateSource>true</GenerateSource>
-      <ManifestResourceName>Analyzer.Utilities.AnalyzerUtilitiesResources</ManifestResourceName>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)DiagnosticCategoryAndIdRanges.txt" />
