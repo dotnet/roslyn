@@ -7,7 +7,10 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Test.Utilities
 {
@@ -76,5 +79,55 @@ namespace Roslyn.Test.Utilities
             return result;
         }
 
+        internal static DiagnosticDescription Diagnostic(
+            object code,
+            string squiggledText = null,
+            object[] arguments = null,
+            LinePosition? startLocation = null,
+            Func<SyntaxNode, bool> syntaxNodePredicate = null,
+            bool argumentOrderDoesNotMatter = false)
+        {
+            Debug.Assert(code is Microsoft.CodeAnalysis.CSharp.ErrorCode ||
+                         code is Microsoft.CodeAnalysis.VisualBasic.ERRID ||
+                         code is int ||
+                         code is string);
+
+            return new DiagnosticDescription(
+                code as string ?? (object)(int)code,
+                false,
+                squiggledText,
+                arguments,
+                startLocation,
+                syntaxNodePredicate,
+                argumentOrderDoesNotMatter,
+                code.GetType());
+        }
+
+        internal static DiagnosticDescription Diagnostic(
+           object code,
+           XCData squiggledText,
+           object[] arguments = null,
+           LinePosition? startLocation = null,
+           Func<SyntaxNode, bool> syntaxNodePredicate = null,
+           bool argumentOrderDoesNotMatter = false)
+        {
+            return Diagnostic(
+                code,
+                NormalizeNewLines(squiggledText),
+                arguments,
+                startLocation,
+                syntaxNodePredicate,
+                argumentOrderDoesNotMatter);
+        }
+
+        public static string NormalizeNewLines(XCData data)
+        {
+            if (ExecutionConditionUtil.IsWindows)
+            {
+                return data.Value.Replace("\n", "\r\n");
+            }
+
+            return data.Value;
+        }
     }
 }

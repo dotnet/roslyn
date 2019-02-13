@@ -2,7 +2,6 @@
 
 Imports System.Composition
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Classification
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
@@ -39,6 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 Dim listenerProvider = exportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
                 Dim provider = New SemanticClassificationViewTaggerProvider(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     workspace.GetService(Of IForegroundNotificationService),
                     workspace.GetService(Of ISemanticChangeNotificationService),
                     workspace.GetService(Of ClassificationTypeMap),

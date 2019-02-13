@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var paramCount = method.ParameterCount;
             var arguments = new BoundExpression[paramCount];
+
             for (int i = 0; i < paramCount; i++)
             {
                 var argument = (i == 0) ? thisArgumentValue : otherArgumentValue;
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 conversions,
                 method,
                 arguments.AsImmutable(),
-                ref useSiteDiagnostics);
+                useSiteDiagnostics: ref useSiteDiagnostics);
 
             if (typeArgs.IsDefault)
             {
@@ -83,19 +84,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeArgsForConstraintsCheck = typeArgs;
             for (int i = 0; i < typeArgsForConstraintsCheck.Length; i++)
             {
-                if ((object)typeArgsForConstraintsCheck[i] == null)
+                if (typeArgsForConstraintsCheck[i].IsNull)
                 {
                     firstNullInTypeArgs = i;
-                    var builder = ArrayBuilder<TypeSymbol>.GetInstance();
-                    builder.AddRange(typeArgs, firstNullInTypeArgs);
+                    var builder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
+                    builder.AddRange(typeArgsForConstraintsCheck, firstNullInTypeArgs);
 
                     for (; i < typeArgsForConstraintsCheck.Length; i++)
                     {
                         var typeArg = typeArgsForConstraintsCheck[i];
-                        if ((object)typeArg == null)
+                        if (typeArg.IsNull)
                         {
                             notInferredTypeParameters.Add(typeParams[i]);
-                            builder.Add(ErrorTypeSymbol.UnknownResultType);
+                            builder.Add(TypeSymbolWithAnnotations.Create(ErrorTypeSymbol.UnknownResultType));
                         }
                         else
                         {
@@ -110,9 +111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Check constraints.
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
-            var substitution = new TypeMap(typeParams, typeArgsForConstraintsCheck.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers));
+            var substitution = new TypeMap(typeParams, typeArgsForConstraintsCheck);
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var success = method.CheckConstraints(conversions, substitution, typeParams, typeArgsForConstraintsCheck, compilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder, 
+            var success = method.CheckConstraints(conversions, substitution, typeParams, typeArgsForConstraintsCheck, compilation, diagnosticsBuilder, warningsBuilderOpt: null, ref useSiteDiagnosticsBuilder,
                                                   ignoreTypeConstraintsDependentOnTypeParametersOpt: notInferredTypeParameters.Count > 0 ? notInferredTypeParameters : null);
             diagnosticsBuilder.Free();
             notInferredTypeParameters.Free();
@@ -139,12 +140,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeArgsForConstruct = typeArgs;
             if (firstNullInTypeArgs != -1)
             {
-                var builder = ArrayBuilder<TypeSymbol>.GetInstance();
+                var builder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
                 builder.AddRange(typeArgs, firstNullInTypeArgs);
 
                 for (int i = firstNullInTypeArgs; i < typeArgsForConstruct.Length; i++)
                 {
-                    builder.Add(typeArgsForConstruct[i] ?? typeParams[i]);
+                    var typeArgForConstruct = typeArgsForConstruct[i];
+                    builder.Add(!typeArgForConstruct.IsNull ? typeArgForConstruct : TypeSymbolWithAnnotations.Create(typeParams[i]));
                 }
 
                 typeArgsForConstruct = builder.ToImmutableAndFree();
@@ -216,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns a constructed method symbol if 'method' is generic, otherwise just returns 'method'
         /// </summary>
-        public static MethodSymbol ConstructIfGeneric(this MethodSymbol method, ImmutableArray<TypeSymbol> typeArguments)
+        public static MethodSymbol ConstructIfGeneric(this MethodSymbol method, ImmutableArray<TypeSymbolWithAnnotations> typeArguments)
         {
             Debug.Assert(method.IsGenericMethod == (typeArguments.Length > 0));
             return method.IsGenericMethod ? method.Construct(typeArguments) : method;
@@ -291,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsTaskReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
-                && method.ReturnType.IsNonGenericTaskType(compilation);
+                && method.ReturnType.TypeSymbol.IsNonGenericTaskType(compilation);
         }
 
         /// <summary>
@@ -300,7 +302,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsGenericTaskReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
-                && method.ReturnType.IsGenericTaskType(compilation);
+                && method.ReturnType.TypeSymbol.IsGenericTaskType(compilation);
+        }
+
+        /// <summary>
+        /// Returns whether this method is async and returns an IAsyncEnumerable`1.
+        /// </summary>
+        public static bool IsIAsyncEnumerableReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
+        {
+            return method.IsAsync
+                && method.ReturnType.TypeSymbol.IsIAsyncEnumerableType(compilation);
+        }
+
+        /// <summary>
+        /// Returns whether this method is async and returns an IAsyncEnumerator`1.
+        /// </summary>
+        public static bool IsIAsyncEnumeratorReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
+        {
+            return method.IsAsync
+                && method.ReturnType.TypeSymbol.IsIAsyncEnumeratorType(compilation);
         }
 
         internal static CSharpSyntaxNode ExtractReturnTypeSyntax(this MethodSymbol method)

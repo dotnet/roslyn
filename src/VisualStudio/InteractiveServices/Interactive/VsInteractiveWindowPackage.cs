@@ -2,24 +2,22 @@
 
 using System;
 using System.ComponentModel.Design;
-using System.Runtime.InteropServices;
-using EnvDTE;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices.Setup;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation;
 using System.Diagnostics;
-using Microsoft.VisualStudio.InteractiveWindow;
 using System.Reflection;
-using Microsoft.VisualStudio.InteractiveWindow.Shell;
+using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.InteractiveWindow.Shell;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
-    internal abstract partial class VsInteractiveWindowPackage<TVsInteractiveWindowProvider> : Package, IVsToolWindowFactory
+    internal abstract partial class VsInteractiveWindowPackage<TVsInteractiveWindowProvider> : AsyncPackage, IVsToolWindowFactory
         where TVsInteractiveWindowProvider : VsInteractiveWindowProvider
     {
         protected abstract void InitializeMenuCommands(OleMenuCommandService menuCommandService);
@@ -30,22 +28,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         private IComponentModel _componentModel;
         private TVsInteractiveWindowProvider _interactiveWindowProvider;
 
-        protected override void Initialize()
+        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            base.Initialize();
+            await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var shell = (IVsShell)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+            _componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
+            var menuCommandService = (OleMenuCommandService)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
+            cancellationToken.ThrowIfCancellationRequested();
+            Assumes.Present(shell);
+            Assumes.Present(_componentModel);
+            Assumes.Present(menuCommandService);
 
             // Load the Roslyn package so that its FatalError handlers are hooked up.
-            var shell = (IVsShell)this.GetService(typeof(SVsShell));
             shell.LoadPackage(Guids.RoslynPackageId, out var roslynPackage);
-            
+
             // Explicitly set up FatalError handlers for the InteractiveWindowPackage.
             SetErrorHandlers(typeof(IInteractiveWindow).Assembly);
             SetErrorHandlers(typeof(IVsInteractiveWindow).Assembly);
 
-            _componentModel = (IComponentModel)GetService(typeof(SComponentModel));
             _interactiveWindowProvider = _componentModel.DefaultExportProvider.GetExportedValue<TVsInteractiveWindowProvider>();
 
-            var menuCommandService = (OleMenuCommandService)GetService(typeof(IMenuCommandService));
             InitializeMenuCommands(menuCommandService);
         }
 

@@ -3729,7 +3729,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' using a temporary diagnostic bag to only report use site errors for IEnumerable or IEnumerable(Of T) if they are used.
                 Dim ienumerableUseSiteDiagnostics = DiagnosticBag.GetInstance
                 Dim genericIEnumerable = GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T, collectionSyntax, ienumerableUseSiteDiagnostics)
-                Dim matchingInterfaces As New HashSet(Of NamedTypeSymbol)()
+                Dim matchingInterfaces As New HashSet(Of NamedTypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
 
                 If Not collection.IsNothingLiteral AndAlso
@@ -4322,7 +4322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return True
                     End If
 
-                    matchingInterfaces.Add(DirectCast(derivedType, NamedTypeSymbol))
+                    RecordMatchForIsOrInheritsFromOrImplementsInterface(matchingInterfaces, DirectCast(derivedType, NamedTypeSymbol))
                 End If
 
                 ' implements or inherits interface
@@ -4332,13 +4332,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Return True
                         End If
 
-                        matchingInterfaces.Add(interfaceOfDerived)
+                        RecordMatchForIsOrInheritsFromOrImplementsInterface(matchingInterfaces, interfaceOfDerived)
                     End If
                 Next
             End If
 
             Return matchingInterfaces IsNot Nothing AndAlso matchingInterfaces.Count > 0
         End Function
+
+        Private Shared Sub RecordMatchForIsOrInheritsFromOrImplementsInterface(matchingInterfaces As HashSet(Of NamedTypeSymbol), interfaceOfDerived As NamedTypeSymbol)
+            Debug.Assert(matchingInterfaces.Comparer Is EqualsIgnoringComparer.InstanceIgnoringTupleNames OrElse
+                         matchingInterfaces.Comparer Is EqualityComparer(Of NamedTypeSymbol).Default)
+
+            If Not matchingInterfaces.Add(interfaceOfDerived) AndAlso
+               matchingInterfaces.Comparer Is EqualsIgnoringComparer.InstanceIgnoringTupleNames AndAlso
+               Not interfaceOfDerived.IsDefinition Then
+
+                ' Keep the last match in the set
+                matchingInterfaces.Remove(interfaceOfDerived)
+                matchingInterfaces.Add(interfaceOfDerived)
+            End If
+        End Sub
 
         Public Function BindWithBlock(node As WithBlockSyntax, diagnostics As DiagnosticBag) As BoundStatement
             Dim binder As Binder = Me.GetBinder(DirectCast(node, VisualBasicSyntaxNode))

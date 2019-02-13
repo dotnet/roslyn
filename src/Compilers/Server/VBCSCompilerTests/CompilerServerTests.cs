@@ -101,7 +101,7 @@ End Module")
 
         private static void ReferenceNetstandardDllIfCoreClr(TempDirectory currentDirectory, List<string> arguments)
         {
-#if NETCOREAPP2_0
+#if !NET472
             var filePath = Path.Combine(currentDirectory.Path, "netstandard.dll");
             File.WriteAllBytes(filePath, TestResources.NetFX.netstandard20.netstandard);
             arguments.Add("/nostdlib");
@@ -223,7 +223,7 @@ End Module")
 
         private static void RunCompilerOutput(TempFile file, string expectedOutput)
         {
-            if (!CoreClrShim.IsRunningOnCoreClr)
+            if (RuntimeHostInfo.IsDesktopRuntime)
             {
                 var result = ProcessUtilities.Run(file.Path, "", Path.GetDirectoryName(file.Path));
                 Assert.Equal(expectedOutput.Trim(), result.Output.Trim());
@@ -232,7 +232,7 @@ End Module")
 
         private static void VerifyResult((int ExitCode, string Output) result)
         {
-            Assert.Equal("", result.Output);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", result.Output);
             Assert.Equal(0, result.ExitCode);
         }
 
@@ -247,6 +247,28 @@ End Module")
         }
 
         #endregion
+
+        [ConditionalFact(typeof(UnixLikeOnly))]
+        public async Task ServerFailsWithLongTempPathUnix()
+        {
+            var newTempDir = _tempDirectory.CreateDirectory(new string('a', 100 - _tempDirectory.Path.Length));
+            await ApplyEnvironmentVariables(
+                new[] { new KeyValuePair<string, string>("TMPDIR", newTempDir.Path) },
+                async () =>
+            {
+                using (var serverData = ServerUtil.CreateServer())
+                {
+                    var result = RunCommandLineCompiler(
+                        CSharpCompilerClientExecutable,
+                        $"/shared:{serverData.PipeName} /nologo hello.cs",
+                        _tempDirectory,
+                        s_helloWorldSrcCs,
+                        shouldRunOnServer: false);
+                    VerifyResultAndOutput(result, _tempDirectory, "Hello, world.");
+                    await serverData.Verify(connections: 0, completed: 0).ConfigureAwait(true);
+                }
+            });
+        }
 
         [Fact]
         public async Task FallbackToCsc()
@@ -361,6 +383,18 @@ End Module")
             using (var serverData = ServerUtil.CreateServer())
             {
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs);
+                VerifyResultAndOutput(result, _tempDirectory, "Hello, world.");
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
+            }
+        }
+
+        [Fact]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
+        public async Task HelloWorldCSDashShared()
+        {
+            using (var serverData = ServerUtil.CreateServer())
+            {
+                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"-shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello, world.");
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
@@ -762,7 +796,7 @@ End Module
             GC.KeepAlive(rootDirectory);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Skip = "https://github.com/dotnet/roslyn/issues/19763")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/19763")]
         [WorkItem(723280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/723280")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task ReferenceCachingCS()
@@ -1171,7 +1205,7 @@ End Module
 {
     public System.Exception GetException()
     {
-        return null;
+        return new System.Exception();
     }
 }
 "}};
@@ -1394,7 +1428,7 @@ class Program
             });
             using (var serverData = ServerUtil.CreateServer(compilerServerHost: host))
             {
-                var request = new BuildRequest(1, RequestLanguage.CSharpCompile, new BuildRequest.Argument[0]);
+                var request = new BuildRequest(1, RequestLanguage.CSharpCompile, string.Empty, new BuildRequest.Argument[0]);
                 var compileTask = ServerUtil.Send(serverData.PipeName, request);
                 var response = await compileTask;
                 Assert.Equal(BuildResponse.ResponseType.Completed, response.Type);

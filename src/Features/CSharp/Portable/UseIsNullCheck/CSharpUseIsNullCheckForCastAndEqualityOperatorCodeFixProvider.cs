@@ -8,11 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseIsNullCheck;
 using Roslyn.Utilities;
@@ -25,14 +23,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckDiagnosticId);
 
+        private static bool IsSupportedDiagnostic(Diagnostic diagnostic)
+            => diagnostic.Properties[UseIsNullConstants.Kind] == UseIsNullConstants.CastAndEqualityKey;
+
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
+            if (IsSupportedDiagnostic(diagnostic))
+            {
+                context.RegisterCodeFix(
+                    new MyCodeAction(CSharpFeaturesResources.Use_is_null_check,
+                    c => this.FixAsync(context.Document, diagnostic, c)),
+                    context.Diagnostics);
+            }
 
-            context.RegisterCodeFix(
-                new MyCodeAction(CSharpFeaturesResources.Use_is_null_check,
-                c => this.FixAsync(context.Document, diagnostic, c)),
-                context.Diagnostics);
             return Task.CompletedTask;
         }
 
@@ -42,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         {
             foreach (var diagnostic in diagnostics)
             {
-                if (diagnostic.Properties[UseIsNullConstants.Kind] != UseIsNullConstants.CastAndEqualityKey)
+                if (!IsSupportedDiagnostic(diagnostic))
                 {
                     continue;
                 }
@@ -50,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 var binary = (BinaryExpressionSyntax)diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken: cancellationToken);
 
                 editor.ReplaceNode(
-                    binary, 
+                    binary,
                     (current, g) => Rewrite((BinaryExpressionSyntax)current));
             }
 

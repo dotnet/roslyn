@@ -12,14 +12,34 @@
         <target state="translated">C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="CSharp_Coding_Conventions">
+        <source>C# Coding Conventions</source>
+        <target state="translated">c# 编码约定</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_Formatting_Rules">
+        <source>C# Formatting Rules</source>
+        <target state="translated">C# 格式规则</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Discard">
+        <source>Discard</source>
+        <target state="new">Discard</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
         <target state="translated">设定文档设置的格式(试验)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Event_Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="new">Generate Event Subscription</target>
+        <note />
+      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
-        <target state="translated">在关系运算符中:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
+        <target state="translated">在关系运算符中: &lt;   &gt;   &lt;=   &gt;= 等同于 ==   !=</target>
         <note />
       </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
@@ -34,7 +54,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
-        <target state="translated">删除不必要的 using</target>
+        <target state="translated">删除不必要的 Using</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_usings">
@@ -357,6 +377,11 @@
         <target state="translated">关键字的新行选项</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="new">Unused local</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_var_when_generating_locals">
         <source>Use 'var' when generating locals</source>
         <target state="translated">生成局部变量时，使用“var”</target>
@@ -454,7 +479,7 @@
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is_typed">
         <source>_Show completion list after a character is typed</source>
-        <target state="translated">键入字符后显示完成列表(_S)</target>
+        <target state="translated">键入字符后显示完成列表</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_keywords_in_completion_lists">
@@ -517,6 +542,11 @@
         <target state="translated">其他位置</target>
         <note />
       </trans-unit>
+      <trans-unit id="When_on_multiple_lines">
+        <source>When on multiple lines</source>
+        <target state="new">When on multiple lines</target>
+        <note />
+      </trans-unit>
       <trans-unit id="When_variable_type_is_apparent">
         <source>When variable type is apparent</source>
         <target state="translated">当变量类型明显时</target>
@@ -574,7 +604,7 @@
       </trans-unit>
       <trans-unit id="predefined_type_preferences_colon">
         <source>predefined type preferences:</source>
-        <target state="translated">预定义的类型首选项:</target>
+        <target state="translated">预定义类型首选项:</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_string_literals_on_enter">
@@ -709,7 +739,7 @@
       </trans-unit>
       <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
         <source>Report invalid placeholders in 'string.Format' calls</source>
-        <target state="translated">报告 "string.Format" 调用中无效的占位符</target>
+        <target state="translated">报告 "String.Format" 调用中无效的占位符</target>
         <note />
       </trans-unit>
       <trans-unit id="Separate_using_directive_groups">
@@ -722,19 +752,14 @@
         <target state="translated">显示名称建议(_U)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate Event Subscription">
-        <source>Generate Event Subscription</source>
-        <target state="translated">生成事件订阅</target>
-        <note />
-      </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">
         <source>In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</source>
-        <target state="translated">在算术运算符中:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</target>
+        <target state="translated">在算术运算符中: *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators:  &amp;&amp;   ||   ??</source>
-        <target state="translated">在其他二进制运算符中:  &amp;&amp;   ||   ??</target>
+        <target state="translated">在其他二进制运算符中: &amp;&amp;   ||   ??</target>
         <note />
       </trans-unit>
     </body>

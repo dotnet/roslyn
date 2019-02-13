@@ -1,12 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -32,12 +27,14 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         private readonly ITextViewRoleSet _roleSet;
 
         private ProjectionBufferContent(
+            IThreadingContext threadingContext,
             ImmutableArray<SnapshotSpan> spans,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             ITextEditorFactoryService textEditorFactoryService,
             IContentType contentType = null,
             ITextViewRoleSet roleSet = null)
+            : base(threadingContext)
         {
             _spans = spans;
             _projectionBufferFactoryService = projectionBufferFactoryService;
@@ -47,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             _roleSet = roleSet ?? _textEditorFactoryService.NoRoles;
         }
 
-        public static ContentControl Create(
+        public static ViewHostingControl Create(
+            IThreadingContext threadingContext,
             ImmutableArray<SnapshotSpan> spans,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
@@ -56,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             ITextViewRoleSet roleSet = null)
         {
             var content = new ProjectionBufferContent(
+                threadingContext,
                 spans,
                 projectionBufferFactoryService,
                 editorOptionsFactoryService,
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             return content.Create();
         }
 
-        private ContentControl Create()
+        private ViewHostingControl Create()
         {
             AssertIsForeground();
 
@@ -77,11 +76,14 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         {
             var view = _textEditorFactoryService.CreateTextView(buffer, _roleSet);
 
-            view.SizeToFit();
+            view.SizeToFit(ThreadingContext);
             view.Background = Brushes.Transparent;
 
             // Zoom out a bit to shrink the text.
             view.ZoomLevel *= 0.75;
+
+            // turn off highlight current line
+            view.Options.SetOptionValue(DefaultWpfViewOptions.EnableHighlightCurrentLineId, false);
 
             return view;
         }

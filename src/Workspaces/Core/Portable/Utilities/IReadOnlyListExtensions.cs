@@ -20,6 +20,19 @@ namespace Microsoft.CodeAnalysis.Utilities
             return list[list.Count - 1];
         }
 
+        public static int IndexOf<T>(this IReadOnlyList<T> list, T value, int startIndex)
+        {
+            for (var index = startIndex; index < list.Count; index++)
+            {
+                if (EqualityComparer<T>.Default.Equals(list[index], value))
+                {
+                    return index;
+                }
+            }
+
+            return -1;
+        }
+
         private class ReadOnlyList<T> : IReadOnlyList<T>
         {
             private readonly IList<T> _list;

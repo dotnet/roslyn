@@ -3,24 +3,17 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using ICSharpCode.Decompiler;
-using ICSharpCode.Decompiler.CSharp;
-using ICSharpCode.Decompiler.CSharp.Transforms;
-using ICSharpCode.Decompiler.TypeSystem;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Mono.Cecil;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
@@ -127,7 +120,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                     {
                         try
                         {
-                            temporaryDocument = await DecompileSymbolAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);
+                            var decompiledSourceService = temporaryDocument.GetLanguageService<IDecompiledSourceService>();
+                            if (decompiledSourceService != null)
+                            {
+                                temporaryDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);
+                            }
+                            else
+                            {
+                                useDecompiler = false;
+                            }
                         }
                         catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
                         {
@@ -188,125 +189,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             var documentTooltip = topLevelNamedType.ToDisplayString(new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces));
 
             return new MetadataAsSourceFile(fileInfo.TemporaryFilePath, navigateLocation, documentName, documentTooltip);
-        }
-
-        private async Task<Document> DecompileSymbolAsync(Document temporaryDocument, ISymbol symbol, CancellationToken cancellationToken)
-        {
-            // Get the name of the type the symbol is in
-            var containingOrThis = symbol.GetContainingTypeOrThis();
-            var fullName = GetFullReflectionName(containingOrThis);
-
-            var compilation = await temporaryDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-            string assemblyLocation = null;
-            var isReferenceAssembly = symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(ReferenceAssemblyAttribute)
-                && attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName);
-            if (isReferenceAssembly)
-            {
-                try
-                {
-                    var fullAssemblyName = symbol.ContainingAssembly.Identity.GetDisplayName();
-                    GlobalAssemblyCache.Instance.ResolvePartialName(fullAssemblyName, out assemblyLocation, preferredCulture: CultureInfo.CurrentCulture);
-                }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
-                {
-                }
-            }
-
-            if (assemblyLocation == null)
-            {
-                var reference = compilation.GetMetadataReference(symbol.ContainingAssembly);
-                assemblyLocation = (reference as PortableExecutableReference)?.FilePath;
-                if (assemblyLocation == null)
-                {
-                    throw new NotSupportedException(EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret);
-                }
-            }
-
-            // Load the assembly.
-            var assemblyDefinition = AssemblyDefinition.ReadAssembly(assemblyLocation, new ReaderParameters() { AssemblyResolver = new RoslynAssemblyResolver(compilation) });
-
-            // Initialize a decompiler with default settings.
-            var decompiler = new CSharpDecompiler(assemblyDefinition.MainModule, new DecompilerSettings());
-            // Escape invalid identifiers to prevent Roslyn from failing to parse the generated code.
-            // (This happens for example, when there is compiler-generated code that is not yet recognized/transformed by the decompiler.)
-            decompiler.AstTransforms.Add(new EscapeInvalidIdentifiers());
-
-            var fullTypeName = new FullTypeName(fullName);
-
-            var decompilerVersion = FileVersionInfo.GetVersionInfo(typeof(CSharpDecompiler).Assembly.Location);
-
-            // Add header to match output of metadata-only view.
-            // (This also makes debugging easier, because you can see which assembly was decompiled inside VS.)
-            var header = $"#region {FeaturesResources.Assembly} {assemblyDefinition.FullName}" + Environment.NewLine
-                + $"// {assemblyDefinition.MainModule.FileName}" + Environment.NewLine
-                + $"// Decompiled with ICSharpCode.Decompiler {decompilerVersion.FileVersion}" + Environment.NewLine
-                + "#endregion" + Environment.NewLine;
-
-            // Try to decompile; if an exception is thrown the caller will handle it
-            var text = decompiler.DecompileTypeAsString(fullTypeName);
-            return temporaryDocument.WithText(SourceText.From(header + text));
-        }
-
-        private class RoslynAssemblyResolver : IAssemblyResolver
-        {
-            private readonly Compilation parentCompilation;
-
-            public RoslynAssemblyResolver(Compilation parentCompilation)
-            {
-                this.parentCompilation = parentCompilation;
-            }
-
-            public AssemblyDefinition Resolve(AssemblyNameReference name)
-            {
-                return Resolve(name, new ReaderParameters());
-            }
-
-            public AssemblyDefinition Resolve(AssemblyNameReference name, ReaderParameters parameters)
-            {
-                foreach (var assembly in parentCompilation.GetReferencedAssemblySymbols())
-                {
-                    if (assembly.Identity.Name != name.Name
-                        || !assembly.Identity.PublicKeyToken.SequenceEqual(name.PublicKeyToken ?? Array.Empty<byte>()))
-                    {
-                        continue;
-                    }
-
-                    if (assembly.Identity.Version != name.Version
-                        && !string.Equals("mscorlib", assembly.Identity.Name, StringComparison.OrdinalIgnoreCase))
-                    {
-                        // MSBuild treats mscorlib special for the purpose of assembly resolution/unification, where all
-                        // versions of the assembly are considered equal. The same policy is adopted here.
-                        continue;
-                    }
-
-                    // reference assemblies should be fine here...
-                    var reference = parentCompilation.GetMetadataReference(assembly);
-                    return AssemblyDefinition.ReadAssembly(reference.Display);
-                }
-
-                // not found
-                return null;
-            }
-
-            public void Dispose()
-            {
-            }
-        }
-
-        private string GetFullReflectionName(INamedTypeSymbol containingType)
-        {
-            var stack = new Stack<string>();
-            stack.Push(containingType.MetadataName);
-            var ns = containingType.ContainingNamespace;
-            do
-            {
-                stack.Push(ns.Name);
-                ns = ns.ContainingNamespace;
-            }
-            while (ns != null && !ns.IsGlobalNamespace);
-
-            return string.Join(".", stack);
         }
 
         private async Task<Location> RelocateSymbol_NoLock(MetadataAsSourceGeneratedFileInfo fileInfo, SymbolKey symbolId, CancellationToken cancellationToken)

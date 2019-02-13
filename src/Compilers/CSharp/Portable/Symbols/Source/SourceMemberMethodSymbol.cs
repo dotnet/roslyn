@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.locations = locations;
         }
 
-        protected void CheckEffectiveAccessibility(TypeSymbol returnType, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
+        protected void CheckEffectiveAccessibility(TypeSymbolWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
         {
             if (this.DeclaredAccessibility <= Accessibility.Private)
             {
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!this.IsNoMoreVisibleThan(returnType, ref useSiteDiagnostics))
             {
                 // Inconsistent accessibility: return type '{1}' is less accessible than method '{0}'
-                diagnostics.Add(code, Locations[0], this, returnType);
+                diagnostics.Add(code, Locations[0], this, returnType.TypeSymbol);
             }
 
             code = (this.MethodKind == MethodKind.Conversion || this.MethodKind == MethodKind.UserDefinedOperator) ?
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!parameter.Type.IsAtLeastAsVisibleAs(this, ref useSiteDiagnostics))
                 {
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than method '{0}'
-                    diagnostics.Add(code, Locations[0], this, parameter.Type);
+                    diagnostics.Add(code, Locations[0], this, parameter.Type.TypeSymbol);
                 }
             }
 
@@ -669,14 +669,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray<CustomModifier>.Empty;
-            }
-        }
-
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
@@ -685,11 +677,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override ImmutableArray<TypeSymbol> TypeArguments
+        public sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
             get
             {
-                return TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
+                return GetTypeParametersAsTypeArguments();
             }
         }
 
@@ -722,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             set
             {
-                Debug.Assert((object)_iteratorElementType == null || _iteratorElementType == value);
+                Debug.Assert((object)_iteratorElementType == null || TypeSymbol.Equals(_iteratorElementType, value, TypeCompareKind.ConsiderEverything2));
                 Interlocked.CompareExchange(ref _iteratorElementType, value, null);
             }
         }
@@ -821,9 +813,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 state.SpinWaitComplete(incompletePart, cancellationToken);
             }
 
-        done:
-            // Don't return until we've seen all of the CompletionParts. This ensures all
-            // diagnostics have been reported (not necessarily on this thread).
+done:
+// Don't return until we've seen all of the CompletionParts. This ensures all
+// diagnostics have been reported (not necessarily on this thread).
             CompletionPart allParts = CompletionPart.MethodSymbolAll;
             state.SpinWaitComplete(allParts, cancellationToken);
         }
@@ -1332,6 +1324,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
+            {
+                // NullableAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
+            }
         }
 
         private void DecodeDllImportAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
@@ -1607,38 +1604,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-#endregion
+        #endregion
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            if (this.IsAsync || this.IsIterator)
+            bool isAsync = this.IsAsync;
+            bool isIterator = this.IsIterator;
+
+            if (!isAsync && !isIterator)
             {
-                var compilation = this.DeclaringCompilation;
+                return;
+            }
 
-                // The async state machine type is not synthesized until the async method body is rewritten. If we are
-                // only emitting metadata the method body will not have been rewritten, and the async state machine
-                // type will not have been created. In this case, omit the attribute.
-                NamedTypeSymbol stateMachineType;
-                if (moduleBuilder.CompilationState.TryGetStateMachineType(this, out stateMachineType))
+            var compilation = this.DeclaringCompilation;
+
+            // The async state machine type is not synthesized until the async method body is rewritten. If we are
+            // only emitting metadata the method body will not have been rewritten, and the async state machine
+            // type will not have been created. In this case, omit the attribute.
+            if (moduleBuilder.CompilationState.TryGetStateMachineType(this, out NamedTypeSymbol stateMachineType))
+            {
+                var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type),
+                    TypedConstantKind.Type, stateMachineType.GetUnboundGenericTypeOrSelf());
+
+                if (isAsync && isIterator)
                 {
-                    WellKnownMember ctor = this.IsAsync ?
-                        WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor :
-                        WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor;
-
-                    var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type), TypedConstantKind.Type, stateMachineType.GetUnboundGenericTypeOrSelf());
-
-                    AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(ctor, ImmutableArray.Create(arg)));
+                    AddSynthesizedAttribute(ref attributes,
+                        compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
+                            ImmutableArray.Create(arg)));
                 }
-
-                if (this.IsAsync)
+                else if (isAsync)
                 {
-                    // Async kick-off method calls MoveNext, which contains user code. 
-                    // This means we need to emit DebuggerStepThroughAttribute in order
-                    // to have correct stepping behavior during debugging.
-                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerStepThroughAttribute());
+                    AddSynthesizedAttribute(ref attributes,
+                        compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor,
+                            ImmutableArray.Create(arg)));
                 }
+                else if (isIterator)
+                {
+                    AddSynthesizedAttribute(ref attributes,
+                        compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor,
+                            ImmutableArray.Create(arg)));
+                }
+            }
+
+            if (isAsync && !isIterator)
+            {
+                // Regular async (not async-iterator) kick-off method calls MoveNext, which contains user code.
+                // This means we need to emit DebuggerStepThroughAttribute in order
+                // to have correct stepping behavior during debugging.
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerStepThroughAttribute());
             }
         }
 

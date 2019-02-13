@@ -1,8 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
@@ -316,6 +316,7 @@ using G=   H.I;
                     .WithChangedOption(FormattingOptions.IndentationSize, document.Project.Language, tabSize)
 
                 Dim snippetExpansionClient = New SnippetExpansionClient(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     Guids.CSharpLanguageServiceId,
                     document.GetTextView(),
                     document.TextBuffer,
@@ -336,6 +337,7 @@ using G=   H.I;
                     options:=ProjectionBufferOptions.WritableLiteralSpans)
 
                 Dim snippetExpansionClient = New SnippetExpansionClient(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     Guids.CSharpLanguageServiceId,
                     surfaceBufferDocument.GetTextView(),
                     subjectBufferDocument.TextBuffer,
@@ -374,6 +376,7 @@ using G=   H.I;
 
             Using workspace = TestWorkspace.CreateCSharp(originalCode)
                 Dim expansionClient = New SnippetExpansionClient(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     Guids.VisualBasicDebuggerLanguageId,
                     workspace.Documents.Single().GetTextView(),
                     workspace.Documents.Single().GetTextBuffer(),

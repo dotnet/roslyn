@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -50,6 +51,11 @@ namespace Microsoft.CodeAnalysis
         /// The sequence of logical folders the document is contained in.
         /// </summary>
         public IReadOnlyList<string> Folders => State.Folders;
+
+        /// <summary>
+        /// A <see cref="IDocumentServiceProvider"/> associated with this document
+        /// </summary>
+        internal IDocumentServiceProvider Services => State.Services;
 
         /// <summary>
         /// Get the current text for the document if it is already loaded and available.

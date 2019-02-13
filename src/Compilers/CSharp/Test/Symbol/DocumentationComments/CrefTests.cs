@@ -1558,7 +1558,7 @@ class C<T, U, V>
             AssertEx.None(actualTypeParameters, p => p.HasReferenceTypeConstraint);
             AssertEx.None(actualTypeParameters, p => p.HasConstructorConstraint);
             AssertEx.All(actualTypeParameters, p => p.ContainingSymbol == null);
-            AssertEx.All(actualTypeParameters, p => p.GetConstraintTypes(null).Length == 0);
+            AssertEx.All(actualTypeParameters, p => p.GetConstraintTypes(null, early: false).Length == 0);
             AssertEx.All(actualTypeParameters, p => p.GetInterfaces(null).Length == 0);
 
             foreach (var p in actualTypeParameters)
@@ -1603,7 +1603,7 @@ class B
             Assert.Equal("U", typeArgument.Name);
             Assert.IsType<CrefTypeParameterSymbol>(typeArgument);
             Assert.Equal(0, ((TypeParameterSymbol)typeArgument).Ordinal);
-            Assert.Equal(typeArgument, actualSymbol.GetParameters().Single().Type);
+            Assert.Equal(typeArgument, actualSymbol.GetParameters().Single().Type.TypeSymbol);
         }
 
         [Fact]
@@ -1628,8 +1628,8 @@ class A<M, N>
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
             Assert.Equal(expectedOriginalDefinitionSymbol, actualSymbol.OriginalDefinition);
 
-            var expectedOriginalParameterTypes = expectedOriginalDefinitionSymbol.Parameters.Select(p => p.Type).Cast<TypeParameterSymbol>();
-            var actualParameterTypes = actualSymbol.GetParameters().Select(p => p.Type).Cast<TypeParameterSymbol>();
+            var expectedOriginalParameterTypes = expectedOriginalDefinitionSymbol.Parameters.Select(p => p.Type.TypeSymbol).Cast<TypeParameterSymbol>();
+            var actualParameterTypes = actualSymbol.GetParameters().Select(p => p.Type.TypeSymbol).Cast<TypeParameterSymbol>();
 
             AssertEx.Equal(expectedOriginalParameterTypes.Select(t => t.Ordinal), actualParameterTypes.Select(t => t.Ordinal));
             AssertEx.None(expectedOriginalParameterTypes.Zip(actualParameterTypes, object.Equals), x => x);
@@ -1661,8 +1661,8 @@ class A<T, U>
 
             Assert.False(actualWinner.IsDefinition);
 
-            var actualParameterType = actualWinner.GetParameters().Single().Type;
-            AssertEx.All(actualWinner.ContainingType.TypeArguments(), typeParam => typeParam == actualParameterType); //CONSIDER: Would be different in Dev11.
+            var actualParameterType = actualWinner.GetParameters().Single().Type.TypeSymbol;
+            AssertEx.All(actualWinner.ContainingType.TypeArguments(), typeParam => TypeSymbol.Equals(typeParam, actualParameterType, TypeCompareKind.ConsiderEverything2)); //CONSIDER: Would be different in Dev11.
             Assert.Equal(1, ((TypeParameterSymbol)actualParameterType).Ordinal);
 
             Assert.Equal(2, actualCandidates.Length);
@@ -1699,7 +1699,7 @@ class A<T>
 
             Assert.False(actualWinner.IsDefinition);
 
-            var actualParameterType = actualWinner.GetParameters().Single().Type;
+            var actualParameterType = actualWinner.GetParameters().Single().Type.TypeSymbol;
             Assert.Equal(actualParameterType, actualWinner.ContainingType.TypeArguments().Single());
             Assert.Equal(actualParameterType, actualWinner.ContainingType.ContainingType.TypeArguments().Single());
 
@@ -5874,7 +5874,7 @@ enum E { }
             compilation.VerifyDiagnostics();
 
             var expectedSymbol = compilation.GetSpecialType(SpecialType.System_String).
-                InstanceConstructors.Single(ctor => ctor.ParameterCount == 1 && ctor.ParameterTypes[0].IsArray());
+                InstanceConstructors.Single(ctor => ctor.ParameterCount == 1 && ctor.ParameterTypes[0].TypeSymbol.IsArray());
 
             var cref = GetCrefSyntaxes(compilation).Single();
 
@@ -6029,7 +6029,7 @@ enum E { }
             var methodSymbol = model.GetSymbolInfo(methodNameSyntax).Symbol;
             Assert.Equal(SymbolKind.Method, methodSymbol.Kind);
 
-            var members = model.LookupSymbols(methodNameSyntax.SpanStart, ((MethodSymbol)methodSymbol).ReturnType);
+            var members = model.LookupSymbols(methodNameSyntax.SpanStart, ((MethodSymbol)methodSymbol).ReturnType.TypeSymbol);
             Assert.Equal(0, members.Length);
         }
 
@@ -6659,6 +6659,54 @@ class Test
 
             var parameterSymbol = ((MethodSymbol)model.GetSymbolInfo(cref).Symbol).Parameters.Single();
             Assert.Equal(RefKind.In, parameterSymbol.RefKind);
+        }
+
+        [Fact]
+        public void Cref_TupleType()
+        {
+            var source = @"
+using System;
+/// <summary>
+/// See <see cref=""ValueTuple{T,T}""/>.
+/// </summary>
+class C
+{
+}
+";
+            var parseOptions = TestOptions.RegularWithDocumentationComments;
+            var options = TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default);
+            var compilation = CreateCompilation(source, parseOptions: parseOptions, options: options, targetFramework: TargetFramework.StandardAndCSharp);
+            var cMember = compilation.GetMember<NamedTypeSymbol>("C");
+            var xmlDocumentationString = cMember.GetDocumentationCommentXml();
+
+            var xml = System.Xml.Linq.XDocument.Parse(xmlDocumentationString);
+            var cref = xml.Descendants("see").Single().Attribute("cref").Value;
+
+            Assert.Equal("T:System.ValueTuple`2", cref);
+        }
+
+        [Fact]
+        public void Cref_TupleTypeField()
+        {
+            var source = @"
+using System;
+/// <summary>
+/// See <see cref=""ValueTuple{Int32,Int32}.Item1""/>.
+/// </summary>
+class C
+{
+}
+";
+            var parseOptions = TestOptions.RegularWithDocumentationComments;
+            var options = TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default);
+            var compilation = CreateCompilation(source, parseOptions: parseOptions, options: options, targetFramework: TargetFramework.StandardAndCSharp);
+            var cMember = compilation.GetMember<NamedTypeSymbol>("C");
+            var xmlDocumentationString = cMember.GetDocumentationCommentXml();
+
+            var xml = System.Xml.Linq.XDocument.Parse(xmlDocumentationString);
+            var cref = xml.Descendants("see").Single().Attribute("cref").Value;
+
+            Assert.Equal("F:System.ValueTuple`2.Item1", cref);
         }
     }
 }

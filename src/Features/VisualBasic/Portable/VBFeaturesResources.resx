@@ -141,6 +141,12 @@
   <data name="Invert_If" xml:space="preserve">
     <value>Invert If</value>
   </data>
+  <data name="Add_Await" xml:space="preserve">
+    <value>Add Await</value>
+  </data>
+  <data name="Add_Await_and_ConfigureAwaitFalse" xml:space="preserve">
+    <value>Add Await and 'ConfigureAwait(false)'</value>
+  </data>
   <data name="Move_the_0_statement_to_line_1" xml:space="preserve">
     <value>Move the '{0}' statement to line {1}.</value>
   </data>
@@ -1169,7 +1175,8 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
     <value>Type '{0}' is not defined.</value>
   </data>
   <data name="Add_Overloads" xml:space="preserve">
-    <value>Add Overloads</value>
+    <value>Add 'Overloads'</value>
+    <comment>{Locked="Overloads"} "Overloads" is a VB keyword and should not be localized.</comment>
   </data>
   <data name="Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll" xml:space="preserve">
     <value>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</value>
@@ -1252,5 +1259,20 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="If_statement_can_be_simplified" xml:space="preserve">
     <value>'If' statement can be simplified</value>
+  </data>
+  <data name="Add_Obsolete" xml:space="preserve">
+    <value>Add &lt;Obsolete&gt;</value>
+  </data>
+  <data name="Add_missing_Imports" xml:space="preserve">
+    <value>Add missing Imports</value>
+    <comment>{Locked="Import"} "Import" is a VB keyword and should not be localized.</comment>
+  </data>
+  <data name="Add_Shadows" xml:space="preserve">
+    <value>Add 'Shadows'</value>
+    <comment>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</comment>
+  </data>
+  <data name="Introduce_Using_statement" xml:space="preserve">
+    <value>Introduce 'Using' statement</value>
+    <comment>{Locked="Using"} "Using" is a VB keyword and should not be localized.</comment>
   </data>
 </root>

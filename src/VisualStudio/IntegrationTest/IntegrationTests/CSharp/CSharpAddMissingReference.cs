@@ -143,7 +143,7 @@ class Program
         public void VerifyAvailableCodeActions()
         {
             var consoleProject = new ProjectUtils.Project(ConsoleProjectName);
-            VisualStudio.SolutionExplorer.OpenFile( consoleProject, "Program.cs");
+            VisualStudio.SolutionExplorer.OpenFile(consoleProject, "Program.cs");
             VisualStudio.Editor.PlaceCaret("y.goo", charsOffset: 1);
             VisualStudio.Editor.InvokeCodeActionList();
             VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);

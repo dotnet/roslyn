@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -193,6 +194,36 @@ class C
         v1.i = v1.s;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
+        public async Task TestFalseOptionImplicitTuple()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+class C
+{
+    void M()
+    {
+        (int i, string s) v1 = default((int, string));
+        var v2 = v1.[|Item1|];
+    }
+}", new TestParameters(options: Option(CodeStyleOptions.PreferExplicitTupleNames, false, NotificationOption.Warning)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
+        public async Task TestFalseOptionExplicitTuple()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+class C
+{
+    void M()
+    {
+        (int i, string s) v1 = default((int, string));
+        var v2 = v1.[|i|];
+    }
+}", new TestParameters(options: Option(CodeStyleOptions.PreferExplicitTupleNames, false, NotificationOption.Warning)));
         }
     }
 }

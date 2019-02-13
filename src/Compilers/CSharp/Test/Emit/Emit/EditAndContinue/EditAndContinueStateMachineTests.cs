@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public class EditAndContinueStateMachineTests : EditAndContinueTestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem(1068894, "DevDiv"), WorkItem(1137300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1137300")]
         public void AddIteratorMethod()
         {
@@ -231,12 +231,12 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1f"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x20"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""24"" document=""1"" />
-        <entry offset=""0x30"" hidden=""true"" document=""1"" />
-        <entry offset=""0x37"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1b"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x2c"" hidden=""true"" document=""1"" />
+        <entry offset=""0x33"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x39"">
+      <scope startOffset=""0x0"" endOffset=""0x35"">
         <namespace name=""System.Collections.Generic"" />
       </scope>
     </method>
@@ -738,84 +738,79 @@ class C
 
                     diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
 {
-  // Code size       57 (0x39)
+  // Code size       53 (0x35)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0012
+  IL_0008:  brfalse.s  IL_0014
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0014
-  IL_0010:  br.s       IL_0016
-  IL_0012:  br.s       IL_0018
-  IL_0014:  br.s       IL_0030
-  IL_0016:  ldc.i4.0
-  IL_0017:  ret
-  IL_0018:  ldarg.0
-  IL_0019:  ldc.i4.m1
-  IL_001a:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_001f:  nop
-  IL_0020:  ldarg.0
-  IL_0021:  ldc.i4.2
-  IL_0022:  stfld      ""int C.<F>d__0.<>2__current""
-  IL_0027:  ldarg.0
-  IL_0028:  ldc.i4.1
-  IL_0029:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_002e:  ldc.i4.1
-  IL_002f:  ret
-  IL_0030:  ldarg.0
-  IL_0031:  ldc.i4.m1
-  IL_0032:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0037:  ldc.i4.0
-  IL_0038:  ret
-}
-");
+  IL_000e:  beq.s      IL_002c
+  IL_0010:  br.s       IL_0012
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
+  IL_0014:  ldarg.0
+  IL_0015:  ldc.i4.m1
+  IL_0016:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001b:  nop
+  IL_001c:  ldarg.0
+  IL_001d:  ldc.i4.2
+  IL_001e:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_0023:  ldarg.0
+  IL_0024:  ldc.i4.1
+  IL_0025:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_002a:  ldc.i4.1
+  IL_002b:  ret
+  IL_002c:  ldarg.0
+  IL_002d:  ldc.i4.m1
+  IL_002e:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0033:  ldc.i4.0
+  IL_0034:  ret
+}");
                     v0.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
 {
-  // Code size       57 (0x39)
+  // Code size       53 (0x35)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0012
+  IL_0008:  brfalse.s  IL_0014
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0014
-  IL_0010:  br.s       IL_0016
-  IL_0012:  br.s       IL_0018
-  IL_0014:  br.s       IL_0030
-  IL_0016:  ldc.i4.0
-  IL_0017:  ret
-  IL_0018:  ldarg.0
-  IL_0019:  ldc.i4.m1
-  IL_001a:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_001f:  nop
-  IL_0020:  ldarg.0
-  IL_0021:  ldc.i4.1
-  IL_0022:  stfld      ""int C.<F>d__0.<>2__current""
-  IL_0027:  ldarg.0
-  IL_0028:  ldc.i4.1
-  IL_0029:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_002e:  ldc.i4.1
-  IL_002f:  ret
-  IL_0030:  ldarg.0
-  IL_0031:  ldc.i4.m1
-  IL_0032:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0037:  ldc.i4.0
-  IL_0038:  ret
+  IL_000e:  beq.s      IL_002c
+  IL_0010:  br.s       IL_0012
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
+  IL_0014:  ldarg.0
+  IL_0015:  ldc.i4.m1
+  IL_0016:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001b:  nop
+  IL_001c:  ldarg.0
+  IL_001d:  ldc.i4.1
+  IL_001e:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_0023:  ldarg.0
+  IL_0024:  ldc.i4.1
+  IL_0025:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_002a:  ldc.i4.1
+  IL_002b:  ret
+  IL_002c:  ldarg.0
+  IL_002d:  ldc.i4.m1
+  IL_002e:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0033:  ldc.i4.0
+  IL_0034:  ret
 }");
                 }
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void UpdateAsync_NoVariables()
         {
             var source0 = @"
@@ -874,7 +869,7 @@ class C
 
                     diff1.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
-  // Code size      162 (0xa2)
+  // Code size      160 (0xa0)
   .maxstack  3
   .locals init (int V_0,
                 int V_1,
@@ -887,79 +882,77 @@ class C
   .try
   {
     IL_0007:  ldloc.0
-    IL_0008:  brfalse.s  IL_000c
-    IL_000a:  br.s       IL_000e
-    IL_000c:  br.s       IL_0049
-    IL_000e:  nop
-    IL_000f:  ldc.i4.s   10
-    IL_0011:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
-    IL_0016:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
-    IL_001b:  stloc.2
-    IL_001c:  ldloca.s   V_2
-    IL_001e:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
-    IL_0023:  brtrue.s   IL_0065
-    IL_0025:  ldarg.0
-    IL_0026:  ldc.i4.0
-    IL_0027:  dup
-    IL_0028:  stloc.0
-    IL_0029:  stfld      ""int C.<F>d__0.<>1__state""
-    IL_002e:  ldarg.0
-    IL_002f:  ldloc.2
-    IL_0030:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__0.<>u__1""
+    IL_0008:  brfalse.s  IL_0047
+    IL_000a:  br.s       IL_000c
+    IL_000c:  nop
+    IL_000d:  ldc.i4.s   10
+    IL_000f:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
+    IL_0014:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0019:  stloc.2
+    IL_001a:  ldloca.s   V_2
+    IL_001c:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_0021:  brtrue.s   IL_0063
+    IL_0023:  ldarg.0
+    IL_0024:  ldc.i4.0
+    IL_0025:  dup
+    IL_0026:  stloc.0
+    IL_0027:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_002c:  ldarg.0
+    IL_002d:  ldloc.2
+    IL_002e:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__0.<>u__1""
+    IL_0033:  ldarg.0
+    IL_0034:  stloc.3
     IL_0035:  ldarg.0
-    IL_0036:  stloc.3
-    IL_0037:  ldarg.0
-    IL_0038:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
-    IL_003d:  ldloca.s   V_2
-    IL_003f:  ldloca.s   V_3
-    IL_0041:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<F>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<F>d__0)""
-    IL_0046:  nop
-    IL_0047:  leave.s    IL_00a1
-    IL_0049:  ldarg.0
-    IL_004a:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__0.<>u__1""
-    IL_004f:  stloc.2
-    IL_0050:  ldarg.0
-    IL_0051:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__0.<>u__1""
-    IL_0056:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-    IL_005c:  ldarg.0
-    IL_005d:  ldc.i4.m1
-    IL_005e:  dup
-    IL_005f:  stloc.0
-    IL_0060:  stfld      ""int C.<F>d__0.<>1__state""
-    IL_0065:  ldloca.s   V_2
-    IL_0067:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
-    IL_006c:  pop
-    IL_006d:  ldc.i4.s   20
-    IL_006f:  stloc.1
-    IL_0070:  leave.s    IL_008c
+    IL_0036:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+    IL_003b:  ldloca.s   V_2
+    IL_003d:  ldloca.s   V_3
+    IL_003f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<F>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<F>d__0)""
+    IL_0044:  nop
+    IL_0045:  leave.s    IL_009f
+    IL_0047:  ldarg.0
+    IL_0048:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__0.<>u__1""
+    IL_004d:  stloc.2
+    IL_004e:  ldarg.0
+    IL_004f:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__0.<>u__1""
+    IL_0054:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_005a:  ldarg.0
+    IL_005b:  ldc.i4.m1
+    IL_005c:  dup
+    IL_005d:  stloc.0
+    IL_005e:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_0063:  ldloca.s   V_2
+    IL_0065:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_006a:  pop
+    IL_006b:  ldc.i4.s   20
+    IL_006d:  stloc.1
+    IL_006e:  leave.s    IL_008a
   }
   catch System.Exception
   {
-    IL_0072:  stloc.s    V_4
-    IL_0074:  ldarg.0
-    IL_0075:  ldc.i4.s   -2
-    IL_0077:  stfld      ""int C.<F>d__0.<>1__state""
-    IL_007c:  ldarg.0
-    IL_007d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
-    IL_0082:  ldloc.s    V_4
-    IL_0084:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
-    IL_0089:  nop
-    IL_008a:  leave.s    IL_00a1
+    IL_0070:  stloc.s    V_4
+    IL_0072:  ldarg.0
+    IL_0073:  ldc.i4.s   -2
+    IL_0075:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_007a:  ldarg.0
+    IL_007b:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+    IL_0080:  ldloc.s    V_4
+    IL_0082:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_0087:  nop
+    IL_0088:  leave.s    IL_009f
   }
-  IL_008c:  ldarg.0
-  IL_008d:  ldc.i4.s   -2
-  IL_008f:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0094:  ldarg.0
-  IL_0095:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
-  IL_009a:  ldloc.1
-  IL_009b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
-  IL_00a0:  nop
-  IL_00a1:  ret
-}
-");
+  IL_008a:  ldarg.0
+  IL_008b:  ldc.i4.s   -2
+  IL_008d:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0092:  ldarg.0
+  IL_0093:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+  IL_0098:  ldloc.1
+  IL_0099:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_009e:  nop
+  IL_009f:  ret
+}");
                     v0.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
-  // Code size      160 (0xa0)
+  // Code size      158 (0x9e)
   .maxstack  3
   .locals init (int V_0,
                 int V_1,
@@ -972,76 +965,74 @@ class C
   .try
   {
    ~IL_0007:  ldloc.0
-    IL_0008:  brfalse.s  IL_000c
-    IL_000a:  br.s       IL_000e
-    IL_000c:  br.s       IL_0048
-   -IL_000e:  nop
-   -IL_000f:  ldc.i4.1
-    IL_0010:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
-    IL_0015:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
-    IL_001a:  stloc.2
-   ~IL_001b:  ldloca.s   V_2
-    IL_001d:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
-    IL_0022:  brtrue.s   IL_0064
-    IL_0024:  ldarg.0
-    IL_0025:  ldc.i4.0
-    IL_0026:  dup
-    IL_0027:  stloc.0
-    IL_0028:  stfld      ""int C.<F>d__0.<>1__state""
-   <IL_002d:  ldarg.0
-    IL_002e:  ldloc.2
-    IL_002f:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__0.<>u__1""
+    IL_0008:  brfalse.s  IL_0046
+    IL_000a:  br.s       IL_000c
+   -IL_000c:  nop
+   -IL_000d:  ldc.i4.1
+    IL_000e:  call       ""System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)""
+    IL_0013:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0018:  stloc.2
+   ~IL_0019:  ldloca.s   V_2
+    IL_001b:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_0020:  brtrue.s   IL_0062
+    IL_0022:  ldarg.0
+    IL_0023:  ldc.i4.0
+    IL_0024:  dup
+    IL_0025:  stloc.0
+    IL_0026:  stfld      ""int C.<F>d__0.<>1__state""
+   <IL_002b:  ldarg.0
+    IL_002c:  ldloc.2
+    IL_002d:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__0.<>u__1""
+    IL_0032:  ldarg.0
+    IL_0033:  stloc.3
     IL_0034:  ldarg.0
-    IL_0035:  stloc.3
-    IL_0036:  ldarg.0
-    IL_0037:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
-    IL_003c:  ldloca.s   V_2
-    IL_003e:  ldloca.s   V_3
-    IL_0040:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<F>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<F>d__0)""
-    IL_0045:  nop
-    IL_0046:  leave.s    IL_009f
-   >IL_0048:  ldarg.0
-    IL_0049:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__0.<>u__1""
-    IL_004e:  stloc.2
-    IL_004f:  ldarg.0
-    IL_0050:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__0.<>u__1""
-    IL_0055:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-    IL_005b:  ldarg.0
-    IL_005c:  ldc.i4.m1
-    IL_005d:  dup
-    IL_005e:  stloc.0
-    IL_005f:  stfld      ""int C.<F>d__0.<>1__state""
-    IL_0064:  ldloca.s   V_2
-    IL_0066:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
-    IL_006b:  pop
-   -IL_006c:  ldc.i4.2
-    IL_006d:  stloc.1
-    IL_006e:  leave.s    IL_008a
+    IL_0035:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+    IL_003a:  ldloca.s   V_2
+    IL_003c:  ldloca.s   V_3
+    IL_003e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<F>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<F>d__0)""
+    IL_0043:  nop
+    IL_0044:  leave.s    IL_009d
+   >IL_0046:  ldarg.0
+    IL_0047:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__0.<>u__1""
+    IL_004c:  stloc.2
+    IL_004d:  ldarg.0
+    IL_004e:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__0.<>u__1""
+    IL_0053:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_0059:  ldarg.0
+    IL_005a:  ldc.i4.m1
+    IL_005b:  dup
+    IL_005c:  stloc.0
+    IL_005d:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_0062:  ldloca.s   V_2
+    IL_0064:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_0069:  pop
+   -IL_006a:  ldc.i4.2
+    IL_006b:  stloc.1
+    IL_006c:  leave.s    IL_0088
   }
   catch System.Exception
   {
-   ~IL_0070:  stloc.s    V_4
-    IL_0072:  ldarg.0
-    IL_0073:  ldc.i4.s   -2
-    IL_0075:  stfld      ""int C.<F>d__0.<>1__state""
-    IL_007a:  ldarg.0
-    IL_007b:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
-    IL_0080:  ldloc.s    V_4
-    IL_0082:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
-    IL_0087:  nop
-    IL_0088:  leave.s    IL_009f
+   ~IL_006e:  stloc.s    V_4
+    IL_0070:  ldarg.0
+    IL_0071:  ldc.i4.s   -2
+    IL_0073:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_0078:  ldarg.0
+    IL_0079:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+    IL_007e:  ldloc.s    V_4
+    IL_0080:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_0085:  nop
+    IL_0086:  leave.s    IL_009d
   }
- -IL_008a:  ldarg.0
-  IL_008b:  ldc.i4.s   -2
-  IL_008d:  stfld      ""int C.<F>d__0.<>1__state""
- ~IL_0092:  ldarg.0
-  IL_0093:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
-  IL_0098:  ldloc.1
-  IL_0099:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
-  IL_009e:  nop
-  IL_009f:  ret
-}
-", sequencePoints: "C+<F>d__0.MoveNext");
+ -IL_0088:  ldarg.0
+  IL_0089:  ldc.i4.s   -2
+  IL_008b:  stfld      ""int C.<F>d__0.<>1__state""
+ ~IL_0090:  ldarg.0
+  IL_0091:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+  IL_0096:  ldloc.1
+  IL_0097:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_009c:  nop
+  IL_009d:  ret
+}", sequencePoints: "C+<F>d__0.MoveNext");
 
                     v0.VerifyPdb("C+<F>d__0.MoveNext", @"
 <symbols>
@@ -1065,20 +1056,20 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
         <entry offset=""0x7"" hidden=""true"" document=""1"" />
-        <entry offset=""0xe"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
-        <entry offset=""0xf"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""34"" document=""1"" />
-        <entry offset=""0x1b"" hidden=""true"" document=""1"" />
-        <entry offset=""0x6c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""1"" />
-        <entry offset=""0x70"" hidden=""true"" document=""1"" />
-        <entry offset=""0x8a"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x92"" hidden=""true"" document=""1"" />
+        <entry offset=""0xc"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xd"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x19"" hidden=""true"" document=""1"" />
+        <entry offset=""0x6a"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x6e"" hidden=""true"" document=""1"" />
+        <entry offset=""0x88"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x90"" hidden=""true"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xa0"">
+      <scope startOffset=""0x0"" endOffset=""0x9e"">
         <namespace name=""System.Threading.Tasks"" />
       </scope>
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""F"" />
-        <await yield=""0x2d"" resume=""0x48"" declaringType=""C+&lt;F&gt;d__0"" methodName=""MoveNext"" />
+        <await yield=""0x2b"" resume=""0x46"" declaringType=""C+&lt;F&gt;d__0"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
   </methods>
@@ -1147,46 +1138,43 @@ class C
 
                     diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
 {
-  // Code size       69 (0x45)
+  // Code size       65 (0x41)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0012
+  IL_0008:  brfalse.s  IL_0014
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0014
-  IL_0010:  br.s       IL_0016
-  IL_0012:  br.s       IL_0018
-  IL_0014:  br.s       IL_003c
-  IL_0016:  ldc.i4.0
-  IL_0017:  ret
-  IL_0018:  ldarg.0
-  IL_0019:  ldc.i4.m1
-  IL_001a:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_001f:  nop
-  IL_0020:  ldarg.0
-  IL_0021:  ldarg.0
-  IL_0022:  ldfld      ""int C.<F>d__0.p""
-  IL_0027:  stfld      ""int C.<F>d__0.<x>5__1""
-  IL_002c:  ldarg.0
-  IL_002d:  ldc.i4.2
-  IL_002e:  stfld      ""int C.<F>d__0.<>2__current""
-  IL_0033:  ldarg.0
-  IL_0034:  ldc.i4.1
-  IL_0035:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_003a:  ldc.i4.1
-  IL_003b:  ret
-  IL_003c:  ldarg.0
-  IL_003d:  ldc.i4.m1
-  IL_003e:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0043:  ldc.i4.0
-  IL_0044:  ret
-}
-");
+  IL_000e:  beq.s      IL_0038
+  IL_0010:  br.s       IL_0012
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
+  IL_0014:  ldarg.0
+  IL_0015:  ldc.i4.m1
+  IL_0016:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001b:  nop
+  IL_001c:  ldarg.0
+  IL_001d:  ldarg.0
+  IL_001e:  ldfld      ""int C.<F>d__0.p""
+  IL_0023:  stfld      ""int C.<F>d__0.<x>5__1""
+  IL_0028:  ldarg.0
+  IL_0029:  ldc.i4.2
+  IL_002a:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_002f:  ldarg.0
+  IL_0030:  ldc.i4.1
+  IL_0031:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0036:  ldc.i4.1
+  IL_0037:  ret
+  IL_0038:  ldarg.0
+  IL_0039:  ldc.i4.m1
+  IL_003a:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_003f:  ldc.i4.0
+  IL_0040:  ret
+}");
                 }
             }
         }
@@ -1252,54 +1240,51 @@ class C
 
                     diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
 {
-  // Code size       97 (0x61)
+  // Code size       93 (0x5d)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0012
+  IL_0008:  brfalse.s  IL_0014
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0014
-  IL_0010:  br.s       IL_0016
-  IL_0012:  br.s       IL_0018
-  IL_0014:  br.s       IL_004c
-  IL_0016:  ldc.i4.0
-  IL_0017:  ret
-  IL_0018:  ldarg.0
-  IL_0019:  ldc.i4.m1
-  IL_001a:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_001f:  nop
-  IL_0020:  ldarg.0
-  IL_0021:  ldc.i4     0x4d2
-  IL_0026:  stfld      ""int C.<F>d__0.<y>5__2""
-  IL_002b:  ldarg.0
-  IL_002c:  ldarg.0
-  IL_002d:  ldfld      ""int C.<F>d__0.p""
-  IL_0032:  stfld      ""int C.<F>d__0.<x>5__1""
-  IL_0037:  ldarg.0
-  IL_0038:  ldarg.0
-  IL_0039:  ldfld      ""int C.<F>d__0.<y>5__2""
-  IL_003e:  stfld      ""int C.<F>d__0.<>2__current""
-  IL_0043:  ldarg.0
-  IL_0044:  ldc.i4.1
-  IL_0045:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_004a:  ldc.i4.1
-  IL_004b:  ret
-  IL_004c:  ldarg.0
-  IL_004d:  ldc.i4.m1
-  IL_004e:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0053:  ldarg.0
-  IL_0054:  ldfld      ""int C.<F>d__0.<x>5__1""
-  IL_0059:  call       ""void System.Console.WriteLine(int)""
-  IL_005e:  nop
-  IL_005f:  ldc.i4.0
-  IL_0060:  ret
-}
-");
+  IL_000e:  beq.s      IL_0048
+  IL_0010:  br.s       IL_0012
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
+  IL_0014:  ldarg.0
+  IL_0015:  ldc.i4.m1
+  IL_0016:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001b:  nop
+  IL_001c:  ldarg.0
+  IL_001d:  ldc.i4     0x4d2
+  IL_0022:  stfld      ""int C.<F>d__0.<y>5__2""
+  IL_0027:  ldarg.0
+  IL_0028:  ldarg.0
+  IL_0029:  ldfld      ""int C.<F>d__0.p""
+  IL_002e:  stfld      ""int C.<F>d__0.<x>5__1""
+  IL_0033:  ldarg.0
+  IL_0034:  ldarg.0
+  IL_0035:  ldfld      ""int C.<F>d__0.<y>5__2""
+  IL_003a:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_003f:  ldarg.0
+  IL_0040:  ldc.i4.1
+  IL_0041:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0046:  ldc.i4.1
+  IL_0047:  ret
+  IL_0048:  ldarg.0
+  IL_0049:  ldc.i4.m1
+  IL_004a:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_004f:  ldarg.0
+  IL_0050:  ldfld      ""int C.<F>d__0.<x>5__1""
+  IL_0055:  call       ""void System.Console.WriteLine(int)""
+  IL_005a:  nop
+  IL_005b:  ldc.i4.0
+  IL_005c:  ret
+}");
                 }
             }
         }
@@ -1364,50 +1349,47 @@ class C
 
                     diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
 {
-  // Code size       85 (0x55)
+  // Code size       81 (0x51)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0012
+  IL_0008:  brfalse.s  IL_0014
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0014
-  IL_0010:  br.s       IL_0016
-  IL_0012:  br.s       IL_0018
-  IL_0014:  br.s       IL_0040
-  IL_0016:  ldc.i4.0
-  IL_0017:  ret
-  IL_0018:  ldarg.0
-  IL_0019:  ldc.i4.m1
-  IL_001a:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_001f:  nop
-  IL_0020:  ldarg.0
-  IL_0021:  ldc.i4     0x4d2
-  IL_0026:  stfld      ""int C.<F>d__0.<y>5__2""
-  IL_002b:  ldarg.0
-  IL_002c:  ldarg.0
-  IL_002d:  ldfld      ""int C.<F>d__0.<y>5__2""
-  IL_0032:  stfld      ""int C.<F>d__0.<>2__current""
-  IL_0037:  ldarg.0
-  IL_0038:  ldc.i4.1
-  IL_0039:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_003e:  ldc.i4.1
-  IL_003f:  ret
-  IL_0040:  ldarg.0
-  IL_0041:  ldc.i4.m1
-  IL_0042:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0047:  ldarg.0
-  IL_0048:  ldfld      ""int C.<F>d__0.p""
-  IL_004d:  call       ""void System.Console.WriteLine(int)""
-  IL_0052:  nop
-  IL_0053:  ldc.i4.0
-  IL_0054:  ret
-}
-");
+  IL_000e:  beq.s      IL_003c
+  IL_0010:  br.s       IL_0012
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
+  IL_0014:  ldarg.0
+  IL_0015:  ldc.i4.m1
+  IL_0016:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001b:  nop
+  IL_001c:  ldarg.0
+  IL_001d:  ldc.i4     0x4d2
+  IL_0022:  stfld      ""int C.<F>d__0.<y>5__2""
+  IL_0027:  ldarg.0
+  IL_0028:  ldarg.0
+  IL_0029:  ldfld      ""int C.<F>d__0.<y>5__2""
+  IL_002e:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_0033:  ldarg.0
+  IL_0034:  ldc.i4.1
+  IL_0035:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_003a:  ldc.i4.1
+  IL_003b:  ret
+  IL_003c:  ldarg.0
+  IL_003d:  ldc.i4.m1
+  IL_003e:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0043:  ldarg.0
+  IL_0044:  ldfld      ""int C.<F>d__0.p""
+  IL_0049:  call       ""void System.Console.WriteLine(int)""
+  IL_004e:  nop
+  IL_004f:  ldc.i4.0
+  IL_0050:  ret
+}");
                 }
             }
         }
@@ -1473,49 +1455,46 @@ class C
 
                     diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
 {
-  // Code size       84 (0x54)
+  // Code size       80 (0x50)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0012
+  IL_0008:  brfalse.s  IL_0014
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0014
-  IL_0010:  br.s       IL_0016
-  IL_0012:  br.s       IL_0018
-  IL_0014:  br.s       IL_003f
-  IL_0016:  ldc.i4.0
-  IL_0017:  ret
-  IL_0018:  ldarg.0
-  IL_0019:  ldc.i4.m1
-  IL_001a:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_001f:  nop
-  IL_0020:  ldarg.0
-  IL_0021:  ldc.r8     1
-  IL_002a:  stfld      ""double C.<F>d__0.<x>5__2""
-  IL_002f:  ldarg.0
-  IL_0030:  ldc.i4.2
-  IL_0031:  stfld      ""int C.<F>d__0.<>2__current""
-  IL_0036:  ldarg.0
-  IL_0037:  ldc.i4.1
-  IL_0038:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_003d:  ldc.i4.1
-  IL_003e:  ret
-  IL_003f:  ldarg.0
-  IL_0040:  ldc.i4.m1
-  IL_0041:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0046:  ldarg.0
-  IL_0047:  ldfld      ""double C.<F>d__0.<x>5__2""
-  IL_004c:  call       ""void System.Console.WriteLine(double)""
-  IL_0051:  nop
-  IL_0052:  ldc.i4.0
-  IL_0053:  ret
-}
-");
+  IL_000e:  beq.s      IL_003b
+  IL_0010:  br.s       IL_0012
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
+  IL_0014:  ldarg.0
+  IL_0015:  ldc.i4.m1
+  IL_0016:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001b:  nop
+  IL_001c:  ldarg.0
+  IL_001d:  ldc.r8     1
+  IL_0026:  stfld      ""double C.<F>d__0.<x>5__2""
+  IL_002b:  ldarg.0
+  IL_002c:  ldc.i4.2
+  IL_002d:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_0032:  ldarg.0
+  IL_0033:  ldc.i4.1
+  IL_0034:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0039:  ldc.i4.1
+  IL_003a:  ret
+  IL_003b:  ldarg.0
+  IL_003c:  ldc.i4.m1
+  IL_003d:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0042:  ldarg.0
+  IL_0043:  ldfld      ""double C.<F>d__0.<x>5__2""
+  IL_0048:  call       ""void System.Console.WriteLine(double)""
+  IL_004d:  nop
+  IL_004e:  ldc.i4.0
+  IL_004f:  ret
+}");
                 }
             }
         }
@@ -1591,84 +1570,81 @@ class C
 
                     diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
 {
-  // Code size      161 (0xa1)
+  // Code size      157 (0x9d)
   .maxstack  5
   .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0012
+  IL_0008:  brfalse.s  IL_0014
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0014
-  IL_0010:  br.s       IL_0016
-  IL_0012:  br.s       IL_0018
-  IL_0014:  br.s       IL_006b
-  IL_0016:  ldc.i4.0
-  IL_0017:  ret
-  IL_0018:  ldarg.0
-  IL_0019:  ldc.i4.m1
-  IL_001a:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_001f:  nop
-  IL_0020:  nop
-  IL_0021:  ldarg.0
-  IL_0022:  ldc.i4.1
-  IL_0023:  newarr     ""double""
-  IL_0028:  dup
-  IL_0029:  ldc.i4.0
-  IL_002a:  ldc.r8     1
-  IL_0033:  stelem.r8
-  IL_0034:  stfld      ""double[] C.<F>d__0.<>s__4""
-  IL_0039:  ldarg.0
-  IL_003a:  ldc.i4.0
-  IL_003b:  stfld      ""int C.<F>d__0.<>s__2""
-  IL_0040:  br.s       IL_0088
-  IL_0042:  ldarg.0
-  IL_0043:  ldarg.0
-  IL_0044:  ldfld      ""double[] C.<F>d__0.<>s__4""
-  IL_0049:  ldarg.0
-  IL_004a:  ldfld      ""int C.<F>d__0.<>s__2""
-  IL_004f:  ldelem.r8
-  IL_0050:  box        ""double""
-  IL_0055:  stfld      ""object C.<F>d__0.<item>5__3""
-  IL_005a:  nop
-  IL_005b:  ldarg.0
-  IL_005c:  ldc.i4.1
-  IL_005d:  stfld      ""int C.<F>d__0.<>2__current""
-  IL_0062:  ldarg.0
-  IL_0063:  ldc.i4.1
-  IL_0064:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0069:  ldc.i4.1
-  IL_006a:  ret
-  IL_006b:  ldarg.0
-  IL_006c:  ldc.i4.m1
-  IL_006d:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0072:  nop
-  IL_0073:  ldarg.0
-  IL_0074:  ldnull
-  IL_0075:  stfld      ""object C.<F>d__0.<item>5__3""
-  IL_007a:  ldarg.0
-  IL_007b:  ldarg.0
-  IL_007c:  ldfld      ""int C.<F>d__0.<>s__2""
-  IL_0081:  ldc.i4.1
-  IL_0082:  add
-  IL_0083:  stfld      ""int C.<F>d__0.<>s__2""
-  IL_0088:  ldarg.0
-  IL_0089:  ldfld      ""int C.<F>d__0.<>s__2""
-  IL_008e:  ldarg.0
-  IL_008f:  ldfld      ""double[] C.<F>d__0.<>s__4""
-  IL_0094:  ldlen
-  IL_0095:  conv.i4
-  IL_0096:  blt.s      IL_0042
-  IL_0098:  ldarg.0
-  IL_0099:  ldnull
-  IL_009a:  stfld      ""double[] C.<F>d__0.<>s__4""
-  IL_009f:  ldc.i4.0
-  IL_00a0:  ret
-}
-");
+  IL_000e:  beq.s      IL_0067
+  IL_0010:  br.s       IL_0012
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
+  IL_0014:  ldarg.0
+  IL_0015:  ldc.i4.m1
+  IL_0016:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001b:  nop
+  IL_001c:  nop
+  IL_001d:  ldarg.0
+  IL_001e:  ldc.i4.1
+  IL_001f:  newarr     ""double""
+  IL_0024:  dup
+  IL_0025:  ldc.i4.0
+  IL_0026:  ldc.r8     1
+  IL_002f:  stelem.r8
+  IL_0030:  stfld      ""double[] C.<F>d__0.<>s__4""
+  IL_0035:  ldarg.0
+  IL_0036:  ldc.i4.0
+  IL_0037:  stfld      ""int C.<F>d__0.<>s__2""
+  IL_003c:  br.s       IL_0084
+  IL_003e:  ldarg.0
+  IL_003f:  ldarg.0
+  IL_0040:  ldfld      ""double[] C.<F>d__0.<>s__4""
+  IL_0045:  ldarg.0
+  IL_0046:  ldfld      ""int C.<F>d__0.<>s__2""
+  IL_004b:  ldelem.r8
+  IL_004c:  box        ""double""
+  IL_0051:  stfld      ""object C.<F>d__0.<item>5__3""
+  IL_0056:  nop
+  IL_0057:  ldarg.0
+  IL_0058:  ldc.i4.1
+  IL_0059:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_005e:  ldarg.0
+  IL_005f:  ldc.i4.1
+  IL_0060:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0065:  ldc.i4.1
+  IL_0066:  ret
+  IL_0067:  ldarg.0
+  IL_0068:  ldc.i4.m1
+  IL_0069:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_006e:  nop
+  IL_006f:  ldarg.0
+  IL_0070:  ldnull
+  IL_0071:  stfld      ""object C.<F>d__0.<item>5__3""
+  IL_0076:  ldarg.0
+  IL_0077:  ldarg.0
+  IL_0078:  ldfld      ""int C.<F>d__0.<>s__2""
+  IL_007d:  ldc.i4.1
+  IL_007e:  add
+  IL_007f:  stfld      ""int C.<F>d__0.<>s__2""
+  IL_0084:  ldarg.0
+  IL_0085:  ldfld      ""int C.<F>d__0.<>s__2""
+  IL_008a:  ldarg.0
+  IL_008b:  ldfld      ""double[] C.<F>d__0.<>s__4""
+  IL_0090:  ldlen
+  IL_0091:  conv.i4
+  IL_0092:  blt.s      IL_003e
+  IL_0094:  ldarg.0
+  IL_0095:  ldnull
+  IL_0096:  stfld      ""double[] C.<F>d__0.<>s__4""
+  IL_009b:  ldc.i4.0
+  IL_009c:  ret
+}");
                 }
             }
         }
@@ -1887,7 +1863,7 @@ class C
 
             diff1.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
-  // Code size      178 (0xb2)
+  // Code size      176 (0xb0)
   .maxstack  3
   .locals init (int V_0,
                 int V_1,
@@ -1900,82 +1876,80 @@ class C
   .try
   {
     IL_0007:  ldloc.0
-    IL_0008:  brfalse.s  IL_000c
-    IL_000a:  br.s       IL_000e
-    IL_000c:  br.s       IL_005a
-    IL_000e:  nop
-    IL_000f:  ldarg.0
-    IL_0010:  newobj     ""C..ctor()""
-    IL_0015:  stfld      ""C C.<F>d__0.<a1>5__3""
-    IL_001a:  ldarg.0
-    IL_001b:  ldc.i4.3
-    IL_001c:  stfld      ""int C.<F>d__0.<a2>5__2""
-    IL_0021:  ldc.i4.0
-    IL_0022:  call       ""System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)""
-    IL_0027:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
-    IL_002c:  stloc.2
-    IL_002d:  ldloca.s   V_2
-    IL_002f:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
-    IL_0034:  brtrue.s   IL_0076
-    IL_0036:  ldarg.0
-    IL_0037:  ldc.i4.0
-    IL_0038:  dup
-    IL_0039:  stloc.0
-    IL_003a:  stfld      ""int C.<F>d__0.<>1__state""
-    IL_003f:  ldarg.0
-    IL_0040:  ldloc.2
-    IL_0041:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<F>d__0.<>u__1""
+    IL_0008:  brfalse.s  IL_0058
+    IL_000a:  br.s       IL_000c
+    IL_000c:  nop
+    IL_000d:  ldarg.0
+    IL_000e:  newobj     ""C..ctor()""
+    IL_0013:  stfld      ""C C.<F>d__0.<a1>5__3""
+    IL_0018:  ldarg.0
+    IL_0019:  ldc.i4.3
+    IL_001a:  stfld      ""int C.<F>d__0.<a2>5__2""
+    IL_001f:  ldc.i4.0
+    IL_0020:  call       ""System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)""
+    IL_0025:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
+    IL_002a:  stloc.2
+    IL_002b:  ldloca.s   V_2
+    IL_002d:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
+    IL_0032:  brtrue.s   IL_0074
+    IL_0034:  ldarg.0
+    IL_0035:  ldc.i4.0
+    IL_0036:  dup
+    IL_0037:  stloc.0
+    IL_0038:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_003d:  ldarg.0
+    IL_003e:  ldloc.2
+    IL_003f:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<F>d__0.<>u__1""
+    IL_0044:  ldarg.0
+    IL_0045:  stloc.3
     IL_0046:  ldarg.0
-    IL_0047:  stloc.3
-    IL_0048:  ldarg.0
-    IL_0049:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
-    IL_004e:  ldloca.s   V_2
-    IL_0050:  ldloca.s   V_3
-    IL_0052:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<F>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<F>d__0)""
-    IL_0057:  nop
-    IL_0058:  leave.s    IL_00b1
-    IL_005a:  ldarg.0
-    IL_005b:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<F>d__0.<>u__1""
-    IL_0060:  stloc.2
-    IL_0061:  ldarg.0
-    IL_0062:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter C.<F>d__0.<>u__1""
-    IL_0067:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
-    IL_006d:  ldarg.0
-    IL_006e:  ldc.i4.m1
-    IL_006f:  dup
-    IL_0070:  stloc.0
-    IL_0071:  stfld      ""int C.<F>d__0.<>1__state""
-    IL_0076:  ldloca.s   V_2
-    IL_0078:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
-    IL_007d:  nop
-    IL_007e:  ldc.i4.1
-    IL_007f:  stloc.1
-    IL_0080:  leave.s    IL_009c
+    IL_0047:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+    IL_004c:  ldloca.s   V_2
+    IL_004e:  ldloca.s   V_3
+    IL_0050:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<F>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<F>d__0)""
+    IL_0055:  nop
+    IL_0056:  leave.s    IL_00af
+    IL_0058:  ldarg.0
+    IL_0059:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<F>d__0.<>u__1""
+    IL_005e:  stloc.2
+    IL_005f:  ldarg.0
+    IL_0060:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter C.<F>d__0.<>u__1""
+    IL_0065:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+    IL_006b:  ldarg.0
+    IL_006c:  ldc.i4.m1
+    IL_006d:  dup
+    IL_006e:  stloc.0
+    IL_006f:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_0074:  ldloca.s   V_2
+    IL_0076:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+    IL_007b:  nop
+    IL_007c:  ldc.i4.1
+    IL_007d:  stloc.1
+    IL_007e:  leave.s    IL_009a
   }
   catch System.Exception
   {
-    IL_0082:  stloc.s    V_4
-    IL_0084:  ldarg.0
-    IL_0085:  ldc.i4.s   -2
-    IL_0087:  stfld      ""int C.<F>d__0.<>1__state""
-    IL_008c:  ldarg.0
-    IL_008d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
-    IL_0092:  ldloc.s    V_4
-    IL_0094:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
-    IL_0099:  nop
-    IL_009a:  leave.s    IL_00b1
+    IL_0080:  stloc.s    V_4
+    IL_0082:  ldarg.0
+    IL_0083:  ldc.i4.s   -2
+    IL_0085:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_008a:  ldarg.0
+    IL_008b:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+    IL_0090:  ldloc.s    V_4
+    IL_0092:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_0097:  nop
+    IL_0098:  leave.s    IL_00af
   }
-  IL_009c:  ldarg.0
-  IL_009d:  ldc.i4.s   -2
-  IL_009f:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_00a4:  ldarg.0
-  IL_00a5:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
-  IL_00aa:  ldloc.1
-  IL_00ab:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
-  IL_00b0:  nop
-  IL_00b1:  ret
-}
-");
+  IL_009a:  ldarg.0
+  IL_009b:  ldc.i4.s   -2
+  IL_009d:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_00a2:  ldarg.0
+  IL_00a3:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+  IL_00a8:  ldloc.1
+  IL_00a9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_00ae:  nop
+  IL_00af:  ret
+}");
             // 2 field defs added (both variables a1 and a2 of F changed their types) & 2 methods updated
             CheckEncLogDefinitions(md2.Reader,
                 Row(11, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
@@ -1991,7 +1965,7 @@ class C
 
             diff2.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
-  // Code size      178 (0xb2)
+  // Code size      176 (0xb0)
   .maxstack  3
   .locals init (int V_0,
                 int V_1,
@@ -2004,82 +1978,80 @@ class C
   .try
   {
     IL_0007:  ldloc.0
-    IL_0008:  brfalse.s  IL_000c
-    IL_000a:  br.s       IL_000e
-    IL_000c:  br.s       IL_005a
-    IL_000e:  nop
-    IL_000f:  ldarg.0
-    IL_0010:  ldc.i4.1
-    IL_0011:  stfld      ""bool C.<F>d__0.<a1>5__4""
-    IL_0016:  ldarg.0
-    IL_0017:  newobj     ""C..ctor()""
-    IL_001c:  stfld      ""C C.<F>d__0.<a2>5__5""
-    IL_0021:  ldc.i4.0
-    IL_0022:  call       ""System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)""
-    IL_0027:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
-    IL_002c:  stloc.2
-    IL_002d:  ldloca.s   V_2
-    IL_002f:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
-    IL_0034:  brtrue.s   IL_0076
-    IL_0036:  ldarg.0
-    IL_0037:  ldc.i4.0
-    IL_0038:  dup
-    IL_0039:  stloc.0
-    IL_003a:  stfld      ""int C.<F>d__0.<>1__state""
-    IL_003f:  ldarg.0
-    IL_0040:  ldloc.2
-    IL_0041:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<F>d__0.<>u__1""
+    IL_0008:  brfalse.s  IL_0058
+    IL_000a:  br.s       IL_000c
+    IL_000c:  nop
+    IL_000d:  ldarg.0
+    IL_000e:  ldc.i4.1
+    IL_000f:  stfld      ""bool C.<F>d__0.<a1>5__4""
+    IL_0014:  ldarg.0
+    IL_0015:  newobj     ""C..ctor()""
+    IL_001a:  stfld      ""C C.<F>d__0.<a2>5__5""
+    IL_001f:  ldc.i4.0
+    IL_0020:  call       ""System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)""
+    IL_0025:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
+    IL_002a:  stloc.2
+    IL_002b:  ldloca.s   V_2
+    IL_002d:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
+    IL_0032:  brtrue.s   IL_0074
+    IL_0034:  ldarg.0
+    IL_0035:  ldc.i4.0
+    IL_0036:  dup
+    IL_0037:  stloc.0
+    IL_0038:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_003d:  ldarg.0
+    IL_003e:  ldloc.2
+    IL_003f:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<F>d__0.<>u__1""
+    IL_0044:  ldarg.0
+    IL_0045:  stloc.3
     IL_0046:  ldarg.0
-    IL_0047:  stloc.3
-    IL_0048:  ldarg.0
-    IL_0049:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
-    IL_004e:  ldloca.s   V_2
-    IL_0050:  ldloca.s   V_3
-    IL_0052:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<F>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<F>d__0)""
-    IL_0057:  nop
-    IL_0058:  leave.s    IL_00b1
-    IL_005a:  ldarg.0
-    IL_005b:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<F>d__0.<>u__1""
-    IL_0060:  stloc.2
-    IL_0061:  ldarg.0
-    IL_0062:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter C.<F>d__0.<>u__1""
-    IL_0067:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
-    IL_006d:  ldarg.0
-    IL_006e:  ldc.i4.m1
-    IL_006f:  dup
-    IL_0070:  stloc.0
-    IL_0071:  stfld      ""int C.<F>d__0.<>1__state""
-    IL_0076:  ldloca.s   V_2
-    IL_0078:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
-    IL_007d:  nop
-    IL_007e:  ldc.i4.1
-    IL_007f:  stloc.1
-    IL_0080:  leave.s    IL_009c
+    IL_0047:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+    IL_004c:  ldloca.s   V_2
+    IL_004e:  ldloca.s   V_3
+    IL_0050:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<F>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<F>d__0)""
+    IL_0055:  nop
+    IL_0056:  leave.s    IL_00af
+    IL_0058:  ldarg.0
+    IL_0059:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<F>d__0.<>u__1""
+    IL_005e:  stloc.2
+    IL_005f:  ldarg.0
+    IL_0060:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter C.<F>d__0.<>u__1""
+    IL_0065:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+    IL_006b:  ldarg.0
+    IL_006c:  ldc.i4.m1
+    IL_006d:  dup
+    IL_006e:  stloc.0
+    IL_006f:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_0074:  ldloca.s   V_2
+    IL_0076:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+    IL_007b:  nop
+    IL_007c:  ldc.i4.1
+    IL_007d:  stloc.1
+    IL_007e:  leave.s    IL_009a
   }
   catch System.Exception
   {
-    IL_0082:  stloc.s    V_4
-    IL_0084:  ldarg.0
-    IL_0085:  ldc.i4.s   -2
-    IL_0087:  stfld      ""int C.<F>d__0.<>1__state""
-    IL_008c:  ldarg.0
-    IL_008d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
-    IL_0092:  ldloc.s    V_4
-    IL_0094:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
-    IL_0099:  nop
-    IL_009a:  leave.s    IL_00b1
+    IL_0080:  stloc.s    V_4
+    IL_0082:  ldarg.0
+    IL_0083:  ldc.i4.s   -2
+    IL_0085:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_008a:  ldarg.0
+    IL_008b:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+    IL_0090:  ldloc.s    V_4
+    IL_0092:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_0097:  nop
+    IL_0098:  leave.s    IL_00af
   }
-  IL_009c:  ldarg.0
-  IL_009d:  ldc.i4.s   -2
-  IL_009f:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_00a4:  ldarg.0
-  IL_00a5:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
-  IL_00aa:  ldloc.1
-  IL_00ab:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
-  IL_00b0:  nop
-  IL_00b1:  ret
-}
-");
+  IL_009a:  ldarg.0
+  IL_009b:  ldc.i4.s   -2
+  IL_009d:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_00a2:  ldarg.0
+  IL_00a3:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+  IL_00a8:  ldloc.1
+  IL_00a9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_00ae:  nop
+  IL_00af:  ret
+}");
             // 2 field defs added - variables of G and H changed their types; 4 methods updated: G, H kickoff and MoveNext
             CheckEncLogDefinitions(md3.Reader,
                 Row(13, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
@@ -2137,65 +2109,62 @@ class C
 
             var baselineIL0 = @"
 {
-  // Code size      147 (0x93)
+  // Code size      143 (0x8f)
   .maxstack  3
   .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0012
+  IL_0008:  brfalse.s  IL_0014
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0014
-  IL_0010:  br.s       IL_0016
-  IL_0012:  br.s       IL_0018
-  IL_0014:  br.s       IL_003c
-  IL_0016:  ldc.i4.0
-  IL_0017:  ret
-  IL_0018:  ldarg.0
-  IL_0019:  ldc.i4.m1
-  IL_001a:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_001f:  nop
-  IL_0020:  ldarg.0
-  IL_0021:  ldc.i4.1
-  IL_0022:  box        ""int""
-  IL_0027:  stfld      ""dynamic C.<F>d__0.<x>5__1""
-  IL_002c:  ldarg.0
-  IL_002d:  ldc.i4.1
-  IL_002e:  stfld      ""int C.<F>d__0.<>2__current""
-  IL_0033:  ldarg.0
-  IL_0034:  ldc.i4.1
-  IL_0035:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_003a:  ldc.i4.1
-  IL_003b:  ret
-  IL_003c:  ldarg.0
-  IL_003d:  ldc.i4.m1
-  IL_003e:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0043:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0.<>p__0""
-  IL_0048:  brfalse.s  IL_004c
-  IL_004a:  br.s       IL_0071
-  IL_004c:  ldc.i4.s   16
-  IL_004e:  ldtoken    ""int""
-  IL_0053:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_0058:  ldtoken    ""C""
-  IL_005d:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_0062:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
-  IL_0067:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_006c:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0.<>p__0""
-  IL_0071:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0.<>p__0""
-  IL_0076:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target""
-  IL_007b:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0.<>p__0""
-  IL_0080:  ldarg.0
-  IL_0081:  ldfld      ""dynamic C.<F>d__0.<x>5__1""
-  IL_0086:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
-  IL_008b:  call       ""void System.Console.WriteLine(int)""
-  IL_0090:  nop
-  IL_0091:  ldc.i4.0
-  IL_0092:  ret
-}
-";
+  IL_000e:  beq.s      IL_0038
+  IL_0010:  br.s       IL_0012
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
+  IL_0014:  ldarg.0
+  IL_0015:  ldc.i4.m1
+  IL_0016:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001b:  nop
+  IL_001c:  ldarg.0
+  IL_001d:  ldc.i4.1
+  IL_001e:  box        ""int""
+  IL_0023:  stfld      ""dynamic C.<F>d__0.<x>5__1""
+  IL_0028:  ldarg.0
+  IL_0029:  ldc.i4.1
+  IL_002a:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_002f:  ldarg.0
+  IL_0030:  ldc.i4.1
+  IL_0031:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0036:  ldc.i4.1
+  IL_0037:  ret
+  IL_0038:  ldarg.0
+  IL_0039:  ldc.i4.m1
+  IL_003a:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_003f:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0.<>p__0""
+  IL_0044:  brfalse.s  IL_0048
+  IL_0046:  br.s       IL_006d
+  IL_0048:  ldc.i4.s   16
+  IL_004a:  ldtoken    ""int""
+  IL_004f:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0054:  ldtoken    ""C""
+  IL_0059:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_005e:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
+  IL_0063:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0068:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0.<>p__0""
+  IL_006d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0.<>p__0""
+  IL_0072:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target""
+  IL_0077:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__0.<>p__0""
+  IL_007c:  ldarg.0
+  IL_007d:  ldfld      ""dynamic C.<F>d__0.<x>5__1""
+  IL_0082:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+  IL_0087:  call       ""void System.Console.WriteLine(int)""
+  IL_008c:  nop
+  IL_008d:  ldc.i4.0
+  IL_008e:  ret
+}";
             v0.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL0);
 
             var diff1 = compilation1.EmitDifference(
@@ -2205,67 +2174,64 @@ class C
 
             var baselineIL = @"
 {
-  // Code size      149 (0x95)
+  // Code size      145 (0x91)
   .maxstack  3
   .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0012
+  IL_0008:  brfalse.s  IL_0014
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0014
-  IL_0010:  br.s       IL_0016
-  IL_0012:  br.s       IL_0018
-  IL_0014:  br.s       IL_003c
-  IL_0016:  ldc.i4.0
-  IL_0017:  ret
-  IL_0018:  ldarg.0
-  IL_0019:  ldc.i4.m1
-  IL_001a:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_001f:  nop
-  IL_0020:  ldarg.0
-  IL_0021:  ldc.i4.1
-  IL_0022:  box        ""int""
-  IL_0027:  stfld      ""dynamic C.<F>d__0.<x>5__1""
-  IL_002c:  ldarg.0
-  IL_002d:  ldc.i4.1
-  IL_002e:  stfld      ""int C.<F>d__0.<>2__current""
-  IL_0033:  ldarg.0
-  IL_0034:  ldc.i4.1
-  IL_0035:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_003a:  ldc.i4.1
-  IL_003b:  ret
-  IL_003c:  ldarg.0
-  IL_003d:  ldc.i4.m1
-  IL_003e:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0043:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<<DYNAMIC_CONTAINER_NAME>>.<>p__0""
-  IL_0048:  brfalse.s  IL_004c
-  IL_004a:  br.s       IL_0071
-  IL_004c:  ldc.i4.s   16
-  IL_004e:  ldtoken    ""int""
-  IL_0053:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_0058:  ldtoken    ""C""
-  IL_005d:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_0062:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
-  IL_0067:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_006c:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<<DYNAMIC_CONTAINER_NAME>>.<>p__0""
-  IL_0071:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<<DYNAMIC_CONTAINER_NAME>>.<>p__0""
-  IL_0076:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target""
-  IL_007b:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<<DYNAMIC_CONTAINER_NAME>>.<>p__0""
-  IL_0080:  ldarg.0
-  IL_0081:  ldfld      ""dynamic C.<F>d__0.<x>5__1""
-  IL_0086:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
-  IL_008b:  ldc.i4.<<VALUE>>
-  IL_008c:  add
-  IL_008d:  call       ""void System.Console.WriteLine(int)""
-  IL_0092:  nop
-  IL_0093:  ldc.i4.0
-  IL_0094:  ret
-}
-";
+  IL_000e:  beq.s      IL_0038
+  IL_0010:  br.s       IL_0012
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
+  IL_0014:  ldarg.0
+  IL_0015:  ldc.i4.m1
+  IL_0016:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001b:  nop
+  IL_001c:  ldarg.0
+  IL_001d:  ldc.i4.1
+  IL_001e:  box        ""int""
+  IL_0023:  stfld      ""dynamic C.<F>d__0.<x>5__1""
+  IL_0028:  ldarg.0
+  IL_0029:  ldc.i4.1
+  IL_002a:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_002f:  ldarg.0
+  IL_0030:  ldc.i4.1
+  IL_0031:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0036:  ldc.i4.1
+  IL_0037:  ret
+  IL_0038:  ldarg.0
+  IL_0039:  ldc.i4.m1
+  IL_003a:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_003f:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<<DYNAMIC_CONTAINER_NAME>>.<>p__0""
+  IL_0044:  brfalse.s  IL_0048
+  IL_0046:  br.s       IL_006d
+  IL_0048:  ldc.i4.s   16
+  IL_004a:  ldtoken    ""int""
+  IL_004f:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0054:  ldtoken    ""C""
+  IL_0059:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_005e:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
+  IL_0063:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0068:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<<DYNAMIC_CONTAINER_NAME>>.<>p__0""
+  IL_006d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<<DYNAMIC_CONTAINER_NAME>>.<>p__0""
+  IL_0072:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target""
+  IL_0077:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<<DYNAMIC_CONTAINER_NAME>>.<>p__0""
+  IL_007c:  ldarg.0
+  IL_007d:  ldfld      ""dynamic C.<F>d__0.<x>5__1""
+  IL_0082:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+  IL_0087:  ldc.i4.<<VALUE>>
+  IL_0088:  add
+  IL_0089:  call       ""void System.Console.WriteLine(int)""
+  IL_008e:  nop
+  IL_008f:  ldc.i4.0
+  IL_0090:  ret
+}";
 
 
             diff1.VerifySynthesizedMembers(
@@ -2628,7 +2594,7 @@ class C
             // Note that the new awaiter is allocated slot <>u__3 since <>u__1 and <>u__2 are taken.
             diff1.VerifyIL("C.<F>d__3.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
-  // Code size      268 (0x10c)
+  // Code size      264 (0x108)
   .maxstack  3
   .locals init (int V_0,
                 int V_1,
@@ -2642,117 +2608,114 @@ class C
   .try
   {
     IL_0007:  ldloc.0
-    IL_0008:  brfalse.s  IL_0012
+    IL_0008:  brfalse.s  IL_0051
     IL_000a:  br.s       IL_000c
     IL_000c:  ldloc.0
     IL_000d:  ldc.i4.1
-    IL_000e:  beq.s      IL_0014
-    IL_0010:  br.s       IL_0019
-    IL_0012:  br.s       IL_0055
-    IL_0014:  br         IL_00b3
-    IL_0019:  nop
-    IL_001a:  call       ""System.Threading.Tasks.Task<C> C.A3()""
-    IL_001f:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<C> System.Threading.Tasks.Task<C>.GetAwaiter()""
-    IL_0024:  stloc.2
-    IL_0025:  ldloca.s   V_2
-    IL_0027:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<C>.IsCompleted.get""
-    IL_002c:  brtrue.s   IL_0071
-    IL_002e:  ldarg.0
-    IL_002f:  ldc.i4.0
-    IL_0030:  dup
-    IL_0031:  stloc.0
-    IL_0032:  stfld      ""int C.<F>d__3.<>1__state""
-    IL_0037:  ldarg.0
-    IL_0038:  ldloc.2
-    IL_0039:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<C> C.<F>d__3.<>u__3""
-    IL_003e:  ldarg.0
-    IL_003f:  stloc.3
-    IL_0040:  ldarg.0
-    IL_0041:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__3.<>t__builder""
-    IL_0046:  ldloca.s   V_2
-    IL_0048:  ldloca.s   V_3
-    IL_004a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<C>, C.<F>d__3>(ref System.Runtime.CompilerServices.TaskAwaiter<C>, ref C.<F>d__3)""
-    IL_004f:  nop
-    IL_0050:  leave      IL_010b
-    IL_0055:  ldarg.0
-    IL_0056:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<C> C.<F>d__3.<>u__3""
-    IL_005b:  stloc.2
-    IL_005c:  ldarg.0
-    IL_005d:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<C> C.<F>d__3.<>u__3""
-    IL_0062:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<C>""
-    IL_0068:  ldarg.0
-    IL_0069:  ldc.i4.m1
-    IL_006a:  dup
-    IL_006b:  stloc.0
-    IL_006c:  stfld      ""int C.<F>d__3.<>1__state""
-    IL_0071:  ldloca.s   V_2
-    IL_0073:  call       ""C System.Runtime.CompilerServices.TaskAwaiter<C>.GetResult()""
-    IL_0078:  pop
-    IL_0079:  call       ""System.Threading.Tasks.Task<int> C.A2()""
-    IL_007e:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
-    IL_0083:  stloc.s    V_4
-    IL_0085:  ldloca.s   V_4
-    IL_0087:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
-    IL_008c:  brtrue.s   IL_00d0
-    IL_008e:  ldarg.0
-    IL_008f:  ldc.i4.1
-    IL_0090:  dup
-    IL_0091:  stloc.0
-    IL_0092:  stfld      ""int C.<F>d__3.<>1__state""
-    IL_0097:  ldarg.0
-    IL_0098:  ldloc.s    V_4
-    IL_009a:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__3.<>u__2""
-    IL_009f:  ldarg.0
-    IL_00a0:  stloc.3
-    IL_00a1:  ldarg.0
-    IL_00a2:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__3.<>t__builder""
-    IL_00a7:  ldloca.s   V_4
-    IL_00a9:  ldloca.s   V_3
-    IL_00ab:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<F>d__3>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<F>d__3)""
-    IL_00b0:  nop
-    IL_00b1:  leave.s    IL_010b
-    IL_00b3:  ldarg.0
-    IL_00b4:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__3.<>u__2""
-    IL_00b9:  stloc.s    V_4
-    IL_00bb:  ldarg.0
-    IL_00bc:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__3.<>u__2""
-    IL_00c1:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-    IL_00c7:  ldarg.0
-    IL_00c8:  ldc.i4.m1
-    IL_00c9:  dup
-    IL_00ca:  stloc.0
-    IL_00cb:  stfld      ""int C.<F>d__3.<>1__state""
-    IL_00d0:  ldloca.s   V_4
-    IL_00d2:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
-    IL_00d7:  pop
-    IL_00d8:  ldc.i4.1
-    IL_00d9:  stloc.1
-    IL_00da:  leave.s    IL_00f6
+    IL_000e:  beq        IL_00af
+    IL_0013:  br.s       IL_0015
+    IL_0015:  nop
+    IL_0016:  call       ""System.Threading.Tasks.Task<C> C.A3()""
+    IL_001b:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<C> System.Threading.Tasks.Task<C>.GetAwaiter()""
+    IL_0020:  stloc.2
+    IL_0021:  ldloca.s   V_2
+    IL_0023:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<C>.IsCompleted.get""
+    IL_0028:  brtrue.s   IL_006d
+    IL_002a:  ldarg.0
+    IL_002b:  ldc.i4.0
+    IL_002c:  dup
+    IL_002d:  stloc.0
+    IL_002e:  stfld      ""int C.<F>d__3.<>1__state""
+    IL_0033:  ldarg.0
+    IL_0034:  ldloc.2
+    IL_0035:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<C> C.<F>d__3.<>u__3""
+    IL_003a:  ldarg.0
+    IL_003b:  stloc.3
+    IL_003c:  ldarg.0
+    IL_003d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__3.<>t__builder""
+    IL_0042:  ldloca.s   V_2
+    IL_0044:  ldloca.s   V_3
+    IL_0046:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<C>, C.<F>d__3>(ref System.Runtime.CompilerServices.TaskAwaiter<C>, ref C.<F>d__3)""
+    IL_004b:  nop
+    IL_004c:  leave      IL_0107
+    IL_0051:  ldarg.0
+    IL_0052:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<C> C.<F>d__3.<>u__3""
+    IL_0057:  stloc.2
+    IL_0058:  ldarg.0
+    IL_0059:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<C> C.<F>d__3.<>u__3""
+    IL_005e:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<C>""
+    IL_0064:  ldarg.0
+    IL_0065:  ldc.i4.m1
+    IL_0066:  dup
+    IL_0067:  stloc.0
+    IL_0068:  stfld      ""int C.<F>d__3.<>1__state""
+    IL_006d:  ldloca.s   V_2
+    IL_006f:  call       ""C System.Runtime.CompilerServices.TaskAwaiter<C>.GetResult()""
+    IL_0074:  pop
+    IL_0075:  call       ""System.Threading.Tasks.Task<int> C.A2()""
+    IL_007a:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_007f:  stloc.s    V_4
+    IL_0081:  ldloca.s   V_4
+    IL_0083:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_0088:  brtrue.s   IL_00cc
+    IL_008a:  ldarg.0
+    IL_008b:  ldc.i4.1
+    IL_008c:  dup
+    IL_008d:  stloc.0
+    IL_008e:  stfld      ""int C.<F>d__3.<>1__state""
+    IL_0093:  ldarg.0
+    IL_0094:  ldloc.s    V_4
+    IL_0096:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__3.<>u__2""
+    IL_009b:  ldarg.0
+    IL_009c:  stloc.3
+    IL_009d:  ldarg.0
+    IL_009e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__3.<>t__builder""
+    IL_00a3:  ldloca.s   V_4
+    IL_00a5:  ldloca.s   V_3
+    IL_00a7:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<F>d__3>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<F>d__3)""
+    IL_00ac:  nop
+    IL_00ad:  leave.s    IL_0107
+    IL_00af:  ldarg.0
+    IL_00b0:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__3.<>u__2""
+    IL_00b5:  stloc.s    V_4
+    IL_00b7:  ldarg.0
+    IL_00b8:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__3.<>u__2""
+    IL_00bd:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_00c3:  ldarg.0
+    IL_00c4:  ldc.i4.m1
+    IL_00c5:  dup
+    IL_00c6:  stloc.0
+    IL_00c7:  stfld      ""int C.<F>d__3.<>1__state""
+    IL_00cc:  ldloca.s   V_4
+    IL_00ce:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_00d3:  pop
+    IL_00d4:  ldc.i4.1
+    IL_00d5:  stloc.1
+    IL_00d6:  leave.s    IL_00f2
   }
   catch System.Exception
   {
-    IL_00dc:  stloc.s    V_5
-    IL_00de:  ldarg.0
-    IL_00df:  ldc.i4.s   -2
-    IL_00e1:  stfld      ""int C.<F>d__3.<>1__state""
-    IL_00e6:  ldarg.0
-    IL_00e7:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__3.<>t__builder""
-    IL_00ec:  ldloc.s    V_5
-    IL_00ee:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
-    IL_00f3:  nop
-    IL_00f4:  leave.s    IL_010b
+    IL_00d8:  stloc.s    V_5
+    IL_00da:  ldarg.0
+    IL_00db:  ldc.i4.s   -2
+    IL_00dd:  stfld      ""int C.<F>d__3.<>1__state""
+    IL_00e2:  ldarg.0
+    IL_00e3:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__3.<>t__builder""
+    IL_00e8:  ldloc.s    V_5
+    IL_00ea:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_00ef:  nop
+    IL_00f0:  leave.s    IL_0107
   }
-  IL_00f6:  ldarg.0
-  IL_00f7:  ldc.i4.s   -2
-  IL_00f9:  stfld      ""int C.<F>d__3.<>1__state""
-  IL_00fe:  ldarg.0
-  IL_00ff:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__3.<>t__builder""
-  IL_0104:  ldloc.1
-  IL_0105:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
-  IL_010a:  nop
-  IL_010b:  ret
-}
-");
+  IL_00f2:  ldarg.0
+  IL_00f3:  ldc.i4.s   -2
+  IL_00f5:  stfld      ""int C.<F>d__3.<>1__state""
+  IL_00fa:  ldarg.0
+  IL_00fb:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__3.<>t__builder""
+  IL_0100:  ldloc.1
+  IL_0101:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_0106:  nop
+  IL_0107:  ret
+}");
             // 1 field def added & 2 methods updated
             CheckEncLogDefinitions(md2.Reader,
                 Row(11, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
@@ -2767,7 +2730,7 @@ class C
             // Note that the new awaiters are allocated slots <>u__4, <>u__5.
             diff2.VerifyIL("C.<F>d__3.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
-  // Code size      268 (0x10c)
+  // Code size      264 (0x108)
   .maxstack  3
   .locals init (int V_0,
                 int V_1,
@@ -2781,117 +2744,114 @@ class C
   .try
   {
     IL_0007:  ldloc.0
-    IL_0008:  brfalse.s  IL_0012
+    IL_0008:  brfalse.s  IL_0051
     IL_000a:  br.s       IL_000c
     IL_000c:  ldloc.0
     IL_000d:  ldc.i4.1
-    IL_000e:  beq.s      IL_0014
-    IL_0010:  br.s       IL_0019
-    IL_0012:  br.s       IL_0055
-    IL_0014:  br         IL_00b3
-    IL_0019:  nop
-    IL_001a:  call       ""System.Threading.Tasks.Task<bool> C.A1()""
-    IL_001f:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<bool> System.Threading.Tasks.Task<bool>.GetAwaiter()""
-    IL_0024:  stloc.2
-    IL_0025:  ldloca.s   V_2
-    IL_0027:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.IsCompleted.get""
-    IL_002c:  brtrue.s   IL_0071
-    IL_002e:  ldarg.0
-    IL_002f:  ldc.i4.0
-    IL_0030:  dup
-    IL_0031:  stloc.0
-    IL_0032:  stfld      ""int C.<F>d__3.<>1__state""
-    IL_0037:  ldarg.0
-    IL_0038:  ldloc.2
-    IL_0039:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<F>d__3.<>u__4""
-    IL_003e:  ldarg.0
-    IL_003f:  stloc.3
-    IL_0040:  ldarg.0
-    IL_0041:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__3.<>t__builder""
-    IL_0046:  ldloca.s   V_2
-    IL_0048:  ldloca.s   V_3
-    IL_004a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<bool>, C.<F>d__3>(ref System.Runtime.CompilerServices.TaskAwaiter<bool>, ref C.<F>d__3)""
-    IL_004f:  nop
-    IL_0050:  leave      IL_010b
-    IL_0055:  ldarg.0
-    IL_0056:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<F>d__3.<>u__4""
-    IL_005b:  stloc.2
-    IL_005c:  ldarg.0
-    IL_005d:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<F>d__3.<>u__4""
-    IL_0062:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<bool>""
-    IL_0068:  ldarg.0
-    IL_0069:  ldc.i4.m1
-    IL_006a:  dup
-    IL_006b:  stloc.0
-    IL_006c:  stfld      ""int C.<F>d__3.<>1__state""
-    IL_0071:  ldloca.s   V_2
-    IL_0073:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.GetResult()""
-    IL_0078:  pop
-    IL_0079:  call       ""System.Threading.Tasks.Task<C> C.A3()""
-    IL_007e:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<C> System.Threading.Tasks.Task<C>.GetAwaiter()""
-    IL_0083:  stloc.s    V_4
-    IL_0085:  ldloca.s   V_4
-    IL_0087:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<C>.IsCompleted.get""
-    IL_008c:  brtrue.s   IL_00d0
-    IL_008e:  ldarg.0
-    IL_008f:  ldc.i4.1
-    IL_0090:  dup
-    IL_0091:  stloc.0
-    IL_0092:  stfld      ""int C.<F>d__3.<>1__state""
-    IL_0097:  ldarg.0
-    IL_0098:  ldloc.s    V_4
-    IL_009a:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<C> C.<F>d__3.<>u__3""
-    IL_009f:  ldarg.0
-    IL_00a0:  stloc.3
-    IL_00a1:  ldarg.0
-    IL_00a2:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__3.<>t__builder""
-    IL_00a7:  ldloca.s   V_4
-    IL_00a9:  ldloca.s   V_3
-    IL_00ab:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<C>, C.<F>d__3>(ref System.Runtime.CompilerServices.TaskAwaiter<C>, ref C.<F>d__3)""
-    IL_00b0:  nop
-    IL_00b1:  leave.s    IL_010b
-    IL_00b3:  ldarg.0
-    IL_00b4:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<C> C.<F>d__3.<>u__3""
-    IL_00b9:  stloc.s    V_4
-    IL_00bb:  ldarg.0
-    IL_00bc:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<C> C.<F>d__3.<>u__3""
-    IL_00c1:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<C>""
-    IL_00c7:  ldarg.0
-    IL_00c8:  ldc.i4.m1
-    IL_00c9:  dup
-    IL_00ca:  stloc.0
-    IL_00cb:  stfld      ""int C.<F>d__3.<>1__state""
-    IL_00d0:  ldloca.s   V_4
-    IL_00d2:  call       ""C System.Runtime.CompilerServices.TaskAwaiter<C>.GetResult()""
-    IL_00d7:  pop
-    IL_00d8:  ldc.i4.1
-    IL_00d9:  stloc.1
-    IL_00da:  leave.s    IL_00f6
+    IL_000e:  beq        IL_00af
+    IL_0013:  br.s       IL_0015
+    IL_0015:  nop
+    IL_0016:  call       ""System.Threading.Tasks.Task<bool> C.A1()""
+    IL_001b:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<bool> System.Threading.Tasks.Task<bool>.GetAwaiter()""
+    IL_0020:  stloc.2
+    IL_0021:  ldloca.s   V_2
+    IL_0023:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.IsCompleted.get""
+    IL_0028:  brtrue.s   IL_006d
+    IL_002a:  ldarg.0
+    IL_002b:  ldc.i4.0
+    IL_002c:  dup
+    IL_002d:  stloc.0
+    IL_002e:  stfld      ""int C.<F>d__3.<>1__state""
+    IL_0033:  ldarg.0
+    IL_0034:  ldloc.2
+    IL_0035:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<F>d__3.<>u__4""
+    IL_003a:  ldarg.0
+    IL_003b:  stloc.3
+    IL_003c:  ldarg.0
+    IL_003d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__3.<>t__builder""
+    IL_0042:  ldloca.s   V_2
+    IL_0044:  ldloca.s   V_3
+    IL_0046:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<bool>, C.<F>d__3>(ref System.Runtime.CompilerServices.TaskAwaiter<bool>, ref C.<F>d__3)""
+    IL_004b:  nop
+    IL_004c:  leave      IL_0107
+    IL_0051:  ldarg.0
+    IL_0052:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<F>d__3.<>u__4""
+    IL_0057:  stloc.2
+    IL_0058:  ldarg.0
+    IL_0059:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<F>d__3.<>u__4""
+    IL_005e:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<bool>""
+    IL_0064:  ldarg.0
+    IL_0065:  ldc.i4.m1
+    IL_0066:  dup
+    IL_0067:  stloc.0
+    IL_0068:  stfld      ""int C.<F>d__3.<>1__state""
+    IL_006d:  ldloca.s   V_2
+    IL_006f:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.GetResult()""
+    IL_0074:  pop
+    IL_0075:  call       ""System.Threading.Tasks.Task<C> C.A3()""
+    IL_007a:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<C> System.Threading.Tasks.Task<C>.GetAwaiter()""
+    IL_007f:  stloc.s    V_4
+    IL_0081:  ldloca.s   V_4
+    IL_0083:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<C>.IsCompleted.get""
+    IL_0088:  brtrue.s   IL_00cc
+    IL_008a:  ldarg.0
+    IL_008b:  ldc.i4.1
+    IL_008c:  dup
+    IL_008d:  stloc.0
+    IL_008e:  stfld      ""int C.<F>d__3.<>1__state""
+    IL_0093:  ldarg.0
+    IL_0094:  ldloc.s    V_4
+    IL_0096:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<C> C.<F>d__3.<>u__3""
+    IL_009b:  ldarg.0
+    IL_009c:  stloc.3
+    IL_009d:  ldarg.0
+    IL_009e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__3.<>t__builder""
+    IL_00a3:  ldloca.s   V_4
+    IL_00a5:  ldloca.s   V_3
+    IL_00a7:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<C>, C.<F>d__3>(ref System.Runtime.CompilerServices.TaskAwaiter<C>, ref C.<F>d__3)""
+    IL_00ac:  nop
+    IL_00ad:  leave.s    IL_0107
+    IL_00af:  ldarg.0
+    IL_00b0:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<C> C.<F>d__3.<>u__3""
+    IL_00b5:  stloc.s    V_4
+    IL_00b7:  ldarg.0
+    IL_00b8:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<C> C.<F>d__3.<>u__3""
+    IL_00bd:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<C>""
+    IL_00c3:  ldarg.0
+    IL_00c4:  ldc.i4.m1
+    IL_00c5:  dup
+    IL_00c6:  stloc.0
+    IL_00c7:  stfld      ""int C.<F>d__3.<>1__state""
+    IL_00cc:  ldloca.s   V_4
+    IL_00ce:  call       ""C System.Runtime.CompilerServices.TaskAwaiter<C>.GetResult()""
+    IL_00d3:  pop
+    IL_00d4:  ldc.i4.1
+    IL_00d5:  stloc.1
+    IL_00d6:  leave.s    IL_00f2
   }
   catch System.Exception
   {
-    IL_00dc:  stloc.s    V_5
-    IL_00de:  ldarg.0
-    IL_00df:  ldc.i4.s   -2
-    IL_00e1:  stfld      ""int C.<F>d__3.<>1__state""
-    IL_00e6:  ldarg.0
-    IL_00e7:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__3.<>t__builder""
-    IL_00ec:  ldloc.s    V_5
-    IL_00ee:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
-    IL_00f3:  nop
-    IL_00f4:  leave.s    IL_010b
+    IL_00d8:  stloc.s    V_5
+    IL_00da:  ldarg.0
+    IL_00db:  ldc.i4.s   -2
+    IL_00dd:  stfld      ""int C.<F>d__3.<>1__state""
+    IL_00e2:  ldarg.0
+    IL_00e3:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__3.<>t__builder""
+    IL_00e8:  ldloc.s    V_5
+    IL_00ea:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_00ef:  nop
+    IL_00f0:  leave.s    IL_0107
   }
-  IL_00f6:  ldarg.0
-  IL_00f7:  ldc.i4.s   -2
-  IL_00f9:  stfld      ""int C.<F>d__3.<>1__state""
-  IL_00fe:  ldarg.0
-  IL_00ff:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__3.<>t__builder""
-  IL_0104:  ldloc.1
-  IL_0105:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
-  IL_010a:  nop
-  IL_010b:  ret
-}
-");
+  IL_00f2:  ldarg.0
+  IL_00f3:  ldc.i4.s   -2
+  IL_00f5:  stfld      ""int C.<F>d__3.<>1__state""
+  IL_00fa:  ldarg.0
+  IL_00fb:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__3.<>t__builder""
+  IL_0100:  ldloc.1
+  IL_0101:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_0106:  nop
+  IL_0107:  ret
+}");
             // 2 field defs added - G and H awaiters & 4 methods updated: G, H kickoff and MoveNext
             CheckEncLogDefinitions(md3.Reader,
                 Row(13, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
@@ -3268,53 +3228,50 @@ class C
 
             var baselineIL = @"
 {
-  // Code size       88 (0x58)
+  // Code size       84 (0x54)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0012
+  IL_0008:  brfalse.s  IL_0014
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0014
-  IL_0010:  br.s       IL_0016
-  IL_0012:  br.s       IL_0018
-  IL_0014:  br.s       IL_003c
-  IL_0016:  ldc.i4.0
-  IL_0017:  ret
-  IL_0018:  ldarg.0
-  IL_0019:  ldc.i4.m1
-  IL_001a:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_001f:  nop
-  IL_0020:  ldarg.0
-  IL_0021:  ldc.i4.1
-  IL_0022:  newobj     ""<>f__AnonymousType0<int>..ctor(int)""
-  IL_0027:  stfld      ""<anonymous type: int A> C.<F>d__0.<x>5__1""
-  IL_002c:  ldarg.0
-  IL_002d:  ldc.i4.1
-  IL_002e:  stfld      ""int C.<F>d__0.<>2__current""
-  IL_0033:  ldarg.0
-  IL_0034:  ldc.i4.1
-  IL_0035:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_003a:  ldc.i4.1
-  IL_003b:  ret
-  IL_003c:  ldarg.0
-  IL_003d:  ldc.i4.m1
-  IL_003e:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0043:  ldarg.0
-  IL_0044:  ldfld      ""<anonymous type: int A> C.<F>d__0.<x>5__1""
-  IL_0049:  callvirt   ""int <>f__AnonymousType0<int>.A.get""
-  IL_004e:  ldc.i4.<<VALUE>>
-  IL_004f:  add
-  IL_0050:  call       ""void System.Console.WriteLine(int)""
-  IL_0055:  nop
-  IL_0056:  ldc.i4.0
-  IL_0057:  ret
-}
-";
+  IL_000e:  beq.s      IL_0038
+  IL_0010:  br.s       IL_0012
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
+  IL_0014:  ldarg.0
+  IL_0015:  ldc.i4.m1
+  IL_0016:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001b:  nop
+  IL_001c:  ldarg.0
+  IL_001d:  ldc.i4.1
+  IL_001e:  newobj     ""<>f__AnonymousType0<int>..ctor(int)""
+  IL_0023:  stfld      ""<anonymous type: int A> C.<F>d__0.<x>5__1""
+  IL_0028:  ldarg.0
+  IL_0029:  ldc.i4.1
+  IL_002a:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_002f:  ldarg.0
+  IL_0030:  ldc.i4.1
+  IL_0031:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0036:  ldc.i4.1
+  IL_0037:  ret
+  IL_0038:  ldarg.0
+  IL_0039:  ldc.i4.m1
+  IL_003a:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_003f:  ldarg.0
+  IL_0040:  ldfld      ""<anonymous type: int A> C.<F>d__0.<x>5__1""
+  IL_0045:  callvirt   ""int <>f__AnonymousType0<int>.A.get""
+  IL_004a:  ldc.i4.<<VALUE>>
+  IL_004b:  add
+  IL_004c:  call       ""void System.Console.WriteLine(int)""
+  IL_0051:  nop
+  IL_0052:  ldc.i4.0
+  IL_0053:  ret
+}";
             v0.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL.Replace("<<VALUE>>", "1"));
 
             var diff1 = compilation1.EmitDifference(
@@ -3403,62 +3360,59 @@ class C
 
             var baselineIL = @"
 {
-  // Code size      109 (0x6d)
+  // Code size      105 (0x69)
   .maxstack  5
   .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0012
+  IL_0008:  brfalse.s  IL_0014
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0014
-  IL_0010:  br.s       IL_0016
-  IL_0012:  br.s       IL_0018
-  IL_0014:  br.s       IL_004a
-  IL_0016:  ldc.i4.0
-  IL_0017:  ret
-  IL_0018:  ldarg.0
-  IL_0019:  ldc.i4.m1
-  IL_001a:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_001f:  nop
-  IL_0020:  ldarg.0
-  IL_0021:  ldc.i4.1
-  IL_0022:  newarr     ""<>f__AnonymousType0<<anonymous type: int B>>""
-  IL_0027:  dup
-  IL_0028:  ldc.i4.0
-  IL_0029:  ldc.i4.1
-  IL_002a:  newobj     ""<>f__AnonymousType1<int>..ctor(int)""
-  IL_002f:  newobj     ""<>f__AnonymousType0<<anonymous type: int B>>..ctor(<anonymous type: int B>)""
-  IL_0034:  stelem.ref
-  IL_0035:  stfld      ""<anonymous type: <anonymous type: int B> A>[] C.<F>d__0.<x>5__1""
-  IL_003a:  ldarg.0
-  IL_003b:  ldc.i4.1
-  IL_003c:  stfld      ""int C.<F>d__0.<>2__current""
-  IL_0041:  ldarg.0
-  IL_0042:  ldc.i4.1
-  IL_0043:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0048:  ldc.i4.1
-  IL_0049:  ret
-  IL_004a:  ldarg.0
-  IL_004b:  ldc.i4.m1
-  IL_004c:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0051:  ldarg.0
-  IL_0052:  ldfld      ""<anonymous type: <anonymous type: int B> A>[] C.<F>d__0.<x>5__1""
-  IL_0057:  ldc.i4.0
-  IL_0058:  ldelem.ref
-  IL_0059:  callvirt   ""<anonymous type: int B> <>f__AnonymousType0<<anonymous type: int B>>.A.get""
-  IL_005e:  callvirt   ""int <>f__AnonymousType1<int>.B.get""
-  IL_0063:  ldc.i4.<<VALUE>>
-  IL_0064:  add
-  IL_0065:  call       ""void System.Console.WriteLine(int)""
-  IL_006a:  nop
-  IL_006b:  ldc.i4.0
-  IL_006c:  ret
-}
-";
+  IL_000e:  beq.s      IL_0046
+  IL_0010:  br.s       IL_0012
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
+  IL_0014:  ldarg.0
+  IL_0015:  ldc.i4.m1
+  IL_0016:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001b:  nop
+  IL_001c:  ldarg.0
+  IL_001d:  ldc.i4.1
+  IL_001e:  newarr     ""<>f__AnonymousType0<<anonymous type: int B>>""
+  IL_0023:  dup
+  IL_0024:  ldc.i4.0
+  IL_0025:  ldc.i4.1
+  IL_0026:  newobj     ""<>f__AnonymousType1<int>..ctor(int)""
+  IL_002b:  newobj     ""<>f__AnonymousType0<<anonymous type: int B>>..ctor(<anonymous type: int B>)""
+  IL_0030:  stelem.ref
+  IL_0031:  stfld      ""<anonymous type: <anonymous type: int B> A>[] C.<F>d__0.<x>5__1""
+  IL_0036:  ldarg.0
+  IL_0037:  ldc.i4.1
+  IL_0038:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_003d:  ldarg.0
+  IL_003e:  ldc.i4.1
+  IL_003f:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0044:  ldc.i4.1
+  IL_0045:  ret
+  IL_0046:  ldarg.0
+  IL_0047:  ldc.i4.m1
+  IL_0048:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_004d:  ldarg.0
+  IL_004e:  ldfld      ""<anonymous type: <anonymous type: int B> A>[] C.<F>d__0.<x>5__1""
+  IL_0053:  ldc.i4.0
+  IL_0054:  ldelem.ref
+  IL_0055:  callvirt   ""<anonymous type: int B> <>f__AnonymousType0<<anonymous type: int B>>.A.get""
+  IL_005a:  callvirt   ""int <>f__AnonymousType1<int>.B.get""
+  IL_005f:  ldc.i4.<<VALUE>>
+  IL_0060:  add
+  IL_0061:  call       ""void System.Console.WriteLine(int)""
+  IL_0066:  nop
+  IL_0067:  ldc.i4.0
+  IL_0068:  ret
+}";
             v0.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL.Replace("<<VALUE>>", "1"));
 
             var diff1 = compilation1.EmitDifference(
@@ -3564,57 +3518,54 @@ class C
 
             var baselineIL = @"
 {
-  // Code size      108 (0x6c)
+  // Code size      104 (0x68)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0012
+  IL_0008:  brfalse.s  IL_0014
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0014
-  IL_0010:  br.s       IL_0016
-  IL_0012:  br.s       IL_0018
-  IL_0014:  br.s       IL_003b
-  IL_0016:  ldc.i4.0
-  IL_0017:  ret
-  IL_0018:  ldarg.0
-  IL_0019:  ldc.i4.m1
-  IL_001a:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_001f:  nop
-  IL_0020:  ldarg.0
-  IL_0021:  newobj     ""Z<double>.S<int>..ctor()""
-  IL_0026:  stfld      ""Z<double>.S<int> C.<F>d__0.<x>5__1""
-  IL_002b:  ldarg.0
-  IL_002c:  ldc.i4.1
-  IL_002d:  stfld      ""int C.<F>d__0.<>2__current""
-  IL_0032:  ldarg.0
-  IL_0033:  ldc.i4.1
-  IL_0034:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0039:  ldc.i4.1
-  IL_003a:  ret
-  IL_003b:  ldarg.0
-  IL_003c:  ldc.i4.m1
-  IL_003d:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0042:  ldarg.0
-  IL_0043:  ldfld      ""Z<double>.S<int> C.<F>d__0.<x>5__1""
-  IL_0048:  ldfld      ""double Z<double>.S<int>.a""
-  IL_004d:  ldarg.0
-  IL_004e:  ldfld      ""Z<double>.S<int> C.<F>d__0.<x>5__1""
-  IL_0053:  ldfld      ""int Z<double>.S<int>.b""
-  IL_0058:  conv.r8
-  IL_0059:  add
-  IL_005a:  ldc.r8     <<VALUE>>
-  IL_0063:  add
-  IL_0064:  call       ""void System.Console.WriteLine(double)""
-  IL_0069:  nop
-  IL_006a:  ldc.i4.0
-  IL_006b:  ret
-}
-";
+  IL_000e:  beq.s      IL_0037
+  IL_0010:  br.s       IL_0012
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
+  IL_0014:  ldarg.0
+  IL_0015:  ldc.i4.m1
+  IL_0016:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001b:  nop
+  IL_001c:  ldarg.0
+  IL_001d:  newobj     ""Z<double>.S<int>..ctor()""
+  IL_0022:  stfld      ""Z<double>.S<int> C.<F>d__0.<x>5__1""
+  IL_0027:  ldarg.0
+  IL_0028:  ldc.i4.1
+  IL_0029:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_002e:  ldarg.0
+  IL_002f:  ldc.i4.1
+  IL_0030:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0035:  ldc.i4.1
+  IL_0036:  ret
+  IL_0037:  ldarg.0
+  IL_0038:  ldc.i4.m1
+  IL_0039:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_003e:  ldarg.0
+  IL_003f:  ldfld      ""Z<double>.S<int> C.<F>d__0.<x>5__1""
+  IL_0044:  ldfld      ""double Z<double>.S<int>.a""
+  IL_0049:  ldarg.0
+  IL_004a:  ldfld      ""Z<double>.S<int> C.<F>d__0.<x>5__1""
+  IL_004f:  ldfld      ""int Z<double>.S<int>.b""
+  IL_0054:  conv.r8
+  IL_0055:  add
+  IL_0056:  ldc.r8     <<VALUE>>
+  IL_005f:  add
+  IL_0060:  call       ""void System.Console.WriteLine(double)""
+  IL_0065:  nop
+  IL_0066:  ldc.i4.0
+  IL_0067:  ret
+}";
             v0.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL.Replace("<<VALUE>>", "1"));
 
             var diff1 = compilation1.EmitDifference(
@@ -3677,52 +3628,49 @@ class C
 
             var baselineIL0 = @"
 {
-  // Code size       87 (0x57)
+  // Code size       83 (0x53)
   .maxstack  3
   .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0012
+  IL_0008:  brfalse.s  IL_0014
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0014
-  IL_0010:  br.s       IL_0016
-  IL_0012:  br.s       IL_0018
-  IL_0014:  br.s       IL_003d
-  IL_0016:  ldc.i4.0
-  IL_0017:  ret
-  IL_0018:  ldarg.0
-  IL_0019:  ldc.i4.m1
-  IL_001a:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_001f:  nop
-  IL_0020:  ldarg.0
-  IL_0021:  ldnull
-  IL_0022:  ldc.i4.1
-  IL_0023:  newobj     ""<>f__AnonymousType0<dynamic, int>..ctor(dynamic, int)""
-  IL_0028:  stfld      ""<anonymous type: dynamic A, int B> C.<F>d__0.<x>5__1""
-  IL_002d:  ldarg.0
-  IL_002e:  ldc.i4.1
-  IL_002f:  stfld      ""int C.<F>d__0.<>2__current""
-  IL_0034:  ldarg.0
-  IL_0035:  ldc.i4.1
-  IL_0036:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_003b:  ldc.i4.1
-  IL_003c:  ret
-  IL_003d:  ldarg.0
-  IL_003e:  ldc.i4.m1
-  IL_003f:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0044:  ldarg.0
-  IL_0045:  ldfld      ""<anonymous type: dynamic A, int B> C.<F>d__0.<x>5__1""
-  IL_004a:  callvirt   ""int <>f__AnonymousType0<dynamic, int>.B.get""
-  IL_004f:  call       ""void System.Console.WriteLine(int)""
-  IL_0054:  nop
-  IL_0055:  ldc.i4.0
-  IL_0056:  ret
-}
-";
+  IL_000e:  beq.s      IL_0039
+  IL_0010:  br.s       IL_0012
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
+  IL_0014:  ldarg.0
+  IL_0015:  ldc.i4.m1
+  IL_0016:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001b:  nop
+  IL_001c:  ldarg.0
+  IL_001d:  ldnull
+  IL_001e:  ldc.i4.1
+  IL_001f:  newobj     ""<>f__AnonymousType0<dynamic, int>..ctor(dynamic, int)""
+  IL_0024:  stfld      ""<anonymous type: dynamic A, int B> C.<F>d__0.<x>5__1""
+  IL_0029:  ldarg.0
+  IL_002a:  ldc.i4.1
+  IL_002b:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_0030:  ldarg.0
+  IL_0031:  ldc.i4.1
+  IL_0032:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0037:  ldc.i4.1
+  IL_0038:  ret
+  IL_0039:  ldarg.0
+  IL_003a:  ldc.i4.m1
+  IL_003b:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0040:  ldarg.0
+  IL_0041:  ldfld      ""<anonymous type: dynamic A, int B> C.<F>d__0.<x>5__1""
+  IL_0046:  callvirt   ""int <>f__AnonymousType0<dynamic, int>.B.get""
+  IL_004b:  call       ""void System.Console.WriteLine(int)""
+  IL_0050:  nop
+  IL_0051:  ldc.i4.0
+  IL_0052:  ret
+}";
             v0.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL0);
 
             var diff1 = compilation1.EmitDifference(
@@ -3732,54 +3680,51 @@ class C
 
             var baselineIL = @"
 {
-  // Code size       89 (0x59)
+  // Code size       85 (0x55)
   .maxstack  3
   .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0012
+  IL_0008:  brfalse.s  IL_0014
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0014
-  IL_0010:  br.s       IL_0016
-  IL_0012:  br.s       IL_0018
-  IL_0014:  br.s       IL_003d
-  IL_0016:  ldc.i4.0
-  IL_0017:  ret
-  IL_0018:  ldarg.0
-  IL_0019:  ldc.i4.m1
-  IL_001a:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_001f:  nop
-  IL_0020:  ldarg.0
-  IL_0021:  ldnull
-  IL_0022:  ldc.i4.1
-  IL_0023:  newobj     ""<>f__AnonymousType0<dynamic, int>..ctor(dynamic, int)""
-  IL_0028:  stfld      ""<anonymous type: dynamic A, int B> C.<F>d__0.<x>5__1""
-  IL_002d:  ldarg.0
-  IL_002e:  ldc.i4.1
-  IL_002f:  stfld      ""int C.<F>d__0.<>2__current""
-  IL_0034:  ldarg.0
-  IL_0035:  ldc.i4.1
-  IL_0036:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_003b:  ldc.i4.1
-  IL_003c:  ret
-  IL_003d:  ldarg.0
-  IL_003e:  ldc.i4.m1
-  IL_003f:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0044:  ldarg.0
-  IL_0045:  ldfld      ""<anonymous type: dynamic A, int B> C.<F>d__0.<x>5__1""
-  IL_004a:  callvirt   ""int <>f__AnonymousType0<dynamic, int>.B.get""
-  IL_004f:  ldc.i4.<<VALUE>>
-  IL_0050:  add
-  IL_0051:  call       ""void System.Console.WriteLine(int)""
-  IL_0056:  nop
-  IL_0057:  ldc.i4.0
-  IL_0058:  ret
-}
-";
+  IL_000e:  beq.s      IL_0039
+  IL_0010:  br.s       IL_0012
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
+  IL_0014:  ldarg.0
+  IL_0015:  ldc.i4.m1
+  IL_0016:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001b:  nop
+  IL_001c:  ldarg.0
+  IL_001d:  ldnull
+  IL_001e:  ldc.i4.1
+  IL_001f:  newobj     ""<>f__AnonymousType0<dynamic, int>..ctor(dynamic, int)""
+  IL_0024:  stfld      ""<anonymous type: dynamic A, int B> C.<F>d__0.<x>5__1""
+  IL_0029:  ldarg.0
+  IL_002a:  ldc.i4.1
+  IL_002b:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_0030:  ldarg.0
+  IL_0031:  ldc.i4.1
+  IL_0032:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0037:  ldc.i4.1
+  IL_0038:  ret
+  IL_0039:  ldarg.0
+  IL_003a:  ldc.i4.m1
+  IL_003b:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0040:  ldarg.0
+  IL_0041:  ldfld      ""<anonymous type: dynamic A, int B> C.<F>d__0.<x>5__1""
+  IL_0046:  callvirt   ""int <>f__AnonymousType0<dynamic, int>.B.get""
+  IL_004b:  ldc.i4.<<VALUE>>
+  IL_004c:  add
+  IL_004d:  call       ""void System.Console.WriteLine(int)""
+  IL_0052:  nop
+  IL_0053:  ldc.i4.0
+  IL_0054:  ret
+}";
 
             diff1.VerifySynthesizedMembers(
                 "C: {<F>d__0}",
@@ -4089,7 +4034,7 @@ class Program
 
             v0.VerifyIL("Program.<Iterator>d__1.System.Collections.IEnumerator.MoveNext()", @"
 {
-  // Code size      798 (0x31e)
+  // Code size      794 (0x31a)
   .maxstack  5
   .locals init (int V_0,
                 bool V_1,
@@ -4099,265 +4044,262 @@ class Program
   IL_0001:  ldfld      ""int Program.<Iterator>d__1.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0012
+  IL_0008:  brfalse.s  IL_0017
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0014
-  IL_0010:  br.s       IL_0019
-  IL_0012:  br.s       IL_001b
-  IL_0014:  br         IL_019b
-  IL_0019:  ldc.i4.0
-  IL_001a:  ret
-  IL_001b:  ldarg.0
-  IL_001c:  ldc.i4.m1
-  IL_001d:  stfld      ""int Program.<Iterator>d__1.<>1__state""
-  IL_0022:  nop
-  IL_0023:  ldarg.0
-  IL_0024:  ldc.i4.4
-  IL_0025:  newarr     ""string""
-  IL_002a:  dup
-  IL_002b:  ldc.i4.0
-  IL_002c:  ldstr      ""a""
-  IL_0031:  stelem.ref
-  IL_0032:  dup
-  IL_0033:  ldc.i4.1
-  IL_0034:  ldstr      ""bB""
-  IL_0039:  stelem.ref
-  IL_003a:  dup
-  IL_003b:  ldc.i4.2
-  IL_003c:  ldstr      ""Cc""
-  IL_0041:  stelem.ref
-  IL_0042:  dup
-  IL_0043:  ldc.i4.3
-  IL_0044:  ldstr      ""DD""
-  IL_0049:  stelem.ref
-  IL_004a:  stfld      ""string[] Program.<Iterator>d__1.<args>5__1""
-  IL_004f:  ldarg.0
-  IL_0050:  ldnull
-  IL_0051:  ldnull
-  IL_0052:  newobj     ""<>f__AnonymousType0<dynamic, dynamic>..ctor(dynamic, dynamic)""
-  IL_0057:  stfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<list>5__2""
-  IL_005c:  ldarg.0
-  IL_005d:  ldc.i4.0
-  IL_005e:  stfld      ""int Program.<Iterator>d__1.<i>5__3""
-  IL_0063:  br         IL_0305
-  IL_0068:  nop
-  IL_0069:  ldarg.0
-  IL_006a:  ldarg.0
-  IL_006b:  ldfld      ""string[] Program.<Iterator>d__1.<args>5__1""
-  IL_0070:  ldsfld     ""System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>> Program.<>c.<>9__1_0""
-  IL_0075:  dup
-  IL_0076:  brtrue.s   IL_008f
-  IL_0078:  pop
-  IL_0079:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_007e:  ldftn      ""<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> Program.<>c.<Iterator>b__1_0(string)""
-  IL_0084:  newobj     ""System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>..ctor(object, System.IntPtr)""
-  IL_0089:  dup
-  IL_008a:  stsfld     ""System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>> Program.<>c.<>9__1_0""
-  IL_008f:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>> System.Linq.Enumerable.Select<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>(System.Collections.Generic.IEnumerable<string>, System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>)""
-  IL_0094:  ldsfld     ""System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> Program.<>c.<>9__1_1""
-  IL_0099:  dup
-  IL_009a:  brtrue.s   IL_00b3
-  IL_009c:  pop
-  IL_009d:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_00a2:  ldftn      ""<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y> Program.<>c.<Iterator>b__1_1(<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>)""
-  IL_00a8:  newobj     ""System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>..ctor(object, System.IntPtr)""
-  IL_00ad:  dup
-  IL_00ae:  stsfld     ""System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> Program.<>c.<>9__1_1""
-  IL_00b3:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> System.Linq.Enumerable.Select<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>(System.Collections.Generic.IEnumerable<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>, System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>)""
-  IL_00b8:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool> Program.<>c.<>9__1_2""
-  IL_00bd:  dup
-  IL_00be:  brtrue.s   IL_00d7
-  IL_00c0:  pop
-  IL_00c1:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_00c6:  ldftn      ""bool Program.<>c.<Iterator>b__1_2(<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>)""
-  IL_00cc:  newobj     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool>..ctor(object, System.IntPtr)""
-  IL_00d1:  dup
-  IL_00d2:  stsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool> Program.<>c.<>9__1_2""
-  IL_00d7:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> System.Linq.Enumerable.Where<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>, System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool>)""
-  IL_00dc:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, int> Program.<>c.<>9__1_3""
-  IL_00e1:  dup
-  IL_00e2:  brtrue.s   IL_00fb
-  IL_00e4:  pop
-  IL_00e5:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_00ea:  ldftn      ""int Program.<>c.<Iterator>b__1_3(<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>)""
-  IL_00f0:  newobj     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, int>..ctor(object, System.IntPtr)""
-  IL_00f5:  dup
-  IL_00f6:  stsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, int> Program.<>c.<>9__1_3""
-  IL_00fb:  call       ""System.Linq.IOrderedEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> System.Linq.Enumerable.OrderBy<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, int>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>, System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, int>)""
-  IL_0100:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, string> Program.<>c.<>9__1_4""
-  IL_0105:  dup
-  IL_0106:  brtrue.s   IL_011f
-  IL_0108:  pop
-  IL_0109:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_010e:  ldftn      ""string Program.<>c.<Iterator>b__1_4(<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>)""
-  IL_0114:  newobj     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, string>..ctor(object, System.IntPtr)""
-  IL_0119:  dup
-  IL_011a:  stsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, string> Program.<>c.<>9__1_4""
-  IL_011f:  call       ""System.Linq.IOrderedEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> System.Linq.Enumerable.ThenByDescending<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, string>(System.Linq.IOrderedEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>, System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, string>)""
-  IL_0124:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>> Program.<>c.<>9__1_5""
-  IL_0129:  dup
-  IL_012a:  brtrue.s   IL_0143
-  IL_012c:  pop
-  IL_012d:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_0132:  ldftn      ""<anonymous type: string Value, int Length> Program.<>c.<Iterator>b__1_5(<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>)""
-  IL_0138:  newobj     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>>..ctor(object, System.IntPtr)""
-  IL_013d:  dup
-  IL_013e:  stsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>> Program.<>c.<>9__1_5""
-  IL_0143:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> System.Linq.Enumerable.Select<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>, System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>>)""
-  IL_0148:  stfld      ""System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> Program.<Iterator>d__1.<result>5__4""
-  IL_014d:  ldarg.0
-  IL_014e:  ldarg.0
-  IL_014f:  ldfld      ""System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> Program.<Iterator>d__1.<result>5__4""
-  IL_0154:  ldnull
-  IL_0155:  ldsfld     ""System.Func<<anonymous type: string Head, dynamic Tail>, <anonymous type: string Value, int Length>, <anonymous type: string Head, dynamic Tail>> Program.<>c.<>9__1_6""
-  IL_015a:  dup
-  IL_015b:  brtrue.s   IL_0174
-  IL_015d:  pop
-  IL_015e:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_0163:  ldftn      ""<anonymous type: string Head, dynamic Tail> Program.<>c.<Iterator>b__1_6(<anonymous type: string Head, dynamic Tail>, <anonymous type: string Value, int Length>)""
-  IL_0169:  newobj     ""System.Func<<anonymous type: string Head, dynamic Tail>, <anonymous type: string Value, int Length>, <anonymous type: string Head, dynamic Tail>>..ctor(object, System.IntPtr)""
-  IL_016e:  dup
-  IL_016f:  stsfld     ""System.Func<<anonymous type: string Head, dynamic Tail>, <anonymous type: string Value, int Length>, <anonymous type: string Head, dynamic Tail>> Program.<>c.<>9__1_6""
-  IL_0174:  call       ""<anonymous type: string Head, dynamic Tail> System.Linq.Enumerable.Aggregate<<anonymous type: string Value, int Length>, <anonymous type: string Head, dynamic Tail>>(System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>>, <anonymous type: string Head, dynamic Tail>, System.Func<<anonymous type: string Head, dynamic Tail>, <anonymous type: string Value, int Length>, <anonymous type: string Head, dynamic Tail>>)""
-  IL_0179:  stfld      ""<anonymous type: string Head, dynamic Tail> Program.<Iterator>d__1.<linked>5__5""
-  IL_017e:  br.s       IL_01f5
-  IL_0180:  nop
-  IL_0181:  ldarg.0
-  IL_0182:  ldarg.0
-  IL_0183:  ldfld      ""<anonymous type: string Head, dynamic Tail> Program.<Iterator>d__1.<linked>5__5""
-  IL_0188:  callvirt   ""string <>f__AnonymousType0<string, dynamic>.Head.get""
-  IL_018d:  stfld      ""string Program.<Iterator>d__1.<>2__current""
-  IL_0192:  ldarg.0
-  IL_0193:  ldc.i4.1
-  IL_0194:  stfld      ""int Program.<Iterator>d__1.<>1__state""
-  IL_0199:  ldc.i4.1
-  IL_019a:  ret
-  IL_019b:  ldarg.0
-  IL_019c:  ldc.i4.m1
-  IL_019d:  stfld      ""int Program.<Iterator>d__1.<>1__state""
-  IL_01a2:  ldarg.0
-  IL_01a3:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: string Head, dynamic Tail>>> Program.<>o__1.<>p__0""
-  IL_01a8:  brfalse.s  IL_01ac
-  IL_01aa:  br.s       IL_01d0
-  IL_01ac:  ldc.i4.0
-  IL_01ad:  ldtoken    ""<>f__AnonymousType0<string, dynamic>""
-  IL_01b2:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_01b7:  ldtoken    ""Program""
-  IL_01bc:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_01c1:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
-  IL_01c6:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: string Head, dynamic Tail>>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: string Head, dynamic Tail>>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_01cb:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: string Head, dynamic Tail>>> Program.<>o__1.<>p__0""
-  IL_01d0:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: string Head, dynamic Tail>>> Program.<>o__1.<>p__0""
-  IL_01d5:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: string Head, dynamic Tail>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: string Head, dynamic Tail>>>.Target""
-  IL_01da:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: string Head, dynamic Tail>>> Program.<>o__1.<>p__0""
-  IL_01df:  ldarg.0
-  IL_01e0:  ldfld      ""<anonymous type: string Head, dynamic Tail> Program.<Iterator>d__1.<linked>5__5""
-  IL_01e5:  callvirt   ""dynamic <>f__AnonymousType0<string, dynamic>.Tail.get""
-  IL_01ea:  callvirt   ""<anonymous type: string Head, dynamic Tail> System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: string Head, dynamic Tail>>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
-  IL_01ef:  stfld      ""<anonymous type: string Head, dynamic Tail> Program.<Iterator>d__1.<linked>5__5""
-  IL_01f4:  nop
-  IL_01f5:  ldarg.0
-  IL_01f6:  ldfld      ""<anonymous type: string Head, dynamic Tail> Program.<Iterator>d__1.<linked>5__5""
-  IL_01fb:  ldnull
-  IL_01fc:  cgt.un
-  IL_01fe:  stloc.1
-  IL_01ff:  ldloc.1
-  IL_0200:  brtrue     IL_0180
-  IL_0205:  ldarg.0
-  IL_0206:  ldarg.0
-  IL_0207:  ldfld      ""System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> Program.<Iterator>d__1.<result>5__4""
-  IL_020c:  ldsfld     ""System.Func<<anonymous type: string Value, int Length>, <anonymous type: <anonymous type: string Value, int Length> a, string value>> Program.<>c.<>9__1_7""
-  IL_0211:  dup
-  IL_0212:  brtrue.s   IL_022b
-  IL_0214:  pop
-  IL_0215:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_021a:  ldftn      ""<anonymous type: <anonymous type: string Value, int Length> a, string value> Program.<>c.<Iterator>b__1_7(<anonymous type: string Value, int Length>)""
-  IL_0220:  newobj     ""System.Func<<anonymous type: string Value, int Length>, <anonymous type: <anonymous type: string Value, int Length> a, string value>>..ctor(object, System.IntPtr)""
-  IL_0225:  dup
-  IL_0226:  stsfld     ""System.Func<<anonymous type: string Value, int Length>, <anonymous type: <anonymous type: string Value, int Length> a, string value>> Program.<>c.<>9__1_7""
-  IL_022b:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string Value, int Length> a, string value>> System.Linq.Enumerable.Select<<anonymous type: string Value, int Length>, <anonymous type: <anonymous type: string Value, int Length> a, string value>>(System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>>, System.Func<<anonymous type: string Value, int Length>, <anonymous type: <anonymous type: string Value, int Length> a, string value>>)""
-  IL_0230:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string Value, int Length> a, string value>, <anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>> Program.<>c.<>9__1_8""
-  IL_0235:  dup
-  IL_0236:  brtrue.s   IL_024f
-  IL_0238:  pop
-  IL_0239:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_023e:  ldftn      ""<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length> Program.<>c.<Iterator>b__1_8(<anonymous type: <anonymous type: string Value, int Length> a, string value>)""
-  IL_0244:  newobj     ""System.Func<<anonymous type: <anonymous type: string Value, int Length> a, string value>, <anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>..ctor(object, System.IntPtr)""
-  IL_0249:  dup
-  IL_024a:  stsfld     ""System.Func<<anonymous type: <anonymous type: string Value, int Length> a, string value>, <anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>> Program.<>c.<>9__1_8""
-  IL_024f:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>> System.Linq.Enumerable.Select<<anonymous type: <anonymous type: string Value, int Length> a, string value>, <anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string Value, int Length> a, string value>>, System.Func<<anonymous type: <anonymous type: string Value, int Length> a, string value>, <anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>)""
-  IL_0254:  ldsfld     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, bool> Program.<>c.<>9__1_9""
-  IL_0259:  dup
-  IL_025a:  brtrue.s   IL_0273
-  IL_025c:  pop
-  IL_025d:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_0262:  ldftn      ""bool Program.<>c.<Iterator>b__1_9(<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>)""
-  IL_0268:  newobj     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, bool>..ctor(object, System.IntPtr)""
-  IL_026d:  dup
-  IL_026e:  stsfld     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, bool> Program.<>c.<>9__1_9""
-  IL_0273:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>> System.Linq.Enumerable.Where<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>, System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, bool>)""
-  IL_0278:  ldsfld     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, string> Program.<>c.<>9__1_10""
-  IL_027d:  dup
-  IL_027e:  brtrue.s   IL_0297
-  IL_0280:  pop
-  IL_0281:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_0286:  ldftn      ""string Program.<>c.<Iterator>b__1_10(<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>)""
-  IL_028c:  newobj     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, string>..ctor(object, System.IntPtr)""
-  IL_0291:  dup
-  IL_0292:  stsfld     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, string> Program.<>c.<>9__1_10""
-  IL_0297:  call       ""System.Collections.Generic.IEnumerable<string> System.Linq.Enumerable.Select<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, string>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>, System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, string>)""
-  IL_029c:  stfld      ""System.Collections.Generic.IEnumerable<string> Program.<Iterator>d__1.<newArgs>5__6""
-  IL_02a1:  ldarg.0
-  IL_02a2:  ldarg.0
-  IL_02a3:  ldfld      ""string[] Program.<Iterator>d__1.<args>5__1""
-  IL_02a8:  ldarg.0
-  IL_02a9:  ldfld      ""System.Collections.Generic.IEnumerable<string> Program.<Iterator>d__1.<newArgs>5__6""
-  IL_02ae:  call       ""System.Collections.Generic.IEnumerable<string> System.Linq.Enumerable.Concat<string>(System.Collections.Generic.IEnumerable<string>, System.Collections.Generic.IEnumerable<string>)""
-  IL_02b3:  call       ""string[] System.Linq.Enumerable.ToArray<string>(System.Collections.Generic.IEnumerable<string>)""
-  IL_02b8:  stfld      ""string[] Program.<Iterator>d__1.<args>5__1""
-  IL_02bd:  ldarg.0
-  IL_02be:  ldarg.0
-  IL_02bf:  ldfld      ""int Program.<Iterator>d__1.<i>5__3""
-  IL_02c4:  box        ""int""
-  IL_02c9:  ldarg.0
-  IL_02ca:  ldfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<list>5__2""
-  IL_02cf:  newobj     ""<>f__AnonymousType0<dynamic, dynamic>..ctor(dynamic, dynamic)""
-  IL_02d4:  stfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<list>5__2""
-  IL_02d9:  call       ""void System.Diagnostics.Debugger.Break()""
-  IL_02de:  nop
-  IL_02df:  nop
-  IL_02e0:  ldarg.0
-  IL_02e1:  ldnull
-  IL_02e2:  stfld      ""System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> Program.<Iterator>d__1.<result>5__4""
-  IL_02e7:  ldarg.0
-  IL_02e8:  ldnull
-  IL_02e9:  stfld      ""<anonymous type: string Head, dynamic Tail> Program.<Iterator>d__1.<linked>5__5""
-  IL_02ee:  ldarg.0
-  IL_02ef:  ldnull
-  IL_02f0:  stfld      ""System.Collections.Generic.IEnumerable<string> Program.<Iterator>d__1.<newArgs>5__6""
-  IL_02f5:  ldarg.0
-  IL_02f6:  ldfld      ""int Program.<Iterator>d__1.<i>5__3""
-  IL_02fb:  stloc.2
-  IL_02fc:  ldarg.0
-  IL_02fd:  ldloc.2
-  IL_02fe:  ldc.i4.1
-  IL_02ff:  add
-  IL_0300:  stfld      ""int Program.<Iterator>d__1.<i>5__3""
-  IL_0305:  ldarg.0
-  IL_0306:  ldfld      ""int Program.<Iterator>d__1.<i>5__3""
-  IL_030b:  ldc.i4.s   10
-  IL_030d:  clt
-  IL_030f:  stloc.3
-  IL_0310:  ldloc.3
-  IL_0311:  brtrue     IL_0068
-  IL_0316:  call       ""void System.Diagnostics.Debugger.Break()""
-  IL_031b:  nop
-  IL_031c:  ldc.i4.0
-  IL_031d:  ret
-}
-");
+  IL_000e:  beq        IL_0197
+  IL_0013:  br.s       IL_0015
+  IL_0015:  ldc.i4.0
+  IL_0016:  ret
+  IL_0017:  ldarg.0
+  IL_0018:  ldc.i4.m1
+  IL_0019:  stfld      ""int Program.<Iterator>d__1.<>1__state""
+  IL_001e:  nop
+  IL_001f:  ldarg.0
+  IL_0020:  ldc.i4.4
+  IL_0021:  newarr     ""string""
+  IL_0026:  dup
+  IL_0027:  ldc.i4.0
+  IL_0028:  ldstr      ""a""
+  IL_002d:  stelem.ref
+  IL_002e:  dup
+  IL_002f:  ldc.i4.1
+  IL_0030:  ldstr      ""bB""
+  IL_0035:  stelem.ref
+  IL_0036:  dup
+  IL_0037:  ldc.i4.2
+  IL_0038:  ldstr      ""Cc""
+  IL_003d:  stelem.ref
+  IL_003e:  dup
+  IL_003f:  ldc.i4.3
+  IL_0040:  ldstr      ""DD""
+  IL_0045:  stelem.ref
+  IL_0046:  stfld      ""string[] Program.<Iterator>d__1.<args>5__1""
+  IL_004b:  ldarg.0
+  IL_004c:  ldnull
+  IL_004d:  ldnull
+  IL_004e:  newobj     ""<>f__AnonymousType0<dynamic, dynamic>..ctor(dynamic, dynamic)""
+  IL_0053:  stfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<list>5__2""
+  IL_0058:  ldarg.0
+  IL_0059:  ldc.i4.0
+  IL_005a:  stfld      ""int Program.<Iterator>d__1.<i>5__3""
+  IL_005f:  br         IL_0301
+  IL_0064:  nop
+  IL_0065:  ldarg.0
+  IL_0066:  ldarg.0
+  IL_0067:  ldfld      ""string[] Program.<Iterator>d__1.<args>5__1""
+  IL_006c:  ldsfld     ""System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>> Program.<>c.<>9__1_0""
+  IL_0071:  dup
+  IL_0072:  brtrue.s   IL_008b
+  IL_0074:  pop
+  IL_0075:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_007a:  ldftn      ""<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> Program.<>c.<Iterator>b__1_0(string)""
+  IL_0080:  newobj     ""System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>..ctor(object, System.IntPtr)""
+  IL_0085:  dup
+  IL_0086:  stsfld     ""System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>> Program.<>c.<>9__1_0""
+  IL_008b:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>> System.Linq.Enumerable.Select<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>(System.Collections.Generic.IEnumerable<string>, System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>)""
+  IL_0090:  ldsfld     ""System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> Program.<>c.<>9__1_1""
+  IL_0095:  dup
+  IL_0096:  brtrue.s   IL_00af
+  IL_0098:  pop
+  IL_0099:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_009e:  ldftn      ""<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y> Program.<>c.<Iterator>b__1_1(<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>)""
+  IL_00a4:  newobj     ""System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>..ctor(object, System.IntPtr)""
+  IL_00a9:  dup
+  IL_00aa:  stsfld     ""System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> Program.<>c.<>9__1_1""
+  IL_00af:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> System.Linq.Enumerable.Select<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>(System.Collections.Generic.IEnumerable<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>, System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>)""
+  IL_00b4:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool> Program.<>c.<>9__1_2""
+  IL_00b9:  dup
+  IL_00ba:  brtrue.s   IL_00d3
+  IL_00bc:  pop
+  IL_00bd:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_00c2:  ldftn      ""bool Program.<>c.<Iterator>b__1_2(<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>)""
+  IL_00c8:  newobj     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool>..ctor(object, System.IntPtr)""
+  IL_00cd:  dup
+  IL_00ce:  stsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool> Program.<>c.<>9__1_2""
+  IL_00d3:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> System.Linq.Enumerable.Where<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>, System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool>)""
+  IL_00d8:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, int> Program.<>c.<>9__1_3""
+  IL_00dd:  dup
+  IL_00de:  brtrue.s   IL_00f7
+  IL_00e0:  pop
+  IL_00e1:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_00e6:  ldftn      ""int Program.<>c.<Iterator>b__1_3(<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>)""
+  IL_00ec:  newobj     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, int>..ctor(object, System.IntPtr)""
+  IL_00f1:  dup
+  IL_00f2:  stsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, int> Program.<>c.<>9__1_3""
+  IL_00f7:  call       ""System.Linq.IOrderedEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> System.Linq.Enumerable.OrderBy<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, int>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>, System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, int>)""
+  IL_00fc:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, string> Program.<>c.<>9__1_4""
+  IL_0101:  dup
+  IL_0102:  brtrue.s   IL_011b
+  IL_0104:  pop
+  IL_0105:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_010a:  ldftn      ""string Program.<>c.<Iterator>b__1_4(<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>)""
+  IL_0110:  newobj     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, string>..ctor(object, System.IntPtr)""
+  IL_0115:  dup
+  IL_0116:  stsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, string> Program.<>c.<>9__1_4""
+  IL_011b:  call       ""System.Linq.IOrderedEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> System.Linq.Enumerable.ThenByDescending<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, string>(System.Linq.IOrderedEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>, System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, string>)""
+  IL_0120:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>> Program.<>c.<>9__1_5""
+  IL_0125:  dup
+  IL_0126:  brtrue.s   IL_013f
+  IL_0128:  pop
+  IL_0129:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_012e:  ldftn      ""<anonymous type: string Value, int Length> Program.<>c.<Iterator>b__1_5(<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>)""
+  IL_0134:  newobj     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>>..ctor(object, System.IntPtr)""
+  IL_0139:  dup
+  IL_013a:  stsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>> Program.<>c.<>9__1_5""
+  IL_013f:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> System.Linq.Enumerable.Select<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>, System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>>)""
+  IL_0144:  stfld      ""System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> Program.<Iterator>d__1.<result>5__4""
+  IL_0149:  ldarg.0
+  IL_014a:  ldarg.0
+  IL_014b:  ldfld      ""System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> Program.<Iterator>d__1.<result>5__4""
+  IL_0150:  ldnull
+  IL_0151:  ldsfld     ""System.Func<<anonymous type: string Head, dynamic Tail>, <anonymous type: string Value, int Length>, <anonymous type: string Head, dynamic Tail>> Program.<>c.<>9__1_6""
+  IL_0156:  dup
+  IL_0157:  brtrue.s   IL_0170
+  IL_0159:  pop
+  IL_015a:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_015f:  ldftn      ""<anonymous type: string Head, dynamic Tail> Program.<>c.<Iterator>b__1_6(<anonymous type: string Head, dynamic Tail>, <anonymous type: string Value, int Length>)""
+  IL_0165:  newobj     ""System.Func<<anonymous type: string Head, dynamic Tail>, <anonymous type: string Value, int Length>, <anonymous type: string Head, dynamic Tail>>..ctor(object, System.IntPtr)""
+  IL_016a:  dup
+  IL_016b:  stsfld     ""System.Func<<anonymous type: string Head, dynamic Tail>, <anonymous type: string Value, int Length>, <anonymous type: string Head, dynamic Tail>> Program.<>c.<>9__1_6""
+  IL_0170:  call       ""<anonymous type: string Head, dynamic Tail> System.Linq.Enumerable.Aggregate<<anonymous type: string Value, int Length>, <anonymous type: string Head, dynamic Tail>>(System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>>, <anonymous type: string Head, dynamic Tail>, System.Func<<anonymous type: string Head, dynamic Tail>, <anonymous type: string Value, int Length>, <anonymous type: string Head, dynamic Tail>>)""
+  IL_0175:  stfld      ""<anonymous type: string Head, dynamic Tail> Program.<Iterator>d__1.<linked>5__5""
+  IL_017a:  br.s       IL_01f1
+  IL_017c:  nop
+  IL_017d:  ldarg.0
+  IL_017e:  ldarg.0
+  IL_017f:  ldfld      ""<anonymous type: string Head, dynamic Tail> Program.<Iterator>d__1.<linked>5__5""
+  IL_0184:  callvirt   ""string <>f__AnonymousType0<string, dynamic>.Head.get""
+  IL_0189:  stfld      ""string Program.<Iterator>d__1.<>2__current""
+  IL_018e:  ldarg.0
+  IL_018f:  ldc.i4.1
+  IL_0190:  stfld      ""int Program.<Iterator>d__1.<>1__state""
+  IL_0195:  ldc.i4.1
+  IL_0196:  ret
+  IL_0197:  ldarg.0
+  IL_0198:  ldc.i4.m1
+  IL_0199:  stfld      ""int Program.<Iterator>d__1.<>1__state""
+  IL_019e:  ldarg.0
+  IL_019f:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: string Head, dynamic Tail>>> Program.<>o__1.<>p__0""
+  IL_01a4:  brfalse.s  IL_01a8
+  IL_01a6:  br.s       IL_01cc
+  IL_01a8:  ldc.i4.0
+  IL_01a9:  ldtoken    ""<>f__AnonymousType0<string, dynamic>""
+  IL_01ae:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_01b3:  ldtoken    ""Program""
+  IL_01b8:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_01bd:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
+  IL_01c2:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: string Head, dynamic Tail>>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: string Head, dynamic Tail>>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_01c7:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: string Head, dynamic Tail>>> Program.<>o__1.<>p__0""
+  IL_01cc:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: string Head, dynamic Tail>>> Program.<>o__1.<>p__0""
+  IL_01d1:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: string Head, dynamic Tail>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: string Head, dynamic Tail>>>.Target""
+  IL_01d6:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: string Head, dynamic Tail>>> Program.<>o__1.<>p__0""
+  IL_01db:  ldarg.0
+  IL_01dc:  ldfld      ""<anonymous type: string Head, dynamic Tail> Program.<Iterator>d__1.<linked>5__5""
+  IL_01e1:  callvirt   ""dynamic <>f__AnonymousType0<string, dynamic>.Tail.get""
+  IL_01e6:  callvirt   ""<anonymous type: string Head, dynamic Tail> System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: string Head, dynamic Tail>>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+  IL_01eb:  stfld      ""<anonymous type: string Head, dynamic Tail> Program.<Iterator>d__1.<linked>5__5""
+  IL_01f0:  nop
+  IL_01f1:  ldarg.0
+  IL_01f2:  ldfld      ""<anonymous type: string Head, dynamic Tail> Program.<Iterator>d__1.<linked>5__5""
+  IL_01f7:  ldnull
+  IL_01f8:  cgt.un
+  IL_01fa:  stloc.1
+  IL_01fb:  ldloc.1
+  IL_01fc:  brtrue     IL_017c
+  IL_0201:  ldarg.0
+  IL_0202:  ldarg.0
+  IL_0203:  ldfld      ""System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> Program.<Iterator>d__1.<result>5__4""
+  IL_0208:  ldsfld     ""System.Func<<anonymous type: string Value, int Length>, <anonymous type: <anonymous type: string Value, int Length> a, string value>> Program.<>c.<>9__1_7""
+  IL_020d:  dup
+  IL_020e:  brtrue.s   IL_0227
+  IL_0210:  pop
+  IL_0211:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_0216:  ldftn      ""<anonymous type: <anonymous type: string Value, int Length> a, string value> Program.<>c.<Iterator>b__1_7(<anonymous type: string Value, int Length>)""
+  IL_021c:  newobj     ""System.Func<<anonymous type: string Value, int Length>, <anonymous type: <anonymous type: string Value, int Length> a, string value>>..ctor(object, System.IntPtr)""
+  IL_0221:  dup
+  IL_0222:  stsfld     ""System.Func<<anonymous type: string Value, int Length>, <anonymous type: <anonymous type: string Value, int Length> a, string value>> Program.<>c.<>9__1_7""
+  IL_0227:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string Value, int Length> a, string value>> System.Linq.Enumerable.Select<<anonymous type: string Value, int Length>, <anonymous type: <anonymous type: string Value, int Length> a, string value>>(System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>>, System.Func<<anonymous type: string Value, int Length>, <anonymous type: <anonymous type: string Value, int Length> a, string value>>)""
+  IL_022c:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string Value, int Length> a, string value>, <anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>> Program.<>c.<>9__1_8""
+  IL_0231:  dup
+  IL_0232:  brtrue.s   IL_024b
+  IL_0234:  pop
+  IL_0235:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_023a:  ldftn      ""<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length> Program.<>c.<Iterator>b__1_8(<anonymous type: <anonymous type: string Value, int Length> a, string value>)""
+  IL_0240:  newobj     ""System.Func<<anonymous type: <anonymous type: string Value, int Length> a, string value>, <anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>..ctor(object, System.IntPtr)""
+  IL_0245:  dup
+  IL_0246:  stsfld     ""System.Func<<anonymous type: <anonymous type: string Value, int Length> a, string value>, <anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>> Program.<>c.<>9__1_8""
+  IL_024b:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>> System.Linq.Enumerable.Select<<anonymous type: <anonymous type: string Value, int Length> a, string value>, <anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string Value, int Length> a, string value>>, System.Func<<anonymous type: <anonymous type: string Value, int Length> a, string value>, <anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>)""
+  IL_0250:  ldsfld     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, bool> Program.<>c.<>9__1_9""
+  IL_0255:  dup
+  IL_0256:  brtrue.s   IL_026f
+  IL_0258:  pop
+  IL_0259:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_025e:  ldftn      ""bool Program.<>c.<Iterator>b__1_9(<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>)""
+  IL_0264:  newobj     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, bool>..ctor(object, System.IntPtr)""
+  IL_0269:  dup
+  IL_026a:  stsfld     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, bool> Program.<>c.<>9__1_9""
+  IL_026f:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>> System.Linq.Enumerable.Where<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>, System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, bool>)""
+  IL_0274:  ldsfld     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, string> Program.<>c.<>9__1_10""
+  IL_0279:  dup
+  IL_027a:  brtrue.s   IL_0293
+  IL_027c:  pop
+  IL_027d:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_0282:  ldftn      ""string Program.<>c.<Iterator>b__1_10(<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>)""
+  IL_0288:  newobj     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, string>..ctor(object, System.IntPtr)""
+  IL_028d:  dup
+  IL_028e:  stsfld     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, string> Program.<>c.<>9__1_10""
+  IL_0293:  call       ""System.Collections.Generic.IEnumerable<string> System.Linq.Enumerable.Select<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, string>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>, System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, string>)""
+  IL_0298:  stfld      ""System.Collections.Generic.IEnumerable<string> Program.<Iterator>d__1.<newArgs>5__6""
+  IL_029d:  ldarg.0
+  IL_029e:  ldarg.0
+  IL_029f:  ldfld      ""string[] Program.<Iterator>d__1.<args>5__1""
+  IL_02a4:  ldarg.0
+  IL_02a5:  ldfld      ""System.Collections.Generic.IEnumerable<string> Program.<Iterator>d__1.<newArgs>5__6""
+  IL_02aa:  call       ""System.Collections.Generic.IEnumerable<string> System.Linq.Enumerable.Concat<string>(System.Collections.Generic.IEnumerable<string>, System.Collections.Generic.IEnumerable<string>)""
+  IL_02af:  call       ""string[] System.Linq.Enumerable.ToArray<string>(System.Collections.Generic.IEnumerable<string>)""
+  IL_02b4:  stfld      ""string[] Program.<Iterator>d__1.<args>5__1""
+  IL_02b9:  ldarg.0
+  IL_02ba:  ldarg.0
+  IL_02bb:  ldfld      ""int Program.<Iterator>d__1.<i>5__3""
+  IL_02c0:  box        ""int""
+  IL_02c5:  ldarg.0
+  IL_02c6:  ldfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<list>5__2""
+  IL_02cb:  newobj     ""<>f__AnonymousType0<dynamic, dynamic>..ctor(dynamic, dynamic)""
+  IL_02d0:  stfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<list>5__2""
+  IL_02d5:  call       ""void System.Diagnostics.Debugger.Break()""
+  IL_02da:  nop
+  IL_02db:  nop
+  IL_02dc:  ldarg.0
+  IL_02dd:  ldnull
+  IL_02de:  stfld      ""System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> Program.<Iterator>d__1.<result>5__4""
+  IL_02e3:  ldarg.0
+  IL_02e4:  ldnull
+  IL_02e5:  stfld      ""<anonymous type: string Head, dynamic Tail> Program.<Iterator>d__1.<linked>5__5""
+  IL_02ea:  ldarg.0
+  IL_02eb:  ldnull
+  IL_02ec:  stfld      ""System.Collections.Generic.IEnumerable<string> Program.<Iterator>d__1.<newArgs>5__6""
+  IL_02f1:  ldarg.0
+  IL_02f2:  ldfld      ""int Program.<Iterator>d__1.<i>5__3""
+  IL_02f7:  stloc.2
+  IL_02f8:  ldarg.0
+  IL_02f9:  ldloc.2
+  IL_02fa:  ldc.i4.1
+  IL_02fb:  add
+  IL_02fc:  stfld      ""int Program.<Iterator>d__1.<i>5__3""
+  IL_0301:  ldarg.0
+  IL_0302:  ldfld      ""int Program.<Iterator>d__1.<i>5__3""
+  IL_0307:  ldc.i4.s   10
+  IL_0309:  clt
+  IL_030b:  stloc.3
+  IL_030c:  ldloc.3
+  IL_030d:  brtrue     IL_0064
+  IL_0312:  call       ""void System.Diagnostics.Debugger.Break()""
+  IL_0317:  nop
+  IL_0318:  ldc.i4.0
+  IL_0319:  ret
+}");
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -4378,7 +4320,7 @@ class Program
 
             diff1.VerifyIL("Program.<Iterator>d__1.System.Collections.IEnumerator.MoveNext()", @"
 {
-  // Code size      885 (0x375)
+  // Code size      881 (0x371)
   .maxstack  5
   .locals init (int V_0,
                 bool V_1,
@@ -4388,287 +4330,284 @@ class Program
   IL_0001:  ldfld      ""int Program.<Iterator>d__1.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0012
+  IL_0008:  brfalse.s  IL_0017
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0014
-  IL_0010:  br.s       IL_0019
-  IL_0012:  br.s       IL_001b
-  IL_0014:  br         IL_01eb
-  IL_0019:  ldc.i4.0
-  IL_001a:  ret
-  IL_001b:  ldarg.0
-  IL_001c:  ldc.i4.m1
-  IL_001d:  stfld      ""int Program.<Iterator>d__1.<>1__state""
-  IL_0022:  nop
-  IL_0023:  ldarg.0
-  IL_0024:  ldc.i4.4
-  IL_0025:  newarr     ""string""
-  IL_002a:  dup
-  IL_002b:  ldc.i4.0
-  IL_002c:  ldstr      ""a""
-  IL_0031:  stelem.ref
-  IL_0032:  dup
-  IL_0033:  ldc.i4.1
-  IL_0034:  ldstr      ""bB""
-  IL_0039:  stelem.ref
-  IL_003a:  dup
-  IL_003b:  ldc.i4.2
-  IL_003c:  ldstr      ""Cc""
-  IL_0041:  stelem.ref
-  IL_0042:  dup
-  IL_0043:  ldc.i4.3
-  IL_0044:  ldstr      ""DD""
-  IL_0049:  stelem.ref
-  IL_004a:  stfld      ""string[] Program.<Iterator>d__1.<args>5__1""
-  IL_004f:  ldarg.0
-  IL_0050:  ldnull
-  IL_0051:  ldnull
-  IL_0052:  newobj     ""<>f__AnonymousType0<dynamic, dynamic>..ctor(dynamic, dynamic)""
-  IL_0057:  stfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<list>5__2""
-  IL_005c:  ldarg.0
-  IL_005d:  ldc.i4.0
-  IL_005e:  stfld      ""int Program.<Iterator>d__1.<i>5__3""
-  IL_0063:  br         IL_035c
-  IL_0068:  nop
-  IL_0069:  ldarg.0
-  IL_006a:  ldarg.0
-  IL_006b:  ldfld      ""string[] Program.<Iterator>d__1.<args>5__1""
-  IL_0070:  ldsfld     ""System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>> Program.<>c.<>9__1_0""
-  IL_0075:  dup
-  IL_0076:  brtrue.s   IL_008f
-  IL_0078:  pop
-  IL_0079:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_007e:  ldftn      ""<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> Program.<>c.<Iterator>b__1_0(string)""
-  IL_0084:  newobj     ""System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>..ctor(object, System.IntPtr)""
-  IL_0089:  dup
-  IL_008a:  stsfld     ""System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>> Program.<>c.<>9__1_0""
-  IL_008f:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>> System.Linq.Enumerable.Select<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>(System.Collections.Generic.IEnumerable<string>, System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>)""
-  IL_0094:  ldsfld     ""System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> Program.<>c.<>9__1_1""
-  IL_0099:  dup
-  IL_009a:  brtrue.s   IL_00b3
-  IL_009c:  pop
-  IL_009d:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_00a2:  ldftn      ""<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y> Program.<>c.<Iterator>b__1_1(<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>)""
-  IL_00a8:  newobj     ""System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>..ctor(object, System.IntPtr)""
-  IL_00ad:  dup
-  IL_00ae:  stsfld     ""System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> Program.<>c.<>9__1_1""
-  IL_00b3:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> System.Linq.Enumerable.Select<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>(System.Collections.Generic.IEnumerable<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>, System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>)""
-  IL_00b8:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool> Program.<>c.<>9__1_2""
-  IL_00bd:  dup
-  IL_00be:  brtrue.s   IL_00d7
-  IL_00c0:  pop
-  IL_00c1:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_00c6:  ldftn      ""bool Program.<>c.<Iterator>b__1_2(<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>)""
-  IL_00cc:  newobj     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool>..ctor(object, System.IntPtr)""
-  IL_00d1:  dup
-  IL_00d2:  stsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool> Program.<>c.<>9__1_2""
-  IL_00d7:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> System.Linq.Enumerable.Where<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>, System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool>)""
-  IL_00dc:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, int> Program.<>c.<>9__1_3""
-  IL_00e1:  dup
-  IL_00e2:  brtrue.s   IL_00fb
-  IL_00e4:  pop
-  IL_00e5:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_00ea:  ldftn      ""int Program.<>c.<Iterator>b__1_3(<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>)""
-  IL_00f0:  newobj     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, int>..ctor(object, System.IntPtr)""
-  IL_00f5:  dup
-  IL_00f6:  stsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, int> Program.<>c.<>9__1_3""
-  IL_00fb:  call       ""System.Linq.IOrderedEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> System.Linq.Enumerable.OrderBy<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, int>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>, System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, int>)""
-  IL_0100:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, string> Program.<>c.<>9__1_4""
-  IL_0105:  dup
-  IL_0106:  brtrue.s   IL_011f
-  IL_0108:  pop
-  IL_0109:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_010e:  ldftn      ""string Program.<>c.<Iterator>b__1_4(<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>)""
-  IL_0114:  newobj     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, string>..ctor(object, System.IntPtr)""
-  IL_0119:  dup
-  IL_011a:  stsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, string> Program.<>c.<>9__1_4""
-  IL_011f:  call       ""System.Linq.IOrderedEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> System.Linq.Enumerable.ThenByDescending<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, string>(System.Linq.IOrderedEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>, System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, string>)""
-  IL_0124:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>> Program.<>c.<>9__1_5""
-  IL_0129:  dup
-  IL_012a:  brtrue.s   IL_0143
-  IL_012c:  pop
-  IL_012d:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_0132:  ldftn      ""<anonymous type: string Value, int Length> Program.<>c.<Iterator>b__1_5(<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>)""
-  IL_0138:  newobj     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>>..ctor(object, System.IntPtr)""
-  IL_013d:  dup
-  IL_013e:  stsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>> Program.<>c.<>9__1_5""
-  IL_0143:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> System.Linq.Enumerable.Select<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>, System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>>)""
-  IL_0148:  stfld      ""System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> Program.<Iterator>d__1.<result>5__4""
-  IL_014d:  ldarg.0
-  IL_014e:  ldarg.0
-  IL_014f:  ldfld      ""System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> Program.<Iterator>d__1.<result>5__4""
-  IL_0154:  ldnull
-  IL_0155:  ldsfld     ""System.Func<<anonymous type: string Head, dynamic Tail>, <anonymous type: string Value, int Length>, <anonymous type: string Head, dynamic Tail>> Program.<>c.<>9__1_6""
-  IL_015a:  dup
-  IL_015b:  brtrue.s   IL_0174
-  IL_015d:  pop
-  IL_015e:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_0163:  ldftn      ""<anonymous type: string Head, dynamic Tail> Program.<>c.<Iterator>b__1_6(<anonymous type: string Head, dynamic Tail>, <anonymous type: string Value, int Length>)""
-  IL_0169:  newobj     ""System.Func<<anonymous type: string Head, dynamic Tail>, <anonymous type: string Value, int Length>, <anonymous type: string Head, dynamic Tail>>..ctor(object, System.IntPtr)""
-  IL_016e:  dup
-  IL_016f:  stsfld     ""System.Func<<anonymous type: string Head, dynamic Tail>, <anonymous type: string Value, int Length>, <anonymous type: string Head, dynamic Tail>> Program.<>c.<>9__1_6""
-  IL_0174:  call       ""<anonymous type: string Head, dynamic Tail> System.Linq.Enumerable.Aggregate<<anonymous type: string Value, int Length>, <anonymous type: string Head, dynamic Tail>>(System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>>, <anonymous type: string Head, dynamic Tail>, System.Func<<anonymous type: string Head, dynamic Tail>, <anonymous type: string Value, int Length>, <anonymous type: string Head, dynamic Tail>>)""
-  IL_0179:  stfld      ""<anonymous type: string Head, dynamic Tail> Program.<Iterator>d__1.<linked>5__5""
-  IL_017e:  ldarg.0
-  IL_017f:  ldarg.0
-  IL_0180:  ldfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<list>5__2""
-  IL_0185:  stfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<temp>5__7""
-  IL_018a:  br         IL_0245
-  IL_018f:  nop
-  IL_0190:  ldarg.0
-  IL_0191:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>> Program.<>o__1#1.<>p__0""
-  IL_0196:  brfalse.s  IL_019a
-  IL_0198:  br.s       IL_01be
-  IL_019a:  ldc.i4.0
-  IL_019b:  ldtoken    ""string""
-  IL_01a0:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_01a5:  ldtoken    ""Program""
-  IL_01aa:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_01af:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
-  IL_01b4:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_01b9:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>> Program.<>o__1#1.<>p__0""
-  IL_01be:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>> Program.<>o__1#1.<>p__0""
-  IL_01c3:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>>.Target""
-  IL_01c8:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>> Program.<>o__1#1.<>p__0""
-  IL_01cd:  ldarg.0
-  IL_01ce:  ldfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<temp>5__7""
-  IL_01d3:  callvirt   ""dynamic <>f__AnonymousType0<dynamic, dynamic>.Head.get""
-  IL_01d8:  callvirt   ""string System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
-  IL_01dd:  stfld      ""string Program.<Iterator>d__1.<>2__current""
-  IL_01e2:  ldarg.0
-  IL_01e3:  ldc.i4.1
-  IL_01e4:  stfld      ""int Program.<Iterator>d__1.<>1__state""
-  IL_01e9:  ldc.i4.1
-  IL_01ea:  ret
-  IL_01eb:  ldarg.0
-  IL_01ec:  ldc.i4.m1
-  IL_01ed:  stfld      ""int Program.<Iterator>d__1.<>1__state""
-  IL_01f2:  ldarg.0
-  IL_01f3:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: dynamic Head, dynamic Tail>>> Program.<>o__1#1.<>p__1""
-  IL_01f8:  brfalse.s  IL_01fc
-  IL_01fa:  br.s       IL_0220
-  IL_01fc:  ldc.i4.0
-  IL_01fd:  ldtoken    ""<>f__AnonymousType0<dynamic, dynamic>""
-  IL_0202:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_0207:  ldtoken    ""Program""
-  IL_020c:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_0211:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
-  IL_0216:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: dynamic Head, dynamic Tail>>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: dynamic Head, dynamic Tail>>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_021b:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: dynamic Head, dynamic Tail>>> Program.<>o__1#1.<>p__1""
-  IL_0220:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: dynamic Head, dynamic Tail>>> Program.<>o__1#1.<>p__1""
-  IL_0225:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: dynamic Head, dynamic Tail>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: dynamic Head, dynamic Tail>>>.Target""
-  IL_022a:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: dynamic Head, dynamic Tail>>> Program.<>o__1#1.<>p__1""
-  IL_022f:  ldarg.0
-  IL_0230:  ldfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<temp>5__7""
-  IL_0235:  callvirt   ""dynamic <>f__AnonymousType0<dynamic, dynamic>.Tail.get""
-  IL_023a:  callvirt   ""<anonymous type: dynamic Head, dynamic Tail> System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: dynamic Head, dynamic Tail>>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
-  IL_023f:  stfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<temp>5__7""
-  IL_0244:  nop
-  IL_0245:  ldarg.0
-  IL_0246:  ldfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<temp>5__7""
-  IL_024b:  ldnull
-  IL_024c:  cgt.un
-  IL_024e:  stloc.1
-  IL_024f:  ldloc.1
-  IL_0250:  brtrue     IL_018f
-  IL_0255:  ldarg.0
-  IL_0256:  ldarg.0
-  IL_0257:  ldfld      ""System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> Program.<Iterator>d__1.<result>5__4""
-  IL_025c:  ldsfld     ""System.Func<<anonymous type: string Value, int Length>, <anonymous type: <anonymous type: string Value, int Length> a, string value>> Program.<>c.<>9__1_7""
-  IL_0261:  dup
-  IL_0262:  brtrue.s   IL_027b
-  IL_0264:  pop
-  IL_0265:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_026a:  ldftn      ""<anonymous type: <anonymous type: string Value, int Length> a, string value> Program.<>c.<Iterator>b__1_7(<anonymous type: string Value, int Length>)""
-  IL_0270:  newobj     ""System.Func<<anonymous type: string Value, int Length>, <anonymous type: <anonymous type: string Value, int Length> a, string value>>..ctor(object, System.IntPtr)""
-  IL_0275:  dup
-  IL_0276:  stsfld     ""System.Func<<anonymous type: string Value, int Length>, <anonymous type: <anonymous type: string Value, int Length> a, string value>> Program.<>c.<>9__1_7""
-  IL_027b:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string Value, int Length> a, string value>> System.Linq.Enumerable.Select<<anonymous type: string Value, int Length>, <anonymous type: <anonymous type: string Value, int Length> a, string value>>(System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>>, System.Func<<anonymous type: string Value, int Length>, <anonymous type: <anonymous type: string Value, int Length> a, string value>>)""
-  IL_0280:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string Value, int Length> a, string value>, <anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>> Program.<>c.<>9__1_8""
-  IL_0285:  dup
-  IL_0286:  brtrue.s   IL_029f
-  IL_0288:  pop
-  IL_0289:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_028e:  ldftn      ""<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length> Program.<>c.<Iterator>b__1_8(<anonymous type: <anonymous type: string Value, int Length> a, string value>)""
-  IL_0294:  newobj     ""System.Func<<anonymous type: <anonymous type: string Value, int Length> a, string value>, <anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>..ctor(object, System.IntPtr)""
-  IL_0299:  dup
-  IL_029a:  stsfld     ""System.Func<<anonymous type: <anonymous type: string Value, int Length> a, string value>, <anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>> Program.<>c.<>9__1_8""
-  IL_029f:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>> System.Linq.Enumerable.Select<<anonymous type: <anonymous type: string Value, int Length> a, string value>, <anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string Value, int Length> a, string value>>, System.Func<<anonymous type: <anonymous type: string Value, int Length> a, string value>, <anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>)""
-  IL_02a4:  ldsfld     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, bool> Program.<>c.<>9__1_9""
-  IL_02a9:  dup
-  IL_02aa:  brtrue.s   IL_02c3
-  IL_02ac:  pop
-  IL_02ad:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_02b2:  ldftn      ""bool Program.<>c.<Iterator>b__1_9(<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>)""
-  IL_02b8:  newobj     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, bool>..ctor(object, System.IntPtr)""
-  IL_02bd:  dup
-  IL_02be:  stsfld     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, bool> Program.<>c.<>9__1_9""
-  IL_02c3:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>> System.Linq.Enumerable.Where<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>, System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, bool>)""
-  IL_02c8:  ldsfld     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, string> Program.<>c.<>9__1_10""
-  IL_02cd:  dup
-  IL_02ce:  brtrue.s   IL_02e7
-  IL_02d0:  pop
-  IL_02d1:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_02d6:  ldftn      ""string Program.<>c.<Iterator>b__1_10(<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>)""
-  IL_02dc:  newobj     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, string>..ctor(object, System.IntPtr)""
-  IL_02e1:  dup
-  IL_02e2:  stsfld     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, string> Program.<>c.<>9__1_10""
-  IL_02e7:  call       ""System.Collections.Generic.IEnumerable<string> System.Linq.Enumerable.Select<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, string>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>, System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, string>)""
-  IL_02ec:  stfld      ""System.Collections.Generic.IEnumerable<string> Program.<Iterator>d__1.<newArgs>5__6""
-  IL_02f1:  ldarg.0
-  IL_02f2:  ldarg.0
-  IL_02f3:  ldfld      ""string[] Program.<Iterator>d__1.<args>5__1""
-  IL_02f8:  ldarg.0
-  IL_02f9:  ldfld      ""System.Collections.Generic.IEnumerable<string> Program.<Iterator>d__1.<newArgs>5__6""
-  IL_02fe:  call       ""System.Collections.Generic.IEnumerable<string> System.Linq.Enumerable.Concat<string>(System.Collections.Generic.IEnumerable<string>, System.Collections.Generic.IEnumerable<string>)""
-  IL_0303:  call       ""string[] System.Linq.Enumerable.ToArray<string>(System.Collections.Generic.IEnumerable<string>)""
-  IL_0308:  stfld      ""string[] Program.<Iterator>d__1.<args>5__1""
-  IL_030d:  ldarg.0
-  IL_030e:  ldarg.0
-  IL_030f:  ldfld      ""int Program.<Iterator>d__1.<i>5__3""
-  IL_0314:  box        ""int""
-  IL_0319:  ldarg.0
-  IL_031a:  ldfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<list>5__2""
-  IL_031f:  newobj     ""<>f__AnonymousType0<dynamic, dynamic>..ctor(dynamic, dynamic)""
-  IL_0324:  stfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<list>5__2""
-  IL_0329:  call       ""void System.Diagnostics.Debugger.Break()""
-  IL_032e:  nop
-  IL_032f:  nop
-  IL_0330:  ldarg.0
-  IL_0331:  ldnull
-  IL_0332:  stfld      ""System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> Program.<Iterator>d__1.<result>5__4""
-  IL_0337:  ldarg.0
-  IL_0338:  ldnull
-  IL_0339:  stfld      ""<anonymous type: string Head, dynamic Tail> Program.<Iterator>d__1.<linked>5__5""
-  IL_033e:  ldarg.0
-  IL_033f:  ldnull
-  IL_0340:  stfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<temp>5__7""
-  IL_0345:  ldarg.0
-  IL_0346:  ldnull
-  IL_0347:  stfld      ""System.Collections.Generic.IEnumerable<string> Program.<Iterator>d__1.<newArgs>5__6""
-  IL_034c:  ldarg.0
-  IL_034d:  ldfld      ""int Program.<Iterator>d__1.<i>5__3""
-  IL_0352:  stloc.2
-  IL_0353:  ldarg.0
-  IL_0354:  ldloc.2
-  IL_0355:  ldc.i4.1
-  IL_0356:  add
-  IL_0357:  stfld      ""int Program.<Iterator>d__1.<i>5__3""
-  IL_035c:  ldarg.0
-  IL_035d:  ldfld      ""int Program.<Iterator>d__1.<i>5__3""
-  IL_0362:  ldc.i4.s   10
-  IL_0364:  clt
-  IL_0366:  stloc.3
-  IL_0367:  ldloc.3
-  IL_0368:  brtrue     IL_0068
-  IL_036d:  call       ""void System.Diagnostics.Debugger.Break()""
-  IL_0372:  nop
-  IL_0373:  ldc.i4.0
-  IL_0374:  ret
-}
-");
+  IL_000e:  beq        IL_01e7
+  IL_0013:  br.s       IL_0015
+  IL_0015:  ldc.i4.0
+  IL_0016:  ret
+  IL_0017:  ldarg.0
+  IL_0018:  ldc.i4.m1
+  IL_0019:  stfld      ""int Program.<Iterator>d__1.<>1__state""
+  IL_001e:  nop
+  IL_001f:  ldarg.0
+  IL_0020:  ldc.i4.4
+  IL_0021:  newarr     ""string""
+  IL_0026:  dup
+  IL_0027:  ldc.i4.0
+  IL_0028:  ldstr      ""a""
+  IL_002d:  stelem.ref
+  IL_002e:  dup
+  IL_002f:  ldc.i4.1
+  IL_0030:  ldstr      ""bB""
+  IL_0035:  stelem.ref
+  IL_0036:  dup
+  IL_0037:  ldc.i4.2
+  IL_0038:  ldstr      ""Cc""
+  IL_003d:  stelem.ref
+  IL_003e:  dup
+  IL_003f:  ldc.i4.3
+  IL_0040:  ldstr      ""DD""
+  IL_0045:  stelem.ref
+  IL_0046:  stfld      ""string[] Program.<Iterator>d__1.<args>5__1""
+  IL_004b:  ldarg.0
+  IL_004c:  ldnull
+  IL_004d:  ldnull
+  IL_004e:  newobj     ""<>f__AnonymousType0<dynamic, dynamic>..ctor(dynamic, dynamic)""
+  IL_0053:  stfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<list>5__2""
+  IL_0058:  ldarg.0
+  IL_0059:  ldc.i4.0
+  IL_005a:  stfld      ""int Program.<Iterator>d__1.<i>5__3""
+  IL_005f:  br         IL_0358
+  IL_0064:  nop
+  IL_0065:  ldarg.0
+  IL_0066:  ldarg.0
+  IL_0067:  ldfld      ""string[] Program.<Iterator>d__1.<args>5__1""
+  IL_006c:  ldsfld     ""System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>> Program.<>c.<>9__1_0""
+  IL_0071:  dup
+  IL_0072:  brtrue.s   IL_008b
+  IL_0074:  pop
+  IL_0075:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_007a:  ldftn      ""<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> Program.<>c.<Iterator>b__1_0(string)""
+  IL_0080:  newobj     ""System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>..ctor(object, System.IntPtr)""
+  IL_0085:  dup
+  IL_0086:  stsfld     ""System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>> Program.<>c.<>9__1_0""
+  IL_008b:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>> System.Linq.Enumerable.Select<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>(System.Collections.Generic.IEnumerable<string>, System.Func<string, <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>)""
+  IL_0090:  ldsfld     ""System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> Program.<>c.<>9__1_1""
+  IL_0095:  dup
+  IL_0096:  brtrue.s   IL_00af
+  IL_0098:  pop
+  IL_0099:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_009e:  ldftn      ""<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y> Program.<>c.<Iterator>b__1_1(<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>)""
+  IL_00a4:  newobj     ""System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>..ctor(object, System.IntPtr)""
+  IL_00a9:  dup
+  IL_00aa:  stsfld     ""System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> Program.<>c.<>9__1_1""
+  IL_00af:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> System.Linq.Enumerable.Select<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>(System.Collections.Generic.IEnumerable<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>>, System.Func<<anonymous type: string a, System.Collections.Generic.IEnumerable<char> x>, <anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>)""
+  IL_00b4:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool> Program.<>c.<>9__1_2""
+  IL_00b9:  dup
+  IL_00ba:  brtrue.s   IL_00d3
+  IL_00bc:  pop
+  IL_00bd:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_00c2:  ldftn      ""bool Program.<>c.<Iterator>b__1_2(<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>)""
+  IL_00c8:  newobj     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool>..ctor(object, System.IntPtr)""
+  IL_00cd:  dup
+  IL_00ce:  stsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool> Program.<>c.<>9__1_2""
+  IL_00d3:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> System.Linq.Enumerable.Where<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>, System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, bool>)""
+  IL_00d8:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, int> Program.<>c.<>9__1_3""
+  IL_00dd:  dup
+  IL_00de:  brtrue.s   IL_00f7
+  IL_00e0:  pop
+  IL_00e1:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_00e6:  ldftn      ""int Program.<>c.<Iterator>b__1_3(<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>)""
+  IL_00ec:  newobj     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, int>..ctor(object, System.IntPtr)""
+  IL_00f1:  dup
+  IL_00f2:  stsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, int> Program.<>c.<>9__1_3""
+  IL_00f7:  call       ""System.Linq.IOrderedEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> System.Linq.Enumerable.OrderBy<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, int>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>, System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, int>)""
+  IL_00fc:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, string> Program.<>c.<>9__1_4""
+  IL_0101:  dup
+  IL_0102:  brtrue.s   IL_011b
+  IL_0104:  pop
+  IL_0105:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_010a:  ldftn      ""string Program.<>c.<Iterator>b__1_4(<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>)""
+  IL_0110:  newobj     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, string>..ctor(object, System.IntPtr)""
+  IL_0115:  dup
+  IL_0116:  stsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, string> Program.<>c.<>9__1_4""
+  IL_011b:  call       ""System.Linq.IOrderedEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>> System.Linq.Enumerable.ThenByDescending<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, string>(System.Linq.IOrderedEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>, System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, string>)""
+  IL_0120:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>> Program.<>c.<>9__1_5""
+  IL_0125:  dup
+  IL_0126:  brtrue.s   IL_013f
+  IL_0128:  pop
+  IL_0129:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_012e:  ldftn      ""<anonymous type: string Value, int Length> Program.<>c.<Iterator>b__1_5(<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>)""
+  IL_0134:  newobj     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>>..ctor(object, System.IntPtr)""
+  IL_0139:  dup
+  IL_013a:  stsfld     ""System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>> Program.<>c.<>9__1_5""
+  IL_013f:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> System.Linq.Enumerable.Select<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>>, System.Func<<anonymous type: <anonymous type: string a, System.Collections.Generic.IEnumerable<char> x> <>h__TransparentIdentifier0, System.Collections.Generic.IEnumerable<char> y>, <anonymous type: string Value, int Length>>)""
+  IL_0144:  stfld      ""System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> Program.<Iterator>d__1.<result>5__4""
+  IL_0149:  ldarg.0
+  IL_014a:  ldarg.0
+  IL_014b:  ldfld      ""System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> Program.<Iterator>d__1.<result>5__4""
+  IL_0150:  ldnull
+  IL_0151:  ldsfld     ""System.Func<<anonymous type: string Head, dynamic Tail>, <anonymous type: string Value, int Length>, <anonymous type: string Head, dynamic Tail>> Program.<>c.<>9__1_6""
+  IL_0156:  dup
+  IL_0157:  brtrue.s   IL_0170
+  IL_0159:  pop
+  IL_015a:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_015f:  ldftn      ""<anonymous type: string Head, dynamic Tail> Program.<>c.<Iterator>b__1_6(<anonymous type: string Head, dynamic Tail>, <anonymous type: string Value, int Length>)""
+  IL_0165:  newobj     ""System.Func<<anonymous type: string Head, dynamic Tail>, <anonymous type: string Value, int Length>, <anonymous type: string Head, dynamic Tail>>..ctor(object, System.IntPtr)""
+  IL_016a:  dup
+  IL_016b:  stsfld     ""System.Func<<anonymous type: string Head, dynamic Tail>, <anonymous type: string Value, int Length>, <anonymous type: string Head, dynamic Tail>> Program.<>c.<>9__1_6""
+  IL_0170:  call       ""<anonymous type: string Head, dynamic Tail> System.Linq.Enumerable.Aggregate<<anonymous type: string Value, int Length>, <anonymous type: string Head, dynamic Tail>>(System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>>, <anonymous type: string Head, dynamic Tail>, System.Func<<anonymous type: string Head, dynamic Tail>, <anonymous type: string Value, int Length>, <anonymous type: string Head, dynamic Tail>>)""
+  IL_0175:  stfld      ""<anonymous type: string Head, dynamic Tail> Program.<Iterator>d__1.<linked>5__5""
+  IL_017a:  ldarg.0
+  IL_017b:  ldarg.0
+  IL_017c:  ldfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<list>5__2""
+  IL_0181:  stfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<temp>5__7""
+  IL_0186:  br         IL_0241
+  IL_018b:  nop
+  IL_018c:  ldarg.0
+  IL_018d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>> Program.<>o__1#1.<>p__0""
+  IL_0192:  brfalse.s  IL_0196
+  IL_0194:  br.s       IL_01ba
+  IL_0196:  ldc.i4.0
+  IL_0197:  ldtoken    ""string""
+  IL_019c:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_01a1:  ldtoken    ""Program""
+  IL_01a6:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_01ab:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
+  IL_01b0:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_01b5:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>> Program.<>o__1#1.<>p__0""
+  IL_01ba:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>> Program.<>o__1#1.<>p__0""
+  IL_01bf:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>>.Target""
+  IL_01c4:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>> Program.<>o__1#1.<>p__0""
+  IL_01c9:  ldarg.0
+  IL_01ca:  ldfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<temp>5__7""
+  IL_01cf:  callvirt   ""dynamic <>f__AnonymousType0<dynamic, dynamic>.Head.get""
+  IL_01d4:  callvirt   ""string System.Func<System.Runtime.CompilerServices.CallSite, dynamic, string>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+  IL_01d9:  stfld      ""string Program.<Iterator>d__1.<>2__current""
+  IL_01de:  ldarg.0
+  IL_01df:  ldc.i4.1
+  IL_01e0:  stfld      ""int Program.<Iterator>d__1.<>1__state""
+  IL_01e5:  ldc.i4.1
+  IL_01e6:  ret
+  IL_01e7:  ldarg.0
+  IL_01e8:  ldc.i4.m1
+  IL_01e9:  stfld      ""int Program.<Iterator>d__1.<>1__state""
+  IL_01ee:  ldarg.0
+  IL_01ef:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: dynamic Head, dynamic Tail>>> Program.<>o__1#1.<>p__1""
+  IL_01f4:  brfalse.s  IL_01f8
+  IL_01f6:  br.s       IL_021c
+  IL_01f8:  ldc.i4.0
+  IL_01f9:  ldtoken    ""<>f__AnonymousType0<dynamic, dynamic>""
+  IL_01fe:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0203:  ldtoken    ""Program""
+  IL_0208:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_020d:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
+  IL_0212:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: dynamic Head, dynamic Tail>>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: dynamic Head, dynamic Tail>>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0217:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: dynamic Head, dynamic Tail>>> Program.<>o__1#1.<>p__1""
+  IL_021c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: dynamic Head, dynamic Tail>>> Program.<>o__1#1.<>p__1""
+  IL_0221:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: dynamic Head, dynamic Tail>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: dynamic Head, dynamic Tail>>>.Target""
+  IL_0226:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: dynamic Head, dynamic Tail>>> Program.<>o__1#1.<>p__1""
+  IL_022b:  ldarg.0
+  IL_022c:  ldfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<temp>5__7""
+  IL_0231:  callvirt   ""dynamic <>f__AnonymousType0<dynamic, dynamic>.Tail.get""
+  IL_0236:  callvirt   ""<anonymous type: dynamic Head, dynamic Tail> System.Func<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: dynamic Head, dynamic Tail>>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+  IL_023b:  stfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<temp>5__7""
+  IL_0240:  nop
+  IL_0241:  ldarg.0
+  IL_0242:  ldfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<temp>5__7""
+  IL_0247:  ldnull
+  IL_0248:  cgt.un
+  IL_024a:  stloc.1
+  IL_024b:  ldloc.1
+  IL_024c:  brtrue     IL_018b
+  IL_0251:  ldarg.0
+  IL_0252:  ldarg.0
+  IL_0253:  ldfld      ""System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> Program.<Iterator>d__1.<result>5__4""
+  IL_0258:  ldsfld     ""System.Func<<anonymous type: string Value, int Length>, <anonymous type: <anonymous type: string Value, int Length> a, string value>> Program.<>c.<>9__1_7""
+  IL_025d:  dup
+  IL_025e:  brtrue.s   IL_0277
+  IL_0260:  pop
+  IL_0261:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_0266:  ldftn      ""<anonymous type: <anonymous type: string Value, int Length> a, string value> Program.<>c.<Iterator>b__1_7(<anonymous type: string Value, int Length>)""
+  IL_026c:  newobj     ""System.Func<<anonymous type: string Value, int Length>, <anonymous type: <anonymous type: string Value, int Length> a, string value>>..ctor(object, System.IntPtr)""
+  IL_0271:  dup
+  IL_0272:  stsfld     ""System.Func<<anonymous type: string Value, int Length>, <anonymous type: <anonymous type: string Value, int Length> a, string value>> Program.<>c.<>9__1_7""
+  IL_0277:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string Value, int Length> a, string value>> System.Linq.Enumerable.Select<<anonymous type: string Value, int Length>, <anonymous type: <anonymous type: string Value, int Length> a, string value>>(System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>>, System.Func<<anonymous type: string Value, int Length>, <anonymous type: <anonymous type: string Value, int Length> a, string value>>)""
+  IL_027c:  ldsfld     ""System.Func<<anonymous type: <anonymous type: string Value, int Length> a, string value>, <anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>> Program.<>c.<>9__1_8""
+  IL_0281:  dup
+  IL_0282:  brtrue.s   IL_029b
+  IL_0284:  pop
+  IL_0285:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_028a:  ldftn      ""<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length> Program.<>c.<Iterator>b__1_8(<anonymous type: <anonymous type: string Value, int Length> a, string value>)""
+  IL_0290:  newobj     ""System.Func<<anonymous type: <anonymous type: string Value, int Length> a, string value>, <anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>..ctor(object, System.IntPtr)""
+  IL_0295:  dup
+  IL_0296:  stsfld     ""System.Func<<anonymous type: <anonymous type: string Value, int Length> a, string value>, <anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>> Program.<>c.<>9__1_8""
+  IL_029b:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>> System.Linq.Enumerable.Select<<anonymous type: <anonymous type: string Value, int Length> a, string value>, <anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: string Value, int Length> a, string value>>, System.Func<<anonymous type: <anonymous type: string Value, int Length> a, string value>, <anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>)""
+  IL_02a0:  ldsfld     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, bool> Program.<>c.<>9__1_9""
+  IL_02a5:  dup
+  IL_02a6:  brtrue.s   IL_02bf
+  IL_02a8:  pop
+  IL_02a9:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_02ae:  ldftn      ""bool Program.<>c.<Iterator>b__1_9(<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>)""
+  IL_02b4:  newobj     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, bool>..ctor(object, System.IntPtr)""
+  IL_02b9:  dup
+  IL_02ba:  stsfld     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, bool> Program.<>c.<>9__1_9""
+  IL_02bf:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>> System.Linq.Enumerable.Where<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>, System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, bool>)""
+  IL_02c4:  ldsfld     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, string> Program.<>c.<>9__1_10""
+  IL_02c9:  dup
+  IL_02ca:  brtrue.s   IL_02e3
+  IL_02cc:  pop
+  IL_02cd:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_02d2:  ldftn      ""string Program.<>c.<Iterator>b__1_10(<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>)""
+  IL_02d8:  newobj     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, string>..ctor(object, System.IntPtr)""
+  IL_02dd:  dup
+  IL_02de:  stsfld     ""System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, string> Program.<>c.<>9__1_10""
+  IL_02e3:  call       ""System.Collections.Generic.IEnumerable<string> System.Linq.Enumerable.Select<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, string>(System.Collections.Generic.IEnumerable<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>>, System.Func<<anonymous type: <anonymous type: <anonymous type: string Value, int Length> a, string value> <>h__TransparentIdentifier0, int length>, string>)""
+  IL_02e8:  stfld      ""System.Collections.Generic.IEnumerable<string> Program.<Iterator>d__1.<newArgs>5__6""
+  IL_02ed:  ldarg.0
+  IL_02ee:  ldarg.0
+  IL_02ef:  ldfld      ""string[] Program.<Iterator>d__1.<args>5__1""
+  IL_02f4:  ldarg.0
+  IL_02f5:  ldfld      ""System.Collections.Generic.IEnumerable<string> Program.<Iterator>d__1.<newArgs>5__6""
+  IL_02fa:  call       ""System.Collections.Generic.IEnumerable<string> System.Linq.Enumerable.Concat<string>(System.Collections.Generic.IEnumerable<string>, System.Collections.Generic.IEnumerable<string>)""
+  IL_02ff:  call       ""string[] System.Linq.Enumerable.ToArray<string>(System.Collections.Generic.IEnumerable<string>)""
+  IL_0304:  stfld      ""string[] Program.<Iterator>d__1.<args>5__1""
+  IL_0309:  ldarg.0
+  IL_030a:  ldarg.0
+  IL_030b:  ldfld      ""int Program.<Iterator>d__1.<i>5__3""
+  IL_0310:  box        ""int""
+  IL_0315:  ldarg.0
+  IL_0316:  ldfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<list>5__2""
+  IL_031b:  newobj     ""<>f__AnonymousType0<dynamic, dynamic>..ctor(dynamic, dynamic)""
+  IL_0320:  stfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<list>5__2""
+  IL_0325:  call       ""void System.Diagnostics.Debugger.Break()""
+  IL_032a:  nop
+  IL_032b:  nop
+  IL_032c:  ldarg.0
+  IL_032d:  ldnull
+  IL_032e:  stfld      ""System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> Program.<Iterator>d__1.<result>5__4""
+  IL_0333:  ldarg.0
+  IL_0334:  ldnull
+  IL_0335:  stfld      ""<anonymous type: string Head, dynamic Tail> Program.<Iterator>d__1.<linked>5__5""
+  IL_033a:  ldarg.0
+  IL_033b:  ldnull
+  IL_033c:  stfld      ""<anonymous type: dynamic Head, dynamic Tail> Program.<Iterator>d__1.<temp>5__7""
+  IL_0341:  ldarg.0
+  IL_0342:  ldnull
+  IL_0343:  stfld      ""System.Collections.Generic.IEnumerable<string> Program.<Iterator>d__1.<newArgs>5__6""
+  IL_0348:  ldarg.0
+  IL_0349:  ldfld      ""int Program.<Iterator>d__1.<i>5__3""
+  IL_034e:  stloc.2
+  IL_034f:  ldarg.0
+  IL_0350:  ldloc.2
+  IL_0351:  ldc.i4.1
+  IL_0352:  add
+  IL_0353:  stfld      ""int Program.<Iterator>d__1.<i>5__3""
+  IL_0358:  ldarg.0
+  IL_0359:  ldfld      ""int Program.<Iterator>d__1.<i>5__3""
+  IL_035e:  ldc.i4.s   10
+  IL_0360:  clt
+  IL_0362:  stloc.3
+  IL_0363:  ldloc.3
+  IL_0364:  brtrue     IL_0064
+  IL_0369:  call       ""void System.Diagnostics.Debugger.Break()""
+  IL_036e:  nop
+  IL_036f:  ldc.i4.0
+  IL_0370:  ret
+}");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -4720,7 +4659,7 @@ class C
     }
 }
 ");
-            
+
             var compilation0 = CreateCompilationWithMscorlib40(new[] { source0.Tree }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 
@@ -5033,7 +4972,7 @@ class C
     }
 }
 ");
-                        
+
             var compilation0 = CreateEmptyCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 

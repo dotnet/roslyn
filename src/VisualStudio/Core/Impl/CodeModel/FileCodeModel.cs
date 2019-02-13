@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
@@ -45,8 +46,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private string _incomingFilePath;
         private Document _previousDocument;
 
-        private readonly ITextManagerAdapter _textManagerAdapter;
-
         private readonly CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement> _codeElementTable;
 
         // These are used during batching.
@@ -72,9 +71,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             _parentHandle = new ComHandle<object, object>(parent);
             _documentId = documentId;
-            _textManagerAdapter = textManagerAdapter;
+            TextManagerAdapter = textManagerAdapter;
 
-            _codeElementTable = new CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement>();
+            _codeElementTable = new CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement>(state.ThreadingContext);
 
             _batchMode = false;
             _batchDocument = null;
@@ -83,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal ITextManagerAdapter TextManagerAdapter
         {
-            get { return _textManagerAdapter; }
+            get; set;
         }
 
         /// <summary>
@@ -138,24 +137,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return false;
             }
 
-            var project = ((VisualStudioWorkspaceImpl)this.State.Workspace).DeferredState?.ProjectTracker.GetProject(_incomingProjectId);
+            var project = this.State.Workspace.CurrentSolution.GetProject(_incomingProjectId);
             if (project == null)
             {
                 return false;
             }
 
-            var hostDocument = project.GetCurrentDocumentFromPath(_incomingFilePath);
-            if (hostDocument == null)
+            documentId = project.Solution.GetDocumentIdsWithFilePath(_incomingFilePath).FirstOrDefault(d => d.ProjectId == project.Id);
+            if (documentId == null)
             {
                 return false;
             }
 
-            _documentId = hostDocument.Id;
+            _documentId = documentId;
             _incomingProjectId = null;
             _incomingFilePath = null;
             _previousDocument = null;
 
-            documentId = _documentId;
             return true;
         }
 
@@ -415,11 +413,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return GetDocumentId().ProjectId;
         }
 
-        internal AbstractProject GetAbstractProject()
-        {
-            return ((VisualStudioWorkspaceImpl)Workspace).DeferredState.ProjectTracker.GetProject(GetProjectId());
-        }
-
         internal SyntaxNode LookupNode(SyntaxNodeKey nodeKey)
         {
             return CodeModelService.LookupNode(nodeKey, GetSyntaxTree());
@@ -547,7 +540,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     // If both tokens are touching, we prefer identifiers and keywords to
                     // separators. Note that the language doesn't allow both tokens to be a
                     // keyword or identifier.
-                    if (SyntaxFactsService.IsKeyword(rightToken) ||
+                    if (SyntaxFactsService.IsReservedOrContextualKeyword(rightToken) ||
                         SyntaxFactsService.IsIdentifier(rightToken))
                     {
                         token = rightToken;

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -43,15 +44,16 @@ namespace Microsoft.CodeAnalysis
         }
 
         private VersionStamp(DateTime utcLastModified, int localIncrement)
+            : this(utcLastModified, localIncrement, GetNextGlobalVersion())
         {
-            _utcLastModified = utcLastModified;
-            _localIncrement = localIncrement;
-            _globalIncrement = GetNextGlobalVersion();
         }
 
         private VersionStamp(DateTime utcLastModified, int localIncrement, int globalIncrement)
         {
-            Contract.ThrowIfFalse(utcLastModified == default || utcLastModified.Kind == DateTimeKind.Utc);
+            if (utcLastModified != default && utcLastModified.Kind != DateTimeKind.Utc)
+            {
+                throw new ArgumentException(WorkspacesResources.DateTimeKind_must_be_Utc, nameof(utcLastModified));
+            }
 
             _utcLastModified = utcLastModified;
             _localIncrement = localIncrement;
@@ -122,7 +124,7 @@ namespace Microsoft.CodeAnalysis
         public VersionStamp GetNewerVersion()
         {
             // global version can't be moved to newer version
-            Contract.Requires(_globalIncrement != GlobalVersionMarker);
+            Debug.Assert(_globalIncrement != GlobalVersionMarker);
 
             var now = DateTime.UtcNow;
             var incr = (now == _utcLastModified) ? _localIncrement + 1 : 0;

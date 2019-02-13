@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim newlines = Regex.Matches(text, "\r\n|\r|\n")
-            Contract.Assert(newlines.Count = lines.Length - 1)
+            Debug.Assert(newlines.Count = lines.Length - 1)
 
             Dim builder = New StringBuilder()
 

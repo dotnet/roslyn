@@ -14,7 +14,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Basic
         private const string TestSource = @"
 Class C
     Public WithEvents Domain As AppDomain
-    Public Sub Goo()
+    Public Sub $$Goo()
     End Sub
 End Class
 
@@ -33,7 +33,7 @@ End Structure";
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyNavBar()
         {
-            VisualStudio.Editor.SetText(TestSource);
+            SetUpEditor(TestSource);
 
             VisualStudio.Editor.PlaceCaret("Goo", charsOffset: 1);
 
@@ -74,7 +74,7 @@ End Structure";
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void CodeSpit()
         {
-            VisualStudio.Editor.SetText(TestSource);
+            SetUpEditor(TestSource);
 
             VisualStudio.Editor.PlaceCaret("C", charsOffset: 1);
             VerifyLeftSelected("C");

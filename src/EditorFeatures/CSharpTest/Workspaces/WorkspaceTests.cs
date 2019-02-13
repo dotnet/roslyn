@@ -404,9 +404,10 @@ class D { }
                 workspace.AddTestProject(project1);
                 workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
 
-                Assert.Throws<ArgumentException>(() => workspace.OnDocumentRemoved(document.Id));
+                workspace.OnDocumentRemoved(document.Id);
 
-                workspace.CloseDocument(document.Id);
+                Assert.Empty(workspace.CurrentSolution.Projects.Single().Documents);
+
                 workspace.OnProjectRemoved(project1.Id);
             }
         }
@@ -1029,6 +1030,28 @@ class D { }
                 Assert.Equal(updatedText, (await eventArgs[0].NewSolution.GetDocument(originalDocumentId).GetTextAsync().ConfigureAwait(false)).ToString());
                 Assert.Equal(updatedText, (await eventArgs[1].NewSolution.GetDocument(originalDocumentId).GetTextAsync().ConfigureAwait(false)).ToString());
             }
+        }
+
+        [Fact, WorkItem(31928, "https://github.com/dotnet/roslyn/issues/31928")]
+        public void TestVersionStamp_Local()
+        {
+            // only Utc is allowed
+            Assert.Throws<ArgumentException>(() => VersionStamp.Create(DateTime.Now));
+        }
+
+        [Fact]
+        public void TestVersionStamp_Default()
+        {
+            var version1 = VersionStamp.Create(default);
+            var version2 = VersionStamp.Create(default);
+
+            var version3 = version1.GetNewerVersion(version2);
+            Assert.Equal(version3, version2);
+
+            var version4 = version1.GetNewerVersion();
+            var version5 = version4.GetNewerVersion(version3);
+
+            Assert.Equal(version5, version4);
         }
     }
 }

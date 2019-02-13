@@ -92,12 +92,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 foreach (var member in members)
                 {
+                    if (member.IsAccessor())
+                    {
+                        continue;
+                    }
+
                     var displayText = member.ToMinimalDisplayString(
                         semanticModel, namePosition, s_signatureDisplayFormat);
                     var insertionText = displayText;
 
                     var item = SymbolCompletionItem.CreateWithSymbolId(
                         displayText,
+                        displayTextSuffix: "",
                         insertionText: insertionText,
                         symbols: ImmutableArray.Create(member),
                         contextPosition: position,

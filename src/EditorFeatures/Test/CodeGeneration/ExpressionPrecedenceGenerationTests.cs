@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
     [Trait(Traits.Feature, Traits.Features.CodeGeneration)]
     public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
     {
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestAddMultiplyPrecedence1()
         {
             Test(
@@ -17,11 +17,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                         f.LiteralExpression(1),
                         f.LiteralExpression(2)),
                     f.LiteralExpression(3)),
-                cs: "(1 + 2) * 3",
-                vb: "(1 + 2) * 3");
+                cs: "((1) + (2)) * (3)",
+                csSimple: "(1 + 2) * 3",
+                vb: "((1) + (2)) * (3)",
+                vbSimple: "(1 + 2) * 3");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestAddMultiplyPrecedence2()
         {
             Test(
@@ -30,11 +32,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                         f.LiteralExpression(1),
                         f.LiteralExpression(2)),
                     f.LiteralExpression(3)),
-                cs: "1 * 2 + 3",
-                vb: "1 * 2 + 3");
+                cs: "((1) * (2)) + (3)",
+                csSimple: "1 * 2 + 3",
+                vb: "((1) * (2)) + (3)",
+                vbSimple: "1 * 2 + 3");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestAddMultiplyPrecedence3()
         {
             Test(
@@ -43,11 +47,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.AddExpression(
                         f.LiteralExpression(2),
                         f.LiteralExpression(3))),
-                cs: "1 * (2 + 3)",
-                vb: "1 * (2 + 3)");
+                cs: "(1) * ((2) + (3))",
+                csSimple: "1 * (2 + 3)",
+                vb: "(1) * ((2) + (3))",
+                vbSimple: "1 * (2 + 3)");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestAddMultiplyPrecedence4()
         {
             Test(
@@ -56,11 +62,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.MultiplyExpression(
                         f.LiteralExpression(2),
                         f.LiteralExpression(3))),
-                cs: "1 + 2 * 3",
-                vb: "1 + 2 * 3");
+                cs: "(1) + ((2) * (3))",
+                csSimple: "1 + 2 * 3",
+                vb: "(1) + ((2) * (3))",
+                vbSimple: "1 + 2 * 3");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestBitwiseAndOrPrecedence1()
         {
             Test(
@@ -69,11 +77,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                         f.LiteralExpression(1),
                         f.LiteralExpression(2)),
                     f.LiteralExpression(3)),
-                cs: "(1 | 2) & 3",
-                vb: "(1 Or 2) And 3");
+                cs: "((1) | (2)) & (3)",
+                csSimple: "(1 | 2) & 3",
+                vb: "((1) Or (2)) And (3)",
+                vbSimple: "(1 Or 2) And 3");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestBitwiseAndOrPrecedence2()
         {
             Test(
@@ -82,11 +92,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                         f.LiteralExpression(1),
                         f.LiteralExpression(2)),
                     f.LiteralExpression(3)),
-                cs: "1 & 2 | 3",
-                vb: "1 And 2 Or 3");
+                cs: "((1) & (2)) | (3)",
+                csSimple: "1 & 2 | 3",
+                vb: "((1) And (2)) Or (3)",
+                vbSimple: "1 And 2 Or 3");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestBitwiseAndOrPrecedence3()
         {
             Test(
@@ -95,11 +107,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.BitwiseOrExpression(
                         f.LiteralExpression(2),
                         f.LiteralExpression(3))),
-                cs: "1 & (2 | 3)",
-                vb: "1 And (2 Or 3)");
+                cs: "(1) & ((2) | (3))",
+                csSimple: "1 & (2 | 3)",
+                vb: "(1) And ((2) Or (3))",
+                vbSimple: "1 And (2 Or 3)");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestBitwiseAndOrPrecedence4()
         {
             Test(
@@ -108,11 +122,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.BitwiseAndExpression(
                         f.LiteralExpression(2),
                         f.LiteralExpression(3))),
-                cs: "1 | 2 & 3",
-                vb: "1 Or 2 And 3");
+                cs: "(1) | ((2) & (3))",
+                csSimple: "1 | 2 & 3",
+                vb: "(1) Or ((2) And (3))",
+                vbSimple: "1 Or 2 And 3");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestLogicalAndOrPrecedence1()
         {
             Test(
@@ -121,11 +137,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                         f.LiteralExpression(1),
                         f.LiteralExpression(2)),
                     f.LiteralExpression(3)),
-                cs: "(1 || 2) && 3",
-                vb: "(1 OrElse 2) AndAlso 3");
+                cs: "((1) || (2)) && (3)",
+                csSimple: "(1 || 2) && 3",
+                vb: "((1) OrElse (2)) AndAlso (3)",
+                vbSimple: "(1 OrElse 2) AndAlso 3");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestLogicalAndOrPrecedence2()
         {
             Test(
@@ -134,11 +152,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                         f.LiteralExpression(1),
                         f.LiteralExpression(2)),
                     f.LiteralExpression(3)),
-                cs: "1 && 2 || 3",
-                vb: "1 AndAlso 2 OrElse 3");
+                cs: "((1) && (2)) || (3)",
+                csSimple: "1 && 2 || 3",
+                vb: "((1) AndAlso (2)) OrElse (3)",
+                vbSimple: "1 AndAlso 2 OrElse 3");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestLogicalAndOrPrecedence3()
         {
             Test(
@@ -147,11 +167,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.LogicalOrExpression(
                         f.LiteralExpression(2),
                         f.LiteralExpression(3))),
-                cs: "1 && (2 || 3)",
-                vb: "1 AndAlso (2 OrElse 3)");
+                cs: "(1) && ((2) || (3))",
+                csSimple: "1 && (2 || 3)",
+                vb: "(1) AndAlso ((2) OrElse (3))",
+                vbSimple: "1 AndAlso (2 OrElse 3)");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestLogicalAndOrPrecedence4()
         {
             Test(
@@ -160,11 +182,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.LogicalAndExpression(
                         f.LiteralExpression(2),
                         f.LiteralExpression(3))),
-                cs: "1 || 2 && 3",
-                vb: "1 OrElse 2 AndAlso 3");
+                cs: "(1) || ((2) && (3))",
+                csSimple: "1 || 2 && 3",
+                vb: "(1) OrElse ((2) AndAlso (3))",
+                vbSimple: "1 OrElse 2 AndAlso 3");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestMemberAccessOffOfAdd1()
         {
             Test(
@@ -173,11 +197,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                         f.LiteralExpression(1),
                         f.LiteralExpression(2)),
                     f.IdentifierName("M")),
-                cs: "(1 + 2).M",
-                vb: "(1 + 2).M");
+                cs: "((1) + (2)).M",
+                csSimple: "(1 + 2).M",
+                vb: "((1) + (2)).M",
+                vbSimple: "(1 + 2).M");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestConditionalExpression1()
         {
             Test(
@@ -187,11 +213,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                         f.IdentifierName("E2")),
                     f.IdentifierName("T"),
                     f.IdentifierName("F")),
-                cs: "(E1 = E2) ? T : F",
-                vb: null);
+                cs: "(E1 = (E2)) ? (T) : (F)",
+                csSimple: "(E1 = E2) ? T : F",
+                vb: null,
+                vbSimple: null);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestConditionalExpression2()
         {
             Test(
@@ -204,11 +232,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                             f.IdentifierName("E2"),
                             f.IdentifierName("T2"),
                             f.IdentifierName("F2"))),
-                cs: "(E1 ? T1 : F1) + (E2 ? T2 : F2)",
-                vb: null);
+                cs: "((E1) ? (T1) : (F1)) + ((E2) ? (T2) : (F2))",
+                csSimple: "(E1 ? T1 : F1) + (E2 ? T2 : F2)",
+                vb: null,
+                vbSimple: null);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestMemberAccessOffOfElementAccess()
         {
             Test(
@@ -217,11 +247,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                         f.LiteralExpression(1),
                         f.LiteralExpression(2)),
                     f.Argument(f.IdentifierName("M"))),
-                cs: "(1 + 2)[M]",
-                vb: "(1 + 2)(M)");
+                cs: "((1) + (2))[M]",
+                csSimple: "(1 + 2)[M]",
+                vb: "((1) + (2))(M)",
+                vbSimple: "(1 + 2)(M)");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestMemberAccessOffOfIsExpression()
         {
             Test(
@@ -230,11 +262,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                         f.IdentifierName("a"),
                         CreateClass("SomeType")),
                     f.IdentifierName("M")),
-                cs: "(a is SomeType).M",
-                vb: "(TypeOf a Is SomeType).M");
+                cs: "((a) is SomeType).M",
+                csSimple: "(a is SomeType).M",
+                vb: "(TypeOf (a) Is SomeType).M",
+                vbSimple: "(TypeOf a Is SomeType).M");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestIsOfMemberAccessExpression()
         {
             Test(
@@ -243,11 +277,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                         f.IdentifierName("a"),
                         f.IdentifierName("M")),
                     CreateClass("SomeType")),
-                cs: "a.M is SomeType",
-                vb: "TypeOf a.M Is SomeType");
+                cs: "(a.M) is SomeType",
+                csSimple: "a.M is SomeType",
+                vb: "TypeOf (a.M) Is SomeType",
+                vbSimple: "TypeOf a.M Is SomeType");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestMemberAccessOffOfAsExpression()
         {
             Test(
@@ -256,11 +292,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                         f.IdentifierName("a"),
                         CreateClass("SomeType")),
                     f.IdentifierName("M")),
-                cs: "(a as SomeType).M",
-                vb: "TryCast(a, SomeType).M");
+                cs: "((a) as SomeType).M",
+                csSimple: "(a as SomeType).M",
+                vb: "(TryCast(a, SomeType)).M",
+                vbSimple: "TryCast(a, SomeType).M");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestAsOfMemberAccessExpression()
         {
             Test(
@@ -269,11 +307,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                             f.IdentifierName("a"),
                             f.IdentifierName("M")),
                         CreateClass("SomeType")),
-                cs: "a.M as SomeType",
-                vb: "TryCast(a.M, SomeType)");
+                cs: "(a.M) as SomeType",
+                csSimple: "a.M as SomeType",
+                vb: "TryCast(a.M, SomeType)",
+                vbSimple: "TryCast(a.M, SomeType)");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestMemberAccessOffOfNotExpression()
         {
             Test(
@@ -281,11 +321,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.LogicalNotExpression(
                         f.IdentifierName("a")),
                     f.IdentifierName("M")),
-                cs: "(!a).M",
-                vb: "(Not a).M");
+                cs: "(!(a)).M",
+                csSimple: "(!a).M",
+                vb: "(Not (a)).M",
+                vbSimple: "(Not a).M");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestNotOfMemberAccessExpression()
         {
             Test(
@@ -293,11 +335,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.MemberAccessExpression(
                         f.IdentifierName("a"),
                         f.IdentifierName("M"))),
-                cs: "!a.M",
-                vb: "Not a.M");
+                cs: "!(a.M)",
+                csSimple: "!a.M",
+                vb: "Not (a.M)",
+                vbSimple: "Not a.M");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestMemberAccessOffOfCastExpression()
         {
             Test(
@@ -306,11 +350,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                         CreateClass("SomeType"),
                         f.IdentifierName("a")),
                     f.IdentifierName("M")),
-                cs: "((SomeType)a).M",
-                vb: "DirectCast(a, SomeType).M");
+                cs: "((SomeType)(a)).M",
+                csSimple: "((SomeType)a).M",
+                vb: "(DirectCast(a, SomeType)).M",
+                vbSimple: "DirectCast(a, SomeType).M");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestCastOfAddExpression()
         {
             Test(
@@ -319,11 +365,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.AddExpression(
                         f.IdentifierName("a"),
                         f.IdentifierName("b"))),
-                cs: "(SomeType)(a + b)",
-                vb: "DirectCast(a + b, SomeType)");
+                cs: "(SomeType)((a) + (b))",
+                csSimple: "(SomeType)(a + b)",
+                vb: "DirectCast((a) + (b), SomeType)",
+                vbSimple: "DirectCast(a + b, SomeType)");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestNegateOfAddExpression()
         {
             Test(
@@ -331,11 +379,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.AddExpression(
                         f.IdentifierName("a"),
                         f.IdentifierName("b"))),
-                cs: "-(a + b)",
-                vb: "-(a + b)");
+                cs: "-((a) + (b))",
+                csSimple: "-(a + b)",
+                vb: "-((a) + (b))",
+                vbSimple: "-(a + b)");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestMemberAccessOffOfNegate()
         {
             Test(
@@ -343,11 +393,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.NegateExpression(
                         f.IdentifierName("a")),
                     f.IdentifierName("M")),
-                cs: "(-a).M",
-                vb: "(-a).M");
+                cs: "(-(a)).M",
+                csSimple: "(-a).M",
+                vb: "(-(a)).M",
+                vbSimple: "(-a).M");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestNegateOfMemberAccess()
         {
             Test(f =>
@@ -355,8 +407,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.MemberAccessExpression(
                         f.IdentifierName("a"),
                         f.IdentifierName("M"))),
-                cs: "-a.M",
-                vb: "-a.M");
+                cs: "-(a.M)",
+                csSimple: "-a.M",
+                vb: "-(a.M)",
+                vbSimple: "-a.M");
         }
     }
 }

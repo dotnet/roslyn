@@ -1,0 +1,77 @@
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <RoslynProjectType>Custom</RoslynProjectType>
+
+    <IsPackable>true</IsPackable>
+    <NuspecPackageId>Microsoft.NETCore.Compilers</NuspecPackageId>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <PackageDescription>
+      CoreCLR-compatible versions of the C# and VB compilers for use in MSBuild.
+    </PackageDescription>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Compilers\CSharp\csc\csc.csproj"/>
+    <ProjectReference Include="..\..\Compilers\VisualBasic\vbc\vbc.csproj"/>
+    <ProjectReference Include="..\..\Interactive\csi\csi.csproj"/>
+    <ProjectReference Include="..\..\Compilers\Core\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj"/>
+    <ProjectReference Include="..\..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Update="@(ProjectReference)"
+                      Targets="Publish"
+                      ReferenceOutputAssembly="false"
+                      SkipGetTargetFrameworkProperties="true"
+                      SetTargetFramework="TargetFramework=$(TargetFramework)" />
+  </ItemGroup>
+
+  <Target Name="_GetFilesToPackage">
+    <ItemGroup>
+      <_File Include="$(MSBuildProjectDirectory)\build\**" TargetDir="build" />
+      <_File Include="$(MSBuildProjectDirectory)\tools\bincore\*.cmd" TargetDir="tools\bincore" />
+
+      <_File Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\netcoreapp2.1\publish\*.targets" TargetDir="tools" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\netcoreapp2.1\publish\Microsoft.Build.Tasks.CodeAnalysis.dll" TargetDir="tools" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\netcoreapp2.1\publish\**\Microsoft.Build.Tasks.CodeAnalysis.resources.dll" TargetDir="tools" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\netcoreapp2.1\publish\runtimes\**\*.*" TargetDir="tools\runtimes" />
+
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.dll" TargetDir="tools\bincore" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\**\Microsoft.CodeAnalysis.resources.dll" TargetDir="tools\bincore" />
+
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.dll" TargetDir="tools\bincore" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netstandard2.0\**\Microsoft.CodeAnalysis.CSharp.resources.dll" TargetDir="tools\bincore" />
+
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.VisualBasic.dll" TargetDir="tools\bincore" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\**\Microsoft.CodeAnalysis.VisualBasic.resources.dll" TargetDir="tools\bincore" />
+
+      <_File Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp2.1\publish\csc.dll" TargetDir="tools\bincore" />
+      <_File Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp2.1\publish\csc.deps.json" TargetDir="tools\bincore" />
+      <_File Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp2.1\publish\csc.runtimeconfig.json" TargetDir="tools\bincore" />
+
+      <_File Include="$(ArtifactsBinDir)vbc\$(Configuration)\netcoreapp2.1\publish\vbc.dll" TargetDir="tools\bincore" />
+      <_File Include="$(ArtifactsBinDir)vbc\$(Configuration)\netcoreapp2.1\publish\vbc.deps.json" TargetDir="tools\bincore" />
+      <_File Include="$(ArtifactsBinDir)vbc\$(Configuration)\netcoreapp2.1\publish\vbc.runtimeconfig.json" TargetDir="tools\bincore" />
+
+      <_File Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\netcoreapp2.1\publish\VBCSCompiler.dll" TargetDir="tools\bincore" />
+      <_File Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\netcoreapp2.1\publish\VBCSCompiler.deps.json" TargetDir="tools\bincore" />
+      <_File Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\netcoreapp2.1\publish\VBCSCompiler.runtimeconfig.json" TargetDir="tools\bincore" />
+
+      <!-- References that are either not in the target framework or are a higher version -->
+      <!-- N.B.: The backslashes below cannot be replaced with forward slashes.
+         https://github.com/NuGet/Home/issues/3584 -->
+      <_File Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp2.1\publish\System.*.dll" TargetDir="tools\bincore" />
+      <_File Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp2.1\publish\runtimes\**" TargetDir="tools\bincore\runtimes" />
+
+      <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)\%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)"/>
+
+      <!-- If PackagePath doesn't have an extension NuGet considers it a directory name, so we need to handle these file explicitly -->
+      <TfmSpecificPackageFile Include="$(MSBuildProjectDirectory)\tools\bincore\RunCsc" PackagePath="tools\bincore\" />
+      <TfmSpecificPackageFile Include="$(MSBuildProjectDirectory)\tools\bincore\RunVbc" PackagePath="tools\bincore\" />
+    </ItemGroup>
+  </Target>
+</Project>

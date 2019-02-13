@@ -957,5 +957,63 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestTrueFalse1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M(bool i, int j)
+    {
+        [||]if (j == 0)
+        {
+            i = true;
+        }
+        else
+        {
+            i = false;
+        }
+    }
+}",
+@"
+class C
+{
+    void M(bool i, int j)
+    {
+        i = j == 0;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestTrueFalse2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M(bool i, int j)
+    {
+        [||]if (j == 0)
+        {
+            i = false;
+        }
+        else
+        {
+            i = true;
+        }
+    }
+}",
+@"
+class C
+{
+    void M(bool i, int j)
+    {
+        i = j != 0;
+    }
+}");
+        }
     }
 }

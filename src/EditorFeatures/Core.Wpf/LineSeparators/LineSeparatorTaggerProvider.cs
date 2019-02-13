@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -40,11 +42,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         private LineSeparatorTag _lineSeparatorTag;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LineSeparatorTaggerProvider(
+            IThreadingContext threadingContext,
             IEditorFormatMapService editorFormatMapService,
             IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
-                : base(listenerProvider.GetListener(FeatureAttribute.LineSeparators), notificationService)
+                : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.LineSeparators), notificationService)
         {
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
             _editorFormatMap.FormatMappingChanged += OnFormatMappingChanged;

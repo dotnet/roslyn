@@ -481,18 +481,18 @@ class G<T>
   void Goo() { };
 }";
             await TestAsync(text, "Goo;", "C.Goo()");
-            await TestAsync(text, 
+            await TestAsync(text,
 @"Goo();", "C.Goo()");
             await TestAsync(text, "  Goo;", "C.Goo()");
             await TestAsync(text, "  Goo;;");
             await TestAsync(text, "  Goo; ;");
-            await TestAsync(text, 
+            await TestAsync(text,
 @"Goo();", "C.Goo()");
-            await TestAsync(text, 
+            await TestAsync(text,
 @"Goo();", "C.Goo()");
-            await TestAsync(text, 
+            await TestAsync(text,
 @"Goo(); // comment", "C.Goo()");
-            await TestAsync(text, 
+            await TestAsync(text,
 @"/*comment*/
            Goo(/* params */); /* comment", "C.Goo()");
         }

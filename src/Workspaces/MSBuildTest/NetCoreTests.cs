@@ -2,10 +2,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.CodeAnalysis.UnitTests.TestFiles;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -14,7 +16,49 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
     public class NetCoreTests : MSBuildWorkspaceTestBase
     {
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        private readonly TempDirectory _nugetCacheDir;
+
+        public NetCoreTests()
+        {
+            _nugetCacheDir = SolutionDirectory.CreateDirectory(".packages");
+        }
+
+        private void RunDotNet(string arguments)
+        {
+            Assert.NotNull(DotNetCoreSdk.ExePath);
+
+            var environmentVariables = new Dictionary<string, string>()
+            {
+                ["NUGET_PACKAGES"] = _nugetCacheDir.Path
+            };
+
+            var restoreResult = ProcessUtilities.Run(
+                DotNetCoreSdk.ExePath, arguments,
+                workingDirectory: SolutionDirectory.Path,
+                additionalEnvironmentVars: environmentVariables);
+
+            Assert.True(restoreResult.ExitCode == 0, $"{DotNetCoreSdk.ExePath} failed with exit code {restoreResult.ExitCode}: {restoreResult.Output}");
+        }
+
+        private void DotNetRestore(string solutionOrProjectFileName)
+        {
+            var arguments = $@"msbuild ""{solutionOrProjectFileName}"" /t:restore /bl:{Path.Combine(SolutionDirectory.Path, "restore.binlog")}";
+            RunDotNet(arguments);
+        }
+
+        private void DotNetBuild(string solutionOrProjectFileName, string configuration = null)
+        {
+            var arguments = $@"msbuild ""{solutionOrProjectFileName}"" /bl:{Path.Combine(SolutionDirectory.Path, "build.binlog")}";
+
+            if (configuration != null)
+            {
+                arguments += $" /p:Configuration={configuration}";
+            }
+
+            RunDotNet(arguments);
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DotNetCoreSdk.IsAvailable))]
         [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public async Task TestOpenProject_NetCoreApp2()
@@ -23,7 +67,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             var projectFilePath = GetSolutionFileName("Project.csproj");
 
-            DotNetHelper.Restore("Project.csproj", workingDirectory: this.SolutionDirectory.Path);
+            DotNetRestore("Project.csproj");
 
             using (var workspace = CreateMSBuildWorkspace())
             {
@@ -40,7 +84,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DotNetCoreSdk.IsAvailable))]
         [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public async Task TestOpenProjectTwice_NetCoreApp2AndLibrary()
@@ -50,7 +94,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             var projectFilePath = GetSolutionFileName(@"Project\Project.csproj");
             var libraryFilePath = GetSolutionFileName(@"Library\Library.csproj");
 
-            DotNetHelper.Restore(@"Project\Project.csproj", workingDirectory: this.SolutionDirectory.Path);
+            DotNetRestore(@"Project\Project.csproj");
 
             using (var workspace = CreateMSBuildWorkspace())
             {
@@ -79,7 +123,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DotNetCoreSdk.IsAvailable))]
         [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public async Task TestOpenProjectTwice_NetCoreApp2AndTwoLibraries()
@@ -90,8 +134,8 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             var library1FilePath = GetSolutionFileName(@"Library1\Library1.csproj");
             var library2FilePath = GetSolutionFileName(@"Library2\Library2.csproj");
 
-            DotNetHelper.Restore(@"Project\Project.csproj", workingDirectory: this.SolutionDirectory.Path);
-            DotNetHelper.Restore(@"Library2\Library2.csproj", workingDirectory: this.SolutionDirectory.Path);
+            DotNetRestore(@"Project\Project.csproj");
+            DotNetRestore(@"Library2\Library2.csproj");
 
             using (var workspace = CreateMSBuildWorkspace())
             {
@@ -127,7 +171,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), Skip = "https://github.com/dotnet/roslyn/issues/28104")]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DotNetCoreSdk.IsAvailable))]
         [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public async Task TestOpenProject_NetCoreMultiTFM()
@@ -136,7 +180,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             var projectFilePath = GetSolutionFileName("Project.csproj");
 
-            DotNetHelper.Restore("Project.csproj", workingDirectory: this.SolutionDirectory.Path);
+            DotNetRestore("Project.csproj");
 
             using (var workspace = CreateMSBuildWorkspace())
             {
@@ -171,7 +215,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), Skip = "https://github.com/dotnet/roslyn/issues/28104")]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DotNetCoreSdk.IsAvailable))]
         [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public async Task TestOpenProject_NetCoreMultiTFM_ProjectReference()
@@ -179,14 +223,14 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             CreateFiles(GetNetCoreMultiTFMFiles_ProjectReference());
 
             // Restoring for Project.csproj should also restore Library.csproj
-            DotNetHelper.Restore(@"Project\Project.csproj", workingDirectory: this.SolutionDirectory.Path);
+            DotNetRestore(@"Project\Project.csproj");
 
             var projectFilePath = GetSolutionFileName(@"Project\Project.csproj");
 
             await AssertNetCoreMultiTFMProject(projectFilePath);
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), Skip ="https://github.com/dotnet/roslyn/issues/28104")]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DotNetCoreSdk.IsAvailable))]
         [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public async Task TestOpenProject_NetCoreMultiTFM_ProjectReferenceWithReversedTFMs()
@@ -194,7 +238,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             CreateFiles(GetNetCoreMultiTFMFiles_ProjectReferenceWithReversedTFMs());
 
             // Restoring for Project.csproj should also restore Library.csproj
-            DotNetHelper.Restore(@"Project\Project.csproj", workingDirectory: this.SolutionDirectory.Path);
+            DotNetRestore(@"Project\Project.csproj");
 
             var projectFilePath = GetSolutionFileName(@"Project\Project.csproj");
 
@@ -227,9 +271,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
                 var expectedNames = new HashSet<string>()
                 {
-                    "Library(netstandard2.0)",
+                    "Library(netstandard2",
                     "Library(net461)",
-                    "Project(netcoreapp2.0)",
+                    "Project(netcoreapp2",
                     "Project(net461)"
                 };
 
@@ -237,7 +281,12 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
                 foreach (var project in workspace.CurrentSolution.Projects)
                 {
-                    actualNames.Add(project.Name);
+                    var dotIndex = project.Name.IndexOf('.');
+                    var projectName = dotIndex >= 0
+                        ? project.Name.Substring(0, dotIndex)
+                        : project.Name;
+
+                    actualNames.Add(projectName);
                     var fileName = PathUtilities.GetFileName(project.FilePath);
 
                     Document document;
@@ -263,7 +312,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                     Assert.Empty(diagnostics);
                 }
 
-                Assert.True(actualNames.SetEquals(expectedNames), $"Project names differ!{Environment.NewLine}Expected: {actualNames}{Environment.NewLine}Expected: {expectedNames}");
+                Assert.True(actualNames.SetEquals(expectedNames), $"Project names differ!{Environment.NewLine}Actual: {{{actualNames.Join(",")}}}{Environment.NewLine}Expected: {{{expectedNames.Join(",")}}}");
 
                 // Verify that the projects reference the correct TFMs
                 var projects = workspace.CurrentSolution.Projects.Where(p => p.FilePath.EndsWith("Project.csproj"));
@@ -273,9 +322,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
                     var referencedProject = workspace.CurrentSolution.GetProject(projectReference.ProjectId);
 
-                    if (project.OutputFilePath.Contains("netcoreapp2.0"))
+                    if (project.OutputFilePath.Contains("netcoreapp2"))
                     {
-                        Assert.Contains("netstandard2.0", referencedProject.OutputFilePath);
+                        Assert.Contains("netstandard2", referencedProject.OutputFilePath);
                     }
                     else if (project.OutputFilePath.Contains("net461"))
                     {
@@ -286,6 +335,66 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                         Assert.True(false, "OutputFilePath with expected TFM not found.");
                     }
                 }
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DotNetCoreSdk.IsAvailable))]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
+        public async Task TestOpenSolution_NetCoreMultiTFMWithProjectReferenceToFSharp()
+        {
+            CreateFiles(GetNetCoreMultiTFMFiles_ProjectReferenceToFSharp());
+
+            var solutionFilePath = GetSolutionFileName("Solution.sln");
+
+            DotNetRestore("Solution.sln");
+
+            using (var workspace = CreateMSBuildWorkspace())
+            {
+                var solution = await workspace.OpenSolutionAsync(solutionFilePath);
+
+                var projects = solution.Projects.ToArray();
+
+                Assert.Equal(2, projects.Length);
+
+                foreach (var project in projects)
+                {
+                    Assert.StartsWith("csharplib", project.Name);
+                    Assert.Empty(project.ProjectReferences);
+                    Assert.Single(project.AllProjectReferences);
+                }
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DotNetCoreSdk.IsAvailable))]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
+        public async Task TestOpenProject_ReferenceConfigurationSpecificMetadata()
+        {
+            var files = GetBaseFiles()
+                .WithFile(@"Solution.sln", Resources.SolutionFiles.Issue30174_Solution)
+                .WithFile(@"InspectedLibrary\InspectedLibrary.csproj", Resources.ProjectFiles.CSharp.Issue30174_InspectedLibrary)
+                .WithFile(@"InspectedLibrary\InspectedClass.cs", Resources.SourceFiles.CSharp.Issue30174_InspectedClass)
+                .WithFile(@"ReferencedLibrary\ReferencedLibrary.csproj", Resources.ProjectFiles.CSharp.Issue30174_ReferencedLibrary)
+                .WithFile(@"ReferencedLibrary\SomeMetadataAttribute.cs", Resources.SourceFiles.CSharp.Issue30174_SomeMetadataAttribute);
+
+            CreateFiles(files);
+
+            DotNetRestore("Solution.sln");
+            DotNetBuild("Solution.sln", configuration: "Release");
+
+            var projectFilePath = GetSolutionFileName(@"InspectedLibrary\InspectedLibrary.csproj");
+
+            using (var workspace = CreateMSBuildWorkspace(("Configuration", "Release")))
+            {
+                workspace.LoadMetadataForReferencedProjects = true;
+
+                var project = await workspace.OpenProjectAsync(projectFilePath);
+
+                Assert.Empty(project.ProjectReferences);
+                Assert.Empty(workspace.Diagnostics);
+
+                var compilation = await project.GetCompilationAsync();
             }
         }
     }

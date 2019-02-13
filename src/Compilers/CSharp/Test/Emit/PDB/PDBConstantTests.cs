@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBConstantTests : CSharpTestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void StringsWithSurrogateChar()
         {
             var source = @"
@@ -79,7 +79,8 @@ public class T
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [Fact, WorkItem(546862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546862")]
+        [WorkItem(546862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546862")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void InvalidUnicodeString()
         {
             var source = @"
@@ -140,7 +141,7 @@ public class T
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void AllTypes()
         {
             var source = @"
@@ -264,7 +265,7 @@ public class C<S>
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SimpleLocalConstant()
         {
             var text = @"
@@ -308,7 +309,7 @@ class C
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void LambdaLocalConstants()
         {
             var text = @"
@@ -378,7 +379,7 @@ class C
         }
 
         [WorkItem(543342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543342")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void IteratorLocalConstants()
         {
             var source = @"
@@ -425,7 +426,7 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x20"" endOffset=""0x67"" />
+          <slot startOffset=""0x1c"" endOffset=""0x63"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -435,23 +436,23 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1f"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x20"" startLine=""9"" startColumn=""14"" endLine=""9"" endColumn=""23"" document=""1"" />
-        <entry offset=""0x27"" hidden=""true"" document=""1"" />
-        <entry offset=""0x29"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x2a"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""36"" document=""1"" />
-        <entry offset=""0x41"" hidden=""true"" document=""1"" />
-        <entry offset=""0x48"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x49"" startLine=""9"" startColumn=""33"" endLine=""9"" endColumn=""36"" document=""1"" />
-        <entry offset=""0x59"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""31"" document=""1"" />
-        <entry offset=""0x64"" hidden=""true"" document=""1"" />
-        <entry offset=""0x67"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1b"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""9"" startColumn=""14"" endLine=""9"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x23"" hidden=""true"" document=""1"" />
+        <entry offset=""0x25"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x26"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""36"" document=""1"" />
+        <entry offset=""0x3d"" hidden=""true"" document=""1"" />
+        <entry offset=""0x44"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x45"" startLine=""9"" startColumn=""33"" endLine=""9"" endColumn=""36"" document=""1"" />
+        <entry offset=""0x55"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x60"" hidden=""true"" document=""1"" />
+        <entry offset=""0x63"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x69"">
+      <scope startOffset=""0x0"" endOffset=""0x65"">
         <namespace name=""System.Collections.Generic"" />
-        <scope startOffset=""0x1f"" endOffset=""0x69"">
+        <scope startOffset=""0x1b"" endOffset=""0x65"">
           <constant name=""x"" value=""1"" type=""Int32"" />
-          <scope startOffset=""0x29"" endOffset=""0x49"">
+          <scope startOffset=""0x25"" endOffset=""0x45"">
             <constant name=""y"" value=""2"" type=""Int32"" />
           </scope>
         </scope>
@@ -461,7 +462,7 @@ class C
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void LocalConstantsTypes()
         {
             var text = @"
@@ -506,7 +507,7 @@ class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void WRN_PDBConstantStringValueTooLong()
         {
             var longStringValue = new string('a', 2049);
@@ -553,7 +554,7 @@ class C
              * */
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void StringConstantTooLong()
         {
             var text = @"
@@ -642,7 +643,8 @@ this is a string constant that is too long to fit into the PDB"";
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [Fact, WorkItem(178988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988")]
+        [WorkItem(178988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void StringWithNulCharacter_MaxSupportedLength()
         {
             const int length = 2031;
@@ -701,7 +703,8 @@ class C
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [Fact, WorkItem(178988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988")]
+        [WorkItem(178988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void StringWithNulCharacter_OverSupportedLength()
         {
             const int length = 2032;
@@ -757,7 +760,7 @@ class C
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DecimalLocalConstants()
         {
             var text = @"

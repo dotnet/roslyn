@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -41,12 +40,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         public Solution FinalSolution { get; private set; }
         public bool ShowCheckBoxes { get; private set; }
 
-        public PreviewEngine(string title, string helpString, string description, string topLevelItemName, Glyph topLevelGlyph, Solution newSolution, Solution oldSolution, IComponentModel componentModel, bool showCheckBoxes = true) :
-            this(title, helpString, description, topLevelItemName, topLevelGlyph, newSolution, oldSolution, componentModel, null, showCheckBoxes)
+        public PreviewEngine(IThreadingContext threadingContext, string title, string helpString, string description, string topLevelItemName, Glyph topLevelGlyph, Solution newSolution, Solution oldSolution, IComponentModel componentModel, bool showCheckBoxes = true) :
+            this(threadingContext, title, helpString, description, topLevelItemName, topLevelGlyph, newSolution, oldSolution, componentModel, null, showCheckBoxes)
         {
         }
 
         public PreviewEngine(
+            IThreadingContext threadingContext,
             string title,
             string helpString,
             string description,
@@ -57,6 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             IComponentModel componentModel,
             IVsImageService2 imageService,
             bool showCheckBoxes = true)
+            : base(threadingContext)
         {
             _topLevelName = topLevelItemName;
             _topLevelGlyph = topLevelGlyph;
@@ -221,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         {
             if (_updater == null)
             {
-                _updater = new PreviewUpdater(EnsureTextViewIsInitialized(textView));
+                _updater = new PreviewUpdater(ThreadingContext, EnsureTextViewIsInitialized(textView));
             }
         }
 

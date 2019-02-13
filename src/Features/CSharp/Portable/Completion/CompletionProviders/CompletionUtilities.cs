@@ -86,14 +86,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 text, characterPosition, IsWordStartCharacter, IsWordCharacter);
         }
 
-        public static (string displayText, string insertionText) GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context)
+        public static (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(
+            ISymbol symbol, SyntaxContext context)
         {
             var insertionText = GetInsertionText(symbol, context);
-            var displayText = symbol.GetArity() == 0 
-                ? insertionText 
-                : string.Format("{0}<>", insertionText);
+            var suffix = symbol.GetArity() == 0 ? "" : "<>";
 
-            return (displayText, insertionText);
+            return (insertionText, suffix, insertionText);
         }
 
         public static string GetInsertionText(ISymbol symbol, SyntaxContext context)

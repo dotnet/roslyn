@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             return CommonCompletionItem.Create(
                 displayText: keyword.Keyword,
+                displayTextSuffix: "",
                 rules: s_keywordRules.WithMatchPriority(keyword.MatchPriority),
                 description: keyword.DescriptionFactory(CancellationToken.None),
                 glyph: Glyph.Keyword,

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             wns1 = wns1.GetMember<NamespaceSymbol>("Text");
             var itextrange = wns1.GetMember<PENamedTypeSymbol>("ITextRange");
             var func = itextrange.GetMember<PEMethodSymbol>("SetPoint");
-            var pt = ((PEParameterSymbol)(func.Parameters[0])).Type as PENamedTypeSymbol;
+            var pt = ((PEParameterSymbol)(func.Parameters[0])).Type.TypeSymbol as PENamedTypeSymbol;
             Assert.Equal(pt.ContainingAssembly.Name, "System.Runtime.WindowsRuntime");
         }
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var iref = wns1.GetMember<PENamedTypeSymbol>("IUriRuntimeClass");
             var func = iref.GetMember<PEMethodSymbol>("CombineUri");
             var ret = func.ReturnType;
-            Assert.Equal(func.ReturnType.ToTestDisplayString(), "System.Uri");
+            Assert.Equal(func.ReturnType.TypeSymbol.ToTestDisplayString(), "System.Uri");
         }
 
         /// <summary>
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             //The windows.winmd module points to a Windows.UI.Color which should be modified to belong
             //to System.Runtime.WindowsRuntime
             Assert.Equal(((Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PENamedTypeSymbol)
-                ((((Microsoft.CodeAnalysis.CSharp.Symbols.PropertySymbol)(blk)).GetMethod).ReturnType)).ContainingModule.ToString(),
+                ((((Microsoft.CodeAnalysis.CSharp.Symbols.PropertySymbol)(blk)).GetMethod).ReturnType.TypeSymbol)).ContainingModule.ToString(),
                    "System.Runtime.WindowsRuntime.dll");
         }
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// Ensure that a simple program that uses projected types can compile
         /// and run.
         /// </summary>
-        [ConditionalFact(typeof(OSVersionWin8))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void WinMdColorTest()
         {
             var text = @"using Windows.UI;
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // The return type of ParseUInt should be Nullable<ulong>, not IReference<ulong>
             Assert.Equal("ulong?",
                 ((Microsoft.CodeAnalysis.CSharp.Symbols.ConstructedNamedTypeSymbol)
-                (((Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol)puint).ReturnType)).ToString());
+                (((Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol)puint).ReturnType.TypeSymbol)).ToString());
         }
 
         /// <summary>

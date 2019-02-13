@@ -465,5 +465,40 @@ class C
     end sub
 end class", index:=2)
         End Function
+
+        <WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestSimpleReferenceTypeWithParameterNameSelected1() As Task
+            Await TestInRegularAndScript1Async(
+"
+Imports System
+
+class C
+    public sub new([|s|] as string)
+    end sub
+end class",
+"
+Imports System
+
+class C
+    public sub new(s as string)
+        If s Is Nothing Then
+            Throw New ArgumentNullException(NameOf(s))
+        End If
+    end sub
+end class")
+        End Function
+
+        <WorkItem(29333, "https://github.com/dotnet/roslyn/issues/29333")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestLambdaWithIncorrectNumberOfParameters() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Class C
+    Sub M(a As Action(Of Integer, Integer))
+        M(Sub(x[||]
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

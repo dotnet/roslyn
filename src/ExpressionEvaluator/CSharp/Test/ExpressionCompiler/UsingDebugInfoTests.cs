@@ -207,6 +207,7 @@ namespace A
         }
 
         [Fact]
+        [WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
         public void ImportKinds()
         {
             var source = @"
@@ -226,7 +227,8 @@ namespace B
     }
 }
 ";
-            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib").EmitToImageReference(aliases: ImmutableArray.Create("A"));
+            // https://github.com/dotnet/roslyn/issues/30030: C#8 projects require System.Attribute.
+            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib", parseOptions: TestOptions.Regular7).EmitToImageReference(aliases: ImmutableArray.Create("A"));
             var comp = CreateCompilation(source, new[] { aliasedRef });
             WithRuntimeInstance(comp, runtime =>
             {
@@ -298,6 +300,7 @@ namespace B
         }
 
         [Fact]
+        [WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
         public void ForwardToModule()
         {
             var source = @"
@@ -327,7 +330,8 @@ namespace D
     }
 }
 ";
-            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib").EmitToImageReference(aliases: ImmutableArray.Create("A"));
+            // https://github.com/dotnet/roslyn/issues/30030: C#8 projects require System.Attribute.
+            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib", parseOptions: TestOptions.Regular7).EmitToImageReference(aliases: ImmutableArray.Create("A"));
             var comp = CreateCompilation(source, new[] { aliasedRef });
 
             WithRuntimeInstance(comp, runtime =>
@@ -392,7 +396,7 @@ namespace D
                 }
             });
 
-            ImmutableArray < string> externAliasStrings;
+            ImmutableArray<string> externAliasStrings;
             var importStrings = CustomDebugInfoReader.GetCSharpGroupedImportStrings(methodToken1, 0, getMethodCustomDebugInfo, getMethodImportStrings, out externAliasStrings);
             Assert.True(importStrings.IsDefault);
             Assert.True(externAliasStrings.IsDefault);
@@ -633,7 +637,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             WithRuntimeInstance(comp, runtime =>
@@ -668,7 +672,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             WithRuntimeInstance(comp, runtime =>
@@ -713,7 +717,7 @@ namespace A
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             WithRuntimeInstance(comp, runtime =>
@@ -751,7 +755,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
             WithRuntimeInstance(comp, runtime =>

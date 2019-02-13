@@ -6,10 +6,8 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
-using Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -83,10 +81,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LineSeparators
 
                 var workspace = new TestWorkspace();
 
-                Manager = AdornmentManager<Tag>.Create(_textView.Object,
-                                                       aggregatorService.Object,
-                                                       AsynchronousOperationListenerProvider.NullListener,
-                                                       adornmentLayerName: layerName);
+                Manager = AdornmentManager<Tag>.Create(
+                    workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                    _textView.Object,
+                    aggregatorService.Object,
+                    AsynchronousOperationListenerProvider.NullListener,
+                    adornmentLayerName: layerName);
             }
 
             public void RaiseLayoutChanged()

@@ -737,7 +737,7 @@ End Module
 #End Region
 
         <WorkItem(1319, "https://github.com/dotnet/roslyn/issues/1319")>
-        <ConditionalFact(GetType(DesktopOnly), Skip:=ConditionalSkipReason.NetModulesNeedDesktop)>
+        <ConditionalFact(GetType(DesktopOnly), Reason:=ConditionalSkipReason.NetModulesNeedDesktop)>
         Public Sub MultipleNetmodulesWithAnonymousTypes()
             Dim compilationDef1 =
     <compilation>

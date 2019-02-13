@@ -44,7 +44,16 @@ class Test : Itest
             ParseAndValidate(test,
                 // (9,17): error CS0071: An explicit interface implementation of an event must use event accessor syntax
                 //    event D ITest.E()   // CS0071
-                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(9, 17),
+                // (9,20): error CS8124: Tuple must contain at least two elements.
+                //    event D ITest.E()   // CS0071
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(9, 20),
+                // (10,4): error CS1519: Invalid token '{' in class, struct, or interface member declaration
+                //    {
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(10, 4),
+                // (16,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(16, 1)
                 );
         }
 
@@ -256,19 +265,23 @@ class A
 }
 ";
 
-            ParseAndValidate(test,
-    // (6,32): error CS0178: Invalid rank specifier: expected ',' or ']'
-    //         int[] arr = new int[5][5;
-    Diagnostic(ErrorCode.ERR_InvalidArray, "5"),
-    // (6,33): error CS1003: Syntax error, ',' expected
-    //         int[] arr = new int[5][5;
-    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";"),
-    // (6,33): error CS0443: Syntax error; value expected
-    //         int[] arr = new int[5][5;
-    Diagnostic(ErrorCode.ERR_ValueExpected, ""),
-    // (6,33): error CS1003: Syntax error, ']' expected
-    //         int[] arr = new int[5][5;
-    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";"));
+            CreateCompilation(test).VerifyDiagnostics(
+                // (6,32): error CS0178: Invalid rank specifier: expected ',' or ']'
+                //         int[] arr = new int[5][5;
+                Diagnostic(ErrorCode.ERR_InvalidArray, "5").WithLocation(6, 32),
+                // (6,32): error CS0178: Invalid rank specifier: expected ',' or ']'
+                //         int[] arr = new int[5][5;
+                Diagnostic(ErrorCode.ERR_InvalidArray, "5").WithLocation(6, 32),
+                // (6,33): error CS1003: Syntax error, ',' expected
+                //         int[] arr = new int[5][5;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";").WithLocation(6, 33),
+                // (6,33): error CS0443: Syntax error; value expected
+                //         int[] arr = new int[5][5;
+                Diagnostic(ErrorCode.ERR_ValueExpected, "").WithLocation(6, 33),
+                // (6,33): error CS1003: Syntax error, ']' expected
+                //         int[] arr = new int[5][5;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(6, 33)
+                );
         }
 
         [Fact, WorkItem(24701, "https://github.com/dotnet/roslyn/issues/24701")]
@@ -684,58 +697,94 @@ public class MyClass
     enum E { }
     public static void Main()
     {
-        int myarray[2]; 
-        MyClass m[0];
-        byte b[13,5];
-        double d[14,5,6];
-        E e[,50];
+        int[2] myarray;
+        MyClass[0] m;
+        byte[13,5] b;
+        double[14,5,6] d;
+        E[,50] e;
     }
+
+    static int[2] myarray;
+    static MyClass[0] m;
+    static byte[13,5] b;
+    static double[14,5,6] d;
+    static E[,50] e;
 }
 ";
-
-            ParseAndValidate(test,
-    // (7,20): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
-    //         int myarray[2]; 
-    Diagnostic(ErrorCode.ERR_CStyleArray, "[2]"),
-    // (7,21): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-    //         int myarray[2]; 
-    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "2"),
-    // (8,18): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
-    //         MyClass m[0];
-    Diagnostic(ErrorCode.ERR_CStyleArray, "[0]"),
-    // (8,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-    //         MyClass m[0];
-    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "0"),
-    // (9,15): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
-    //         byte b[13,5];
-    Diagnostic(ErrorCode.ERR_CStyleArray, "[13,5]"),
-    // (9,16): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-    //         byte b[13,5];
-    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "13"),
-    // (9,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-    //         byte b[13,5];
-    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "5"),
-    // (10,17): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
-    //         double d[14,5,6];
-    Diagnostic(ErrorCode.ERR_CStyleArray, "[14,5,6]"),
-    // (10,18): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-    //         double d[14,5,6];
-    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "14"),
-    // (10,21): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-    //         double d[14,5,6];
-    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "5"),
-    // (10,23): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-    //         double d[14,5,6];
-    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "6"),
-    // (11,12): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
-    //         E e[,50];
-    Diagnostic(ErrorCode.ERR_CStyleArray, "[,50]"),
-    // (11,13): error CS0443: Syntax error; value expected
-    //         E e[,50];
-    Diagnostic(ErrorCode.ERR_ValueExpected, ""),
-    // (11,14): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-    //         E e[,50];
-    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "50"));
+            CreateCompilation(test).VerifyDiagnostics(
+                // (7,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         int[2] myarray;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[2]").WithLocation(7, 12),
+                // (7,16): warning CS0168: The variable 'myarray' is declared but never used
+                //         int[2] myarray;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "myarray").WithArguments("myarray").WithLocation(7, 16),
+                // (8,9): error CS0119: 'MyClass' is a type, which is not valid in the given context
+                //         MyClass[0] m;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "MyClass").WithArguments("MyClass", "type").WithLocation(8, 9),
+                // (8,20): error CS1002: ; expected
+                //         MyClass[0] m;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "m").WithLocation(8, 20),
+                // (8,20): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         MyClass[0] m;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "m").WithLocation(8, 20),
+                // (9,13): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         byte[13,5] b;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[13,5]").WithLocation(9, 13),
+                // (9,20): warning CS0168: The variable 'b' is declared but never used
+                //         byte[13,5] b;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "b").WithArguments("b").WithLocation(9, 20),
+                // (10,15): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         double[14,5,6] d;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[14,5,6]").WithLocation(10, 15),
+                // (10,24): warning CS0168: The variable 'd' is declared but never used
+                //         double[14,5,6] d;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "d").WithArguments("d").WithLocation(10, 24),
+                // (11,9): error CS0119: 'MyClass.E' is a type, which is not valid in the given context
+                //         E[,50] e;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("MyClass.E", "type").WithLocation(11, 9),
+                // (11,11): error CS0443: Syntax error; value expected
+                //         E[,50] e;
+                Diagnostic(ErrorCode.ERR_ValueExpected, ",").WithLocation(11, 11),
+                // (11,16): error CS1002: ; expected
+                //         E[,50] e;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "e").WithLocation(11, 16),
+                // (11,16): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         E[,50] e;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "e").WithLocation(11, 16),
+                // (14,15): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //     static int[2] myarray;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[2]").WithLocation(14, 15),
+                // (14,19): warning CS0169: The field 'MyClass.myarray' is never used
+                //     static int[2] myarray;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "myarray").WithArguments("MyClass.myarray").WithLocation(14, 19),
+                // (15,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //     static MyClass[0] m;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[0]").WithLocation(15, 19),
+                // (15,23): warning CS0649: Field 'MyClass.m' is never assigned to, and will always have its default value null
+                //     static MyClass[0] m;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "m").WithArguments("MyClass.m", "null").WithLocation(15, 23),
+                // (16,16): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //     static byte[13,5] b;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[13,5]").WithLocation(16, 16),
+                // (16,23): warning CS0169: The field 'MyClass.b' is never used
+                //     static byte[13,5] b;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("MyClass.b").WithLocation(16, 23),
+                // (17,18): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //     static double[14,5,6] d;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[14,5,6]").WithLocation(17, 18),
+                // (17,27): warning CS0169: The field 'MyClass.d' is never used
+                //     static double[14,5,6] d;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "d").WithArguments("MyClass.d").WithLocation(17, 27),
+                // (18,13): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //     static E[,50] e;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[,50]").WithLocation(18, 13),
+                // (18,14): error CS0443: Syntax error; value expected
+                //     static E[,50] e;
+                Diagnostic(ErrorCode.ERR_ValueExpected, "").WithLocation(18, 14),
+                // (18,19): warning CS0649: Field 'MyClass.e' is never assigned to, and will always have its default value null
+                //     static E[,50] e;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "e").WithArguments("MyClass.e", "null").WithLocation(18, 19)
+                );
         }
 
         [Fact]
@@ -977,41 +1026,53 @@ public class MyClass
     }
 }
 ";
-
-            ParseAndValidate(test,
-    // (6,20): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
-    //         int myarray[2]; 
-    Diagnostic(ErrorCode.ERR_CStyleArray, "[2]"),
-    // (6,21): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-    //         int myarray[2]; 
-    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "2"),
-    // (7,18): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
-    //         MyClass m[0];
-    Diagnostic(ErrorCode.ERR_CStyleArray, "[0]"),
-    // (7,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-    //         MyClass m[0];
-    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "0"),
-    // (8,15): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
-    //         byte b[13,5];
-    Diagnostic(ErrorCode.ERR_CStyleArray, "[13,5]"),
-    // (8,16): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-    //         byte b[13,5];
-    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "13"),
-    // (8,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-    //         byte b[13,5];
-    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "5"),
-    // (9,17): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
-    //         double d[14,5,6];
-    Diagnostic(ErrorCode.ERR_CStyleArray, "[14,5,6]"),
-    // (9,18): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-    //         double d[14,5,6];
-    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "14"),
-    // (9,21): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-    //         double d[14,5,6];
-    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "5"),
-    // (9,23): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-    //         double d[14,5,6];
-    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "6"));
+            CreateCompilation(test).VerifyDiagnostics(
+                // (6,20): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+                //         int myarray[2]; 
+                Diagnostic(ErrorCode.ERR_CStyleArray, "[2]").WithLocation(6, 20),
+                // (6,21): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         int myarray[2]; 
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "2").WithLocation(6, 21),
+                // (7,18): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+                //         MyClass m[0];
+                Diagnostic(ErrorCode.ERR_CStyleArray, "[0]").WithLocation(7, 18),
+                // (7,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         MyClass m[0];
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "0").WithLocation(7, 19),
+                // (8,15): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+                //         byte b[13,5];
+                Diagnostic(ErrorCode.ERR_CStyleArray, "[13,5]").WithLocation(8, 15),
+                // (8,16): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         byte b[13,5];
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "13").WithLocation(8, 16),
+                // (8,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         byte b[13,5];
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "5").WithLocation(8, 19),
+                // (9,17): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+                //         double d[14,5,6];
+                Diagnostic(ErrorCode.ERR_CStyleArray, "[14,5,6]").WithLocation(9, 17),
+                // (9,18): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         double d[14,5,6];
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "14").WithLocation(9, 18),
+                // (9,21): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         double d[14,5,6];
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "5").WithLocation(9, 21),
+                // (9,23): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         double d[14,5,6];
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "6").WithLocation(9, 23),
+                // (6,13): warning CS0168: The variable 'myarray' is declared but never used
+                //         int myarray[2]; 
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "myarray").WithArguments("myarray").WithLocation(6, 13),
+                // (7,17): warning CS0168: The variable 'm' is declared but never used
+                //         MyClass m[0];
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "m").WithArguments("m").WithLocation(7, 17),
+                // (8,14): warning CS0168: The variable 'b' is declared but never used
+                //         byte b[13,5];
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "b").WithArguments("b").WithLocation(8, 14),
+                // (9,16): warning CS0168: The variable 'd' is declared but never used
+                //         double d[14,5,6];
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "d").WithArguments("d").WithLocation(9, 16)
+                );
         }
 
         [Fact, WorkItem(535883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535883")]
@@ -4757,7 +4818,11 @@ unsafe public class Test
     int* p = stackalloc int[1];
 }
 ";
-            CreateCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).GetParseDiagnostics().Verify();
+            CreateCompilation(test, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (4,14): error CS1525: Invalid expression term 'stackalloc'
+                //     int* p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 14)
+                );
         }
 
         [Fact]
@@ -4773,7 +4838,11 @@ unsafe public class Test
     }
 }
 ";
-            CreateCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).GetParseDiagnostics().Verify();
+            CreateCompilation(test, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (6,33): error CS1525: Invalid expression term 'stackalloc'
+                //         int*[] p = new int*[] { stackalloc int[1] };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 33)
+                );
         }
 
         [Fact]
@@ -4795,7 +4864,7 @@ unsafe public class Test
                 Diagnostic(ErrorCode.ERR_BadConstType, "int*").WithArguments("int*").WithLocation(6, 15)
             );
         }
-        
+
         [Fact]
         public void CS1674ERR_StackAllocInUsing1()
         {
@@ -4812,7 +4881,7 @@ public class Test
 }
 ";
             CreateCompilation(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
-                // (6,16): error CS1674: 'int*': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (6,16): error CS1674: 'int*': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (var v = stackalloc int[1])
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v = stackalloc int[1]").WithArguments("int*").WithLocation(6, 16));
         }
@@ -4935,6 +5004,7 @@ class Test
     public static int Main()
     {
         int[] a = new int[];
+        int[,] t = new int[,];
         byte[] b = new byte[];
         string[] s = new string[];
         return 1;
@@ -4942,10 +5012,20 @@ class Test
 }
 ";
 
-            ParseAndValidate(test,
-Diagnostic(ErrorCode.ERR_MissingArraySize, "[]"),
-Diagnostic(ErrorCode.ERR_MissingArraySize, "[]"),
-Diagnostic(ErrorCode.ERR_MissingArraySize, "[]"));
+            CreateCompilation(test, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (6,26): error CS1586: Array creation must have array size or array initializer
+                //         int[] a = new int[];
+                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(6, 26),
+                // (7,27): error CS1586: Array creation must have array size or array initializer
+                //         int[,] t = new int[,];
+                Diagnostic(ErrorCode.ERR_MissingArraySize, "[,]").WithLocation(7, 27),
+                // (8,28): error CS1586: Array creation must have array size or array initializer
+                //         byte[] b = new byte[];
+                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(8, 28),
+                // (9,32): error CS1586: Array creation must have array size or array initializer
+                //         string[] s = new string[];
+                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(9, 32)
+                );
         }
 
         [Fact, WorkItem(535935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535935")]
@@ -5937,8 +6017,12 @@ class Test
     }
 }
 ";
-
-            ParseAndValidate(test, Diagnostic(ErrorCode.WRN_EmptySwitch, "{"));
+            ParseAndValidate(test);
+            CreateCompilation(test).VerifyDiagnostics(
+                // (8,9): warning CS1522: Empty switch block
+                //         {}
+                Diagnostic(ErrorCode.WRN_EmptySwitch, "{").WithLocation(8, 9)
+                );
         }
 
         [Fact]

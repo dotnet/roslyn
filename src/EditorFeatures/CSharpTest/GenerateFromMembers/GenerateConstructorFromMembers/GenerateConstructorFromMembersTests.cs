@@ -137,6 +137,101 @@ class Z
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultipleFields_VerticalSelection()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Z
+{[|
+    int a;
+    string b;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+
+    public Z(int a, string b{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultipleFields_VerticalSelectionUpToExcludedField()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;[|
+    string b;
+    string c;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+    string c;
+
+    public Z(string b, string c{|Navigation:)|}
+    {
+        this.b = b;
+        this.c = c;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultipleFields_VerticalSelectionUpToMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Z
+{
+    void Foo() { }[|
+    int a;
+    string b;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    void Foo() { }
+    int a;
+    string b;
+
+    public Z(int a, string b{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultipleFields_SelectionIncludingClassOpeningBrace()
+        {
+            await TestMissingAsync(
+@"using System.Collections.Generic;
+
+class Z
+[|{
+    int a;
+    string b;|]
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestSecondField()
         {
             await TestInRegularAndScriptAsync(
@@ -371,7 +466,7 @@ struct S
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
-        public async Task TestStruct1()
+        public async Task TestStructInitializingAutoProperty()
         {
             await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
@@ -384,12 +479,37 @@ struct S
 
 struct S
 {
-    public S(int i{|Navigation:)|} : this()
+    public S(int i{|Navigation:)|}
     {
         this.i = i;
     }
 
     int i { get; set; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestStructNotInitializingAutoProperty()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+struct S
+{
+    [|int i { get => f; set => f = value; }|]
+    int j { get; set; }
+}",
+@"using System.Collections.Generic;
+
+struct S
+{
+    public S(int i{|Navigation:)|} : this()
+    {
+        this.i = i;
+    }
+
+    int i { get => f; set => f = value; }
+    int j { get; set; }
 }");
         }
 
@@ -806,7 +926,7 @@ class Z
         this.b = b ?? throw new ArgumentNullException(nameof(b));
     }
 }",
-chosenSymbols: new string[] { "a", "b" }, 
+chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true);
         }
 

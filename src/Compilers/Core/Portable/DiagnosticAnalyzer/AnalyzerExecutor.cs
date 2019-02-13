@@ -240,6 +240,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Executes the symbol start actions.
+        /// </summary>
+        /// <param name="actions"><see cref="AnalyzerActions"/> whose symbol start actions are to be executed.</param>
+        /// <param name="symbolScope">Symbol scope to store the analyzer actions.</param>
+        public void ExecuteSymbolStartActions(
+            ISymbol symbol,
+            DiagnosticAnalyzer analyzer,
+            ImmutableArray<SymbolStartAnalyzerAction> actions,
+            HostSymbolStartAnalysisScope symbolScope)
+        {
+            foreach (var startAction in actions)
+            {
+                Debug.Assert(startAction.Analyzer == analyzer);
+                _cancellationToken.ThrowIfCancellationRequested();
+
+                var context = new AnalyzerSymbolStartAnalysisContext(startAction.Analyzer, symbolScope,
+                    symbol, _compilation, _analyzerOptions, _cancellationToken);
+
+                ExecuteAndCatchIfThrows(
+                    startAction.Analyzer,
+                    data => data.action(data.context),
+                    (action: startAction.Action, context: context),
+                    new AnalysisContextInfo(_compilation, symbol));
+            }
+        }
+
+        /// <summary>
         /// Tries to executes compilation actions or compilation end actions.
         /// </summary>
         /// <param name="compilationActions">Compilation actions to be executed.</param>
@@ -340,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return true;
                 }
 
-                return IsEventComplete(symbolDeclaredEvent, analyzer, analysisStateOpt);
+                return IsSymbolComplete(symbol, analyzer, analysisStateOpt);
             }
             finally
             {
@@ -389,6 +416,137 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                         analyzerStateOpt?.ProcessedActions.Add(symbolAction);
                     }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Tries to execute the symbol end actions on the given namespace or type containing symbol for the process member symbol for the given analyzer.
+        /// </summary>
+        /// <param name="containingSymbol">Symbol whose actions are to be executed.</param>
+        /// <param name="processedMemberSymbol">Completed member symbol.</param>
+        /// <param name="analyzer">Analyzer whose actions are to be executed.</param>
+        /// <param name="getTopMostNodeForAnalysis">Delegate to get topmost declaration node for a symbol declaration reference.</param>
+        /// <param name="analysisStateOpt">An optional object to track analysis state.</param>
+        /// <returns>
+        /// True, if successfully executed the actions for the given analysis scope OR all the actions have already been executed for the given analysis scope.
+        /// False, if there are some pending actions.
+        /// </returns>
+        public bool TryExecuteSymbolEndActionsForContainer(
+            INamespaceOrTypeSymbol containingSymbol,
+            ISymbol processedMemberSymbol,
+            DiagnosticAnalyzer analyzer,
+            Func<ISymbol, SyntaxReference, Compilation, SyntaxNode> getTopMostNodeForAnalysis,
+            AnalysisState analysisStateOpt,
+            out SymbolDeclaredCompilationEvent containingSymbolDeclaredEvent)
+        {
+            Debug.Assert(containingSymbol != null);
+
+            containingSymbolDeclaredEvent = null;
+            if (!_analyzerManager.TryProcessCompletedMemberAndGetPendingSymbolEndActionsForContainer(containingSymbol, processedMemberSymbol, analyzer, out var containerEndActionsAndEvent))
+            {
+                return false;
+            }
+
+            ImmutableArray<SymbolEndAnalyzerAction> endActions = containerEndActionsAndEvent.symbolEndActions;
+            containingSymbolDeclaredEvent = containerEndActionsAndEvent.symbolDeclaredEvent;
+            return TryExecuteSymbolEndActionsCore(endActions, analyzer, containingSymbolDeclaredEvent, getTopMostNodeForAnalysis, analysisStateOpt);
+        }
+
+        /// <summary>
+        /// Tries to execute the symbol end actions on the given symbol for the given analyzer.
+        /// </summary>
+        /// <param name="symbolEndActions">Symbol actions to be executed.</param>
+        /// <param name="analyzer">Analyzer whose actions are to be executed.</param>
+        /// <param name="symbolDeclaredEvent">Symbol event to be analyzed.</param>
+        /// <param name="getTopMostNodeForAnalysis">Delegate to get topmost declaration node for a symbol declaration reference.</param>
+        /// <param name="analysisStateOpt">An optional object to track analysis state.</param>
+        /// <returns>
+        /// True, if successfully executed the actions for the given analysis scope OR all the actions have already been executed for the given analysis scope.
+        /// False, if there are some pending actions.
+        /// </returns>
+        public bool TryExecuteSymbolEndActions(
+            ImmutableArray<SymbolEndAnalyzerAction> symbolEndActions,
+            DiagnosticAnalyzer analyzer,
+            SymbolDeclaredCompilationEvent symbolDeclaredEvent,
+            Func<ISymbol, SyntaxReference, Compilation, SyntaxNode> getTopMostNodeForAnalysis,
+            AnalysisState analysisStateOpt)
+        {
+            return _analyzerManager.TryStartExecuteSymbolEndActions(symbolEndActions, analyzer, symbolDeclaredEvent) &&
+                TryExecuteSymbolEndActionsCore(symbolEndActions, analyzer, symbolDeclaredEvent, getTopMostNodeForAnalysis, analysisStateOpt);
+        }
+
+        private bool TryExecuteSymbolEndActionsCore(
+            ImmutableArray<SymbolEndAnalyzerAction> symbolEndActions,
+            DiagnosticAnalyzer analyzer,
+            SymbolDeclaredCompilationEvent symbolDeclaredEvent,
+            Func<ISymbol, SyntaxReference, Compilation, SyntaxNode> getTopMostNodeForAnalysis,
+            AnalysisState analysisStateOpt)
+        {
+            var symbol = symbolDeclaredEvent.Symbol;
+
+            AnalyzerStateData analyzerStateOpt = null;
+
+            try
+            {
+                if (TryStartSymbolEndAnalysis(symbol, analyzer, analysisStateOpt, out analyzerStateOpt))
+                {
+                    ExecuteSymbolEndActionsCore(symbolEndActions, analyzer, symbolDeclaredEvent, getTopMostNodeForAnalysis, analyzerStateOpt);
+                    MarkSymbolEndAnalysisComplete(symbol, analyzer, analysisStateOpt);
+                    return true;
+                }
+
+                if (!IsSymbolEndAnalysisComplete(symbol, analyzer, analysisStateOpt))
+                {
+                    _analyzerManager.MarkSymbolEndAnalysisPending(symbol, analyzer, symbolEndActions, symbolDeclaredEvent);
+                    return false;
+                }
+
+                return true;
+            }
+            finally
+            {
+                analyzerStateOpt?.ResetToReadyState();
+            }
+        }
+
+        public void MarkSymbolEndAnalysisComplete(ISymbol symbol, DiagnosticAnalyzer analyzer, AnalysisState analysisStateOpt)
+        {
+            analysisStateOpt?.MarkSymbolEndAnalysisComplete(symbol, analyzer);
+            _analyzerManager.MarkSymbolEndAnalysisComplete(symbol, analyzer);
+        }
+
+        private void ExecuteSymbolEndActionsCore(
+            ImmutableArray<SymbolEndAnalyzerAction> symbolEndActions,
+            DiagnosticAnalyzer analyzer,
+            SymbolDeclaredCompilationEvent symbolDeclaredEvent,
+            Func<ISymbol, SyntaxReference, Compilation, SyntaxNode> getTopMostNodeForAnalysis,
+            AnalyzerStateData analyzerStateOpt)
+        {
+            Debug.Assert(getTopMostNodeForAnalysis != null);
+
+            var symbol = symbolDeclaredEvent.Symbol;
+            var addDiagnostic = GetAddDiagnostic(symbol, symbolDeclaredEvent.DeclaringSyntaxReferences, analyzer, getTopMostNodeForAnalysis);
+            Func<Diagnostic, bool> isSupportedDiagnostic = d => IsSupportedDiagnostic(analyzer, d);
+
+            foreach (var symbolAction in symbolEndActions)
+            {
+                var action = symbolAction.Action;
+
+                if (ShouldExecuteAction(analyzerStateOpt, symbolAction))
+                {
+                    _cancellationToken.ThrowIfCancellationRequested();
+
+                    var context = new SymbolAnalysisContext(symbol, _compilation, _analyzerOptions, addDiagnostic,
+                        isSupportedDiagnostic, _cancellationToken);
+
+                    ExecuteAndCatchIfThrows(
+                        symbolAction.Analyzer,
+                        data => data.action(data.context),
+                        (action: action, context: context),
+                        new AnalysisContextInfo(_compilation, symbol));
+
+                    analyzerStateOpt?.ProcessedActions.Add(symbolAction);
                 }
             }
         }
@@ -1583,6 +1741,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return analysisStateOpt == null || analysisStateOpt.TryStartAnalyzingSymbol(symbol, analyzer, out analyzerStateOpt);
         }
 
+        private static bool TryStartSymbolEndAnalysis(ISymbol symbol, DiagnosticAnalyzer analyzer, AnalysisState analysisStateOpt, out AnalyzerStateData analyzerStateOpt)
+        {
+            analyzerStateOpt = null;
+            return analysisStateOpt == null || analysisStateOpt.TryStartSymbolEndAnalysis(symbol, analyzer, out analyzerStateOpt);
+        }
+
         private static bool TryStartAnalyzingDeclaration(ISymbol symbol, int declarationIndex, DiagnosticAnalyzer analyzer, AnalysisScope analysisScope, AnalysisState analysisStateOpt, out DeclarationAnalyzerStateData analyzerStateOpt)
         {
             Debug.Assert(analysisScope.Analyzers.Contains(analyzer));
@@ -1615,6 +1779,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static bool IsEventComplete(CompilationEvent compilationEvent, DiagnosticAnalyzer analyzer, AnalysisState analysisStateOpt)
         {
             return analysisStateOpt == null || analysisStateOpt.IsEventComplete(compilationEvent, analyzer);
+        }
+
+        private static bool IsSymbolComplete(ISymbol symbol, DiagnosticAnalyzer analyzer, AnalysisState analysisStateOpt)
+        {
+            return analysisStateOpt == null || analysisStateOpt.IsSymbolComplete(symbol, analyzer);
+        }
+
+        private static bool IsSymbolEndAnalysisComplete(ISymbol symbol, DiagnosticAnalyzer analyzer, AnalysisState analysisStateOpt)
+        {
+            return analysisStateOpt == null || analysisStateOpt.IsSymbolEndAnalysisComplete(symbol, analyzer);
         }
 
         private static bool IsDeclarationComplete(ISymbol symbol, int declarationIndex, DiagnosticAnalyzer analyzer, AnalysisState analysisStateOpt)

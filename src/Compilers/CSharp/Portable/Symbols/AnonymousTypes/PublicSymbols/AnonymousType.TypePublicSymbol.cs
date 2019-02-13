@@ -99,25 +99,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw ExceptionUtilities.Unreachable;
             }
 
-            internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
+            internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
             {
-                get { return ImmutableArray<TypeSymbol>.Empty; }
-            }
-
-            internal override bool HasTypeArgumentsCustomModifiers
-            {
-                get
-                {
-                    return false;
-                }
+                get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }
             }
 
             internal override bool HasCodeAnalysisEmbeddedAttribute => false;
-
-            public override ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
-            {
-                return GetEmptyTypeArgumentCustomModifiers(ordinal);
-            }
 
             public override ImmutableArray<Symbol> GetMembers(string name)
             {
@@ -186,9 +173,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            internal sealed override bool IsByRefLikeType
+            public sealed override bool IsRefLikeType
             {
-                get { return false;  }
+                get { return false; }
             }
 
             internal sealed override bool IsReadOnly
@@ -231,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return Accessibility.Internal; }
             }
 
-            internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
+            internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
             {
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
@@ -241,10 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw ExceptionUtilities.Unreachable;
             }
 
-            internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
-            {
-                get { return this.Manager.System_Object; }
-            }
+            internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => this.Manager.System_Object;
 
             public override TypeKind TypeKind
             {
@@ -339,12 +323,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return AttributeUsageInfo.Null;
             }
 
-            internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
+            internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
             {
                 return this.Manager.System_Object;
             }
 
-            internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved)
+            internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
             {
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }

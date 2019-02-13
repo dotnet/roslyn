@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 
             var pdbStream = (pdbFormat == DebugInformationFormat.Embedded) ? null : new MemoryStream();
 
-            return (pe: compilation.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(pdbFormat), pdbStream: pdbStream), 
+            return (pe: compilation.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(pdbFormat), pdbStream: pdbStream),
                     pdb: (pdbStream ?? new MemoryStream()).ToImmutable());
         }
 
@@ -196,58 +197,45 @@ namespace N
     }
 }";
 
-        [Fact]
-        public void CompareAllBytesEmitted_Release()
+        [Theory]
+        [MemberData(nameof(PdbFormats))]
+        public void CompareAllBytesEmitted_Release(DebugInformationFormat pdbFormat)
         {
-            foreach (var pdbFormat in new[]
-            {
-                DebugInformationFormat.Pdb,
-                DebugInformationFormat.PortablePdb,
-                DebugInformationFormat.Embedded
-            })
-            {
-                var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
-                var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
-                AssertEx.Equal(result1.pe, result2.pe);
-                AssertEx.Equal(result1.pdb, result2.pdb);
+            var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
+            var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
+            AssertEx.Equal(result1.pe, result2.pe);
+            AssertEx.Equal(result1.pdb, result2.pdb);
 
-                var result3 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: true);
-                var result4 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: true);
-                AssertEx.Equal(result3.pe, result4.pe);
-                AssertEx.Equal(result3.pdb, result4.pdb);
+            var result3 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: true);
+            var result4 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: true);
+            AssertEx.Equal(result3.pe, result4.pe);
+            AssertEx.Equal(result3.pdb, result4.pdb);
 
-                var result5 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, pdbFormat, optimize: true);
-                var result6 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, pdbFormat, optimize: true);
-                AssertEx.Equal(result5.pe, result6.pe);
-                AssertEx.Equal(result5.pdb, result6.pdb);
-            }
+            var result5 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, pdbFormat, optimize: true);
+            var result6 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, pdbFormat, optimize: true);
+            AssertEx.Equal(result5.pe, result6.pe);
+            AssertEx.Equal(result5.pdb, result6.pdb);
         }
 
-        [Fact, WorkItem(926, "https://github.com/dotnet/roslyn/issues/926")]
-        public void CompareAllBytesEmitted_Debug()
+        [WorkItem(926, "https://github.com/dotnet/roslyn/issues/926")]
+        [Theory]
+        [MemberData(nameof(PdbFormats))]
+        public void CompareAllBytesEmitted_Debug(DebugInformationFormat pdbFormat)
         {
-            foreach (var pdbFormat in new[]
-            {
-                DebugInformationFormat.Pdb,
-                DebugInformationFormat.PortablePdb,
-                DebugInformationFormat.Embedded
-            })
-            {
-                var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
-                var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
-                AssertEx.Equal(result1.pe, result2.pe);
-                AssertEx.Equal(result1.pdb, result2.pdb);
+            var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
+            var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
+            AssertEx.Equal(result1.pe, result2.pe);
+            AssertEx.Equal(result1.pdb, result2.pdb);
 
-                var result3 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: false);
-                var result4 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: false);
-                AssertEx.Equal(result3.pe, result4.pe);
-                AssertEx.Equal(result3.pdb, result4.pdb);
+            var result3 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: false);
+            var result4 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: false);
+            AssertEx.Equal(result3.pe, result4.pe);
+            AssertEx.Equal(result3.pdb, result4.pdb);
 
-                var result5 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, pdbFormat, optimize: false);
-                var result6 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, pdbFormat, optimize: false);
-                AssertEx.Equal(result5.pe, result6.pe);
-                AssertEx.Equal(result5.pdb, result6.pdb);
-            }
+            var result5 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, pdbFormat, optimize: false);
+            var result6 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, pdbFormat, optimize: false);
+            AssertEx.Equal(result5.pe, result6.pe);
+            AssertEx.Equal(result5.pdb, result6.pdb);
         }
 
         [Fact]
@@ -333,7 +321,7 @@ using System.Runtime.CompilerServices;
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "Static execution is runtime defined and this tests Clr behavior only")]
         public void TestPartialPartsDeterministic()
         {
             var x1 =

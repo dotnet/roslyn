@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => s_namespaceOrTypeToNameMap.GetValue(symbol, s_getNamePartsCallBack);
 
         public static int CompareNameParts(
-            IReadOnlyList<string> names1, IReadOnlyList<string> names2, 
+            IReadOnlyList<string> names1, IReadOnlyList<string> names2,
             bool placeSystemNamespaceFirst)
         {
             for (var i = 0; i < Math.Min(names1.Count, names2.Count); i++)

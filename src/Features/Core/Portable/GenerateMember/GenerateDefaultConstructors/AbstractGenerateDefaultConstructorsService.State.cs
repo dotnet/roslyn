@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
             }
 
             private bool IsMissing(
-                IMethodSymbol constructor, 
-                ImmutableArray<IMethodSymbol> classConstructors, 
+                IMethodSymbol constructor,
+                ImmutableArray<IMethodSymbol> classConstructors,
                 bool isCaseSensitive)
             {
                 var matchingConstructor = classConstructors.FirstOrDefault(

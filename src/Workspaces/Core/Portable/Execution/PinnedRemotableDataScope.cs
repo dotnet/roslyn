@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Execution
     /// <summary>
     /// Information related to pinned solution
     /// </summary>
-    internal class PinnedSolutionInfo
+    internal sealed class PinnedSolutionInfo
     {
         /// <summary>
         /// Unique ID for this pinned solution

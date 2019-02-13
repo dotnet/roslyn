@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         /// Internal so that it can be called by unit tests.
         /// </summary>
         internal void CollectEdits(
-            Document document, ICommentSelectionService service, NormalizedSnapshotSpanCollection selectedSpans, 
+            Document document, ICommentSelectionService service, NormalizedSnapshotSpanCollection selectedSpans,
             List<TextChange> textChanges, List<ITrackingSpan> trackingSpans, Operation operation, CancellationToken cancellationToken)
         {
             foreach (var span in selectedSpans)
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         /// Add the necessary edits to comment out a single span.
         /// </summary>
         private void CommentSpan(
-            Document document, ICommentSelectionService service, SnapshotSpan span, 
+            Document document, ICommentSelectionService service, SnapshotSpan span,
             List<TextChange> textChanges, List<ITrackingSpan> trackingSpans, CancellationToken cancellationToken)
         {
             var (firstLine, lastLine) = DetermineFirstAndLastLine(span);
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 // both comment forms supported.  Do a block comment only if a portion of code is
                 // selected on a single line, otherwise comment out all the lines using single-line
                 // comments.
-                if (!span.IsEmpty && 
+                if (!span.IsEmpty &&
                     !SpanIncludesAllTextOnIncludedLines(span) &&
                     firstLine.LineNumber == lastLine.LineNumber)
                 {
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         /// Add the necessary edits to uncomment out a single span.
         /// </summary>
         private void UncommentSpan(
-            Document document, ICommentSelectionService service, SnapshotSpan span, 
+            Document document, ICommentSelectionService service, SnapshotSpan span,
             List<TextChange> textChanges, List<ITrackingSpan> spansToSelect, CancellationToken cancellationToken)
         {
             var info = service.GetInfoAsync(document, span.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);

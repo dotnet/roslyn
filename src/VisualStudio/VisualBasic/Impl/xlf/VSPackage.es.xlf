@@ -18,13 +18,13 @@
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off</source>
-        <target state="translated">Inserción automática de construcciones End;Cambiar configuración de la lista descriptiva;Cambiar modo de esquematización;Inserción automática de miembros Interface y MustOverride;Mostrar u ocultar separadores de línea de procedimientos;Activar o desactivar sugerencias de corrección de errores;Activar o desactivar resaltado de referencias y palabras clave</target>
+        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions</source>
+        <target state="translated">Inserción automática de constructos finales; Cambiar la configuración del listado atractivo; Cambiar el modo de esquematización; Inserción automática de miembros Interface y MustOverride; Mostrar u ocultar los separadores de la línea del procedimiento; Activar o desactivar las sugerencias de corrección de errores; Activar o desactivar el resaltado de referencias y las palabras clave; Regex; Colorear expresiones regulares; Destacar componentes relacionados bajo el cursor; Informar de expresiones regulares no válidas</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
         <source>Advanced</source>
-        <target state="translated">Avanzadas</target>
+        <target state="translated">Opciones avanzadas</target>
         <note>"Advanced" node under Tools &gt;Options, Basic editor.</note>
       </trans-unit>
       <trans-unit id="103">

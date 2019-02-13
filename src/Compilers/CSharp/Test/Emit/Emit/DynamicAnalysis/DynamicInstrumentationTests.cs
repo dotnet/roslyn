@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using Roslyn.Test.Utilities;
 using static Microsoft.CodeAnalysis.Test.Utilities.CSharpInstrumentationChecker;
 
 namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests

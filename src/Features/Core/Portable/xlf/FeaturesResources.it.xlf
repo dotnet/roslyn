@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="Add_member_name">
+        <source>Add member name</source>
+        <target state="new">Add member name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
         <source>Add parameter to '{0}' (and overrides/implementations)</source>
         <target state="translated">Aggiungi il parametro a '{0}' (e override/implementazioni)</target>
@@ -22,14 +27,89 @@
         <target state="translated">Il campo Azioni non può essere vuoto.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_tuple_element_name_0">
+        <source>Add tuple element name '{0}'</source>
+        <target state="new">Add tuple element name '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
+        <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
+        <target state="translated">Se si aggiunge un metodo con identificatore di interfaccia esplicita, la sessione di debug non potrà continuare.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Align_wrapped_arguments">
+        <source>Align wrapped arguments</source>
+        <target state="new">Align wrapped arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Align_wrapped_parameters">
+        <source>Align wrapped parameters</source>
+        <target state="new">Align wrapped parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_namespace_to_0">
+        <source>Change namespace to '{0}'</source>
+        <target state="new">Change namespace to '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_to_global_namespace">
+        <source>Change to global namespace</source>
+        <target state="new">Change to global namespace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_Quality">
+        <source>Code Quality</source>
+        <target state="translated">Qualità del codice</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_linq">
+        <source>Convert to LINQ</source>
+        <target state="translated">Converti in LINQ</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_to_0">
         <source>Add to '{0}'</source>
         <target state="translated">Aggiungi a '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_class">
+        <source>Convert to class</source>
+        <target state="translated">Convert to class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_linq_call_form">
+        <source>Convert to LINQ (call form)</source>
+        <target state="translated">Converti in LINQ (form di chiamata)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_struct">
+        <source>Convert to struct</source>
+        <target state="translated">Convert to struct</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_tuple">
+        <source>Convert to tuple</source>
+        <target state="translated">Convert to tuple</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expression_value_is_never_used">
+        <source>Expression value is never used</source>
+        <target state="new">Expression value is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed_to_analyze_data_flow_for_0">
+        <source>Failed to analyze data-flow for: {0}</source>
+        <target state="new">Failed to analyze data-flow for: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_formatting">
+        <source>Fix formatting</source>
+        <target state="translated">Correggi formattazione</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
-        <target state="translated">Correggere l'errore di ortografia '{0}'</target>
+        <target state="translated">Correggi l'errore di ortografia '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -37,14 +117,289 @@
         <target state="translated">Formattazione del documento</target>
         <note />
       </trans-unit>
+      <trans-unit id="Indent_all_arguments">
+        <source>Indent all arguments</source>
+        <target state="new">Indent all arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_all_parameters">
+        <source>Indent all parameters</source>
+        <target state="new">Indent all parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_wrapped_arguments">
+        <source>Indent wrapped arguments</source>
+        <target state="new">Indent wrapped arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_wrapped_parameters">
+        <source>Indent wrapped parameters</source>
+        <target state="new">Indent wrapped parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indexing_can_be_simplified">
+        <source>Indexing can be simplified</source>
+        <target state="new">Indexing can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_constant">
+        <source>Introduce constant</source>
+        <target state="new">Introduce constant</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_field">
+        <source>Introduce field</source>
+        <target state="new">Introduce field</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_local">
+        <source>Introduce local</source>
+        <target state="new">Introduce local</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_query_variable">
+        <source>Introduce query variable</source>
+        <target state="new">Introduce query variable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invert_conditional">
+        <source>Invert conditional</source>
+        <target state="new">Invert conditional</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_file_to_0">
+        <source>Move file to '{0}'</source>
+        <target state="new">Move file to '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_file_to_project_root_folder">
+        <source>Move file to project root folder</source>
+        <target state="new">Move file to project root folder</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
+        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
+        <target state="translated">È possibile rimuovere il membro privato '{0}' perché il valore assegnato ad esso non viene mai letto.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_member_0_is_unused">
+        <source>Private member '{0}' is unused.</source>
+        <target state="translated">Il membro privato '{0}' è inutilizzato.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
-        <target state="translated">Se si modifica il file di origine {0}, la sessione di debug non potrà continuare a causa dell'errore interno: {1}.</target>
+        <target state="translated">Se si modifica il file di origine {0}, la sessione di debug non potrà continuare a causa di errore interno: {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
+        <source>Private method '{0}' can be removed as it is never invoked.</source>
+        <target state="new">Private method '{0}' can be removed as it is never invoked.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_0_up">
+        <source>Pull '{0}' up</source>
+        <target state="new">Pull '{0}' up</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_0_up_to_1">
+        <source>Pull '{0}' up to '{1}'</source>
+        <target state="new">Pull '{0}' up to '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_members_up_to_base_type">
+        <source>Pull members up to base type...</source>
+        <target state="new">Pull members up to base type...</target>
         <note />
       </trans-unit>
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
         <source>Related method signatures found in metadata will not be updated.</source>
         <target state="translated">Le firme del metodo correlate trovate nei metadati non verranno aggiornate.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_redundant_assignment">
+        <source>Remove redundant assignment</source>
+        <target state="new">Remove redundant assignment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unread_private_members">
+        <source>Remove unread private members</source>
+        <target state="translated">Rimuovi i membri privati non letti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_member">
+        <source>Remove unused member</source>
+        <target state="translated">Rimuovi il membro inutilizzato</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter">
+        <source>Remove unused parameter</source>
+        <target state="new">Remove unused parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter_0">
+        <source>Remove unused parameter '{0}'</source>
+        <target state="new">Remove unused parameter '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API">
+        <source>Remove unused parameter '{0}' if it is not part of a shipped public API</source>
+        <target state="new">Remove unused parameter '{0}' if it is not part of a shipped public API</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
+        <source>Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</source>
+        <target state="new">Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter_0_its_initial_value_is_never_used">
+        <source>Remove unused parameter '{0}', its initial value is never used</source>
+        <target state="new">Remove unused parameter '{0}', its initial value is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_private_members">
+        <source>Remove unused private members</source>
+        <target state="translated">Rimuovi i membri privati inutilizzati</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_0_with_1">
+        <source>Replace '{0}' with '{1}' </source>
+        <target state="new">Replace '{0}' with '{1}' </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_all_arguments">
+        <source>Unwrap all arguments</source>
+        <target state="new">Unwrap all arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_all_parameters">
+        <source>Unwrap all parameters</source>
+        <target state="new">Unwrap all parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_and_indent_all_arguments">
+        <source>Unwrap and indent all arguments</source>
+        <target state="new">Unwrap and indent all arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_and_indent_all_parameters">
+        <source>Unwrap and indent all parameters</source>
+        <target state="new">Unwrap and indent all parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_argument_list">
+        <source>Unwrap argument list</source>
+        <target state="new">Unwrap argument list</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_expression">
+        <source>Unwrap expression</source>
+        <target state="new">Unwrap expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_parameter_list">
+        <source>Unwrap parameter list</source>
+        <target state="new">Unwrap parameter list</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_lambda_expressions">
+        <source>Use block body for lambda expressions</source>
+        <target state="translated">Usa il corpo del blocco per le espressioni lambda</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_local_functions">
+        <source>Use block body for local functions</source>
+        <target state="new">Use block body for local functions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_compound_assignment">
+        <source>Use compound assignment</source>
+        <target state="new">Use compound assignment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_discard_underscore">
+        <source>Use discard '_'</source>
+        <target state="new">Use discard '_'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_discarded_local">
+        <source>Use discarded local</source>
+        <target state="new">Use discarded local</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambda_expressions">
+        <source>Use expression body for lambda expressions</source>
+        <target state="translated">Usa il corpo dell'espressione per le espressioni lambda</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_local_functions">
+        <source>Use expression body for local functions</source>
+        <target state="new">Use expression body for local functions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_index_operator">
+        <source>Use index operator</source>
+        <target state="new">Use index operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_interpolated_verbatim_string">
+        <source>Use interpolated verbatim string</source>
+        <target state="translated">Usa stringa verbatim interpolata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_range_operator">
+        <source>Use range operator</source>
+        <target state="new">Use range operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_assigned_to_0_is_never_used">
+        <source>Value assigned to '{0}' is never used</source>
+        <target state="new">Value assigned to '{0}' is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_assigned_to_symbol_is_never_used">
+        <source>Value assigned to symbol is never used</source>
+        <target state="new">Value assigned to symbol is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
+        <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
+        <target state="new">Warning: Changing namespace may produce invalid code and change code meaning.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_every_argument">
+        <source>Wrap every argument</source>
+        <target state="new">Wrap every argument</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_every_parameter">
+        <source>Wrap every parameter</source>
+        <target state="new">Wrap every parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_expression">
+        <source>Wrap expression</source>
+        <target state="new">Wrap expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_argument_list">
+        <source>Wrap long argument list</source>
+        <target state="new">Wrap long argument list</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_parameter_list">
+        <source>Wrap long parameter list</source>
+        <target state="new">Wrap long parameter list</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrapping">
+        <source>Wrapping</source>
+        <target state="new">Wrapping</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_can_be_simplified">
+        <source>{0} can be simplified</source>
+        <target state="new">{0} can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -379,7 +734,7 @@
       </trans-unit>
       <trans-unit id="label">
         <source>label</source>
-        <target state="translated">etichetta</target>
+        <target state="translated">Etichetta</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">
@@ -434,7 +789,7 @@
       </trans-unit>
       <trans-unit id="Assembly">
         <source>Assembly</source>
-        <target state="translated">Assembly</target>
+        <target state="translated">assembly</target>
         <note />
       </trans-unit>
       <trans-unit id="location_unknown">
@@ -834,7 +1189,7 @@
       </trans-unit>
       <trans-unit id="Attempt_to_connect_to_process_Sharp_0_failed_retrying">
         <source>Attempt to connect to process #{0} failed, retrying ...</source>
-        <target state="translated">Il tentativo di connessione al processo {0} non è riuscito. Nuovo tentativo in corso...</target>
+        <target state="translated">Il tentativo di connessione al processo {0} non è riuscito. Verrà effettuato un nuovo tentativo...</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_launch_0_process_exit_code_colon_1_with_output_colon">
@@ -879,7 +1234,7 @@
       </trans-unit>
       <trans-unit id="Unknown">
         <source>Unknown</source>
-        <target state="translated">Sconosciuto</target>
+        <target state="translated">Unbekannt</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_Method">
@@ -1105,7 +1460,7 @@ Continuare?</target>
       </trans-unit>
       <trans-unit id="Project">
         <source>Project</source>
-        <target state="translated">Progetto</target>
+        <target state="translated">PROGETTO</target>
         <note />
       </trans-unit>
       <trans-unit id="Solution">
@@ -1180,7 +1535,7 @@ Continuare?</target>
       </trans-unit>
       <trans-unit id="property_">
         <source>property</source>
-        <target state="translated">proprietà</target>
+        <target state="translated">Proprietà.</target>
         <note />
       </trans-unit>
       <trans-unit id="event_accessor">
@@ -1922,7 +2277,7 @@ Questa versione è usata {2}</target>
       </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
         <source>Add accessibility modifiers</source>
-        <target state="translated">Aggiungi modificatori di accessibilità</target>
+        <target state="translated">Aggiungi i modificatori di accessibilità</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_local_function">
@@ -2063,6 +2418,26 @@ Questa versione è usata {2}</target>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
         <target state="translated">Converti nell'espressione condizionale</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="updating_usages_in_containing_member">
+        <source>updating usages in containing member</source>
+        <target state="translated">updating usages in containing member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="updating_usages_in_containing_project">
+        <source>updating usages in containing project</source>
+        <target state="translated">updating usages in containing project</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="updating_usages_in_containing_type">
+        <source>updating usages in containing type</source>
+        <target state="translated">updating usages in containing type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="updating_usages_in_dependent_projects">
+        <source>updating usages in dependent projects</source>
+        <target state="translated">updating usages in dependent projects</target>
         <note />
       </trans-unit>
     </body>

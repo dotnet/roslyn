@@ -129,29 +129,6 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
 
         private static readonly char[] s_underscore = { '_' };
 
-        protected IMethodSymbol GetDelegatedConstructor(
-            INamedTypeSymbol containingType,
-            ImmutableArray<IParameterSymbol> parameters)
-        {
-            var q =
-                from c in containingType.InstanceConstructors
-                orderby c.Parameters.Length descending
-                where c.Parameters.Length > 0 && c.Parameters.Length < parameters.Length
-                where c.Parameters.All(p => p.RefKind == RefKind.None) && !c.Parameters.Any(p => p.IsParams)
-                let constructorTypes = c.Parameters.Select(p => p.Type)
-                let symbolTypes = parameters.Take(c.Parameters.Length).Select(p => p.Type)
-                where constructorTypes.SequenceEqual(symbolTypes)
-                select c;
-
-            return q.FirstOrDefault();
-        }
-
-        protected IMethodSymbol GetMatchingConstructor(INamedTypeSymbol containingType, ImmutableArray<IParameterSymbol> parameters)
-            => containingType.InstanceConstructors.FirstOrDefault(c => MatchesConstructor(c, parameters));
-
-        private bool MatchesConstructor(IMethodSymbol constructor, ImmutableArray<IParameterSymbol> parameters)
-            => parameters.Select(p => p.Type).SequenceEqual(constructor.Parameters.Select(p => p.Type));
-
         protected static readonly SymbolDisplayFormat SimpleFormat =
             new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,

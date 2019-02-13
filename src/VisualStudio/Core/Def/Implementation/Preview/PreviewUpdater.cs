@@ -19,7 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         internal static Span SpanToShow;
         internal static PreviewTagger Tagger;
 
-        public PreviewUpdater(ITextView textView)
+        public PreviewUpdater(IThreadingContext threadingContext, ITextView textView)
+            : base(threadingContext)
         {
             PreviewUpdater.TextView = textView;
             Tagger = new PreviewTagger(textView, textView.TextBuffer);

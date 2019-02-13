@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
             Dim nextStatement = forEachBlock.NextStatement
 
             If nextStatement.ControlVariables.Count > 0 Then
-                Contract.Requires(nextStatement.ControlVariables.Count = 1)
+                Debug.Assert(nextStatement.ControlVariables.Count = 1)
 
                 Dim controlVariable As SyntaxNode = nextStatement.ControlVariables(0)
                 controlVariable = generator.IdentifierName(

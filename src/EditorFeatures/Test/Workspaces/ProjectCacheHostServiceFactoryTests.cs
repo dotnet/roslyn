@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             action(cacheService, projectId, owner, instance);
         }
 
-        [Fact]
+        [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
+        [ConditionalFact(typeof(x86))]
         public void TestCacheKeepsObjectAlive1()
         {
             Test((cacheService, projectId, owner, instance) =>
@@ -46,7 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             });
         }
 
-        [Fact]
+        [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
+        [ConditionalFact(typeof(x86))]
         public void TestCacheKeepsObjectAlive2()
         {
             Test((cacheService, projectId, owner, instance) =>
@@ -64,7 +66,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             });
         }
 
-        [Fact]
+        [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
+        [ConditionalFact(typeof(x86))]
         public void TestCacheDoesNotKeepObjectsAliveAfterOwnerIsCollected1()
         {
             Test((cacheService, projectId, owner, instance) =>
@@ -79,7 +82,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             });
         }
 
-        [Fact]
+        [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
+        [ConditionalFact(typeof(x86))]
         public void TestCacheDoesNotKeepObjectsAliveAfterOwnerIsCollected2()
         {
             Test((cacheService, projectId, owner, instance) =>
@@ -94,7 +98,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             });
         }
 
-        [Fact]
+        [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
+        [ConditionalFact(typeof(x86))]
         public void TestImplicitCacheKeepsObjectAlive1()
         {
             var workspace = new AdhocWorkspace(MockHostServices.Instance, workspaceKind: WorkspaceKind.Host);
@@ -127,7 +132,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return reference;
         }
 
-        [Fact]
+        [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
+        [ConditionalFact(typeof(x86))]
         public void TestP2PReference()
         {
             var workspace = new AdhocWorkspace();
@@ -154,7 +160,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             instanceTracker.AssertReleased();
         }
 
-        [Fact]
+        [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
+        [ConditionalFact(typeof(x86))]
         public void TestEjectFromImplicitCache()
         {
             List<Compilation> compilations = new List<Compilation>();
@@ -181,7 +188,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             GC.KeepAlive(cache);
         }
 
-        [Fact]
+        [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
+        [ConditionalFact(typeof(x86))]
         public void TestCacheCompilationTwice()
         {
             var comp1 = CSharpCompilation.Create("1");
@@ -253,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             public override HostServices HostServices => _hostServices;
 
             public override Workspace Workspace => _workspace;
-            
+
             public override IEnumerable<TLanguageService> FindLanguageServices<TLanguageService>(MetadataFilter filter)
             {
                 return ImmutableArray<TLanguageService>.Empty;

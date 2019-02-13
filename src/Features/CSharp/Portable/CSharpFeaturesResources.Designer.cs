@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis.CSharp {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CSharp.CSharpFeaturesResources", typeof(CSharpFeaturesResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CSharp.CSharpFeaturesResources", typeof(CSharpFeaturesResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -76,6 +75,42 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Add_accessibility_modifiers {
             get {
                 return ResourceManager.GetString("Add_accessibility_modifiers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add await.
+        /// </summary>
+        internal static string Add_await {
+            get {
+                return ResourceManager.GetString("Add_await", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add await and ConfigureAwait(false).
+        /// </summary>
+        internal static string Add_Await_and_ConfigureAwaitFalse {
+            get {
+                return ResourceManager.GetString("Add_Await_and_ConfigureAwaitFalse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add missing usings.
+        /// </summary>
+        internal static string Add_missing_usings {
+            get {
+                return ResourceManager.GetString("Add_missing_usings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add [Obsolete].
+        /// </summary>
+        internal static string Add_Obsolete {
+            get {
+                return ResourceManager.GetString("Add_Obsolete", resourceCulture);
             }
         }
         
@@ -369,11 +404,29 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert to method.
+        /// </summary>
+        internal static string Convert_to_method {
+            get {
+                return ResourceManager.GetString("Convert_to_method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Convert to &apos;switch&apos;.
         /// </summary>
         internal static string Convert_to_switch {
             get {
                 return ResourceManager.GetString("Convert_to_switch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Declare as nullable.
+        /// </summary>
+        internal static string Declare_as_nullable {
+            get {
+                return ResourceManager.GetString("Declare_as_nullable", resourceCulture);
             }
         }
         
@@ -617,6 +670,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string into_clause {
             get {
                 return ResourceManager.GetString("into_clause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Introduce &apos;using&apos; statement.
+        /// </summary>
+        internal static string Introduce_using_statement {
+            get {
+                return ResourceManager.GetString("Introduce_using_statement", resourceCulture);
             }
         }
         
@@ -1204,6 +1266,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Upgrade_this_project_to_csharp_language_version_0 {
             get {
                 return ResourceManager.GetString("Upgrade_this_project_to_csharp_language_version_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use &apos;{0}&apos;.
+        /// </summary>
+        internal static string Use_0 {
+            get {
+                return ResourceManager.GetString("Use_0", resourceCulture);
             }
         }
         

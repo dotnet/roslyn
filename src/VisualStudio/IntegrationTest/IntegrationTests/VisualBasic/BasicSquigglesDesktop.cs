@@ -11,7 +11,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     public class BasicSquigglesDesktop : BasicSquigglesCommon
     {
         public BasicSquigglesDesktop(VisualStudioInstanceFactory instanceFactory)
-            :base(instanceFactory, WellKnownProjectTemplates.ClassLibrary)
+            : base(instanceFactory, WellKnownProjectTemplates.ClassLibrary)
         {
         }
 

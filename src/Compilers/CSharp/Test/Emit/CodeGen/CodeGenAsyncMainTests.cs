@@ -743,7 +743,7 @@ class A
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation.VerifyDiagnostics(
-                // (6,23): error CS9003: Async Main methods must return Task or Task<int>
+                // (6,23): error CS8413: Async Main methods must return Task or Task<int>
                 //     async static void Main()
                 Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(6, 23),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
@@ -795,7 +795,7 @@ class A
                 // (6,22): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async static int Main()
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "Main").WithLocation(6, 22),
-                // (6,22): error CS9003: Async Main methods must return Task or Task<int>
+                // (6,22): error CS8413: Async Main methods must return Task or Task<int>
                 //     async static int Main()
                 Diagnostic(ErrorCode.ERR_NonTaskMainCantBeAsync, "Main").WithArguments("A.Main()").WithLocation(6, 22),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point

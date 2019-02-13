@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     /// See tests having verify: !outputKind.IsNetModule()
     /// https://github.com/dotnet/roslyn/issues/23475
     /// </summary>
-    public class AttributeTests_Synthesized: WellKnownAttributesTestBase
+    public class AttributeTests_Synthesized : WellKnownAttributesTestBase
     {
         #region Theory Data
         public static IEnumerable<object[]> OptimizationLevelTheoryData

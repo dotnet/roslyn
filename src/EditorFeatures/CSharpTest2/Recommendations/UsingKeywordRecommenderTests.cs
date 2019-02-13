@@ -48,6 +48,32 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAwait()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    async void M()
+    {
+        await $$
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAwaitInAssignment()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    async void M()
+    {
+        _ = await $$
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAtRoot()
         {
             await VerifyKeywordAsync(

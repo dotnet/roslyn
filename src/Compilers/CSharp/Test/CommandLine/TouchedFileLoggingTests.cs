@@ -15,10 +15,9 @@ using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
-    public class TouchedFileLoggingTests : CSharpTestBase
+    public class TouchedFileLoggingTests : CommandLineTestBase
     {
         private static readonly string s_libDirectory = Environment.GetEnvironmentVariable("LIB");
-        private readonly string _baseDirectory = TempRoot.Root;
         private const string helloWorldCS = @"using System;
 
 class C
@@ -36,7 +35,7 @@ class C
             var touchedDir = Temp.CreateDirectory();
             var touchedBase = Path.Combine(touchedDir.Path, "touched");
 
-            var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", hello,
+            var cmd = CreateCSharpCompiler(new[] { "/nologo", hello,
                string.Format(@"/touchedfiles:""{0}""", touchedBase) });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
@@ -77,7 +76,7 @@ class C
             var net4_0dll = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.System).Path;
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var cmd = new MockCSharpCompiler(null, _baseDirectory,
+            var cmd = CreateCSharpCompiler(
                 new[] { "/nologo",
                         "/r:" + silverlight,
                         "/r:" + net4_0dll,
@@ -112,7 +111,7 @@ class C
             var touchedBase = Path.Combine(touchedDir.Path, "touched");
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var cmd = new MockCSharpCompiler(null, _baseDirectory,
+            var cmd = CreateCSharpCompiler(
                 new[] { "/nologo",
                         "/touchedfiles:" + touchedBase,
                         "/keyfile:" + snkPath,
@@ -150,7 +149,7 @@ public class C { }").Path;
             var touchedDir = Temp.CreateDirectory();
             var touchedBase = Path.Combine(touchedDir.Path, "touched");
 
-            var cmd = new MockCSharpCompiler(null, _baseDirectory, new[]
+            var cmd = CreateCSharpCompiler(new[]
             {
                 "/nologo",
                 "/target:library",

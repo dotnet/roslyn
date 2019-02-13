@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             this.GlyphService = glyphService;
         }
 
-        public async Task<ICallHierarchyMemberItem> CreateItem(ISymbol symbol,
+        public async Task<ICallHierarchyMemberItem> CreateItemAsync(ISymbol symbol,
             Project project, IEnumerable<Location> callsites, CancellationToken cancellationToken)
         {
             if (symbol.Kind == SymbolKind.Method ||
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             {
                 symbol = GetTargetSymbol(symbol);
 
-                var finders = await CreateFinders(symbol, project, cancellationToken).ConfigureAwait(false);
+                var finders = await CreateFindersAsync(symbol, project, cancellationToken).ConfigureAwait(false);
 
                 ICallHierarchyMemberItem item = new CallHierarchyItem(symbol,
                     project.Id,
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                                             details);
         }
 
-        public async Task<IEnumerable<AbstractCallFinder>> CreateFinders(ISymbol symbol, Project project, CancellationToken cancellationToken)
+        public async Task<IEnumerable<AbstractCallFinder>> CreateFindersAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             if (symbol.Kind == SymbolKind.Property ||
                     symbol.Kind == SymbolKind.Event ||

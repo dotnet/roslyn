@@ -80,8 +80,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 // Note: although we're passing CancellationToken.None here, this should never actually
                 // block.  This is because we would have only gotten this notification if this value
                 // was already computed.  In which case retrieving it again should happen immediately.
-                var documentVersion = document.GetTopLevelChangeTextVersionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                var projectVersion = document.Project.GetDependentSemanticVersionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                var documentVersion = document.GetTopLevelChangeTextVersionAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                var projectVersion = document.Project.GetDependentSemanticVersionAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
                 if (documentVersion == projectVersion)
                 {

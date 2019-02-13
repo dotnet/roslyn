@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.Completion.SuggestionMode
         }
 
         protected CompletionItem CreateEmptySuggestionModeItem()
-        {
-            return CreateSuggestionModeItem(displayText: null, description: null);
-        }
+            => CreateSuggestionModeItem(displayText: null, description: null);
 
         internal override bool IsInsertionTrigger(SourceText text, int position, OptionSet options) => false;
     }

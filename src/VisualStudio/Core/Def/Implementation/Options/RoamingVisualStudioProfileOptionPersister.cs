@@ -10,14 +10,14 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -44,8 +44,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         /// <remarks>We make sure this code is from the UI by asking for all serializers on the UI thread in <see cref="HACK_AbstractCreateServicesOnUiThread"/>.</remarks>
         [ImportingConstructor]
-        public RoamingVisualStudioProfileOptionPersister(IGlobalOptionService globalOptionService, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
-            : base(assertIsForeground: true) // The GetService call requires being on the UI thread or else it will marshal and risk deadlock
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public RoamingVisualStudioProfileOptionPersister(IThreadingContext threadingContext, IGlobalOptionService globalOptionService, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+            : base(threadingContext, assertIsForeground: true) // The GetService call requires being on the UI thread or else it will marshal and risk deadlock
         {
             Contract.ThrowIfNull(globalOptionService);
 
@@ -142,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     value = Enum.ToObject(optionKey.Option.Type, value);
                 }
             }
-            else if (typeof(ICodeStyleOption).IsAssignableFrom (optionKey.Option.Type))
+            else if (typeof(ICodeStyleOption).IsAssignableFrom(optionKey.Option.Type))
             {
                 return DeserializeCodeStyleOption(ref value, optionKey.Option.Type);
             }

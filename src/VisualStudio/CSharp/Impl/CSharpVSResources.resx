@@ -538,7 +538,7 @@
   <data name="Show_name_suggestions" xml:space="preserve">
     <value>Show name s_uggestions</value>
   </data>
-  <data name="Generate Event Subscription" xml:space="preserve">
+  <data name="Generate_Event_Subscription" xml:space="preserve">
     <value>Generate Event Subscription</value>
   </data>
   <data name="Remove_unnecessary_usings" xml:space="preserve">
@@ -558,5 +558,20 @@
   </data>
   <data name="Perform_additional_code_cleanup_during_formatting" xml:space="preserve">
     <value>Perform additional code cleanup during formatting</value>
+  </data>
+  <data name="CSharp_Coding_Conventions" xml:space="preserve">
+    <value>C# Coding Conventions</value>
+  </data>
+  <data name="CSharp_Formatting_Rules" xml:space="preserve">
+    <value>C# Formatting Rules</value>
+  </data>
+  <data name="Discard" xml:space="preserve">
+    <value>Discard</value>
+  </data>
+  <data name="Unused_local" xml:space="preserve">
+    <value>Unused local</value>
+  </data>
+  <data name="When_on_multiple_lines" xml:space="preserve">
+    <value>When on multiple lines</value>
   </data>
 </root>

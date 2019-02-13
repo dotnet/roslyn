@@ -736,6 +736,72 @@ public interface I
                 Diagnostic(RudeEditKind.ModifiersUpdate, "readonly struct X", SyntaxFacts.GetText(SyntaxKind.StructKeyword)));
         }
 
+        [Fact]
+        public void Class_ImplementingInterface_Add()
+        {
+            var src1 = @"
+using System;
+
+public interface ISample
+{
+    string Get();
+}
+
+public interface IConflict
+{
+    string Get();
+}
+
+public class BaseClass : ISample
+{
+    public virtual string Get() => string.Empty;
+}
+";
+            var src2 = @"
+using System;
+
+public interface ISample
+{
+    string Get();
+}
+
+public interface IConflict
+{
+    string Get();
+}
+
+public class BaseClass : ISample
+{
+    public virtual string Get() => string.Empty;
+}
+
+public class SubClass : BaseClass, IConflict
+{
+    public override string Get() => string.Empty;
+
+    string IConflict.Get() => String.Empty;
+}
+";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                @"Insert [public class SubClass : BaseClass, IConflict
+{
+    public override string Get() => string.Empty;
+
+    string IConflict.Get() => String.Empty;
+}]@219",
+                "Insert [public override string Get() => string.Empty;]@272",
+                "Insert [string IConflict.Get() => String.Empty;]@325",
+                "Insert [()]@298",
+                "Insert [()]@345");
+
+            // Here we add a class implementing an interface and a method inside it with explicit interface specifier.
+            // We want to be sure that adding the method will not tirgger a rude edit as it happens if adding a single method with explicit interface specifier.
+            edits.VerifyRudeDiagnostics();
+        }
+
         #endregion
 
         #region Enums
@@ -3448,6 +3514,68 @@ class C
                 Diagnostic(RudeEditKind.TypeUpdate, "ref readonly int M()", FeaturesResources.method));
         }
 
+        [Fact]
+        public void Method_ImplementingInterface_Add()
+        {
+            var src1 = @"
+using System;
+
+public interface ISample
+{
+    string Get();
+}
+
+public interface IConflict
+{
+    string Get();
+}
+
+public class BaseClass : ISample
+{
+    public virtual string Get() => string.Empty;
+}
+
+public class SubClass : BaseClass, IConflict
+{
+    public override string Get() => string.Empty;
+}
+";
+            var src2 = @"
+using System;
+
+public interface ISample
+{
+    string Get();
+}
+
+public interface IConflict
+{
+    string Get();
+}
+
+public class BaseClass : ISample
+{
+    public virtual string Get() => string.Empty;
+}
+
+public class SubClass : BaseClass, IConflict
+{
+    public override string Get() => string.Empty;
+
+    string IConflict.Get() => String.Empty;
+}
+";
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+
+            edits.VerifyEdits(
+                "Insert [string IConflict.Get() => String.Empty;]@325",
+                "Insert [()]@345");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier, "string IConflict.Get()", FeaturesResources.method));
+        }
+
         #endregion
 
         #region Operators
@@ -4384,7 +4512,7 @@ class B
                 activeStatements: ActiveStatementsDescription.Empty,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
-                expectedSemanticEdits:null,
+                expectedSemanticEdits: null,
                 expectedDiagnostics: new[] { Diagnostic(RudeEditKind.ChangingConstructorVisibility, "internal C()") },
                 expectedDeclarationError: null);
         }
@@ -6944,7 +7072,7 @@ class C
         {
             var src1 = "class C { int P { get { return 2; } } }";
             var src2 = "class C { int P { get => 2; } }";
-            
+
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits("Update [get { return 2; }]@18 -> [get => 2;]@18");
@@ -7988,7 +8116,7 @@ class SampleCollection<T>
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.ReadOnlyReferences, "in int i", FeaturesResources.parameter));
         }
-        
+
         [Fact]
         public void Indexer_ReadOnlyRef_Parameter_Update()
         {

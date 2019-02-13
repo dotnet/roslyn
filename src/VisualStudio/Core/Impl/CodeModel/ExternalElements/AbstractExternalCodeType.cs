@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
                     builder.Add(typeSymbol.BaseType);
                 }
 
-                return ExternalTypeCollection.Create(this.State, this, this.ProjectId, 
+                return ExternalTypeCollection.Create(this.State, this, this.ProjectId,
                     builder.ToImmutableAndFree());
             }
         }

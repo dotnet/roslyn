@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -210,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
 
                 // otherwise, create a new cloned snapshot
-                var buffer = factory.Clone(TextImage);
+                var buffer = factory.CloneWithUnknownContentType(TextImage);
                 var baseSnapshot = buffer.CurrentSnapshot;
 
                 // apply the change to the buffer
@@ -431,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Text
                     range = range.Accumulate(changes);
                 }
 
-                Contract.Requires(range.HasValue);
+                Debug.Assert(range.HasValue);
                 return range.Value;
             }
 

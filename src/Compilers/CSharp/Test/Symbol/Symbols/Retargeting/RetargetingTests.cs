@@ -752,6 +752,11 @@ class C1<T>
 
     internal abstract class SymbolChecker
     {
+        public void CheckSymbols(TypeSymbolWithAnnotations a, TypeSymbolWithAnnotations b, bool recurse)
+        {
+            CheckSymbols(a.TypeSymbol, b.TypeSymbol, recurse);
+        }
+
         public void CheckSymbols(Symbol a, Symbol b, bool recurse)
         {
             Assert.Equal(a == null, b == null);
@@ -897,7 +902,7 @@ class C1<T>
                 case SymbolKind.NamedType:
                     {
                         var retargeting = symbol as RetargetingNamedTypeSymbol;
-                        return (retargeting != null) ? retargeting.UnderlyingNamedType : symbol;
+                        return ((object)retargeting != null) ? retargeting.UnderlyingNamedType : symbol;
                     }
                 case SymbolKind.Field:
                     return ((RetargetingFieldSymbol)symbol).UnderlyingField;

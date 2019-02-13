@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SpellCheck
         End Function
 
         Protected Overrides Function IsGeneric(completionItem As CompletionItem) As Boolean
-            Return completionItem.DisplayText.Contains("(Of")
+            Return completionItem.DisplayTextSuffix.StartsWith("(Of")
         End Function
 
         Protected Overrides Function CreateIdentifier(nameToken As SyntaxToken, newName As String) As SyntaxToken

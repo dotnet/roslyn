@@ -27,9 +27,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public JsonRpcEx(Workspace workspace, TraceSource logger, Stream stream, object callbackTarget, bool useThisAsCallback)
         {
-            Contract.Requires(workspace != null);
-            Contract.Requires(logger != null);
-            Contract.Requires(stream != null);
+            Debug.Assert(workspace != null);
+            Debug.Assert(logger != null);
+            Debug.Assert(stream != null);
 
             var target = useThisAsCallback ? this : callbackTarget;
 

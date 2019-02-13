@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 context.IsGlobalStatementContext ||
                 context.TargetToken.IsUsingKeywordInUsingDirective() ||
+                context.IsStatementContext ||
                 IsValidContextForType(context, cancellationToken) ||
                 IsValidContextForMember(context, cancellationToken);
         }

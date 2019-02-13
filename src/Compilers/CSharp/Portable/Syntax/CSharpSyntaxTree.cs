@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="id">Error code.</param>
         /// <param name="position">Source location.</param>
-        internal ReportDiagnostic GetPragmaDirectiveWarningState(string id, int position)
+        internal PragmaWarningState GetPragmaDirectiveWarningState(string id, int position)
         {
             if (_lazyPragmaWarningStateMap == null)
             {
@@ -593,9 +593,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyPragmaWarningStateMap.GetWarningState(id, position);
         }
 
-        private CSharpLineDirectiveMap _lazyLineDirectiveMap;
+        /// <summary>
+        /// Returns true if the `#nullable` directive preceding the position is
+        /// `enable` or `safeonly`, false if `disable`, and null if no preceding directive,
+        /// or directive preceding the position is `restore`.
+        /// </summary>
+        internal bool? GetNullableDirectiveState(int position)
+        {
+            if (_lazyNullableDirectiveMap == null)
+            {
+                // Create the #nullable directive map on demand.
+                Interlocked.CompareExchange(ref _lazyNullableDirectiveMap, NullableDirectiveMap.Create(this), null);
+            }
 
+            return _lazyNullableDirectiveMap.GetDirectiveState(position);
+        }
+
+        private CSharpLineDirectiveMap _lazyLineDirectiveMap;
         private CSharpPragmaWarningStateMap _lazyPragmaWarningStateMap;
+        private NullableDirectiveMap _lazyNullableDirectiveMap;
 
         private LinePosition GetLinePosition(int position)
         {

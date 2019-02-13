@@ -414,5 +414,37 @@ $$");
             await VerifyKeywordAsync(AddInsideMethod(
 @"void F(int x, $$"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter()
+        {
+            await VerifyKeywordAsync(
+@"static class Extensions {
+    static void Extension($$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterThisKeyword()
+        {
+            await VerifyAbsenceAsync(
+@"static class Extensions {
+    static void Extension(this $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_SecondParameter()
+        {
+            await VerifyKeywordAsync(
+@"static class Extensions {
+    static void Extension(this int i, $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_SecondParameter_AfterThisKeyword()
+        {
+            await VerifyAbsenceAsync(
+@"static class Extensions {
+    static void Extension(this int i, this $$");
+        }
     }
 }

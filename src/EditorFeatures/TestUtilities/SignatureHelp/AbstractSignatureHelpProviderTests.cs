@@ -417,6 +417,36 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             if (expectedOrderedItemsOrNull != null)
             {
                 CompareAndAssertCollectionsAndCurrentParameter(expectedOrderedItemsOrNull, items, signatureHelpProvider, document, cursorPosition);
+                CompareSelectedIndex(expectedOrderedItemsOrNull, items.SelectedItemIndex);
+            }
+        }
+
+        private void CompareSelectedIndex(IEnumerable<SignatureHelpTestItem> expectedOrderedItemsOrNull, int? selectedItemIndex)
+        {
+            if (expectedOrderedItemsOrNull == null ||
+                !expectedOrderedItemsOrNull.Any(i => i.IsSelected))
+            {
+                return;
+            }
+
+            Assert.True(expectedOrderedItemsOrNull.Count(i => i.IsSelected) == 1, "Only one expected item can be marked with 'IsSelected'");
+            Assert.True(selectedItemIndex != null, "Expected an item to be selected, but no item was actually selected");
+
+            int counter = 0;
+            foreach (var item in expectedOrderedItemsOrNull)
+            {
+                if (item.IsSelected)
+                {
+                    Assert.True(selectedItemIndex == counter,
+                        $"Expected item with index {counter} to be selected, but the actual selected index is {selectedItemIndex}.");
+                }
+                else
+                {
+                    Assert.True(selectedItemIndex != counter,
+                        $"Found unexpected selected item. Actual selected index is {selectedItemIndex}.");
+                }
+
+                counter++;
             }
         }
 

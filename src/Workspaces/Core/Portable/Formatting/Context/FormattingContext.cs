@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var initialContextFinder = new InitialContextFinder(_tokenStream, formattingRules, rootNode, endToken);
+            var initialContextFinder = new InitialContextFinder(_tokenStream, formattingRules, rootNode);
             var results = initialContextFinder.Do(startToken, endToken);
 
             if (results.indentOperations != null)
@@ -105,8 +105,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                                                 formattingRules,
                                                 this.OptionSet.GetOption(FormattingOptions.TabSize, _language),
                                                 this.OptionSet.GetOption(FormattingOptions.IndentationSize, _language),
-                                                _tokenStream,
-                                                endToken);
+                                                _tokenStream);
                 var initialIndentation = baseIndentationFinder.GetIndentationOfCurrentPosition(
                     rootNode,
                     initialOperation,
@@ -269,22 +268,24 @@ namespace Microsoft.CodeAnalysis.Formatting
             var valuePairs = new (SuppressOperation operation, bool shouldSuppress, bool onSameLine)[operations.Count];
 
             // TODO: think about a way to figure out whether it is already suppressed and skip the expensive check below.
-            _engine.TaskExecutor.For(0, operations.Count, i =>
+            for (var i = 0; i < operations.Count; i++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var operation = operations[i];
 
-                // if an operation contains elastic trivia itself and the operation is not marked to ignore the elastic trivia
-                // ignore the operation
-                if (operation.ContainsElasticTrivia(_tokenStream) && !operation.Option.IsOn(SuppressOption.IgnoreElastic))
+                // if an operation contains elastic trivia itself and the operation is not marked to ignore the elastic trivia 
+                // ignore the operation 
+                if (operation.ContainsElasticTrivia(_tokenStream) && !operation.Option.IsOn(SuppressOption.IgnoreElasticWrapping))
                 {
-                    // don't bother to calculate line alignment between tokens
+                    // don't bother to calculate line alignment between tokens 
                     valuePairs[i] = (operation, shouldSuppress: false, onSameLine: false);
-                    return;
+                    continue;
                 }
 
                 var onSameLine = _tokenStream.TwoTokensOriginallyOnSameLine(operation.StartToken, operation.EndToken);
                 valuePairs[i] = (operation, shouldSuppress: true, onSameLine: onSameLine);
-            }, cancellationToken);
+            }
 
             valuePairs.Do(v =>
             {
@@ -325,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var data = new SuppressSpacingData(operation.TextSpan, noSpacing: true);
+            var data = new SuppressSpacingData(operation.TextSpan);
 
             _suppressSpacingMap.Add(operation.TextSpan);
             _suppressSpacingTree.AddIntervalInPlace(data);
@@ -352,7 +353,10 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var data = new SuppressWrappingData(operation.TextSpan, noWrapping: true);
+            var ignoreElastic = option.IsMaskOn(SuppressOption.IgnoreElasticWrapping) ||
+                                !operation.ContainsElasticTrivia(_tokenStream);
+
+            var data = new SuppressWrappingData(operation.TextSpan, ignoreElastic: ignoreElastic);
 
             _suppressWrappingMap.Add(operation.TextSpan);
             _suppressWrappingTree.AddIntervalInPlace(data);
@@ -564,7 +568,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return lastBaseAnchorData;
         }
 
-        public bool IsWrappingSuppressed(TextSpan textSpan)
+        public bool IsWrappingSuppressed(TextSpan textSpan, bool containsElasticTrivia)
         {
             // use edge exclusive version of GetSmallestContainingInterval
             var data = _suppressWrappingTree.GetSmallestEdgeExclusivelyContainingInterval(textSpan.Start, textSpan.Length);
@@ -573,11 +577,23 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return false;
             }
 
-            return data.NoWrapping;
+            if (containsElasticTrivia && !data.IgnoreElastic)
+            {
+                return false;
+            }
+
+            return true;
         }
 
-        public bool IsSpacingSuppressed(TextSpan textSpan)
+        public bool IsSpacingSuppressed(TextSpan textSpan, bool containsElasticTrivia)
         {
+            // For spaces, never ignore elastic trivia because that can 
+            // generate incorrect code
+            if (containsElasticTrivia)
+            {
+                return false;
+            }
+
             // use edge exclusive version of GetSmallestContainingInterval
             var data = _suppressSpacingTree.GetSmallestEdgeExclusivelyContainingInterval(textSpan.Start, textSpan.Length);
             if (data == null)
@@ -585,7 +601,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return false;
             }
 
-            return data.NoSpacing;
+            return true;
         }
 
         public bool IsSpacingSuppressed(int pairIndex)
@@ -597,7 +613,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // this version of SpacingSuppressed will be called after all basic space operations are done. 
             // so no more elastic trivia should have left out
-            return IsSpacingSuppressed(spanBetweenTwoTokens);
+            return IsSpacingSuppressed(spanBetweenTwoTokens, containsElasticTrivia: false);
         }
 
         public OptionSet OptionSet => _engine.OptionSet;

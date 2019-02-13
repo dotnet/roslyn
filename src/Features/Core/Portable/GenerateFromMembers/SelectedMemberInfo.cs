@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             public readonly ImmutableArray<ISymbol> SelectedMembers;
 
             public SelectedMemberInfo(
-                INamedTypeSymbol containingType, 
-                ImmutableArray<SyntaxNode> selectedDeclarations, 
+                INamedTypeSymbol containingType,
+                ImmutableArray<SyntaxNode> selectedDeclarations,
                 ImmutableArray<ISymbol> selectedMembers)
             {
                 ContainingType = containingType;

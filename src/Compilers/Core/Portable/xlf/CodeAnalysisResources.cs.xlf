@@ -14,6 +14,16 @@
         <target state="translated">Blok dané operace nepatří do aktuálního analytického kontextu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="IsSymbolAccessibleBadWithin">
+        <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
+        <target state="translated">Parametr {0} musí být INamedTypeSymbol nebo IAssemblySymbol.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleWrongAssembly">
+        <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
+        <target state="translated">Parametr {0} musí být symbol z této kompilace nebo některé odkazované sestavení.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="NotARootOperation">
         <source>Given operation has a non-null parent.</source>
         <target state="translated">Daná operace má nadřazenou položku, která není null.</target>
@@ -22,6 +32,11 @@
       <trans-unit id="OperationHasNullSemanticModel">
         <source>Given operation has a null semantic model.</source>
         <target state="translated">Daná operace má sémantický model null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationMustNotBeControlFlowGraphPart">
+        <source>The provided operation must not be part of a Control Flow Graph.</source>
+        <target state="translated">Zadaná operace nesmí být součástí grafu toku řízení.</target>
         <note />
       </trans-unit>
       <trans-unit id="OutputKindNotSupported">
@@ -42,6 +57,11 @@
       <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">Kopie modulu se nedá použít k vytvoření metadat sestavení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="translated">Analyzátor {0} má v SupportedDiagnostics deskriptor s hodnotou null.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -141,7 +161,7 @@
       </trans-unit>
       <trans-unit id="InMemoryModule">
         <source>&lt;in-memory module&gt;</source>
-        <target state="translated">&lt;dotaz v paměti&gt;</target>
+        <target state="translated">&lt;modul v paměti&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="SizeHasToBePositive">
@@ -411,7 +431,7 @@
       </trans-unit>
       <trans-unit id="UnsupportedHashAlgorithm">
         <source>Unsupported hash algorithm.</source>
-        <target state="translated">Nepodporovaný hashovací algoritmus</target>
+        <target state="translated">Nepodporovaný algoritmus hash</target>
         <note />
       </trans-unit>
       <trans-unit id="InconsistentLanguageVersions">
@@ -513,7 +533,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="translated">Změny se nesmí překrývat.</target>
+        <target state="translated">Změny musí být seřazené a nesmí se překrývat.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
@@ -841,11 +861,6 @@
       <trans-unit id="ExceptionEnablingMulticoreJit">
         <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
         <target state="translated">Upozornění: Nešlo povolit vícejádrový režim JIT kvůli výjimce: {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="FlowAnalysisFeatureDisabled">
-        <source>Feature 'Flow-Analysis' is disabled.</source>
-        <target state="translated">Funkce Flow-Analysis je zakázaná.</target>
         <note />
       </trans-unit>
     </body>

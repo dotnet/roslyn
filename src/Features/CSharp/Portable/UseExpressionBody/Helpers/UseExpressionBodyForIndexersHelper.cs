@@ -54,12 +54,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         protected override IndexerDeclarationSyntax WithGenerateBody(
-            IndexerDeclarationSyntax declaration, OptionSet options, ParseOptions parseOptions)
+            SemanticModel semanticModel, IndexerDeclarationSyntax declaration, OptionSet options, ParseOptions parseOptions)
         {
-            return WithAccessorList(declaration, options, parseOptions);
+            return WithAccessorList(semanticModel, declaration, options, parseOptions);
         }
 
-        protected override bool CreateReturnStatementForExpression(IndexerDeclarationSyntax declaration) => true;
+        protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, IndexerDeclarationSyntax declaration) => true;
 
         protected override bool TryConvertToExpressionBody(
             IndexerDeclarationSyntax declaration, ParseOptions options,
@@ -70,6 +70,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return this.TryConvertToExpressionBodyForBaseProperty(
                 declaration, options, conversionPreference,
                 out arrowExpression, out semicolonToken);
+        }
+
+        protected override Location GetDiagnosticLocation(IndexerDeclarationSyntax declaration)
+        {
+            var body = GetBody(declaration);
+            if (body != null)
+            {
+                return base.GetDiagnosticLocation(declaration);
+            }
+
+            var getAccessor = GetSingleGetAccessor(declaration.AccessorList);
+            return getAccessor.ExpressionBody.GetLocation();
         }
     }
 }

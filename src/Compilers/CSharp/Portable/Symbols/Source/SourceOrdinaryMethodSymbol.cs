@@ -24,14 +24,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly RefKind _refKind;
 
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
-        private CustomModifiersTuple _lazyCustomModifiers;
+        private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
-        private TypeSymbol _lazyReturnType;
+        private TypeSymbolWithAnnotations _lazyReturnType;
         private bool _lazyIsVararg;
 
         /// <summary>
         /// A collection of type parameter constraints, populated when
         /// constraints for the first type parameter is requested.
+        /// Initialized in two steps. Hold a copy if accessing during initialization.
         /// </summary>
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
 
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     // Method or delegate cannot return type '{0}'
-                    diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, syntax.ReturnType.Location, _lazyReturnType);
+                    diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, syntax.ReturnType.Location, _lazyReturnType.TypeSymbol);
                 }
             }
 
@@ -215,13 +216,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var parameter0Type = this.Parameters[0].Type;
                 var parameter0RefKind = this.Parameters[0].RefKind;
-                if (!parameter0Type.IsValidExtensionParameterType())
+                if (!parameter0Type.TypeSymbol.IsValidExtensionParameterType())
                 {
                     // Duplicate Dev10 behavior by selecting the parameter type.
                     var parameterSyntax = syntax.ParameterList.Parameters[0];
                     Debug.Assert(parameterSyntax.Type != null);
                     var loc = parameterSyntax.Type.Location;
-                    diagnostics.Add(ErrorCode.ERR_BadTypeforThis, loc, parameter0Type);
+                    diagnostics.Add(ErrorCode.ERR_BadTypeforThis, loc, parameter0Type.TypeSymbol);
                 }
                 else if (parameter0RefKind == RefKind.Ref && !parameter0Type.IsValueType)
                 {
@@ -301,12 +302,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // unnecessary for implicit implementations because, if the custom modifiers don't match,
             // we'll insert a bridge method (an explicit implementation that delegates to the implicit
             // implementation) with the correct custom modifiers 
-            // (see SourceNamedTypeSymbol.ImplementInterfaceMember).
+            // (see SourceMemberContainerTypeSymbol.SynthesizeInterfaceMemberImplementation).
 
-            // This value may not be correct, but we need something while we compute overridden/implemented method.
+            // This value may not be correct, but we need something while we compute this.OverriddenMethod.
             // May be re-assigned below.
-            Debug.Assert(_lazyCustomModifiers == null);
-            _lazyCustomModifiers = CustomModifiersTuple.Empty;
+            Debug.Assert(_lazyReturnType.CustomModifiers.IsEmpty);
+            _lazyRefCustomModifiers = ImmutableArray<CustomModifier>.Empty;
 
             // Note: we're checking if the syntax indicates explicit implementation rather,
             // than if explicitInterfaceType is null because we don't want to look for an
@@ -333,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if ((object)overriddenMethod != null)
                     {
                         CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType,
-                                                                      out _lazyCustomModifiers,
+                                                                      out _lazyRefCustomModifiers,
                                                                       out _lazyParameters, alsoCopyParamsModifier: true);
                     }
                 }
@@ -341,9 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var modifierType = withTypeParamsBinder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax.ReturnType);
 
-                    _lazyCustomModifiers = CustomModifiersTuple.Create(
-                        typeCustomModifiers: ImmutableArray<CustomModifier>.Empty,
-                        refCustomModifiers: ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType)));
+                    _lazyRefCustomModifiers = ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType));
                 }
             }
             else if ((object)_explicitInterfaceType != null)
@@ -357,13 +356,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _lazyExplicitInterfaceImplementations = ImmutableArray.Create<MethodSymbol>(implementedMethod);
 
                     CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType,
-                                                                  out _lazyCustomModifiers,
+                                                                  out _lazyRefCustomModifiers,
                                                                   out _lazyParameters, alsoCopyParamsModifier: false);
+                    this.FindExplicitlyImplementedMemberVerification(implementedMethod, diagnostics);
+                    TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this, implementedMethod, true, diagnostics);
                 }
                 else
                 {
                     Debug.Assert(_lazyExplicitInterfaceImplementations.IsDefault);
                     _lazyExplicitInterfaceImplementations = ImmutableArray<MethodSymbol>.Empty;
+
+                    Debug.Assert(_lazyReturnType.CustomModifiers.IsEmpty);
                 }
             }
 
@@ -386,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (parameter.Type.IsRestrictedType())
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, loc, parameter.Type);
+                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, loc, parameter.Type.TypeSymbol);
                 }
             }
         }
@@ -408,16 +411,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.RefKind != RefKind.None)
             {
-                var returnTypeSyntax = GetSyntax().ReturnType;
-                if (!returnTypeSyntax.HasErrors)
-                {
-                    var refKeyword = returnTypeSyntax.GetFirstToken();
-                    diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refKeyword.GetLocation(), refKeyword.ToString());
-                }
+                ReportBadRefToken(GetSyntax().ReturnType, diagnostics);
             }
-            else if (!this.IsGenericTaskReturningAsync(this.DeclaringCompilation) && !this.IsTaskReturningAsync(this.DeclaringCompilation) && !this.IsVoidReturningAsync())
+            else if (ReturnType.TypeSymbol.IsBadAsyncReturn(this.DeclaringCompilation))
             {
-                // The return type of an async method must be void, Task or Task<T>
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
             }
 
@@ -436,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_SynchronizedAsyncMethod, errorLocation);
             }
 
-            if (diagnostics.IsEmptyWithoutResolution)
+            if (!diagnostics.HasAnyResolvedErrors())
             {
                 ReportAsyncParameterErrors(_lazyParameters, diagnostics, errorLocation);
             }
@@ -483,34 +480,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early)
         {
-            get
+            var clauses = _lazyTypeParameterConstraints;
+            if (clauses.IsDefault)
             {
-                if (_lazyTypeParameterConstraints.IsDefault)
+                // Early step.
+                var diagnostics = DiagnosticBag.GetInstance();
+                var syntax = GetSyntax();
+                var withTypeParametersBinder =
+                    this.DeclaringCompilation
+                    .GetBinderFactory(syntax.SyntaxTree)
+                    .GetBinder(syntax.ReturnType, syntax, this);
+                var constraints = this.MakeTypeParameterConstraintsEarly(
+                    withTypeParametersBinder,
+                    TypeParameters,
+                    syntax.ConstraintClauses,
+                    syntax.Identifier.GetLocation(),
+                    diagnostics);
+                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, constraints))
                 {
-                    var diagnostics = DiagnosticBag.GetInstance();
-                    var syntax = GetSyntax();
-                    var withTypeParametersBinder =
-                        this.DeclaringCompilation
-                        .GetBinderFactory(syntax.SyntaxTree)
-                        .GetBinder(syntax.ReturnType, syntax, this);
-                    var constraints = this.MakeTypeParameterConstraints(
-                        withTypeParametersBinder,
-                        TypeParameters,
-                        syntax.ConstraintClauses,
-                        syntax.Identifier.GetLocation(),
-                        diagnostics);
-
-                    if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, constraints))
-                    {
-                        this.AddDeclarationDiagnostics(diagnostics);
-                    }
-                    diagnostics.Free();
+                    this.AddDeclarationDiagnostics(diagnostics);
                 }
-
-                return _lazyTypeParameterConstraints;
+                diagnostics.Free();
+                clauses = _lazyTypeParameterConstraints;
             }
+
+            if (!early && clauses.IsEarly())
+            {
+                // Late step.
+                var diagnostics = DiagnosticBag.GetInstance();
+                var constraints = ConstraintsHelper.MakeTypeParameterConstraintsLate(TypeParameters, clauses, diagnostics);
+                Debug.Assert(!constraints.IsEarly());
+                if (ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeParameterConstraints, constraints, clauses) == clauses)
+                {
+                    this.AddDeclarationDiagnostics(diagnostics);
+                }
+                diagnostics.Free();
+            }
+
+            return _lazyTypeParameterConstraints;
         }
 
         public override bool IsVararg
@@ -555,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeSymbolWithAnnotations ReturnType
         {
             get
             {
@@ -678,21 +687,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get
-            {
-                LazyMethodChecks();
-                return _lazyCustomModifiers.TypeCustomModifiers;
-            }
-        }
-
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
             {
                 LazyMethodChecks();
-                return _lazyCustomModifiers.RefCustomModifiers;
+                return _lazyRefCustomModifiers;
             }
         }
 
@@ -909,7 +909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (!ContainingType.IsInterfaceType() && _lazyReturnType.IsStatic)
             {
                 // '{0}': static types cannot be used as return types
-                diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, location, _lazyReturnType);
+                diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, location, _lazyReturnType.TypeSymbol);
             }
             else if (IsAbstract && IsExtern)
             {
@@ -1009,6 +1009,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
+            var location = GetSyntax().ReturnType.Location;
+
+            Debug.Assert(location != null);
+
             // Check constraints on return type and parameters. Note: Dev10 uses the
             // method name location for any such errors. We'll do the same for return
             // type errors but for parameter errors, we'll use the parameter location.
@@ -1035,10 +1039,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_refKind == RefKind.RefReadOnly)
             {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, GetSyntax().ReturnType.Location, modifyCompilationForRefReadOnly: true);
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
+
+            if (ReturnType.NeedsNullableAttribute())
+            {
+                this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
+            ParameterHelpers.EnsureNullableAttributeExists(Parameters, diagnostics, modifyCompilation: true);
         }
 
         /// <summary>
@@ -1073,6 +1084,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!HaveSameConstraints(definition, implementation))
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentConstraints, implementation.Locations[0], implementation);
+            }
+
+            ImmutableArray<ParameterSymbol> implementationParameters = implementation.Parameters;
+            ImmutableArray<ParameterSymbol> definitionParameters = definition.ConstructIfGeneric(implementation.TypeArguments).Parameters;
+            for (int i = 0; i < implementationParameters.Length; i++)
+            {
+                if (!implementationParameters[i].Type.Equals(definitionParameters[i].Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions) &&
+                    implementationParameters[i].Type.Equals(definitionParameters[i].Type, TypeCompareKind.AllIgnoreOptions))
+                {
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementation.Locations[0], new FormattedSymbol(implementationParameters[i], SymbolDisplayFormat.ShortFormat));
+                }
             }
         }
 

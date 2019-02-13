@@ -20,25 +20,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class VariablePendingInference : BoundExpression
     {
-        internal BoundExpression SetInferredType(TypeSymbol type, DiagnosticBag diagnosticsOpt)
+        internal BoundExpression SetInferredType(TypeSymbolWithAnnotations type, DiagnosticBag diagnosticsOpt)
         {
-            Debug.Assert((object)type != null);
+            Debug.Assert(!type.IsNull);
 
             return SetInferredType(type, null, diagnosticsOpt);
         }
 
-        internal BoundExpression SetInferredType(TypeSymbol type, Binder binderOpt, DiagnosticBag diagnosticsOpt)
+        internal BoundExpression SetInferredType(TypeSymbolWithAnnotations type, Binder binderOpt, DiagnosticBag diagnosticsOpt)
         {
-            Debug.Assert(binderOpt != null || (object)type != null);
+            Debug.Assert(binderOpt != null || !type.IsNull);
             Debug.Assert(this.Syntax.Kind() == SyntaxKind.SingleVariableDesignation ||
                 (this.Syntax.Kind() == SyntaxKind.DeclarationExpression &&
                     ((DeclarationExpressionSyntax)this.Syntax).Designation.Kind() == SyntaxKind.SingleVariableDesignation));
 
-            bool inferenceFailed = ((object)type == null);
+            bool inferenceFailed = type.IsNull;
 
             if (inferenceFailed)
             {
-                type = binderOpt.CreateErrorType("var");
+                type = TypeSymbolWithAnnotations.Create(binderOpt.CreateErrorType("var"));
             }
 
             switch (this.VariableSymbol.Kind)
@@ -58,12 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ((DeclarationExpressionSyntax)this.Syntax).Type :
                                 this.Syntax;
 
-                            Binder.CheckRestrictedTypeInAsync(localSymbol.ContainingSymbol, type, diagnosticsOpt, typeOrDesignationSyntax);
+                            Binder.CheckRestrictedTypeInAsync(localSymbol.ContainingSymbol, type.TypeSymbol, diagnosticsOpt, typeOrDesignationSyntax);
                         }
                     }
 
                     localSymbol.SetType(type);
-                    return new BoundLocal(this.Syntax, localSymbol, isDeclaration: true, constantValueOpt: null, type: type, hasErrors: this.HasErrors || inferenceFailed);
+                    return new BoundLocal(this.Syntax, localSymbol, BoundLocalDeclarationKind.WithInferredType, constantValueOpt: null, isNullableUnknown: false, type: type.TypeSymbol, hasErrors: this.HasErrors || inferenceFailed);
 
                 case SymbolKind.Field:
                     var fieldSymbol = (GlobalExpressionVariable)this.VariableSymbol;
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 null,
                                                 LookupResultKind.Viable,
                                                 isDeclaration: true,
-                                                type: type,
+                                                type: type.TypeSymbol,
                                                 hasErrors: this.HasErrors || inferenceFailed);
 
                 default:
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression FailInference(Binder binder, DiagnosticBag diagnosticsOpt)
         {
-            return this.SetInferredType(null, binder, diagnosticsOpt);
+            return this.SetInferredType(default, binder, diagnosticsOpt);
         }
 
         private void ReportInferenceFailure(DiagnosticBag diagnostics)

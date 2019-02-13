@@ -123,12 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return RefKind.None; }
         }
 
-        public override TypeSymbol ReturnType
-        {
-            get { throw ExceptionUtilities.Unreachable; }
-        }
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
+        public override TypeSymbolWithAnnotations ReturnType
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
@@ -138,9 +133,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
-            get { return ImmutableArray<TypeSymbol>.Empty; }
+            get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters

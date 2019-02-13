@@ -35,6 +35,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             => New(text, ClassificationTypeNames.TypeParameterName);
 
         [DebuggerStepThrough]
+        public static FormattedClassification Namespace(string text)
+            => New(text, ClassificationTypeNames.NamespaceName);
+
+        [DebuggerStepThrough]
+        public static FormattedClassification Label(string text)
+            => New(text, ClassificationTypeNames.LabelName);
+
+        [DebuggerStepThrough]
         public static FormattedClassification Field(string text)
             => New(text, ClassificationTypeNames.FieldName);
 
@@ -71,6 +79,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             => New(text, ClassificationTypeNames.EventName);
 
         [DebuggerStepThrough]
+        public static FormattedClassification Static(string text)
+            => New(text, ClassificationTypeNames.StaticSymbol);
+
+        [DebuggerStepThrough]
         public static FormattedClassification String(string text)
             => New(text, ClassificationTypeNames.StringLiteral);
 
@@ -79,8 +91,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             => New(text, ClassificationTypeNames.VerbatimStringLiteral);
 
         [DebuggerStepThrough]
+        public static FormattedClassification Escape(string text)
+            => New(text, ClassificationTypeNames.StringEscapeCharacter);
+
+        [DebuggerStepThrough]
         public static FormattedClassification Keyword(string text)
             => New(text, ClassificationTypeNames.Keyword);
+
+        [DebuggerStepThrough]
+        public static FormattedClassification ControlKeyword(string text)
+            => New(text, ClassificationTypeNames.ControlKeyword);
 
         [DebuggerStepThrough]
         public static FormattedClassification WhiteSpace(string text)

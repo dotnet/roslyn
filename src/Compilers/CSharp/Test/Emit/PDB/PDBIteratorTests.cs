@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
     public class PDBIteratorTests : CSharpPDBTestBase
     {
         [WorkItem(543376, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543376")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SimpleIterator1()
         {
             var text = @"
@@ -52,8 +52,8 @@ class Program
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x17"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x18"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x15"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x16"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""21"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -61,7 +61,7 @@ class Program
         }
 
         [WorkItem(543376, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543376")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SimpleIterator2()
         {
             var text = @"
@@ -97,8 +97,8 @@ class Program
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x17"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x18"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x15"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x16"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""21"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -106,7 +106,7 @@ class Program
         }
 
         [WorkItem(543490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543490")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SimpleIterator3()
         {
             var text = @"
@@ -142,17 +142,17 @@ class Program
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1f"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x20"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""24"" document=""1"" />
-        <entry offset=""0x30"" hidden=""true"" document=""1"" />
-        <entry offset=""0x37"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1b"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x2c"" hidden=""true"" document=""1"" />
+        <entry offset=""0x33"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void IteratorWithLocals_ReleasePdb()
         {
             var text = @"
@@ -222,7 +222,7 @@ class Program
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void IteratorWithLocals_DebugPdb()
         {
             var text = @"
@@ -273,8 +273,8 @@ class Program
           <namespace usingCount=""0"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x39"" endOffset=""0xc6"" />
-          <slot startOffset=""0x7e"" endOffset=""0xc4"" />
+          <slot startOffset=""0x2c"" endOffset=""0xb9"" />
+          <slot startOffset=""0x71"" endOffset=""0xb7"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -282,27 +282,27 @@ class Program
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x39"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x3a"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""20"" document=""1"" />
-        <entry offset=""0x46"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""24"" document=""1"" />
-        <entry offset=""0x5b"" hidden=""true"" document=""1"" />
-        <entry offset=""0x62"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""24"" document=""1"" />
-        <entry offset=""0x77"" hidden=""true"" document=""1"" />
-        <entry offset=""0x7e"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x7f"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""24"" document=""1"" />
-        <entry offset=""0x8b"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""28"" document=""1"" />
-        <entry offset=""0xa0"" hidden=""true"" document=""1"" />
-        <entry offset=""0xa7"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""28"" document=""1"" />
-        <entry offset=""0xbc"" hidden=""true"" document=""1"" />
-        <entry offset=""0xc3"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
-        <entry offset=""0xc4"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x2c"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x2d"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x39"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x4e"" hidden=""true"" document=""1"" />
+        <entry offset=""0x55"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x6a"" hidden=""true"" document=""1"" />
+        <entry offset=""0x71"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x72"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x7e"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x93"" hidden=""true"" document=""1"" />
+        <entry offset=""0x9a"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""28"" document=""1"" />
+        <entry offset=""0xaf"" hidden=""true"" document=""1"" />
+        <entry offset=""0xb6"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xb7"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""21"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void IteratorWithCapturedSyntheticVariables()
         {
             // this iterator captures the synthetic variable generated from the expansion of the foreach loop
@@ -347,9 +347,9 @@ class Test<T>
           <namespace usingCount=""2"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x32"" endOffset=""0xe2"" />
+          <slot startOffset=""0x29"" endOffset=""0xd9"" />
           <slot />
-          <slot startOffset=""0x5b"" endOffset=""0xa5"" />
+          <slot startOffset=""0x52"" endOffset=""0x9c"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""temp"" />
@@ -358,24 +358,24 @@ class Test<T>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x32"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x33"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""28"" document=""1"" />
-        <entry offset=""0x3f"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""16"" document=""1"" />
-        <entry offset=""0x40"" startLine=""11"" startColumn=""28"" endLine=""11"" endColumn=""33"" document=""1"" />
-        <entry offset=""0x59"" hidden=""true"" document=""1"" />
-        <entry offset=""0x5b"" startLine=""11"" startColumn=""18"" endLine=""11"" endColumn=""24"" document=""1"" />
-        <entry offset=""0x6c"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x6d"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""24"" document=""1"" />
-        <entry offset=""0x79"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""30"" document=""1"" />
-        <entry offset=""0x90"" hidden=""true"" document=""1"" />
-        <entry offset=""0x98"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" document=""1"" />
-        <entry offset=""0xa5"" startLine=""11"" startColumn=""25"" endLine=""11"" endColumn=""27"" document=""1"" />
-        <entry offset=""0xc0"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""26"" document=""1"" />
-        <entry offset=""0xd7"" hidden=""true"" document=""1"" />
-        <entry offset=""0xde"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""1"" />
-        <entry offset=""0xe2"" hidden=""true"" document=""1"" />
+        <entry offset=""0x29"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x2a"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x36"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""16"" document=""1"" />
+        <entry offset=""0x37"" startLine=""11"" startColumn=""28"" endLine=""11"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x50"" hidden=""true"" document=""1"" />
+        <entry offset=""0x52"" startLine=""11"" startColumn=""18"" endLine=""11"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x63"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x64"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x70"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x87"" hidden=""true"" document=""1"" />
+        <entry offset=""0x8f"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x9c"" startLine=""11"" startColumn=""25"" endLine=""11"" endColumn=""27"" document=""1"" />
+        <entry offset=""0xb7"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""26"" document=""1"" />
+        <entry offset=""0xce"" hidden=""true"" document=""1"" />
+        <entry offset=""0xd5"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xd9"" hidden=""true"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xec"">
+      <scope startOffset=""0x0"" endOffset=""0xe3"">
         <namespace name=""System"" />
         <namespace name=""System.Collections.Generic"" />
       </scope>
@@ -385,7 +385,7 @@ class Test<T>
         }
 
         [WorkItem(542705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542705"), WorkItem(528790, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528790"), WorkItem(543490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543490")]
-        [Fact()]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void IteratorBackToNextStatementAfterYieldReturn()
         {
             var text = @"
@@ -480,7 +480,7 @@ class C
         }
 
         [WorkItem(543490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543490")]
-        [Fact()]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void IteratorMultipleEnumerables()
         {
             var text = @"
@@ -613,9 +613,9 @@ public class Test
         <forward declaringType=""Test`1"" methodName=""System.Collections.IEnumerable.GetEnumerator"" />
         <hoistedLocalScopes>
           <slot />
-          <slot startOffset=""0x54"" endOffset=""0x95"" />
+          <slot startOffset=""0x4b"" endOffset=""0x8c"" />
           <slot />
-          <slot startOffset=""0xd1"" endOffset=""0x10f"" />
+          <slot startOffset=""0xc8"" endOffset=""0x106"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""temp"" />
@@ -624,27 +624,27 @@ public class Test
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x32"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x33"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""16"" document=""1"" />
-        <entry offset=""0x34"" startLine=""15"" startColumn=""27"" endLine=""15"" endColumn=""40"" document=""1"" />
-        <entry offset=""0x52"" hidden=""true"" document=""1"" />
-        <entry offset=""0x54"" startLine=""15"" startColumn=""18"" endLine=""15"" endColumn=""23"" document=""1"" />
-        <entry offset=""0x65"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x66"" startLine=""17"" startColumn=""13"" endLine=""17"" endColumn=""28"" document=""1"" />
-        <entry offset=""0x80"" hidden=""true"" document=""1"" />
-        <entry offset=""0x88"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x95"" startLine=""15"" startColumn=""24"" endLine=""15"" endColumn=""26"" document=""1"" />
-        <entry offset=""0xb0"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""16"" document=""1"" />
-        <entry offset=""0xb1"" startLine=""19"" startColumn=""27"" endLine=""19"" endColumn=""39"" document=""1"" />
-        <entry offset=""0xcf"" hidden=""true"" document=""1"" />
-        <entry offset=""0xd1"" startLine=""19"" startColumn=""18"" endLine=""19"" endColumn=""23"" document=""1"" />
-        <entry offset=""0xe2"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""10"" document=""1"" />
-        <entry offset=""0xe3"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""28"" document=""1"" />
-        <entry offset=""0xfa"" hidden=""true"" document=""1"" />
-        <entry offset=""0x102"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x10f"" startLine=""19"" startColumn=""24"" endLine=""19"" endColumn=""26"" document=""1"" />
-        <entry offset=""0x12a"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x12e"" hidden=""true"" document=""1"" />
+        <entry offset=""0x29"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x2a"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""16"" document=""1"" />
+        <entry offset=""0x2b"" startLine=""15"" startColumn=""27"" endLine=""15"" endColumn=""40"" document=""1"" />
+        <entry offset=""0x49"" hidden=""true"" document=""1"" />
+        <entry offset=""0x4b"" startLine=""15"" startColumn=""18"" endLine=""15"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x5c"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x5d"" startLine=""17"" startColumn=""13"" endLine=""17"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x77"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7f"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x8c"" startLine=""15"" startColumn=""24"" endLine=""15"" endColumn=""26"" document=""1"" />
+        <entry offset=""0xa7"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""16"" document=""1"" />
+        <entry offset=""0xa8"" startLine=""19"" startColumn=""27"" endLine=""19"" endColumn=""39"" document=""1"" />
+        <entry offset=""0xc6"" hidden=""true"" document=""1"" />
+        <entry offset=""0xc8"" startLine=""19"" startColumn=""18"" endLine=""19"" endColumn=""23"" document=""1"" />
+        <entry offset=""0xd9"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xda"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""28"" document=""1"" />
+        <entry offset=""0xf1"" hidden=""true"" document=""1"" />
+        <entry offset=""0xf9"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x106"" startLine=""19"" startColumn=""24"" endLine=""19"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x121"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x125"" hidden=""true"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""Test`1+&lt;get_IterProp&gt;d__3"" name=""MoveNext"">
@@ -656,12 +656,12 @@ public class Test
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x2a"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x2b"" startLine=""29"" startColumn=""13"" endLine=""29"" endColumn=""31"" document=""1"" />
-        <entry offset=""0x40"" hidden=""true"" document=""1"" />
-        <entry offset=""0x47"" startLine=""30"" startColumn=""13"" endLine=""30"" endColumn=""31"" document=""1"" />
-        <entry offset=""0x5c"" hidden=""true"" document=""1"" />
-        <entry offset=""0x63"" startLine=""31"" startColumn=""9"" endLine=""31"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x24"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x25"" startLine=""29"" startColumn=""13"" endLine=""29"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x3a"" hidden=""true"" document=""1"" />
+        <entry offset=""0x41"" startLine=""30"" startColumn=""13"" endLine=""30"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x56"" hidden=""true"" document=""1"" />
+        <entry offset=""0x5d"" startLine=""31"" startColumn=""9"" endLine=""31"" endColumn=""10"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""Test`1+&lt;IterMethod&gt;d__4"" name=""MoveNext"">
@@ -673,19 +673,19 @@ public class Test
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x2a"" startLine=""35"" startColumn=""5"" endLine=""35"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x2b"" startLine=""36"" startColumn=""9"" endLine=""36"" endColumn=""33"" document=""1"" />
-        <entry offset=""0x40"" hidden=""true"" document=""1"" />
-        <entry offset=""0x47"" startLine=""37"" startColumn=""9"" endLine=""37"" endColumn=""27"" document=""1"" />
-        <entry offset=""0x5c"" hidden=""true"" document=""1"" />
-        <entry offset=""0x63"" startLine=""38"" startColumn=""9"" endLine=""38"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x24"" startLine=""35"" startColumn=""5"" endLine=""35"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x25"" startLine=""36"" startColumn=""9"" endLine=""36"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x3a"" hidden=""true"" document=""1"" />
+        <entry offset=""0x41"" startLine=""37"" startColumn=""9"" endLine=""37"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x56"" hidden=""true"" document=""1"" />
+        <entry offset=""0x5d"" startLine=""38"" startColumn=""9"" endLine=""38"" endColumn=""21"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void VariablesWithSubstitutedType1()
         {
             var text = @"
@@ -727,8 +727,8 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x2a"" endOffset=""0x83"" />
-          <slot startOffset=""0x2a"" endOffset=""0x83"" />
+          <slot startOffset=""0x24"" endOffset=""0x7d"" />
+          <slot startOffset=""0x24"" endOffset=""0x7d"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -736,16 +736,16 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x2a"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x2b"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""19"" document=""1"" />
-        <entry offset=""0x32"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""26"" document=""1"" />
-        <entry offset=""0x3e"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""24"" document=""1"" />
-        <entry offset=""0x53"" hidden=""true"" document=""1"" />
-        <entry offset=""0x5a"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""27"" document=""1"" />
-        <entry offset=""0x7a"" hidden=""true"" document=""1"" />
-        <entry offset=""0x81"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x24"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x25"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x2c"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x38"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x4d"" hidden=""true"" document=""1"" />
+        <entry offset=""0x54"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x74"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7b"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x83"">
+      <scope startOffset=""0x0"" endOffset=""0x7d"">
         <namespace name=""System.Collections.Generic"" />
       </scope>
     </method>
@@ -753,7 +753,7 @@ class C
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void IteratorWithConditionalBranchDiscriminator1()
         {
             var text = @"
@@ -785,7 +785,7 @@ class C
 
             v.VerifyIL("C.<F>d__1.System.Collections.IEnumerator.MoveNext", @"
 {
-  // Code size       68 (0x44)
+  // Code size       64 (0x40)
   .maxstack  2
   .locals init (int V_0,
                 bool V_1)
@@ -793,41 +793,38 @@ class C
   IL_0001:  ldfld      ""int C.<F>d__1.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0012
+  IL_0008:  brfalse.s  IL_0014
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0014
-  IL_0010:  br.s       IL_0016
-  IL_0012:  br.s       IL_0018
-  IL_0014:  br.s       IL_003a
-  IL_0016:  ldc.i4.0
-  IL_0017:  ret
-  IL_0018:  ldarg.0
-  IL_0019:  ldc.i4.m1
-  IL_001a:  stfld      ""int C.<F>d__1.<>1__state""
-  IL_001f:  nop
-  IL_0020:  call       ""bool C.B()""
-  IL_0025:  stloc.1
-  IL_0026:  ldloc.1
-  IL_0027:  brfalse.s  IL_0042
-  IL_0029:  nop
-  IL_002a:  ldarg.0
-  IL_002b:  ldc.i4.1
-  IL_002c:  stfld      ""int C.<F>d__1.<>2__current""
-  IL_0031:  ldarg.0
-  IL_0032:  ldc.i4.1
-  IL_0033:  stfld      ""int C.<F>d__1.<>1__state""
-  IL_0038:  ldc.i4.1
-  IL_0039:  ret
-  IL_003a:  ldarg.0
-  IL_003b:  ldc.i4.m1
-  IL_003c:  stfld      ""int C.<F>d__1.<>1__state""
-  IL_0041:  nop
-  IL_0042:  ldc.i4.0
-  IL_0043:  ret
-}
-");
+  IL_000e:  beq.s      IL_0036
+  IL_0010:  br.s       IL_0012
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
+  IL_0014:  ldarg.0
+  IL_0015:  ldc.i4.m1
+  IL_0016:  stfld      ""int C.<F>d__1.<>1__state""
+  IL_001b:  nop
+  IL_001c:  call       ""bool C.B()""
+  IL_0021:  stloc.1
+  IL_0022:  ldloc.1
+  IL_0023:  brfalse.s  IL_003e
+  IL_0025:  nop
+  IL_0026:  ldarg.0
+  IL_0027:  ldc.i4.1
+  IL_0028:  stfld      ""int C.<F>d__1.<>2__current""
+  IL_002d:  ldarg.0
+  IL_002e:  ldc.i4.1
+  IL_002f:  stfld      ""int C.<F>d__1.<>1__state""
+  IL_0034:  ldc.i4.1
+  IL_0035:  ret
+  IL_0036:  ldarg.0
+  IL_0037:  ldc.i4.m1
+  IL_0038:  stfld      ""int C.<F>d__1.<>1__state""
+  IL_003d:  nop
+  IL_003e:  ldc.i4.0
+  IL_003f:  ret
+}");
 
             v.VerifyPdb("C+<F>d__1.MoveNext", @"
 <symbols>
@@ -845,21 +842,21 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1f"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x20"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""17"" document=""1"" />
-        <entry offset=""0x26"" hidden=""true"" document=""1"" />
-        <entry offset=""0x29"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x2a"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""28"" document=""1"" />
-        <entry offset=""0x3a"" hidden=""true"" document=""1"" />
-        <entry offset=""0x41"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x42"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1b"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""17"" document=""1"" />
+        <entry offset=""0x22"" hidden=""true"" document=""1"" />
+        <entry offset=""0x25"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x26"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x36"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3d"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x3e"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SynthesizedVariables1()
         {
             var source =
@@ -962,7 +959,7 @@ class C
 
         [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
         [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DisplayClass_AcrossSuspensionPoints_Debug()
         {
             string source = @"
@@ -1006,7 +1003,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C+&lt;&gt;c__DisplayClass0_0"" methodName=""&lt;M&gt;b__0"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x30"" endOffset=""0xeb"" />
+          <slot startOffset=""0x24"" endOffset=""0xdf"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1014,17 +1011,17 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x30"" hidden=""true"" document=""1"" />
-        <entry offset=""0x3b"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x3c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" document=""1"" />
-        <entry offset=""0x48"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" document=""1"" />
-        <entry offset=""0x54"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""1"" />
-        <entry offset=""0x60"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""1"" />
-        <entry offset=""0x77"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""35"" document=""1"" />
-        <entry offset=""0xa9"" hidden=""true"" document=""1"" />
-        <entry offset=""0xb0"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""35"" document=""1"" />
-        <entry offset=""0xe2"" hidden=""true"" document=""1"" />
-        <entry offset=""0xe9"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x24"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2f"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x30"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x3c"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x48"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x54"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""1"" />
+        <entry offset=""0x6b"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x9d"" hidden=""true"" document=""1"" />
+        <entry offset=""0xa4"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""35"" document=""1"" />
+        <entry offset=""0xd6"" hidden=""true"" document=""1"" />
+        <entry offset=""0xdd"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -1033,7 +1030,7 @@ class C
 
         [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
         [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DisplayClass_InBetweenSuspensionPoints_Release()
         {
             string source = @"
@@ -1155,7 +1152,7 @@ class C
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DisplayClass_InBetweenSuspensionPoints_Debug()
         {
             string source = @"
@@ -1195,63 +1192,60 @@ class C
 
             v.VerifyIL("C.<M>d__0.System.Collections.IEnumerator.MoveNext", @"
 {
-  // Code size      127 (0x7f)
+  // Code size      123 (0x7b)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<M>d__0.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0012
+  IL_0008:  brfalse.s  IL_0014
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0014
-  IL_0010:  br.s       IL_0016
-  IL_0012:  br.s       IL_0018
-  IL_0014:  br.s       IL_0076
-  IL_0016:  ldc.i4.0
-  IL_0017:  ret
-  IL_0018:  ldarg.0
-  IL_0019:  ldc.i4.m1
-  IL_001a:  stfld      ""int C.<M>d__0.<>1__state""
-  IL_001f:  ldarg.0
-  IL_0020:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
-  IL_0025:  stfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
-  IL_002a:  nop
-  IL_002b:  ldarg.0
-  IL_002c:  ldfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
-  IL_0031:  ldc.i4.1
-  IL_0032:  stfld      ""byte C.<>c__DisplayClass0_0.x1""
-  IL_0037:  ldarg.0
-  IL_0038:  ldfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
-  IL_003d:  ldc.i4.1
-  IL_003e:  stfld      ""byte C.<>c__DisplayClass0_0.x2""
-  IL_0043:  ldarg.0
-  IL_0044:  ldfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
-  IL_0049:  ldc.i4.1
-  IL_004a:  stfld      ""byte C.<>c__DisplayClass0_0.x3""
-  IL_004f:  ldarg.0
-  IL_0050:  ldfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
-  IL_0055:  ldftn      ""void C.<>c__DisplayClass0_0.<M>b__0()""
-  IL_005b:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_0060:  callvirt   ""void System.Action.Invoke()""
-  IL_0065:  nop
-  IL_0066:  ldarg.0
-  IL_0067:  ldc.i4.1
-  IL_0068:  stfld      ""int C.<M>d__0.<>2__current""
-  IL_006d:  ldarg.0
-  IL_006e:  ldc.i4.1
-  IL_006f:  stfld      ""int C.<M>d__0.<>1__state""
-  IL_0074:  ldc.i4.1
-  IL_0075:  ret
-  IL_0076:  ldarg.0
-  IL_0077:  ldc.i4.m1
-  IL_0078:  stfld      ""int C.<M>d__0.<>1__state""
-  IL_007d:  ldc.i4.0
-  IL_007e:  ret
-}
-");
+  IL_000e:  beq.s      IL_0072
+  IL_0010:  br.s       IL_0012
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
+  IL_0014:  ldarg.0
+  IL_0015:  ldc.i4.m1
+  IL_0016:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_001b:  ldarg.0
+  IL_001c:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0021:  stfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
+  IL_0026:  nop
+  IL_0027:  ldarg.0
+  IL_0028:  ldfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
+  IL_002d:  ldc.i4.1
+  IL_002e:  stfld      ""byte C.<>c__DisplayClass0_0.x1""
+  IL_0033:  ldarg.0
+  IL_0034:  ldfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
+  IL_0039:  ldc.i4.1
+  IL_003a:  stfld      ""byte C.<>c__DisplayClass0_0.x2""
+  IL_003f:  ldarg.0
+  IL_0040:  ldfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
+  IL_0045:  ldc.i4.1
+  IL_0046:  stfld      ""byte C.<>c__DisplayClass0_0.x3""
+  IL_004b:  ldarg.0
+  IL_004c:  ldfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
+  IL_0051:  ldftn      ""void C.<>c__DisplayClass0_0.<M>b__0()""
+  IL_0057:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_005c:  callvirt   ""void System.Action.Invoke()""
+  IL_0061:  nop
+  IL_0062:  ldarg.0
+  IL_0063:  ldc.i4.1
+  IL_0064:  stfld      ""int C.<M>d__0.<>2__current""
+  IL_0069:  ldarg.0
+  IL_006a:  ldc.i4.1
+  IL_006b:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_0070:  ldc.i4.1
+  IL_0071:  ret
+  IL_0072:  ldarg.0
+  IL_0073:  ldc.i4.m1
+  IL_0074:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_0079:  ldc.i4.0
+  IL_007a:  ret
+}");
 
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
@@ -1263,7 +1257,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C+&lt;&gt;c__DisplayClass0_0"" methodName=""&lt;M&gt;b__0"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x1f"" endOffset=""0x7f"" />
+          <slot startOffset=""0x1b"" endOffset=""0x7b"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1271,15 +1265,15 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1f"" hidden=""true"" document=""1"" />
-        <entry offset=""0x2a"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x2b"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" document=""1"" />
-        <entry offset=""0x37"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" document=""1"" />
-        <entry offset=""0x43"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""1"" />
-        <entry offset=""0x4f"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""1"" />
-        <entry offset=""0x66"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""24"" document=""1"" />
-        <entry offset=""0x76"" hidden=""true"" document=""1"" />
-        <entry offset=""0x7d"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x26"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x27"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x33"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x3f"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x4b"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""1"" />
+        <entry offset=""0x62"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x72"" hidden=""true"" document=""1"" />
+        <entry offset=""0x79"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -1310,7 +1304,7 @@ class C
 
         [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
         [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DynamicLocal_AcrossSuspensionPoints_Debug()
         {
             string source = @"
@@ -1351,7 +1345,7 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x1f"" endOffset=""0xe3"" />
+          <slot startOffset=""0x1b"" endOffset=""0xdf"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1359,20 +1353,19 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1f"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x20"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""23"" document=""1"" />
-        <entry offset=""0x2c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""24"" document=""1"" />
-        <entry offset=""0x82"" hidden=""true"" document=""1"" />
-        <entry offset=""0x89"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""22"" document=""1"" />
-        <entry offset=""0xe1"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1b"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x28"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x7e"" hidden=""true"" document=""1"" />
+        <entry offset=""0x85"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""22"" document=""1"" />
+        <entry offset=""0xdd"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xe3"">
+      <scope startOffset=""0x0"" endOffset=""0xdf"">
         <namespace name=""System.Collections.Generic"" />
       </scope>
     </method>
   </methods>
 </symbols>");
-
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
@@ -1395,7 +1388,7 @@ class C
         [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
         [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
         [WorkItem(1070519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070519")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DynamicLocal_InBetweenSuspensionPoints_Release()
         {
             string source = @"
@@ -1454,7 +1447,7 @@ class C
         }
 
         [WorkItem(1070519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070519")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DynamicLocal_InBetweenSuspensionPoints_Debug()
         {
             string source = @"
@@ -1495,7 +1488,7 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x1f"" endOffset=""0x8b"" />
+          <slot startOffset=""0x1b"" endOffset=""0x87"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1503,13 +1496,13 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1f"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x20"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""23"" document=""1"" />
-        <entry offset=""0x2c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""24"" document=""1"" />
-        <entry offset=""0x82"" hidden=""true"" document=""1"" />
-        <entry offset=""0x89"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1b"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x28"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x7e"" hidden=""true"" document=""1"" />
+        <entry offset=""0x85"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x8b"">
+      <scope startOffset=""0x0"" endOffset=""0x87"">
         <namespace name=""System.Collections.Generic"" />
       </scope>
     </method>
@@ -1517,7 +1510,8 @@ class C
 </symbols>");
         }
 
-        [Fact, WorkItem(667579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667579")]
+        [WorkItem(667579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667579")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DebuggerHiddenIterator()
         {
             var text = @"
@@ -1555,8 +1549,8 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x17"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x18"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x15"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x16"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""31"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -1604,16 +1598,17 @@ MethodDebugInformation (index: 0x31, size: 40):
   Locals: 0x11000001 (StandAloneSig)
   Document: #1
   IL_0000: <hidden>
-  IL_001F: (5, 26) - (5, 27)
-  IL_0020: (5, 28) - (5, 43)
-  IL_0030: <hidden>
-  IL_0037: (5, 44) - (5, 45)
+  IL_001B: (5, 26) - (5, 27)
+  IL_001C: (5, 28) - (5, 43)
+  IL_002C: <hidden>
+  IL_0033: (5, 44) - (5, 45)
 }
 6: nil
 7: nil
 8: nil
 9: nil
-a: nil",
+a: nil
+",
                     writer.ToString());
             }
         }

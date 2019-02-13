@@ -1,0 +1,76 @@
+{
+    "branches": {
+        "dev15.9.x-vs-deps": {
+            "nugetKind": "PerBuildPreRelease",
+            "version": "2.10.*",
+            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+            "channels": [ "dev15.9"]
+        },
+        "dev16.0-preview2-vs-deps": {
+            "nugetKind": ["Shipping", "NonShipping"],
+            "version": "3.0.*",
+            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+            "channels": [ "dev16.0p2" ]
+        },
+        "dev16.0-preview3-vs-deps": {
+            "nugetKind": ["Shipping", "NonShipping"],
+            "version": "3.0.*",
+            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+            "channels": [ "dev16.0p3" ]
+        },
+        "master-vs-deps": {
+            "nugetKind": ["Shipping", "NonShipping"],
+            "version": "3.0.*",
+            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+            "channels": [ "dev16.0", "dev16.0p4" ]
+        },
+        "dev16.1-preview1-vs-deps": {
+            "nugetKind": ["Shipping", "NonShipping"],
+            "version": "3.1.*",
+            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+            "channels": [ "dev16.1", "dev16.1p1" ]
+        },
+        "features/NullableReferenceTypes": {
+            "nugetKind": "PerBuildPreRelease",
+            "version": "2.6.*",
+            "nuget": [ "https://dotnet.myget.org/F/roslyn-nonnull/api/v2/package" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn-nonnull/vsix/upload" ],
+            "channels": [ "nonnull" ]
+        },
+        "features/dataflow": {
+            "nugetKind": "PerBuildPreRelease",
+            "version": "2.8.*",
+            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+            "channels": [ "dataflow" ]
+        },
+        "features/editorconfig-in-compiler": {
+            "nugetKind": ["Shipping", "NonShipping"],
+            "version": "2.11.*",
+            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+            "channels": [ "editorconfig" ]
+        }
+    },
+    "releases": {
+        "dev15.5": {
+            "nugetKind": "Release",
+            "version": "2.3.*",
+            "nuget": [ "https://api.nuget.org/v3/index.json" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+            "channels": [ "dev15.3" ]
+        },
+        "dev15.6": {
+            "nugetKind": "Release",
+            "version": "2.7.*",
+            "nuget": [ "https://api.nuget.org/v3/index.json" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+            "channels": [ "dev15.6" ]
+        }
+    }
+}

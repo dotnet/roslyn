@@ -18,18 +18,18 @@
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off</source>
-        <target state="translated">Автоматическая вставка конечных конструкций; Изменение параметров автоматического форматирования; Изменение режима структуры; Автоматическая вставка интерфейса и членов MustOverride; Отображение или скрытие разделителей строк для процедуры; Включение или выключение предложения об исправлении ошибок; Включение или выключение выделения ссылок и ключевых слов</target>
+        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions</source>
+        <target state="translated">Автоматическая вставка завершающих конструкций;Изменение параметров форматирования кода;Изменение режима отображения структуры;Автоматическая вставка членов Interface и MustOverride;Отображение и скрытие разделительных линий процедур;Включение и отключение предложений по исправлению ошибок;Включение и отключение выделения ссылок и ключевых слов;Регулярные выражения;Выделять регулярные выражения цветом;Выделять цветом соответствующие компоненты под курсором;Сообщать о недопустимых регулярных выражениях</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
         <source>Advanced</source>
-        <target state="translated">Дополнительно</target>
+        <target state="translated">Дополнительный</target>
         <note>"Advanced" node under Tools &gt;Options, Basic editor.</note>
       </trans-unit>
       <trans-unit id="103">
         <source>Basic</source>
-        <target state="translated">Основная</target>
+        <target state="translated">Обычный</target>
         <note>"Basic" node in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="104">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="111">
         <source>General</source>
-        <target state="translated">Общие</target>
+        <target state="translated">Общее</target>
         <note>"General" node under Tools &gt;Options &gt;Basic editor &gt;Code Style.</note>
       </trans-unit>
       <trans-unit id="112">

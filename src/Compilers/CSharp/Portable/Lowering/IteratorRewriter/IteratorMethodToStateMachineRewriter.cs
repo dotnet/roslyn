@@ -97,8 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // state = -1;
             // [optional: cachedThis = capturedThis;] 
             // [[rewritten body]]
-            newBody = F.Block((object)cachedThis == null?
-                                ImmutableArray.Create(cachedState):
+            newBody = F.Block((object)cachedThis == null ?
+                                ImmutableArray.Create(cachedState) :
                                 ImmutableArray.Create(cachedState, cachedThis),
 
                     F.HiddenSequencePoint(),
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var stateLocal = F.SynthesizedLocal(stateField.Type);
+                var stateLocal = F.SynthesizedLocal(stateField.Type.TypeSymbol);
                 var state = F.Local(stateLocal);
 
                 var disposeBody = F.Block(
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     F.Goto(breakLabel));
 
                 body = F.Block(
-                    F.Switch(state, sections),
+                    F.Switch(state, sections.ToImmutableArray()),
                     F.Label(breakLabel));
             }
 
@@ -315,6 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     this.state = <next_state>;
             //     return true;
             //     <next_state_label>: ;
+            //     <hidden sequence point>
             //     this.state = finalizeState;
             int stateNumber;
             GeneratedLabelSymbol resumeLabel;
@@ -357,6 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     (BoundBlock)Visit(node.TryBlock),
                                     VisitList(node.CatchBlocks),
                                     (BoundBlock)Visit(node.FinallyBlockOpt),
+                                    node.FinallyLabelOpt,
                                     node.PreferFaultHandler);
 
                 _tryNestingLevel--;
@@ -390,8 +392,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //      return;
             // }
             Debug.Assert(frame.parent.finalizeState == _currentFinallyFrame.finalizeState);
-            rewrittenHandler = F.Block((object)this.cachedThis != null?
-                                            ImmutableArray.Create(this.cachedThis):
+            rewrittenHandler = F.Block((object)this.cachedThis != null ?
+                                            ImmutableArray.Create(this.cachedThis) :
                                             ImmutableArray<LocalSymbol>.Empty,
                                 F.Assignment(F.Field(F.This(), stateField), F.Literal(frame.parent.finalizeState)),
                                 CacheThisIfNeeded(),

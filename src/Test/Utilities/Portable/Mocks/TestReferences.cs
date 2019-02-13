@@ -230,7 +230,7 @@ public static class TestReferences
     public static class NetStandard13
     {
         private static readonly Lazy<PortableExecutableReference> s_systemRuntime = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.ReferenceAssemblies_netstandard1_3.System_Runtime).GetReference(display: @"System.Runtime.dll (netstandard13 ref)"),
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard13.System_Runtime).GetReference(display: @"System.Runtime.dll (netstandard13 ref)"),
         LazyThreadSafetyMode.PublicationOnly);
         public static PortableExecutableReference SystemRuntime => s_systemRuntime.Value;
     }
@@ -266,6 +266,16 @@ public static class TestReferences
         () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.Microsoft_CSharp).GetReference(display: "Microsoft.CSharp.dll (netstandard 2.0 ref)"),
         LazyThreadSafetyMode.PublicationOnly);
         public static PortableExecutableReference MicrosoftCSharpRef => s_microsoftCSharp.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_system_Threading_Tasks_Extensions = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.System_Threading_Tasks_Extensions).GetReference(display: "System.Threading.Tasks.Extensions.dll (netstandard 2.0)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference TasksExtensionsRef => s_system_Threading_Tasks_Extensions.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_system_Runtime_CompilerServices_Unsafe = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.System_Runtime_CompilerServices_Unsafe).GetReference(display: "System.Runtime.CompilerServices.Unsafe.dll (netstandard 2.0)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference UnsafeRef => s_system_Runtime_CompilerServices_Unsafe.Value;
 
         private static readonly Lazy<PortableExecutableReference> s_microsoftVisualBasic = new Lazy<PortableExecutableReference>(
         () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.Microsoft_VisualBasic).GetReference(display: "Microsoft.VisualBasic.dll (netstandard 2.0 ref)"),

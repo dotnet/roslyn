@@ -2,9 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -15,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SourceCustomEventSymbol : SourceEventSymbol
     {
-        private readonly TypeSymbol _type;
+        private readonly TypeSymbolWithAnnotations _type;
         private readonly string _name;
         private readonly SourceCustomEventAccessorSymbol _addMethod;
         private readonly SourceCustomEventAccessorSymbol _removeMethod;
@@ -35,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _type = BindEventType(binder, syntax.Type, diagnostics);
 
             var explicitlyImplementedEvent = this.FindExplicitlyImplementedEvent(_explicitInterfaceType, nameToken.ValueText, interfaceSpecifier, diagnostics);
+            this.FindExplicitlyImplementedMemberVerification(explicitlyImplementedEvent, diagnostics);
 
             // The runtime will not treat the accessors of this event as overrides or implementations
             // of those of another event unless both the signatures and the custom modifiers match.
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // are no conflicts.)  This is unnecessary for implicit implementations because, if the custom
             // modifiers don't match, we'll insert bridge methods for the accessors (explicit implementations 
             // that delegate to the implicit implementations) with the correct custom modifiers
-            // (see SourceNamedTypeSymbol.ImplementInterfaceMember).
+            // (see SourceMemberContainerTypeSymbol.SynthesizeInterfaceMemberImplementation).
 
             // Note: we're checking if the syntax indicates explicit implementation rather,
             // than if explicitInterfaceType is null because we don't want to look for an
@@ -136,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray.Create<EventSymbol>(explicitlyImplementedEvent);
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get { return _type; }
         }
@@ -185,6 +184,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var explicitInterfaceSpecifier = this.ExplicitInterfaceSpecifier;
                 Debug.Assert(explicitInterfaceSpecifier != null);
                 _explicitInterfaceType.CheckAllConstraints(conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
+            }
+
+            if (!_explicitInterfaceImplementations.IsEmpty)
+            {
+                // Note: we delayed nullable-related checks that could pull on NonNullTypes
+                EventSymbol explicitlyImplementedEvent = _explicitInterfaceImplementations[0];
+                TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this, explicitlyImplementedEvent, true, diagnostics);
             }
         }
 

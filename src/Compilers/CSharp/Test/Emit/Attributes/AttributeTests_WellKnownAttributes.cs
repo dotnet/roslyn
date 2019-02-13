@@ -1878,7 +1878,7 @@ public class MyClass
 No DecimalConstantAttribute");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/23760")]
         public void DecimalConstant_Indexers()
         {
             string source = @"
@@ -1913,7 +1913,7 @@ public class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/23760")]
         public void DecimalConstant_Delegates()
         {
             string source = @"
@@ -4809,7 +4809,7 @@ public class Unbound : Constructed<> { }
             Assert.IsType<SubstitutedNestedTypeSymbol>(substitutedNestedS);
             Assert.True(((INamedTypeSymbol)substitutedNestedS).IsSerializable);
 
-            var valueTupleS = comp.GetTypeByMetadataName("ValueTupleS").GetMember("M").GetTypeOrReturnType();
+            var valueTupleS = comp.GetTypeByMetadataName("ValueTupleS").GetMember("M").GetTypeOrReturnType().TypeSymbol;
             Assert.IsType<TupleTypeSymbol>(valueTupleS);
             Assert.True(((INamedTypeSymbol)valueTupleS).IsSerializable);
 
@@ -4841,7 +4841,7 @@ public class Unbound : Constructed<> { }
             Assert.IsType<SubstitutedNestedErrorTypeSymbol>(nestedSubstitutedError);
             Assert.False(((INamedTypeSymbol)nestedSubstitutedError).IsSerializable);
 
-            var unbound = comp2.GetTypeByMetadataName("Unbound").BaseType().TypeArgumentsNoUseSiteDiagnostics[0];
+            var unbound = comp2.GetTypeByMetadataName("Unbound").BaseType().TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol;
             Assert.IsType<UnboundArgumentErrorTypeSymbol>(unbound);
             Assert.False(((INamedTypeSymbol)unbound).IsSerializable);
 
@@ -6891,7 +6891,7 @@ namespace N
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "X").WithArguments("N.A", "Do not use").WithLocation(15, 16));
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal), Skip = "https://github.com/dotnet/roslyn/issues/28328")]
+        [ConditionalFact(typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/28328")]
         [WorkItem(580832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")]
         public void ObsoleteOnVirtual_OnBase()
         {

@@ -30,7 +30,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         private VisualStudioInstance _currentlyRunningInstance;
 
-        private bool _hasCurrentlyActiveContext;
+        /// <summary>
+        /// Identifies the first time a Visual Studio instance is launched during an integration test run.
+        /// </summary>
+        private static bool _firstLaunch = true;
 
         static VisualStudioInstanceFactory()
         {
@@ -72,6 +75,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     Path.Combine(logDir, $"{baseFileName}.log"),
                     $"{exception}.GetType().Name{Environment.NewLine}{exception.StackTrace}");
 
+                EventLogCollector.TryWriteDotNetEntriesToFile(Path.Combine(logDir, $"{baseFileName}.DotNet.log"));
+                EventLogCollector.TryWriteWatsonEntriesToFile(Path.Combine(logDir, $"{baseFileName}.Watson.log"));
             }
             finally
             {
@@ -103,12 +108,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public async Task<VisualStudioInstanceContext> GetNewOrUsedInstanceAsync(ImmutableHashSet<string> requiredPackageIds)
         {
-            ThrowExceptionIfAlreadyHasActiveContext();
-
             try
             {
                 bool shouldStartNewInstance = ShouldStartNewInstance(requiredPackageIds);
-                await UpdateCurrentlyRunningInstanceAsync(requiredPackageIds, shouldStartNewInstance).ConfigureAwait(false);
+                await UpdateCurrentlyRunningInstanceAsync(requiredPackageIds, shouldStartNewInstance).ConfigureAwait(true);
 
                 return new VisualStudioInstanceContext(_currentlyRunningInstance, this);
             }
@@ -122,10 +125,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         internal void NotifyCurrentInstanceContextDisposed(bool canReuse)
         {
-            ThrowExceptionIfAlreadyHasActiveContext();
-
-            _hasCurrentlyActiveContext = false;
-
             if (!canReuse)
             {
                 _currentlyRunningInstance?.Close();
@@ -143,14 +142,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return _currentlyRunningInstance == null
                 || (!requiredPackageIds.All(id => _currentlyRunningInstance.SupportedPackageIds.Contains(id)))
                 || !_currentlyRunningInstance.IsRunning;
-        }
-
-        private void ThrowExceptionIfAlreadyHasActiveContext()
-        {
-            if (_hasCurrentlyActiveContext)
-            {
-                throw new Exception($"The previous integration test failed to call {nameof(VisualStudioInstanceContext)}.{nameof(Dispose)}. Ensure that test does that to ensure the Visual Studio instance is correctly cleaned up.");
-            }
         }
 
         /// <summary>
@@ -181,7 +172,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 }
 
                 // We wait until the DTE instance is up before we're good
-                dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(false);
+                dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(true);
             }
             else
             {
@@ -195,7 +186,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 Debug.Assert(_currentlyRunningInstance != null);
 
                 hostProcess = _currentlyRunningInstance.HostProcess;
-                dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(false);
+                dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(true);
                 supportedPackageIds = _currentlyRunningInstance.SupportedPackageIds;
                 installationPath = _currentlyRunningInstance.InstallationPath;
 
@@ -253,7 +244,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 Debug.WriteLine($"An environment variable named 'VSInstallDir' (or equivalent) was found, adding this to the specified requirements. (VSInstallDir: {vsInstallDir})");
             }
 
-            var instances = EnumerateVisualStudioInstances().Where((instance) => {
+            var instances = EnumerateVisualStudioInstances().Where((instance) =>
+            {
                 var isMatch = true;
                 {
                     isMatch &= instance.GetInstallationVersion().StartsWith(VsProductVersion);
@@ -303,11 +295,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             var vsExeFile = Path.Combine(installationPath, @"Common7\IDE\devenv.exe");
 
-            // BUG: Currently building with /p:DeployExtension=true does not always cause the MEF cache to recompose...
-            //      So, run clearcache and updateconfiguration to workaround https://devdiv.visualstudio.com/DevDiv/_workitems?id=385351.
-            Process.Start(vsExeFile, $"/clearcache {VsLaunchArgs}").WaitForExit();
-            Process.Start(vsExeFile, $"/updateconfiguration {VsLaunchArgs}").WaitForExit();
-            Process.Start(vsExeFile, $"/resetsettings General.vssettings /command \"File.Exit\" {VsLaunchArgs}").WaitForExit();
+            if (_firstLaunch)
+            {
+                // BUG: Currently building with /p:DeployExtension=true does not always cause the MEF cache to recompose...
+                //      So, run clearcache and updateconfiguration to workaround https://devdiv.visualstudio.com/DevDiv/_workitems?id=385351.
+                Process.Start(vsExeFile, $"/clearcache {VsLaunchArgs}").WaitForExit();
+                Process.Start(vsExeFile, $"/updateconfiguration {VsLaunchArgs}").WaitForExit();
+                Process.Start(vsExeFile, $"/resetsettings General.vssettings /command \"File.Exit\" {VsLaunchArgs}").WaitForExit();
+
+                _firstLaunch = false;
+            }
 
             // Make sure we kill any leftover processes spawned by the host
             IntegrationHelper.KillProcess("DbgCLR");
@@ -330,9 +327,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             _currentlyRunningInstance?.Close();
             _currentlyRunningInstance = null;
-
-            // We want to make sure everybody cleaned up their contexts by the end of everything
-            ThrowExceptionIfAlreadyHasActiveContext();
 
             AppDomain.CurrentDomain.FirstChanceException -= FirstChanceExceptionHandler;
             AppDomain.CurrentDomain.AssemblyResolve -= AssemblyResolveHandler;

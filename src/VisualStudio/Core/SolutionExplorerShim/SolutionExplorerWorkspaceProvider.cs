@@ -2,22 +2,21 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
     [Export(typeof(ISolutionExplorerWorkspaceProvider))]
     internal class SolutionExplorerWorkspaceProvider : ISolutionExplorerWorkspaceProvider
     {
-        private readonly VisualStudioWorkspaceImpl _workspace;
+        private readonly VisualStudioWorkspace _workspace;
 
         [ImportingConstructor]
-        public SolutionExplorerWorkspaceProvider(VisualStudioWorkspaceImpl workspace)
+        public SolutionExplorerWorkspaceProvider(VisualStudioWorkspace workspace)
         {
             _workspace = workspace;
         }
 
-        public Microsoft.CodeAnalysis.Workspace GetWorkspace()
+        public Workspace GetWorkspace()
         {
             return _workspace;
         }

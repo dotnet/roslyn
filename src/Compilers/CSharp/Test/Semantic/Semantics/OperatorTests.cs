@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotEqual(insideEnumDefinition, insideMethodBody);
 
-            Assert.Equal(insideEnumDefinition.Symbol.ToTestDisplayString(), 
+            Assert.Equal(insideEnumDefinition.Symbol.ToTestDisplayString(),
                 "System.Int32 System.Int32.op_BitwiseOr(System.Int32 left, System.Int32 right)");
-            Assert.Equal(insideMethodBody.Symbol.ToTestDisplayString(), 
+            Assert.Equal(insideMethodBody.Symbol.ToTestDisplayString(),
                 "TestEnum TestEnum.op_BitwiseOr(TestEnum left, TestEnum right)");
         }
 
@@ -84,7 +84,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: TestEnum, Constant: 6) (Syntax: 'TestEnum.Fi ... .Visibility')
+IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: TestEnum, Constant: 6) (Syntax: 'TestEnum.Fi ... .Visibility')
   Left: 
     IFieldReferenceOperation: TestEnum.FilePath (Static) (OperationKind.FieldReference, Type: TestEnum, Constant: 2) (Syntax: 'TestEnum.FilePath')
       Instance Receiver: 
@@ -542,7 +542,7 @@ class C
 IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (zero) ... Write('b');')
     Condition: 
-      IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean S.op_True(S s)) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'zero')
+      IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean S.op_True(S s)) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'zero')
         Operand: 
           IParameterReferenceOperation: zero (OperationKind.ParameterReference, Type: S) (Syntax: 'zero')
     WhenTrue: 
@@ -576,7 +576,7 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
             IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'one ? 'g' : 'h'')
               IConditionalOperation (OperationKind.Conditional, Type: System.Char) (Syntax: 'one ? 'g' : 'h'')
                 Condition: 
-                  IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean S.op_True(S s)) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'one')
+                  IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean S.op_True(S s)) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'one')
                     Operand: 
                       IParameterReferenceOperation: one (OperationKind.ParameterReference, Type: S) (Syntax: 'one')
                 WhenTrue: 
@@ -683,7 +683,7 @@ IBlockOperation (5 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
               IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '+a')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  IUnaryOperation (UnaryOperatorKind.Plus) (OperatorMethod: S S.op_UnaryPlus(S x)) (OperationKind.UnaryOperator, Type: S) (Syntax: '+a')
+                  IUnaryOperation (UnaryOperatorKind.Plus) (OperatorMethod: S S.op_UnaryPlus(S x)) (OperationKind.Unary, Type: S) (Syntax: '+a')
                     Operand: 
                       IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -698,7 +698,7 @@ IBlockOperation (5 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
               IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '-a')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: S S.op_UnaryNegation(S x)) (OperationKind.UnaryOperator, Type: S) (Syntax: '-a')
+                  IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: S S.op_UnaryNegation(S x)) (OperationKind.Unary, Type: S) (Syntax: '-a')
                     Operand: 
                       IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -713,7 +713,7 @@ IBlockOperation (5 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
               IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '~a')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  IUnaryOperation (UnaryOperatorKind.BitwiseNegation) (OperatorMethod: S S.op_OnesComplement(S x)) (OperationKind.UnaryOperator, Type: S) (Syntax: '~a')
+                  IUnaryOperation (UnaryOperatorKind.BitwiseNegation) (OperatorMethod: S S.op_OnesComplement(S x)) (OperationKind.Unary, Type: S) (Syntax: '~a')
                     Operand: 
                       IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -728,7 +728,7 @@ IBlockOperation (5 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
               IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '!a')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  IUnaryOperation (UnaryOperatorKind.Not) (OperatorMethod: S S.op_LogicalNot(S x)) (OperationKind.UnaryOperator, Type: S) (Syntax: '!a')
+                  IUnaryOperation (UnaryOperatorKind.Not) (OperatorMethod: S S.op_LogicalNot(S x)) (OperationKind.Unary, Type: S) (Syntax: '!a')
                     Operand: 
                       IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -743,13 +743,13 @@ IBlockOperation (5 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
               IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '+~!-a')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  IUnaryOperation (UnaryOperatorKind.Plus) (OperatorMethod: S S.op_UnaryPlus(S x)) (OperationKind.UnaryOperator, Type: S) (Syntax: '+~!-a')
+                  IUnaryOperation (UnaryOperatorKind.Plus) (OperatorMethod: S S.op_UnaryPlus(S x)) (OperationKind.Unary, Type: S) (Syntax: '+~!-a')
                     Operand: 
-                      IUnaryOperation (UnaryOperatorKind.BitwiseNegation) (OperatorMethod: S S.op_OnesComplement(S x)) (OperationKind.UnaryOperator, Type: S) (Syntax: '~!-a')
+                      IUnaryOperation (UnaryOperatorKind.BitwiseNegation) (OperatorMethod: S S.op_OnesComplement(S x)) (OperationKind.Unary, Type: S) (Syntax: '~!-a')
                         Operand: 
-                          IUnaryOperation (UnaryOperatorKind.Not) (OperatorMethod: S S.op_LogicalNot(S x)) (OperationKind.UnaryOperator, Type: S) (Syntax: '!-a')
+                          IUnaryOperation (UnaryOperatorKind.Not) (OperatorMethod: S S.op_LogicalNot(S x)) (OperationKind.Unary, Type: S) (Syntax: '!-a')
                             Operand: 
-                              IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: S S.op_UnaryNegation(S x)) (OperationKind.UnaryOperator, Type: S) (Syntax: '-a')
+                              IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: S S.op_UnaryNegation(S x)) (OperationKind.Unary, Type: S) (Syntax: '-a')
                                 Operand: 
                                   IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: S) (Syntax: 'a')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1230,31 +1230,31 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: S S.op_BitwiseOr(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: '(a >> 10) + ... m <= o >= p')
+IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: S S.op_BitwiseOr(S x, S y)) (OperationKind.Binary, Type: S) (Syntax: '(a >> 10) + ... m <= o >= p')
   Left: 
-    IBinaryOperation (BinaryOperatorKind.And) (OperatorMethod: S S.op_BitwiseAnd(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: '(a >> 10) + ... / e % f & g')
+    IBinaryOperation (BinaryOperatorKind.And) (OperatorMethod: S S.op_BitwiseAnd(S x, S y)) (OperationKind.Binary, Type: S) (Syntax: '(a >> 10) + ... / e % f & g')
       Left: 
-        IBinaryOperation (BinaryOperatorKind.Subtract) (OperatorMethod: S S.op_Subtraction(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: '(a >> 10) + ... * d / e % f')
+        IBinaryOperation (BinaryOperatorKind.Subtract) (OperatorMethod: S S.op_Subtraction(S x, S y)) (OperationKind.Binary, Type: S) (Syntax: '(a >> 10) + ... * d / e % f')
           Left: 
-            IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: S S.op_Addition(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: '(a >> 10) + (b << 20)')
+            IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: S S.op_Addition(S x, S y)) (OperationKind.Binary, Type: S) (Syntax: '(a >> 10) + (b << 20)')
               Left: 
-                IBinaryOperation (BinaryOperatorKind.RightShift) (OperatorMethod: S S.op_RightShift(S x, System.Int32 y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'a >> 10')
+                IBinaryOperation (BinaryOperatorKind.RightShift) (OperatorMethod: S S.op_RightShift(S x, System.Int32 y)) (OperationKind.Binary, Type: S) (Syntax: 'a >> 10')
                   Left: 
                     ILocalReferenceOperation: a (OperationKind.LocalReference, Type: S) (Syntax: 'a')
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.LeftShift) (OperatorMethod: S S.op_LeftShift(S x, System.Int32 y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'b << 20')
+                IBinaryOperation (BinaryOperatorKind.LeftShift) (OperatorMethod: S S.op_LeftShift(S x, System.Int32 y)) (OperationKind.Binary, Type: S) (Syntax: 'b << 20')
                   Left: 
                     ILocalReferenceOperation: b (OperationKind.LocalReference, Type: S) (Syntax: 'b')
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
           Right: 
-            IBinaryOperation (BinaryOperatorKind.Remainder) (OperatorMethod: S S.op_Modulus(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'c * d / e % f')
+            IBinaryOperation (BinaryOperatorKind.Remainder) (OperatorMethod: S S.op_Modulus(S x, S y)) (OperationKind.Binary, Type: S) (Syntax: 'c * d / e % f')
               Left: 
-                IBinaryOperation (BinaryOperatorKind.Divide) (OperatorMethod: S S.op_Division(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'c * d / e')
+                IBinaryOperation (BinaryOperatorKind.Divide) (OperatorMethod: S S.op_Division(S x, S y)) (OperationKind.Binary, Type: S) (Syntax: 'c * d / e')
                   Left: 
-                    IBinaryOperation (BinaryOperatorKind.Multiply) (OperatorMethod: S S.op_Multiply(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'c * d')
+                    IBinaryOperation (BinaryOperatorKind.Multiply) (OperatorMethod: S S.op_Multiply(S x, S y)) (OperationKind.Binary, Type: S) (Syntax: 'c * d')
                       Left: 
                         ILocalReferenceOperation: c (OperationKind.LocalReference, Type: S) (Syntax: 'c')
                       Right: 
@@ -1266,25 +1266,25 @@ IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: S S.op_BitwiseOr(S x, 
       Right: 
         ILocalReferenceOperation: g (OperationKind.LocalReference, Type: S) (Syntax: 'g')
   Right: 
-    IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperatorMethod: S S.op_ExclusiveOr(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'h ^ i == j  ... m <= o >= p')
+    IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperatorMethod: S S.op_ExclusiveOr(S x, S y)) (OperationKind.Binary, Type: S) (Syntax: 'h ^ i == j  ... m <= o >= p')
       Left: 
         ILocalReferenceOperation: h (OperationKind.LocalReference, Type: S) (Syntax: 'h')
       Right: 
-        IBinaryOperation (BinaryOperatorKind.NotEquals) (OperatorMethod: S S.op_Inequality(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'i == j != k ... m <= o >= p')
+        IBinaryOperation (BinaryOperatorKind.NotEquals) (OperatorMethod: S S.op_Inequality(S x, S y)) (OperationKind.Binary, Type: S) (Syntax: 'i == j != k ... m <= o >= p')
           Left: 
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: S S.op_Equality(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'i == j')
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: S S.op_Equality(S x, S y)) (OperationKind.Binary, Type: S) (Syntax: 'i == j')
               Left: 
                 ILocalReferenceOperation: i (OperationKind.LocalReference, Type: S) (Syntax: 'i')
               Right: 
                 ILocalReferenceOperation: j (OperationKind.LocalReference, Type: S) (Syntax: 'j')
           Right: 
-            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperatorMethod: S S.op_GreaterThanOrEqual(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'k < l > m <= o >= p')
+            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperatorMethod: S S.op_GreaterThanOrEqual(S x, S y)) (OperationKind.Binary, Type: S) (Syntax: 'k < l > m <= o >= p')
               Left: 
-                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperatorMethod: S S.op_LessThanOrEqual(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'k < l > m <= o')
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperatorMethod: S S.op_LessThanOrEqual(S x, S y)) (OperationKind.Binary, Type: S) (Syntax: 'k < l > m <= o')
                   Left: 
-                    IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperatorMethod: S S.op_GreaterThan(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'k < l > m')
+                    IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperatorMethod: S S.op_GreaterThan(S x, S y)) (OperationKind.Binary, Type: S) (Syntax: 'k < l > m')
                       Left: 
-                        IBinaryOperation (BinaryOperatorKind.LessThan) (OperatorMethod: S S.op_LessThan(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'k < l')
+                        IBinaryOperation (BinaryOperatorKind.LessThan) (OperatorMethod: S S.op_LessThan(S x, S y)) (OperationKind.Binary, Type: S) (Syntax: 'k < l')
                           Left: 
                             ILocalReferenceOperation: k (OperationKind.LocalReference, Type: S) (Syntax: 'k')
                           Right: 
@@ -1332,7 +1332,7 @@ class Test
 }
 ";
             string expectedOperationTree = @"
-IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'new C() + new B()')
+IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'new C() + new B()')
   Left: 
     IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C()')
       Arguments(0)
@@ -1498,7 +1498,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 D<System.Object>.C.op_Addition(D<System.Object>.C x, D<System.Object>.C y)) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
+IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 D<System.Object>.C.op_Addition(D<System.Object>.C x, D<System.Object>.C y)) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + y')
   Left: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: D<System.Object>.C) (Syntax: 'x')
   Right: 
@@ -1538,7 +1538,7 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'x + y')
+IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'x + y')
   Left: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: D<System.Object>.C, IsInvalid) (Syntax: 'x')
   Right: 
@@ -1826,7 +1826,7 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
           IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x = xint + 123')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= xint + 123')
-                IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 X<System.Int32>.op_Addition(X<System.Int32> x, System.Int32 y)) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'xint + 123')
+                IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 X<System.Int32>.op_Addition(X<System.Int32> x, System.Int32 y)) (OperationKind.Binary, Type: System.Int32) (Syntax: 'xint + 123')
                   Left: 
                     IParameterReferenceOperation: xint (OperationKind.ParameterReference, Type: X<System.Int32>) (Syntax: 'xint')
                   Right: 
@@ -1839,7 +1839,7 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
           IVariableDeclaratorOperation (Symbol: System.Int32? q) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'q = new Q<i ...  new int?()')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new Q<int ...  new int?()')
-                IBinaryOperation (BinaryOperatorKind.Add, IsLifted) (OperatorMethod: System.Int32 Q<System.Int32>.op_Addition(Q<System.Int32> x, System.Int32 y)) (OperationKind.BinaryOperator, Type: System.Int32?) (Syntax: 'new Q<int>? ...  new int?()')
+                IBinaryOperation (BinaryOperatorKind.Add, IsLifted) (OperatorMethod: System.Int32 Q<System.Int32>.op_Addition(Q<System.Int32> x, System.Int32 y)) (OperationKind.Binary, Type: System.Int32?) (Syntax: 'new Q<int>? ...  new int?()')
                   Left: 
                     IObjectCreationOperation (Constructor: Q<System.Int32>?..ctor()) (OperationKind.ObjectCreation, Type: Q<System.Int32>?) (Syntax: 'new Q<int>?()')
                       Arguments(0)
@@ -1864,12 +1864,12 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
                   Initializer: 
                     IArrayInitializerOperation (8 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ ... }')
                       Element Values(8):
-                          IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S x, S y)) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's1 == s2')
+                          IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S x, S y)) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's1 == s2')
                             Left: 
                               IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: S) (Syntax: 's1')
                             Right: 
                               IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: S) (Syntax: 's2')
-                          IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's1 == s3')
+                          IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's1 == s3')
                             Left: 
                               IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S?, IsImplicit) (Syntax: 's1')
                                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1877,7 +1877,7 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
                                   IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: S) (Syntax: 's1')
                             Right: 
                               IParameterReferenceOperation: s3 (OperationKind.ParameterReference, Type: S?) (Syntax: 's3')
-                          IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's1 == null')
+                          IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's1 == null')
                             Left: 
                               IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S?, IsImplicit) (Syntax: 's1')
                                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1888,7 +1888,7 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
                                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 Operand: 
                                   ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-                          IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's3 == s1')
+                          IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's3 == s1')
                             Left: 
                               IParameterReferenceOperation: s3 (OperationKind.ParameterReference, Type: S?) (Syntax: 's3')
                             Right: 
@@ -1896,12 +1896,12 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
                                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 Operand: 
                                   IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: S) (Syntax: 's1')
-                          IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's3 == s4')
+                          IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's3 == s4')
                             Left: 
                               IParameterReferenceOperation: s3 (OperationKind.ParameterReference, Type: S?) (Syntax: 's3')
                             Right: 
                               IParameterReferenceOperation: s4 (OperationKind.ParameterReference, Type: S?) (Syntax: 's4')
-                          IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 's3 == null')
+                          IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.Binary, Type: System.Boolean) (Syntax: 's3 == null')
                             Left: 
                               IParameterReferenceOperation: s3 (OperationKind.ParameterReference, Type: S?) (Syntax: 's3')
                             Right: 
@@ -1909,7 +1909,7 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
                                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 Operand: 
                                   ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-                          IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'null == s1')
+                          IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'null == s1')
                             Left: 
                               IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S?, Constant: null, IsImplicit) (Syntax: 'null')
                                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1920,7 +1920,7 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
                                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 Operand: 
                                   IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: S) (Syntax: 's1')
-                          IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'null == s3')
+                          IBinaryOperation (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'null == s3')
                             Left: 
                               IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S?, Constant: null, IsImplicit) (Syntax: 'null')
                                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2716,7 +2716,7 @@ IBlockOperation (14 statements) (OperationKind.Block, Type: null) (Syntax: '{ ..
         Left: 
           IParameterReferenceOperation: i1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i1')
         Right: 
-          IUnaryOperation (UnaryOperatorKind.Plus) (OperatorMethod: System.Int32 S.op_UnaryPlus(S s)) (OperationKind.UnaryOperator, Type: System.Int32) (Syntax: '+s1')
+          IUnaryOperation (UnaryOperatorKind.Plus) (OperatorMethod: System.Int32 S.op_UnaryPlus(S s)) (OperationKind.Unary, Type: System.Int32) (Syntax: '+s1')
             Operand: 
               IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: S) (Syntax: 's1')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i2 = +s2;')
@@ -2725,7 +2725,7 @@ IBlockOperation (14 statements) (OperationKind.Block, Type: null) (Syntax: '{ ..
         Left: 
           IParameterReferenceOperation: i2 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i2')
         Right: 
-          IUnaryOperation (UnaryOperatorKind.Plus, IsLifted) (OperatorMethod: System.Int32 S.op_UnaryPlus(S s)) (OperationKind.UnaryOperator, Type: System.Int32?) (Syntax: '+s2')
+          IUnaryOperation (UnaryOperatorKind.Plus, IsLifted) (OperatorMethod: System.Int32 S.op_UnaryPlus(S s)) (OperationKind.Unary, Type: System.Int32?) (Syntax: '+s2')
             Operand: 
               IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: S?) (Syntax: 's2')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i1 = -s1;')
@@ -2734,7 +2734,7 @@ IBlockOperation (14 statements) (OperationKind.Block, Type: null) (Syntax: '{ ..
         Left: 
           IParameterReferenceOperation: i1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i1')
         Right: 
-          IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: System.Int32 S.op_UnaryNegation(S? s)) (OperationKind.UnaryOperator, Type: System.Int32) (Syntax: '-s1')
+          IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: System.Int32 S.op_UnaryNegation(S? s)) (OperationKind.Unary, Type: System.Int32) (Syntax: '-s1')
             Operand: 
               IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S?, IsImplicit) (Syntax: 's1')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2746,7 +2746,7 @@ IBlockOperation (14 statements) (OperationKind.Block, Type: null) (Syntax: '{ ..
         Left: 
           IParameterReferenceOperation: i1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i1')
         Right: 
-          IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: System.Int32 S.op_UnaryNegation(S? s)) (OperationKind.UnaryOperator, Type: System.Int32) (Syntax: '-s2')
+          IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: System.Int32 S.op_UnaryNegation(S? s)) (OperationKind.Unary, Type: System.Int32) (Syntax: '-s2')
             Operand: 
               IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: S?) (Syntax: 's2')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i1 = !s1;')
@@ -2755,7 +2755,7 @@ IBlockOperation (14 statements) (OperationKind.Block, Type: null) (Syntax: '{ ..
         Left: 
           IParameterReferenceOperation: i1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i1')
         Right: 
-          IUnaryOperation (UnaryOperatorKind.Not) (OperatorMethod: System.Int32 S.op_LogicalNot(S s)) (OperationKind.UnaryOperator, Type: System.Int32) (Syntax: '!s1')
+          IUnaryOperation (UnaryOperatorKind.Not) (OperatorMethod: System.Int32 S.op_LogicalNot(S s)) (OperationKind.Unary, Type: System.Int32) (Syntax: '!s1')
             Operand: 
               IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: S) (Syntax: 's1')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i2 = !s2;')
@@ -2764,7 +2764,7 @@ IBlockOperation (14 statements) (OperationKind.Block, Type: null) (Syntax: '{ ..
         Left: 
           IParameterReferenceOperation: i2 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i2')
         Right: 
-          IUnaryOperation (UnaryOperatorKind.Not, IsLifted) (OperatorMethod: System.Int32 S.op_LogicalNot(S s)) (OperationKind.UnaryOperator, Type: System.Int32?) (Syntax: '!s2')
+          IUnaryOperation (UnaryOperatorKind.Not, IsLifted) (OperatorMethod: System.Int32 S.op_LogicalNot(S s)) (OperationKind.Unary, Type: System.Int32?) (Syntax: '!s2')
             Operand: 
               IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: S?) (Syntax: 's2')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i1 = ~s1;')
@@ -2773,7 +2773,7 @@ IBlockOperation (14 statements) (OperationKind.Block, Type: null) (Syntax: '{ ..
         Left: 
           IParameterReferenceOperation: i1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i1')
         Right: 
-          IUnaryOperation (UnaryOperatorKind.BitwiseNegation) (OperatorMethod: System.Int32 S.op_OnesComplement(S s)) (OperationKind.UnaryOperator, Type: System.Int32) (Syntax: '~s1')
+          IUnaryOperation (UnaryOperatorKind.BitwiseNegation) (OperatorMethod: System.Int32 S.op_OnesComplement(S s)) (OperationKind.Unary, Type: System.Int32) (Syntax: '~s1')
             Operand: 
               IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: S) (Syntax: 's1')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i2 = ~s2;')
@@ -2782,7 +2782,7 @@ IBlockOperation (14 statements) (OperationKind.Block, Type: null) (Syntax: '{ ..
         Left: 
           IParameterReferenceOperation: i2 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i2')
         Right: 
-          IUnaryOperation (UnaryOperatorKind.BitwiseNegation, IsLifted) (OperatorMethod: System.Int32 S.op_OnesComplement(S s)) (OperationKind.UnaryOperator, Type: System.Int32?) (Syntax: '~s2')
+          IUnaryOperation (UnaryOperatorKind.BitwiseNegation, IsLifted) (OperatorMethod: System.Int32 S.op_OnesComplement(S s)) (OperationKind.Unary, Type: System.Int32?) (Syntax: '~s2')
             Operand: 
               IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: S?) (Syntax: 's2')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 's1++;')
@@ -3127,7 +3127,7 @@ class C
                 select edge.Key.Text + ": " + (node.Value != null ? node.Value.ToString() : "<null>"));
         }
 
-        private static string FormatTypeArgumentList(ImmutableArray<TypeSymbol>? arguments)
+        private static string FormatTypeArgumentList(ImmutableArray<TypeSymbolWithAnnotations>? arguments)
         {
             if (arguments == null || arguments.Value.IsEmpty)
             {
@@ -3141,7 +3141,7 @@ class C
                 {
                     s += ", ";
                 }
-                s += arguments.Value[i].ToString();
+                s += arguments.Value[i].TypeSymbol.ToString();
             }
 
             return s + ">";
@@ -3154,7 +3154,7 @@ class C
                 let node = edge.Value
                 where node.Text == "dynamicMemberAccess"
                 let name = node["name"]
-                let typeArguments = node["typeArgumentsOpt"].Value as ImmutableArray<TypeSymbol>?
+                let typeArguments = node["typeArgumentsOpt"].Value as ImmutableArray<TypeSymbolWithAnnotations>?
                 select name.Value.ToString() + FormatTypeArgumentList(typeArguments));
         }
 
@@ -5285,6 +5285,26 @@ class Outer<T>
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "e2 is Outer<long>.E").WithArguments("Outer<long>.E").WithLocation(32, 13));
         }
 
+        [Fact]
+        public void TestIsOperatorWithGenericClassAndValueType()
+        {
+            var source = @"
+class Program
+{
+    static bool Goo<T>(C<T> c)
+    {
+        return c is int;   // always false
+    }
+}
+class C<T> { }
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,16): warning CS0184: The given expression is never of the provided ('int') type
+                //         return c is int;   // always false
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "c is int").WithArguments("int").WithLocation(6, 16)
+                );
+        }
+
         [WorkItem(844635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844635")]
         [Fact()]
         public void TestIsOperatorWithTypesThatCannotUnify()
@@ -5812,6 +5832,84 @@ class B : A
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b++").WithArguments("A", "B"));
+        }
+
+        [Fact, WorkItem(30668, "https://github.com/dotnet/roslyn/issues/30668")]
+        public void TestTupleOperatorIncrement()
+        {
+            var text = @"
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public static (T1 fst, T2 snd) operator ++((T1 one, T2 two) tuple)
+        {
+            return tuple;
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(30668, "https://github.com/dotnet/roslyn/issues/30668")]
+        public void TestTupleOperatorConvert()
+        {
+            var text = @"
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public static explicit operator (T1 fst, T2 snd)((T1 one, T2 two) s)
+        {
+            return s;
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,41): error CS0555: User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type
+                //         public static explicit operator (T1 fst, T2 snd)((T1 one, T2 two) s)
+                Diagnostic(ErrorCode.ERR_IdentityConversion, "(T1 fst, T2 snd)").WithLocation(6, 41));
+        }
+
+        [Fact, WorkItem(30668, "https://github.com/dotnet/roslyn/issues/30668")]
+        public void TestTupleOperatorConvertToBaseType()
+        {
+            var text = @"
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public static explicit operator ValueType(ValueTuple<T1, T2> s)
+        {
+            return s;
+        }
+    }
+}
+";
+            CreateCompilation(text).GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify(
+                // (6,41): error CS0553: 'ValueTuple<T1, T2>.explicit operator ValueType((T1, T2))': user-defined conversions to or from a base class are not allowed
+                //         public static explicit operator ValueType(ValueTuple<T1, T2> s)
+                Diagnostic(ErrorCode.ERR_ConversionWithBase, "ValueType").WithArguments("System.ValueTuple<T1, T2>.explicit operator System.ValueType((T1, T2))").WithLocation(6, 41));
+        }
+
+        [Fact, WorkItem(30668, "https://github.com/dotnet/roslyn/issues/30668")]
+        public void TestTupleBinaryOperator()
+        {
+            var text = @"
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public static ValueTuple<T1, T2> operator +((T1 fst, T2 snd) s1, (T1 one, T2 two) s2)
+        {
+            return s1;
+        }
+    }
+}
+";
+            CreateCompilation(text).GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
         }
 
         [WorkItem(543431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543431")]
@@ -6448,7 +6546,7 @@ class Program
             comp.VerifyDiagnostics();
 
             var expectedOperator = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S1").GetMembers(WellKnownMemberNames.EqualityOperatorName).
-                OfType<MethodSymbol>().Single(m => m.ParameterTypes[0] == m.ParameterTypes[1]);
+                OfType<MethodSymbol>().Single(m => m.ParameterTypes[0].Equals(m.ParameterTypes[1], TypeCompareKind.ConsiderEverything));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -7055,7 +7153,7 @@ public class RubyTime
             Assert.False(symbol1.CanBeReferencedByName);
             Assert.Null(symbol1.DeclaringCompilation);
             Assert.Equal(symbol1.Name, symbol1.MetadataName);
-            Assert.Same(symbol1.ContainingSymbol, symbol1.Parameters[0].Type);
+            Assert.Same(symbol1.ContainingSymbol, symbol1.Parameters[0].Type.TypeSymbol);
             Assert.Equal(0, symbol1.Locations.Length);
             Assert.Null(symbol1.GetDocumentationCommentId());
             Assert.Equal("", symbol1.GetDocumentationCommentXml());
@@ -7129,7 +7227,7 @@ class Module1
             }
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/mono/mono/issues/10917")]
         public void BinaryIntrinsicSymbols1()
         {
             BinaryOperatorKind[] operators =
@@ -7302,7 +7400,7 @@ class Module1
             Assert.Equal(n, nodes.Length);
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void BinaryIntrinsicSymbols2()
         {
             BinaryOperatorKind[] operators =
@@ -7562,7 +7660,7 @@ class Module1
                 }
                 else if ((op == BinaryOperatorKind.Equal || op == BinaryOperatorKind.NotEqual) &&
                     leftType.IsReferenceType && rightType.IsReferenceType &&
-                    (leftType == rightType || compilation.Conversions.ClassifyConversionFromType(leftType, rightType, ref useSiteDiagnostics).IsReference))
+                    (TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2) || compilation.Conversions.ClassifyConversionFromType(leftType, rightType, ref useSiteDiagnostics).IsReference))
                 {
                     if (leftType.IsDelegateType() && rightType.IsDelegateType())
                     {
@@ -7605,41 +7703,41 @@ class Module1
                 {
                     if (leftType.IsPointerType())
                     {
-                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, leftType, symbol1.Parameters[1].Type, leftType);
-                        Assert.True(symbol1.Parameters[1].Type.IsIntegralType());
+                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, leftType, symbol1.Parameters[1].Type.TypeSymbol, leftType);
+                        Assert.True(symbol1.Parameters[1].Type.TypeSymbol.IsIntegralType());
                     }
                     else
                     {
-                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, symbol1.Parameters[0].Type, rightType, rightType);
-                        Assert.True(symbol1.Parameters[0].Type.IsIntegralType());
+                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, symbol1.Parameters[0].Type.TypeSymbol, rightType, rightType);
+                        Assert.True(symbol1.Parameters[0].Type.TypeSymbol.IsIntegralType());
                     }
                 }
                 else if (op == BinaryOperatorKind.Subtraction &&
                     (leftType.IsPointerType() && (rightType.IsIntegralType() || rightType.IsCharType())))
                 {
-                    signature = new BinaryOperatorSignature(op | BinaryOperatorKind.String, leftType, symbol1.Parameters[1].Type, leftType);
-                    Assert.True(symbol1.Parameters[1].Type.IsIntegralType());
+                    signature = new BinaryOperatorSignature(op | BinaryOperatorKind.String, leftType, symbol1.Parameters[1].Type.TypeSymbol, leftType);
+                    Assert.True(symbol1.Parameters[1].Type.TypeSymbol.IsIntegralType());
                 }
-                else if (op == BinaryOperatorKind.Subtraction && leftType.IsPointerType() && leftType == rightType)
+                else if (op == BinaryOperatorKind.Subtraction && leftType.IsPointerType() && TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2))
                 {
                     signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, leftType, rightType, compilation.GetSpecialType(SpecialType.System_Int64));
                 }
                 else if ((op == BinaryOperatorKind.Addition || op == BinaryOperatorKind.Subtraction) &&
                     leftType.IsEnumType() && (rightType.IsIntegralType() || rightType.IsCharType()) &&
                     (result = OverloadResolution.BinopEasyOut.OpKind(op, leftType.EnumUnderlyingType(), rightType)) != BinaryOperatorKind.Error &&
-                    (signature = compilation.builtInOperators.GetSignature(result)).RightType == leftType.EnumUnderlyingType())
+                    TypeSymbol.Equals((signature = compilation.builtInOperators.GetSignature(result)).RightType, leftType.EnumUnderlyingType(), TypeCompareKind.ConsiderEverything2))
                 {
                     signature = new BinaryOperatorSignature(signature.Kind | BinaryOperatorKind.EnumAndUnderlying, leftType, signature.RightType, leftType);
                 }
                 else if ((op == BinaryOperatorKind.Addition || op == BinaryOperatorKind.Subtraction) &&
                     rightType.IsEnumType() && (leftType.IsIntegralType() || leftType.IsCharType()) &&
                     (result = OverloadResolution.BinopEasyOut.OpKind(op, leftType, rightType.EnumUnderlyingType())) != BinaryOperatorKind.Error &&
-                    (signature = compilation.builtInOperators.GetSignature(result)).LeftType == rightType.EnumUnderlyingType())
+                    TypeSymbol.Equals((signature = compilation.builtInOperators.GetSignature(result)).LeftType, rightType.EnumUnderlyingType(), TypeCompareKind.ConsiderEverything2))
                 {
                     signature = new BinaryOperatorSignature(signature.Kind | BinaryOperatorKind.EnumAndUnderlying, signature.LeftType, rightType, rightType);
                 }
                 else if (op == BinaryOperatorKind.Subtraction &&
-                    leftType.IsEnumType() && leftType == rightType)
+                    leftType.IsEnumType() && TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2))
                 {
                     signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Enum, leftType, rightType, leftType.EnumUnderlyingType());
                 }
@@ -7649,19 +7747,19 @@ class Module1
                           op == BinaryOperatorKind.LessThanOrEqual ||
                           op == BinaryOperatorKind.GreaterThan ||
                           op == BinaryOperatorKind.GreaterThanOrEqual) &&
-                    leftType.IsEnumType() && leftType == rightType)
+                    leftType.IsEnumType() && TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2))
                 {
                     signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Enum, leftType, rightType, compilation.GetSpecialType(SpecialType.System_Boolean));
                 }
                 else if ((op == BinaryOperatorKind.Xor ||
                           op == BinaryOperatorKind.And ||
                           op == BinaryOperatorKind.Or) &&
-                    leftType.IsEnumType() && leftType == rightType)
+                    leftType.IsEnumType() && TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2))
                 {
                     signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Enum, leftType, rightType, leftType);
                 }
                 else if ((op == BinaryOperatorKind.Addition || op == BinaryOperatorKind.Subtraction) &&
-                    leftType.IsDelegateType() && leftType == rightType)
+                    leftType.IsDelegateType() && TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2))
                 {
                     signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Delegate, leftType, leftType, leftType);
                 }
@@ -7734,7 +7832,7 @@ class Module1
                 }
             }
             else if ((op == BinaryOperatorKind.Equal || op == BinaryOperatorKind.NotEqual) &&
-                leftType != rightType &&
+                !TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2) &&
                 (!leftType.IsValueType || !rightType.IsValueType ||
                  leftType.SpecialType == SpecialType.System_Boolean || rightType.SpecialType == SpecialType.System_Boolean ||
                  (leftType.SpecialType == SpecialType.System_Decimal && (rightType.SpecialType == SpecialType.System_Double || rightType.SpecialType == SpecialType.System_Single)) ||
@@ -7824,20 +7922,21 @@ class Module1
             Assert.Null(symbol1.DeclaringCompilation);
             Assert.Equal(symbol1.Name, symbol1.MetadataName);
 
-            Assert.True(symbol1.ContainingSymbol == symbol1.Parameters[0].Type || symbol1.ContainingSymbol == symbol1.Parameters[1].Type);
+            Assert.True(TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[0].Type.TypeSymbol, TypeCompareKind.ConsiderEverything2) ||
+                TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[1].Type.TypeSymbol, TypeCompareKind.ConsiderEverything2));
 
             int match = 0;
-            if (symbol1.ContainingSymbol == symbol1.ReturnType)
+            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.ReturnType.TypeSymbol, TypeCompareKind.ConsiderEverything2))
             {
                 match++;
             }
 
-            if (symbol1.ContainingSymbol == symbol1.Parameters[0].Type)
+            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[0].Type.TypeSymbol, TypeCompareKind.ConsiderEverything2))
             {
                 match++;
             }
 
-            if (symbol1.ContainingSymbol == symbol1.Parameters[1].Type)
+            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[1].Type.TypeSymbol, TypeCompareKind.ConsiderEverything2))
             {
                 match++;
             }

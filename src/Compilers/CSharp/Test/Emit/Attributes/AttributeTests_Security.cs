@@ -1214,7 +1214,7 @@ namespace N
 }
 ";
             var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.UnsafeReleaseDll);
-            CompileAndVerify(compilation, verify: Verification.Passes,symbolValidator: module =>
+            CompileAndVerify(compilation, verify: Verification.Passes, symbolValidator: module =>
             {
                 ValidateDeclSecurity(module, new DeclSecurityEntry
                 {
@@ -1384,7 +1384,7 @@ namespace N
         }
 
         [WorkItem(545084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem(529492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void PermissionSetAttribute_Fixup()
         {
             var tempDir = Temp.CreateDirectory();

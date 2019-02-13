@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -1832,7 +1833,7 @@ public class D
 ");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void TestAssignIdentity()
         {
             string source = @"
@@ -1878,7 +1879,7 @@ There are no context policies.
 ");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void TestRefCast()
         {
             string source = @"
@@ -2574,7 +2575,7 @@ class Program
         new D().Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "A.P.get;B.P.set;A.P.get;B.P.set;\r\nA.P.get;B.P.set;D.P.get;B.P.set;").
+            CompileAndVerify(source, expectedOutput: $"A.P.get;B.P.set;A.P.get;B.P.set;{Environment.NewLine}A.P.get;B.P.set;D.P.get;B.P.set;").
                 VerifyIL("C.Test",
 @"{
   // Code size       25 (0x19)
@@ -2745,7 +2746,7 @@ class Program
         new D().Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "A.P.get;C.P.set;C.P.get;B.P.set;\r\nA.P.get;B.P.set;D.P.get;B.P.set;").
+            CompileAndVerify(source, expectedOutput: $"A.P.get;C.P.set;C.P.get;B.P.set;{Environment.NewLine}A.P.get;B.P.set;D.P.get;B.P.set;").
                 VerifyIL("C.Test",
 @"{
   // Code size       25 (0x19)
@@ -2916,7 +2917,7 @@ class Program
         new D().Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "B.P.get;C.P.set;C.P.get;B.P.set;\r\nB.P.get;D.P.set;D.P.get;B.P.set;").
+            CompileAndVerify(source, expectedOutput: $"B.P.get;C.P.set;C.P.get;B.P.set;{Environment.NewLine}B.P.get;D.P.set;D.P.get;B.P.set;").
                 VerifyIL("C.Test",
 @"{
   // Code size       25 (0x19)
@@ -13331,7 +13332,7 @@ public static class P
         }
 
         [WorkItem(26113, "https://github.com/dotnet/roslyn/issues/26113")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void VarargByRef()
         {
             var code = @"
@@ -14489,11 +14490,12 @@ class C
             {
                 var result = compilation.Emit(stream);
                 result.Diagnostics.Verify(
-                    // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                    Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion),
-                    // (14,9): error CS0656: Missing compiler required member 'System.String.op_Equality'
-                    //         switch (s) { case "A": break; case "B": break; }
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (s) { case ""A"": break; case ""B"": break; }").WithArguments("System.String", "op_Equality").WithLocation(14, 9));
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // (14,22): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                //         switch (s) { case "A": break; case "B": break; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"case ""A"":").WithArguments("System.String", "op_Equality").WithLocation(14, 22)
+                );
             }
         }
 
@@ -16690,6 +16692,54 @@ static class Program
                 expectedOutput: @"
 none called
 in called");
+        }
+
+        [Fact]
+        public void NormalizedNaN()
+        {
+            string source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        CheckNaN(double.NaN);
+        CheckNaN(0.0 / 0.0);
+        CheckNaN(0.0 / -0.0);
+        const double inf = 1.0 / 0.0;
+        CheckNaN(inf + double.NaN);
+        CheckNaN(inf - double.NaN);
+        CheckNaN(-double.NaN);
+
+        CheckNaN(float.NaN);
+        CheckNaN(0.0f / 0.0f);
+        CheckNaN(0.0f / -0.0f);
+        const float finf = 1.0f / 0.0f;
+        CheckNaN(finf + float.NaN);
+        CheckNaN(finf - float.NaN);
+        CheckNaN(-float.NaN);
+}
+
+    static void CheckNaN(double nan)
+    {
+        const long expected = unchecked((long)0xFFF8000000000000UL);
+        long actual = BitConverter.DoubleToInt64Bits(nan);
+        if (expected != actual)
+            throw new Exception($""expected=0X{expected:X} actual=0X{actual:X}"");
+    }
+
+    static unsafe void CheckNaN(float nan)
+    {
+        const int expected = unchecked((int)0xFFC00000U);
+        void* p = &nan;
+        int* ip = (int*)p;
+        int actual = *ip;
+        if (expected != actual)
+            throw new Exception($""expected=0X{expected:X} actual=0X{actual:X}"");
+    }
+}
+";
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Skipped, expectedOutput: @"");
         }
     }
 }

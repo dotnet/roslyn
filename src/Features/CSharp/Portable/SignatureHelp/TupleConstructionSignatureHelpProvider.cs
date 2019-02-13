@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return null;
         }
 
-        private bool GetOuterMostTupleExpressionInSpan(SyntaxNode root, int position, 
+        private bool GetOuterMostTupleExpressionInSpan(SyntaxNode root, int position,
             ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken, out TupleExpressionSyntax result)
         {
             result = null;
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return null;
         }
 
-        private SignatureHelpItems CreateItems(int position, SyntaxNode root, ISyntaxFactsService syntaxFacts, 
+        private SignatureHelpItems CreateItems(int position, SyntaxNode root, ISyntaxFactsService syntaxFacts,
             SyntaxNode targetExpression, SemanticModel semanticModel, IEnumerable<INamedTypeSymbol> tupleTypes, CancellationToken cancellationToken)
         {
             var prefixParts = SpecializedCollections.SingletonEnumerable(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "(")).ToTaggedText();
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 .ToList();
 
             var state = GetCurrentArgumentState(root, position, syntaxFacts, targetExpression.FullSpan, cancellationToken);
-            return CreateSignatureHelpItems(items, targetExpression.Span, state);
+            return CreateSignatureHelpItems(items, targetExpression.Span, state, selectedItem: null);
         }
 
         SignatureHelpItem Convert(INamedTypeSymbol tupleType, ImmutableArray<TaggedText> prefixParts, ImmutableArray<TaggedText> suffixParts,
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
                 // The display name for each element. 
                 // Empty strings for elements not explicitly declared
-                var elementName = element.IsImplicitlyDeclared? string.Empty: element.Name;
+                var elementName = element.IsImplicitlyDeclared ? string.Empty : element.Name;
 
                 var typeParts = type.ToMinimalDisplayParts(semanticModel, position).ToList();
                 if (!string.IsNullOrEmpty(elementName))
@@ -195,10 +195,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private bool TryGetTupleExpression(SignatureHelpTriggerReason triggerReason, SyntaxNode root, int position, 
+        private bool TryGetTupleExpression(SignatureHelpTriggerReason triggerReason, SyntaxNode root, int position,
             ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken, out TupleExpressionSyntax tupleExpression)
         {
-            return CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTupleExpressionTriggerToken, 
+            return CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTupleExpressionTriggerToken,
                 IsTupleArgumentListToken, cancellationToken, out tupleExpression);
         }
 
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         private bool TryGetParenthesizedExpression(SignatureHelpTriggerReason triggerReason, SyntaxNode root, int position,
             ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken, out ParenthesizedExpressionSyntax parenthesizedExpression)
         {
-            return CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, 
+            return CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason,
                 IsParenthesizedExpressionTriggerToken, IsParenthesizedExpressionToken, cancellationToken, out parenthesizedExpression);
         }
 

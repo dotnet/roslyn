@@ -140,14 +140,14 @@ namespace Microsoft.Cci
                 sizeOfHeapReserve: properties.SizeOfHeapReserve,
                 sizeOfHeapCommit: properties.SizeOfHeapCommit);
 
-            // TODO: replace SAH1 with non-crypto alg: https://github.com/dotnet/roslyn/issues/24737
+            // TODO: replace SHA1 with non-crypto alg: https://github.com/dotnet/roslyn/issues/24737
             var peIdProvider = isDeterministic ?
                 new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(CryptographicHashProvider.ComputeHash(HashAlgorithmName.SHA1, content))) :
                 null;
-                
+
             // We need to calculate the PDB checksum, so we may as well use the calculated hash for PDB ID regardless of whether deterministic build is requested.
             var portablePdbContentHash = default(ImmutableArray<byte>);
-            
+
             BlobBuilder portablePdbToEmbed = null;
             if (mdWriter.EmitPortableDebugMetadata)
             {
@@ -240,13 +240,12 @@ namespace Microsoft.Cci
 
             var peBlob = new BlobBuilder();
             var peContentId = peBuilder.Serialize(peBlob, out Blob mvidSectionFixup);
-            
+
             PatchModuleVersionIds(mvidFixup, mvidSectionFixup, mvidStringFixup, peContentId.Guid);
 
             if (privateKeyOpt != null && corFlags.HasFlag(CorFlags.StrongNameSigned))
             {
-                Debug.Assert(strongNameProvider.Capability == SigningCapability.SignsPeBuilder);
-                strongNameProvider.SignPeBuilder(peBuilder, peBlob, privateKeyOpt.Value);
+                strongNameProvider.SignBuilder(peBuilder, peBlob, privateKeyOpt.Value);
             }
 
             try

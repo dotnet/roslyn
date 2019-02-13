@@ -23,8 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private bool _lazyIsVarArg;
+        // Initialized in two steps. Hold a copy if accessing during initialization.
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
-        private TypeSymbol _lazyReturnType;
+        private TypeSymbolWithAnnotations _lazyReturnType;
         private TypeSymbol _iteratorElementType;
 
         // Lock for initializing lazy fields and registering their diagnostics
@@ -165,7 +166,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 addRefReadOnlyModifier: false,
                 diagnostics: diagnostics);
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(parameters, diagnostics, modifyCompilationForRefReadOnly: false);
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(parameters, diagnostics, modifyCompilation: false);
+            ParameterHelpers.EnsureNullableAttributeExists(parameters, diagnostics, modifyCompilation: false);
+            // Note: we don't need to warn on annotations used without NonNullTypes context for local functions, as this is handled in binding already
 
             var isVararg = arglistToken.Kind() == SyntaxKind.ArgListKeyword;
             if (isVararg)
@@ -192,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeSymbolWithAnnotations ReturnType
         {
             get
             {
@@ -202,29 +205,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override RefKind RefKind => _refKind;
-        
+
         internal void ComputeReturnType()
         {
-            if (_lazyReturnType != null)
+            if (!_lazyReturnType.IsNull)
             {
                 return;
             }
 
             var diagnostics = DiagnosticBag.GetInstance();
-            TypeSyntax returnTypeSyntax = _syntax.ReturnType.SkipRef();
-            TypeSymbol returnType = _binder.BindType(returnTypeSyntax, diagnostics);
-            if (IsAsync &&
-                returnType.SpecialType != SpecialType.System_Void &&
-                !returnType.IsNonGenericTaskType(_binder.Compilation) &&
-                !returnType.IsGenericTaskType(_binder.Compilation))
+            TypeSyntax returnTypeSyntax = _syntax.ReturnType;
+            TypeSymbolWithAnnotations returnType = _binder.BindType(returnTypeSyntax.SkipRef(), diagnostics);
+
+            if (this.IsAsync)
             {
-                // The return type of an async method must be void, Task or Task<T>
-                diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
+                if (this.RefKind != RefKind.None)
+                {
+                    ReportBadRefToken(returnTypeSyntax, diagnostics);
+                }
+                else if (returnType.TypeSymbol.IsBadAsyncReturn(this.DeclaringCompilation))
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
+                }
             }
 
+            var location = _syntax.ReturnType.Location;
             if (_refKind == RefKind.RefReadOnly)
             {
-                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, _syntax.ReturnType.Location, modifyCompilationForRefReadOnly: false);
+                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: false);
+            }
+
+            if (returnType.NeedsNullableAttribute())
+            {
+                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: false);
+                // Note: we don't need to warn on annotations used without NonNullTypes context for local functions, as this is handled in binding already
+            }
+
+            // span-like types are returnable in general
+            if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
+            {
+                // Method or delegate cannot return type '{0}'
+                diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, returnTypeSyntax.Location, returnType.TypeSymbol);
             }
 
             Debug.Assert(_refKind == RefKind.None
@@ -233,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             lock (_declarationDiagnostics)
             {
-                if (_lazyReturnType != null)
+                if (!_lazyReturnType.IsNull)
                 {
                     diagnostics.Free();
                     return;
@@ -244,13 +265,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool ReturnsVoid => ReturnType?.SpecialType == SpecialType.System_Void;
+        public override bool ReturnsVoid => ReturnType.SpecialType == SpecialType.System_Void;
 
         public override int Arity => TypeParameters.Length;
 
-        public override ImmutableArray<TypeSymbol> TypeArguments => TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments => GetTypeParametersAsTypeArguments();
 
-        public override ImmutableArray<TypeParameterSymbol> TypeParameters 
+        public override ImmutableArray<TypeParameterSymbol> TypeParameters
             => _typeParameters.Cast<SourceMethodTypeParameterSymbol, TypeParameterSymbol>();
 
         public override bool IsExtensionMethod
@@ -265,6 +286,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        // Replace with IsStatic after fixing https://github.com/dotnet/roslyn/issues/27719.
+        internal bool IsStaticLocalFunction => _syntax.Modifiers.Any(SyntaxKind.StaticKeyword);
+
         internal override TypeSymbol IteratorElementType
         {
             get
@@ -273,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             set
             {
-                Debug.Assert((object)_iteratorElementType == null || _iteratorElementType == value);
+                Debug.Assert((object)_iteratorElementType == null || TypeSymbol.Equals(_iteratorElementType, value, TypeCompareKind.ConsiderEverything2));
                 Interlocked.CompareExchange(ref _iteratorElementType, value, null);
             }
         }
@@ -299,8 +323,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray.Create(_syntax.GetReference());
 
         internal override bool GenerateDebugInfo => true;
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
@@ -430,33 +452,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result.ToImmutableAndFree();
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early)
         {
-            get
+            var clauses = _lazyTypeParameterConstraints;
+            if (clauses.IsDefault)
             {
-                if (_lazyTypeParameterConstraints.IsDefault)
+                // Early step.
+                var diagnostics = DiagnosticBag.GetInstance();
+                var constraints = this.MakeTypeParameterConstraintsEarly(
+                    _binder,
+                    TypeParameters,
+                    _syntax.ConstraintClauses,
+                    _syntax.Identifier.GetLocation(),
+                    diagnostics);
+                lock (_declarationDiagnostics)
                 {
-                    var diagnostics = DiagnosticBag.GetInstance();
-                    var constraints = this.MakeTypeParameterConstraints(
-                        _binder,
-                        TypeParameters,
-                        _syntax.ConstraintClauses,
-                        _syntax.Identifier.GetLocation(),
-                        diagnostics);
-
-                    lock (_declarationDiagnostics)
+                    if (_lazyTypeParameterConstraints.IsDefault)
                     {
-                        if (_lazyTypeParameterConstraints.IsDefault)
-                        {
-                            _declarationDiagnostics.AddRange(diagnostics);
-                            _lazyTypeParameterConstraints = constraints;
-                        }
+                        _declarationDiagnostics.AddRange(diagnostics);
+                        _lazyTypeParameterConstraints = constraints;
                     }
-                    diagnostics.Free();
                 }
-
-                return _lazyTypeParameterConstraints;
+                diagnostics.Free();
+                clauses = _lazyTypeParameterConstraints;
             }
+
+            if (!early && clauses.IsEarly())
+            {
+                // Late step.
+                var diagnostics = DiagnosticBag.GetInstance();
+                var constraints = ConstraintsHelper.MakeTypeParameterConstraintsLate(TypeParameters, clauses, diagnostics);
+                Debug.Assert(!constraints.IsEarly());
+                lock (_declarationDiagnostics)
+                {
+                    if (_lazyTypeParameterConstraints.IsEarly())
+                    {
+                        _declarationDiagnostics.AddRange(diagnostics);
+                        _lazyTypeParameterConstraints = constraints;
+                    }
+                }
+                diagnostics.Free();
+            }
+
+            return _lazyTypeParameterConstraints;
         }
 
         public override int GetHashCode()

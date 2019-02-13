@@ -5,7 +5,6 @@ using System.Collections.ObjectModel;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Text;
@@ -26,7 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private readonly string _languageName;
         private bool _initialized = false;
 
-        public HACK_AbstractCreateServicesOnUiThread(IServiceProvider serviceProvider, string languageName)
+        public HACK_AbstractCreateServicesOnUiThread(IThreadingContext threadingContext, IServiceProvider serviceProvider, string languageName)
+            : base(threadingContext)
         {
             _componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
             _languageName = languageName;

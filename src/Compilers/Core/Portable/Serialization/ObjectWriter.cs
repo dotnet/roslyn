@@ -510,7 +510,7 @@ namespace Roslyn.Utilities
                     // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
                     // to do this work.  That way we don't end up blocking the threadpool.
                     var task = Task.Factory.StartNew(
-                        a => WriteArrayValues((Array)a), 
+                        a => WriteArrayValues((Array)a),
                         array,
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,

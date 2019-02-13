@@ -277,10 +277,12 @@ unsafe class C<T>
 
             var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             compilation.VerifyDiagnostics(
-                // (8,7): error CS0306: The type 'int*' may not be used as a type argument
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*"),
-                // (9,7): error CS0306: The type 'int**' may not be used as a type argument
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int**").WithArguments("int**"),
+                // (8,13): error CS0306: The type 'int*' may not be used as a type argument
+                //     C<int*> f4;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "f4").WithArguments("int*").WithLocation(8, 13),
+                // (9,14): error CS0306: The type 'int**' may not be used as a type argument
+                //     C<int**> f5;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "f5").WithArguments("int**").WithLocation(9, 14),
 
                 // (4,10): warning CS0169: The field 'C<T>.f0' is never used
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "f0").WithArguments("C<T>.f0"),
@@ -3012,6 +3014,71 @@ public unsafe struct S
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
+        [Fact]
+        public void IsUnmanagedTypeSemanticModel()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+struct S1 { }
+struct S2 { public S1 F1; }
+struct S3 { public object F1; }
+struct S4<T> { public T F1; }
+struct S5<T> where T : unmanaged { public T F1; }
+enum E1 { }
+class C<T>
+{
+    unsafe void M<U>() where U : unmanaged
+    {
+        var s1 = new S1();
+        var s2 = new S2();
+        var s3 = new S3();
+        var s4 = new S4<int>();
+        var s5 = new S4<int>();
+        var i0 = 0;
+        var e1 = new E1();
+        var o1 = new object();
+        var c1 = new C<int>;
+        var t1 = default(T);
+        var u1 = default(U);
+        void* p1 = null;
+        var a1 = new { X = 0 };
+        var a2 = new int[1];
+        var t2 = (0, 0);
+    }
+}");
+            var comp = CreateCompilation(tree);
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetRoot();
+            // The spec states the following are unmanaged types:
+            // sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, decimal, or bool.
+            // Any enum_type.
+            // Any pointer_type.
+            // Any user-defined struct_type that is not a constructed type and contains fields of unmanaged_types only.
+            // A type parameter with an unmanaged constraint
+            Assert.True(getLocalType("s1").IsUnmanagedType);
+            Assert.True(getLocalType("s2").IsUnmanagedType);
+            Assert.False(getLocalType("s3").IsUnmanagedType);
+            Assert.False(getLocalType("s4").IsUnmanagedType);
+            Assert.False(getLocalType("s5").IsUnmanagedType);
+            Assert.True(getLocalType("i0").IsUnmanagedType);
+            Assert.True(getLocalType("e1").IsUnmanagedType);
+            Assert.False(getLocalType("o1").IsUnmanagedType);
+            Assert.False(getLocalType("c1").IsUnmanagedType);
+            Assert.False(getLocalType("t1").IsUnmanagedType);
+            Assert.True(getLocalType("u1").IsUnmanagedType);
+            Assert.True(getLocalType("p1").IsUnmanagedType);
+            Assert.False(getLocalType("a1").IsUnmanagedType);
+            Assert.False(getLocalType("a2").IsUnmanagedType);
+            Assert.False(getLocalType("t2").IsUnmanagedType);
+
+            ITypeSymbol getLocalType(string name)
+            {
+                var decl = root.DescendantNodes()
+                    .OfType<VariableDeclaratorSyntax>()
+                    .Single(n => n.Identifier.ValueText == name);
+                return ((ILocalSymbol)model.GetDeclaredSymbol(decl)).Type;
+            }
+        }
+
         #endregion IsManagedType
 
         #region AddressOf operand kinds
@@ -3892,7 +3959,7 @@ unsafe class C
             Assert.NotNull(declaredSymbol);
             Assert.Equal(SymbolKind.Local, declaredSymbol.Kind);
             Assert.Equal("p", declaredSymbol.Name);
-            Assert.Equal(type, ((LocalSymbol)declaredSymbol).Type);
+            Assert.Equal(type, ((LocalSymbol)declaredSymbol).Type.TypeSymbol);
         }
 
         [Fact]
@@ -4467,14 +4534,14 @@ struct S
             var callSyntax = syntax.Parent;
 
             var structType = compilation.GlobalNamespace.GetMember<TypeSymbol>("S");
-            var structPointerType = new PointerTypeSymbol(structType);
+            var structPointerType = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(structType));
             var structMethod1 = structType.GetMembers("M").OfType<MethodSymbol>().Single(m => m.ParameterCount == 0);
             var structMethod2 = structType.GetMembers("M").OfType<MethodSymbol>().Single(m => m.ParameterCount == 1);
 
             var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
             var receiverSymbol = receiverSummary.Symbol;
             Assert.Equal(SymbolKind.Local, receiverSymbol.Kind);
-            Assert.Equal(structPointerType, ((LocalSymbol)receiverSymbol).Type);
+            Assert.Equal(structPointerType, ((LocalSymbol)receiverSymbol).Type.TypeSymbol);
             Assert.Equal("p", receiverSymbol.Name);
             Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
             Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
@@ -4541,7 +4608,7 @@ struct S
             var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
             var receiverSymbol = receiverSummary.Symbol;
             Assert.Equal(SymbolKind.Local, receiverSymbol.Kind);
-            Assert.Equal(structType, ((LocalSymbol)receiverSymbol).Type);
+            Assert.Equal(structType, ((LocalSymbol)receiverSymbol).Type.TypeSymbol);
             Assert.Equal("s", receiverSymbol.Name);
             Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
             Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
@@ -4780,12 +4847,12 @@ unsafe class C
             var accessSyntax = syntax;
 
             var intType = compilation.GetSpecialType(SpecialType.System_Int32);
-            var intPointerType = new PointerTypeSymbol(intType);
+            var intPointerType = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(intType));
 
             var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
             var receiverSymbol = receiverSummary.Symbol;
             Assert.Equal(SymbolKind.Local, receiverSymbol.Kind);
-            Assert.Equal(intPointerType, ((LocalSymbol)receiverSymbol).Type);
+            Assert.Equal(intPointerType, ((LocalSymbol)receiverSymbol).Type.TypeSymbol);
             Assert.Equal("p", receiverSymbol.Name);
             Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
             Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
@@ -4797,7 +4864,7 @@ unsafe class C
             var indexSummary = model.GetSemanticInfoSummary(indexSyntax);
             var indexSymbol = indexSummary.Symbol;
             Assert.Equal(SymbolKind.Local, indexSymbol.Kind);
-            Assert.Equal(intType, ((LocalSymbol)indexSymbol).Type);
+            Assert.Equal(intType, ((LocalSymbol)indexSymbol).Type.TypeSymbol);
             Assert.Equal("i", indexSymbol.Name);
             Assert.Equal(CandidateReason.None, indexSummary.CandidateReason);
             Assert.Equal(0, indexSummary.CandidateSymbols.Length);
@@ -4847,12 +4914,12 @@ unsafe class C
             var accessSyntax = syntax;
 
             var intType = compilation.GetSpecialType(SpecialType.System_Int32);
-            var intPointerType = new PointerTypeSymbol(intType);
+            var intPointerType = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(intType));
 
             var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
             var receiverSymbol = receiverSummary.Symbol;
             Assert.Equal(SymbolKind.Field, receiverSymbol.Kind);
-            Assert.Equal(intPointerType, ((FieldSymbol)receiverSymbol).Type);
+            Assert.Equal(intPointerType, ((FieldSymbol)receiverSymbol).Type.TypeSymbol);
             Assert.Equal("f", receiverSymbol.Name);
             Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
             Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
@@ -4905,12 +4972,12 @@ unsafe class C
             var accessSyntax = syntax;
 
             var intType = compilation.GetSpecialType(SpecialType.System_Int32);
-            var intPointerType = new PointerTypeSymbol(intType);
+            var intPointerType = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(intType));
 
             var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
             var receiverSymbol = receiverSummary.Symbol;
             Assert.Equal(SymbolKind.Field, receiverSymbol.Kind);
-            Assert.Equal(intPointerType, ((FieldSymbol)receiverSymbol).Type);
+            Assert.Equal(intPointerType, ((FieldSymbol)receiverSymbol).Type.TypeSymbol);
             Assert.Equal("f", receiverSymbol.Name);
             Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
             Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
@@ -5472,7 +5539,7 @@ unsafe class C
             compilation.VerifyDiagnostics();
 
             var methodSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
-            var pointerType = methodSymbol.Parameters[0].Type;
+            var pointerType = methodSymbol.Parameters[0].Type.TypeSymbol;
             Assert.Equal(TypeKind.Pointer, pointerType.TypeKind);
 
             foreach (var binOpSyntax in tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>())
@@ -6723,7 +6790,7 @@ unsafe class C
                 Assert.NotNull(symbol);
                 Assert.Equal(LocalDeclarationKind.FixedVariable, symbol.DeclarationKind);
                 Assert.True(((ILocalSymbol)symbol).IsFixed);
-                TypeSymbol type = symbol.Type;
+                TypeSymbol type = symbol.Type.TypeSymbol;
                 Assert.Equal(TypeKind.Pointer, type.TypeKind);
                 Assert.Equal(SpecialType.System_Char, ((PointerTypeSymbol)type).PointedAtType.SpecialType);
             }
@@ -6758,7 +6825,7 @@ unsafe class C
 
             var stringSymbol = compilation.GetSpecialType(SpecialType.System_String);
             var charSymbol = compilation.GetSpecialType(SpecialType.System_Char);
-            var charPointerSymbol = new PointerTypeSymbol(charSymbol);
+            var charPointerSymbol = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(charSymbol));
 
             const int numSymbols = 3;
             var declarators = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Reverse().Take(numSymbols).Reverse().ToArray();
@@ -6787,7 +6854,7 @@ unsafe class C
             var summary1 = initializerSummaries[1];
             var arraySymbol = compilation.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<FieldSymbol>("a");
             Assert.Equal(arraySymbol, summary1.Symbol);
-            Assert.Equal(arraySymbol.Type, summary1.Type);
+            Assert.Equal(arraySymbol.Type.TypeSymbol, summary1.Type);
 
             var summary2 = initializerSummaries[2];
             Assert.Null(summary2.Symbol);
@@ -6830,9 +6897,9 @@ unsafe class C
 
             var stringSymbol = compilation.GetSpecialType(SpecialType.System_String);
             var charSymbol = compilation.GetSpecialType(SpecialType.System_Char);
-            var charPointerSymbol = new PointerTypeSymbol(charSymbol);
+            var charPointerSymbol = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(charSymbol));
             var voidSymbol = compilation.GetSpecialType(SpecialType.System_Void);
-            var voidPointerSymbol = new PointerTypeSymbol(voidSymbol);
+            var voidPointerSymbol = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(voidSymbol));
 
             const int numSymbols = 3;
             var declarators = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Reverse().Take(numSymbols).Reverse().ToArray();
@@ -6856,7 +6923,7 @@ unsafe class C
             var summary1 = initializerSummaries[1];
             var arraySymbol = compilation.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<FieldSymbol>("a");
             Assert.Equal(arraySymbol, summary1.Symbol);
-            Assert.Equal(arraySymbol.Type, summary1.Type);
+            Assert.Equal(arraySymbol.Type.TypeSymbol, summary1.Type);
             Assert.Equal(voidPointerSymbol, summary1.ConvertedType);
             Assert.Equal(Conversion.PointerToVoid, summary1.ImplicitConversion);
 
@@ -7644,30 +7711,30 @@ unsafe class C
                 // (6,34): error CS1586: Array creation must have array size or array initializer
                 //         { int* p = stackalloc int[]; }
                 Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(6, 34),
-                // (8,34): error CS1586: Array creation must have array size or array initializer
-                //         { int* p = stackalloc int[][]; }
-                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(8, 34),
-                // (9,34): error CS1586: Array creation must have array size or array initializer
-                //         { int* p = stackalloc int[][1]; }
-                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(9, 34),
-                // (9,37): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         { int* p = stackalloc int[][1]; }
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1").WithLocation(9, 37),
-                // (11,38): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         { int* p = stackalloc int[1][1]; }
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1").WithLocation(11, 38),
                 // (7,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[1, 1]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1, 1]").WithLocation(7, 31),
+                // (8,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
+                //         { int* p = stackalloc int[][]; }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(8, 31),
                 // (8,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[][]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][]").WithLocation(8, 31),
+                // (9,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
+                //         { int* p = stackalloc int[][1]; }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(9, 31),
                 // (9,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[][1]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][1]").WithLocation(9, 31),
+                // (10,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
+                //         { int* p = stackalloc int[1][]; }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(10, 31),
                 // (10,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[1][]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1][]").WithLocation(10, 31),
+                // (11,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
+                //         { int* p = stackalloc int[1][1]; }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(11, 31),
                 // (11,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[1][1]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1][1]").WithLocation(11, 31)
@@ -7822,7 +7889,7 @@ class C
             Assert.Equal(SpecialType.System_Int32, countSummary.ConvertedType.SpecialType);
             Assert.Equal(Conversion.ImplicitNumeric, countSummary.ImplicitConversion);
             var countSymbol = (LocalSymbol)countSummary.Symbol;
-            Assert.Equal(countSummary.Type, countSymbol.Type);
+            Assert.Equal(countSummary.Type, countSymbol.Type.TypeSymbol);
             Assert.Equal("count", countSymbol.Name);
             Assert.Equal(0, countSummary.CandidateSymbols.Length);
             Assert.Equal(CandidateReason.None, countSummary.CandidateReason);
@@ -8591,7 +8658,7 @@ namespace ConsoleApplication30
             var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).Compilation;
 
             var comp2 = CompileAndVerify(s2,
-                options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, 
+                options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails,
                 references: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) },
                 expectedOutput: "TrueFalse").Compilation;
 

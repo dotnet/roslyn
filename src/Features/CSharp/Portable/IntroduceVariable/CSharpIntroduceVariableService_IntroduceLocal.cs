@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
                 case LambdaExpressionSyntax lambda:
                     return IntroduceLocalDeclarationIntoLambda(
-                        document, lambda, expression, newLocalName, declarationStatement, 
+                        document, lambda, expression, newLocalName, declarationStatement,
                         allOccurrences, cancellationToken);
             }
 

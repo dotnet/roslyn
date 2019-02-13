@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     .Concat(documentsOfRenameSymbolDeclaration.First().Id)
                     .Select(d => d.ProjectId).Distinct();
 
+                // perf optimization: only look in declaring project when possible
                 if (ShouldRenameOnlyAffectDeclaringProject(symbol))
                 {
                     var isSubset = renameLocations.Select(l => l.DocumentId.ProjectId).Distinct().Except(projectIdsOfRenameSymbolDeclaration).IsEmpty();
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
                 else
                 {
-                    // We are trying to figure out the projects that directly depend on the project that contains the declaration for 
+                    // We are trying to figure out the projects that directly depend on the project that contains the declaration for
                     // the rename symbol.  Other projects should not be affected by the rename.
                     var relevantProjects = projectIdsOfRenameSymbolDeclaration.Concat(projectIdsOfRenameSymbolDeclaration.SelectMany(p =>
                        solution.GetProjectDependencyGraph().GetProjectsThatDirectlyDependOnThisProject(p))).Distinct();
@@ -108,8 +109,27 @@ namespace Microsoft.CodeAnalysis.Rename
         /// </summary>
         private static bool ShouldRenameOnlyAffectDeclaringProject(ISymbol symbol)
         {
-            // Explicit interface implementations can cascade to other projects
-            return symbol.DeclaredAccessibility == Accessibility.Private && !symbol.ExplicitInterfaceImplementations().Any();
+            if (symbol.DeclaredAccessibility != Accessibility.Private)
+            {
+                // non-private members can influence other projects.
+                return false;
+            }
+
+            if (symbol.ExplicitInterfaceImplementations().Any())
+            {
+                // Explicit interface implementations can cascade to other projects
+                return false;
+            }
+
+            if (symbol.IsOverride)
+            {
+                // private-overrides aren't actually legal.  But if we see one, we tolerate it and search other projects in case
+                // they override it.
+                // https://github.com/dotnet/roslyn/issues/25682
+                return false;
+            }
+
+            return true;
         }
 
         internal static TokenRenameInfo GetTokenRenameInfo(

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         private SyntaxToken GenerateUniqueName(
             SemanticModel semanticModel,
             SyntaxNode location, SyntaxNode containerOpt,
-            string baseName, Func<ISymbol, bool> filter, 
+            string baseName, Func<ISymbol, bool> filter,
             IEnumerable<string> usedNames, CancellationToken cancellationToken)
         {
             var syntaxFacts = this.SyntaxFactsService;

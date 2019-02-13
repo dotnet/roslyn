@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -219,7 +220,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected CancellationTokenSource GetNewCancellationSource_NoLock(object key)
                 {
-                    Contract.Requires(!_cancellationMap.ContainsKey(key));
+                    Debug.Assert(!_cancellationMap.ContainsKey(key));
 
                     var source = new CancellationTokenSource();
                     _cancellationMap.Add(key, source);

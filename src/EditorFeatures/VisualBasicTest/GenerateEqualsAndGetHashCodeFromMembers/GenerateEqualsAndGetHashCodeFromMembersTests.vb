@@ -4,17 +4,16 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 Imports Microsoft.CodeAnalysis.PickMembers
-Imports Microsoft.CodeAnalysis.VisualBasic.GenerateEqualsAndGetHashCodeFromMembers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructorFromMembers
     Public Class GenerateEqualsAndGetHashCodeFromMembersTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Private Const GenerateOperatorsId = AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.GenerateOperatorsId
-        Private Const ImplementIEquatableId = AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId
+        Private Const GenerateOperatorsId = GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.GenerateOperatorsId
+        Private Const ImplementIEquatableId = GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(
+            Return New GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(
                 DirectCast(parameters.fixProviderData, IPickMembersService))
         End Function
 
@@ -268,12 +267,12 @@ Class Program
                s = program.s
     End Function
 
-    Public Shared Operator =(program1 As Program, program2 As Program) As Boolean
-        Return EqualityComparer(Of Program).Default.Equals(program1, program2)
+    Public Shared Operator =(left As Program, right As Program) As Boolean
+        Return EqualityComparer(Of Program).Default.Equals(left, right)
     End Operator
 
-    Public Shared Operator <>(program1 As Program, program2 As Program) As Boolean
-        Return Not program1 = program2
+    Public Shared Operator <>(left As Program, right As Program) As Boolean
+        Return Not left = right
     End Operator
 End Class",
 chosenSymbols:=Nothing,
@@ -290,7 +289,7 @@ Class Program
     Public s As String
     [||]
 
-    Public Shared Operator =(program1 As Program, program2 As Program) As Boolean
+    Public Shared Operator =(left As Program, right As Program) As Boolean
         Return True
     End Operator
 End Class",
@@ -306,7 +305,7 @@ Class Program
                s = program.s
     End Function
 
-    Public Shared Operator =(program1 As Program, program2 As Program) As Boolean
+    Public Shared Operator =(left As Program, right As Program) As Boolean
         Return True
     End Operator
 End Class",
@@ -339,12 +338,12 @@ Structure Program
         Return s = program.s
     End Function
 
-    Public Shared Operator =(program1 As Program, program2 As Program) As Boolean
-        Return program1.Equals(program2)
+    Public Shared Operator =(left As Program, right As Program) As Boolean
+        Return left.Equals(right)
     End Operator
 
-    Public Shared Operator <>(program1 As Program, program2 As Program) As Boolean
-        Return Not program1 = program2
+    Public Shared Operator <>(left As Program, right As Program) As Boolean
+        Return Not left = right
     End Operator
 End Structure",
 chosenSymbols:=Nothing,

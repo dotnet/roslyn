@@ -156,7 +156,7 @@ namespace RunTests
 
         private static void WriteLogFile(Options options)
         {
-            var logFilePath = Path.Combine(options.LogsDirectory, "runtests.log");
+            var logFilePath = Path.Combine(options.OutputDirectory, "runtests.log");
             try
             {
                 using (var writer = new StreamWriter(logFilePath, append: false))
@@ -244,7 +244,7 @@ namespace RunTests
         {
             if (!string.IsNullOrEmpty(options.ProcDumpDirectory))
             {
-                return new ProcDumpInfo(Path.Combine(options.ProcDumpDirectory, "procdump.exe"), options.LogsDirectory);
+                return new ProcDumpInfo(Path.Combine(options.ProcDumpDirectory, "procdump.exe"), options.OutputDirectory);
             }
 
             return null;
@@ -291,12 +291,12 @@ namespace RunTests
 
                 // As a starting point we will just schedule the items we know to be a performance
                 // bottleneck.  Can adjust as we get real data.
-                if (name == "Roslyn.Compilers.CSharp.Emit.UnitTests.dll" ||
-                    name == "Roslyn.Services.Editor.UnitTests.dll" ||
+                if (name == "Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.dll" ||
+                    name == "Microsoft.CodeAnalysis.EditorFeatures.UnitTests.dll" ||
                     name == "Roslyn.Services.Editor.UnitTests2.dll" ||
-                    name == "Roslyn.VisualStudio.Services.UnitTests.dll" ||
-                    name == "Roslyn.Services.Editor.CSharp.UnitTests.dll" ||
-                    name == "Roslyn.Services.Editor.VisualBasic.UnitTests.dll")
+                    name == "Microsoft.VisualStudio.LanguageServices.UnitTests.dll" ||
+                    name == "Microsoft.CodeAnalysis.CSharp.EditorFeatures.UnitTests.dll" ||
+                    name == "Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests.dll")
                 {
                     list.AddRange(scheduler.Schedule(assemblyPath));
                 }
@@ -351,8 +351,8 @@ namespace RunTests
         {
             var testExecutionOptions = new TestExecutionOptions(
                 xunitPath: options.XunitPath,
-                procDumpInfo: GetProcDumpInfo(options),
-                logsDirectory: options.LogsDirectory,
+                procDumpInfo: options.UseProcDump ? GetProcDumpInfo(options) : null,
+                outputDirectory: options.OutputDirectory,
                 trait: options.Trait,
                 noTrait: options.NoTrait,
                 useHtml: options.UseHtml,
@@ -373,7 +373,7 @@ namespace RunTests
                 dataStorage = new WebDataStorage();
             }
 
-            return new CachingTestExecutor(testExecutionOptions, processTestExecutor, dataStorage);
+            return new CachingTestExecutor(processTestExecutor, dataStorage);
         }
 
         /// <summary>

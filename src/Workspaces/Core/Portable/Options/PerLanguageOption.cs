@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -9,12 +10,17 @@ namespace Microsoft.CodeAnalysis.Options
     /// An option that can be specified once per language.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class PerLanguageOption<T> : IOption
+    public class PerLanguageOption<T> : IOptionWithGroup
     {
         /// <summary>
         /// Feature this option is associated with.
         /// </summary>
         public string Feature { get; }
+
+        /// <summary>
+        /// Optional group/sub-feature for this option.
+        /// </summary>
+        internal OptionGroup Group { get; }
 
         /// <summary>
         /// The name of the option.
@@ -34,10 +40,25 @@ namespace Microsoft.CodeAnalysis.Options
         public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
         public PerLanguageOption(string feature, string name, T defaultValue)
+            : this(feature, name, defaultValue, storageLocations: Array.Empty<OptionStorageLocation>())
+        {
+        }
+
+        public PerLanguageOption(string feature, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
+            : this(feature, group: OptionGroup.Default, name, defaultValue, storageLocations)
+        {
+        }
+
+        internal PerLanguageOption(string feature, OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
         {
             if (string.IsNullOrWhiteSpace(feature))
             {
                 throw new ArgumentNullException(nameof(feature));
+            }
+
+            if (group == null)
+            {
+                throw new ArgumentNullException(nameof(group));
             }
 
             if (string.IsNullOrWhiteSpace(name))
@@ -46,19 +67,17 @@ namespace Microsoft.CodeAnalysis.Options
             }
 
             this.Feature = feature;
+            this.Group = group;
             this.Name = name;
             this.DefaultValue = defaultValue;
-        }
-
-        public PerLanguageOption(string feature, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
-            : this(feature, name, defaultValue)
-        {
-            StorageLocations = storageLocations.ToImmutableArray();
+            this.StorageLocations = storageLocations.ToImmutableArray();
         }
 
         object IOption.DefaultValue => this.DefaultValue;
 
         bool IOption.IsPerLanguage => true;
+
+        OptionGroup IOptionWithGroup.Group => this.Group;
 
         public override string ToString()
         {

@@ -3,6 +3,7 @@
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion.Sessions
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -11,6 +12,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
     <ExportLanguageService(GetType(IEditorBraceCompletionSessionFactory), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicEditorBraceCompletionSessionFactory
         Inherits AbstractEditorBraceCompletionSessionFactory
+
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New(threadingContext As IThreadingContext)
+            MyBase.New(threadingContext)
+        End Sub
 
         Protected Overrides Function IsSupportedOpeningBrace(openingBrace As Char) As Boolean
             Select Case openingBrace

@@ -30,7 +30,7 @@
 /r:System.Web.RegularExpressions.dll
 /r:System.Web.Services.dll
 /r:System.Windows.Forms.dll
-/r:System.XML.dll
+/r:System.Xml.dll
 
 /r:System.Workflow.Activities.dll
 /r:System.Workflow.ComponentModel.dll

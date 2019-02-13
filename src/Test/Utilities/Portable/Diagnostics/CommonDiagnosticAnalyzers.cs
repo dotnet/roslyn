@@ -464,6 +464,16 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class AnalyzerWithNullDescriptor : DiagnosticAnalyzer
+        {
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create((DiagnosticDescriptor)null);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCompilationAction(_ => { });
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class AnalyzerWithCSharpCompilerDiagnosticId : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
@@ -598,7 +608,9 @@ namespace Microsoft.CodeAnalysis
                 context.RegisterCompilationAction(AsyncAction);
             }
 
+#pragma warning disable VSTHRD100 // Avoid async void methods
             private async void AsyncAction(CompilationAnalysisContext context)
+#pragma warning restore VSTHRD100 // Avoid async void methods
             {
                 context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None));
                 await Task.FromResult(true);
@@ -619,7 +631,9 @@ namespace Microsoft.CodeAnalysis
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
             public override void Initialize(AnalysisContext context)
             {
+#pragma warning disable VSTHRD101 // Avoid unsupported async delegates
                 context.RegisterCompilationAction(async (compilationContext) =>
+#pragma warning restore VSTHRD101 // Avoid unsupported async delegates
                 {
                     compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None));
                     await Task.FromResult(true);
@@ -973,7 +987,7 @@ namespace Microsoft.CodeAnalysis
                             blockContext.RegisterOperationAction(operationContext =>
                             {
                                 ReportDiagnostic(operationContext.ReportDiagnostic, operationContext.Operation.Syntax.GetLocation());
-                                VerifyControlFlowGraph(operationContext, inBlockAnalysisContext: true);                                
+                                VerifyControlFlowGraph(operationContext, inBlockAnalysisContext: true);
                             }, OperationKind.Literal);
                         });
                         break;
@@ -1075,7 +1089,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var diagnostic = Diagnostic.Create(Descriptor, operationContext.Operation.Syntax.GetLocation(), operationContext.ContainingSymbol.Name);
                     operationContext.ReportDiagnostic(diagnostic);
-                }, OperationKind.MethodBodyOperation, OperationKind.ConstructorBodyOperation);
+                }, OperationKind.MethodBody, OperationKind.ConstructorBody);
             }
         }
 
@@ -1359,6 +1373,292 @@ namespace Microsoft.CodeAnalysis
             private void SymbolAction(SymbolAnalysisContext context)
             {
                 context.ReportDiagnostic(Diagnostic.Create(ParameterDescriptor, context.Symbol.Locations[0]));
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class SymbolStartAnalyzer : DiagnosticAnalyzer
+        {
+            private readonly SymbolKind _symbolKind;
+            private readonly bool _topLevelAction;
+            private readonly OperationKind? _operationKind;
+            private readonly string _analyzerId;
+
+            public SymbolStartAnalyzer(bool topLevelAction, SymbolKind symbolKind, OperationKind? operationKindOpt = null, int? analyzerId = null)
+            {
+                _topLevelAction = topLevelAction;
+                _symbolKind = symbolKind;
+                _operationKind = operationKindOpt;
+                _analyzerId = $"Analyzer{(analyzerId.HasValue ? analyzerId.Value : 1)}";
+            }
+
+            public static readonly DiagnosticDescriptor SymbolStartTopLevelRule = new DiagnosticDescriptor(
+                "SymbolStartTopLevelRuleId",
+                "SymbolStartTopLevelRuleTitle",
+                "Symbol : {0}, Analyzer: {1}",
+                "Category",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public static readonly DiagnosticDescriptor SymbolStartCompilationLevelRule = new DiagnosticDescriptor(
+                "SymbolStartRuleId",
+                "SymbolStartRuleTitle",
+                "Symbol : {0}, Analyzer: {1}",
+                "Category",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public static readonly DiagnosticDescriptor SymbolStartedEndedDifferRule = new DiagnosticDescriptor(
+                "SymbolStartedEndedDifferRuleId",
+                "SymbolStartedEndedDifferRuleTitle",
+                "Symbols Started: '{0}', Symbols Ended: '{1}', Analyzer: {2}",
+                "Category",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public static readonly DiagnosticDescriptor SymbolStartedOrderingRule = new DiagnosticDescriptor(
+               "SymbolStartedOrderingRuleId",
+               "SymbolStartedOrderingRuleTitle",
+               "Member '{0}' started before container '{1}', Analyzer: {2}",
+               "Category",
+               defaultSeverity: DiagnosticSeverity.Warning,
+               isEnabledByDefault: true);
+
+            public static readonly DiagnosticDescriptor SymbolEndedOrderingRule = new DiagnosticDescriptor(
+               "SymbolEndedOrderingRuleId",
+               "SymbolEndedOrderingRuleTitle",
+               "Container '{0}' ended before member '{1}', Analyzer: {2}",
+               "Category",
+               defaultSeverity: DiagnosticSeverity.Warning,
+               isEnabledByDefault: true);
+
+            public static readonly DiagnosticDescriptor OperationOrderingRule = new DiagnosticDescriptor(
+               "OperationOrderingRuleId",
+               "OperationOrderingRuleTitle",
+               "Container '{0}' started after operation '{1}', Analyzer: {2}",
+               "Category",
+               defaultSeverity: DiagnosticSeverity.Warning,
+               isEnabledByDefault: true);
+
+            public static readonly DiagnosticDescriptor DuplicateStartActionRule = new DiagnosticDescriptor(
+               "DuplicateStartActionRuleId",
+               "DuplicateStartActionRuleTitle",
+               "Symbol : {0}, Analyzer: {1}",
+               "Category",
+               defaultSeverity: DiagnosticSeverity.Warning,
+               isEnabledByDefault: true);
+
+            public static readonly DiagnosticDescriptor DuplicateEndActionRule = new DiagnosticDescriptor(
+              "DuplicateEndActionRuleId",
+              "DuplicateEndActionRuleTitle",
+              "Symbol : {0}, Analyzer: {1}",
+              "Category",
+              defaultSeverity: DiagnosticSeverity.Warning,
+              isEnabledByDefault: true);
+
+            public static readonly DiagnosticDescriptor OperationRule = new DiagnosticDescriptor(
+                "OperationRuleId",
+                "OperationRuleTitle",
+                "Symbol Started: '{0}', Owning Symbol: '{1}' Operation : {2}, Analyzer: {3}",
+                "Category",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            {
+                get
+                {
+                    return ImmutableArray.Create(
+                        SymbolStartTopLevelRule,
+                        SymbolStartCompilationLevelRule,
+                        SymbolStartedEndedDifferRule,
+                        SymbolStartedOrderingRule,
+                        SymbolEndedOrderingRule,
+                        DuplicateStartActionRule,
+                        DuplicateEndActionRule,
+                        OperationRule,
+                        OperationOrderingRule);
+                }
+            }
+
+            public override void Initialize(AnalysisContext context)
+            {
+                var diagnostics = new ConcurrentBag<Diagnostic>();
+                var symbolsStarted = new ConcurrentSet<ISymbol>();
+                var symbolsEnded = new ConcurrentSet<ISymbol>();
+                var seenOperationContainers = new ConcurrentDictionary<OperationAnalysisContext, ISet<ISymbol>>();
+
+                if (_topLevelAction)
+                {
+                    context.RegisterSymbolStartAction(onSymbolStart, _symbolKind);
+
+                    context.RegisterCompilationStartAction(compilationStartContext =>
+                    {
+                        compilationStartContext.RegisterCompilationEndAction(compilationEndContext =>
+                        {
+                            reportDiagnosticsAtCompilationEnd(compilationEndContext);
+                        });
+                    });
+                }
+                else
+                {
+                    context.RegisterCompilationStartAction(compilationStartContext =>
+                    {
+                        compilationStartContext.RegisterSymbolStartAction(onSymbolStart, _symbolKind);
+
+                        compilationStartContext.RegisterCompilationEndAction(compilationEndContext =>
+                        {
+                            reportDiagnosticsAtCompilationEnd(compilationEndContext);
+                        });
+                    });
+                }
+
+                return;
+
+                void onSymbolStart(SymbolStartAnalysisContext symbolStartContext)
+                {
+                    performSymbolStartActionVerification(symbolStartContext);
+
+                    if (_operationKind.HasValue)
+                    {
+                        symbolStartContext.RegisterOperationAction(operationContext =>
+                        {
+                            performOperationActionVerification(operationContext, symbolStartContext);
+                        }, _operationKind.Value);
+                    }
+
+                    symbolStartContext.RegisterSymbolEndAction(symbolEndContext =>
+                    {
+                        performSymbolEndActionVerification(symbolEndContext, symbolStartContext);
+                    });
+                }
+
+                void reportDiagnosticsAtCompilationEnd(CompilationAnalysisContext compilationEndContext)
+                {
+                    if (!symbolsStarted.SetEquals(symbolsEnded))
+                    {
+                        // Symbols Started: '{0}', Symbols Ended: '{1}', Analyzer: {2}
+                        var symbolsStartedStr = string.Join(", ", symbolsStarted.Select(s => s.ToDisplayString()).Order());
+                        var symbolsEndedStr = string.Join(", ", symbolsEnded.Select(s => s.ToDisplayString()).Order());
+                        compilationEndContext.ReportDiagnostic(Diagnostic.Create(SymbolStartedEndedDifferRule, Location.None, symbolsStartedStr, symbolsEndedStr, _analyzerId));
+                    }
+
+                    foreach (var diagnostic in diagnostics)
+                    {
+                        compilationEndContext.ReportDiagnostic(diagnostic);
+                    }
+                }
+
+                void performSymbolStartActionVerification(SymbolStartAnalysisContext symbolStartContext)
+                {
+                    verifySymbolStartOrdering(symbolStartContext);
+                    verifySymbolStartAndOperationOrdering(symbolStartContext);
+                    if (!symbolsStarted.Add(symbolStartContext.Symbol))
+                    {
+                        diagnostics.Add(Diagnostic.Create(DuplicateStartActionRule, Location.None, symbolStartContext.Symbol.Name, _analyzerId));
+                    }
+                }
+
+                void performSymbolEndActionVerification(SymbolAnalysisContext symbolEndContext, SymbolStartAnalysisContext symbolStartContext)
+                {
+                    Assert.Equal(symbolStartContext.Symbol, symbolEndContext.Symbol);
+                    verifySymbolEndOrdering(symbolEndContext);
+                    if (!symbolsEnded.Add(symbolEndContext.Symbol))
+                    {
+                        diagnostics.Add(Diagnostic.Create(DuplicateEndActionRule, Location.None, symbolEndContext.Symbol.Name, _analyzerId));
+                    }
+
+                    Assert.False(symbolEndContext.Symbol.IsImplicitlyDeclared);
+                    var rule = _topLevelAction ? SymbolStartTopLevelRule : SymbolStartCompilationLevelRule;
+                    symbolEndContext.ReportDiagnostic(Diagnostic.Create(rule, Location.None, symbolStartContext.Symbol.Name, _analyzerId));
+                }
+
+                void performOperationActionVerification(OperationAnalysisContext operationContext, SymbolStartAnalysisContext symbolStartContext)
+                {
+                    var containingSymbols = GetContainingSymbolsAndThis(operationContext.ContainingSymbol).ToSet();
+                    seenOperationContainers.Add(operationContext, containingSymbols);
+                    Assert.Contains(symbolStartContext.Symbol, containingSymbols);
+                    Assert.All(containingSymbols, s => Assert.DoesNotContain(s, symbolsEnded));
+                    // Symbol Started: '{0}', Owning Symbol: '{1}' Operation : {2}, Analyzer: {3}
+                    operationContext.ReportDiagnostic(Diagnostic.Create(OperationRule, Location.None, symbolStartContext.Symbol.Name, operationContext.ContainingSymbol.Name, operationContext.Operation.Syntax.ToString(), _analyzerId));
+                }
+
+                IEnumerable<ISymbol> GetContainingSymbolsAndThis(ISymbol symbol)
+                {
+                    do
+                    {
+                        yield return symbol;
+                        symbol = symbol.ContainingSymbol;
+                    }
+                    while (symbol != null && !symbol.IsImplicitlyDeclared);
+                }
+
+                void verifySymbolStartOrdering(SymbolStartAnalysisContext symbolStartContext)
+                {
+                    ISymbol symbolStarted = symbolStartContext.Symbol;
+                    IEnumerable<ISymbol> members;
+                    switch (symbolStarted)
+                    {
+                        case INamedTypeSymbol namedType:
+                            members = namedType.GetMembers();
+                            break;
+
+                        case INamespaceSymbol namespaceSym:
+                            members = namespaceSym.GetMembers();
+                            break;
+
+                        default:
+                            return;
+                    }
+
+                    foreach (var member in members.Where(m => !m.IsImplicitlyDeclared))
+                    {
+                        if (symbolsStarted.Contains(member))
+                        {
+                            // Member '{0}' started before container '{1}', Analyzer {2}
+                            diagnostics.Add(Diagnostic.Create(SymbolStartedOrderingRule, Location.None, member, symbolStarted, _analyzerId));
+                        }
+                    }
+                }
+
+                void verifySymbolEndOrdering(SymbolAnalysisContext symbolEndContext)
+                {
+                    ISymbol symbolEnded = symbolEndContext.Symbol;
+                    IList<ISymbol> containersToVerify = new List<ISymbol>();
+                    if (symbolEnded.ContainingType != null)
+                    {
+                        containersToVerify.Add(symbolEnded.ContainingType);
+                    }
+
+                    if (symbolEnded.ContainingNamespace != null)
+                    {
+                        containersToVerify.Add(symbolEnded.ContainingNamespace);
+                    }
+
+                    foreach (var container in containersToVerify)
+                    {
+                        if (symbolsEnded.Contains(container))
+                        {
+                            // Container '{0}' ended before member '{1}', Analyzer {2}
+                            diagnostics.Add(Diagnostic.Create(SymbolEndedOrderingRule, Location.None, container, symbolEnded, _analyzerId));
+                        }
+                    }
+                }
+
+                void verifySymbolStartAndOperationOrdering(SymbolStartAnalysisContext symbolStartContext)
+                {
+                    foreach (var kvp in seenOperationContainers)
+                    {
+                        OperationAnalysisContext operationContext = kvp.Key;
+                        ISet<ISymbol> containers = kvp.Value;
+
+                        if (containers.Contains(symbolStartContext.Symbol))
+                        {
+                            // Container '{0}' started after operation '{1}', Analyzer {2}
+                            diagnostics.Add(Diagnostic.Create(OperationOrderingRule, Location.None, symbolStartContext.Symbol, operationContext.Operation.Syntax.ToString(), _analyzerId));
+                        }
+                    }
+                }
             }
         }
     }

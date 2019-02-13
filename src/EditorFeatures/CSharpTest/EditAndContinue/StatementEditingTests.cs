@@ -109,7 +109,7 @@ var x = $""Hello{123:N2}"";
 var (x1, (x2, x3)) = (1, (2, true));
 var (a1, a2) = (1, () => { return 7; });
 ";
-           var src2 = @"
+            var src2 = @"
 var (x1, (x2, x4)) = (1, (2, true));
 var (a1, a3) = (1, () => { return 8; });
 ";
@@ -5966,7 +5966,7 @@ class C
         [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
         public void LocalFunctions_Update_CeaseCapture_SetterValueParameter1()
         {
-    var src1 = @"
+            var src1 = @"
 using System;
 
 class C

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -71,6 +72,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsIndexerMemberCref = false;
                 var containsDeconstruction = false;
                 var containsAwait = false;
+                var containsTupleExpressionOrTupleType = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
@@ -98,6 +100,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                 || syntaxFacts.IsDeconstructionForEachStatement(node);
 
                             containsAwait = containsAwait || syntaxFacts.IsAwaitExpression(node);
+                            containsTupleExpressionOrTupleType = containsTupleExpressionOrTupleType ||
+                                syntaxFacts.IsTupleExpression(node) || syntaxFacts.IsTupleType(node);
 
                             // We've received a number of error reports where DeclaredSymbolInfo.GetSymbolAsync() will
                             // crash because the document's syntax root doesn't contain the span of the node returned
@@ -207,7 +211,8 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             containsElementAccess,
                             containsIndexerMemberCref,
                             containsDeconstruction,
-                            containsAwait),
+                            containsAwait,
+                            containsTupleExpressionOrTupleType),
                     new DeclarationInfo(
                             declaredSymbolInfos.ToImmutableAndFree()));
             }
@@ -219,7 +224,7 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
             }
         }
 
-        private static StringTable GetStringTable(Project project) 
+        private static StringTable GetStringTable(Project project)
             => s_projectStringTable.GetValue(project, _ => StringTable.GetInstance());
 
         private static void GetIdentifierSet(bool ignoreCase, out HashSet<string> identifiers, out HashSet<string> escapedIdentifiers)
@@ -229,32 +234,32 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 identifiers = SharedPools.StringIgnoreCaseHashSet.AllocateAndClear();
                 escapedIdentifiers = SharedPools.StringIgnoreCaseHashSet.AllocateAndClear();
 
-                Contract.Requires(identifiers.Comparer == StringComparer.OrdinalIgnoreCase);
-                Contract.Requires(escapedIdentifiers.Comparer == StringComparer.OrdinalIgnoreCase);
+                Debug.Assert(identifiers.Comparer == StringComparer.OrdinalIgnoreCase);
+                Debug.Assert(escapedIdentifiers.Comparer == StringComparer.OrdinalIgnoreCase);
                 return;
             }
 
             identifiers = SharedPools.StringHashSet.AllocateAndClear();
             escapedIdentifiers = SharedPools.StringHashSet.AllocateAndClear();
 
-            Contract.Requires(identifiers.Comparer == StringComparer.Ordinal);
-            Contract.Requires(escapedIdentifiers.Comparer == StringComparer.Ordinal);
+            Debug.Assert(identifiers.Comparer == StringComparer.Ordinal);
+            Debug.Assert(escapedIdentifiers.Comparer == StringComparer.Ordinal);
         }
 
         private static void Free(bool ignoreCase, HashSet<string> identifiers, HashSet<string> escapedIdentifiers)
         {
             if (ignoreCase)
             {
-                Contract.Requires(identifiers.Comparer == StringComparer.OrdinalIgnoreCase);
-                Contract.Requires(escapedIdentifiers.Comparer == StringComparer.OrdinalIgnoreCase);
+                Debug.Assert(identifiers.Comparer == StringComparer.OrdinalIgnoreCase);
+                Debug.Assert(escapedIdentifiers.Comparer == StringComparer.OrdinalIgnoreCase);
 
                 SharedPools.StringIgnoreCaseHashSet.ClearAndFree(identifiers);
                 SharedPools.StringIgnoreCaseHashSet.ClearAndFree(escapedIdentifiers);
                 return;
             }
 
-            Contract.Requires(identifiers.Comparer == StringComparer.Ordinal);
-            Contract.Requires(escapedIdentifiers.Comparer == StringComparer.Ordinal);
+            Debug.Assert(identifiers.Comparer == StringComparer.Ordinal);
+            Debug.Assert(escapedIdentifiers.Comparer == StringComparer.Ordinal);
 
             SharedPools.StringHashSet.ClearAndFree(identifiers);
             SharedPools.StringHashSet.ClearAndFree(escapedIdentifiers);

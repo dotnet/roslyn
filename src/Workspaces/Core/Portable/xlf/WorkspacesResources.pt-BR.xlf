@@ -7,9 +7,74 @@
         <target state="translated">Ocorreu um erro ao ler o arquivo de configuração especificado: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="CSharp_files">
+        <source>C# files</source>
+        <target state="translated">Arquivos C#</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_document_0_is_not_supported">
+        <source>Changing document '{0}' is not supported.</source>
+        <target state="translated">Não há suporte para alterar o documento '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Core_EditorConfig_Options">
+        <source>Core EditorConfig Options</source>
+        <target state="translated">Opções Principais do EditorConfig</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DateTimeKind_must_be_Utc">
+        <source>DateTimeKind must be Utc</source>
+        <target state="new">DateTimeKind must be Utc</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expression_level_preferences">
+        <source>Expression-level preferences</source>
+        <target state="translated">Preferências de nível de expressão</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Field_preferences">
+        <source>Field preferences</source>
+        <target state="translated">Preferências de campo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_and_spacing">
+        <source>Indentation and spacing</source>
+        <target state="translated">Recuo e espaçamento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Language_keywords_vs_BCL_types_preferences">
+        <source>Language keywords vs BCL types preferences</source>
+        <target state="translated">Preferências de tipos BCL contra palavras-chave do idioma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifier_preferences">
+        <source>Modifier preferences</source>
+        <target state="translated">Preferências de modificador</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_line_preferences">
+        <source>New line preferences</source>
+        <target state="translated">Preferências de nova linha</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Organize_usings">
+        <source>Organize usings</source>
+        <target state="translated">Organizar Usos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_preferences">
+        <source>Parentheses preferences</source>
+        <target state="translated">Preferências de parênteses</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
         <target state="translated">Somente Refatoração</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories">
+        <source>Remove the line below if you want to inherit .editorconfig settings from higher directories</source>
+        <target state="translated">Remova a linha abaixo se quiser herdar as configurações do .editorconfig de diretórios superiores</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
@@ -87,6 +152,11 @@
         <target state="translated">Não há suporte para adicionar projetos.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Visual_Basic_files">
+        <source>Visual Basic files</source>
+        <target state="translated">Arquivos do Visual Basic</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
         <target state="translated">Workspace não está vazio.</target>
@@ -94,12 +164,12 @@
       </trans-unit>
       <trans-unit id="_0_is_not_part_of_the_workspace">
         <source>'{0}' is not part of the workspace.</source>
-        <target state="translated">'"{0}" não é parte do workspace.</target>
+        <target state="translated">"{0}" não é parte do workspace.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_already_part_of_the_workspace">
         <source>'{0}' is already part of the workspace.</source>
-        <target state="translated">'"{0}" já é parte do workspace.</target>
+        <target state="translated">'{0}' já é parte da área de trabalho.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_referenced">
@@ -499,7 +569,7 @@
       </trans-unit>
       <trans-unit id="The_type_0_is_not_understood_by_the_serialization_binder">
         <source>The type '{0}' is not understood by the serialization binder.</source>
-        <target state="translated">O tipo '{0}' não é compreendido pelo associador de serialização.</target>
+        <target state="translated">O tipo '{0}' não é reconhecido pelo associador de serialização.</target>
         <note />
       </trans-unit>
       <trans-unit id="Label_for_node_0_is_invalid_it_must_be_within_bracket_0_1">
@@ -554,7 +624,7 @@
       </trans-unit>
       <trans-unit id="This_workspace_does_not_support_opening_and_closing_documents">
         <source>This workspace does not support opening and closing documents.</source>
-        <target state="translated">Este workspace não dá suporte para abrir e fechar documentos.</target>
+        <target state="translated">Este espaço de trabalho não oferece suporte a abertura e fechamento de documentos.</target>
         <note />
       </trans-unit>
       <trans-unit id="Usage_colon">
@@ -599,7 +669,7 @@
       </trans-unit>
       <trans-unit id="Options_did_not_come_from_Workspace">
         <source>Options did not come from Workspace</source>
-        <target state="translated">As opções não vieram do Workspace</target>
+        <target state="translated">Opções não veio do espaço de trabalho</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable">
@@ -654,27 +724,27 @@
       </trans-unit>
       <trans-unit id="Class">
         <source>Class</source>
-        <target state="translated">Classe</target>
+        <target state="new">Class</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Delegate">
         <source>Delegate</source>
-        <target state="translated">Delegado</target>
+        <target state="new">Delegate</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Enum">
         <source>Enum</source>
-        <target state="translated">Enumeração</target>
+        <target state="new">Enum</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Event">
         <source>Event</source>
-        <target state="translated">Evento</target>
+        <target state="new">Event</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Interface">
         <source>Interface</source>
-        <target state="translated">Interface</target>
+        <target state="new">Interface</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Non_Field_Members">
@@ -699,7 +769,7 @@
       </trans-unit>
       <trans-unit id="Property">
         <source>Property</source>
-        <target state="translated">Propriedade</target>
+        <target state="new">Property</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Public_or_Protected_Field">
@@ -719,7 +789,7 @@
       </trans-unit>
       <trans-unit id="Struct">
         <source>Struct</source>
-        <target state="translated">Struct</target>
+        <target state="new">Struct</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Types">
@@ -729,7 +799,7 @@
       </trans-unit>
       <trans-unit id="Method">
         <source>Method</source>
-        <target state="translated">Método</target>
+        <target state="translated">método</target>
         <note>{locked:method} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Missing_prefix_colon_0">
@@ -744,7 +814,7 @@
       </trans-unit>
       <trans-unit id="None">
         <source>None</source>
-        <target state="translated">Nenhum</target>
+        <target state="translated">NENHUM</target>
         <note />
       </trans-unit>
       <trans-unit id="Missing_suffix_colon_0">
@@ -802,9 +872,204 @@
         <target state="translated">Não há suporte para alterar as propriedades do documento</target>
         <note />
       </trans-unit>
+      <trans-unit id="Alternation_conditions_cannot_be_comments">
+        <source>Alternation conditions cannot be comments</source>
+        <target state="translated">Condições de alternância não podem ser comentários</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a|(?#b)</note>
+      </trans-unit>
+      <trans-unit id="Alternation_conditions_do_not_capture_and_cannot_be_named">
+        <source>Alternation conditions do not capture and cannot be named</source>
+        <target state="translated">Condições de alternância não capturam e não podem ser nomeadas</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</note>
+      </trans-unit>
+      <trans-unit id="A_subtraction_must_be_the_last_element_in_a_character_class">
+        <source>A subtraction must be the last element in a character class</source>
+        <target state="translated">Uma subtração deve ser o último elemento em uma classe de caracteres</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
+      </trans-unit>
+      <trans-unit id="Cannot_include_class_0_in_character_range">
+        <source>Cannot include class \{0} in character range</source>
+        <target state="translated">Não é possível incluir a classe \{0} no intervalo de caracteres</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-\w]. {0} is the invalid class (\w here)</note>
+      </trans-unit>
+      <trans-unit id="Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue">
+        <source>Capture group numbers must be less than or equal to Int32.MaxValue</source>
+        <target state="translated">Os números do grupo de captura devem ser menores ou iguais a Int32.MaxValue</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{2147483648}</note>
+      </trans-unit>
+      <trans-unit id="Capture_number_cannot_be_zero">
+        <source>Capture number cannot be zero</source>
+        <target state="translated">O número da captura não pode ser zero</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;0&gt;a)</note>
+      </trans-unit>
+      <trans-unit id="Illegal_backslash_at_end_of_pattern">
+        <source>Illegal \ at end of pattern</source>
+        <target state="translated">\ ilegal no final do padrão</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \</note>
+      </trans-unit>
+      <trans-unit id="Illegal_x_y_with_x_less_than_y">
+        <source>Illegal {x,y} with x &gt; y</source>
+        <target state="translated">{x,y} ilegal com x&gt; y</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{1,0}</note>
+      </trans-unit>
+      <trans-unit id="Incomplete_character_escape">
+        <source>Incomplete \p{X} character escape</source>
+        <target state="translated">Escape de caractere incompleto \p{X}</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p{ Cc }</note>
+      </trans-unit>
+      <trans-unit id="Insufficient_hexadecimal_digits">
+        <source>Insufficient hexadecimal digits</source>
+        <target state="translated">Dígitos hexadecimais insuficientes</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \x</note>
+      </trans-unit>
+      <trans-unit id="Invalid_group_name_Group_names_must_begin_with_a_word_character">
+        <source>Invalid group name: Group names must begin with a word character</source>
+        <target state="translated">Nome de grupo inválido: nomes de grupos devem começar com um caractere de palavra</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
+      </trans-unit>
+      <trans-unit id="Malformed">
+        <source>malformed</source>
+        <target state="translated">malformado</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</note>
+      </trans-unit>
+      <trans-unit id="Malformed_character_escape">
+        <source>Malformed \p{X} character escape</source>
+        <target state="translated">Escape de caractere malformado \p{x}</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p {Cc}</note>
+      </trans-unit>
+      <trans-unit id="Malformed_named_back_reference">
+        <source>Malformed \k&lt;...&gt; named back reference</source>
+        <target state="translated">Referência inversa \k&lt;...&gt; mal formada</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k'</note>
+      </trans-unit>
+      <trans-unit id="Missing_control_character">
+        <source>Missing control character</source>
+        <target state="translated">Caractere de controle ausente</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
+      </trans-unit>
+      <trans-unit id="Nested_quantifier_0">
+        <source>Nested quantifier {0}</source>
+        <target state="translated">Quantificador aninhado {0}</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
+      </trans-unit>
+      <trans-unit id="Not_enough_close_parens">
+        <source>Not enough )'s</source>
+        <target state="translated">Não há )'s suficientes</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
+      </trans-unit>
+      <trans-unit id="Quantifier_x_y_following_nothing">
+        <source>Quantifier {x,y} following nothing</source>
+        <target state="translated">Nada precede o quantificador {x,y}</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</note>
+      </trans-unit>
+      <trans-unit id="Reference_to_undefined_group">
+        <source>reference to undefined group</source>
+        <target state="translated">referência a grupo indefinido</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1))</note>
+      </trans-unit>
+      <trans-unit id="Reference_to_undefined_group_name_0">
+        <source>Reference to undefined group name {0}</source>
+        <target state="translated">Referência ao nome do grupo indefinido {0}</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k&lt;a&gt;. Here, {0} will be the name of the undefined group ('a')</note>
+      </trans-unit>
+      <trans-unit id="Reference_to_undefined_group_number_0">
+        <source>Reference to undefined group number {0}</source>
+        <target state="translated">Referência ao grupo número {0} indefinido</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;-1&gt;). Here, {0} will be the number of the undefined group ('1')</note>
+      </trans-unit>
+      <trans-unit id="Too_many_bars_in_conditional_grouping">
+        <source>Too many | in (?()|)</source>
+        <target state="translated">Muitos | em (?()|)</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0)a|b|)</note>
+      </trans-unit>
+      <trans-unit id="Too_many_close_parens">
+        <source>Too many )'s</source>
+        <target state="translated">Muitos )'s</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
+      </trans-unit>
+      <trans-unit id="Unknown_property">
+        <source>Unknown property</source>
+        <target state="translated">Propriedade desconhecida</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p{}</note>
+      </trans-unit>
+      <trans-unit id="Unknown_property_0">
+        <source>Unknown property '{0}'</source>
+        <target state="translated">Propriedade desconhecida '{0}'</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p{xxx}. Here, {0} will be the name of the unknown property ('xxx')</note>
+      </trans-unit>
+      <trans-unit id="Unrecognized_control_character">
+        <source>Unrecognized control character</source>
+        <target state="translated">Caractere de controle não reconhecido</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [\c]</note>
+      </trans-unit>
+      <trans-unit id="Unrecognized_escape_sequence_0">
+        <source>Unrecognized escape sequence \{0}</source>
+        <target state="translated">Sequência de escape não reconhecida \{0}</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \m. Here, {0} will be the unrecognized character ('m')</note>
+      </trans-unit>
+      <trans-unit id="Unrecognized_grouping_construct">
+        <source>Unrecognized grouping construct</source>
+        <target state="translated">Constructo de agrupamento não reconhecida</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;</note>
+      </trans-unit>
+      <trans-unit id="Unterminated_character_class_set">
+        <source>Unterminated [] set</source>
+        <target state="translated">Conjunto [] não finalizado</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [</note>
+      </trans-unit>
+      <trans-unit id="Unterminated_regex_comment">
+        <source>Unterminated (?#...) comment</source>
+        <target state="translated">Comentário (?#...) não finalizado</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?#</note>
+      </trans-unit>
+      <trans-unit id="dot_NET_Coding_Conventions">
+        <source>.NET Coding Conventions</source>
+        <target state="translated">Convenções de codificação .NET</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="this_dot_and_Me_dot_preferences">
+        <source>this. and Me. preferences</source>
+        <target state="translated">Preferências</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="x_y_range_in_reverse_order">
+        <source>[x-y] range in reverse order</source>
+        <target state="translated">intervalo [x-y] em ordem inversa</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [b-a]</note>
+      </trans-unit>
       <trans-unit id="Variables_captured_colon">
         <source>Variables captured:</source>
         <target state="translated">Variáveis capturadas:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_issue_0">
+        <source>Regex issue: {0}</source>
+        <target state="translated">Problema do Regex: {0}</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. {0} will be the actual text of one of the above Regular Expression errors.</note>
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_NameOnly">
+        <source>NameOnly</source>
+        <target state="new">NameOnly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Read">
+        <source>Read</source>
+        <target state="new">Read</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Reference">
+        <source>Reference</source>
+        <target state="new">Reference</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Write">
+        <source>Write</source>
+        <target state="new">Write</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_preferences">
+        <source>Parameter preferences</source>
+        <target state="new">Parameter preferences</target>
         <note />
       </trans-unit>
     </body>

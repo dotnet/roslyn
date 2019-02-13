@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class GenericConstraintsTests : CompilingTestBase
     {
@@ -1692,7 +1692,7 @@ class B<T> : A<T> where T : System.Delegate { }";
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "B").WithArguments("A<T>", "System.MulticastDelegate", "T", "T").WithLocation(3, 7));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraint_Compilation_Alone_Type()
         {
             CreateCompilation(@"
@@ -1724,7 +1724,7 @@ public class Test2
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "W").WithArguments("Test<T>", "T", "W").WithLocation(16, 26));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraint_Compilation_Alone_Method()
         {
             CreateCompilation(@"
@@ -1758,7 +1758,7 @@ public class Test2
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraint_Compilation_Alone_Delegate()
         {
             CreateCompilation(@"
@@ -1785,7 +1785,7 @@ public abstract class Test2<U, W> where U : unmanaged
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "f").WithArguments("D<T>", "T", "W").WithLocation(12, 26));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraint_Compilation_Alone_LocalFunction()
         {
             CreateCompilation(@"
@@ -2448,7 +2448,7 @@ public class B : A
                 Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(4, 33));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_PointerOperations_Invalid()
         {
             CreateCompilation(@"
@@ -2467,7 +2467,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("Test.M<T>(T)", "T", "string").WithLocation(9, 9));
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         [InlineData("(sbyte)1", "System.SByte", 1)]
         [InlineData("(byte)1", "System.Byte", 1)]
         [InlineData("(short)1", "System.Int16", 2)]
@@ -2532,7 +2532,7 @@ unsafe class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_InterfaceMethod()
         {
             CompileAndVerify(@"
@@ -2585,7 +2585,7 @@ unsafe class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_CtorAndValueTypeAreEmitted()
         {
             CompileAndVerify(@"
@@ -2605,7 +2605,7 @@ class Program
     options: TestOptions.UnsafeReleaseExe, verify: Verification.Passes, expectedOutput: "NotNullableValueTypeConstraint, DefaultConstructorConstraint");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_NestedStructs_Flat()
         {
             CompileAndVerify(@"
@@ -2630,7 +2630,7 @@ unsafe class Test
 }", options: TestOptions.UnsafeReleaseExe, verify: Verification.Passes, expectedOutput: "4");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_NestedStructs_Nested()
         {
             CompileAndVerify(@"
@@ -2665,7 +2665,7 @@ unsafe class Test
 }", options: TestOptions.UnsafeReleaseExe, verify: Verification.Passes, expectedOutput: "8");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_NestedStructs_Error()
         {
             CreateCompilation(@"
@@ -2702,7 +2702,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "N<TestData>").WithArguments("Test.N<T>()", "T", "TestData").WithLocation(24, 9));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_ExistingUnmanagedKeywordType_InScope()
         {
             CompileAndVerify(@"
@@ -2726,7 +2726,7 @@ class Test
 }", expectedOutput: "success");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_ExistingUnmanagedKeywordType_OutOfScope()
         {
             CreateCompilation(@"
@@ -2759,7 +2759,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Print").WithArguments("T", "Print").WithLocation(20, 13));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_UnmanagedIsValidForStructConstraint_Methods()
         {
             CompileAndVerify(@"
@@ -2780,7 +2780,7 @@ class Program
 }", expectedOutput: "5");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_UnmanagedIsValidForStructConstraint_Types()
         {
             CompileAndVerify(@"
@@ -2803,7 +2803,7 @@ class Program
 }", expectedOutput: "5");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_UnmanagedIsValidForStructConstraint_Interfaces()
         {
             CompileAndVerify(@"
@@ -2827,7 +2827,7 @@ class Program
 }", expectedOutput: "5");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_UnmanagedIsValidForStructConstraint_LocalFunctions()
         {
             CompileAndVerify(@"
@@ -2850,7 +2850,7 @@ class Program
 }", expectedOutput: "5");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_PointerTypeSubstitution()
         {
             var compilation = CreateCompilation(@"
@@ -2874,7 +2874,7 @@ unsafe public class Test
             Assert.Equal("System.Int32*", symbol.ReturnType.ToTestDisplayString());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_CannotConstraintToTypeParameterConstrainedByUnmanaged()
         {
             CreateCompilation(@"
@@ -2889,7 +2889,7 @@ class Test<U> where U : unmanaged
                 Diagnostic(ErrorCode.ERR_ConWithUnmanagedCon, "T").WithArguments("T", "U").WithLocation(4, 12));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_UnmanagedAsTypeConstraintName()
         {
             CreateCompilation(@"
@@ -2906,7 +2906,7 @@ class Test<unmanaged> where unmanaged : System.IDisposable
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "NonExistentMethod").WithArguments("T", "NonExistentMethod").WithLocation(7, 13));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_CircularReferenceToUnmanagedTypeWillBindSuccessfully()
         {
             CreateCompilation(@"
@@ -2923,7 +2923,7 @@ public unsafe class C<U> where U : unmanaged
                 Diagnostic(ErrorCode.ERR_BadConstraintType, "T*").WithLocation(4, 35));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_EnumWithUnmanaged()
         {
             Action<ModuleSymbol> validator = module =>
@@ -2947,7 +2947,7 @@ public unsafe class C<U> where U : unmanaged
                 symbolValidator: validator);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_NestedInGenericType()
         {
             var code = @"
@@ -3008,7 +3008,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "IsEnum<Wrapper<string>.S>").WithArguments("Test.IsEnum<T>()", "System.Enum", "T", "Wrapper<string>.S").WithLocation(38, 9));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraints_PointerInsideStruct()
         {
             CompileAndVerify(@"
@@ -3042,7 +3042,7 @@ unsafe class Test
                 expectedOutput: "S");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraint_LambdaTypeParameters()
         {
             CompileAndVerify(@"
@@ -3084,7 +3084,7 @@ public class Program
                 });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         public void UnmanagedConstraint_IsConsideredDuringOverloadResolution()
         {
             CompileAndVerify(@"
@@ -3116,7 +3116,7 @@ Object: 2
 Unmanaged: 3");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
         public void UnmanagedConstraint_PointersTypeInference()
         {
@@ -3140,10 +3140,10 @@ class C
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
             Assert.Equal(declaredMethod, inferredMethod);
-            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArguments.Single());
+            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArguments.Single().TypeSymbol);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
         public void UnmanagedConstraint_PointersTypeInference_CallFromADifferentMethod()
         {
@@ -3173,7 +3173,7 @@ class C
             Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArguments.Single().SpecialType);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
         public void UnmanagedConstraint_PointersTypeInference_WithOtherArgs()
         {
@@ -3196,10 +3196,10 @@ unsafe class C
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
             Assert.Equal(declaredMethod, inferredMethod);
-            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArguments.Single());
+            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArguments.Single().TypeSymbol);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
         public void UnmanagedConstraint_PointersTypeInference_WithOtherArgs_CallFromADifferentMethod()
         {
@@ -3228,7 +3228,7 @@ unsafe class C
             Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArguments.Single().SpecialType);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
         [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
         public void UnmanagedConstraint_PointersTypeInference_Errors()
         {
@@ -3269,6 +3269,27 @@ unsafe class C
                 // (20,9): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'C.UnmanagedWithInterface<T>(T*)'. There is no boxing conversion from 'int' to 'System.IDisposable'.
                 //         UnmanagedWithInterface(&a);         // fail (does not match interface)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "UnmanagedWithInterface").WithArguments("C.UnmanagedWithInterface<T>(T*)", "System.IDisposable", "T", "int").WithLocation(20, 9));
+        }
+
+        [Fact, WorkItem(31439, "https://github.com/dotnet/roslyn/issues/31439")]
+        public void CircularTypeArgumentUnmanagedConstraint()
+        {
+            var code = @"
+public struct X<T>
+    where T : unmanaged
+{
+}
+
+public struct Z
+{
+    public X<Z> field;
+}
+";
+            CreateCompilation(code).VerifyDiagnostics(
+                // (9,17): error CS8377: The type 'Z' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'X<T>'
+                //     public X<Z> field;
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("X<T>", "T", "Z").WithLocation(9, 17)
+            );
         }
     }
 }

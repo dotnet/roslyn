@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -18,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     [Export(typeof(InlineRenameService))]
     internal class InlineRenameService : IInlineRenameService
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly IWaitIndicator _waitIndicator;
         private readonly ITextBufferAssociatedViewService _textBufferAssociatedViewService;
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -27,13 +30,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private InlineRenameSession _activeRenameSession;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InlineRenameService(
+            IThreadingContext threadingContext,
             IWaitIndicator waitIndicator,
             ITextBufferAssociatedViewService textBufferAssociatedViewService,
             ITextBufferFactoryService textBufferFactoryService,
             [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
+            _threadingContext = threadingContext;
             _waitIndicator = waitIndicator;
             _textBufferAssociatedViewService = textBufferAssociatedViewService;
             _textBufferFactoryService = textBufferFactoryService;
@@ -60,6 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             var snapshot = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).FindCorrespondingEditorTextSnapshot();
             ActiveSession = new InlineRenameSession(
+                _threadingContext,
                 this,
                 document.Project.Solution.Workspace,
                 renameInfo.TriggerSpan.ToSnapshotSpan(snapshot),

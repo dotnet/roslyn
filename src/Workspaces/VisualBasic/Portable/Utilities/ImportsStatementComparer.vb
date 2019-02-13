@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         Private ReadOnly _nameComparer As IComparer(Of NameSyntax)
 
         Private Sub New(nameComparer As IComparer(Of NameSyntax))
-            Contract.Requires(nameComparer IsNot Nothing)
+            Debug.Assert(nameComparer IsNot Nothing)
             Me._nameComparer = nameComparer
         End Sub
 

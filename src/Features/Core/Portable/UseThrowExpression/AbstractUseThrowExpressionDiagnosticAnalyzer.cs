@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
     /// expressions as well.
     /// </summary>
     internal abstract class AbstractUseThrowExpressionDiagnosticAnalyzer :
-        AbstractCodeStyleDiagnosticAnalyzer
+        AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         protected AbstractUseThrowExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseThrowExpressionDiagnosticId,

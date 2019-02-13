@@ -54,17 +54,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         protected override PropertyDeclarationSyntax WithGenerateBody(
-            PropertyDeclarationSyntax declaration, OptionSet options, ParseOptions parseOptions)
+            SemanticModel semanticModel, PropertyDeclarationSyntax declaration,
+            OptionSet options, ParseOptions parseOptions)
         {
-            return WithAccessorList(declaration, options, parseOptions);
+            return WithAccessorList(semanticModel, declaration, options, parseOptions);
         }
 
-        protected override bool CreateReturnStatementForExpression(PropertyDeclarationSyntax declaration) => true;
+        protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, PropertyDeclarationSyntax declaration) => true;
 
         protected override bool TryConvertToExpressionBody(
-            PropertyDeclarationSyntax declaration, ParseOptions options, 
-            ExpressionBodyPreference conversionPreference, 
-            out ArrowExpressionClauseSyntax arrowExpression, 
+            PropertyDeclarationSyntax declaration, ParseOptions options,
+            ExpressionBodyPreference conversionPreference,
+            out ArrowExpressionClauseSyntax arrowExpression,
             out SyntaxToken semicolonToken)
         {
             return this.TryConvertToExpressionBodyForBaseProperty(

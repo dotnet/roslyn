@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Editing;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsReferenceType => false;
 
-        public bool IsValueType => false;
+        public bool IsValueType => TypeKind == TypeKind.Struct || TypeKind == TypeKind.Enum;
 
         public bool IsAnonymousType => false;
 
@@ -54,5 +54,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override bool IsType => true;
 
         public bool IsSerializable => false;
+
+        bool ITypeSymbol.IsRefLikeType => throw new System.NotImplementedException();
+
+        bool ITypeSymbol.IsUnmanagedType => throw new System.NotImplementedException();
     }
 }

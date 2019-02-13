@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +25,14 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public event EventHandler<bool> StatusChanged;
+
+        /// <summary>
+        /// Return an unique string per client.
+        /// 
+        /// one can use this to distinguish different clients that are connected to different RemoteHosts including
+        /// cases where 2 external process finding each others
+        /// </summary>
+        public abstract string ClientId { get; }
 
         /// <summary>
         /// Create <see cref="RemoteHostClient.Connection"/> for the <paramref name="serviceName"/> if possible.
@@ -63,6 +72,11 @@ namespace Microsoft.CodeAnalysis.Remote
             StatusChanged?.Invoke(this, started);
         }
 
+        public static string CreateClientId(string prefix)
+        {
+            return $"VS ({prefix}) ({Guid.NewGuid().ToString()})";
+        }
+
         /// <summary>
         /// NoOpClient is used if a user killed our remote host process. Basically this client never
         /// create a session
@@ -73,6 +87,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 base(workspace)
             {
             }
+
+            public override string ClientId => nameof(NoOpClient);
 
             public override Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
             {
@@ -139,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // when that happen, we don't want to crash VS, so this is debug only check
                 if (!Environment.HasShutdownStarted)
                 {
-                    Contract.Requires(false, 
+                    Debug.Assert(false,
                         $"Unless OOP process (RoslynCodeAnalysisService) is explicitly killed, this should have been disposed!\r\n {_creationCallStack}");
                 }
             }

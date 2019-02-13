@@ -46,13 +46,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _inProc.GetErrorListContents();
         }
 
-        public void NavigateToErrorListItem(int itemIndex)
+        public ErrorListItem NavigateToErrorListItem(int itemIndex)
         {
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.ErrorSquiggles);
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.ErrorList);
-            _inProc.NavigateToErrorListItem(itemIndex);
+            return _inProc.NavigateToErrorListItem(itemIndex);
         }
     }
 }

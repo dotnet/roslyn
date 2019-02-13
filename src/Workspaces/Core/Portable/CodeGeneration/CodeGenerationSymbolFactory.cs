@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             DeclarationModifiers modifiers, ITypeSymbol type,
             ImmutableArray<IEventSymbol> explicitInterfaceImplementations,
             string name,
-            IMethodSymbol addMethod = null, 
+            IMethodSymbol addMethod = null,
             IMethodSymbol removeMethod = null,
             IMethodSymbol raiseMethod = null)
         {
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ITypeSymbol returnType,
             RefKind refKind,
             ImmutableArray<IMethodSymbol> explicitInterfaceImplementations, string name,
-            ImmutableArray<ITypeParameterSymbol> typeParameters, 
+            ImmutableArray<ITypeParameterSymbol> typeParameters,
             ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<SyntaxNode> statements = default,
             ImmutableArray<SyntaxNode> handlesExpressions = default,
@@ -229,9 +229,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// Creates a parameter symbol that can be used to describe a parameter declaration.
         /// </summary>
         public static IParameterSymbol CreateParameterSymbol(ITypeSymbol type, string name)
+            => CreateParameterSymbol(RefKind.None, type, name);
+
+        public static IParameterSymbol CreateParameterSymbol(RefKind refKind, ITypeSymbol type, string name)
         {
             return CreateParameterSymbol(
-                attributes: default, refKind: RefKind.None, isParams: false, type: type, name: name, isOptional: false);
+                attributes: default, refKind, isParams: false, type: type, name: name, isOptional: false);
         }
 
         /// <summary>
@@ -323,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 refKind: RefKind.None,
                 explicitInterfaceImplementations: default,
                 name: string.Empty,
-                typeParameters: default, 
+                typeParameters: default,
                 parameters: default,
                 statements: statements);
         }
@@ -367,10 +370,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// Creates a method type symbol that can be used to describe a delegate type declaration.
         /// </summary>
         public static CodeGenerationNamedTypeSymbol CreateDelegateTypeSymbol(
-            ImmutableArray<AttributeData> attributes, 
-            Accessibility accessibility, 
-            DeclarationModifiers modifiers, 
-            ITypeSymbol returnType, 
+            ImmutableArray<AttributeData> attributes,
+            Accessibility accessibility,
+            DeclarationModifiers modifiers,
+            ITypeSymbol returnType,
             RefKind refKind,
             string name,
             ImmutableArray<ITypeParameterSymbol> typeParameters = default,

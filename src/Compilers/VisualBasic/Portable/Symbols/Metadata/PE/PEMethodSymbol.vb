@@ -927,8 +927,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Dim moduleSymbol = _containingType.ContainingPEModule
 
-                Dim signatureHeader As SignatureHeader
-                Dim mrEx As BadImageFormatException = Nothing
+            Dim signatureHeader As SignatureHeader
+            Dim mrEx As BadImageFormatException = Nothing
             Dim paramInfo() As ParamInfo(Of TypeSymbol) =
                     (New MetadataDecoder(moduleSymbol, Me)).GetSignatureForMethod(_handle, signatureHeader, mrEx)
 

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal static class AccessCheck
     {
         /// <summary>
-        /// Checks if 'symbol' is accessible from within assembly 'within'.  
+        /// Checks if 'symbol' is accessible from within assembly 'within'.
         /// </summary>
         public static bool IsSymbolAccessible(
             Symbol symbol,
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol throughTypeOpt,
             out bool failedThroughTypeCheck,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            ConsList<Symbol> basesBeingResolved = null)
+            ConsList<TypeSymbol> basesBeingResolved = null)
         {
             return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out failedThroughTypeCheck, within.DeclaringCompilation, ref useSiteDiagnostics, basesBeingResolved);
         }
@@ -59,20 +59,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Checks if 'symbol' is accessible from within 'within', which must be a NamedTypeSymbol
         /// or an AssemblySymbol. 
-        /// 
+        /// </summary>
+        /// <remarks>
         /// Note that NamedTypeSymbol, if available, is the type that is associated with the binder 
         /// that found the 'symbol', not the inner-most type that contains the access to the
         /// 'symbol'.
-        /// 
+        /// <para>
         /// If 'symbol' is accessed off of an expression then 'throughTypeOpt' is the type of that
         /// expression. This is needed to properly do protected access checks. Sets
         /// "failedThroughTypeCheck" to true if this protected check failed.
-        /// 
-        /// NOTE(cyrusn): I expect this function to be called a lot.  As such, i do not do any memory
-        /// allocations in the function itself (including not making any iterators).  This does mean
-        /// that certain helper functions that we'd like to call are inlined in this method to
-        /// prevent the overhead of returning collections or enumerators.  
-        /// </summary>
+        /// </para>
+        /// <para>
+        /// This function is expected to be called a lot.  As such, it avoids memory
+        /// allocations in the function itself (including not making any iterators).  This means
+        /// that certain helper functions that could otherwise be called are inlined in this method to
+        /// prevent the overhead of returning collections or enumerators.
+        /// </para>
+        /// </remarks>
         private static bool IsSymbolAccessibleCore(
             Symbol symbol,
             Symbol within,  // must be assembly or named type symbol
@@ -80,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool failedThroughTypeCheck,
             CSharpCompilation compilation,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            ConsList<Symbol> basesBeingResolved = null)
+            ConsList<TypeSymbol> basesBeingResolved = null)
         {
             Debug.Assert((object)symbol != null);
             Debug.Assert((object)within != null);
@@ -92,13 +95,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (symbol.Kind)
             {
                 case SymbolKind.ArrayType:
-                    return IsSymbolAccessibleCore(((ArrayTypeSymbol)symbol).ElementType, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
+                    return IsSymbolAccessibleCore(((ArrayTypeSymbol)symbol).ElementType.TypeSymbol, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
 
                 case SymbolKind.PointerType:
-                    return IsSymbolAccessibleCore(((PointerTypeSymbol)symbol).PointedAtType, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
+                    return IsSymbolAccessibleCore(((PointerTypeSymbol)symbol).PointedAtType.TypeSymbol, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
 
                 case SymbolKind.NamedType:
                     return IsNamedTypeAccessible((NamedTypeSymbol)symbol, within, ref useSiteDiagnostics, basesBeingResolved);
+
+                case SymbolKind.Alias:
+                    return IsSymbolAccessibleCore(((AliasSymbol)symbol).Target, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
+
+                case SymbolKind.Discard:
+                    return IsSymbolAccessibleCore(((DiscardSymbol)symbol).Type, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
 
                 case SymbolKind.ErrorType:
                     // Always assume that error types are accessible.
@@ -135,9 +144,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // Is the named type "type accessible from within "within", which must be a named type or an
-        // assembly.
-        private static bool IsNamedTypeAccessible(NamedTypeSymbol type, Symbol within, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null)
+        /// <summary>
+        /// Is the named type <paramref name="type"/> accessible from within <paramref name="within"/>,
+        /// which must be a named type or an assembly.
+        /// </summary>
+        private static bool IsNamedTypeAccessible(NamedTypeSymbol type, Symbol within, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<TypeSymbol> basesBeingResolved = null)
         {
             Debug.Assert(within is NamedTypeSymbol || within is AssemblySymbol);
             Debug.Assert((object)type != null);
@@ -153,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // type parameters are always accessible, so don't check those (so common it's
                     // worth optimizing this).
-                    if (typeArg.Kind != SymbolKind.TypeParameter && !IsSymbolAccessibleCore(typeArg, within, null, out unused, compilation, ref useSiteDiagnostics, basesBeingResolved))
+                    if (typeArg.Kind != SymbolKind.TypeParameter && !IsSymbolAccessibleCore(typeArg.TypeSymbol, within, null, out unused, compilation, ref useSiteDiagnostics, basesBeingResolved))
                     {
                         return false;
                     }
@@ -166,8 +177,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : IsMemberAccessible(containingType, type.DeclaredAccessibility, within, null, out unused, compilation, ref useSiteDiagnostics, basesBeingResolved);
         }
 
-        // Is a top-level type with accessibility "declaredAccessibility" inside assembly "assembly"
-        // accessible from "within", which must be a named type of an assembly.
+        /// <summary>
+        /// Is a top-level type with accessibility "declaredAccessibility" inside assembly "assembly"
+        /// accessible from "within", which must be a named type of an assembly.
+        /// </summary>
         private static bool IsNonNestedTypeAccessible(
             AssemblySymbol assembly,
             Accessibility declaredAccessibility,
@@ -205,8 +218,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // Is a member with declared accessibility "declaredAccessibility" accessible from within
-        // "within", which must be a named type or an assembly.
+        /// <summary>
+        /// Is a member with declared accessibility "declaredAccessibility" accessible from within
+        /// "within", which must be a named type or an assembly.
+        /// </summary>
         private static bool IsMemberAccessible(
             NamedTypeSymbol containingType,              // the symbol's containing type
             Accessibility declaredAccessibility,
@@ -215,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool failedThroughTypeCheck,
             CSharpCompilation compilation,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            ConsList<Symbol> basesBeingResolved = null)
+            ConsList<TypeSymbol> basesBeingResolved = null)
         {
             Debug.Assert(within is NamedTypeSymbol || within is AssemblySymbol);
             Debug.Assert((object)containingType != null);
@@ -264,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool failedThroughTypeCheck,
             CSharpCompilation compilation,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            ConsList<Symbol> basesBeingResolved = null)
+            ConsList<TypeSymbol> basesBeingResolved = null)
         {
             failedThroughTypeCheck = false;
 
@@ -275,10 +290,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (declaredAccessibility)
             {
                 case Accessibility.NotApplicable:
-                    // TODO(cyrusn): Is this the right thing to do here?  Should the caller ever be
-                    // asking about the accessibility of a symbol that has "NotApplicable" as its
-                    // value?  For now, I'm preserving the behavior of the existing code.  But perhaps
-                    // we should fail here and require the caller to not do this?
                     return true;
 
                 case Accessibility.Private:
@@ -331,8 +342,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        // Is a protected symbol inside "originalContainingType" accessible from within "within",
-        // which much be a named type or an assembly.
+        /// <summary>
+        /// Is a protected symbol inside "originalContainingType" accessible from within "within",
+        /// which much be a named type or an assembly.
+        /// </summary>
         private static bool IsProtectedSymbolAccessible(
             NamedTypeSymbol withinType,
             TypeSymbol throughTypeOpt,
@@ -340,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool failedThroughTypeCheck,
             CSharpCompilation compilation,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            ConsList<Symbol> basesBeingResolved = null)
+            ConsList<TypeSymbol> basesBeingResolved = null)
         {
             failedThroughTypeCheck = false;
 
@@ -361,13 +374,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // A protected symbol is accessible if we're (optionally nested) inside the type that it
             // was defined in.  
 
-            // NOTE(ericli): It is helpful to think about 'protected' as *increasing* the
+            // It is helpful to think about 'protected' as *increasing* the
             // accessibility domain of a private member, rather than *decreasing* that of a public
             // member. Members are naturally private; the protected, internal and public access
             // modifiers all increase the accessibility domain. Since private members are accessible
             // to nested types, so are protected members.
 
-            // NOTE(cyrusn): We do this check up front as it is very fast and easy to do.
+            // We do this check up front as it is very fast and easy to do.
             if (IsNestedWithinOriginalContainingType(withinType, originalContainingType))
             {
                 return true;
@@ -386,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (current.InheritsFromIgnoringConstruction(originalContainingType, compilation, ref useSiteDiagnostics, basesBeingResolved))
                     {
                         // NOTE(cyrusn): We're continually walking up the 'throughType's inheritance
-                        // chain.  We could compute it up front and cache it in a set.  However, i
+                        // chain.  We could compute it up front and cache it in a set.  However, we
                         // don't want to allocate memory in this function.  Also, in practice
                         // inheritance chains should be very short.  As such, it might actually be
                         // slower to create and check inside the set versus just walking the
@@ -410,7 +423,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        // Is a private symbol access
         private static bool IsPrivateSymbolAccessible(
             Symbol within,
             NamedTypeSymbol originalContainingType)
@@ -429,7 +441,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsNestedWithinOriginalContainingType(withinType, originalContainingType);
         }
 
-        // Is the type "withinType" nested within the original type "originalContainingType".
+        /// <summary>
+        /// Is the type "withinType" nested within the original type "originalContainingType".
+        /// </summary>
         private static bool IsNestedWithinOriginalContainingType(
             NamedTypeSymbol withinType,
             NamedTypeSymbol originalContainingType)
@@ -455,14 +469,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        // Determine if "type" inherits from "baseType", ignoring constructed types, and dealing
-        // only with original types.
+        /// <summary>
+        /// Determine if "type" inherits from "baseType", ignoring constructed types, and dealing
+        /// only with original types.
+        /// </summary>
         private static bool InheritsFromIgnoringConstruction(
             this TypeSymbol type,
             NamedTypeSymbol baseType,
             CSharpCompilation compilation,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            ConsList<Symbol> basesBeingResolved = null)
+            ConsList<TypeSymbol> basesBeingResolved = null)
         {
             Debug.Assert(type.IsDefinition);
             Debug.Assert(baseType.IsDefinition);
@@ -498,21 +514,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        // Does the assembly has internal accessibility to "toAssembly"?
-        internal static bool HasInternalAccessTo(this AssemblySymbol assembly, AssemblySymbol toAssembly)
+        /// <summary>
+        /// Does the assembly has internal accessibility to "toAssembly"?
+        /// </summary>
+        /// <param name="fromAssembly">The assembly wanting access.</param>
+        /// <param name="toAssembly">The assembly possibly providing symbols to be accessed.</param>
+        internal static bool HasInternalAccessTo(this AssemblySymbol fromAssembly, AssemblySymbol toAssembly)
         {
-            if (Equals(assembly, toAssembly))
+            if (Equals(fromAssembly, toAssembly))
             {
                 return true;
             }
 
-            if (assembly.AreInternalsVisibleToThisAssembly(toAssembly))
+            if (fromAssembly.AreInternalsVisibleToThisAssembly(toAssembly))
             {
                 return true;
             }
 
             // all interactive assemblies are friends of each other:
-            if (assembly.IsInteractive && toAssembly.IsInteractive)
+            if (fromAssembly.IsInteractive && toAssembly.IsInteractive)
             {
                 return true;
             }

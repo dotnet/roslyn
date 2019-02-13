@@ -100,9 +100,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(constructorInitializer.ArgumentList);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
+            var symbolInfo = semanticModel.GetSymbolInfo(constructorInitializer, cancellationToken);
+            var selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo);
+
             return CreateSignatureHelpItems(accessibleConstructors.SelectAsArray(c =>
                 Convert(c, constructorInitializer.ArgumentList.OpenParenToken, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
-                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
+                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
         }
 
         public override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)

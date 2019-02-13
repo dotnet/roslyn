@@ -2622,7 +2622,7 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
-        Public Async Function TestPreferReadOnlyIfAfterReadOnlyAssignment() As Task 
+        Public Async Function TestPreferReadOnlyIfAfterReadOnlyAssignment() As Task
             await TestInRegularAndScriptAsync(
 "class C
     private readonly _goo as integer

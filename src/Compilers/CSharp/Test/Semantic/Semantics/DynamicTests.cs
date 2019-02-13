@@ -972,6 +972,82 @@ public class C
             TestOperatorKinds(source);
         }
 
+        [Fact, WorkItem(27800, "https://github.com/dotnet/roslyn/issues/27800"), WorkItem(32068, "https://github.com/dotnet/roslyn/issues/32068")]
+        public void TestDynamicCompoundOperatorOrdering()
+        {
+            CompileAndVerify(@"
+using System;
+class DynamicTest
+{
+    public int Property
+    {
+        get {
+            Console.WriteLine(""get_Property"");
+            return 0;
+        }
+        set {
+            Console.WriteLine(""set_Property"");
+        }
+    }
+
+    public event EventHandler<object> Event
+    {
+        add { Console.WriteLine(""add_Event""); }
+        remove { Console.WriteLine(""remove_Event""); }
+    }
+
+    static dynamic GetDynamic()
+    {
+        Console.WriteLine(""GetDynamic"");
+        return new DynamicTest();
+    }
+
+    static int GetInt()
+    {
+        Console.WriteLine(""GetInt"");
+        return 1;
+    }
+
+    static EventHandler<object> GetHandler()
+    {
+        Console.WriteLine(""GetHandler"");
+        return (object o1, object o2) => {};
+    }
+
+    public static void Main()
+    {
+        Console.WriteLine(""Compound Add"");
+        GetDynamic().Property += GetInt();
+        Console.WriteLine(""Compound And"");
+        GetDynamic().Property &= GetInt();
+        Console.WriteLine(""Compound Add Event"");
+        GetDynamic().Event += GetHandler();
+        Console.WriteLine(""Compound Remove Event"");
+        GetDynamic().Event -= GetHandler();
+    }
+}", targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: @"
+Compound Add
+GetDynamic
+get_Property
+GetInt
+set_Property
+Compound And
+GetDynamic
+get_Property
+GetInt
+set_Property
+Compound Add Event
+GetDynamic
+GetHandler
+add_Event
+Compound Remove Event
+GetDynamic
+GetHandler
+remove_Event
+");
+        }
+
+
         #endregion
 
         #region Conditional, Coalescing Expression
@@ -1829,7 +1905,7 @@ unsafe public class C<X>
             var c = compilation.GlobalNamespace.GetMember<TypeSymbol>("C");
             var f = c.GetMember<FieldSymbol>("F");
             var eraser = new DynamicTypeEraser(compilation.GetSpecialType(SpecialType.System_Object));
-            var erasedType = eraser.EraseDynamic(f.Type);
+            var erasedType = eraser.EraseDynamic(f.Type.TypeSymbol);
 
             Assert.Equal("System.Func<A<System.Object, A<System.Object, System.Boolean>.E*[]>.B<X>, System.Collections.Generic.Dictionary<System.Object[], System.Int32>>", erasedType.ToTestDisplayString());
         }
@@ -2574,14 +2650,14 @@ class C : List<int>
     {	
 		var z = new C()         //-typeExpression: C
 		{
-			{ d },              //-fieldAccess: dynamic
-                                //-implicitReceiver: C
+			{ d },              //-implicitReceiver: C
+                                //-fieldAccess: dynamic
                                 //-dynamicCollectionElementInitializer: dynamic
 
-			{ d, d, d },        //-fieldAccess: dynamic
+			{ d, d, d },        //-implicitReceiver: C
                                 //-fieldAccess: dynamic
                                 //-fieldAccess: dynamic
-                                //-implicitReceiver: C
+                                //-fieldAccess: dynamic
                                 //-dynamicCollectionElementInitializer: dynamic
 
 		};                      //-collectionInitializerExpression: C
@@ -3698,10 +3774,10 @@ class Program
             var typeObject = comp.GetSpecialType(SpecialType.System_Object);
             var typeGConstructed = typeG.Construct(typeObject, typeObject);
 
-            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingTrue").Type);
-            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingFalse").Type);
-            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraTrue").Type);
-            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraFalse").Type);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingTrue").Type.TypeSymbol);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingFalse").Type.TypeSymbol);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraTrue").Type.TypeSymbol);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraFalse").Type.TypeSymbol);
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -3978,7 +4054,7 @@ class C
             var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
-                // (8,17): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                // (8,17): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
                 //         d.M2(in x);
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "x").WithLocation(8, 17)
                 );
@@ -4003,10 +4079,10 @@ class C
             var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
-                // (8,20): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                // (8,20): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
                 //         d.M2(1, in d, 123, in x);
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(8, 20),
-                // (8,31): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                // (8,31): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
                 //         d.M2(1, in d, 123, in x);
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "x").WithLocation(8, 31)
                 );
@@ -4046,16 +4122,16 @@ class C
             var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
-                // (11,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                // (11,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
                 //         M1(in d, d = 2, in d);
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(11, 15),
-                // (11,28): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                // (11,28): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
                 //         M1(in d, d = 2, in d);
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(11, 28),
-                // (23,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                // (23,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
                 //         M2(in d, d = 3, in d);
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(23, 15),
-                // (23,28): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                // (23,28): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
                 //         M2(in d, d = 3, in d);
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(23, 28)
                 );
@@ -4085,7 +4161,7 @@ class C
             var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
-                // (8,30): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                // (8,30): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
                 //         var y = new M2(d, in x);
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "x").WithLocation(8, 30)
                 );
@@ -4114,7 +4190,7 @@ class C
             var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
-                // (8,39): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                // (8,39): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
                 //         System.Console.WriteLine(d[in x]);
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "x").WithLocation(8, 39)
                 );

@@ -47,17 +47,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Gets the type of the parameter.
         /// </summary>
-        public abstract TypeSymbol Type { get; }
+        public abstract TypeSymbolWithAnnotations Type { get; }
 
         /// <summary>
         /// Determines if the parameter ref, out or neither.
         /// </summary>
         public abstract RefKind RefKind { get; }
-
-        /// <summary>
-        /// The list of custom modifiers, if any, associated with the parameter type.
-        /// </summary>
-        public abstract ImmutableArray<CustomModifier> CustomModifiers { get; }
 
         /// <summary>
         /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
@@ -111,7 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract int Ordinal { get; }
 
         /// <summary>
-        /// Returns true if the parameter was declared as a parameter array. 
+        /// Returns true if the parameter was declared as a parameter array.
+        /// Note: it is possible for any parameter to have the [ParamArray] attribute (for instance, in IL),
+        ///     even if it is not the last parameter. So check for that.
         /// </summary>
         public abstract bool IsParams { get; }
 
@@ -381,6 +378,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool IsCallerMemberName { get; }
 
+        internal abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }
+
+        /// <summary>
+        /// If there are no annotations on the member (not just that parameter), then returns null. The purpose is to ensure
+        /// that if some annotations are present on the member, then annotations win over the attributes on the member in all positions.
+        /// That could mean removing an attribute.
+        /// </summary>
+        protected FlowAnalysisAnnotations? TryGetExtraAttributeAnnotations()
+        {
+            ParameterSymbol originalParameter = this.OriginalDefinition;
+            var containingMethod = originalParameter.ContainingSymbol as MethodSymbol;
+
+            if (containingMethod is null)
+            {
+                return null;
+            }
+
+            string key = ExtraAnnotations.MakeMethodKey(containingMethod);
+            return ExtraAnnotations.TryGetExtraAttributes(key, this.Ordinal);
+        }
+
         protected sealed override int HighestPriorityUseSiteError
         {
             get
@@ -403,12 +421,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         ITypeSymbol IParameterSymbol.Type
         {
-            get { return this.Type; }
+            get { return this.Type.TypeSymbol; }
         }
 
         ImmutableArray<CustomModifier> IParameterSymbol.CustomModifiers
         {
-            get { return this.CustomModifiers; }
+            get { return this.Type.CustomModifiers; }
         }
 
         ImmutableArray<CustomModifier> IParameterSymbol.RefCustomModifiers

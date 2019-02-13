@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         typeParametersArray[fieldIndex] = typeParameter;
 
                         // Add a property
-                        AnonymousTypePropertySymbol property = new AnonymousTypePropertySymbol(this, field, typeParameter);
+                        AnonymousTypePropertySymbol property = new AnonymousTypePropertySymbol(this, field, TypeSymbolWithAnnotations.Create(typeParameter));
                         propertiesArray[fieldIndex] = property;
 
                         // Property related symbols
@@ -216,22 +216,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
-            internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
+            internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
             {
-                get { return StaticCast<TypeSymbol>.From(this.TypeParameters); }
-            }
-
-            internal override bool HasTypeArgumentsCustomModifiers
-            {
-                get
-                {
-                    return false;
-                }
-            }
-
-            public override ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
-            {
-                return GetEmptyTypeArgumentCustomModifiers(ordinal);
+                get { return GetTypeParametersAsTypeArguments(); }
             }
 
             public override ImmutableArray<Symbol> GetMembers(string name)
@@ -301,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            internal sealed override bool IsByRefLikeType
+            public sealed override bool IsRefLikeType
             {
                 get { return false; }
             }
@@ -341,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return Accessibility.Internal; }
             }
 
-            internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
+            internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
             {
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
@@ -351,10 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
 
-            internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
-            {
-                get { return this.Manager.System_Object; }
-            }
+            internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => this.Manager.System_Object;
 
             public override TypeKind TypeKind
             {
@@ -389,12 +373,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return this; }
             }
 
-            internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
+            internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
             {
                 return this.Manager.System_Object;
             }
 
-            internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved)
+            internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
             {
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }

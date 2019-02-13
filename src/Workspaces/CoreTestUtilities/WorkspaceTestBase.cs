@@ -87,9 +87,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             CreateFiles(GetSimpleCSharpSolutionFiles());
         }
 
+        protected FileSet GetBaseFiles()
+        {
+            return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
+                (@"Directory.Build.props", Resources.Directory_Build_props),
+                (@"Directory.Build.targets", Resources.Directory_Build_targets));
+        }
+
         protected FileSet GetSimpleCSharpSolutionFiles()
         {
             return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
                 (@"Directory.Build.props", Resources.Directory_Build_props),
                 (@"Directory.Build.targets", Resources.Directory_Build_targets),
                 (@"TestSolution.sln", Resources.SolutionFiles.CSharp),
@@ -101,6 +110,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         protected FileSet GetNetCoreApp2Files()
         {
             return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
                 (@"Directory.Build.props", Resources.Directory_Build_props),
                 (@"Directory.Build.targets", Resources.Directory_Build_targets),
                 (@"Project.csproj", Resources.ProjectFiles.CSharp.NetCoreApp2_Project),
@@ -110,6 +120,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         protected FileSet GetNetCoreApp2AndLibraryFiles()
         {
             return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
                 (@"Directory.Build.props", Resources.Directory_Build_props),
                 (@"Directory.Build.targets", Resources.Directory_Build_targets),
                 (@"Project\Project.csproj", Resources.ProjectFiles.CSharp.NetCoreApp2AndLibrary_Project),
@@ -121,6 +132,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         protected FileSet GetNetCoreApp2AndTwoLibrariesFiles()
         {
             return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
                 (@"Directory.Build.props", Resources.Directory_Build_props),
                 (@"Directory.Build.targets", Resources.Directory_Build_targets),
                 (@"Project\Project.csproj", Resources.ProjectFiles.CSharp.NetCoreApp2AndTwoLibraries_Project),
@@ -134,6 +146,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         protected FileSet GetNetCoreMultiTFMFiles()
         {
             return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
                 (@"Directory.Build.props", Resources.Directory_Build_props),
                 (@"Directory.Build.targets", Resources.Directory_Build_targets),
                 (@"Project.csproj", Resources.ProjectFiles.CSharp.NetCoreMultiTFM_Project),
@@ -143,6 +156,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         protected FileSet GetNetCoreMultiTFMFiles_ProjectReference()
         {
             return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
                 (@"Directory.Build.props", Resources.Directory_Build_props),
                 (@"Directory.Build.targets", Resources.Directory_Build_targets),
                 (@"Project\Project.csproj", Resources.ProjectFiles.CSharp.NetCoreMultiTFM_ProjectReference_Project),
@@ -154,6 +168,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         protected FileSet GetNetCoreMultiTFMFiles_ProjectReferenceWithReversedTFMs()
         {
             return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
                 (@"Directory.Build.props", Resources.Directory_Build_props),
                 (@"Directory.Build.targets", Resources.Directory_Build_targets),
                 (@"Project\Project.csproj", Resources.ProjectFiles.CSharp.NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Project),
@@ -162,9 +177,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"Library\Class1.cs", Resources.SourceFiles.CSharp.NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Class1));
         }
 
+        protected FileSet GetNetCoreMultiTFMFiles_ProjectReferenceToFSharp()
+        {
+            return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
+                (@"Directory.Build.props", Resources.Directory_Build_props),
+                (@"Directory.Build.targets", Resources.Directory_Build_targets),
+                (@"Solution.sln", Resources.SolutionFiles.NetCoreMultiTFM_ProjectReferenceToFSharp),
+                (@"csharplib\csharplib.csproj", Resources.ProjectFiles.CSharp.NetCoreMultiTFM_ProjectReferenceToFSharp_CSharpLib),
+                (@"csharplib\Class1.cs", Resources.SourceFiles.CSharp.NetCoreMultiTFM_ProjectReferenceToFSharp_CSharpLib_Class1),
+                (@"fsharplib\fsharplib.fsproj", Resources.ProjectFiles.FSharp.NetCoreMultiTFM_ProjectReferenceToFSharp_FSharpLib),
+                (@"fsharplib\Library.fs", Resources.SourceFiles.FSharp.NetCoreMultiTFM_ProjectReferenceToFSharp_FSharpLib_Library));
+        }
+
         protected FileSet GetMultiProjectSolutionFiles()
         {
             return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
                 (@"Directory.Build.props", Resources.Directory_Build_props),
                 (@"Directory.Build.targets", Resources.Directory_Build_targets),
                 (@"TestSolution.sln", Resources.SolutionFiles.VB_and_CSharp),
@@ -185,6 +214,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         protected FileSet GetProjectReferenceSolutionFiles()
         {
             return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
                 (@"Directory.Build.props", Resources.Directory_Build_props),
                 (@"Directory.Build.targets", Resources.Directory_Build_targets),
                 (@"CSharpProjectReference.sln", Resources.SolutionFiles.CSharp_ProjectReference),
@@ -198,6 +228,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         protected FileSet GetAnalyzerReferenceSolutionFiles()
         {
             return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
                 (@"Directory.Build.props", Resources.Directory_Build_props),
                 (@"Directory.Build.targets", Resources.Directory_Build_targets),
                 (@"AnalyzerReference.sln", Resources.SolutionFiles.AnalyzerReference),
@@ -219,6 +250,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         protected FileSet GetSolutionWithDuplicatedGuidFiles()
         {
             return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
                 (@"Directory.Build.props", Resources.Directory_Build_props),
                 (@"Directory.Build.targets", Resources.Directory_Build_targets),
                 (@"DuplicatedGuids.sln", Resources.SolutionFiles.DuplicatedGuids),
@@ -230,6 +262,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         protected FileSet GetSolutionWithCircularProjectReferences()
         {
             return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
                 (@"Directory.Build.props", Resources.Directory_Build_props),
                 (@"Directory.Build.targets", Resources.Directory_Build_targets),
                 (@"CircularSolution.sln", Resources.SolutionFiles.CircularSolution),

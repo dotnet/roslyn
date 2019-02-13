@@ -10,6 +10,8 @@ using System.Runtime.Versioning;
 using System.ComponentModel.Design;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.CodeAnalysis.Editor;
+using System.Threading;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
 {
@@ -44,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
                 .SingleOrDefault();
         }
 
-        internal void InitializeResetInteractiveFromProjectCommand()
+        internal async Task InitializeResetInteractiveFromProjectCommandAsync(CancellationToken cancellationToken)
         {
             var resetInteractiveFromProjectCommand = new OleMenuCommand(
                 (sender, args) =>
@@ -67,11 +69,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
                 resetInteractiveFromProjectCommand.Visible = available;
             };
 
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             _menuCommandService.AddCommand(resetInteractiveFromProjectCommand);
         }
 
         private bool GetActiveProject(out EnvDTE.Project project, out FrameworkName frameworkName)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             project = null;
             frameworkName = null;
 

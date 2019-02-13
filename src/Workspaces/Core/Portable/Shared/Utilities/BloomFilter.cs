@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         public BloomFilter(
-            double falsePositiveProbability, 
+            double falsePositiveProbability,
             ICollection<string> stringValues,
             ICollection<long> longValues)
             : this(stringValues.Count + longValues.Count, falsePositiveProbability, isCaseSensitive: false)

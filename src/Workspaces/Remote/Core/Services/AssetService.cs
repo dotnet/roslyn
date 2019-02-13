@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly int _scopeId;
         private readonly AssetStorage _assetStorage;
 
-        public AssetService(int scopeId, AssetStorage assetStorage, RemoteWorkspace remoteWorkspace)
+        public AssetService(int scopeId, AssetStorage assetStorage, ISerializerService serializerService)
         {
-            _serializerService = remoteWorkspace.Services.GetService<ISerializerService>();
             _scopeId = scopeId;
             _assetStorage = assetStorage;
+            _serializerService = serializerService;
         }
 
         public IEnumerable<T> GetGlobalAssetsOfType<T>(CancellationToken cancellationToken)

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SpellCheck
         private const string CS0426 = nameof(CS0426); // The type name '0' does not exist in the type '1'
         private const string CS1520 = nameof(CS1520); // Method must have a return type
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } = 
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             AddImportDiagnosticIds.FixableDiagnosticIds.Concat(
             GenerateMethodDiagnosticIds.FixableDiagnosticIds).Concat(
                 ImmutableArray.Create(CS0426, CS1520));
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SpellCheck
             => nameNode is GenericNameSyntax;
 
         protected override bool IsGeneric(CompletionItem completionItem)
-            => completionItem.DisplayText.Contains("<>");
+            => completionItem.DisplayTextSuffix == "<>";
 
         protected override SyntaxToken CreateIdentifier(SyntaxToken nameToken, string newName)
             => SyntaxFactory.Identifier(newName).WithTriviaFrom(nameToken);

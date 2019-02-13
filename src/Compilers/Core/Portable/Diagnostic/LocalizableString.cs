@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static explicit operator string (LocalizableString localizableResource)
+        public static explicit operator string(LocalizableString localizableResource)
         {
             return localizableResource.ToString(null);
         }

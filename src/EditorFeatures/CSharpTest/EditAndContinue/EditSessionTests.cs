@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         {
             private readonly ImmutableArray<ActiveStatementDebugInfo> _infos;
 
-            public TestActiveStatementProvider(ImmutableArray<ActiveStatementDebugInfo> infos) 
+            public TestActiveStatementProvider(ImmutableArray<ActiveStatementDebugInfo> infos)
                 => _infos = infos;
 
             public Task<ImmutableArray<ActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 {
                     yield return new ActiveStatementDebugInfo(
                         new ActiveInstructionId(
-                            (modules != null) ? modules[index] : moduleId, 
+                            (modules != null) ? modules[index] : moduleId,
                             methodToken: 0x06000000 | (methodRowIds != null ? methodRowIds[index] : index + 1),
                             methodVersion: (methodVersions != null) ? methodVersions[index] : 1,
                             ilOffset: (ilOffsets != null) ? ilOffsets[index] : 0),
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions = null,
             Func<Solution, Solution> adjustSolution = null)
         {
-            
+
             var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer)).WithPart(typeof(DummyLanguageService)));
 
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         private static string GetFirstLineText(LinePositionSpan span, SourceText text)
             => text.Lines[span.Start.Line].ToString().Trim();
 
-        [Fact, UseExportProvider]
+        [Fact]
         public async Task BaseActiveStatementsAndExceptionRegions1()
         {
             var markedSource = new[]
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 "4: (26,20)-(26,25) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test2.cs docs=[test2.cs]"
             }, baseActiveStatements.DocumentMap[docs[1]].Select(InspectActiveStatement));
 
-           // Exception Regions
+            // Exception Regions
 
             AssertEx.Equal(new[]
             {
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             var newActiveStatementsInChangedDocuments = ImmutableArray.Create(
                 (
-                    docs[1], 
+                    docs[1],
 
                     ImmutableArray.Create(
                         statements[2].WithSpan(AddDelta(statements[2].Span, +2)),
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 newActiveStatementsInChangedDocuments,
                 out var activeStatementsInUpdatedMethods,
                 out var nonRemappableRegions);
-            
+
             AssertEx.Equal(new[]
             {
                 "mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 | AS (8,20)-(8,25) δ=1",
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }, activeStatementsInUpdatedMethods.Select(v => $"thread={v.ThreadId} {v.OldInstructionId.GetDebuggerDisplay()}: {v.NewSpan}"));
         }
 
-        [Fact, UseExportProvider, WorkItem(24439, "https://github.com/dotnet/roslyn/issues/24439")]
+        [Fact, WorkItem(24439, "https://github.com/dotnet/roslyn/issues/24439")]
         public async Task BaseActiveStatementsAndExceptionRegions2()
         {
             var baseSource =
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             AssertEx.Equal(new[]
             {
                 "mvid=11111111-1111-1111-1111-111111111111 0x06000001 v1 | AS (6,18)-(6,23) δ=0",
-                "mvid=11111111-1111-1111-1111-111111111111 0x06000001 v1 | ER (8,8)-(12,9) δ=0",    
+                "mvid=11111111-1111-1111-1111-111111111111 0x06000001 v1 | ER (8,8)-(12,9) δ=0",
             }, nonRemappableRegions.OrderBy(r => r.Region.Span.Start.Line).Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
 
             AssertEx.Equal(new[]
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }, activeStatementsInUpdatedMethods.Select(v => $"thread={v.ThreadId} {v.OldInstructionId.GetDebuggerDisplay()}: {v.NewSpan} '{GetFirstLineText(v.NewSpan, updatedText)}'"));
         }
 
-        [Fact, UseExportProvider]
+        [Fact]
         public async Task BaseActiveStatementsAndExceptionRegions_WithInitialNonRemappableRegions()
         {
             var markedSourceV1 =
@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var activeStatementsPreRemap = GetActiveStatementDebugInfos(new[] { markedSourceV1 },
                 modules: new[] { module1, module1, module1, module1 },
                 methodVersions: new[] { 2, 2, 1, 1 }, // method F3 and F4 were not remapped
-                flags: new[] 
+                flags: new[]
                 {
                     ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsNonLeafFrame, // F1
                     ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsNonLeafFrame, // F2
@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }, activeStatementsInUpdatedMethods.Select(v => $"thread={v.ThreadId} {v.OldInstructionId.GetDebuggerDisplay()}: {v.NewSpan} '{GetFirstLineText(v.NewSpan, sourceTextV3)}'"));
         }
 
-        [Fact, UseExportProvider]
+        [Fact]
         public async Task BaseActiveStatementsAndExceptionRegions_Recursion()
         {
             var markedSource = new[]
@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 markedSource,
                 methodRowIds: new[] { 1, 2 },
                 ilOffsets: new[] { 1, 1 },
-                flags: new[] 
+                flags: new[]
                 {
                     ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.NonUserCode | ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.MethodUpToDate,
                     ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.IsLeafFrame | ActiveStatementFlags.MethodUpToDate
@@ -702,7 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             Assert.Equal(1, baseActiveStatements.DocumentMap.Count);
 
-            AssertEx.Equal(new[] 
+            AssertEx.Equal(new[]
             {
                 "0: (15,14)-(15,18) flags=[PartiallyExecuted, NonUserCode, MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs]",
                 "1: (6,18)-(6,22) flags=[IsLeafFrame, MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs]",
@@ -735,7 +735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }, baseExceptionRegions.Select(r => "[" + string.Join(",", r.Spans) + "]"));
         }
 
-        [Fact, UseExportProvider, WorkItem(24320, "https://github.com/dotnet/roslyn/issues/24320")]
+        [Fact, WorkItem(24320, "https://github.com/dotnet/roslyn/issues/24320")]
         public async Task BaseActiveStatementsAndExceptionRegions_LinkedDocuments()
         {
             var markedSource = new[]

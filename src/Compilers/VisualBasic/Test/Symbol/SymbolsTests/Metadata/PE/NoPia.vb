@@ -1016,7 +1016,7 @@ End interface
         End Sub
 
         <WorkItem(546735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546735")>
-        <ConditionalFact(GetType(DesktopOnly), Skip:=ConditionalSkipReason.NoPiaNeedsDesktop)>
+        <ConditionalFact(GetType(DesktopOnly), Reason:=ConditionalSkipReason.NoPiaNeedsDesktop)>
         Public Sub Bug16689_1()
             Dim ilSource =
             <![CDATA[
@@ -1155,7 +1155,7 @@ Derived
         End Sub
 
         <WorkItem(546735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546735")>
-        <ConditionalFact(GetType(DesktopOnly), Skip:=ConditionalSkipReason.NoPiaNeedsDesktop)>
+        <ConditionalFact(GetType(DesktopOnly), Reason:=ConditionalSkipReason.NoPiaNeedsDesktop)>
         Public Sub Bug16689_3()
 
             Dim i3Def =

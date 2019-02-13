@@ -2,10 +2,25 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../CSharpFeaturesResources.resx">
     <body>
+      <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
+        <source>Add await and ConfigureAwait(false)</source>
+        <target state="translated">Aggiungi await e ConfigureAwait(false)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
         <source>Add accessibility modifiers</source>
-        <target state="translated">Aggiungi modificatori di accessibilità</target>
+        <target state="translated">Aggiungi i modificatori di accessibilità</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Add_await">
+        <source>Add await</source>
+        <target state="translated">Aggiungi await</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_usings">
+        <source>Add missing usings</source>
+        <target state="translated">Aggiungi using mancanti</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_remove_braces_for_single_line_control_statements">
         <source>Add/remove braces for single-line control statements</source>
@@ -42,6 +57,16 @@
         <target state="translated">Applica le preferenze relative alla qualificazione 'this.'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_method">
+        <source>Convert to method</source>
+        <target state="translated">Convert to method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declare_as_nullable">
+        <source>Declare as nullable</source>
+        <target state="translated">Dichiara come nullable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inline_temporary_variable">
         <source>Inline temporary variable</source>
         <target state="translated">Variabile temporanea inline</target>
@@ -59,12 +84,12 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
-        <target state="translated">Rimuovi cast non necessari</target>
+        <target state="translated">Rimuovi i cast non necessari</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_variables">
         <source>Remove unused variables</source>
-        <target state="translated">Rimuovi variabili non usate</target>
+        <target state="translated">Rimuovi le variabili non usate</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
@@ -89,7 +114,7 @@
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
         <source>'if' statement can be simplified</source>
-        <target state="translated">L'istruzione 'if' può essere semplificata</target>
+        <target state="translated">L'istruzione 'If' può essere semplificata</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -104,7 +129,7 @@
       </trans-unit>
       <trans-unit id="member_name">
         <source>&lt;member name&gt; = </source>
-        <target state="translated">&lt;nome membro&gt; = </target>
+        <target state="translated">&lt;nome membro&gt; =</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation">
@@ -114,7 +139,7 @@
       </trans-unit>
       <trans-unit id="element_name">
         <source>&lt;element name&gt; : </source>
-        <target state="translated">&lt;nome elemento&gt;: </target>
+        <target state="translated">&lt;nome elemento&gt;:</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_tuple_type_element_creation">
@@ -239,7 +264,7 @@
       </trans-unit>
       <trans-unit id="extension">
         <source>extension</source>
-        <target state="translated">estensione</target>
+        <target state="translated">Estensione</target>
         <note />
       </trans-unit>
       <trans-unit id="awaitable">
@@ -584,7 +609,7 @@
       </trans-unit>
       <trans-unit id="namespace_name">
         <source>&lt;namespace name&gt;</source>
-        <target state="translated">&lt;nome dello spazio dei nomi&gt;</target>
+        <target state="translated">&lt;nome spazio dei nomi&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_type_declaration">
@@ -609,7 +634,7 @@
       </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
-        <target state="translated">&lt;nome della classe&gt;</target>
+        <target state="translated">&lt;nome classe&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="interface_name">
@@ -624,7 +649,7 @@
       </trans-unit>
       <trans-unit id="struct_name">
         <source>&lt;struct name&gt;</source>
-        <target state="translated">&lt;nome della struttura&gt;</target>
+        <target state="translated">&lt;nome struct&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_method_async">
@@ -696,6 +721,21 @@
         <source>Invert if</source>
         <target state="translated">Inverti if</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Add_Obsolete">
+        <source>Add [Obsolete]</source>
+        <target state="new">Add [Obsolete]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_0">
+        <source>Use '{0}'</source>
+        <target state="new">Use '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_using_statement">
+        <source>Introduce 'using' statement</source>
+        <target state="new">Introduce 'using' statement</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
     </body>
   </file>

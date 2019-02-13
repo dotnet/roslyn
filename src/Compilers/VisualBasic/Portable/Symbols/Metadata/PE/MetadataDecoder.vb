@@ -440,8 +440,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Overrides Function GetSymbolForMemberRef(memberRef As MemberReferenceHandle, Optional scope As TypeSymbol = Nothing, Optional methodsOnly As Boolean = False) As Symbol
             Dim targetTypeSymbol As TypeSymbol = GetMemberRefTypeSymbol(memberRef)
 
+            If targetTypeSymbol Is Nothing Then
+                Return Nothing
+            End If
+
+            Debug.Assert(Not targetTypeSymbol.IsTupleType)
+
             If scope IsNot Nothing AndAlso targetTypeSymbol <> scope AndAlso Not targetTypeSymbol.IsBaseTypeOrInterfaceOf(scope, Nothing) Then
                 Return Nothing
+            End If
+
+            If Not targetTypeSymbol.IsTupleCompatible() Then
+                targetTypeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(targetTypeSymbol, elementNames:=Nothing)
             End If
 
             ' We're going to use a special decoder that can generate usable symbols for type parameters without full context.

@@ -39,10 +39,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return ImmutableArray<SymbolAndProjectId>.Empty;
             }
 
-            var (succeded, results) = await TryFindSourceDeclarationsWithNormalQueryInRemoteProcessAsync(
+            var (succeeded, results) = await TryFindSourceDeclarationsWithNormalQueryInRemoteProcessAsync(
                 solution, name, ignoreCase, criteria, cancellationToken).ConfigureAwait(false);
 
-            if (succeded)
+            if (succeeded)
             {
                 return results;
             }
@@ -69,10 +69,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return ImmutableArray<SymbolAndProjectId>.Empty;
             }
 
-            var (succeded, results) = await TryFindSourceDeclarationsWithNormalQueryInRemoteProcessAsync(
+            var (succeeded, results) = await TryFindSourceDeclarationsWithNormalQueryInRemoteProcessAsync(
                 project, name, ignoreCase, criteria, cancellationToken).ConfigureAwait(false);
 
-            if (succeded)
+            if (succeeded)
             {
                 return results;
             }
@@ -94,10 +94,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException(nameof(pattern));
             }
 
-            var (succeded, results) = await TryFindSourceDeclarationsWithPatternInRemoteProcessAsync(
+            var (succeeded, results) = await TryFindSourceDeclarationsWithPatternInRemoteProcessAsync(
                 solution, pattern, criteria, cancellationToken).ConfigureAwait(false);
 
-            if (succeded)
+            if (succeeded)
             {
                 return results;
             }
@@ -119,10 +119,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException(nameof(pattern));
             }
 
-            var (succeded, results) = await TryFindSourceDeclarationsWithPatternInRemoteProcessAsync(
+            var (succeeded, results) = await TryFindSourceDeclarationsWithPatternInRemoteProcessAsync(
                 project, pattern, criteria, cancellationToken).ConfigureAwait(false);
 
-            if (succeded)
+            if (succeeded)
             {
                 return results;
             }

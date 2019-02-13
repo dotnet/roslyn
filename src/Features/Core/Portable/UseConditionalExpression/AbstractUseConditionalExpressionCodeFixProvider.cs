@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -9,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -58,11 +56,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             // annotation on it.
             var rules = new List<IFormattingRule> { GetMultiLineFormattingRule() };
 
-            var formattedRoot = await Formatter.FormatAsync(changedRoot,
+            var formattedRoot = Formatter.Format(changedRoot,
                 SpecializedFormattingAnnotation,
                 document.Project.Solution.Workspace,
                 await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false),
-                rules, cancellationToken).ConfigureAwait(false);
+                rules, cancellationToken);
             changedRoot = formattedRoot;
 
             editor.ReplaceNode(root, changedRoot);
@@ -81,10 +79,27 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             bool isRef, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
-
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var condition = ifOperation.Condition.Syntax;
+            if (!isRef)
+            {
+                // If we are going to generate "expr ? true : false" then just generate "expr"
+                // instead.
+                if (IsBooleanLiteral(trueValue, true) && IsBooleanLiteral(falseValue, false))
+                {
+                    return (TExpressionSyntax)condition.WithoutTrivia();
+                }
+
+                // If we are going to generate "expr ? false : true" then just generate "!expr"
+                // instead.
+                if (IsBooleanLiteral(trueValue, false) && IsBooleanLiteral(falseValue, true))
+                {
+                    return (TExpressionSyntax)generator.Negate(
+                        condition, semanticModel, cancellationToken).WithoutTrivia();
+                }
+            }
+
             var conditionalExpression = (TConditionalExpressionSyntax)generator.ConditionalExpression(
                 condition.WithoutTrivia(),
                 MakeRef(generator, isRef, CastValueIfNecessary(generator, trueValue)),
@@ -101,6 +116,17 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             }
 
             return MakeRef(generator, isRef, conditionalExpression);
+        }
+
+        private static bool IsBooleanLiteral(IOperation trueValue, bool val)
+        {
+            if (trueValue is ILiteralOperation)
+            {
+                var constant = trueValue.ConstantValue;
+                return constant.HasValue && constant.Value is bool b && b == val;
+            }
+
+            return false;
         }
 
         private TExpressionSyntax MakeRef(SyntaxGenerator generator, bool isRef, TExpressionSyntax syntaxNode)

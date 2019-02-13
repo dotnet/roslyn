@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -21,8 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
     public class PDBSourceLinkTests : CSharpPDBTestBase
     {
         [Theory]
-        [InlineData(DebugInformationFormat.Pdb)]
-        [InlineData(DebugInformationFormat.PortablePdb)]
+        [MemberData(nameof(ExternalPdbFormats))]
         public void SourceLink(DebugInformationFormat format)
         {
             string source = @"
@@ -98,9 +98,7 @@ class C
         }
 
         [Theory]
-        [InlineData(DebugInformationFormat.Pdb)]
-        [InlineData(DebugInformationFormat.Embedded)]
-        [InlineData(DebugInformationFormat.PortablePdb)]
+        [MemberData(nameof(PdbFormats))]
         public void SourceLink_Errors(DebugInformationFormat format)
         {
             string source = @"
@@ -124,7 +122,7 @@ class C
                 Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("Error!").WithLocation(1, 1));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SourceLink_Errors_NotSupportedByPdbWriter()
         {
             string source = @"
@@ -163,8 +161,7 @@ class C
         }
 
         [Theory]
-        [InlineData(DebugInformationFormat.Pdb)]
-        [InlineData(DebugInformationFormat.PortablePdb)]
+        [MemberData(nameof(ExternalPdbFormats))]
         public void SourceLink_Empty(DebugInformationFormat format)
         {
             string source = @"

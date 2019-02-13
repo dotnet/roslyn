@@ -13,7 +13,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal partial class VisualStudioMetadataReference
+    // TODO: This class is now an empty container just to hold onto the nested type. Renaming that is an invasive change that will be it's own commit.
+    internal static class VisualStudioMetadataReference
     {
         /// <summary>
         /// Represents a metadata reference corresponding to a specific version of a file.
@@ -39,11 +40,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             internal Snapshot(VisualStudioMetadataReferenceManager provider, MetadataReferenceProperties properties, string fullPath, FileChangeTracker fileChangeTrackerOpt)
                 : base(properties, fullPath)
             {
-                Contract.Requires(Properties.Kind == MetadataImageKind.Assembly);
+                Debug.Assert(Properties.Kind == MetadataImageKind.Assembly);
                 _provider = provider;
                 _fileChangeTrackerOpt = fileChangeTrackerOpt;
 
-                _timestamp = new Lazy<DateTime>(() => {
+                _timestamp = new Lazy<DateTime>(() =>
+                {
                     try
                     {
                         _fileChangeTrackerOpt?.EnsureSubscription();

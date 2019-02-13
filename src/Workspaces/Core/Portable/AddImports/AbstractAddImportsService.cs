@@ -119,8 +119,8 @@ namespace Microsoft.CodeAnalysis.AddImports
         }
 
         protected abstract SyntaxNode Rewrite(
-            TExternSyntax[] externAliases, TUsingOrAliasSyntax[] usingDirectives, TUsingOrAliasSyntax[] aliasDirectives, 
-            SyntaxNode externContainer, SyntaxNode usingContainer, SyntaxNode aliasContainer, 
+            TExternSyntax[] externAliases, TUsingOrAliasSyntax[] usingDirectives, TUsingOrAliasSyntax[] aliasDirectives,
+            SyntaxNode externContainer, SyntaxNode usingContainer, SyntaxNode aliasContainer,
             bool placeSystemNamespaceFirst, SyntaxNode root);
 
         private void GetContainers(SyntaxNode root, SyntaxNode contextLocation, out SyntaxNode externContainer, out SyntaxNode usingContainer, out SyntaxNode aliasContainer)

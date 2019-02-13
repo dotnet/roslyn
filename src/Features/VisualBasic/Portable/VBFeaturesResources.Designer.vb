@@ -12,7 +12,6 @@ Option Strict On
 Option Explicit On
 
 Imports System
-Imports System.Reflection
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
     
@@ -40,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property ResourceManager() As Global.System.Resources.ResourceManager
             Get
                 If Object.ReferenceEquals(resourceMan, Nothing) Then
-                    Dim temp As Global.System.Resources.ResourceManager = New Global.System.Resources.ResourceManager("VBFeaturesResources", GetType(VBFeaturesResources).GetTypeInfo.Assembly)
+                    Dim temp As Global.System.Resources.ResourceManager = New Global.System.Resources.ResourceManager("VBFeaturesResources", GetType(VBFeaturesResources).Assembly)
                     resourceMan = temp
                 End If
                 Return resourceMan
@@ -94,6 +93,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Add Await.
+        '''</summary>
+        Friend ReadOnly Property Add_Await() As String
+            Get
+                Return ResourceManager.GetString("Add_Await", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Add Await and &apos;ConfigureAwait(false)&apos;.
+        '''</summary>
+        Friend ReadOnly Property Add_Await_and_ConfigureAwaitFalse() As String
+            Get
+                Return ResourceManager.GetString("Add_Await_and_ConfigureAwaitFalse", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Add &apos;Me.&apos;.
         '''</summary>
         Friend ReadOnly Property Add_Me() As String
@@ -103,11 +120,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Add Overloads.
+        '''  Looks up a localized string similar to Add missing Imports.
+        '''</summary>
+        Friend ReadOnly Property Add_missing_Imports() As String
+            Get
+                Return ResourceManager.GetString("Add_missing_Imports", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Add &lt;Obsolete&gt;.
+        '''</summary>
+        Friend ReadOnly Property Add_Obsolete() As String
+            Get
+                Return ResourceManager.GetString("Add_Obsolete", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Add &apos;Overloads&apos;.
         '''</summary>
         Friend ReadOnly Property Add_Overloads() As String
             Get
                 Return ResourceManager.GetString("Add_Overloads", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Add &apos;Shadows&apos;.
+        '''</summary>
+        Friend ReadOnly Property Add_Shadows() As String
+            Get
+                Return ResourceManager.GetString("Add_Shadows", resourceCulture)
             End Get
         End Property
         
@@ -1352,6 +1396,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property interface_name() As String
             Get
                 Return ResourceManager.GetString("interface_name", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Introduce &apos;Using&apos; statement.
+        '''</summary>
+        Friend ReadOnly Property Introduce_Using_statement() As String
+            Get
+                Return ResourceManager.GetString("Introduce_Using_statement", resourceCulture)
             End Get
         End Property
         

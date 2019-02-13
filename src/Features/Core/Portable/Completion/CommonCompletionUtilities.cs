@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private const string NonBreakingSpaceString = "\x00A0";
 
         public static TextSpan GetWordSpan(SourceText text, int position,
-            Func<char, bool> isWordStartCharacter, Func<char, bool> isWordCharacter)
+            Func<char, bool> isWordStartCharacter, Func<char, bool> isWordCharacter, bool alwaysExtendEndSpan = false)
         {
             int start = position;
             while (start > 0 && isWordStartCharacter(text[start - 1]))
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // "overwrite" the text. Useful for correcting misspellings or just replacing unwanted
             // code with new code.
             int end = position;
-            if (start != position)
+            if (start != position || alwaysExtendEndSpan)
             {
                 while (end < text.Length && isWordCharacter(text[end]))
                 {

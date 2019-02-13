@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.AddImports
         SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode contextLocation, SyntaxNode import);
 
         SyntaxNode AddImports(
-            Compilation compilation, SyntaxNode root, SyntaxNode contextLocation, 
+            Compilation compilation, SyntaxNode root, SyntaxNode contextLocation,
             IEnumerable<SyntaxNode> newImports, bool placeSystemNamespaceFirst);
     }
 

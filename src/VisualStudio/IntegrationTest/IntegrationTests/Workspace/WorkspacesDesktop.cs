@@ -35,7 +35,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
             base.ProjectReference();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public override void ProjectProperties()
         {
             VisualStudio.SolutionExplorer.CreateSolution(nameof(WorkspacesDesktop));

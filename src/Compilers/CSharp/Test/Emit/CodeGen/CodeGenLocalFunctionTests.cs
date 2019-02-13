@@ -810,7 +810,7 @@ class C
         L1();
         Console.WriteLine(_x);
     }
-}", expectedOutput: 
+}", expectedOutput:
 @"0
 1");
             verifier.VerifyIL("C.M()", @"
@@ -4644,7 +4644,7 @@ class C
         Console.WriteLine(y);
     }
 }";
-            VerifyOutput(src, "10\r\n4", TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Fails);
+            VerifyOutput(src, $"10{Environment.NewLine}4", TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Fails);
         }
 
         [Fact]
@@ -4692,7 +4692,7 @@ while (i < 10)
 8
 9");
         }
-        
+
         [Fact]
         [WorkItem(15599, "https://github.com/dotnet/roslyn/issues/15599")]
         public void NestedLocalFuncCapture()

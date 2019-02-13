@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         public IList<ITagSpan<TTag>> GetIntersectingSpans(SnapshotSpan snapshotSpan)
         {
             var snapshot = snapshotSpan.Snapshot;
-            Contract.Requires(snapshot.TextBuffer == _textBuffer);
+            Debug.Assert(snapshot.TextBuffer == _textBuffer);
 
             var introspector = new IntervalIntrospector(snapshot);
             var intersectingIntervals = _tree.GetIntervalsThatIntersectWith(snapshotSpan.Start, snapshotSpan.Length, introspector);

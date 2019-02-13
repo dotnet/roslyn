@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
         {
             var cancellationToken = context.CancellationToken;
             var document = context.Document;
-            
+
             if (!context.Span.IsEmpty)
             {
                 return;
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Add_file_banner, createChangedDocument)
             {
             }

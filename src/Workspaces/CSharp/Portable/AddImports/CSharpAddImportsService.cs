@@ -21,13 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
             => usingOrAlias.Alias;
 
         protected override SyntaxNode Rewrite(
-            ExternAliasDirectiveSyntax[] externAliases, 
-            UsingDirectiveSyntax[] usingDirectives, 
-            UsingDirectiveSyntax[] aliasDirectives, 
-            SyntaxNode externContainer, 
-            SyntaxNode usingContainer, 
-            SyntaxNode aliasContainer, 
-            bool placeSystemNamespaceFirst, 
+            ExternAliasDirectiveSyntax[] externAliases,
+            UsingDirectiveSyntax[] usingDirectives,
+            UsingDirectiveSyntax[] aliasDirectives,
+            SyntaxNode externContainer,
+            SyntaxNode usingContainer,
+            SyntaxNode aliasContainer,
+            bool placeSystemNamespaceFirst,
             SyntaxNode root)
         {
             var rewriter = new Rewriter(
@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
             private readonly UsingDirectiveSyntax[] _usingDirectives;
 
             public Rewriter(
-                ExternAliasDirectiveSyntax[] externAliases, 
-                UsingDirectiveSyntax[] usingDirectives, 
+                ExternAliasDirectiveSyntax[] externAliases,
+                UsingDirectiveSyntax[] usingDirectives,
                 UsingDirectiveSyntax[] aliasDirectives,
                 SyntaxNode externContainer,
                 SyntaxNode usingContainer,

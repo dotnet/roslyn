@@ -2,10 +2,25 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../CSharpFeaturesResources.resx">
     <body>
+      <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
+        <source>Add await and ConfigureAwait(false)</source>
+        <target state="translated">await と ConfigureAwait(false) を追加</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
         <source>Add accessibility modifiers</source>
-        <target state="translated">アクセシビリティ修飾子を追加します</target>
+        <target state="translated">'アクセシビリティ修飾子を追加します</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Add_await">
+        <source>Add await</source>
+        <target state="translated">await を追加する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_usings">
+        <source>Add missing usings</source>
+        <target state="translated">不足している using を追加する</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_remove_braces_for_single_line_control_statements">
         <source>Add/remove braces for single-line control statements</source>
@@ -40,6 +55,16 @@
       <trans-unit id="Apply_this_qualification_preferences">
         <source>Apply 'this.' qualification preferences</source>
         <target state="translated">'this.' 修飾の基本設定を適用します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_method">
+        <source>Convert to method</source>
+        <target state="translated">Convert to method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declare_as_nullable">
+        <source>Declare as nullable</source>
+        <target state="translated">Null 許容型として宣言する</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
@@ -104,7 +129,7 @@
       </trans-unit>
       <trans-unit id="member_name">
         <source>&lt;member name&gt; = </source>
-        <target state="translated">&lt;メンバー名&gt; = </target>
+        <target state="translated">&lt;メンバー名&gt; =</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation">
@@ -114,7 +139,7 @@
       </trans-unit>
       <trans-unit id="element_name">
         <source>&lt;element name&gt; : </source>
-        <target state="translated">&lt;要素名&gt; : </target>
+        <target state="translated">&lt;要素名&gt;:</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_tuple_type_element_creation">
@@ -234,7 +259,7 @@
       </trans-unit>
       <trans-unit id="deprecated">
         <source>deprecated</source>
-        <target state="translated">非推奨です</target>
+        <target state="translated">使用されていません</target>
         <note />
       </trans-unit>
       <trans-unit id="extension">
@@ -259,7 +284,7 @@
       </trans-unit>
       <trans-unit id="Remove_and_Sort_Usings">
         <source>R&amp;emove and Sort Usings</source>
-        <target state="translated">using の削除と並べ替え(&amp;E)</target>
+        <target state="translated">Using の削除と並び替え(&amp;E)</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_await">
@@ -304,7 +329,7 @@
       </trans-unit>
       <trans-unit id="TODO_colon_override_a_finalizer_only_if_Dispose_bool_disposing_above_has_code_to_free_unmanaged_resources">
         <source>TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.</source>
-        <target state="translated">TODO: 上の Dispose(bool disposing) にアンマネージド リソースを解放するコードが含まれる場合にのみ、ファイナライザーをオーバーライドします。</target>
+        <target state="translated">TODO: 上の Dispose(bool disposing) にアンマネージ リソースを解放するコードが含まれる場合にのみ、ファイナライザーをオーバーライドします。</target>
         <note />
       </trans-unit>
       <trans-unit id="This_code_added_to_correctly_implement_the_disposable_pattern">
@@ -696,6 +721,21 @@
         <source>Invert if</source>
         <target state="translated">if を反転する</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Add_Obsolete">
+        <source>Add [Obsolete]</source>
+        <target state="new">Add [Obsolete]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_0">
+        <source>Use '{0}'</source>
+        <target state="new">Use '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_using_statement">
+        <source>Introduce 'using' statement</source>
+        <target state="new">Introduce 'using' statement</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
     </body>
   </file>

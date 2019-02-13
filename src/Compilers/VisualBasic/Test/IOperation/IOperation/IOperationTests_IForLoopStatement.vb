@@ -33,7 +33,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1, Che
   InitialValue: 
     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   LimitValue: 
-    IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'myarray.Length - 1')
+    IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'myarray.Length - 1')
       Left: 
         IPropertyReferenceOperation: ReadOnly Property System.Array.Length As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'myarray.Length')
           Instance Receiver: 
@@ -458,7 +458,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1, Che
             Initializer: 
               null
         InitialValue: 
-          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'I + 1')
+          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'I + 1')
             Left: 
               ILocalReferenceOperation: I (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'I')
             Right: 
@@ -650,7 +650,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1, Che
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: '30 + i')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '30 + i')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: '30 + i')
                       Left: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 30) (Syntax: '30')
                       Right: 
@@ -879,9 +879,9 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1, Che
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For i As In ... Next')
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If i Mod 2  ... End If')
         Condition: 
-          IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i Mod 2 = 0')
+          IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i Mod 2 = 0')
             Left: 
-              IBinaryOperation (BinaryOperatorKind.Remainder, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i Mod 2')
+              IBinaryOperation (BinaryOperatorKind.Remainder, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i Mod 2')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -1550,7 +1550,7 @@ Block[B0] - Entry
         Predecessors: [B1] [B7]
         Statements (0)
         Jump if False (Regular) to Block[B8]
-            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '2UI')
+            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '2UI')
               Left: 
                 ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.UInt32, IsImplicit) (Syntax: 'i As UInteger')
               Right: 
@@ -1571,7 +1571,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'result')
 
             Jump if False (Regular) to Block[B5]
-                IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i > 0UI')
+                IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i > 0UI')
                   Left: 
                     ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.UInt32) (Syntax: 'i')
                   Right: 
@@ -1616,7 +1616,7 @@ Block[B0] - Entry
               Left: 
                 ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.UInt32, IsImplicit) (Syntax: 'i As UInteger')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.UInt32, IsImplicit) (Syntax: 'For i As UI ... Next')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.UInt32, IsImplicit) (Syntax: 'For i As UI ... Next')
                   Left: 
                     ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.UInt32, IsImplicit) (Syntax: 'i As UInteger')
                   Right: 
@@ -1693,7 +1693,7 @@ Block[B0] - Entry
         Predecessors: [B1] [B3]
         Statements (0)
         Jump if False (Regular) to Block[B4]
-            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '4')
+            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '4')
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
               Right: 
@@ -1716,7 +1716,7 @@ Block[B0] - Entry
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: '2')
+                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: '2')
                   Left: 
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -1777,7 +1777,7 @@ Block[B0] - Entry
 
                 IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '-1D')
                   Value: 
-                    IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperator, Type: System.Decimal, Constant: -1) (Syntax: '-1D')
+                    IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.Unary, Type: System.Decimal, Constant: -1) (Syntax: '-1D')
                       Operand: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Decimal, Constant: 1) (Syntax: '1D')
 
@@ -1795,7 +1795,7 @@ Block[B0] - Entry
         Predecessors: [B1] [B3]
         Statements (0)
         Jump if False (Regular) to Block[B4]
-            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '0D')
+            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '0D')
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Decimal, IsImplicit) (Syntax: 'i')
               Right: 
@@ -1818,7 +1818,7 @@ Block[B0] - Entry
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Decimal, IsImplicit) (Syntax: 'i')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Decimal, IsImplicit) (Syntax: '-1D')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Decimal, IsImplicit) (Syntax: '-1D')
                   Left: 
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Decimal, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -1895,11 +1895,11 @@ Block[B0] - Entry
         Predecessors: [B1] [B3]
         Statements (0)
         Jump if False (Regular) to Block[B4]
-            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '4S')
+            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '4S')
               Left: 
-                IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.BinaryOperator, Type: System.Int16, IsImplicit) (Syntax: 'i')
+                IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.Binary, Type: System.Int16, IsImplicit) (Syntax: 'i')
                   Left: 
-                    IBinaryOperation (BinaryOperatorKind.RightShift) (OperationKind.BinaryOperator, Type: System.Int16, IsImplicit) (Syntax: 'i')
+                    IBinaryOperation (BinaryOperatorKind.RightShift) (OperationKind.Binary, Type: System.Int16, IsImplicit) (Syntax: 'i')
                       Left: 
                         IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int16, IsImplicit) (Syntax: '[step]')
                       Right: 
@@ -1907,9 +1907,9 @@ Block[B0] - Entry
                   Right: 
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int16, IsImplicit) (Syntax: 'i')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.BinaryOperator, Type: System.Int16, IsImplicit) (Syntax: '4S')
+                IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.Binary, Type: System.Int16, IsImplicit) (Syntax: '4S')
                   Left: 
-                    IBinaryOperation (BinaryOperatorKind.RightShift) (OperationKind.BinaryOperator, Type: System.Int16, IsImplicit) (Syntax: '4S')
+                    IBinaryOperation (BinaryOperatorKind.RightShift) (OperationKind.Binary, Type: System.Int16, IsImplicit) (Syntax: '4S')
                       Left: 
                         IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int16, IsImplicit) (Syntax: '[step]')
                       Right: 
@@ -1934,7 +1934,7 @@ Block[B0] - Entry
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int16, IsImplicit) (Syntax: 'i')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int16, IsImplicit) (Syntax: '[step]')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int16, IsImplicit) (Syntax: '[step]')
                   Left: 
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int16, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -1999,7 +1999,7 @@ Block[B0] - Entry
 
                 IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[step]')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
+                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
                       Left: 
                         IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Decimal, IsImplicit) (Syntax: '[step]')
                       Right: 
@@ -2033,7 +2033,7 @@ Block[B0] - Entry
             Predecessors: [B2]
             Statements (0)
             Jump if False (Regular) to Block[B6]
-                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '0D')
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '0D')
                   Left: 
                     IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Decimal, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -2046,7 +2046,7 @@ Block[B0] - Entry
             Predecessors: [B2]
             Statements (0)
             Jump if False (Regular) to Block[B6]
-                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '0D')
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '0D')
                   Left: 
                     IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Decimal, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -2072,7 +2072,7 @@ Block[B0] - Entry
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Decimal, IsImplicit) (Syntax: 'i')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Decimal, IsImplicit) (Syntax: '[step]')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Decimal, IsImplicit) (Syntax: '[step]')
                   Left: 
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Decimal, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -2153,7 +2153,7 @@ Block[B0] - Entry
         Predecessors: [B1] [B3]
         Statements (0)
         Jump if False (Regular) to Block[B4]
-            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
+            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: MyEnum, IsImplicit) (Syntax: 'i')
               Right: 
@@ -2176,7 +2176,7 @@ Block[B0] - Entry
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: MyEnum, IsImplicit) (Syntax: 'i')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: MyEnum, IsImplicit) (Syntax: '[step]')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: MyEnum, IsImplicit) (Syntax: '[step]')
                   Left: 
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: MyEnum, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -2256,11 +2256,11 @@ Block[B0] - Entry
         Predecessors: [B1] [B3]
         Statements (0)
         Jump if False (Regular) to Block[B4]
-            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
+            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
               Left: 
-                IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.BinaryOperator, Type: MyEnum, IsImplicit) (Syntax: 'i')
+                IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.Binary, Type: MyEnum, IsImplicit) (Syntax: 'i')
                   Left: 
-                    IBinaryOperation (BinaryOperatorKind.RightShift) (OperationKind.BinaryOperator, Type: MyEnum, IsImplicit) (Syntax: 'i')
+                    IBinaryOperation (BinaryOperatorKind.RightShift) (OperationKind.Binary, Type: MyEnum, IsImplicit) (Syntax: 'i')
                       Left: 
                         IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: MyEnum, IsImplicit) (Syntax: '[step]')
                       Right: 
@@ -2268,9 +2268,9 @@ Block[B0] - Entry
                   Right: 
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: MyEnum, IsImplicit) (Syntax: 'i')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.BinaryOperator, Type: MyEnum, IsImplicit) (Syntax: 'limit')
+                IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.Binary, Type: MyEnum, IsImplicit) (Syntax: 'limit')
                   Left: 
-                    IBinaryOperation (BinaryOperatorKind.RightShift) (OperationKind.BinaryOperator, Type: MyEnum, IsImplicit) (Syntax: 'limit')
+                    IBinaryOperation (BinaryOperatorKind.RightShift) (OperationKind.Binary, Type: MyEnum, IsImplicit) (Syntax: 'limit')
                       Left: 
                         IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: MyEnum, IsImplicit) (Syntax: '[step]')
                       Right: 
@@ -2295,7 +2295,7 @@ Block[B0] - Entry
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: MyEnum, IsImplicit) (Syntax: 'i')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: MyEnum, IsImplicit) (Syntax: '[step]')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: MyEnum, IsImplicit) (Syntax: '[step]')
                   Left: 
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: MyEnum, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -2377,7 +2377,7 @@ Block[B0] - Entry
         Predecessors: [B1] [B3]
         Statements (0)
         Jump if False (Regular) to Block[B4]
-            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
+            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: MyEnum, IsImplicit) (Syntax: 'i')
               Right: 
@@ -2400,7 +2400,7 @@ Block[B0] - Entry
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: MyEnum, IsImplicit) (Syntax: 'i')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: MyEnum, IsImplicit) (Syntax: 'MyEnum.MinusOne')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: MyEnum, IsImplicit) (Syntax: 'MyEnum.MinusOne')
                   Left: 
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: MyEnum, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -2482,7 +2482,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[step]')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
+                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
                       Left: 
                         IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: '[step]')
                           Instance Receiver: 
@@ -2509,7 +2509,7 @@ Block[B0] - Entry
         Predecessors: [B4] [B11] [B12]
         Statements (0)
         Jump if False (Regular) to Block[B6]
-            IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
+            IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
               Left: 
                 IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
                   Operand: 
@@ -2544,7 +2544,7 @@ Block[B0] - Entry
             Predecessors: [B6]
             Statements (0)
             Jump if False (Regular) to Block[B13]
-                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
                   Left: 
                     IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -2560,7 +2560,7 @@ Block[B0] - Entry
             Predecessors: [B6]
             Statements (0)
             Jump if False (Regular) to Block[B13]
-                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
                   Left: 
                     IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -2599,7 +2599,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'i')
 
             Jump if False (Regular) to Block[B12]
-                IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
+                IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
                   Left: 
                     IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
                       Operand: 
@@ -2632,7 +2632,7 @@ Block[B0] - Entry
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         (WideningNullable)
                       Operand: 
-                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: '[step]')
+                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: '[step]')
                           Left: 
                             IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'i')
                               Instance Receiver: 
@@ -2751,7 +2751,7 @@ Block[B0] - Entry
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
                   Left: 
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -2872,7 +2872,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Nullable(Of C), IsInvalid, IsImplicit) (Syntax: 'i')
 
             Jump if False (Regular) to Block[B6]
-                IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '[step]')
+                IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '[step]')
                   Left: 
                     IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '[step]')
                       Operand: 
@@ -2905,7 +2905,7 @@ Block[B0] - Entry
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         (WideningNullable)
                       Operand: 
-                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
+                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
                           Left: 
                             IInvocationOperation ( Function System.Nullable(Of C).GetValueOrDefault() As C) (OperationKind.Invocation, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
                               Instance Receiver: 
@@ -3040,7 +3040,7 @@ Block[B0] - Entry
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C1, IsImplicit) (Syntax: 'i')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: C1, IsInvalid, IsImplicit) (Syntax: '[step]')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: C1, IsInvalid, IsImplicit) (Syntax: '[step]')
                   Left: 
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C1, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -3125,7 +3125,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[step]')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
+                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
                       Left: 
                         IInvocationOperation ( Function System.Nullable(Of MyEnum).GetValueOrDefault() As MyEnum) (OperationKind.Invocation, Type: MyEnum, IsImplicit) (Syntax: '[step]')
                           Instance Receiver: 
@@ -3152,7 +3152,7 @@ Block[B0] - Entry
         Predecessors: [B4] [B11] [B12]
         Statements (0)
         Jump if False (Regular) to Block[B6]
-            IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
+            IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
               Left: 
                 IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
                   Operand: 
@@ -3187,7 +3187,7 @@ Block[B0] - Entry
             Predecessors: [B6]
             Statements (0)
             Jump if False (Regular) to Block[B13]
-                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
                   Left: 
                     IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: MyEnum, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -3203,7 +3203,7 @@ Block[B0] - Entry
             Predecessors: [B6]
             Statements (0)
             Jump if False (Regular) to Block[B13]
-                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
                   Left: 
                     IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: MyEnum, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -3242,7 +3242,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Nullable(Of MyEnum), IsImplicit) (Syntax: 'i')
 
             Jump if False (Regular) to Block[B12]
-                IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
+                IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
                   Left: 
                     IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
                       Operand: 
@@ -3275,7 +3275,7 @@ Block[B0] - Entry
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         (WideningNullable)
                       Operand: 
-                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: MyEnum, IsImplicit) (Syntax: '[step]')
+                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: MyEnum, IsImplicit) (Syntax: '[step]')
                           Left: 
                             IInvocationOperation ( Function System.Nullable(Of MyEnum).GetValueOrDefault() As MyEnum) (OperationKind.Invocation, Type: MyEnum, IsImplicit) (Syntax: 'i')
                               Instance Receiver: 
@@ -3487,7 +3487,7 @@ Block[B0] - Entry
             Predecessors: [B13] [B14]
             Statements (0)
             Jump if False (Regular) to Block[B25]
-                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
                   Left: 
                     IFieldReferenceOperation: C.i As System.Int32 (OperationKind.FieldReference, Type: System.Int32, IsImplicit) (Syntax: 'If(c1, c2).i')
                       Instance Receiver: 
@@ -3612,7 +3612,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 10 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(c1, c2).i')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: '2')
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: '2')
                       Left: 
                         IFieldReferenceOperation: C.i As System.Int32 (OperationKind.FieldReference, Type: System.Int32, IsImplicit) (Syntax: 'If(c1, c2).i')
                           Instance Receiver: 
@@ -3766,7 +3766,7 @@ Block[B0] - Entry
             Statements (2)
                 IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '-2')
                   Value: 
-                    IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperator, Type: System.Int32, Constant: -2) (Syntax: '-2')
+                    IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.Unary, Type: System.Int32, Constant: -2) (Syntax: '-2')
                       Operand: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
@@ -3823,7 +3823,7 @@ Block[B0] - Entry
             Predecessors: [B13] [B14]
             Statements (0)
             Jump if False (Regular) to Block[B25]
-                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
                   Left: 
                     IFieldReferenceOperation: C.i As System.Int32 (OperationKind.FieldReference, Type: System.Int32, IsImplicit) (Syntax: 'If(c1, c2).i')
                       Instance Receiver: 
@@ -3948,7 +3948,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 10 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(c1, c2).i')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: '-2')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: '-2')
                       Left: 
                         IFieldReferenceOperation: C.i As System.Int32 (OperationKind.FieldReference, Type: System.Int32, IsImplicit) (Syntax: 'If(c1, c2).i')
                           Instance Receiver: 
@@ -4176,11 +4176,11 @@ Block[B0] - Entry
             Predecessors: [B16] [B17]
             Statements (0)
             Jump if False (Regular) to Block[B28]
-                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
                   Left: 
-                    IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(c1, c2).i')
+                    IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(c1, c2).i')
                       Left: 
-                        IBinaryOperation (BinaryOperatorKind.RightShift) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(c1, c2).i')
+                        IBinaryOperation (BinaryOperatorKind.RightShift) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(c1, c2).i')
                           Left: 
                             IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
                           Right: 
@@ -4190,9 +4190,9 @@ Block[B0] - Entry
                           Instance Receiver: 
                             IFlowCaptureReferenceOperation: 7 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2)')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+                    IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
                       Left: 
-                        IBinaryOperation (BinaryOperatorKind.RightShift) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+                        IBinaryOperation (BinaryOperatorKind.RightShift) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
                           Left: 
                             IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
                           Right: 
@@ -4317,7 +4317,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 10 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(c1, c2).i')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
                       Left: 
                         IFieldReferenceOperation: C.i As System.Int32 (OperationKind.FieldReference, Type: System.Int32, IsImplicit) (Syntax: 'If(c1, c2).i')
                           Instance Receiver: 
@@ -4494,7 +4494,7 @@ Block[B0] - Entry
             Statements (2)
                 IFlowCaptureOperation: 6 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
+                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
                       Left: 
                         IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Double, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
                       Right: 
@@ -4576,7 +4576,7 @@ Block[B0] - Entry
             Predecessors: [B19]
             Statements (0)
             Jump if False (Regular) to Block[B31]
-                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
                   Left: 
                     IFlowCaptureReferenceOperation: 9 (OperationKind.FlowCaptureReference, Type: System.Double, IsImplicit) (Syntax: 'If(c1, c2).i')
                   Right: 
@@ -4589,7 +4589,7 @@ Block[B0] - Entry
             Predecessors: [B19]
             Statements (0)
             Jump if False (Regular) to Block[B31]
-                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
                   Left: 
                     IFlowCaptureReferenceOperation: 9 (OperationKind.FlowCaptureReference, Type: System.Double, IsImplicit) (Syntax: 'If(c1, c2).i')
                   Right: 
@@ -4712,7 +4712,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 12 (OperationKind.FlowCaptureReference, Type: System.Double, IsImplicit) (Syntax: 'If(c1, c2).i')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Double, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Double, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
                       Left: 
                         IFieldReferenceOperation: C.i As System.Double (OperationKind.FieldReference, Type: System.Double, IsImplicit) (Syntax: 'If(c1, c2).i')
                           Instance Receiver: 
@@ -4906,7 +4906,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 6 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
+                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
                       Left: 
                         IInvocationOperation ( Function System.Nullable(Of System.Double).GetValueOrDefault() As System.Double) (OperationKind.Invocation, Type: System.Double, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
                           Instance Receiver: 
@@ -4972,7 +4972,7 @@ Block[B0] - Entry
             Predecessors: [B19] [B20]
             Statements (0)
             Jump if False (Regular) to Block[B22]
-                IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
+                IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
                   Left: 
                     IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
                       Operand: 
@@ -5058,7 +5058,7 @@ Block[B0] - Entry
             Predecessors: [B26]
             Statements (0)
             Jump if False (Regular) to Block[B43]
-                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
                   Left: 
                     IFlowCaptureReferenceOperation: 11 (OperationKind.FlowCaptureReference, Type: System.Double, IsImplicit) (Syntax: 'If(c1, c2).i')
                   Right: 
@@ -5074,7 +5074,7 @@ Block[B0] - Entry
             Predecessors: [B26]
             Statements (0)
             Jump if False (Regular) to Block[B43]
-                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
                   Left: 
                     IFlowCaptureReferenceOperation: 11 (OperationKind.FlowCaptureReference, Type: System.Double, IsImplicit) (Syntax: 'If(c1, c2).i')
                   Right: 
@@ -5200,7 +5200,7 @@ Block[B0] - Entry
                 Predecessors: [B35] [B36]
                 Statements (0)
                 Jump if False (Regular) to Block[B39]
-                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
                       Left: 
                         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
                           Operand: 
@@ -5281,7 +5281,7 @@ Block[B0] - Entry
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             (WideningNullable)
                           Operand: 
-                            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Double, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
+                            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Double, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
                               Left: 
                                 IInvocationOperation ( Function System.Nullable(Of System.Double).GetValueOrDefault() As System.Double) (OperationKind.Invocation, Type: System.Double, IsImplicit) (Syntax: 'If(c1, c2).i')
                                   Instance Receiver: 
@@ -5372,7 +5372,7 @@ Block[B0] - Entry
         Predecessors: [B1] [B4]
         Statements (0)
         Jump if False (Regular) to Block[B5]
-            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '4')
+            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '4')
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
               Right: 
@@ -5384,7 +5384,7 @@ Block[B0] - Entry
         Predecessors: [B2]
         Statements (0)
         Jump if False (Regular) to Block[B4]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'result = i')
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'result = i')
               Left: 
                 IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'result')
               Right: 
@@ -5399,7 +5399,7 @@ Block[B0] - Entry
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: '2')
+                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: '2')
                   Left: 
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -5480,7 +5480,7 @@ Block[B0] - Entry
         Predecessors: [B1] [B5]
         Statements (0)
         Jump if False (Regular) to Block[B6]
-            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '4')
+            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '4')
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
               Right: 
@@ -5492,7 +5492,7 @@ Block[B0] - Entry
         Predecessors: [B2]
         Statements (0)
         Jump if False (Regular) to Block[B4]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'result = i')
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'result = i')
               Left: 
                 IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'result')
               Right: 
@@ -5518,7 +5518,7 @@ Block[B0] - Entry
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: '2')
+                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: '2')
                   Left: 
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -5637,7 +5637,7 @@ Block[B0] - Entry
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
                   Left: 
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -5756,7 +5756,7 @@ Block[B0] - Entry
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
                   Left: 
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -5872,7 +5872,7 @@ Block[B0] - Entry
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
                   Left: 
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -5988,7 +5988,7 @@ Block[B0] - Entry
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
                   Left: 
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -6070,11 +6070,11 @@ Block[B0] - Entry
 
                 IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                       Left: 
                         IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: '[step]')
                       Right: 
-                        IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperatorMethod: Function C.op_Subtraction(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                        IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperatorMethod: Function C.op_Subtraction(x As C, y As C) As C) (OperationKind.Binary, Type: C, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                           Left: 
                             IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: '[step]')
                           Right: 
@@ -6108,7 +6108,7 @@ Block[B0] - Entry
             Predecessors: [B2]
             Statements (0)
             Jump if False (Regular) to Block[B6]
-                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                   Left: 
                     IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -6121,7 +6121,7 @@ Block[B0] - Entry
             Predecessors: [B2]
             Statements (0)
             Jump if False (Regular) to Block[B6]
-                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                   Left: 
                     IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -6147,7 +6147,7 @@ Block[B0] - Entry
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'i')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function C.op_Addition(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function C.op_Addition(x As C, y As C) As C) (OperationKind.Binary, Type: C, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                   Left: 
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -6238,11 +6238,11 @@ Block[B0] - Entry
                       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         (DelegateRelaxationLevelNone)
                       Operand: 
-                        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.Binary, Type: C, IsInvalid, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                           Left: 
                             IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
                           Right: 
-                            IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperatorMethod: Function C.op_Subtraction(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                            IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperatorMethod: Function C.op_Subtraction(x As C, y As C) As C) (OperationKind.Binary, Type: C, IsInvalid, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                               Left: 
                                 IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
                               Right: 
@@ -6280,7 +6280,7 @@ Block[B0] - Entry
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (DelegateRelaxationLevelNone)
                   Operand: 
-                    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As C) (OperationKind.Binary, Type: C, IsInvalid, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                       Left: 
                         IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
                       Right: 
@@ -6297,7 +6297,7 @@ Block[B0] - Entry
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (DelegateRelaxationLevelNone)
                   Operand: 
-                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.Binary, Type: C, IsInvalid, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                       Left: 
                         IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
                       Right: 
@@ -6323,7 +6323,7 @@ Block[B0] - Entry
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function C.op_Addition(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function C.op_Addition(x As C, y As C) As C) (OperationKind.Binary, Type: C, IsInvalid, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                   Left: 
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -6414,13 +6414,13 @@ Block[B0] - Entry
 
                 IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                   Value: 
-                    IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                    IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                       Operand: 
-                        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.Binary, Type: C, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                           Left: 
                             IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: '[step]')
                           Right: 
-                            IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperatorMethod: Function C.op_Subtraction(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                            IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperatorMethod: Function C.op_Subtraction(x As C, y As C) As C) (OperationKind.Binary, Type: C, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                               Left: 
                                 IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: '[step]')
                               Right: 
@@ -6454,9 +6454,9 @@ Block[B0] - Entry
             Predecessors: [B2]
             Statements (0)
             Jump if False (Regular) to Block[B6]
-                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                   Operand: 
-                    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As C) (OperationKind.Binary, Type: C, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                       Left: 
                         IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'i')
                       Right: 
@@ -6469,9 +6469,9 @@ Block[B0] - Entry
             Predecessors: [B2]
             Statements (0)
             Jump if False (Regular) to Block[B6]
-                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                   Operand: 
-                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.Binary, Type: C, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                       Left: 
                         IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'i')
                       Right: 
@@ -6497,7 +6497,7 @@ Block[B0] - Entry
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'i')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function C.op_Addition(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function C.op_Addition(x As C, y As C) As C) (OperationKind.Binary, Type: C, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                   Left: 
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -6582,11 +6582,11 @@ Block[B0] - Entry
                   Value: 
                     IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                       Instance Receiver: 
-                        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, IsLifted, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, IsLifted, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.Binary, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                           Left: 
                             IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: '[step]')
                           Right: 
-                            IBinaryOperation (BinaryOperatorKind.Subtract, IsLifted, Checked) (OperatorMethod: Function C.op_Subtraction(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                            IBinaryOperation (BinaryOperatorKind.Subtract, IsLifted, Checked) (OperatorMethod: Function C.op_Subtraction(x As C, y As C) As C) (OperationKind.Binary, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                               Left: 
                                 IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: '[step]')
                               Right: 
@@ -6623,7 +6623,7 @@ Block[B0] - Entry
             Jump if False (Regular) to Block[B6]
                 IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                   Instance Receiver: 
-                    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, IsLifted, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, IsLifted, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.Binary, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                       Left: 
                         IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'i')
                       Right: 
@@ -6639,7 +6639,7 @@ Block[B0] - Entry
             Jump if False (Regular) to Block[B6]
                 IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                   Instance Receiver: 
-                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, IsLifted, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, IsLifted, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.Binary, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                       Left: 
                         IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'i')
                       Right: 
@@ -6666,7 +6666,7 @@ Block[B0] - Entry
               Left: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'i')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add, IsLifted, Checked) (OperatorMethod: Function C.op_Addition(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                IBinaryOperation (BinaryOperatorKind.Add, IsLifted, Checked) (OperatorMethod: Function C.op_Addition(x As C, y As C) As C) (OperationKind.Binary, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'For i = ini ... Step [step]')
                   Left: 
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'i')
                   Right: 
@@ -6856,11 +6856,11 @@ Block[B0] - Entry
             Statements (2)
                 IFlowCaptureOperation: 6 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
                       Left: 
                         IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
                       Right: 
-                        IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperatorMethod: Function C.op_Subtraction(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+                        IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperatorMethod: Function C.op_Subtraction(x As C, y As C) As C) (OperationKind.Binary, Type: C, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
                           Left: 
                             IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
                           Right: 
@@ -6942,7 +6942,7 @@ Block[B0] - Entry
             Predecessors: [B19]
             Statements (0)
             Jump if False (Regular) to Block[B31]
-                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
                   Left: 
                     IFlowCaptureReferenceOperation: 9 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2).i')
                   Right: 
@@ -6955,7 +6955,7 @@ Block[B0] - Entry
             Predecessors: [B19]
             Statements (0)
             Jump if False (Regular) to Block[B31]
-                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
                   Left: 
                     IFlowCaptureReferenceOperation: 9 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2).i')
                   Right: 
@@ -7078,7 +7078,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 12 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2).i')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function C.op_Addition(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function C.op_Addition(x As C, y As C) As C) (OperationKind.Binary, Type: C, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
                       Left: 
                         IFieldReferenceOperation: C.i As C (OperationKind.FieldReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2).i')
                           Instance Receiver: 
@@ -7277,11 +7277,11 @@ Block[B0] - Entry
                   Value: 
                     IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
                       Instance Receiver: 
-                        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, IsLifted, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+                        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, IsLifted, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.Binary, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
                           Left: 
                             IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'If(bStep, step1, step2)')
                           Right: 
-                            IBinaryOperation (BinaryOperatorKind.Subtract, IsLifted, Checked) (OperatorMethod: Function C.op_Subtraction(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+                            IBinaryOperation (BinaryOperatorKind.Subtract, IsLifted, Checked) (OperatorMethod: Function C.op_Subtraction(x As C, y As C) As C) (OperationKind.Binary, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
                               Left: 
                                 IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'If(bStep, step1, step2)')
                               Right: 
@@ -7366,7 +7366,7 @@ Block[B0] - Entry
             Jump if False (Regular) to Block[B31]
                 IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
                   Instance Receiver: 
-                    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, IsLifted, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+                    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, IsLifted, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.Binary, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
                       Left: 
                         IFlowCaptureReferenceOperation: 9 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'If(c1, c2).i')
                       Right: 
@@ -7382,7 +7382,7 @@ Block[B0] - Entry
             Jump if False (Regular) to Block[B31]
                 IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
                   Instance Receiver: 
-                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, IsLifted, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, IsLifted, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.Binary, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
                       Left: 
                         IFlowCaptureReferenceOperation: 9 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'If(c1, c2).i')
                       Right: 
@@ -7506,7 +7506,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 12 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'If(c1, c2).i')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Add, IsLifted, Checked) (OperatorMethod: Function C.op_Addition(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+                    IBinaryOperation (BinaryOperatorKind.Add, IsLifted, Checked) (OperatorMethod: Function C.op_Addition(x As C, y As C) As C) (OperationKind.Binary, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
                       Left: 
                         IFieldReferenceOperation: C1.i As System.Nullable(Of C) (OperationKind.FieldReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'If(c1, c2).i')
                           Instance Receiver: 
@@ -8850,7 +8850,7 @@ Public Class C
 End Class
 ]]>.Value
 
-            Dim compilation = CreateCompilationWithMscorlib45(source, options:=TestOptions.ReleaseDebugDll, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
+            Dim compilation = CreateCompilationWithMscorlib45(source, options:=TestOptions.ReleaseDebugDll)
 
             Dim expectedDiagnostics = String.Empty
 
@@ -8924,7 +8924,7 @@ Public Class C
 End Class
 ]]>.Value
 
-            Dim compilation = CreateCompilationWithMscorlib45(source, options:=TestOptions.ReleaseDebugDll, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
+            Dim compilation = CreateCompilationWithMscorlib45(source, options:=TestOptions.ReleaseDebugDll)
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault)
 
             Dim expectedDiagnostics = String.Empty
@@ -8979,7 +8979,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[step]')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
+                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
                       Left: 
                         IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsImplicit) (Syntax: '[step]')
                           Children(1):
@@ -9005,7 +9005,7 @@ Block[B0] - Entry
         Predecessors: [B4] [B11] [B12]
         Statements (0)
         Jump if False (Regular) to Block[B6]
-            IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
+            IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
               Left: 
                 IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
                   Operand: 
@@ -9039,7 +9039,7 @@ Block[B0] - Entry
             Predecessors: [B6]
             Statements (0)
             Jump if False (Regular) to Block[B13]
-                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
                   Left: 
                     IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -9054,7 +9054,7 @@ Block[B0] - Entry
             Predecessors: [B6]
             Statements (0)
             Jump if False (Regular) to Block[B13]
-                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
                   Left: 
                     IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
                   Right: 
@@ -9092,7 +9092,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'i')
 
             Jump if False (Regular) to Block[B12]
-                IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
+                IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
                   Left: 
                     IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: '[step]')
                       Operand: 
@@ -9125,7 +9125,7 @@ Block[B0] - Entry
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         (WideningNullable)
                       Operand: 
-                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: '[step]')
+                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: '[step]')
                           Left: 
                             IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsImplicit) (Syntax: 'i')
                               Children(1):

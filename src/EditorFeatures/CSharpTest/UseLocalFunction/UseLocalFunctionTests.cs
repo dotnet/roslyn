@@ -2002,8 +2002,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestWithDefaultParameter1()
         {
-           await TestInRegularAndScript1Async(
-@"class C
+            await TestInRegularAndScript1Async(
+ @"class C
 {
     delegate string MyDelegate(string arg = ""hello"");
 
@@ -2012,7 +2012,7 @@ class C
         MyDelegate [||]local = (s) => s;
     }
 }",
-@"class C
+ @"class C
 {
     delegate string MyDelegate(string arg = ""hello"");
 
@@ -2921,6 +2921,391 @@ class C
     {
         var buildCancelled = false;
         async void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/23149")]
+        public async Task TestNotAvailableIfTypeParameterChanged1()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class Enclosing<T>
+{
+    delegate T MyDelegate(T t);
+    static void Callee(MyDelegate d) => d(default);
+
+    public class Class<T>
+    {
+        public void Caller()
+        {
+            MyDelegate [||]local = x => x;
+            Callee(local);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/23149")]
+        public async Task TestNotAvailableIfTypeParameterChanged2()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class Enclosing<T>
+{
+    delegate T MyDelegate(T t);
+    static void Callee(MyDelegate d) => d(default);
+
+    public class Goo<T>
+    {
+        public class Class
+        {
+            public void Caller()
+            {
+                MyDelegate [||]local = x => x;
+                Callee(local);
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/23149")]
+        public async Task TestNotAvailableIfTypeParameterChanged3()
+        {
+            await TestMissingAsync(
+@"public class Class<T>
+{
+    delegate T MyDelegate(T t);
+    static void Callee(MyDelegate d) => d(default);
+
+    public void Caller()
+    {
+        void Some<T>(T t)
+        {
+            MyDelegate [||]local = x => x;
+            Callee(local);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/23149")]
+        public async Task TestNotAvailableIfTypeParameterChanged4()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class Enclosing<T>
+{
+    delegate T MyDelegate(T t);
+    static void Callee(MyDelegate d) => d(default);
+
+    public class Goo<T>
+    {
+        public class Class<U>
+        {
+            public void Caller()
+            {
+                MyDelegate [||]local = x => x;
+                Callee(local);
+            }
+        }
+    }
+}");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/27950"), Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/23149")]
+        public async Task TestAvailableIfTypeParameterNotChanged1()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class DelegateEnclosing<T>
+{
+    protected delegate T MyDelegate(T t);
+}
+
+class Enclosing<T> : DelegateEnclosing<T>
+{
+    static void Callee(MyDelegate d) => d(default);
+
+    public void Caller()
+    {
+        MyDelegate [||]local = x => x;
+        Callee(local);
+    }
+}",
+@"using System;
+
+class DelegateEnclosing<T>
+{
+    protected delegate T MyDelegate(T t);
+}
+
+class Enclosing<T> : DelegateEnclosing<T>
+{
+    static void Callee(MyDelegate d) => d(default);
+
+    public void Caller()
+    {
+        T local(T x) => x;
+        Callee(local);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/23149")]
+        public async Task TestAvailableIfTypeParameterNotChanged2()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class DelegateEnclosing<T>
+{
+    protected delegate T MyDelegate(T t);
+}
+
+class Enclosing<U> : DelegateEnclosing<U>
+{
+    static void Callee(MyDelegate d) => d(default);
+
+    public void Caller()
+    {
+        MyDelegate [||]local = x => x;
+        Callee(local);
+    }
+}",
+@"using System;
+
+class DelegateEnclosing<T>
+{
+    protected delegate T MyDelegate(T t);
+}
+
+class Enclosing<U> : DelegateEnclosing<U>
+{
+    static void Callee(MyDelegate d) => d(default);
+
+    public void Caller()
+    {
+        U local(U x) => x;
+        Callee(local);
+    }
+}");
+        }
+
+        [WorkItem(26526, "https://github.com/dotnet/roslyn/issues/26526")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestAvailableWithCastIntroducedIfAssignedToVar()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<string> [||]f = () => null;
+
+        var f2 = f;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        string f() => null;
+
+        var f2 = (Func<string>)f;
+    }
+}");
+        }
+
+        [WorkItem(26526, "https://github.com/dotnet/roslyn/issues/26526")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestAvailableWithCastIntroducedForGenericTypeInference1()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, string> [||]f = _ => null;
+
+        Method(f);
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        string f(int _) => null;
+
+        Method((Func<int, string>)f);
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+}");
+        }
+
+        [WorkItem(26526, "https://github.com/dotnet/roslyn/issues/26526")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestAvailableWithCastIntroducedForGenericTypeInference2()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, string> [||]f = _ => null;
+
+        Method(f);
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+
+    void Method(string o)
+    {
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        string f(int _) => null;
+
+        Method((Func<int, string>)f);
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+
+    void Method(string o)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestAvailableWithCastIntroducedForOverloadResolution()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+delegate string CustomDelegate();
+
+class C
+{
+    void M()
+    {
+        Func<string> [||]f = () => null;
+
+        Method(f);
+    }
+
+    void Method(Func<string> o)
+    {
+    }
+
+    void Method(CustomDelegate o)
+    {
+    }
+}",
+@"using System;
+
+delegate string CustomDelegate();
+
+class C
+{
+    void M()
+    {
+        string f() => null;
+
+        Method((Func<string>)f);
+    }
+
+    void Method(Func<string> o)
+    {
+    }
+
+    void Method(CustomDelegate o)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestAvailableWithoutCastIfUnnecessaryForOverloadResolution()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+delegate string CustomDelegate(object arg);
+
+class C
+{
+    void M()
+    {
+        Func<string> [||]f = () => null;
+
+        Method(f);
+    }
+
+    void Method(Func<string> o)
+    {
+    }
+
+    void Method(CustomDelegate o)
+    {
+    }
+}",
+@"using System;
+
+delegate string CustomDelegate(object arg);
+
+class C
+{
+    void M()
+    {
+        string f() => null;
+
+        Method(f);
+    }
+
+    void Method(Func<string> o)
+    {
+    }
+
+    void Method(CustomDelegate o)
+    {
     }
 }");
         }

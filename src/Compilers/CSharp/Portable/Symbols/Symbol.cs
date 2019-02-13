@@ -304,6 +304,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<SyntaxReference> builder = ArrayBuilder<SyntaxReference>.GetInstance();
             foreach (Location location in locations)
             {
+                // Location may be null. See https://github.com/dotnet/roslyn/issues/28862.
+                if (location == null)
+                {
+                    continue;
+                }
                 if (location.IsInSource)
                 {
                     SyntaxToken token = (SyntaxToken)location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start);
@@ -751,9 +756,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return "";
         }
 
-        internal string GetDebuggerDisplay()
+        private static readonly SymbolDisplayFormat s_debuggerDisplayFormat =
+            SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)
+                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
+        internal virtual string GetDebuggerDisplay()
         {
-            return $"{this.Kind} {this.ToDisplayString(SymbolDisplayFormat.TestFormat)}";
+            return $"{this.Kind} {this.ToDisplayString(s_debuggerDisplayFormat)}";
         }
 
         internal virtual void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
@@ -916,11 +925,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MergeUseSiteDiagnostics(ref result, info);
         }
 
+        internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeSymbolWithAnnotations type)
+        {
+            return DeriveUseSiteDiagnosticFromType(ref result, type.TypeSymbol) ||
+                   DeriveUseSiteDiagnosticFromCustomModifiers(ref result, type.CustomModifiers);
+        }
+
         internal bool DeriveUseSiteDiagnosticFromParameter(ref DiagnosticInfo result, ParameterSymbol param)
         {
             return DeriveUseSiteDiagnosticFromType(ref result, param.Type) ||
-                   DeriveUseSiteDiagnosticFromCustomModifiers(ref result, param.RefCustomModifiers) ||
-                   DeriveUseSiteDiagnosticFromCustomModifiers(ref result, param.CustomModifiers);
+                   DeriveUseSiteDiagnosticFromCustomModifiers(ref result, param.RefCustomModifiers);
         }
 
         internal bool DeriveUseSiteDiagnosticFromParameters(ref DiagnosticInfo result, ImmutableArray<ParameterSymbol> parameters)
@@ -970,6 +984,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        internal static bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, ImmutableArray<TypeSymbolWithAnnotations> types, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
+        {
+            foreach (var t in types)
+            {
+                if (t.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         internal static bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, ImmutableArray<CustomModifier> modifiers, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
             foreach (var modifier in modifiers)
@@ -988,8 +1015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var parameter in parameters)
             {
                 if (parameter.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
-                    GetUnificationUseSiteDiagnosticRecursive(ref result, parameter.RefCustomModifiers, owner, ref checkedTypes) ||
-                    GetUnificationUseSiteDiagnosticRecursive(ref result, parameter.CustomModifiers, owner, ref checkedTypes))
+                    GetUnificationUseSiteDiagnosticRecursive(ref result, parameter.RefCustomModifiers, owner, ref checkedTypes))
                 {
                     return true;
                 }

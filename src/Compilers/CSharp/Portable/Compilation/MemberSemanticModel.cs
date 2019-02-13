@@ -269,6 +269,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     binder = rootBinder.GetBinder(current);
                 }
+                else if (kind == SyntaxKind.SwitchExpression)
+                {
+                    binder = rootBinder.GetBinder(current);
+                }
+                else if (kind == SyntaxKind.SwitchExpressionArm)
+                {
+                    binder = rootBinder.GetBinder(current);
+                }
                 else if ((current as ExpressionSyntax).IsValidScopeDesignator())
                 {
                     binder = rootBinder.GetBinder(current);
@@ -312,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.SwitchStatement:
                     var switchStmt = (SwitchStatementSyntax)stmt;
-                    if (LookupPosition.IsBetweenTokens(position, switchStmt.OpenParenToken, switchStmt.OpenBraceToken))
+                    if (LookupPosition.IsBetweenTokens(position, switchStmt.SwitchKeyword, switchStmt.OpenBraceToken))
                     {
                         binder = binder.GetBinder(switchStmt.Expression);
                         Debug.Assert(binder != null);
@@ -815,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return default(AwaitExpressionInfo);
             }
 
-            return new AwaitExpressionInfo(boundAwait.GetAwaiter, boundAwait.IsCompleted, boundAwait.GetResult, boundAwait.IsDynamic);
+            return new AwaitExpressionInfo(boundAwait.AwaitableInfo);
         }
 
         public override ForEachStatementInfo GetForEachStatementInfo(ForEachStatementSyntax node)
@@ -854,12 +862,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: we're going to list GetEnumerator, etc for array and string
             // collections, even though we know that's not how the implementation
             // actually enumerates them.
+            MethodSymbol disposeMethod = null;
+            if (enumeratorInfoOpt.NeedsDisposal)
+            {
+                if (!(enumeratorInfoOpt.DisposeMethod is null))
+                {
+                    disposeMethod = enumeratorInfoOpt.DisposeMethod;
+                }
+                else
+                {
+                    disposeMethod = enumeratorInfoOpt.IsAsync
+                    ? (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync)
+                    : (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose);
+                }
+            }
+
             return new ForEachStatementInfo(
                 enumeratorInfoOpt.GetEnumeratorMethod,
                 enumeratorInfoOpt.MoveNextMethod,
-                (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedSymbol,
-                enumeratorInfoOpt.NeedsDisposeMethod ? (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose) : null,
-                enumeratorInfoOpt.ElementType,
+                currentProperty: (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter?.AssociatedSymbol,
+                disposeMethod,
+                enumeratorInfoOpt.ElementType.TypeSymbol,
                 boundForEach.ElementConversion,
                 enumeratorInfoOpt.CurrentConversion);
         }
@@ -1872,7 +1895,10 @@ done:
                 case SyntaxKind.OperatorDeclaration:
                 case SyntaxKind.ConversionOperatorDeclaration:
                 case SyntaxKind.GlobalStatement:
+                case SyntaxKind.Subpattern:
                     return node;
+                case SyntaxKind.PositionalPatternClause:
+                    return node.Parent;
             }
 
             while (true)
@@ -1935,7 +1961,8 @@ done:
                             !(node is JoinIntoClauseSyntax) &&
                             !(node is QueryContinuationSyntax) &&
                             !(node is ConstructorInitializerSyntax) &&
-                            !(node is ArrowExpressionClauseSyntax))
+                            !(node is ArrowExpressionClauseSyntax) &&
+                            !(node is PatternSyntax))
                         {
                             return GetBindableSyntaxNode(parent);
                         }
@@ -1987,7 +2014,7 @@ done:
                         goto foundParent;
                 }
             }
-            foundParent:;
+foundParent:;
 
             var bindableParent = this.GetBindableSyntaxNode(parent);
             Debug.Assert(bindableParent != null);
@@ -2083,6 +2110,13 @@ done:
                 }
 
                 return (BoundStatement)boundNode;
+            }
+
+            internal override BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics)
+            {
+                BoundBlock block = (BoundBlock)TryGetBoundNodeFromMap(node) ?? base.BindEmbeddedBlock(node, diagnostics);
+                Debug.Assert(!block.WasCompilerGenerated);
+                return block;
             }
 
             private BoundNode TryGetBoundNodeFromMap(CSharpSyntaxNode node)

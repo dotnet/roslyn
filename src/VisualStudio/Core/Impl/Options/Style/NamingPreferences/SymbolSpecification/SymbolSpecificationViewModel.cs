@@ -229,7 +229,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 Name = name;
 
                 IsChecked = specification.ApplicableAccessibilityList.Any(a => a == accessibility);
-            }   
+            }
         }
 
         public class ModifierViewModel : AbstractNotifyPropertyChanged, ISymbolSpecificationViewModelPart

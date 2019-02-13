@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInRemoteProcessAsync(
-            RemoteHostClient client, Project project, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
+            RemoteHostClient client, Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
 
             var serializableResults = await client.TryRunCodeAnalysisRemoteAsync<IList<SerializableNavigateToSearchResult>>(
                 solution, nameof(IRemoteNavigateToSearchService.SearchProjectAsync),
-                new object[] { project.Id, searchPattern, kinds.ToArray() }, cancellationToken).ConfigureAwait(false);
+                new object[] { project.Id, priorityDocuments.Select(d => d.Id).ToArray(), searchPattern, kinds.ToArray() }, cancellationToken).ConfigureAwait(false);
 
             return serializableResults.SelectAsArray(r => r.Rehydrate(solution));
         }

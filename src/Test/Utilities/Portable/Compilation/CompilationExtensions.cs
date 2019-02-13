@@ -35,7 +35,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Stream pdbStream = null,
             IMethodSymbol debugEntryPoint = null,
             Stream sourceLinkStream = null,
-            IEnumerable<EmbeddedText> embeddedTexts = null)
+            IEnumerable<EmbeddedText> embeddedTexts = null,
+            IEnumerable<ResourceDescription> manifestResources = null,
+            Stream metadataPEStream = null)
         {
             var peStream = new MemoryStream();
 
@@ -51,11 +53,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var emitResult = compilation.Emit(
                 peStream: peStream,
-                metadataPEStream: null,
+                metadataPEStream: metadataPEStream,
                 pdbStream: pdbStream,
                 xmlDocumentationStream: null,
                 win32Resources: null,
-                manifestResources: null,
+                manifestResources: manifestResources,
                 options: options,
                 debugEntryPoint: debugEntryPoint,
                 sourceLinkStream: sourceLinkStream,

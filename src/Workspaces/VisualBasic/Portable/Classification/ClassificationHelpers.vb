@@ -16,7 +16,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         ''' <returns>The classification type for the token</returns>
         ''' <remarks></remarks>
         Public Function GetClassification(token As SyntaxToken) As String
-            If SyntaxFacts.IsKeywordKind(token.Kind) Then
+            If IsControlKeyword(token) Then
+                Return ClassificationTypeNames.ControlKeyword
+            ElseIf SyntaxFacts.IsKeywordKind(token.Kind) Then
                 Return ClassificationTypeNames.Keyword
             ElseIf IsStringToken(token) Then
                 Return ClassificationTypeNames.StringLiteral
@@ -50,6 +52,120 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End If
         End Function
 
+        Private Function IsControlKeyword(token As SyntaxToken) As Boolean
+            If token.Parent Is Nothing Then
+                Return False
+            End If
+
+            ' For Exit Statments classify everything as a control keyword
+            If token.Parent.IsKind(
+                SyntaxKind.ExitFunctionStatement,
+                SyntaxKind.ExitOperatorStatement,
+                SyntaxKind.ExitPropertyStatement,
+                SyntaxKind.ExitSubStatement) Then
+                Return True
+            End If
+
+            ' Control keywords are used in other contexts so check that it is
+            ' being used in a supported context.
+            Return IsControlKeywordKind(token.Kind) AndAlso
+                IsControlStatementKind(token.Parent.Kind)
+        End Function
+
+        ''' <summary>
+        ''' Determine if the kind represents a control keyword
+        ''' </summary>
+        Private Function IsControlKeywordKind(kind As SyntaxKind) As Boolean
+            Select Case kind
+                Case _
+                SyntaxKind.CaseKeyword,
+                SyntaxKind.CatchKeyword,
+                SyntaxKind.ContinueKeyword,
+                SyntaxKind.DoKeyword,
+                SyntaxKind.EachKeyword,
+                SyntaxKind.ElseKeyword,
+                SyntaxKind.ElseIfKeyword,
+                SyntaxKind.EndKeyword,
+                SyntaxKind.ExitKeyword,
+                SyntaxKind.FinallyKeyword,
+                SyntaxKind.ForKeyword,
+                SyntaxKind.GoToKeyword,
+                SyntaxKind.IfKeyword,
+                SyntaxKind.InKeyword,
+                SyntaxKind.LoopKeyword,
+                SyntaxKind.NextKeyword,
+                SyntaxKind.ResumeKeyword,
+                SyntaxKind.ReturnKeyword,
+                SyntaxKind.SelectKeyword,
+                SyntaxKind.ThenKeyword,
+                SyntaxKind.TryKeyword,
+                SyntaxKind.WhileKeyword,
+                SyntaxKind.WendKeyword,
+                SyntaxKind.UntilKeyword,
+                SyntaxKind.EndIfKeyword,
+                SyntaxKind.GosubKeyword,
+                SyntaxKind.YieldKeyword,
+                SyntaxKind.ToKeyword
+                    Return True
+                Case Else
+                    Return False
+            End Select
+        End Function
+
+        ''' <summary>
+        ''' Determine if the kind represents a control statement
+        ''' </summary>
+        Private Function IsControlStatementKind(kind As SyntaxKind) As Boolean
+            Select Case kind
+                Case _
+                SyntaxKind.CallStatement,
+                SyntaxKind.CaseElseStatement,
+                SyntaxKind.CaseStatement,
+                SyntaxKind.CatchStatement,
+                SyntaxKind.ContinueDoStatement,
+                SyntaxKind.ContinueForStatement,
+                SyntaxKind.ContinueWhileStatement,
+                SyntaxKind.DoUntilStatement,
+                SyntaxKind.DoWhileStatement,
+                SyntaxKind.ElseIfStatement,
+                SyntaxKind.ElseStatement,
+                SyntaxKind.EndIfStatement,
+                SyntaxKind.EndSelectStatement,
+                SyntaxKind.EndTryStatement,
+                SyntaxKind.EndWhileStatement,
+                SyntaxKind.ExitDoStatement,
+                SyntaxKind.ExitForStatement,
+                SyntaxKind.ExitSelectStatement,
+                SyntaxKind.ExitTryStatement,
+                SyntaxKind.ExitWhileStatement,
+                SyntaxKind.FinallyStatement,
+                SyntaxKind.ForEachStatement,
+                SyntaxKind.ForStatement,
+                SyntaxKind.GoToStatement,
+                SyntaxKind.IfStatement,
+                SyntaxKind.LoopUntilStatement,
+                SyntaxKind.LoopWhileStatement,
+                SyntaxKind.NextStatement,
+                SyntaxKind.ResumeLabelStatement,
+                SyntaxKind.ResumeNextStatement,
+                SyntaxKind.ReturnStatement,
+                SyntaxKind.SelectStatement,
+                SyntaxKind.SimpleDoStatement,
+                SyntaxKind.SimpleLoopStatement,
+                SyntaxKind.SingleLineIfStatement,
+                SyntaxKind.ThrowStatement,
+                SyntaxKind.TryStatement,
+                SyntaxKind.UntilClause,
+                SyntaxKind.WhileClause,
+                SyntaxKind.WhileStatement,
+                SyntaxKind.YieldStatement,
+                SyntaxKind.TernaryConditionalExpression
+                    Return True
+                Case Else
+                    Return False
+            End Select
+        End Function
+
         Private Function ClassifyPunctuation(token As SyntaxToken) As String
             If AllOperators.Contains(token.Kind) Then
                 ' special cases...
@@ -72,7 +188,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
 
             Dim classification As String = Nothing
 
-            If TypeOf parent Is TypeStatementSyntax AndAlso DirectCast(parent, TypeStatementSyntax).Identifier = identifier Then
+            If TypeOf parent Is IdentifierNameSyntax AndAlso IsNamespaceName(DirectCast(parent, IdentifierNameSyntax)) Then
+                Return ClassificationTypeNames.NamespaceName
+            ElseIf TypeOf parent Is TypeStatementSyntax AndAlso DirectCast(parent, TypeStatementSyntax).Identifier = identifier Then
                 Return ClassifyTypeDeclarationIdentifier(identifier)
             ElseIf TypeOf parent Is EnumStatementSyntax AndAlso DirectCast(parent, EnumStatementSyntax).Identifier = identifier Then
                 Return ClassificationTypeNames.EnumName
@@ -92,6 +210,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 Return ClassificationTypeNames.EventName
             ElseIf TypeOf parent Is EnumMemberDeclarationSyntax AndAlso DirectCast(parent, EnumMemberDeclarationSyntax).Identifier = identifier Then
                 Return ClassificationTypeNames.EnumMemberName
+            ElseIf TypeOf parent Is LabelStatementSyntax AndAlso DirectCast(parent, LabelStatementSyntax).LabelToken = identifier Then
+                Return ClassificationTypeNames.LabelName
             ElseIf TryClassifyModifiedIdentifer(parent, identifier, classification) Then
                 Return classification
             ElseIf (identifier.ToString() = "IsTrue" OrElse identifier.ToString() = "IsFalse") AndAlso
@@ -101,6 +221,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End If
 
             Return ClassificationTypeNames.Identifier
+        End Function
+
+        Private Function IsNamespaceName(identifierSyntax As IdentifierNameSyntax) As Boolean
+            Dim parent = identifierSyntax.Parent
+
+            While TypeOf parent Is QualifiedNameSyntax
+                parent = parent.Parent
+            End While
+
+            Return TypeOf parent Is NamespaceStatementSyntax
+        End Function
+
+        Public Function IsStaticallyDeclared(identifier As SyntaxToken) As Boolean
+            'Note: parent might be Nothing, if we are classifying raw tokens.
+            Dim parent = identifier.Parent
+
+            If parent.IsKind(SyntaxKind.EnumMemberDeclaration) Then
+                ' EnumMembers are not classified as static since there is no
+                ' instance equivalent of the concept and they have their own
+                ' classification type.
+                Return False
+            ElseIf parent.IsKind(SyntaxKind.ModifiedIdentifier) Then
+                parent = parent.Parent?.Parent
+
+                ' We are specifically looking for field declarations or constants.
+                If Not parent.IsKind(SyntaxKind.FieldDeclaration) Then
+                    Return False
+                End If
+
+                If parent.GetModifiers().Any(SyntaxKind.ConstKeyword) Then
+                    Return True
+                End If
+            End If
+
+            Return parent.GetModifiers().Any(SyntaxKind.SharedKeyword)
         End Function
 
         Private Function IsStringToken(token As SyntaxToken) As Boolean

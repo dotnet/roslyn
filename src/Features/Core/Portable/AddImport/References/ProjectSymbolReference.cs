@@ -36,7 +36,11 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 return document.Project.Id == _project.Id
                     ? ImmutableArray<string>.Empty
-                    : WellKnownTagArrays.AddReference;
+                    : _project.Language == LanguageNames.CSharp
+                        ? WellKnownTagArrays.CSharpProject
+                        : _project.Language == LanguageNames.VisualBasic
+                            ? WellKnownTagArrays.VisualBasicProject
+                            : WellKnownTagArrays.AddReference;
             }
 
             /// <summary>

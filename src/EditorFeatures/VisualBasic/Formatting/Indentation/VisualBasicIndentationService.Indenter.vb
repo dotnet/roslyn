@@ -24,17 +24,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                 MyBase.New(syntaxFacts, syntaxTree, rules, optionSet, line, cancellationToken)
             End Sub
 
+            Public Overrides Function ShouldUseFormatterIfAvailable() As Boolean
+                Return ShouldUseSmartTokenFormatterInsteadOfIndenter(
+                    Rules, DirectCast(Root, CompilationUnitSyntax), LineToBeIndented, OptionSet, CancellationToken)
+            End Function
+
             Protected Overrides Function GetDesiredIndentationWorker(
                     token As SyntaxToken,
                     previousLine As TextLine,
-                    lastNonWhitespacePosition As Integer) As IndentationResult?
+                    lastNonWhitespacePosition As Integer) As IndentationResult
 
                 If token.Span.End = lastNonWhitespacePosition + 1 Then
                     Return GetIndentationBasedOnToken(token)
                 Else
-                    Contract.Assert(token.FullSpan.Contains(lastNonWhitespacePosition))
+                    Debug.Assert(token.FullSpan.Contains(lastNonWhitespacePosition))
 
-                    Dim trivia = Tree.GetRoot(CancellationToken).FindTrivia(lastNonWhitespacePosition)
+                    Dim trivia = Root.FindTrivia(lastNonWhitespacePosition)
 
                     ' preserve the indentation of the comment trivia before a case statement
                     If trivia.Kind = SyntaxKind.CommentTrivia AndAlso trivia.Token.IsKind(SyntaxKind.CaseKeyword) AndAlso trivia.Token.Parent.IsKind(SyntaxKind.CaseStatement) Then
@@ -56,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                         Return IndentFromStartOfLine(0)
                     End If
 
-                    Dim firstTokenOnLine = Tree.GetRoot(CancellationToken).FindToken(firstNonWhitespacePosition.Value, findInsideTrivia:=True)
+                    Dim firstTokenOnLine = Root.FindToken(firstNonWhitespacePosition.Value, findInsideTrivia:=True)
                     If firstTokenOnLine.Kind <> SyntaxKind.None AndAlso firstTokenOnLine.Span.Contains(firstNonWhitespacePosition.Value) Then
                         'okay, beginning of the line is not trivia, use this token as the base token
                         Return GetIndentationBasedOnToken(firstTokenOnLine)
@@ -75,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                 Return token.GetPreviousToken()
             End Function
 
-            Private Function GetIndentationBasedOnToken(token As SyntaxToken, Optional trivia As SyntaxTrivia = Nothing) As IndentationResult?
+            Private Function GetIndentationBasedOnToken(token As SyntaxToken, Optional trivia As SyntaxTrivia = Nothing) As IndentationResult
                 Dim sourceText = LineToBeIndented.Text
 
                 Dim position = GetCurrentPositionNotBelongToEndOfFileToken(LineToBeIndented.Start)

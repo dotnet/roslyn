@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
             public DiagnosticInfo Current { get; private set; }
 
-            internal Enumerator(GreenNode node) 
+            internal Enumerator(GreenNode node)
             {
                 Current = null;
                 _stack = null;
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                     }
 
                     var slotIndex = _stack[_count - 1].SlotIndex;
-                tryAgain:
+tryAgain:
                     if (slotIndex < node.SlotCount - 1)
                     {
                         slotIndex++;

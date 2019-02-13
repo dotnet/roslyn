@@ -29,6 +29,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             CancellationToken cancellationToken)
         {
             var types = typeInferenceService.InferTypes(semanticModel, expression, cancellationToken);
+            return GetFirstDelegateType(semanticModel, types);
+        }
+
+        public static INamedTypeSymbol InferDelegateType(
+           this ITypeInferenceService typeInferenceService,
+           SemanticModel semanticModel,
+           int position,
+           CancellationToken cancellationToken)
+        {
+            var types = typeInferenceService.InferTypes(semanticModel, position, cancellationToken);
+            return GetFirstDelegateType(semanticModel, types);
+        }
+
+        private static INamedTypeSymbol GetFirstDelegateType(SemanticModel semanticModel, ImmutableArray<ITypeSymbol> types)
+        {
             var delegateTypes = types.Select(t => t.GetDelegateType(semanticModel.Compilation));
             return delegateTypes.WhereNotNull().FirstOrDefault();
         }

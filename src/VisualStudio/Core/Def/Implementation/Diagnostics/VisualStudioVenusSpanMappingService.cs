@@ -159,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 return false;
             }
 
-            var containedDocument = workspace.GetHostDocument(documentId) as ContainedDocument;
+            var containedDocument = workspace.TryGetContainedDocument(documentId);
             if (containedDocument == null)
             {
                 return false;
@@ -173,9 +173,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 iEndIndex = originalColumn
             };
 
-            var containedLanguage = containedDocument.ContainedLanguage;
-            var bufferCoordinator = containedLanguage.BufferCoordinator;
-            var containedLanguageHost = containedLanguage.ContainedLanguageHost;
+            var bufferCoordinator = containedDocument.BufferCoordinator;
+            var containedLanguageHost = containedDocument.ContainedLanguageHost;
 
             var spansOnPrimaryBuffer = new TextManager.Interop.TextSpan[1];
             if (VSConstants.S_OK == bufferCoordinator.MapSecondaryToPrimarySpan(originalSpanOnSecondaryBuffer, spansOnPrimaryBuffer))

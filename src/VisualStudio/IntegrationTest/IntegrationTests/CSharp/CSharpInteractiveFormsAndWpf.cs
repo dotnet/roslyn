@@ -40,8 +40,8 @@ Window wind = new Window();
 wind.Title = ""wpf window text"";
 wind.Show();");
 
-            var form =  AutomationElementHelper.FindAutomationElementAsync("win form text").Result;
-            var  wpf = AutomationElementHelper.FindAutomationElementAsync("wpf window text").Result;
+            var form = AutomationElementHelper.FindAutomationElementAsync("win form text").Result;
+            var wpf = AutomationElementHelper.FindAutomationElementAsync("wpf window text").Result;
 
             // 3) Add UI elements to windows and verify
             VisualStudio.InteractiveWindow.SubmitText(@"// add a label to the form

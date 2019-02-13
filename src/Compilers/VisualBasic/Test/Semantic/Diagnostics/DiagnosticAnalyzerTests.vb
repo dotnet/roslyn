@@ -1447,7 +1447,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(source, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(source)
             comp.VerifyDiagnostics()
 
             ' 1. Method body flow graph
@@ -1469,7 +1469,7 @@ Block[B0] - Entry
               Left: 
                 ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3) (Syntax: '1 + 2')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 3) (Syntax: '1 + 2')
                   Left: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                   Right: 
@@ -1534,6 +1534,32 @@ Block[B2] - Exit
                 Dim actualFlowGraph As ControlFlowGraph = flowGraphs(i)
                 ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, actualFlowGraph)
             Next
+        End Sub
+
+        <Fact, WorkItem(30309, "https://github.com/dotnet/roslyn/issues/30309")>
+        Public Sub TestSymbolStartAnalyzer_MyApplication()
+
+            Dim sources = <compilation>
+                              <file name="a.vb"><![CDATA[
+Namespace My
+    Friend Partial Class MyApplication
+    End Class
+End Namespace
+]]></file>
+                          </compilation>
+
+            Dim defines = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication)
+            defines = defines.Add(KeyValuePairUtil.Create("_MyType", CObj("WindowsForms")))
+
+            Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
+            Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(sources, {SystemWindowsFormsRef}, options:=compilationOptions)
+            compilation.VerifyDiagnostics()
+
+            Dim analyzers = New DiagnosticAnalyzer() {New SymbolStartAnalyzer(topLevelAction:=False, SymbolKind.NamedType)}
+            compilation.VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
+                Diagnostic("SymbolStartRuleId").WithArguments("MyApplication", "Analyzer1").WithLocation(1, 1))
         End Sub
     End Class
 End Namespace

@@ -40,8 +40,8 @@ Friend Class WriteCsvNames
     End Sub
 
     Private Sub WriteEnums()
-        For Each enumeration In _parseTree.Enumerations.Values
-            WriteEnum(enumeration)
+        For Each enumerationType In _parseTree.Enumerations.Values
+            WriteEnum(enumerationType)
         Next
     End Sub
 

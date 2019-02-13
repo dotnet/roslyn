@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public sealed class ClosureEnvironment
             {
                 public readonly SetWithInsertionOrder<Symbol> CapturedVariables;
-                
+
                 /// <summary>
                 /// True if this environment captures a reference to a class environment
                 /// declared in a higher scope. Assigned by
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Set up the current method locals
                     DeclareLocals(_currentScope, _topLevelMethod.Parameters);
                     // Treat 'this' as a formal parameter of the top-level method
-                    if (_topLevelMethod.TryGetThisParameter(out var thisParam))
+                    if (_topLevelMethod.TryGetThisParameter(out var thisParam) && (object)thisParam != null)
                     {
                         DeclareLocals(_currentScope, ImmutableArray.Create<Symbol>(thisParam));
                     }
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _currentScope = CreateOrReuseScope(node, node.Locals);
                     var result = base.VisitBlock(node);
                     _currentScope = oldScope;
-                    return result; 
+                    return result;
                 }
 
                 public override BoundNode VisitCatchBlock(BoundCatchBlock node)
@@ -360,15 +360,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var oldScope = _currentScope;
                     _currentScope = CreateOrReuseScope(node, node.Locals);
                     var result = base.VisitSequence(node);
-                    _currentScope = oldScope;
-                    return result;
-                }
-
-                public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-                {
-                    var oldScope = _currentScope;
-                    _currentScope = CreateOrReuseScope(node, node.InnerLocals);
-                    var result = base.VisitSwitchStatement(node);
                     _currentScope = oldScope;
                     return result;
                 }
@@ -506,6 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
+                    Debug.Assert(symbol.ContainingSymbol != null);
                     if (symbol.ContainingSymbol != _currentClosure.OriginalMethodSymbol)
                     {
                         // Restricted types can't be hoisted, so they are not permitted to be captured
@@ -559,10 +551,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (capturedVariable.Kind)
                     {
                         case SymbolKind.Local:
-                            type = ((LocalSymbol)capturedVariable).Type;
+                            type = ((LocalSymbol)capturedVariable).Type.TypeSymbol;
                             break;
                         case SymbolKind.Parameter:
-                            type = ((ParameterSymbol)capturedVariable).Type;
+                            type = ((ParameterSymbol)capturedVariable).Type.TypeSymbol;
                             break;
                         default:
                             // This should only be called for captured variables, and captured

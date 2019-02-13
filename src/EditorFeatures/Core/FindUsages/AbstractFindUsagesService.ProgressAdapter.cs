@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                     document, span, _context.CancellationToken).ConfigureAwait(false);
                 await _context.OnReferenceFoundAsync(new SourceReferenceItem(
-                    _definition, documentSpan, isWrittenTo: false)).ConfigureAwait(false);
+                    _definition, documentSpan, ValueUsageInfo.None)).ConfigureAwait(false);
             }
 
             public Task ReportProgressAsync(int current, int maximum)
@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         {
             private readonly Solution _solution;
             private readonly IFindUsagesContext _context;
+            private readonly FindReferencesSearchOptions _options;
 
             /// <summary>
             /// We will hear about definition symbols many times while performing FAR.  We'll
@@ -65,10 +66,14 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
-            public FindReferencesProgressAdapter(Solution solution, IFindUsagesContext context)
+            public FindReferencesProgressAdapter(
+                IThreadingContext threadingContext, Solution solution,
+                IFindUsagesContext context, FindReferencesSearchOptions options)
+                : base(threadingContext)
             {
                 _solution = solution;
                 _context = context;
+                _options = options;
             }
 
             // Do nothing functions.  The streaming far service doesn't care about
@@ -93,7 +98,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     if (!_definitionToItem.TryGetValue(definition.Symbol, out var definitionItem))
                     {
                         definitionItem = await definition.Symbol.ToClassifiedDefinitionItemAsync(
-                            _solution.GetProject(definition.ProjectId), includeHiddenLocations: false, cancellationToken: _context.CancellationToken).ConfigureAwait(false);
+                            _solution.GetProject(definition.ProjectId), includeHiddenLocations: false,
+                            _options, _context.CancellationToken).ConfigureAwait(false);
 
                         _definitionToItem[definition.Symbol] = definitionItem;
                     }

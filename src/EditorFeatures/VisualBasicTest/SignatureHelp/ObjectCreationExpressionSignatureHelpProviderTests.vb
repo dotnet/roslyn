@@ -36,6 +36,58 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        Public Async Function PickCorrectOverload_PickString() As Task
+
+            Dim markup = <Text><![CDATA[
+Public Class C
+    Sub M()
+        Dim obj = [|new C(i:="Hello"$$|])
+    End Sub
+
+    Public Sub New(i As String)
+    End Sub
+    Public Sub New(i As Integer)
+    End Sub
+    Public Sub New(filtered As Byte)
+    End Sub
+End Class
+]]></Text>.Value
+
+            Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C(i As Integer)", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C(i As String)", String.Empty, Nothing, currentParameterIndex:=0, isSelected:=True))
+
+            Await TestAsync(markup, expectedOrderedItems)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        Public Async Function PickCorrectOverload_PickInteger() As Task
+
+            Dim markup = <Text><![CDATA[
+Public Class C
+    Sub M()
+        Dim obj = [|new C(i:=1$$|])
+    End Sub
+
+    Public Sub New(i As String)
+    End Sub
+    Public Sub New(i As Integer)
+    End Sub
+    Public Sub New(filtered As Byte)
+    End Sub
+End Class
+]]></Text>.Value
+
+            Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C(i As Integer)", String.Empty, Nothing, currentParameterIndex:=0, isSelected:=True))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C(i As String)", String.Empty, Nothing, currentParameterIndex:=0))
+
+            Await TestAsync(markup, expectedOrderedItems)
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationWithoutParametersMethodXmlComments() As Task
             Dim markup = <a><![CDATA[

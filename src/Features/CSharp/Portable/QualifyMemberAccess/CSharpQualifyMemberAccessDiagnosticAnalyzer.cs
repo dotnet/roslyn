@@ -5,11 +5,12 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.QualifyMemberAccess;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpQualifyMemberAccessDiagnosticAnalyzer 
+    internal sealed class CSharpQualifyMemberAccessDiagnosticAnalyzer
         : AbstractQualifyMemberAccessDiagnosticAnalyzer<SyntaxKind, ExpressionSyntax, SimpleNameSyntax>
     {
         protected override string GetLanguageName()
@@ -22,9 +23,16 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
         // or member is in object initialization context,
         // or member in property or field initialization, it cannot be qualified.
         protected override bool CanMemberAccessBeQualified(ISymbol containingSymbol, SyntaxNode node)
-            => !(node.IsKind(SyntaxKind.BaseExpression) ||
-                node.Parent.Parent.IsKind(SyntaxKind.ObjectInitializerExpression) ||
-                IsInPropertyOrFieldInitialization(containingSymbol, node));
+        {
+            if (node.GetAncestorOrThis<AttributeSyntax>() != null)
+            {
+                return false;
+            }
+
+            return !(node.IsKind(SyntaxKind.BaseExpression) ||
+                     node.Parent.Parent.IsKind(SyntaxKind.ObjectInitializerExpression) ||
+                     IsInPropertyOrFieldInitialization(containingSymbol, node));
+        }
 
         private bool IsInPropertyOrFieldInitialization(ISymbol containingSymbol, SyntaxNode node)
         {

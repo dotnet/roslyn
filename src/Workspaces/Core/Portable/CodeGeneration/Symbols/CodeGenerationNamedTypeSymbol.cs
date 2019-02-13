@@ -57,13 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override SymbolKind Kind => SymbolKind.NamedType;
 
-        public override int Arity
-        {
-            get
-            {
-                return this.TypeParameters.Length;
-            }
-        }
+        public override int Arity => this.TypeParameters.Length;
 
         public override bool IsGenericType
         {

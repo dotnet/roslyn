@@ -1,13 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeRefactorings.IntroduceVariable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.IntroduceVariable;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -19,6 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new IntroduceVariableCodeRefactoringProvider();
+
+        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+            => GetNestedActions(actions);
 
         private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
 
@@ -2579,7 +2585,7 @@ class Program
 {
     void M()
     {
-        Action<int> goo = x => [|x.Goo|];
+        Action<int> goo = x => [|x.ToString()|];
     }
 }",
 @"using System;
@@ -2590,7 +2596,7 @@ class Program
     {
         Action<int> goo = x =>
         {
-            object {|Rename:goo1|} = x.Goo;
+            string {|Rename:v|} = x.ToString();
         };
     }
 }");
@@ -5126,6 +5132,46 @@ class C
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
+        [WorkItem(31795, "https://github.com/dotnet/roslyn/issues/31795")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestInAnonymousObjectMemberDeclaratorWithInferredType()
+        {
+            var code =
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void Test(Dictionary<int, List<Guid>> d)
+    {
+        _ = new
+        {
+            a = [|d.Values|].Where(l => l.Count == 1)
+        };
+    }
+}";
+
+            var expected =
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void Test(Dictionary<int, List<Guid>> d)
+    {
+        Dictionary<int, List<Guid>>.ValueCollection {|Rename:values|} = d.Values;
+        _ = new
+        {
+            a = values.Where(l => l.Count == 1)
+        };
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected);
+        }
+
         [WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestPickNameBasedOnArgument1()
@@ -5288,7 +5334,7 @@ class C
             await TestInRegularAndScriptAsync(
 @"public class C
 {
-    public string Foo { get; set; }
+    public string Goo { get; set; }
 
     [Example([|2+2|])]
     public string Bar { get; set; }
@@ -5297,7 +5343,7 @@ class C
 {
     private const int {|Rename:V|} = 2 + 2;
 
-    public string Foo { get; set; }
+    public string Goo { get; set; }
 
     [Example(V)]
     public string Bar { get; set; }
@@ -5627,6 +5673,404 @@ class C
     }
     void M2(ref int p) { }
 }");
+        }
+
+        [WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestCaretAtEndOfExpression1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void Goo()
+    {
+        Bar(1[||], 2);
+    }
+}",
+@"class C
+{
+    private const int {|Rename:V|} = 1;
+
+    void Goo()
+    {
+        Bar(V, 2);
+    }
+}");
+        }
+
+        [WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestCaretAtEndOfExpression2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void Goo()
+    {
+        Bar(1, 2[||]);
+    }
+}",
+@"class C
+{
+    private const int {|Rename:V|} = 2;
+
+    void Goo()
+    {
+        Bar(1, V);
+    }
+}");
+        }
+
+        [WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestCaretAtEndOfExpression3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void Goo()
+    {
+        Bar(1, (2[||]));
+    }
+}",
+@"class C
+{
+    private const int {|Rename:V|} = 2;
+
+    void Goo()
+    {
+        Bar(1, V);
+    }
+}");
+        }
+
+        [WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestCaretAtEndOfExpression4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void Goo()
+    {
+        Bar(1, Bar(2[||]));
+    }
+}",
+@"class C
+{
+    private const int {|Rename:V|} = 2;
+
+    void Goo()
+    {
+        Bar(1, Bar(V));
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(27949, "https://github.com/dotnet/roslyn/issues/27949")]
+        public async Task TestWhitespaceSpanInAssignment()
+        {
+            await TestMissingAsync(@"
+class C
+{
+    int x = [| |] 0;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(28665, "https://github.com/dotnet/roslyn/issues/28665")]
+        public async Task TestWhitespaceSpanInAttribute()
+        {
+            await TestMissingAsync(@"
+class C
+{
+    [Example( [| |] )]
+    public void Goo()
+    {
+    }
+}");
+        }
+
+        [WorkItem(28941, "https://github.com/dotnet/roslyn/issues/28941")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestElementAccessExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    byte[] getArray() => null;
+    void test()
+    {
+        var goo = [|getArray()|][0];
+    }
+}",
+@"using System;
+class C
+{
+    byte[] getArray() => null;
+    void test()
+    {
+        byte[] {|Rename:v|} = getArray();
+        var goo = v[0];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIndexExpression()
+        {
+            var code = TestSources.Index + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|^1|]);
+    }
+}";
+
+            var expected = TestSources.Index + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Index {|Rename:value|} = ^1;
+        System.Console.WriteLine(value);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestRangeExpression_None()
+        {
+            var code = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|..|]);
+    }
+}";
+
+            var expected = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Range {|Rename:value|} = ..;
+        System.Console.WriteLine(value);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestRangeExpression_Right()
+        {
+            var code = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|..1|]);
+    }
+}";
+
+            var expected = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Range {|Rename:value|} = ..1;
+        System.Console.WriteLine(value);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestRangeExpression_Left()
+        {
+            var code = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|1..|]);
+    }
+}";
+
+            var expected = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Range {|Rename:value|} = 1..;
+        System.Console.WriteLine(value);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestRangeExpression_Both()
+        {
+            var code = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|1..2|]);
+    }
+}";
+
+            var expected = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Range {|Rename:value|} = 1..2;
+        System.Console.WriteLine(value);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected);
+        }
+
+        [WorkItem(30207, "http://github.com/dotnet/roslyn/issues/30207")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestImplicitRecursiveInstanceMemberAccess_ForAllOccurrences()
+        {
+            var code =
+@"class C
+{
+    C c;
+    void Test()
+    {
+        var x = [|c|].c.c;
+    }
+}";
+
+            var expected =
+@"class C
+{
+    C c;
+    void Test()
+    {
+        C {|Rename:c1|} = c;
+        var x = c1.c.c;
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
+        }
+
+        [WorkItem(30207, "http://github.com/dotnet/roslyn/issues/30207")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestExplicitRecursiveInstanceMemberAccess_ForAllOccurrences()
+        {
+            var code =
+@"class C
+{
+    C c;
+    void Test()
+    {
+        var x = [|this.c|].c.c;
+    }
+}";
+
+            var expected =
+@"class C
+{
+    C c;
+    void Test()
+    {
+        C {|Rename:c1|} = this.c;
+        var x = c1.c.c;
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
+        }
+
+        [WorkItem(30207, "http://github.com/dotnet/roslyn/issues/30207")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestExplicitInstanceMemberAccess_ForAllOccurrences()
+        {
+            var code =
+@"class C
+{
+    C c;
+    void Test(C arg)
+    {
+        var x = [|this.c|].Test(this.c);
+    }
+}";
+
+            var expected =
+@"class C
+{
+    C c;
+    void Test(C arg)
+    {
+        C {|Rename:c1|} = this.c;
+        var x = c1.Test(c1);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
+        }
+
+        [WorkItem(30207, "http://github.com/dotnet/roslyn/issues/30207")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestImplicitInstanceMemberAccess_ForAllOccurrences()
+        {
+            var code =
+@"class C
+{
+    C c;
+    void Test(C arg)
+    {
+        var x = [|c|].Test(c);
+    }
+}";
+
+            var expected =
+@"class C
+{
+    C c;
+    void Test(C arg)
+    {
+        C {|Rename:c1|} = c;
+        var x = c1.Test(c1);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
+        }
+
+        [WorkItem(30207, "http://github.com/dotnet/roslyn/issues/30207")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestExpressionOfUndeclaredType()
+        {
+            var code =
+@"class C
+{
+    void Test()
+    {
+        A[] array = [|A|].Foo();
+        foreach (A a in array)
+        {
+        }
+    }
+}";
+            await TestMissingAsync(code);
         }
     }
 }

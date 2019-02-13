@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             Debug.Assert(!string.IsNullOrEmpty(projectDir));
             Debug.Assert(!string.IsNullOrEmpty(outputFileName));
             Debug.Assert(!string.IsNullOrEmpty(relativeOutputPath));
-            
+
             var scriptsDir = Path.Combine(projectDir, "Scripts");
             var outputDir = Path.Combine(projectDir, relativeOutputPath);
 

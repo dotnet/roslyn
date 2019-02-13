@@ -92,10 +92,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (id != null)
             {
-                return GetSpecificCachedDiagnosticsAsync(workspace, id, includeSuppressedDiagnostics, cancellationToken).WaitAndGetResult(cancellationToken);
+                return GetSpecificCachedDiagnosticsAsync(workspace, id, includeSuppressedDiagnostics, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
             }
 
-            return GetCachedDiagnosticsAsync(workspace, projectId, documentId, includeSuppressedDiagnostics, cancellationToken).WaitAndGetResult(cancellationToken);
+            return GetCachedDiagnosticsAsync(workspace, projectId, documentId, includeSuppressedDiagnostics, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
         }
     }
 }

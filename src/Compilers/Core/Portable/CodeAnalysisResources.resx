@@ -449,6 +449,9 @@
   <data name="InvalidDiagnosticLocationReported" xml:space="preserve">
     <value>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</value>
   </data>
+  <data name="SupportedDiagnosticsHasNullDescriptor" xml:space="preserve">
+    <value>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</value>
+  </data>
   <data name="The_type_0_is_not_understood_by_the_serialization_binder" xml:space="preserve">
     <value>The type '{0}' is not understood by the serialization binder.</value>
   </data>
@@ -612,9 +615,6 @@
   <data name="ExceptionEnablingMulticoreJit" xml:space="preserve">
     <value>Warning: Could not enable multicore JIT due to exception: {0}.</value>
   </data>
-  <data name="FlowAnalysisFeatureDisabled" xml:space="preserve">
-    <value>Feature 'Flow-Analysis' is disabled.</value>
-  </data>
   <data name="NotARootOperation" xml:space="preserve">
     <value>Given operation has a non-null parent.</value>
   </data>
@@ -623,5 +623,14 @@
   </data>
   <data name="InvalidOperationBlockForAnalysisContext" xml:space="preserve">
     <value>Given operation block does not belong to the current analysis context.</value>
+  </data>
+  <data name="IsSymbolAccessibleBadWithin" xml:space="preserve">
+    <value>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</value>
+  </data>
+  <data name="IsSymbolAccessibleWrongAssembly" xml:space="preserve">
+    <value>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</value>
+  </data>
+  <data name="OperationMustNotBeControlFlowGraphPart" xml:space="preserve">
+    <value>The provided operation must not be part of a Control Flow Graph.</value>
   </data>
 </root>

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -281,11 +282,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 if (this.HasProjectFileChanges(projectChanges))
                 {
                     var projectPath = project.FilePath;
-                    if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectPath, out var loader))
+                    if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectPath, out var fileLoader))
                     {
                         try
                         {
-                            _applyChangesProjectFile = loader.LoadProjectFileAsync(projectPath, _loader.Properties, _loader.BuildManager, CancellationToken.None).Result;
+                            var buildManager = new ProjectBuildManager(_loader.Properties);
+                            _applyChangesProjectFile = fileLoader.LoadProjectFileAsync(projectPath, buildManager, CancellationToken.None).Result;
                         }
                         catch (IOException exception)
                         {
