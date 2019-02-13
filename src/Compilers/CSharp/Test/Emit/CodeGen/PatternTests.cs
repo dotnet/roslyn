@@ -2131,7 +2131,8 @@ static class C {
                 );
         }
 
-        [Fact]
+        // Possible test helper bug on Linux; see https://github.com/dotnet/roslyn/issues/33356
+        [ConditionalFact(typeof(WindowsOnly))]
         public void SwitchExpressionSequencePoints()
         {
             string source = @"
