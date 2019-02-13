@@ -1057,6 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (TypeSymbol.TryFindBaseImplementationInInterface((NamedTypeSymbol)baseReference.ExplicitBaseReferenceOpt.Type, method, diagnostics, node, this) is null)
                     {
+                        Debug.Assert(!diagnostics.IsEmptyWithoutResolution);
                         return true;
                     }
                 }

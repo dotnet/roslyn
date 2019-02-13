@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static MethodSymbol AdjustMethodForBaseInterfaceCall(BoundExpression receiverOpt, MethodSymbol method)
         {
-            if (receiverOpt != null && receiverOpt.Kind == BoundKind.BaseReference)
+            if (receiverOpt?.Kind == BoundKind.BaseReference)
             {
                 var baseReference = (BoundBaseReference)receiverOpt;
 

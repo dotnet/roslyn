@@ -46045,5 +46045,545 @@ internal interface C
                 );
         }
 
+        [Fact]
+        public void ExplicitBase_150()
+        {
+            var source = @"
+class A : B
+{
+    char D.F1() => 'A';
+
+    void Test()
+    {
+        System.Console.WriteLine(base(B).F1());
+        System.Console.WriteLine(base(C).F1());
+        System.Console.WriteLine(base(D).F1());
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new F().Test();
+        ((E)new G()).Test();
+    }
+}
+
+struct F : B
+{
+    char D.F1() => 'F';
+
+    public void Test()
+    {
+        System.Console.WriteLine(base(B).F1());
+        System.Console.WriteLine(base(C).F1());
+        System.Console.WriteLine(base(D).F1());
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        System.Console.WriteLine(base(B).F1());
+        System.Console.WriteLine(base(C).F1());
+        System.Console.WriteLine(base(D).F1());
+    }
+}
+
+class G : E
+{
+    char D.F1() => 'G';
+}
+
+interface B : C
+{
+    char D.F1() => 'B';
+}
+
+interface C : D
+{
+}
+
+interface D
+{
+    virtual char F1() => 'D';
+}
+";
+
+            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"
+B
+D
+D
+B
+D
+D
+B
+D
+D
+", verify: VerifyOnCoreClr);
+
+            verifier.VerifyIL("F.Test",
+@"
+{
+  // Code size       68 (0x44)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""F""
+  IL_0007:  box        ""F""
+  IL_000c:  call       ""char B.F1()""
+  IL_0011:  call       ""void System.Console.WriteLine(char)""
+  IL_0016:  nop
+  IL_0017:  ldarg.0
+  IL_0018:  ldobj      ""F""
+  IL_001d:  box        ""F""
+  IL_0022:  call       ""char D.F1()""
+  IL_0027:  call       ""void System.Console.WriteLine(char)""
+  IL_002c:  nop
+  IL_002d:  ldarg.0
+  IL_002e:  ldobj      ""F""
+  IL_0033:  box        ""F""
+  IL_0038:  call       ""char D.F1()""
+  IL_003d:  call       ""void System.Console.WriteLine(char)""
+  IL_0042:  nop
+  IL_0043:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(33083, "https://github.com/dotnet/roslyn/issues/33083")]
+        public void ExplicitBase_150_Delegate()
+        {
+            var source = @"
+class A : B
+{
+    char D.F1() => 'A';
+
+    void Test()
+    {
+        System.Console.WriteLine(new System.Func<char>(base(B).F1)());
+        System.Console.WriteLine(new System.Func<char>(base(C).F1)());
+        System.Console.WriteLine(new System.Func<char>(base(D).F1)());
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new F().Test();
+        ((E)new G()).Test();
+    }
+}
+
+struct F : B
+{
+    char D.F1() => 'F';
+
+    public void Test()
+    {
+        System.Console.WriteLine(new System.Func<char>(base(B).F1)());
+        System.Console.WriteLine(new System.Func<char>(base(C).F1)());
+        System.Console.WriteLine(new System.Func<char>(base(D).F1)());
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        System.Console.WriteLine(new System.Func<char>(base(B).F1)());
+        System.Console.WriteLine(new System.Func<char>(base(C).F1)());
+        System.Console.WriteLine(new System.Func<char>(base(D).F1)());
+    }
+}
+
+class G : E
+{
+    char D.F1() => 'G';
+}
+
+interface B : C
+{
+    char D.F1() => 'B';
+}
+
+interface C : D
+{
+}
+
+interface D
+{
+    virtual char F1() => 'D';
+}
+";
+
+            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(compilation1
+#if Issue33083_Is_Fixed // https://github.com/dotnet/roslyn/issues/33083
+                , expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"
+B
+D
+D
+B
+D
+D
+B
+D
+D
+"
+#endif
+, verify: VerifyOnCoreClr);
+
+            verifier.VerifyIL("F.Test",
+@"
+{
+  // Code size      101 (0x65)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""F""
+  IL_0007:  box        ""F""
+  IL_000c:  ldftn      ""char B.F1()""
+  IL_0012:  newobj     ""System.Func<char>..ctor(object, System.IntPtr)""
+  IL_0017:  callvirt   ""char System.Func<char>.Invoke()""
+  IL_001c:  call       ""void System.Console.WriteLine(char)""
+  IL_0021:  nop
+  IL_0022:  ldarg.0
+  IL_0023:  ldobj      ""F""
+  IL_0028:  box        ""F""
+  IL_002d:  ldftn      ""char D.F1()""
+  IL_0033:  newobj     ""System.Func<char>..ctor(object, System.IntPtr)""
+  IL_0038:  callvirt   ""char System.Func<char>.Invoke()""
+  IL_003d:  call       ""void System.Console.WriteLine(char)""
+  IL_0042:  nop
+  IL_0043:  ldarg.0
+  IL_0044:  ldobj      ""F""
+  IL_0049:  box        ""F""
+  IL_004e:  ldftn      ""char D.F1()""
+  IL_0054:  newobj     ""System.Func<char>..ctor(object, System.IntPtr)""
+  IL_0059:  callvirt   ""char System.Func<char>.Invoke()""
+  IL_005e:  call       ""void System.Console.WriteLine(char)""
+  IL_0063:  nop
+  IL_0064:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ExplicitBase_151()
+        {
+            var source1 =
+@"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ExplicitBase_151_lib2"")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ExplicitBase_151_lib3"")]
+
+public interface C
+{
+    internal void F1() => System.Console.WriteLine(""C"");
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest, assemblyName: "ExplicitBase_151_lib1");
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ExplicitBase_151_lib3"")]
+public interface B : C
+{
+    void C.F1() => System.Console.WriteLine(""B"");
+}
+";
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest, assemblyName: "ExplicitBase_151_lib2",
+                                                 references: new[] { compilation1.ToMetadataReference() });
+            compilation2.VerifyDiagnostics();
+
+            var source3 = @"
+class A : B
+{
+    void C.F1() => System.Console.WriteLine(""A"");
+
+    void Test()
+    {
+        base(B).F1();
+        base(C).F1();
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new F().Test();
+        ((E)new G()).Test();
+    }
+}
+
+struct F : B
+{
+    void C.F1() => System.Console.WriteLine(""F"");
+
+    public void Test()
+    {
+        base(B).F1();
+        base(C).F1();
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        base(B).F1();
+        base(C).F1();
+    }
+}
+
+class G : E
+{
+    void C.F1() => System.Console.WriteLine(""G"");
+}
+";
+
+            foreach (var references in new[] { new[] { compilation1.ToMetadataReference(), compilation2.ToMetadataReference()},
+                                               new[] { compilation1.EmitToImageReference(), compilation2.EmitToImageReference()}})
+            {
+                var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest, assemblyName: "ExplicitBase_151_lib3",
+                                                     references: references);
+                compilation3.VerifyDiagnostics();
+
+                CompileAndVerify(compilation3, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"
+B
+C
+B
+C
+B
+C
+", verify: VerifyOnCoreClr);
+            }
+        }
+
+        [Fact]
+        public void ExplicitBase_152()
+        {
+            var source1 =
+@"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ExplicitBase_151_lib2"")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ExplicitBase_151_lib3"")]
+
+public interface C
+{
+    internal void F1() => System.Console.WriteLine(""C"");
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest, assemblyName: "ExplicitBase_151_lib1");
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public interface B : C
+{
+    void C.F1() => System.Console.WriteLine(""B"");
+}
+";
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest, assemblyName: "ExplicitBase_151_lib2",
+                                                 references: new[] { compilation1.ToMetadataReference() });
+            compilation2.VerifyDiagnostics();
+
+            var source3 = @"
+class A : B
+{
+    void C.F1() => System.Console.WriteLine(""A"");
+
+    void Test()
+    {
+        base(B).F1();
+        base(C).F1();
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new F().Test();
+        ((E)new G()).Test();
+    }
+}
+
+struct F : B
+{
+    void C.F1() => System.Console.WriteLine(""F"");
+
+    public void Test()
+    {
+        base(B).F1();
+        base(C).F1();
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        base(B).F1();
+        base(C).F1();
+    }
+}
+
+class G : E
+{
+    void C.F1() => System.Console.WriteLine(""G"");
+}
+";
+
+            foreach (var references in new[] { new[] { compilation1.ToMetadataReference(), compilation2.ToMetadataReference()},
+                                               new[] { compilation1.EmitToImageReference(), compilation2.EmitToImageReference()}})
+            {
+                var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest, assemblyName: "ExplicitBase_151_lib3",
+                                                     references: references);
+                compilation3.VerifyDiagnostics(
+                    // (8,9): error CS0122: 'B.C.F1()' is inaccessible due to its protection level
+                    //         base(B).F1();
+                    Diagnostic(ErrorCode.ERR_BadAccess, "base(B).F1()").WithArguments("B.C.F1()").WithLocation(8, 9),
+                    // (26,9): error CS0122: 'B.C.F1()' is inaccessible due to its protection level
+                    //         base(B).F1();
+                    Diagnostic(ErrorCode.ERR_BadAccess, "base(B).F1()").WithArguments("B.C.F1()").WithLocation(26, 9),
+                    // (35,9): error CS0122: 'B.C.F1()' is inaccessible due to its protection level
+                    //         base(B).F1();
+                    Diagnostic(ErrorCode.ERR_BadAccess, "base(B).F1()").WithArguments("B.C.F1()").WithLocation(35, 9)
+                    );
+            }
+        }
+
+        [Fact]
+        public void ExplicitBase_153()
+        {
+            var source = @"
+class A
+{
+    void Test()
+    {
+        base(A).Test();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            compilation1.VerifyDiagnostics(
+                // (6,14): error CS8708: 'A' is not base type or interface of A.
+                //         base(A).Test();
+                Diagnostic(ErrorCode.ERR_NotBaseOrImplementedInterface, "A").WithArguments("A", "A").WithLocation(6, 14)
+                );
+        }
+
+        [Fact]
+        public void ExplicitBase_154()
+        {
+            var source = @"
+interface A
+{
+    void Test()
+    {
+        base(A).Test();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (6,14): error CS8708: 'A' is not base type or interface of A.
+                //         base(A).Test();
+                Diagnostic(ErrorCode.ERR_NotBaseOrImplementedInterface, "A").WithArguments("A", "A").WithLocation(6, 14)
+                );
+        }
+
+        [Fact]
+        public void ExplicitBase_155()
+        {
+            var source = @"
+class B : C
+{
+    new private char F1() => 'B';
+
+    class A : B
+    {
+        void Test()
+        {
+            System.Console.WriteLine(base(B).F1());
+            System.Console.WriteLine(base(C).F1());
+        }
+
+        static void Main()
+        {
+            new A().Test();
+        }
+    }
+}
+
+class C
+{
+    protected char F1() => 'C';
+}
+";
+
+            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, expectedOutput:
+@"
+B
+C
+");
+        }
+
+        [Fact]
+        public void ExplicitBase_156()
+        {
+            var source = @"
+interface B : C
+{
+    new private char F1() => 'B';
+
+    class A : B
+    {
+        void Test()
+        {
+            System.Console.WriteLine(base(B).F1());
+            System.Console.WriteLine(base(C).F1());
+        }
+
+        static void Main()
+        {
+            new A().Test();
+        }
+    }
+}
+
+interface C
+{
+    char F1() => 'C';
+}
+";
+
+            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"
+B
+C
+", verify: VerifyOnCoreClr);
+        }
+
     }
 }

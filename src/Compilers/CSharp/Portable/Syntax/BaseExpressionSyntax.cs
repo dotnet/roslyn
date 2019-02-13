@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         public BaseExpressionSyntax Update(SyntaxToken token)
         {
-            return Update(token, null);
+            return Update(token, typeClause: null);
         }
     }
 }
