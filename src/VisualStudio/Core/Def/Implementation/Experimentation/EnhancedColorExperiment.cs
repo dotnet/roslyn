@@ -178,108 +178,72 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
             // happens to be the same as PlainText so an extra check isn't necessary. StructName doesn't need
             // an additional check because it has a color defined in the PKGDEF. The Editor is smart enough
             // to follow the BaseClassification hierarchy and render the colors appropriately.
-            private static readonly ImmutableDictionary<uint, ImmutableArray<string>> DarkThemeDefaults =
-                new Dictionary<uint, ImmutableArray<string>>()
+            private static readonly ImmutableDictionary<string, ImmutableArray<uint>> DarkThemeDefaultForeground =
+                new Dictionary<string, ImmutableArray<uint>>()
                 {
-                    [DarkThemePlainText] = new List<string>()
-                    {
-                        PlainTextClassificationTypeName,
-                        ClassificationTypeNames.ConstantName,
-                        ClassificationTypeNames.ControlKeyword,
-                        ClassificationTypeNames.EnumMemberName,
-                        ClassificationTypeNames.EventName,
-                        ClassificationTypeNames.ExtensionMethodName,
-                        ClassificationTypeNames.FieldName,
-                        ClassificationTypeNames.Identifier,
-                        ClassificationTypeNames.LabelName,
-                        ClassificationTypeNames.LocalName,
-                        ClassificationTypeNames.MethodName,
-                        ClassificationTypeNames.NamespaceName,
-                        ClassificationTypeNames.OperatorOverloaded,
-                        ClassificationTypeNames.ParameterName,
-                        ClassificationTypeNames.PropertyName,
-                    }.ToImmutableArray(),
-                    [DarkThemeClass] = new List<string>()
-                    {
-                        ClassificationTypeNames.ClassName,
-                        ClassificationTypeNames.DelegateName,
-                        ClassificationTypeNames.ModuleName,
-                        ClassificationTypeNames.StructName,
-                    }.ToImmutableArray(),
-                    [DarkThemeEnum] = new List<string>()
-                    {
-                        ClassificationTypeNames.EnumName,
-                        ClassificationTypeNames.InterfaceName,
-                        ClassificationTypeNames.TypeParameterName,
-                    }.ToImmutableArray(),
-                    [DarkThemeOperator] = new List<string>()
-                    {
-                        ClassificationTypeNames.Operator,
-                        ClassificationTypeNames.OperatorOverloaded,
-                    }.ToImmutableArray(),
-                    [DarkThemeKeyword] = new List<string>()
-                    {
-                        ClassificationTypeNames.ControlKeyword,
-                        ClassificationTypeNames.Keyword,
-                    }.ToImmutableArray()
+                    [PlainTextClassificationTypeName] = ImmutableArray.Create(DarkThemePlainText),
+                    [ClassificationTypeNames.ClassName] = ImmutableArray.Create(DarkThemeClass),
+                    [ClassificationTypeNames.ConstantName] = ImmutableArray.Create(DarkThemePlainText),
+                    [ClassificationTypeNames.ControlKeyword] = ImmutableArray.Create(DarkThemePlainText, DarkThemeKeyword),
+                    [ClassificationTypeNames.DelegateName] = ImmutableArray.Create(DarkThemeClass),
+                    [ClassificationTypeNames.EnumMemberName] = ImmutableArray.Create(DarkThemePlainText),
+                    [ClassificationTypeNames.EnumName] = ImmutableArray.Create(DarkThemeEnum),
+                    [ClassificationTypeNames.EventName] = ImmutableArray.Create(DarkThemePlainText),
+                    [ClassificationTypeNames.ExtensionMethodName] = ImmutableArray.Create(DarkThemePlainText),
+                    [ClassificationTypeNames.FieldName] = ImmutableArray.Create(DarkThemePlainText),
+                    [ClassificationTypeNames.Identifier] = ImmutableArray.Create(DarkThemePlainText),
+                    [ClassificationTypeNames.InterfaceName] = ImmutableArray.Create(DarkThemeEnum),
+                    [ClassificationTypeNames.Keyword] = ImmutableArray.Create(DarkThemeKeyword),
+                    [ClassificationTypeNames.LabelName] = ImmutableArray.Create(DarkThemePlainText),
+                    [ClassificationTypeNames.LocalName] = ImmutableArray.Create(DarkThemePlainText),
+                    [ClassificationTypeNames.MethodName] = ImmutableArray.Create(DarkThemePlainText),
+                    [ClassificationTypeNames.ModuleName] = ImmutableArray.Create(DarkThemeClass),
+                    [ClassificationTypeNames.NamespaceName] = ImmutableArray.Create(DarkThemePlainText),
+                    [ClassificationTypeNames.Operator] = ImmutableArray.Create(DarkThemeOperator),
+                    [ClassificationTypeNames.OperatorOverloaded] = ImmutableArray.Create(DarkThemePlainText, DarkThemeOperator),
+                    [ClassificationTypeNames.ParameterName] = ImmutableArray.Create(DarkThemePlainText),
+                    [ClassificationTypeNames.PropertyName] = ImmutableArray.Create(DarkThemePlainText),
+                    [ClassificationTypeNames.StructName] = ImmutableArray.Create(DarkThemeClass),
+                    [ClassificationTypeNames.TypeParameterName] = ImmutableArray.Create(DarkThemeEnum),
                 }.ToImmutableDictionary();
 
             // Light or Blue themes
             // Same as above, we also check ControlKeyword for whether it is the PlainText color. OperatorOverload and
             // the other Identifier types do not need an additional check because their default color is the same
             // as PlainText.
-            private static readonly ImmutableDictionary<uint, ImmutableArray<string>> LightThemeDefaults =
-                new Dictionary<uint, ImmutableArray<string>>()
+            private static readonly ImmutableDictionary<string, ImmutableArray<uint>> LightThemeDefaultForeground =
+                new Dictionary<string, ImmutableArray<uint>>()
                 {
-                    [LightThemePlainText] = new List<string>()
-                    {
-                        PlainTextClassificationTypeName,
-                        ClassificationTypeNames.ConstantName,
-                        ClassificationTypeNames.ControlKeyword,
-                        ClassificationTypeNames.EnumMemberName,
-                        ClassificationTypeNames.EventName,
-                        ClassificationTypeNames.ExtensionMethodName,
-                        ClassificationTypeNames.FieldName,
-                        ClassificationTypeNames.Identifier,
-                        ClassificationTypeNames.LabelName,
-                        ClassificationTypeNames.LocalName,
-                        ClassificationTypeNames.MethodName,
-                        ClassificationTypeNames.NamespaceName,
-                        ClassificationTypeNames.Operator,
-                        ClassificationTypeNames.OperatorOverloaded,
-                        ClassificationTypeNames.ParameterName,
-                        ClassificationTypeNames.PropertyName,
-                    }.ToImmutableArray(),
-                    [LightThemeClass] = new List<string>()
-                    {
-                        ClassificationTypeNames.ClassName,
-                        ClassificationTypeNames.DelegateName,
-                        ClassificationTypeNames.EnumName,
-                        ClassificationTypeNames.InterfaceName,
-                        ClassificationTypeNames.ModuleName,
-                        ClassificationTypeNames.StructName,
-                        ClassificationTypeNames.TypeParameterName,
-                    }.ToImmutableArray(),
-                    [ExtraContrastThemeClass] = new List<string>()
-                    {
-                        ClassificationTypeNames.ClassName,
-                        ClassificationTypeNames.DelegateName,
-                        ClassificationTypeNames.EnumName,
-                        ClassificationTypeNames.InterfaceName,
-                        ClassificationTypeNames.ModuleName,
-                        ClassificationTypeNames.StructName,
-                        ClassificationTypeNames.TypeParameterName,
-                    }.ToImmutableArray(),
-                    [LightThemeKeyword] = new List<string>()
-                    {
-                        ClassificationTypeNames.ControlKeyword,
-                        ClassificationTypeNames.Keyword,
-                    }.ToImmutableArray()
+                    [PlainTextClassificationTypeName] = ImmutableArray.Create(LightThemePlainText),
+                    [ClassificationTypeNames.ClassName] = ImmutableArray.Create(LightThemeClass, ExtraContrastThemeClass),
+                    [ClassificationTypeNames.ConstantName] = ImmutableArray.Create(LightThemePlainText),
+                    [ClassificationTypeNames.ControlKeyword] = ImmutableArray.Create(LightThemePlainText, LightThemeKeyword),
+                    [ClassificationTypeNames.DelegateName] = ImmutableArray.Create(LightThemeClass, ExtraContrastThemeClass),
+                    [ClassificationTypeNames.EnumMemberName] = ImmutableArray.Create(LightThemePlainText),
+                    [ClassificationTypeNames.EnumName] = ImmutableArray.Create(LightThemeClass, ExtraContrastThemeClass),
+                    [ClassificationTypeNames.EventName] = ImmutableArray.Create(LightThemePlainText),
+                    [ClassificationTypeNames.ExtensionMethodName] = ImmutableArray.Create(LightThemePlainText),
+                    [ClassificationTypeNames.FieldName] = ImmutableArray.Create(LightThemePlainText),
+                    [ClassificationTypeNames.Identifier] = ImmutableArray.Create(LightThemePlainText),
+                    [ClassificationTypeNames.InterfaceName] = ImmutableArray.Create(LightThemeClass, ExtraContrastThemeClass),
+                    [ClassificationTypeNames.Keyword] = ImmutableArray.Create(LightThemeKeyword),
+                    [ClassificationTypeNames.LabelName] = ImmutableArray.Create(LightThemePlainText),
+                    [ClassificationTypeNames.LocalName] = ImmutableArray.Create(LightThemePlainText),
+                    [ClassificationTypeNames.MethodName] = ImmutableArray.Create(LightThemePlainText),
+                    [ClassificationTypeNames.ModuleName] = ImmutableArray.Create(LightThemeClass, ExtraContrastThemeClass),
+                    [ClassificationTypeNames.NamespaceName] = ImmutableArray.Create(LightThemePlainText),
+                    [ClassificationTypeNames.Operator] = ImmutableArray.Create(LightThemePlainText),
+                    [ClassificationTypeNames.OperatorOverloaded] = ImmutableArray.Create(LightThemePlainText),
+                    [ClassificationTypeNames.ParameterName] = ImmutableArray.Create(LightThemePlainText),
+                    [ClassificationTypeNames.PropertyName] = ImmutableArray.Create(LightThemePlainText),
+                    [ClassificationTypeNames.StructName] = ImmutableArray.Create(LightThemeClass, ExtraContrastThemeClass),
+                    [ClassificationTypeNames.TypeParameterName] = ImmutableArray.Create(LightThemeClass, ExtraContrastThemeClass),
                 }.ToImmutableDictionary();
 
+            // When we build our classification map we will need to look at all the classifications with foreground color as
+            // well as the static symbol classification that does not have a foreground.
             private static readonly ImmutableArray<string> Classifications =
-                DarkThemeDefaults.SelectMany(defaults => defaults.Value).Distinct().Concat(
-                    new[] { ClassificationTypeNames.StaticSymbol }).ToImmutableArray();
+                DarkThemeDefaultForeground.Keys.Concat(new[] { ClassificationTypeNames.StaticSymbol }).ToImmutableArray();
 
             public EnhancedColorApplier(IServiceProvider serviceProvider)
             {
@@ -298,6 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     return;
                 }
 
+                // Since we only enhance certain classifications, we only return the colors that we enhanced back to their defaults.
                 if (themeId == KnownColorThemes.Dark)
                 {
                     // Dark Theme
@@ -386,14 +351,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
             /// </summary>
             private bool AreColorsDefaulted(Dictionary<string, ColorableItems> colorItemMap, Guid themeId)
             {
-                var themeDefaults = themeId == KnownColorThemes.Dark
-                    ? DarkThemeDefaults   // Dark Theme
-                    : LightThemeDefaults; // Light or Blue themes
+                var themeDefaultForeground = themeId == KnownColorThemes.Dark
+                    ? DarkThemeDefaultForeground   // Dark Theme
+                    : LightThemeDefaultForeground; // Light or Blue themes
 
-                // Look thorugh all classifications except static symbol since it has no foreground color
-                return colorItemMap.Keys.Except(new[] { ClassificationTypeNames.StaticSymbol }).All(
-                    classification => themeDefaults.Where(defaults => defaults.Value.Contains(classification)).Any(
-                        defaults => IsDefaultColor(colorItemMap, classification, defaults.Key)));
+                // For all theme classifications ensure the foreground color matches one of the defaults.
+                return themeDefaultForeground.Keys.All(
+                    classification => themeDefaultForeground[classification].Any(
+                        themeColor => IsDefaultColor(colorItemMap, classification, themeColor)));
             }
 
             private bool IsDefaultColor(Dictionary<string, ColorableItems> colorItemMap, string classification, uint themeColor)
