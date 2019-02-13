@@ -71,7 +71,6 @@ jobs:
               /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
               /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
               /p:IbcOptimizationDataDir=$(Build.SourcesDirectory)\.o\\
-              /p:VisualStudioIbcDropId=75e3797e1105a4da4c10dddda76c3b9398f7725a/223453/935479/1
     displayName: Build
     condition: succeeded()
 
