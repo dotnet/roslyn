@@ -101,8 +101,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsInvokeDelegateWithConditionalAccess = "CodeActions.InvokeDelegateWithConditionalAccess";
             public const string CodeActionsLambdaSimplifier = "CodeActions.LambdaSimplifier";
             public const string CodeActionsMakeFieldReadonly = "CodeActions.MakeFieldReadonly";
+            public const string CodeActionsMakeLocalFunctionStatic = "CodeActions.MakeLocalFunctionStatic";
             public const string CodeActionsMakeMethodAsynchronous = "CodeActions.MakeMethodAsynchronous";
             public const string CodeActionsMakeMethodSynchronous = "CodeActions.MakeMethodSynchronous";
+            public const string CodeActionsMakeRefStruct = "CodeActions.MakeRefStruct";
             public const string CodeActionsMergeConsecutiveIfStatements = "CodeActions.MergeConsecutiveIfStatements";
             public const string CodeActionsMergeNestedIfStatements = "CodeActions.MergeNestedIfStatements";
             public const string CodeActionsMoveDeclarationNearReference = "CodeActions.MoveDeclarationNearReference";
@@ -158,6 +160,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsNameTupleElement = "CodeActions.NameTupleElement";
             public const string CodeActionsUseObjectInitializer = "CodeActions.UseObjectInitializer";
             public const string CodeActionsUseRangeOperator = "CodeActions.UseRangeOperator";
+            public const string CodeActionsUseSimpleUsingStatement = "CodeActions.UseSimpleUsingStatement";
             public const string CodeActionsUseThrowExpression = "CodeActions.UseThrowExpression";
             public const string CodeActionsWrapping = "CodeActions.Wrapping";
             public const string CodeCleanup = nameof(CodeCleanup);
@@ -168,6 +171,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeModelEvents = "CodeModel.Events";
             public const string CodeModelMethodXml = "CodeModel.MethodXml";
             public const string CommentSelection = nameof(CommentSelection);
+            public const string CompleteStatement = nameof(CompleteStatement);
             public const string Completion = nameof(Completion);
             public const string ConvertAutoPropertyToFullProperty = nameof(ConvertAutoPropertyToFullProperty);
             public const string DebuggingBreakpoints = "Debugging.Breakpoints";

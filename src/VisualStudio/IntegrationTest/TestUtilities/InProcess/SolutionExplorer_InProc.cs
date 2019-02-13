@@ -376,7 +376,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
             CloseSolution();
-            ErrorList_InProc.Create().WaitForNoErrorsInErrorList();
+            ErrorList_InProc.Create().WaitForNoErrorsInErrorList(Helper.HangMitigatingTimeout);
 
             foreach (var directoryToDelete in directoriesToDelete)
             {

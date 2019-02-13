@@ -234,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Else
                 ' Duplicate attributes with same attribute type are not allowed.
                 ' Check if there is an existing assembly attribute with same attribute type.
-                If uniqueAttributes Is Nothing OrElse Not uniqueAttributes.Contains(Function(a) a.AttributeClass = attributeClass) Then
+                If uniqueAttributes Is Nothing OrElse Not uniqueAttributes.Contains(Function(a) TypeSymbol.Equals(a.AttributeClass, attributeClass, TypeCompareKind.ConsiderEverything)) Then
                     ' Attribute with unique attribute type, not a duplicate.
                     Dim success As Boolean = AddUniqueAssemblyAttribute(attribute, uniqueAttributes)
                     Debug.Assert(success)

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class FeaturesResources {
@@ -2260,6 +2260,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Local function can be made static.
+        /// </summary>
+        internal static string Local_function_can_be_made_static {
+            get {
+                return ResourceManager.GetString("Local_function_can_be_made_static", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to local variable.
         /// </summary>
         internal static string local_variable {
@@ -2319,6 +2328,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Make_field_readonly {
             get {
                 return ResourceManager.GetString("Make_field_readonly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make local function &apos;static&apos;.
+        /// </summary>
+        internal static string Make_local_function_static {
+            get {
+                return ResourceManager.GetString("Make_local_function_static", resourceCulture);
             }
         }
         
@@ -4385,6 +4403,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use simple &apos;using&apos; statement.
+        /// </summary>
+        internal static string Use_simple_using_statement {
+            get {
+                return ResourceManager.GetString("Use_simple_using_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use &apos;throw&apos; expression.
         /// </summary>
         internal static string Use_throw_expression {
@@ -4426,6 +4453,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Using_ref_structs_will_prevent_the_debug_session_from_continuing {
             get {
                 return ResourceManager.GetString("Using_ref_structs_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;using&apos; statement can be simplified.
+        /// </summary>
+        internal static string using_statement_can_be_simplified {
+            get {
+                return ResourceManager.GetString("using_statement_can_be_simplified", resourceCulture);
             }
         }
         

@@ -288,15 +288,14 @@ class X
                         case ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
                         case ErrorCode.WRN_NullAsNonNullable:
-                        case ErrorCode.WRN_NoBestNullabilityConditionalExpression:
                         case ErrorCode.WRN_NullableValueTypeMayBeNull:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
                         case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
                         case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
-                        case ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs:
-                        case ErrorCode.WRN_NoBestNullabilityArrayElements:
                         case ErrorCode.WRN_CaseConstantNamedUnderscore:
+                        case ErrorCode.ERR_FeatureInPreview:
+                        case ErrorCode.WRN_PossibleNull:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -1895,48 +1894,49 @@ public class C
 #pragma warning safeonly 1695
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-                // (3,17): warning CS1658: Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.. See also error CS8370.
+ 
+                // (3,17): warning CS1658: The feature 'warning action enable or safeonly' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
                 // #pragma warning enable nullable
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "enable").WithArguments("Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.", "8370").WithLocation(3, 17),
-                // (5,17): warning CS1658: Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.. See also error CS8370.
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "enable").WithArguments("The feature 'warning action enable or safeonly' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(3, 17),
+                // (5,17): warning CS1658: The feature 'warning action enable or safeonly' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
                 // #pragma warning safeonly nullable
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "safeonly").WithArguments("Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.", "8370").WithLocation(5, 17),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "safeonly").WithArguments("The feature 'warning action enable or safeonly' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(5, 17),
                 // (7,33): warning CS1696: Single-line comment or end-of-line expected
                 // #pragma warning disable nullable, 1695
                 Diagnostic(ErrorCode.WRN_EndOfPPLineExpected, ",").WithLocation(7, 33),
-                // (8,17): warning CS1658: Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.. See also error CS8370.
+                // (8,17): warning CS1658: The feature 'warning action enable or safeonly' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
                 // #pragma warning enable nullable, 1695
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "enable").WithArguments("Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.", "8370").WithLocation(8, 17),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "enable").WithArguments("The feature 'warning action enable or safeonly' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(8, 17),
                 // (8,32): warning CS1696: Single-line comment or end-of-line expected
                 // #pragma warning enable nullable, 1695
                 Diagnostic(ErrorCode.WRN_EndOfPPLineExpected, ",").WithLocation(8, 32),
                 // (9,33): warning CS1696: Single-line comment or end-of-line expected
                 // #pragma warning restore nullable, 1695
                 Diagnostic(ErrorCode.WRN_EndOfPPLineExpected, ",").WithLocation(9, 33),
-                // (10,17): warning CS1658: Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.. See also error CS8370.
+                // (10,17): warning CS1658: The feature 'warning action enable or safeonly' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
                 // #pragma warning safeonly nullable, 1695
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "safeonly").WithArguments("Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.", "8370").WithLocation(10, 17),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "safeonly").WithArguments("The feature 'warning action enable or safeonly' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(10, 17),
                 // (10,34): warning CS1696: Single-line comment or end-of-line expected
                 // #pragma warning safeonly nullable, 1695
                 Diagnostic(ErrorCode.WRN_EndOfPPLineExpected, ",").WithLocation(10, 34),
-                // (12,17): warning CS1658: Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.. See also error CS8370.
+                // (12,17): warning CS1658: The feature 'warning action enable or safeonly' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
                 // #pragma warning enable 
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "enable").WithArguments("Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.", "8370").WithLocation(12, 17),
-                // (13,17): warning CS1658: Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.. See also error CS8370.
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "enable").WithArguments("The feature 'warning action enable or safeonly' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(12, 17),
+                // (13,17): warning CS1658: The feature 'warning action enable or safeonly' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
                 // #pragma warning safeonly
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "safeonly").WithArguments("Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.", "8370").WithLocation(13, 17),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "safeonly").WithArguments("The feature 'warning action enable or safeonly' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(13, 17),
                 // (13,25): warning CS8599: Expected nullable
                 // #pragma warning safeonly
                 Diagnostic(ErrorCode.WRN_IllegalPPWarningSafeOnly, "").WithLocation(13, 25),
-                // (14,17): warning CS1658: Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.. See also error CS8370.
+                // (14,17): warning CS1658: The feature 'warning action enable or safeonly' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
                 // #pragma warning enable 1695
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "enable").WithArguments("Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.", "8370").WithLocation(14, 17),
-                // (15,17): warning CS1658: Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.. See also error CS8370.
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "enable").WithArguments("The feature 'warning action enable or safeonly' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(14, 17),
+                // (15,17): warning CS1658: The feature 'warning action enable or safeonly' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
                 // #pragma warning safeonly 1695
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "safeonly").WithArguments("Feature 'warning action enable or safeonly' is not available in C# 7.3. Please use language version 8.0 or greater.", "8370").WithLocation(15, 17),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "safeonly").WithArguments("The feature 'warning action enable or safeonly' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(15, 17),
                 // (15,26): warning CS8599: Expected nullable
                 // #pragma warning safeonly 1695
-                Diagnostic(ErrorCode.WRN_IllegalPPWarningSafeOnly, "1695").WithLocation(15, 26)
+                Diagnostic(ErrorCode.WRN_IllegalPPWarningSafeOnly, "1695").WithLocation(15, 26) 
                 );
 
             var expected = new DiagnosticDescription[]
@@ -1971,7 +1971,6 @@ public class C
 #endif
 ", parseOptions: TestOptions.Regular7_3).VerifyDiagnostics();
         }
-
 
         [Fact]
         public void PragmaWarning_Enable()

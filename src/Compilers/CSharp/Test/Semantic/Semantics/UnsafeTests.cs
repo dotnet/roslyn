@@ -6925,10 +6925,9 @@ class Program
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-                // (13,26): error CS8370: Feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (13,26): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         fixed (void* p = a)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "a").WithArguments("unmanaged constructed types", "8.0").WithLocation(13, 26)
-            );
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a").WithArguments("unmanaged constructed types").WithLocation(13, 26));
         }
 
         [Fact]
@@ -7970,30 +7969,30 @@ unsafe class C
                 // (6,34): error CS1586: Array creation must have array size or array initializer
                 //         { int* p = stackalloc int[]; }
                 Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(6, 34),
-                // (8,34): error CS1586: Array creation must have array size or array initializer
-                //         { int* p = stackalloc int[][]; }
-                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(8, 34),
-                // (9,34): error CS1586: Array creation must have array size or array initializer
-                //         { int* p = stackalloc int[][1]; }
-                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(9, 34),
-                // (9,37): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         { int* p = stackalloc int[][1]; }
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1").WithLocation(9, 37),
-                // (11,38): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         { int* p = stackalloc int[1][1]; }
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1").WithLocation(11, 38),
                 // (7,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[1, 1]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1, 1]").WithLocation(7, 31),
+                // (8,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
+                //         { int* p = stackalloc int[][]; }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(8, 31),
                 // (8,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[][]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][]").WithLocation(8, 31),
+                // (9,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
+                //         { int* p = stackalloc int[][1]; }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(9, 31),
                 // (9,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[][1]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][1]").WithLocation(9, 31),
+                // (10,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
+                //         { int* p = stackalloc int[1][]; }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(10, 31),
                 // (10,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[1][]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1][]").WithLocation(10, 31),
+                // (11,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
+                //         { int* p = stackalloc int[1][1]; }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(11, 31),
                 // (11,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[1][1]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1][1]").WithLocation(11, 31)

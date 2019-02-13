@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
         <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
-        <target state="new">Adding a method with an explicit interface specifier will prevent the debug session from continuing.</target>
+        <target state="translated">Dodanie metody z jawnym specyfikatorem interfejsu uniemożliwi kontynuowanie sesji debugowania.</target>
         <note />
       </trans-unit>
       <trans-unit id="Align_wrapped_arguments">
@@ -59,12 +59,12 @@
       </trans-unit>
       <trans-unit id="Code_Quality">
         <source>Code Quality</source>
-        <target state="new">Code Quality</target>
+        <target state="translated">Jakość kodu</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
-        <target state="new">Convert to LINQ</target>
+        <target state="translated">Konwertuj na składnię LINQ</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_0">
@@ -74,22 +74,22 @@
       </trans-unit>
       <trans-unit id="Convert_to_class">
         <source>Convert to class</source>
-        <target state="new">Convert to class</target>
+        <target state="translated">Convert to class</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq_call_form">
         <source>Convert to LINQ (call form)</source>
-        <target state="new">Convert to LINQ (call form)</target>
+        <target state="translated">Konwertuj na składnię LINQ (wywołaj formularz)</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
-        <target state="new">Convert to struct</target>
+        <target state="translated">Convert to struct</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_tuple">
         <source>Convert to tuple</source>
-        <target state="new">Convert to tuple</target>
+        <target state="translated">Convert to tuple</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Fix_formatting">
         <source>Fix formatting</source>
-        <target state="new">Fix formatting</target>
+        <target state="translated">Napraw formatowanie</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
-        <target state="translated">Formatowanie dokumentu</target>
+        <target state="translated">Trwa formatowanie dokumentu...</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -135,6 +135,16 @@
       <trans-unit id="Indent_wrapped_parameters">
         <source>Indent wrapped parameters</source>
         <target state="new">Indent wrapped parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Local_function_can_be_made_static">
+        <source>Local function can be made static</source>
+        <target state="new">Local function can be made static</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_local_function_static">
+        <source>Make local function 'static'</source>
+        <target state="new">Make local function 'static'</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_nested_0_statement">
@@ -192,24 +202,24 @@
         <target state="new">Introduce query variable</target>
         <note />
       </trans-unit>
+      <trans-unit id="Invert_conditional">
+        <source>Invert conditional</source>
+        <target state="new">Invert conditional</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
         <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
-        <target state="new">Private member '{0}' can be removed as the value assigned to it is never read.</target>
+        <target state="translated">Prywatną składową „{0}” można usunąć, ponieważ przypisana do niej wartość nie jest nigdy odczytywana.</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_is_unused">
         <source>Private member '{0}' is unused.</source>
-        <target state="new">Private member '{0}' is unused.</target>
+        <target state="translated">Prywatna składowa „{0}” jest nieużywana.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
-        <target state="translated">Zmodyfikowanie pliku źródłowego {0} uniemożliwi kontynuowanie sesji debugowania z powodu błędu wewnętrznego: {1}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invert_conditional">
-        <source>Invert conditional</source>
-        <target state="new">Invert conditional</target>
+        <target state="translated">Zmodyfikowanie pliku źródłowego {0} uniemożliwi kontynuowanie sesji debugowania ze względu na błąd wewnętrzny: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
@@ -244,12 +254,12 @@
       </trans-unit>
       <trans-unit id="Remove_unread_private_members">
         <source>Remove unread private members</source>
-        <target state="new">Remove unread private members</target>
+        <target state="translated">Usuń nieodczytywane składowe prywatne</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_member">
         <source>Remove unused member</source>
-        <target state="new">Remove unused member</target>
+        <target state="translated">Usuń nieużywaną składową</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameter">
@@ -279,7 +289,7 @@
       </trans-unit>
       <trans-unit id="Remove_unused_private_members">
         <source>Remove unused private members</source>
-        <target state="new">Remove unused private members</target>
+        <target state="translated">Usuń nieużywane prywatne składowe</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -334,7 +344,7 @@
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
-        <target state="new">Use block body for lambda expressions</target>
+        <target state="translated">Użyj treści bloku dla wyrażeń lambda</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
@@ -359,7 +369,7 @@
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
-        <target state="new">Use expression body for lambda expressions</target>
+        <target state="translated">Użyj treści wyrażenia dla wyrażeń lambda</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_functions">
@@ -374,7 +384,12 @@
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
-        <target state="new">Use interpolated verbatim string</target>
+        <target state="translated">Użyj interpolowanego dosłownego ciągu wyrażenia</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_simple_using_statement">
+        <source>Use simple 'using' statement</source>
+        <target state="new">Use simple 'using' statement</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
@@ -385,6 +400,16 @@
       <trans-unit id="Use_range_operator">
         <source>Use range operator</source>
         <target state="new">Use range operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_assigned_to_0_is_never_used">
+        <source>Value assigned to '{0}' is never used</source>
+        <target state="new">Value assigned to '{0}' is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_assigned_to_symbol_is_never_used">
+        <source>Value assigned to symbol is never used</source>
+        <target state="new">Value assigned to symbol is never used</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -420,16 +445,6 @@
       <trans-unit id="_0_can_be_simplified">
         <source>{0} can be simplified</source>
         <target state="new">{0} can be simplified</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Value_assigned_to_0_is_never_used">
-        <source>Value assigned to '{0}' is never used</source>
-        <target state="new">Value assigned to '{0}' is never used</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Value_assigned_to_symbol_is_never_used">
-        <source>Value assigned to symbol is never used</source>
-        <target state="new">Value assigned to symbol is never used</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -644,7 +659,7 @@
       </trans-unit>
       <trans-unit id="Implement_interface">
         <source>Implement interface</source>
-        <target state="translated">Implementuj interfejs</target>
+        <target state="translated">Zaimplementuj interfejs</target>
         <note />
       </trans-unit>
       <trans-unit id="Loading_context_from_0">
@@ -819,7 +834,7 @@
       </trans-unit>
       <trans-unit id="Assembly">
         <source>Assembly</source>
-        <target state="translated">Zestaw</target>
+        <target state="translated">zestaw</target>
         <note />
       </trans-unit>
       <trans-unit id="location_unknown">
@@ -2452,22 +2467,27 @@ Ta wersja jest używana wersja: {2}</target>
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">
         <source>updating usages in containing member</source>
-        <target state="new">updating usages in containing member</target>
+        <target state="translated">updating usages in containing member</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_project">
         <source>updating usages in containing project</source>
-        <target state="new">updating usages in containing project</target>
+        <target state="translated">updating usages in containing project</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_type">
         <source>updating usages in containing type</source>
-        <target state="new">updating usages in containing type</target>
+        <target state="translated">updating usages in containing type</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_dependent_projects">
         <source>updating usages in dependent projects</source>
-        <target state="new">updating usages in dependent projects</target>
+        <target state="translated">updating usages in dependent projects</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="using_statement_can_be_simplified">
+        <source>'using' statement can be simplified</source>
+        <target state="new">'using' statement can be simplified</target>
         <note />
       </trans-unit>
     </body>

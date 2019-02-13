@@ -6,7 +6,6 @@ Param(
   [string] $msbuildEngine = $null,
   [bool] $warnAsError = $true,
   [bool] $nodeReuse = $true,
-  [switch] $execute,
   [switch][Alias('r')]$restore,
   [switch] $deployDeps,
   [switch][Alias('b')]$build,
@@ -18,7 +17,6 @@ Param(
   [switch] $sign,
   [switch] $pack,
   [switch] $publish,
-  [switch] $publishBuildAssets,
   [switch][Alias('bl')]$binaryLog,
   [switch] $ci,
   [switch] $prepareMachine,
@@ -48,7 +46,6 @@ function Print-Usage() {
     Write-Host "  -performanceTest        Run all performance tests in the solution"
     Write-Host "  -sign                   Sign build outputs"
     Write-Host "  -publish                Publish artifacts (e.g. symbols)"
-    Write-Host "  -publishBuildAssets     Push assets to BAR"
     Write-Host ""
 
     Write-Host "Advanced settings:"
@@ -60,7 +57,6 @@ function Print-Usage() {
     Write-Host "Command line arguments not listed above are passed thru to msbuild."
     Write-Host "The above arguments can be shortened as much as to be unambiguous (e.g. -co for configuration, -t for test, etc.)."
 }
-
 
 function InitializeCustomToolset {
   if (-not $restore) {
@@ -77,6 +73,7 @@ function InitializeCustomToolset {
 function Build {
   $toolsetBuildProj = InitializeToolset
   InitializeCustomToolset
+
   $bl = if ($binaryLog) { "/bl:" + (Join-Path $LogDir "Build.binlog") } else { "" }
 
   if ($projects) {
@@ -102,7 +99,6 @@ function Build {
     /p:PerformanceTest=$performanceTest `
     /p:Sign=$sign `
     /p:Publish=$publish `
-    /p:Execute=$execute `
     /p:ContinuousIntegrationBuild=$ci `
     @properties
 }
