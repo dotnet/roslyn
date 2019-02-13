@@ -43,7 +43,7 @@
     <ICSharpCodeDecompilerVersion>4.0.0.4285-beta1</ICSharpCodeDecompilerVersion>
     <MicrosoftBuildVersion>15.1.548</MicrosoftBuildVersion>
     <MicrosoftBuildFrameworkVersion>15.1.548</MicrosoftBuildFrameworkVersion>
-    <MicrosoftBuildLocatorVersion>1.0.13</MicrosoftBuildLocatorVersion>
+    <MicrosoftBuildLocatorVersion>1.2.2</MicrosoftBuildLocatorVersion>
     <MicrosoftBuildRuntimeVersion>15.1.548</MicrosoftBuildRuntimeVersion>
     <MicrosoftBuildTasksCoreVersion>15.1.548</MicrosoftBuildTasksCoreVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftCodeAnalysisAnalyzersVersion>
@@ -295,6 +295,7 @@
     <RestoreSources>
       $(RestoreSources);
       https://api.nuget.org/v3/index.json;
+      https://dotnet.myget.org/F/msbuild/api/v3/index.json;
       https://dotnet.myget.org/F/dotnet-coreclr/api/v3/index.json;
       https://dotnet.myget.org/F/dotnet-core/api/v3/index.json;
       https://dotnet.myget.org/F/dotnet-corefxtestdata/api/v3/index.json;
