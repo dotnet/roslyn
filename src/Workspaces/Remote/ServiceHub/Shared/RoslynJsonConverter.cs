@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Remote
             protected override Checksum ReadValue(JsonReader reader, JsonSerializer serializer)
             {
                 var value = (string)reader.Value;
-                return value == null ? null : new Checksum(Convert.FromBase64String(value));
+                return value == null ? null : Checksum.From(Convert.FromBase64String(value));
             }
 
             protected override void WriteValue(JsonWriter writer, Checksum value, JsonSerializer serializer)

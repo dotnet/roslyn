@@ -16,33 +16,34 @@ namespace Microsoft.CodeAnalysis
     {
         public static Checksum Create(Stream stream)
         {
-            using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
+            using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256))
             {
-                return ComputeChecksum(stream, hash);
-            }
-        }
-
-        private static Checksum ComputeChecksum(Stream stream, IncrementalHash hash)
-        {
-            using (var pooledBuffer = SharedPools.ByteArray.GetPooledObject())
-            {
-                stream.Seek(0, SeekOrigin.Begin);
-
-                var buffer = pooledBuffer.Object;
-                var bufferLength = buffer.Length;
-                int bytesRead;
-                do
+                using (var pooledBuffer = SharedPools.ByteArray.GetPooledObject())
                 {
-                    bytesRead = stream.Read(buffer, 0, bufferLength);
-                    if (bytesRead > 0)
-                    {
-                        hash.AppendData(buffer, 0, bytesRead);
-                    }
-                }
-                while (bytesRead > 0);
+                    stream.Seek(0, SeekOrigin.Begin);
 
-                var bytes = hash.GetHashAndReset();
-                return new Checksum(bytes);
+                    var buffer = pooledBuffer.Object;
+                    var bufferLength = buffer.Length;
+                    int bytesRead;
+                    do
+                    {
+                        bytesRead = stream.Read(buffer, 0, bufferLength);
+                        if (bytesRead > 0)
+                        {
+                            hash.AppendData(buffer, 0, bytesRead);
+                        }
+                    }
+                    while (bytesRead > 0);
+
+                    var bytes = hash.GetHashAndReset();
+
+                    // from SHA2, take only first HashSize for checksum
+                    // this is recommended way to replace SHA1 with SHA256 maintaining same
+                    // memory footprint and collision resistance
+                    // calculating SHA256 is slightly slower than SHA1 but not as much. usually
+                    // about 1.1~1.2 slower.
+                    return Checksum.From(bytes, truncate: true);
+                }
             }
         }
 
