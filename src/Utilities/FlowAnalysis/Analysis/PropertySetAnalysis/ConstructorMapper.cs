@@ -1,11 +1,11 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
-using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
@@ -16,10 +16,24 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
     internal sealed class ConstructorMapper
 #pragma warning restore CA1812
     {
+        /// <summary>
+        /// Mapping a constructor's arguments to a <see cref="PropertySetAbstractValue"/>.
+        /// </summary>
+        /// <param name="constructorMethodSymbol">Invoked constructor.</param>
+        /// <param name="argumentValueContentAbstractValues"><see cref="ValueContentAbstractValue"/>s for the constructor's arguments.</param>
+        /// <param name="argumentNullAbstractValues"><see cref="NullAbstractValue"/>s for the constructor's arguments.</param>
+        /// <returns>Abstract value for PropertySetAnalysis, with <see cref="PropertySetAbstractValueKind"/>s in the same order as the <see cref="PropertyMapper"/>s in the <see cref="PropertyMapperCollection"/>.</returns>
         public delegate PropertySetAbstractValue ValueContentAbstractValueCallback(
             IMethodSymbol constructorMethodSymbol,
             IReadOnlyList<ValueContentAbstractValue> argumentValueContentAbstractValues,
             IReadOnlyList<NullAbstractValue> argumentNullAbstractValues);
+
+        /// <summary>
+        /// Mapping a constructor's arguments to a <see cref="PropertySetAbstractValue"/>.
+        /// </summary>
+        /// <param name="constructorMethodSymbol">Invoked constructor.</param>
+        /// <param name="argumentNullAbstractValues"><see cref="NullAbstractValue"/>s for the constructor's arguments.</param>
+        /// <returns>Abstract value for PropertySetAnalysis, with <see cref="PropertySetAbstractValueKind"/>s in the same order as the <see cref="PropertyMapper"/>s in the <see cref="PropertyMapperCollection"/>.</returns>
         public delegate PropertySetAbstractValue NullAbstractValueCallback(
             IMethodSymbol constructorMethodSymbol,
             IReadOnlyList<NullAbstractValue> argumentNullAbstractValues);

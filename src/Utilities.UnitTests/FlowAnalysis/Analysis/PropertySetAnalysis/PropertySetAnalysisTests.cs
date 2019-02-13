@@ -92,8 +92,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     foreach (KeyValuePair<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> kvp in actual)
                     {
                         FileLinePositionSpan span = kvp.Key.Location.GetLineSpan();
-                        if (span.Path != "Test0.cs")
+                        if (span.Path != CSharpDefaultFilePath)
                         {
+                            // Only looking in the first file, so that expectedResults doesn't have to specify a filename.
                             continue;
                         }
 
@@ -357,6 +358,27 @@ class TestClass
                 (8, 9, "void OtherClass.StaticMethod(TestTypeToTrack staticMethodParameter)", HazardousUsageEvaluationResult.Flagged));
         }
 
+        [Fact]
+        public void TestTypeToTrack_HazardousIfStringIsNull_OtherClassBothMethods_Flagged()
+        {
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AString = ""A non-null string"";
+        OtherClass o = new OtherClass();
+        o.OtherMethod(""this string parameter is ignored"", t);
+        OtherClass.StaticMethod(t);
+    }/*</bind>*/
+}",
+                TestTypeToTrack_HazardousIfStringIsNonNull,
+                (9, 9, "void OtherClass.OtherMethod(string s, TestTypeToTrack t)", HazardousUsageEvaluationResult.Flagged),
+                (10, 9, "void OtherClass.StaticMethod(TestTypeToTrack staticMethodParameter)", HazardousUsageEvaluationResult.Flagged));
+        }
+
+
         /// <summary>
         /// Parameters for PropertySetAnalysis to flag hazardous usage when the TestTypeToTrackWithConstructor.AString property is not null when calling its Method() method.
         /// </summary>
@@ -572,6 +594,111 @@ class TestClass
     }/*</bind>*/
 }",
                 TestTypeToTrack_HazardousIfEnumIsValue0);
+        }
+
+        /// <summary>
+        /// Parameters for PropertySetAnalysis to flag hazardous usage when the TestTypeToTrackWithConstructor.AnEnum property is Value0 when calling its Method() method.
+        /// </summary>
+        private readonly PropertySetAnalysisParameters TestTypeToTrackWithConstructor_HazardousIfEnumIsValue0 =
+            new PropertySetAnalysisParameters(
+                "TestTypeToTrackWithConstructor",
+                new ConstructorMapper(
+                    (IMethodSymbol method, IReadOnlyList<ValueContentAbstractValue> argumentValueContentAbstractValues, IReadOnlyList <NullAbstractValue> argumentNullAbstractValues) =>
+                    {
+                        // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
+
+                        PropertySetAbstractValueKind kind = PropertySetAbstractValueKind.Unknown;
+                        ValueContentAbstractValue enuAbstractValue = argumentValueContentAbstractValues[0];
+                        switch (enuAbstractValue.NonLiteralState)
+                        {
+                            case ValueContainsNonLiteralState.No:
+                                // We know all values, so we can say Flagged or Unflagged.
+                                kind = enuAbstractValue.LiteralValues.Contains(0)
+                                    ? PropertySetAbstractValueKind.Flagged
+                                    : PropertySetAbstractValueKind.Unflagged;
+                                break;
+                            case ValueContainsNonLiteralState.Maybe:
+                                // We don't know all values, so we can say Flagged, or who knows.
+                                kind = enuAbstractValue.LiteralValues.Contains(0)
+                                    ? PropertySetAbstractValueKind.Flagged
+                                    : PropertySetAbstractValueKind.Unknown;
+                                break;
+                            default:
+                                kind = PropertySetAbstractValueKind.Unknown;
+                                break;
+                        }
+
+                        return PropertySetAbstractValue.GetInstance(kind);
+                    }),
+                new PropertyMapperCollection(
+                    new PropertyMapper(
+                        "AnEnum",
+                        (ValueContentAbstractValue valueContentAbstractValue) =>
+                        {
+                            switch (valueContentAbstractValue.NonLiteralState)
+                            {
+                                case ValueContainsNonLiteralState.No:
+                                    // We know all values, so we can say Flagged or Unflagged.
+                                    return valueContentAbstractValue.LiteralValues.Contains(0)
+                                        ? PropertySetAbstractValueKind.Flagged
+                                        : PropertySetAbstractValueKind.Unflagged;
+                                case ValueContainsNonLiteralState.Maybe:
+                                    // We don't know all values, so we can say Flagged, or who knows.
+                                    return valueContentAbstractValue.LiteralValues.Contains(0)
+                                        ? PropertySetAbstractValueKind.Flagged
+                                        : PropertySetAbstractValueKind.Unknown;
+                                default:
+                                    return PropertySetAbstractValueKind.Unknown;
+                            }
+                        })),
+                new HazardousUsageEvaluatorCollection(
+                    new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
+                        "Method",
+                        (IMethodSymbol methodSymbol, PropertySetAbstractValue abstractValue) =>
+                        {
+                            // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
+
+                            // With only one property being tracked, this is straightforward.
+                            switch (abstractValue[0])
+                            {
+                                case PropertySetAbstractValueKind.Flagged:
+                                    return HazardousUsageEvaluationResult.Flagged;
+                                case PropertySetAbstractValueKind.MaybeFlagged:
+                                    return HazardousUsageEvaluationResult.MaybeFlagged;
+                                default:
+                                    return HazardousUsageEvaluationResult.Unflagged;
+                            }
+                        })));
+
+        [Fact]
+        public void TestTypeToTrackWithConstructor_HazardousIfEnumIsValue0_Unflagged()
+        {
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(TestEnum.Value2, null, null);
+        t.Method();
+    }/*</bind>*/
+}",
+                TestTypeToTrackWithConstructor_HazardousIfEnumIsValue0);
+        }
+
+        [Fact]
+        public void TestTypeToTrackWithConstructor_HazardousIfEnumIsValue0_Flagged()
+        {
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(TestEnum.Value0, null, null);
+        t.Method();
+    }/*</bind>*/
+}",
+                TestTypeToTrackWithConstructor_HazardousIfEnumIsValue0,
+                (7, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
         }
 
         /// <summary>

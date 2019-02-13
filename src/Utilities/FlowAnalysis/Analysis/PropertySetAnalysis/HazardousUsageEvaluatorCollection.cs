@@ -1,8 +1,9 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 
@@ -20,6 +21,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             if (hazardousUsageEvaluators == null)
             {
                 throw new ArgumentNullException(nameof(hazardousUsageEvaluators));
+            }
+
+            if (!hazardousUsageEvaluators.Any())
+            {
+                throw new ArgumentException("No HazardUsageEvaluators specified", nameof(hazardousUsageEvaluators));
             }
 
             this.HazardousUsageEvaluators =

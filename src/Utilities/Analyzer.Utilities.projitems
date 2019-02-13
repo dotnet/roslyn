@@ -40,7 +40,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertyMapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertyMapperCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAbstractValueKind.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetImmutableArrayCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\FilePathInjectionSinks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\XssSanitizers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\RegexSinks.cs" />

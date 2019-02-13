@@ -54,8 +54,8 @@ namespace Test.Utilities
         internal const string DefaultFilePathPrefix = "Test";
         internal const string CSharpDefaultFileExt = "cs";
         internal const string VisualBasicDefaultExt = "vb";
-        internal static readonly string CSharpDefaultFilePath = DefaultFilePathPrefix + 0 + "." + CSharpDefaultFileExt;
-        internal static readonly string VisualBasicDefaultFilePath = DefaultFilePathPrefix + 0 + "." + VisualBasicDefaultExt;
+        protected static readonly string CSharpDefaultFilePath = DefaultFilePathPrefix + 0 + "." + CSharpDefaultFileExt;
+        protected static readonly string VisualBasicDefaultFilePath = DefaultFilePathPrefix + 0 + "." + VisualBasicDefaultExt;
 
         private const string TestProjectName = "TestProject";
 

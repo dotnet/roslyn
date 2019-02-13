@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,6 +16,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             if (propertyMappers == null)
             {
                 throw new ArgumentNullException(nameof(propertyMappers));
+            }
+
+            if (!propertyMappers.Any())
+            {
+                throw new ArgumentException("No PropertyMappers specified", nameof(propertyMappers));
             }
 
             ImmutableDictionary<string, (int Index, PropertyMapper PropertyMapper)>.Builder builder = ImmutableDictionary.CreateBuilder<string, (int Index, PropertyMapper PropertyMapper)>(StringComparer.Ordinal);
@@ -44,6 +51,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 return this.PropertyMappersWithIndex.Values.Any(t => t.PropertyMapper.RequiresValueContentAnalysis);
             }
         }
+
+        internal int Count => this.PropertyMappersWithIndex.Count;
 
         internal bool TryGetPropertyMapper(string propertyName, out PropertyMapper propertyMapper, out int index)
         {

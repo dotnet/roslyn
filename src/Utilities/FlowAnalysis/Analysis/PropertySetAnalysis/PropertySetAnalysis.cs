@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
@@ -50,6 +51,23 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis = false)
         {
+            if (constructorMapper == null)
+            {
+                throw new ArgumentNullException(nameof(constructorMapper));
+            }
+
+            if (propertyMappers == null)
+            {
+                throw new ArgumentNullException(nameof(propertyMappers));
+            }
+
+            if (hazardousUsageEvaluators == null)
+            {
+                throw new ArgumentNullException(nameof(hazardousUsageEvaluators));
+            }
+
+            constructorMapper.Validate(propertyMappers.Count);
+
             var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
 
             PointsToAnalysisResult pointsToAnalysisResult;
