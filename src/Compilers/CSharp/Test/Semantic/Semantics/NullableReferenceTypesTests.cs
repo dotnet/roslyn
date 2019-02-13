@@ -42,11 +42,51 @@ namespace System
             return """";
         }
     }
-
-#nullable disable
 }
 
             ";
+
+        private const string TupleRestNonNullable =
+                    @"
+namespace System
+{
+#nullable enable
+    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>
+        where T1 : object
+        where T2 : object
+        where T3 : object
+        where T4 : object
+        where T5 : object
+        where T6 : object
+        where T7 : object
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+        public T5 Item5;
+        public T6 Item6;
+        public T7 Item7;
+        public TRest Rest;
+
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest)
+        {
+            Item1 = item1;
+            Item2 = item2;
+            Item3 = item3;
+            Item4 = item4;
+            Item5 = item5;
+            Item6 = item6;
+            Item7 = item7;
+            Rest = rest;
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
+        }
+    }
+}";
 
         [Fact, WorkItem(31297, "https://github.com/dotnet/roslyn/issues/31297")]
         public void SuppressNullableWarning_RefSpanReturn()
@@ -53232,10 +53272,11 @@ class C {
         var t3 = (s2, s1);  // 2
         var t4 = (s2, s2);  // 3, 4
         var t5 = ((string)null, s1);  // 5
+        var t6 = ((string)null, s1, s1, s1, s1, s1, s1, (string)null, (string)null);  // 6, 7, 8
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { Tuple2NonNullable, source }, targetFramework: TargetFramework.Mscorlib46);
+            var compilation = CreateCompilation(new[] { Tuple2NonNullable, TupleRestNonNullable, source }, targetFramework: TargetFramework.Mscorlib46);
             compilation.VerifyDiagnostics(
                 // (9,18): warning CS8631: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
                 //         var t2 = (s1, s2);  // 1
@@ -53251,7 +53292,16 @@ class C {
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "(s2, s2)").WithArguments("System.ValueTuple<T1, T2>", "object", "T2", "string?").WithLocation(11, 18),
                 // (12,18): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
                 //         var t5 = ((string)null, s1);  // 5
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "((string)null, s1)").WithArguments("System.ValueTuple<T1, T2>", "object", "T1", "string?").WithLocation(12, 18)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "((string)null, s1)").WithArguments("System.ValueTuple<T1, T2>", "object", "T1", "string?").WithLocation(12, 18),
+                // (13,18): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //         var t6 = ((string)null, s1, s1, s1, s1, s1, s1, (string)null, (string)null);  // 6, 7, 8
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "((string)null, s1, s1, s1, s1, s1, s1, (string)null, (string)null)").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "object", "T1", "string?").WithLocation(13, 18),
+                // (13,18): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //         var t6 = ((string)null, s1, s1, s1, s1, s1, s1, (string)null, (string)null);  // 6, 7, 8
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "((string)null, s1, s1, s1, s1, s1, s1, (string)null, (string)null)").WithArguments("System.ValueTuple<T1, T2>", "object", "T1", "string?").WithLocation(13, 18),
+                // (13,18): warning CS8631: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //         var t6 = ((string)null, s1, s1, s1, s1, s1, s1, (string)null, (string)null);  // 6, 7, 8
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "((string)null, s1, s1, s1, s1, s1, s1, (string)null, (string)null)").WithArguments("System.ValueTuple<T1, T2>", "object", "T2", "string?").WithLocation(13, 18)
                 );
         }
 
@@ -53266,18 +53316,32 @@ using System;
 class C {
     void TupleTypes() {
         (string?, string) t1;
-        Type t2 = typeof((string?, string));
+        (string?, string, string, string, string, string, string, string, string?) t2;
+        Type t3 = typeof((string?, string));
+        Type t4 = typeof((string?, string, string, string, string, string, string, string, string?));
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { Tuple2NonNullable, source }, targetFramework: TargetFramework.Mscorlib46);
+            var compilation = CreateCompilation(new[] { Tuple2NonNullable, TupleRestNonNullable, source }, targetFramework: TargetFramework.Mscorlib46);
             compilation.VerifyDiagnostics(
                 // (7,10): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
                 //         (string?, string) t1;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("System.ValueTuple<T1, T2>", "object", "T1", "string?").WithLocation(7, 10),
-                // (8,27): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
-                //         Type t2 = typeof((string?, string));
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("System.ValueTuple<T1, T2>", "object", "T1", "string?").WithLocation(8, 27)
+                // (8,10): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //         (string?, string, string, string, string, string, string, string, string?) t2;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "object", "T1", "string?").WithLocation(8, 10),
+                // (8,75): warning CS8631: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //         (string?, string, string, string, string, string, string, string, string?) t2;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("System.ValueTuple<T1, T2>", "object", "T2", "string?").WithLocation(8, 75),
+                // (9,27): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //         Type t3 = typeof((string?, string));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("System.ValueTuple<T1, T2>", "object", "T1", "string?").WithLocation(9, 27),
+                // (10,27): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //         Type t4 = typeof((string?, string, string, string, string, string, string, string, string?));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "object", "T1", "string?").WithLocation(10, 27),
+                // (10,92): warning CS8631: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                //         Type t4 = typeof((string?, string, string, string, string, string, string, string, string?));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("System.ValueTuple<T1, T2>", "object", "T2", "string?").WithLocation(10, 92)
                 );
         }
 
