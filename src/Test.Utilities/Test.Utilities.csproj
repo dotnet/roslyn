@@ -9,9 +9,6 @@
     <AssemblyName>Roslyn.Test.Utilities</AssemblyName>
     
     <IsShipping>false</IsShipping>
-
-    <!-- Do not directly await a task-->
-    <NoWarn>$(NoWarn);CA2007</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualBasic" Version="$(MicrosoftVisualBasicVersion)" />
