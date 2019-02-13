@@ -44,7 +44,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _provider = provider;
                 _fileChangeTrackerOpt = fileChangeTrackerOpt;
 
-                _timestamp = new Lazy<DateTime>(() => {
+                _timestamp = new Lazy<DateTime>(() =>
+                {
                     try
                     {
                         _fileChangeTrackerOpt?.EnsureSubscription();

@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 </Workspace>
             Await TestCSharpAsync(workspace, "class System.String")
         End Function
-      
+
         <Fact>
         Public Async Function TestCSharpStaticField() As Task
             Dim workspace =

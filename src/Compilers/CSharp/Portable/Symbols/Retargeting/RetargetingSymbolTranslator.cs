@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 bool modifiersHaveChanged;
                 var newModifiers = RetargetModifiers(underlyingType.CustomModifiers, out modifiersHaveChanged);
 
-                if (modifiersHaveChanged || underlyingType.TypeSymbol != newTypeSymbol)
+                if (modifiersHaveChanged || !TypeSymbol.Equals(underlyingType.TypeSymbol, newTypeSymbol, TypeCompareKind.ConsiderEverything2))
                 {
                     return underlyingType.WithTypeAndModifiers(newTypeSymbol, newModifiers);
                 }
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     }
 
                     result = destination.SymbolMap.GetOrAdd(type, result1);
-                    Debug.Assert(result1 == result);
+                    Debug.Assert(TypeSymbol.Equals(result1, result, TypeCompareKind.ConsiderEverything2));
                 }
 
                 return result;
@@ -714,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                                             CSharpCustomModifier.CreateOptional(newModifier) :
                                             CSharpCustomModifier.CreateRequired(newModifier));
                     }
-                    else if (newModifiers != null) 
+                    else if (newModifiers != null)
                     {
                         newModifiers.Add(oldModifier);
                     }
@@ -1034,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     if (retargetedMember.Kind == SymbolKind.Event)
                     {
                         var retargetedEvent = (EventSymbol)retargetedMember;
-                        if (retargetedEvent.Type.TypeSymbol == targetType.TypeSymbol)
+                        if (TypeSymbol.Equals(retargetedEvent.Type.TypeSymbol, targetType.TypeSymbol, TypeCompareKind.ConsiderEverything2))
                         {
                             return retargetedEvent;
                         }
@@ -1156,7 +1156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 if (oldConstant.Kind == TypedConstantKind.Array)
                 {
                     var newArray = RetargetAttributeConstructorArguments(oldConstant.Values);
-                    if (newConstantType != oldConstantType || newArray != oldConstant.Values)
+                    if (!TypeSymbol.Equals(newConstantType, oldConstantType, TypeCompareKind.ConsiderEverything2) || newArray != oldConstant.Values)
                     {
                         typedConstantChanged = true;
                         return new TypedConstant(newConstantType, newArray);
@@ -1178,7 +1178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     newConstantValue = oldConstantValue;
                 }
 
-                if (newConstantType != oldConstantType || newConstantValue != oldConstantValue)
+                if (!TypeSymbol.Equals(newConstantType, oldConstantType, TypeCompareKind.ConsiderEverything2) || newConstantValue != oldConstantValue)
                 {
                     typedConstantChanged = true;
                     return new TypedConstant(newConstantType, oldConstant.Kind, newConstantValue);

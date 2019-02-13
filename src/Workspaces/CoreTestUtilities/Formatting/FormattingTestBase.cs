@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
             Dictionary<OptionKey, object> changedOptionSet = null,
             bool testWithTransformation = true)
         {
-            return AssertFormatAsync(expected, code, new[] { new TextSpan(0, code.Length)}, language, debugMode, changedOptionSet, testWithTransformation);
+            return AssertFormatAsync(expected, code, new[] { new TextSpan(0, code.Length) }, language, debugMode, changedOptionSet, testWithTransformation);
         }
 
         protected async Task AssertFormatAsync(

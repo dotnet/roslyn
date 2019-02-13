@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
     internal struct CodeFixData
     {
         public CodeFixData(
-            IMethodSymbol method, 
-            Func<CancellationToken, Task<Solution>> createChangedSolutionNonCascading, 
+            IMethodSymbol method,
+            Func<CancellationToken, Task<Solution>> createChangedSolutionNonCascading,
             Func<CancellationToken, Task<Solution>> createChangedSolutionCascading)
         {
             Method = method ?? throw new ArgumentNullException(nameof(method));
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         /// The overload to fix.
         /// </summary>
         public IMethodSymbol Method { get; }
-        
+
         /// <summary>
         /// A mandatory fix for the overload without cascading.
         /// </summary>

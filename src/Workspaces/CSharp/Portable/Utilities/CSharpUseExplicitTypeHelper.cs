@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                      foreachStatement.Type == typeName)
             {
                 if (!AssignmentSupportsStylePreference(
-                        foreachStatement.Identifier, typeName, foreachStatement.Expression, 
+                        foreachStatement.Identifier, typeName, foreachStatement.Expression,
                         semanticModel, optionSet, cancellationToken))
                 {
                     return false;

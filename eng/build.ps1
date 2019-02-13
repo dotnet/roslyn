@@ -32,14 +32,20 @@ param (
 
     # Options
     [switch]$bootstrap,
+    [string]$bootstrapConfiguration = "Release",
     [switch][Alias('bl')]$binaryLog,
     [switch]$ci,
-    [switch]$official,
     [switch]$procdump,
     [switch]$skipAnalyzers,
-    [switch]$deployExtensions,
+    [switch][Alias('d')]$deployExtensions,
     [switch]$prepareMachine,
     [switch]$useGlobalNuGetCache = $true,
+    [switch]$warnAsError = $false,
+
+    # official build settings
+    [string]$officialBuildId = "",
+    [string]$officialSkipApplyOptimizationData = "",
+    [string]$officialSkipTests = "",
 
     # Test actions
     [switch]$test32,
@@ -58,7 +64,7 @@ function Print-Usage() {
     Write-Host "Common settings:"
     Write-Host "  -configuration <value>    Build configuration: 'Debug' or 'Release' (short: -c)"
     Write-Host "  -verbosity <value>        Msbuild verbosity: q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]"
-    Write-Host "  -deployExtensions         Deploy built vsixes"
+    Write-Host "  -deployExtensions         Deploy built vsixes (short: -d)"
     Write-Host "  -binaryLog                Create MSBuild binary log (short: -bl)"
     Write-Host ""
     Write-Host "Actions:"
@@ -81,13 +87,19 @@ function Print-Usage() {
     Write-Host ""
     Write-Host "Advanced settings:"
     Write-Host "  -ci                       Set when running on CI server"
-    Write-Host "  -official                 Set when building an official build"
     Write-Host "  -bootstrap                Build using a bootstrap compilers"
+    Write-Host "  -bootstrapConfiguration   Build configuration for bootstrap compiler: 'Debug' or 'Release'"
     Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
     Write-Host "  -procdump                 Monitor test runs with procdump"
     Write-Host "  -skipAnalyzers            Do not run analyzers during build operations"
     Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
     Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
+    Write-Host "  -warnAsError              Treat all warnings as errors"
+    Write-Host ""
+    Write-Host "Official build settings:"
+    Write-Host "  -officialBuildId                            An official build id, e.g. 20190102.3"
+    Write-Host "  -officialSkipTests <bool>                   Pass 'true' to not run tests"
+    Write-Host "  -officialSkipApplyOptimizationData <bool>   Pass 'true' to not apply optimization data"
     Write-Host ""
     Write-Host "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -100,9 +112,39 @@ function Print-Usage() {
 # $build based on say $testDesktop. It's possible the developer wanted only for testing
 # to execute, not any build.
 function Process-Arguments() {
+    function OfficialBuildOnly([string]$argName) {
+        if ((Get-Variable $argName -Scope Script).Value) {
+            if (!$officialBuildId) {
+                Write-Host "$argName can only be specified for official builds"
+                exit 1
+            }
+        } else {
+            if ($officialBuildId) {
+                Write-Host "$argName must be specified in official builds"
+                exit 1
+            }
+        }
+    }
+
     if ($help -or (($properties -ne $null) -and ($properties.Contains("/help") -or $properties.Contains("/?")))) {
        Print-Usage
        exit 0
+    }
+
+    OfficialBuildOnly "officialSkipTests"
+    OfficialBuildOnly "officialSkipApplyOptimizationData"
+
+    if ($officialBuildId) {
+        $script:useGlobalNuGetCache = $false
+        $script:procdump = $true
+        $script:testDesktop = ![System.Boolean]::Parse($officialSkipTests)
+        $script:applyOptimizationData = ![System.Boolean]::Parse($officialSkipApplyOptimizationData)
+    } else {
+        $script:applyOptimizationData = $false
+    }
+
+    if ($ci) {
+        $script:binaryLog = $true
     }
 
     if ($test32 -and $test64) {
@@ -141,17 +183,24 @@ function Process-Arguments() {
 function BuildSolution() {
     # Roslyn.sln can't be built with dotnet due to WPF and VSIX build task dependencies
     $solution = if ($msbuildEngine -eq 'dotnet') { "Compilers.sln" } else { "Roslyn.sln" }
-    
+
     Write-Host "$($solution):"
 
     $bl = if ($binaryLog) { "/bl:" + (Join-Path $LogDir "Build.binlog") } else { "" }
     $projects = Join-Path $RepoRoot $solution
-    $officialBuildId = if ($official) { $env:BUILD_BUILDNUMBER } else { "" }
     $enableAnalyzers = !$skipAnalyzers
     $toolsetBuildProj = InitializeToolset
     $quietRestore = !$ci
     $testTargetFrameworks = if ($testCoreClr) { "netcoreapp2.1" } else { "" }
 
+    # Do not set these properties to true explicitly, since that would override values set in projects.
+    $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" } 
+    $suppressPartialNgenOptimization = if (!$applyOptimizationData) { "/p:ApplyPartialNgenOptimization=false" } else { "" }
+
+    # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
+    # We don't pass /warnaserror to msbuild ($warnAsError is set to $false by default above), but set 
+    # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
+    # Warnings reported from other msbuild tasks are not treated as errors for now.
     MSBuild $toolsetBuildProj `
         $bl `
         /p:Configuration=$configuration `
@@ -165,35 +214,23 @@ function BuildSolution() {
         /p:Sign=$sign `
         /p:Publish=$publish `
         /p:ContinuousIntegrationBuild=$ci `
-        /p:DeployExtension=$deployExtensions `
         /p:OfficialBuildId=$officialBuildId `
         /p:UseRoslynAnalyzers=$enableAnalyzers `
         /p:BootstrapBuildPath=$bootstrapDir `
         /p:QuietRestore=$quietRestore `
         /p:QuietRestoreBinaryLog=$binaryLog `
         /p:TestTargetFrameworks=$testTargetFrameworks `
+        /p:TreatWarningsAsErrors=true `
+        $suppressPartialNgenOptimization `
+        $suppressExtensionDeployment `
         @properties
 }
 
-
-function Build-OptProfData() {
-    $optProfToolDir = Get-PackageDir "RoslynTools.OptProf"
-    $optProfToolExe = Join-Path $optProfToolDir "tools\roslyn.optprof.exe"
-    $configFile = Join-Path $RepoRoot "eng\config\OptProf.json"
-    $insertionFolder = Join-Path $VSSetupDir "Insertion"
-    $outputFolder = Join-Path $ArtifactsDir "OptProf\$configuration"
-    $dataFolder = Join-Path $outputFolder "Data"
-    Write-Host "Generating optprof data using '$configFile' into '$dataFolder'"
-    $optProfArgs = "--configFile $configFile --insertionFolder $insertionFolder --outputFolder $dataFolder"
-    Exec-Console $optProfToolExe $optProfArgs
-
-    # Write Out Branch we are inserting into
-    $vsBranchFolder = Join-Path $outputFolder "BranchInfo"
-    New-Item -ItemType Directory -Force -Path $vsBranchFolder
-    $vsBranchText = Join-Path $vsBranchFolder "vsbranch.txt"
-    # InsertTargetBranchFullName is defined in .vsts-ci.yml
-    $vsBranch = $Env:InsertTargetBranchFullName
-    $vsBranch >> $vsBranchText
+# Set VSO variables used by MicroBuildBuildVSBootstrapper pipeline task
+function Set-OptProfVariables() {
+    $insertionDir = Join-Path $VSSetupDir "Insertion"
+    $manifestList = [string]::Join(',', (Get-ChildItem "$insertionDir\*.vsman"))
+    Write-Host "##vso[task.setvariable variable=VisualStudio.SetupManifestList;]$manifestList"
 }
 
 # Core function for running our unit / integration tests tests
@@ -204,6 +241,12 @@ function TestUsingOptimizedRunner() {
 
     if ($testVsi) {
         Deploy-VsixViaTool
+
+        if ($ci) {
+            # Minimize all windows to avoid interference during integration test runs
+            $shell = New-Object -ComObject "Shell.Application"
+            $shell.MinimizeAll()
+        }
     }
 
     if ($testIOperation) {
@@ -252,7 +295,12 @@ function TestUsingOptimizedRunner() {
     $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
 
     if ($ci) {
-        $args += " -xml -timeout:65"
+        $args += " -xml"
+        if ($testVsi) {
+            $args += " -timeout:120"
+        } else {
+            $args += " -timeout:65"
+        }
     }
 
     $procdumpPath = Ensure-ProcDump
@@ -314,7 +362,7 @@ function Deploy-VsixViaTool() {
     Write-Host "Installing all Roslyn VSIX"
 
     # VSIX files need to be installed in this specific order:
-    $orderedVsixFileNames = @(	
+    $orderedVsixFileNames = @(
         "Roslyn.Compilers.Extension.vsix",
         "Roslyn.VisualStudio.Setup.vsix",
         "Roslyn.VisualStudio.Setup.Dependencies.vsix",
@@ -393,9 +441,9 @@ try {
     if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish -or $testCoreClr) {
         BuildSolution
     }
-    
-    if ($build -and $pack -and $official) {
-        Build-OptProfData
+
+    if ($ci -and $build -and $msbuildEngine -eq "vs") {
+        Set-OptProfVariables
     }
 
     if ($testDesktop -or $testVsi -or $testIOperation) {

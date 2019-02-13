@@ -30,18 +30,23 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 private bool _hasDelegateCreationOrAnonymousFunction;
 
                 /// <summary>
-                /// Indicates if a delegate instance escaped this operation block, via an assignment to a field or a property symbol.
-                /// that can be accessed outside this executable code block.
+                /// Indicates if the operation block has an operation that leads to a delegate escaping the current block,
+                /// which would prevent us from performing accurate flow analysis of lambda/local function invocations
+                /// within this operation block.
+                /// Some examples:
+                ///     1. Delegate assigned to a field or property.
+                ///     2. Delegate passed as an argument to an invocation or object creation.
+                ///     3. Delegate added to an array or wrapped within a tuple.
+                ///     4. Delegate converted to a non-delegate type.
                 /// We use this value in <see cref="ShouldAnalyze(IOperation, ISymbol)"/> to determine whether to bail from analysis or not.
                 /// </summary>
-                private bool _delegateAssignedToFieldOrProperty;
+                private bool _hasDelegateEscape;
 
                 /// <summary>
-                /// Indicates if the operation block has an <see cref="IConversionOperation"/> with a delegate type as it's source type
-                /// and a non-delegate type as it's target.
+                /// Indicates if the operation block has an <see cref="IInvalidOperation"/>.
                 /// We use this value in <see cref="ShouldAnalyze(IOperation, ISymbol)"/> to determine whether to bail from analysis or not.
                 /// </summary>
-                private bool _hasConversionFromDelegateTypeToNonDelegateType;
+                private bool _hasInvalidOperation;
 
                 /// <summary>
                 /// Parameters which have at least one read/write reference.
@@ -62,6 +67,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         return;
                     }
 
+                    // Bail out in presence of conditional directives
+                    // This is a workaround for https://github.com/dotnet/roslyn/issues/31820
+                    // Issue https://github.com/dotnet/roslyn/issues/31821 tracks
+                    // reverting this workaround.
+                    if (HasConditionalDirectives())
+                    {
+                        return;
+                    }
+
                     // All operation blocks for a symbol belong to the same tree.
                     var firstBlock = context.OperationBlocks[0];
                     if (!symbolStartAnalyzer._compilationAnalyzer.TryGetOptions(firstBlock.Syntax.SyntaxTree,
@@ -76,9 +90,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     var blockAnalyzer = new BlockAnalyzer(symbolStartAnalyzer, options);
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeExpressionStatement, OperationKind.ExpressionStatement);
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeDelegateCreationOrAnonymousFunction, OperationKind.DelegateCreation, OperationKind.AnonymousFunction);
-                    context.RegisterOperationAction(blockAnalyzer.AnalyzeConversion, OperationKind.Conversion);
-                    context.RegisterOperationAction(blockAnalyzer.AnalyzeFieldOrPropertyReference, OperationKind.FieldReference, OperationKind.PropertyReference);
-                    context.RegisterOperationAction(blockAnalyzer.AnalyzeParameterReference, OperationKind.ParameterReference);
+                    context.RegisterOperationAction(blockAnalyzer.AnalyzeLocalOrParameterReference, OperationKind.LocalReference, OperationKind.ParameterReference);
+                    context.RegisterOperationAction(_ => blockAnalyzer._hasInvalidOperation = true, OperationKind.Invalid);
                     context.RegisterOperationBlockEndAction(blockAnalyzer.AnalyzeOperationBlockEnd);
 
                     return;
@@ -89,6 +102,20 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         foreach (var operationBlock in context.OperationBlocks)
                         {
                             if (operationBlock.Syntax.GetDiagnostics().ToImmutableArrayOrEmpty().HasAnyErrors())
+                            {
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    }
+
+                    bool HasConditionalDirectives()
+                    {
+                        foreach (var operationBlock in context.OperationBlocks)
+                        {
+                            if (operationBlock.Syntax.DescendantNodes(descendIntoTrivia: true)
+                                                     .Any(n => symbolStartAnalyzer._compilationAnalyzer.IsIfConditionalDirective(n)))
                             {
                                 return true;
                             }
@@ -110,8 +137,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                     // Bail out cases for report unused expression value:
 
-                    //  1. Null type and void returning method invocations: no value being dropped here.
+                    //  1. Null type, error type and void returning method invocations: no value being dropped here.
                     if (value.Type == null ||
+                        value.Type.IsErrorType() ||
                         value.Type.SpecialType == SpecialType.System_Void)
                     {
                         return;
@@ -136,7 +164,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     //  4. Bail out if there is language specific syntax to indicate an explicit discard.
                     //     For example, VB call statement is used to explicitly ignore the value returned by
                     //     an invocation by prefixing the invocation with keyword "Call".
-                    if (_symbolStartAnalyzer._compilationAnalyzer.IsCallStatement(expressionStatement))
+                    //     Similarly, we do not want to flag an expression of a C# expression body.
+                    if (_symbolStartAnalyzer._compilationAnalyzer.IsCallStatement(expressionStatement) ||
+                        _symbolStartAnalyzer._compilationAnalyzer.IsExpressionOfExpressionBody(expressionStatement))
                     {
                         return;
                     }
@@ -151,35 +181,141 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 }
 
                 private void AnalyzeDelegateCreationOrAnonymousFunction(OperationAnalysisContext operationAnalysisContext)
-                    => _hasDelegateCreationOrAnonymousFunction = true;
-
-                private void AnalyzeConversion(OperationAnalysisContext operationAnalysisContext)
                 {
-                    var conversion = (IConversionOperation)operationAnalysisContext.Operation;
-                    if (!_hasConversionFromDelegateTypeToNonDelegateType &&
-                        conversion.Operand.Type.IsDelegateType() &&
-                        !conversion.Type.IsDelegateType())
+                    _hasDelegateCreationOrAnonymousFunction = true;
+                    if (!_hasDelegateEscape)
                     {
-                        _hasConversionFromDelegateTypeToNonDelegateType = true;
+                        _hasDelegateEscape = !IsHandledDelegateCreationOrAnonymousFunctionTreeShape(operationAnalysisContext.Operation);
                     }
                 }
 
-                private void AnalyzeFieldOrPropertyReference(OperationAnalysisContext operationAnalysisContextContext)
+                private void AnalyzeLocalOrParameterReference(OperationAnalysisContext operationAnalysisContext)
                 {
-                    var fieldOrPropertyReference = operationAnalysisContextContext.Operation;
-                    if (!_delegateAssignedToFieldOrProperty &&
-                        fieldOrPropertyReference.Type.IsDelegateType() &&
-                        fieldOrPropertyReference.Parent is ISimpleAssignmentOperation simpleAssignment &&
-                        simpleAssignment.Target.Equals(fieldOrPropertyReference))
+                    if (operationAnalysisContext.Operation is IParameterReferenceOperation parameterReference)
                     {
-                        _delegateAssignedToFieldOrProperty = true;
+                        _referencedParameters.GetOrAdd(parameterReference.Parameter, true);
+                    }
+
+                    if (!_hasDelegateEscape)
+                    {
+                        _hasDelegateEscape = !IsHandledLocalOrParameterReferenceTreeShape(operationAnalysisContext.Operation);
                     }
                 }
 
-                private void AnalyzeParameterReference(OperationAnalysisContext operationAnalysisContextContext)
+                /// <summary>
+                /// We handle only certain operation tree shapes in flow analysis
+                /// when delegate creations are involved (lambdas/local functions).
+                /// We track assignments of lambdas/local functions to parameters/locals,
+                /// assignments of parameters/locals to other parameters/locals of delegate types,
+                /// and then delegate invocations through parameter/locals.
+                /// For the remaining unknown ones, we conservatively mark the operation as leading to
+                /// delegate escape, and corresponding bail out from flow analysis in <see cref="ShouldAnalyze(IOperation, ISymbol)"/>.
+                /// This function checks the operation tree shape in context of
+                /// an <see cref="IDelegateCreationOperation"/> or an <see cref="IAnonymousFunctionOperation"/>.
+                /// </summary>
+                private static bool IsHandledDelegateCreationOrAnonymousFunctionTreeShape(IOperation operation)
                 {
-                    var parameter = ((IParameterReferenceOperation)operationAnalysisContextContext.Operation).Parameter;
-                    _referencedParameters.GetOrAdd(parameter, true);
+                    Debug.Assert(operation.Kind == OperationKind.DelegateCreation || operation.Kind == OperationKind.AnonymousFunction);
+
+                    // 1. Delegate creation or anonymous function variable initializer is handled.
+                    //    For example, for 'Action a = () => { ... };', the lambda is the variable initializer
+                    //    and we track that 'a' points to this lambda during flow analysis
+                    //    and analyze lambda body at invocation sites 'a();' 
+                    if (operation.Parent is IVariableInitializerOperation)
+                    {
+                        return true;
+                    }
+
+                    // 2. Delegate creation or anonymous function assigned to a local or parameter are handled.
+                    //    For example, for 'Action a; a = () => { ... };', the lambda is assigned to local 'a'
+                    //    and we track that 'a' points to this lambda during flow analysis
+                    //    and analyze lambda body at invocation sites 'a();' 
+                    if (operation.Parent is ISimpleAssignmentOperation assignment &&
+                        (assignment.Target.Kind == OperationKind.LocalReference ||
+                         assignment.Target.Kind == OperationKind.ParameterReference))
+                    {
+                        return true;
+                    }
+
+                    // 3. For anonymous functions parented by delegate creation, we analyze the parent operation.
+                    //    For example, for 'Action a = () => { ... };', the lambda generates an anonymous function
+                    //    operation parented by a delegate creation.
+                    if (operation.Kind == OperationKind.AnonymousFunction &&
+                        operation.Parent is IDelegateCreationOperation)
+                    {
+                        return IsHandledDelegateCreationOrAnonymousFunctionTreeShape(operation.Parent);
+                    }
+
+                    // 4. Otherwise, conservatively consider this as an unhandled delegate escape.
+                    return false;
+                }
+
+                /// <summary>
+                /// We handle only certain operation tree shapes in flow analysis
+                /// when delegate creations are involved (lambdas/local functions).
+                /// We track assignments of lambdas/local functions to parameters/locals,
+                /// assignments of parameters/locals to other parameters/locals of delegate types,
+                /// and then delegate invocations through parameter/locals.
+                /// For the remaining unknown ones, we conservatively mark the operation as leading to
+                /// delegate escape, and corresponding bail out from flow analysis in <see cref="ShouldAnalyze(IOperation, ISymbol)"/>.
+                /// This function checks the operation tree shape in context of
+                /// an <see cref="IParameterReferenceOperation"/> or an <see cref="ILocalReferenceOperation"/>
+                /// of delegate type.
+                /// </summary>
+                private static bool IsHandledLocalOrParameterReferenceTreeShape(IOperation operation)
+                {
+                    Debug.Assert(operation.Kind == OperationKind.LocalReference || operation.Kind == OperationKind.ParameterReference);
+
+                    // 1. We are only interested in parameters or locals of delegate type.
+                    if (!operation.Type.IsDelegateType())
+                    {
+                        return true;
+                    }
+
+                    // 2. Delegate invocations are handled.
+                    //    For example, for 'Action a = () => { ... };  a();'
+                    //    we track that 'a' points to the lambda during flow analysis
+                    //    and analyze lambda body at invocation sites 'a();' 
+                    if (operation.Parent is IInvocationOperation)
+                    {
+                        return true;
+                    }
+
+                    if (operation.Parent is ISimpleAssignmentOperation assignmentOperation)
+                    {
+                        // 3. Parameter/local as target of an assignment is handled.
+                        //    For example, for 'a = () => { ... };  a();'
+                        //    assignment of a lambda to a local/parameter 'a' is tracked during flow analysis
+                        //    and we analyze lambda body at invocation sites 'a();' 
+                        if (assignmentOperation.Target == operation)
+                        {
+                            return true;
+                        }
+
+                        // 4. Assignment from a parameter or local is only handled if being
+                        //    assigned to some parameter or local of delegate type.
+                        //    For example, for 'a = () => { ... }; b = a;  b();'
+                        //    assignment of a local/parameter 'b = a' is tracked during flow analysis
+                        //    and we analyze lambda body at invocation sites 'b();' 
+                        if (assignmentOperation.Target.Type.IsDelegateType() &&
+                            (assignmentOperation.Target.Kind == OperationKind.LocalReference ||
+                            assignmentOperation.Target.Kind == OperationKind.ParameterReference))
+                        {
+                            return true;
+                        }
+                    }
+
+                    // 5. Binary operations on parameter/local are fine.
+                    //    For example, 'a = () => { ... }; if (a != null) { a(); }'
+                    //    the binary operation 'a != null' is fine and does not lead
+                    //    to a delegate escape.
+                    if (operation.Parent is IBinaryOperation)
+                    {
+                        return true;
+                    }
+
+                    // 6. Otherwise, conservatively consider this as an unhandled delegate escape.
+                    return false;
                 }
 
                 /// <summary>
@@ -212,28 +348,29 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         return true;
                     }
 
-                    //  2. Bail out if we have a delegate escape via an assigment to a field/property reference.
-                    //     This indicates the delegate targets (such as lambda/local functions) have been captured
+                    //  2. Bail out if we have a delegate escape via operation tree shapes that we do not understand.
+                    //     This indicates the delegate targets (such as lambda/local functions) have escaped current method
                     //     and can be invoked from a separate method, and these invocations can read values written
                     //     to any local/parameter in the current method. We cannot reliably flag any write to a 
                     //     local/parameter as unused for such cases.
-                    if (_delegateAssignedToFieldOrProperty)
+                    if (_hasDelegateEscape)
                     {
                         return false;
                     }
 
-                    //  3. Bail out if we have a conversion from a delegate type to a non-delegate type.
-                    //     We can analyze this correctly when we do points-to-analysis.
-                    if (_hasConversionFromDelegateTypeToNonDelegateType)
-                    {
-                        return false;
-                    }
-
-                    //  4. Bail out for method returning delegates or ref/out parameters of delegate type.
+                    //  3. Bail out for method returning delegates or ref/out parameters of delegate type.
                     //     We can analyze this correctly when we do points-to-analysis.
                     if (owningSymbol is IMethodSymbol method &&
                         (method.ReturnType.IsDelegateType() ||
                          method.Parameters.Any(p => p.IsRefOrOut() && p.Type.IsDelegateType())))
+                    {
+                        return false;
+                    }
+
+                    //  4. Bail out on invalid operations, i.e. code with semantic errors.
+                    //     We are likely to have false positives from flow analysis results
+                    //     as we will not account for potential lambda/local function invocations.
+                    if (_hasInvalidOperation)
                     {
                         return false;
                     }
@@ -337,7 +474,32 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                                     unusedParameter.ContainingSymbol.IsLocalFunction())
                                 {
                                     var hasReference = symbolUsageResult.SymbolsRead.Contains(unusedParameter);
-                                    _symbolStartAnalyzer.ReportUnusedParameterDiagnostic(unusedParameter, hasReference, context.ReportDiagnostic, context.Options, context.CancellationToken);
+
+                                    bool shouldReport;
+                                    switch (unusedParameter.RefKind)
+                                    {
+                                        case RefKind.Out:
+                                            // Do not report out parameters of local functions.
+                                            // If they are unused in the caller, we will flag the
+                                            // out argument at the local function callsite.
+                                            shouldReport = false;
+                                            break;
+
+                                        case RefKind.Ref:
+                                            // Report ref parameters only if they have no read/write references.
+                                            // Note that we always have one write for the parameter input value from the caller.
+                                            shouldReport = !hasReference && symbolUsageResult.GetSymbolWriteCount(unusedParameter) == 1;
+                                            break;
+
+                                        default:
+                                            shouldReport = true;
+                                            break;
+                                    }
+
+                                    if (shouldReport)
+                                    {
+                                        _symbolStartAnalyzer.ReportUnusedParameterDiagnostic(unusedParameter, hasReference, context.ReportDiagnostic, context.Options, context.CancellationToken);
+                                    }
                                 }
 
                                 continue;
@@ -365,9 +527,20 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         SymbolUsageResult resultFromFlowAnalysis,
                         out ImmutableDictionary<string, string> properties)
                     {
+                        Debug.Assert(!(symbol is ILocalSymbol local) || !local.IsRef);
+
                         properties = null;
+
+                        // Bail out in following cases:
+                        //   1. End user has configured the diagnostic to be suppressed.
+                        //   2. Symbol has error type, hence the diagnostic could be noised
+                        //   3. Static local symbols. Assignment to static locals
+                        //      is not unnecessary as the assigned value can be used on the next invocation.
+                        //   4. Ignore special discard symbol names (see https://github.com/dotnet/roslyn/issues/32923).
                         if (_options.UnusedValueAssignmentSeverity == ReportDiagnostic.Suppress ||
-                            symbol.GetSymbolType().IsErrorType())
+                            symbol.GetSymbolType().IsErrorType() ||
+                            (symbol.IsStatic && symbol.Kind == SymbolKind.Local) ||
+                            IsSymbolWithSpecialDiscardName(symbol))
                         {
                             return false;
                         }
@@ -395,6 +568,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     // This is true if the expression for the assigned value has no side effects.
                     bool IsRemovableAssignmentWithoutSideEffects(IOperation unusedSymbolWriteOperation)
                     {
+                        if (_symbolStartAnalyzer._compilationAnalyzer.ShouldBailOutFromRemovableAssignmentAnalysis(unusedSymbolWriteOperation))
+                        {
+                            return false;
+                        }
+
                         if (unusedSymbolWriteOperation.Parent is IAssignmentOperation assignment &&
                             assignment.Target == unusedSymbolWriteOperation)
                         {

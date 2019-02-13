@@ -2191,7 +2191,7 @@ public class Source
             var refVectors40 = vectors40.EmitToImageReference();
             var refVectors41 = vectors41.EmitToImageReference();
 
-            var c1 = CreateEmptyCompilation("", 
+            var c1 = CreateEmptyCompilation("",
                 TargetFrameworkUtil.StandardReferences.AddRange(new[] { refVectors40, refVectors41 }),
                 options: TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
             c1.VerifyDiagnostics();
@@ -2201,7 +2201,7 @@ public class Source
             Assert.Equal("System.Numerics.Vectors, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a0).Identity.GetDisplayName());
             Assert.Equal("System.Numerics.Vectors, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a1).Identity.GetDisplayName());
 
-            var c2 = CreateEmptyCompilation("", 
+            var c2 = CreateEmptyCompilation("",
                 TargetFrameworkUtil.StandardReferences.AddRange(new[] { refVectors41, refVectors40 }),
                 options: TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
             c2.VerifyDiagnostics();

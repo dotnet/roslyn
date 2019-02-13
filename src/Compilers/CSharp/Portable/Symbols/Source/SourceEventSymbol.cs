@@ -338,14 +338,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                return GetNonNullTypesFromSyntax() ?? ContainingModule?.NonNullTypes;
-            }
-        }
-
         public sealed override bool IsAbstract
         {
             get { return (_modifiers & DeclarationModifiers.Abstract) != 0; }
@@ -629,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // both WinRT and non-WinRT), but we'll do that when we're checking interface implementations
             // (see SourceMemberContainerTypeSymbol.ComputeInterfaceImplementations).
             bool sawImplicitImplementation = false;
-            foreach (NamedTypeSymbol @interface in this.containingType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics)
+            foreach (NamedTypeSymbol @interface in this.containingType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys)
             {
                 foreach (Symbol interfaceMember in @interface.GetMembers(this.Name))
                 {
@@ -678,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var location = this.Locations[0];
 
             this.CheckModifiersAndType(diagnostics);
-            this.Type.CheckAllConstraints(conversions, location, diagnostics);
+            this.Type.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
 
             if (this.Type.NeedsNullableAttribute())
             {

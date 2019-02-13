@@ -87,7 +87,7 @@ namespace BuildBoss
         }
 
         private static bool Go(string repositoryDirectory, string configuration, List<string> solutionFileNames)
-        { 
+        {
             var allGood = true;
             foreach (var solutionFileName in solutionFileNames)
             {
@@ -148,7 +148,7 @@ namespace BuildBoss
         private static bool ProcessPackages(string repositoryDirectory, string artifactsDirectory, string configuration)
         {
             var util = new PackageContentsChecker(repositoryDirectory, artifactsDirectory, configuration);
-            return CheckCore(util, $"NuPkg and SWR files");
+            return CheckCore(util, $"NuPkg and VSIX files");
         }
     }
 }

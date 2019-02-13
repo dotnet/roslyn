@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public partial class IOperationTests_Patterns : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
@@ -134,14 +134,10 @@ ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null) 
           Clauses:
               IPatternCaseClauseOperation (Label Id: 1) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case int x:')
                 Pattern: 
-                  IDeclarationPatternOperation (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x')
-                Guard Expression: 
-                  null
+                  IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: System.Object, DeclaredSymbol: System.Int32 x, MatchesNull: False)
               IPatternCaseClauseOperation (Label Id: 2) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case long y:')
                 Pattern: 
-                  IDeclarationPatternOperation (Declared Symbol: System.Int64 y) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'long y')
-                Guard Expression: 
-                  null
+                  IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'long y') (InputType: System.Object, DeclaredSymbol: System.Int64 y, MatchesNull: False)
           Body:
               IBranchOperation (BranchKind.Break, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'break;')
 ";
@@ -182,9 +178,7 @@ ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null) 
           Clauses:
               IPatternCaseClauseOperation (Label Id: 1) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case int y:')
                 Pattern: 
-                  IDeclarationPatternOperation (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int y')
-                Guard Expression: 
-                  null
+                  IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int y') (InputType: System.Object, DeclaredSymbol: System.Int32 y, MatchesNull: False)
           Body:
               IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var x = 3;')
                 IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var x = 3')
@@ -1310,10 +1304,7 @@ public sealed class MyClass
             var expectedDiagnostics = new[] {
                 // file.cs(8,18): error CS0150: A constant value is expected
                 //             case other:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "other").WithLocation(8, 18),
-                // file.cs(9,17): warning CS0162: Unreachable code detected
-                //                 result = false;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "result").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "other").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -1334,10 +1325,10 @@ Block[B0] - Entry
 
         Jump if False (Regular) to Block[B3]
             IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'case other:')
-              Expression: 
+              Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'case other:')
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'case other:') (InputType: MyClass)
                   Value: 
                     IParameterReferenceOperation: other (OperationKind.ParameterReference, Type: MyClass, IsInvalid) (Syntax: 'other')
             Leaving: {R1}
@@ -1397,10 +1388,7 @@ public sealed class MyClass
             var expectedDiagnostics = new[] {
                 // file.cs(8,18): error CS0029: Cannot implicitly convert type 'int' to 'MyClass'
                 //             case 1:
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "MyClass").WithLocation(8, 18),
-                // file.cs(9,17): warning CS0162: Unreachable code detected
-                //                 result = false;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "result").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "MyClass").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -1421,10 +1409,10 @@ Block[B0] - Entry
 
         Jump if False (Regular) to Block[B3]
             IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'case 1:')
-              Expression: 
+              Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'case 1:')
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'case 1:') (InputType: MyClass)
                   Value: 
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyClass, IsInvalid, IsImplicit) (Syntax: '1')
                       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1479,10 +1467,7 @@ public sealed class MyClass
             var expectedDiagnostics = new[] {
                 // file.cs(8,18): error CS0150: A constant value is expected
                 //             case 1:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "1").WithLocation(8, 18),
-                // file.cs(9,17): warning CS0162: Unreachable code detected
-                //                 result = false;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "result").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "1").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -1503,10 +1488,10 @@ Block[B0] - Entry
 
         Jump if False (Regular) to Block[B3]
             IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'case 1:')
-              Expression: 
+              Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'case 1:')
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'case 1:') (InputType: MyClass)
                   Value: 
                     IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: MyClass MyClass.op_Implicit(System.Int64 x)) (OperationKind.Conversion, Type: MyClass, IsInvalid, IsImplicit) (Syntax: '1')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: MyClass MyClass.op_Implicit(System.Int64 x))
@@ -1982,10 +1967,10 @@ Block[B0] - Entry
 
         Jump if False (Regular) to Block[B3]
             IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsImplicit) (Syntax: 'case 1:')
-              Expression: 
+              Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: 'case 1:')
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: 'case 1:') (InputType: dynamic)
                   Value: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             Leaving: {R1}
@@ -2015,6 +2000,51 @@ Block[B3] - Exit
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
+        public void SwitchIOperation_022()
+        {
+            string source = @"
+public sealed class MyClass
+{
+    void M(bool result, dynamic input)
+    {
+        /*<bind>*/switch (input)
+        {
+            case 1:
+                result = false;
+                break;
+        }/*</bind>*/
+    }
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedOperationTree =
+@"
+ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null) (Syntax: 'switch (inp ... }')
+  Switch expression: 
+    IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'input')
+  Sections:
+      ISwitchCaseOperation (1 case clauses, 2 statements) (OperationKind.SwitchCase, Type: null) (Syntax: 'case 1: ... break;')
+          Clauses:
+              IPatternCaseClauseOperation (Label Id: 1) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case 1:')
+                Pattern: 
+                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: 'case 1:') (InputType: dynamic)
+                    Value: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          Body:
+              IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false;')
+                Expression: 
+                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result = false')
+                    Left: 
+                      IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                    Right: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+              IBranchOperation (BranchKind.Break, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'break;')
+";
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
         public void SwitchFlow_23()
         {
             string source = @"
@@ -2034,10 +2064,7 @@ public sealed class MyClass
             var expectedDiagnostics = new[] {
                 // file.cs(8,18): error CS0150: A constant value is expected
                 //             case other:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "other").WithLocation(8, 18),
-                // file.cs(9,17): warning CS0162: Unreachable code detected
-                //                 result = false;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "result").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "other").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -2058,10 +2085,10 @@ Block[B0] - Entry
 
         Jump if False (Regular) to Block[B3]
             IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'case other:')
-              Expression: 
+              Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'case other:')
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'case other:') (InputType: dynamic)
                   Value: 
                     IParameterReferenceOperation: other (OperationKind.ParameterReference, Type: dynamic, IsInvalid) (Syntax: 'other')
             Leaving: {R1}
@@ -2437,10 +2464,10 @@ Block[B0] - Entry
 
         Jump if False (Regular) to Block[B3]
             IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsImplicit) (Syntax: 'case 1:')
-              Expression: 
+              Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: 'case 1:')
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: 'case 1:') (InputType: System.Object)
                   Value: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             Leaving: {R1}
@@ -2489,10 +2516,7 @@ public sealed class MyClass
             var expectedDiagnostics = new[] {
                 // file.cs(8,18): error CS0150: A constant value is expected
                 //             case other ?? 1:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "other ?? 1").WithLocation(8, 18),
-                // file.cs(9,17): warning CS0162: Unreachable code detected
-                //                 result = false;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "result").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "other ?? 1").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -2561,10 +2585,10 @@ Block[B0] - Entry
             Statements (0)
             Jump if False (Regular) to Block[B7]
                 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'case other ?? 1:')
-                  Expression: 
+                  Value: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
                   Pattern: 
-                    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'case other ?? 1:')
+                    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'case other ?? 1:') (InputType: System.Object)
                       Value: 
                         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'other ?? 1')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2646,10 +2670,10 @@ Block[B0] - Entry
             Statements (0)
             Jump if False (Regular) to Block[B4]
                 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsImplicit) (Syntax: 'int x')
-                  Expression: 
+                  Value: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
                   Pattern: 
-                    IDeclarationPatternOperation (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x')
+                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: System.Object, DeclaredSymbol: System.Int32 x, MatchesNull: False)
                 Leaving: {R2} {R1}
 
             Next (Regular) Block[B3]
@@ -2723,10 +2747,10 @@ Block[B0] - Entry
             Statements (0)
             Jump if False (Regular) to Block[B7]
                 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsImplicit) (Syntax: 'int x')
-                  Expression: 
+                  Value: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input1')
                   Pattern: 
-                    IDeclarationPatternOperation (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x')
+                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: System.Object, DeclaredSymbol: System.Int32 x, MatchesNull: False)
                 Leaving: {R2} {R1}
 
             Next (Regular) Block[B3]
@@ -2817,10 +2841,10 @@ Block[B0] - Entry
 
         Jump if False (Regular) to Block[B3]
             IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsImplicit) (Syntax: 'case 1:')
-              Expression: 
+              Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: 'case 1:')
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: 'case 1:') (InputType: System.Object)
                   Value: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
@@ -2843,10 +2867,10 @@ Block[B0] - Entry
         Statements (0)
         Jump if False (Regular) to Block[B5]
             IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsImplicit) (Syntax: 'case 2:')
-              Expression: 
+              Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: 'case 2:')
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: 'case 2:') (InputType: System.Object)
                   Value: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
             Leaving: {R1}
@@ -2912,10 +2936,10 @@ Block[B0] - Entry
 
         Jump if False (Regular) to Block[B6]
             IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsImplicit) (Syntax: '1')
-              Expression: 
+              Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1')
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Object)
                   Value: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             Leaving: {R1}
@@ -3023,10 +3047,10 @@ Block[B0] - Entry
 
         Jump if False (Regular) to Block[B4]
             IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsImplicit) (Syntax: '1')
-              Expression: 
+              Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1')
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Object)
                   Value: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             Leaving: {R1}
@@ -3227,10 +3251,10 @@ Block[B0] - Entry
 
                 Jump if False (Regular) to Block[B4]
                     IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'input is int x1')
-                      Expression: 
+                      Value: 
                         IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?, IsInvalid) (Syntax: 'input')
                       Pattern: 
-                        IDeclarationPatternOperation (Declared Symbol: System.Int32 x1) (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int x1')
+                        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int x1') (InputType: System.Int32?, DeclaredSymbol: System.Int32 x1, MatchesNull: False)
 
                 Next (Regular) Block[B3]
             Block[B3] - Block
@@ -3290,6 +3314,81 @@ Block[B0] - Entry
 
 Block[B7] - Exit
     Predecessors: [B5] [B6]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns, CompilerFeature.Dataflow)]
+        [Fact]
+        public void EmptySwitchExpressionFlow()
+        {
+            string source = @"
+class Program
+{
+    public static void Main()
+    /*<bind>*/{
+        var r = 1 switch { };
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(6,17): error CS8506: No best type was found for the switch expression.
+                //         var r = 1 switch { };
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "1 switch { }").WithLocation(6, 17),
+                // file.cs(6,19): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //         var r = 1 switch { };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 19)
+            };
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.locals {R1}
+{
+    Locals: [? r]
+    CaptureIds: [0]
+    .locals {R2}
+    {
+        CaptureIds: [1]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
+                  Value: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
+
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (0)
+        Next (Throw) Block[null]
+            IObjectCreationOperation (Constructor: System.InvalidOperationException..ctor()) (OperationKind.ObjectCreation, Type: System.InvalidOperationException, IsInvalid, IsImplicit) (Syntax: '1 switch { }')
+              Arguments(0)
+              Initializer: 
+                null
+    Block[B3] - Block [UnReachable]
+        Predecessors (0)
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'r = 1 switch { }')
+              Left: 
+                ILocalReferenceOperation: r (IsDeclaration: True) (OperationKind.LocalReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'r = 1 switch { }')
+              Right: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '1 switch { }')
+
+        Next (Regular) Block[B4]
+            Leaving: {R1}
+}
+
+Block[B4] - Exit [UnReachable]
+    Predecessors: [B3]
     Statements (0)
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);

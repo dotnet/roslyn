@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var indexFromEndSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Index__FromEnd);
 
                 var argType = rewrittenArguments[0].Type;
-                if (argType == _compilation.GetWellKnownType(WellKnownType.System_Index))
+                if (TypeSymbol.Equals(argType, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything2))
                 {
                     // string[Index] is rewritten as:
                     // index.FromEnd ? s[s.Length - index.Value] : s[index.Value];
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             F.Indexer(stringLocal, node.Indexer, indexValueExpr),
                             F.SpecialType(SpecialType.System_Char)));
                 }
-                else if (argType == _compilation.GetWellKnownType(WellKnownType.System_Range))
+                else if (TypeSymbol.Equals(argType, _compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything2))
                 {
                     // string[Range] is translated to:
                     // var start = range.Start.FromEnd ? array.Length - range.Start.Value : range.Start.Value;

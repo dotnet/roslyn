@@ -129,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 }
             }
         }
-        
+
         public bool CanBeDeleted { get; set; }
 
         internal bool TrySubmit()

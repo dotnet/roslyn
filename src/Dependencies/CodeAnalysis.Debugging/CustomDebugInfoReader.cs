@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Debugging
             ImmutableArray<short> groupSizes = default;
             bool seenForward = false;
 
-        RETRY:
+RETRY:
             byte[] bytes = getMethodCustomDebugInfo(methodToken, arg);
             if (bytes == null)
             {

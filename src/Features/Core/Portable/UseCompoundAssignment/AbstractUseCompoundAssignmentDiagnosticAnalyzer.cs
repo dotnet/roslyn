@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                 return;
             }
 
-            _syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(assignment, 
+            _syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(assignment,
                 out var assignmentLeft, out var assignmentToken, out var assignmentRight);
 
             // has to be of the form:  a = b op c
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
             _syntaxFacts.GetPartsOfBinaryExpression(binaryExpression,
                 out var binaryLeft, out _);
-            
+
             // has to be of the form:   expr = expr op ...
             if (!_syntaxFacts.AreEquivalent(assignmentLeft, binaryLeft))
             {

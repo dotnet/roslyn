@@ -19,7 +19,7 @@ namespace Roslyn.Compilers.Extension
     public sealed class CompilerPackage : AsyncPackage
     {
         public static string RoslynHive = null;
-        
+
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);

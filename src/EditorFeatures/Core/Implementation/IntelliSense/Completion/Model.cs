@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 PointTrackingMode.Positive);
         }
 
-        private static CompletionItem CreateDefaultSuggestionModeItem() 
+        private static CompletionItem CreateDefaultSuggestionModeItem()
             => CompletionItem.Create(displayText: "");
 
         public bool IsSoftSelection

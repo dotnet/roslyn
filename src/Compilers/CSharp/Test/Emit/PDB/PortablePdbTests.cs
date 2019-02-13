@@ -306,7 +306,7 @@ class C
             {
                 var pdbReader = provider.GetMetadataReader();
 
-                var actualBlob = 
+                var actualBlob =
                     (from cdiHandle in pdbReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition)
                      let cdi = pdbReader.GetCustomDebugInformation(cdiHandle)
                      where pdbReader.GetGuid(cdi.Kind) == PortableCustomDebugInfoKinds.SourceLink

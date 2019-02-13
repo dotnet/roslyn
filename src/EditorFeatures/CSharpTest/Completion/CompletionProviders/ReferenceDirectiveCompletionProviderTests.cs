@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public async Task GacReferenceFullyQualified()
         {
             await VerifyItemExistsAsync(
-                "#r \"System.Windows.Forms,$$", 
+                "#r \"System.Windows.Forms,$$",
                 "System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 

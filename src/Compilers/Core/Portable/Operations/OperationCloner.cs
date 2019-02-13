@@ -50,6 +50,12 @@ namespace Microsoft.CodeAnalysis.Operations
             return nodes.SelectAsArray(n => Visit(n));
         }
 
+        private ImmutableArray<(ISymbol, T)> VisitArray<T>(ImmutableArray<(ISymbol, T)> nodes) where T : IOperation
+        {
+            // clone the array
+            return nodes.SelectAsArray(n => (n.Item1, Visit(n.Item2)));
+        }
+
         public override IOperation VisitBlock(IBlockOperation operation, object argument)
         {
             return new BlockOperation(VisitArray(operation.Operations), operation.Locals, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
@@ -112,21 +118,21 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitForLoop(IForLoopOperation operation, object argument)
         {
-            return new ForLoopOperation(VisitArray(operation.Before), Visit(operation.Condition), VisitArray(operation.AtLoopBottom), operation.Locals, operation.ConditionLocals, 
+            return new ForLoopOperation(VisitArray(operation.Before), Visit(operation.Condition), VisitArray(operation.AtLoopBottom), operation.Locals, operation.ConditionLocals,
                 operation.ContinueLabel, operation.ExitLabel, Visit(operation.Body), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitForToLoop(IForToLoopOperation operation, object argument)
         {
-            return new ForToLoopOperation(operation.Locals, operation.IsChecked, ((BaseForToLoopOperation)operation).Info, operation.ContinueLabel, operation.ExitLabel, 
-                                          Visit(operation.LoopControlVariable), Visit(operation.InitialValue), Visit(operation.LimitValue), Visit(operation.StepValue), 
-                                          Visit(operation.Body), VisitArray(operation.NextVariables), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, 
+            return new ForToLoopOperation(operation.Locals, operation.IsChecked, ((BaseForToLoopOperation)operation).Info, operation.ContinueLabel, operation.ExitLabel,
+                                          Visit(operation.LoopControlVariable), Visit(operation.InitialValue), Visit(operation.LimitValue), Visit(operation.StepValue),
+                                          Visit(operation.Body), VisitArray(operation.NextVariables), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type,
                                           operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitForEachLoop(IForEachLoopOperation operation, object argument)
         {
-            return new ForEachLoopOperation(operation.Locals, operation.ContinueLabel, operation.ExitLabel, Visit(operation.LoopControlVariable), 
+            return new ForEachLoopOperation(operation.Locals, operation.ContinueLabel, operation.ExitLabel, Visit(operation.LoopControlVariable),
                                             Visit(operation.Collection), VisitArray(operation.NextVariables), Visit(operation.Body), ((BaseForEachLoopOperation)operation).Info,
                                             ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
@@ -311,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitCoalesce(ICoalesceOperation operation, object argument)
         {
             var coalesceOperation = (BaseCoalesceOperation)operation;
-            return new CoalesceOperation(Visit(operation.Value), Visit(operation.WhenNull), coalesceOperation.ConvertibleValueConversion, coalesceOperation.OwningSemanticModel, 
+            return new CoalesceOperation(Visit(operation.Value), Visit(operation.WhenNull), coalesceOperation.ConvertibleValueConversion, coalesceOperation.OwningSemanticModel,
                                           operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
@@ -519,12 +525,38 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitConstantPattern(IConstantPatternOperation operation, object argument)
         {
-            return new ConstantPatternOperation(Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ConstantPatternOperation(operation.InputType, Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.IsImplicit);
         }
 
         public override IOperation VisitDeclarationPattern(IDeclarationPatternOperation operation, object argument)
         {
-            return new DeclarationPatternOperation(operation.DeclaredSymbol, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new DeclarationPatternOperation(
+                operation.InputType, operation.MatchedType, operation.DeclaredSymbol, operation.MatchesNull,
+                ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.IsImplicit);
+        }
+
+        internal override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, object argument)
+        {
+            return new RecursivePatternOperation(
+                operation.InputType,
+                operation.MatchedType,
+                operation.DeconstructSymbol,
+                VisitArray(operation.DeconstructionSubpatterns),
+                VisitArray(operation.PropertySubpatterns),
+                operation.DeclaredSymbol,
+                ((Operation)operation).OwningSemanticModel,
+                operation.Syntax,
+                operation.IsImplicit);
+        }
+
+        internal override IOperation VisitPropertySubpattern(IPropertySubpatternOperation operation, object argument)
+        {
+            return new PropertySubpatternOperation(
+                semanticModel: ((Operation)operation).OwningSemanticModel,
+                operation.Syntax,
+                operation.IsImplicit,
+                Visit(operation.Member),
+                Visit(operation.Pattern));
         }
 
         public override IOperation VisitPatternCaseClause(IPatternCaseClauseOperation operation, object argument)
@@ -559,7 +591,23 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitDiscardOperation(IDiscardOperation operation, object argument)
         {
-            return new DiscardOperation(operation.DiscardSymbol, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new DiscardOperation(
+                operation.DiscardSymbol, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitDiscardPattern(IDiscardPatternOperation operation, object argument)
+        {
+            return new DiscardPatternOperation(operation.InputType, operation.SemanticModel, operation.Syntax, operation.IsImplicit);
+        }
+
+        public override IOperation VisitSwitchExpression(ISwitchExpressionOperation operation, object argument)
+        {
+            return new SwitchExpressionOperation(operation.Type, Visit(operation.Value), VisitArray(operation.Arms), operation.SemanticModel, operation.Syntax, operation.IsImplicit);
+        }
+
+        public override IOperation VisitSwitchExpressionArm(ISwitchExpressionArmOperation operation, object argument)
+        {
+            return new SwitchExpressionArmOperation(operation.Locals, Visit(operation.Pattern), Visit(operation.Guard), Visit(operation.Value), operation.SemanticModel, operation.Syntax, operation.IsImplicit);
         }
 
         public override IOperation VisitFlowCapture(IFlowCaptureOperation operation, object argument)
@@ -587,14 +635,14 @@ namespace Microsoft.CodeAnalysis.Operations
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override IOperation VisitFromEndIndexOperation(IFromEndIndexOperation operation, object argument)
+        internal override IOperation VisitFromEndIndexOperation(IFromEndIndexOperation operation, object argument)
         {
-            return new FromEndIndexOperation(operation.IsLifted, operation.IsImplicit, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, Visit(operation.Operand), operation.Symbol);
+            return new FromEndIndexOperation(operation.IsLifted, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, Visit(operation.Operand), operation.Symbol, operation.IsImplicit);
         }
 
         public override IOperation VisitRangeOperation(IRangeOperation operation, object argument)
         {
-            return new RangeOperation(operation.IsLifted, operation.IsImplicit, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, Visit(operation.LeftOperand), Visit(operation.RightOperand), operation.Method);
+            return new RangeOperation(operation.IsLifted, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, Visit(operation.LeftOperand), Visit(operation.RightOperand), operation.Method, operation.IsImplicit);
         }
 
         public override IOperation VisitReDim(IReDimOperation operation, object argument)

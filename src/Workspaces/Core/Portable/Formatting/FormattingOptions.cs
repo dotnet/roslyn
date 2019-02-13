@@ -69,6 +69,20 @@ namespace Microsoft.CodeAnalysis.Formatting
             defaultValue: false,
             storageLocations: EditorConfigStorageLocation.ForBoolOption("insert_final_newline"));
 
+        /// <summary>
+        /// Default value of 120 was picked based on the amount of code in a github.com diff at 1080p.
+        /// That resolution is the most common value as per the last DevDiv survey as well as the latest
+        /// Steam hardware survey.  This also seems to a reasonable length default in that shorter
+        /// lengths can often feel too cramped for .Net languages, which are often starting with a
+        /// default indentation of at least 16 (for namespace, class, member, plus the final construct
+        /// indentation).
+        /// </summary>
+        internal static Option<int> PreferredWrappingColumn { get; } = new Option<int>(
+            nameof(FormattingOptions),
+            FormattingOptionGroups.NewLine,
+            nameof(PreferredWrappingColumn),
+            defaultValue: 120);
+
         private static readonly BidirectionalMap<string, string> s_parenthesesPreferenceMap =
             new BidirectionalMap<string, string>(new[]
             {
@@ -78,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             });
 
         private static Optional<string> ParseEditorConfigEndOfLine(string endOfLineValue)
-            => s_parenthesesPreferenceMap.TryGetValue(endOfLineValue, out var parsedOption) ? parsedOption : NewLine.DefaultValue;
+            => s_parenthesesPreferenceMap.TryGetValue(endOfLineValue.Trim(), out var parsedOption) ? parsedOption : NewLine.DefaultValue;
 
         private static string GetEndOfLineEditorConfigString(string option)
             => s_parenthesesPreferenceMap.TryGetKey(option, out var editorConfigString) ? editorConfigString : null;

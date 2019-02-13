@@ -21,7 +21,7 @@ namespace Roslyn.Test.Utilities.Desktop
 {
     [Serializable]
     public struct RuntimeModuleDataId : ISerializable
-    { 
+    {
         public ModuleDataId Id { get; }
 
         public RuntimeModuleDataId(ModuleDataId id)

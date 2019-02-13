@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return node.GetLeadingTrivia().Skip(leadingBlankLines.Length).ToImmutableArray();
         }
 
-        public static void GetPartsOfAssignmentStatement( 
-            this ISyntaxFactsService syntaxFacts, SyntaxNode statement, 
+        public static void GetPartsOfAssignmentStatement(
+            this ISyntaxFactsService syntaxFacts, SyntaxNode statement,
             out SyntaxNode left, out SyntaxNode right)
         {
             syntaxFacts.GetPartsOfAssignmentStatement(statement, out left, out _, out right);

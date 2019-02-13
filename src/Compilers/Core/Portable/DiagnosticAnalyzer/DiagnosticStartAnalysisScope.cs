@@ -515,8 +515,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (symbolKinds.Contains(SymbolKind.Parameter))
             {
                 RegisterSymbolAction(
-                    analyzer, 
-                    context => 
+                    analyzer,
+                    context =>
                     {
                         ImmutableArray<IParameterSymbol> parameters;
 
@@ -550,9 +550,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                     context.CancellationToken));
                             }
                         }
-                    }, 
+                    },
                     ImmutableArray.Create(SymbolKind.Method, SymbolKind.Property, SymbolKind.NamedType));
-            }   
+            }
         }
 
         public void RegisterSymbolStartAction(DiagnosticAnalyzer analyzer, Action<SymbolStartAnalysisContext> action, SymbolKind symbolKind)

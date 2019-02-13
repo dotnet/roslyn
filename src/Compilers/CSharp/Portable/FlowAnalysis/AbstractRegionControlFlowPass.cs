@@ -1,16 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     // Note: this code has a copy-and-paste sibling in AbstractRegionDataFlowPass. Any fix to
     // one should be applied to the other.
-    internal class AbstractRegionControlFlowPass : ControlFlowPass
+    internal abstract class AbstractRegionControlFlowPass : ControlFlowPass
     {
         internal AbstractRegionControlFlowPass(
             CSharpCompilation compilation,

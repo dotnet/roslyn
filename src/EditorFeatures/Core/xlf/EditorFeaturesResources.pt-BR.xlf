@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Do_not_show_this_message_again">
         <source>Do not show this message again</source>
-        <target state="translated">Não exibir esta mensagem novamente</target>
+        <target state="translated">Não mostrar esta mensagem novamente</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
-        <target state="translated">A formatação de documento realizou uma limpeza adicional</target>
+        <target state="translated">A Formatação do Documento executou uma limpeza adicional</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -52,9 +52,19 @@
         <target state="new">Invalid characters in assembly name</target>
         <note />
       </trans-unit>
+      <trans-unit id="Keyword_Control">
+        <source>Keyword - Control</source>
+        <target state="new">Keyword - Control</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operator_Overloaded">
+        <source>Operator - Overloaded</source>
+        <target state="new">Operator - Overloaded</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Paste_Tracking">
         <source>Paste Tracking</source>
-        <target state="new">Paste Tracking</target>
+        <target state="translated">Colar Acompanhamento</target>
         <note />
       </trans-unit>
       <trans-unit id="Preprocessor_Text">
@@ -69,7 +79,67 @@
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
-        <target state="new">String - Escape Character</target>
+        <target state="translated">String - Escape Character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Static">
+        <source>Symbol - Static</source>
+        <target state="new">Symbol - Static</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Constants">
+        <source>User Members - Constants</source>
+        <target state="new">User Members - Constants</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Enum_Members">
+        <source>User Members - Enum Members</source>
+        <target state="new">User Members - Enum Members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Events">
+        <source>User Members - Events</source>
+        <target state="new">User Members - Events</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Extension_Methods">
+        <source>User Members - Extension Methods</source>
+        <target state="new">User Members - Extension Methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Fields">
+        <source>User Members - Fields</source>
+        <target state="new">User Members - Fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Labels">
+        <source>User Members - Labels</source>
+        <target state="new">User Members - Labels</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Locals">
+        <source>User Members - Locals</source>
+        <target state="new">User Members - Locals</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Methods">
+        <source>User Members - Methods</source>
+        <target state="new">User Members - Methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Namespaces">
+        <source>User Members - Namespaces</source>
+        <target state="new">User Members - Namespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Parameters">
+        <source>User Members - Parameters</source>
+        <target state="new">User Members - Parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Properties">
+        <source>User Members - Properties</source>
+        <target state="new">User Members - Properties</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Classes">
@@ -509,7 +579,7 @@
       </trans-unit>
       <trans-unit id="The_token_is_not_contained_in_the_workspace">
         <source>The token is not contained in the workspace.</source>
-        <target state="translated">O token não está contido no workspace.</target>
+        <target state="translated">O token não está contido na área de trabalho.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_rename_an_identifier">
@@ -599,7 +669,7 @@
       </trans-unit>
       <trans-unit id="Insert_new_line">
         <source>Insert new line</source>
-        <target state="translated">Inserir nova linha</target>
+        <target state="translated">Inserir Nova Linha</target>
         <note />
       </trans-unit>
       <trans-unit id="Documentation_Comment">
@@ -699,7 +769,7 @@
       </trans-unit>
       <trans-unit id="Rename">
         <source>Rename</source>
-        <target state="translated">Renomear</target>
+        <target state="translated">renomear</target>
         <note />
       </trans-unit>
       <trans-unit id="Start_Rename">
@@ -910,7 +980,8 @@
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
         <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="translated">Podemos corrigir o erro ao não fazer struct de parâmetros "out/ref". Deseja continuar?</target>
+        <target state="translated">Podemos corrigir o erro ao não fazer struct de parâmetro(s) "out/ref". 
+Deseja continuar?</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_Signature_colon">

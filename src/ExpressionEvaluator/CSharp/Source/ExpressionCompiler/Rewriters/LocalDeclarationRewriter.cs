@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     }
 
                     builder.Add(node);
-                    break; 
+                    break;
             }
 
             return BoundBlock.SynthesizedNoLocals(node.Syntax, builder.ToImmutableAndFree());

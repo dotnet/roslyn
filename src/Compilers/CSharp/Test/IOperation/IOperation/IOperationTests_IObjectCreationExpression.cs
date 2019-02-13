@@ -12511,5 +12511,197 @@ Block[B8] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
+
+        [Fact]
+        public void ObjectCreationExpression_NoNewConstraint()
+        {
+            var source = @"
+class C
+{
+    static void F2<T2>()
+    /*<bind>*/{
+        object x2;
+        x2 = new T2 { };
+    }/*</bind>*/
+}";
+            var comp = CreateCompilation(source);
+
+            var diagnostics = new DiagnosticDescription[] {
+                // (7,14): error CS0304: Cannot create an instance of the variable type 'T2' because it does not have the new() constraint
+                //         x2 = new T2 { };
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T2 { }").WithArguments("T2").WithLocation(7, 14)
+            };
+
+            var expectedOperationTree = @"
+IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+  Locals: Local_1: System.Object x2
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'object x2;')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'object x2')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: System.Object x2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x2')
+            Initializer: 
+              null
+      Initializer: 
+        null
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x2 = new T2 { };')
+    Expression: 
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsInvalid) (Syntax: 'x2 = new T2 { }')
+        Left: 
+          ILocalReferenceOperation: x2 (OperationKind.LocalReference, Type: System.Object) (Syntax: 'x2')
+        Right: 
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'new T2 { }')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              IInvalidOperation (OperationKind.Invalid, Type: T2, IsInvalid) (Syntax: 'new T2 { }')
+                Children(1):
+                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: T2, IsInvalid) (Syntax: '{ }')
+                      Initializers(0)";
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(comp, expectedOperationTree, diagnostics);
+
+            VerifyFlowGraphForTest<BlockSyntax>(comp, @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [System.Object x2]
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (2)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x2')
+              Value: 
+                ILocalReferenceOperation: x2 (OperationKind.LocalReference, Type: System.Object) (Syntax: 'x2')
+
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x2 = new T2 { };')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsInvalid) (Syntax: 'x2 = new T2 { }')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'x2')
+                  Right: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'new T2 { }')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Boxing)
+                      Operand: 
+                        IInvalidOperation (OperationKind.Invalid, Type: T2, IsInvalid) (Syntax: 'new T2 { }')
+                          Children(0)
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)");
+        }
+
+        [Fact]
+        public void ObjectCreationFlow_ParenthesizedReferenceOffConstructedObject()
+        {
+            var source =
+@"
+class A
+{
+    internal object F1;
+}
+class B
+{
+    internal A G;
+}
+class Program
+{
+    static void F(A a)
+    /*<bind>*/{
+        a = (new B() { G = new A() { F1 = new object() } }).G;
+    }/*</bind>*/
+}";
+
+            var comp = CreateCompilation(source);
+            VerifyFlowGraphForTest<BlockSyntax>(comp, @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    CaptureIds: [0] [1]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (2)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+              Value: 
+                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: A) (Syntax: 'a')
+
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new B() { G ... bject() } }')
+              Value: 
+                IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation, Type: B) (Syntax: 'new B() { G ... bject() } }')
+                  Arguments(0)
+                  Initializer: 
+                    null
+
+        Next (Regular) Block[B2]
+            Entering: {R2}
+
+    .locals {R2}
+    {
+        CaptureIds: [2]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (3)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new A() { F ...  object() }')
+                  Value: 
+                    IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation, Type: A) (Syntax: 'new A() { F ...  object() }')
+                      Arguments(0)
+                      Initializer: 
+                        null
+
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object) (Syntax: 'F1 = new object()')
+                  Left: 
+                    IFieldReferenceOperation: System.Object A.F1 (OperationKind.FieldReference, Type: System.Object) (Syntax: 'F1')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new A() { F ...  object() }')
+                  Right: 
+                    IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object) (Syntax: 'new object()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: A) (Syntax: 'G = new A() ...  object() }')
+                  Left: 
+                    IFieldReferenceOperation: A B.G (OperationKind.FieldReference, Type: A) (Syntax: 'G')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: B, IsImplicit) (Syntax: 'new B() { G ... bject() } }')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new A() { F ...  object() }')
+
+            Next (Regular) Block[B3]
+                Leaving: {R2}
+    }
+
+    Block[B3] - Block
+        Predecessors: [B2]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = (new B( ... t() } }).G;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: A) (Syntax: 'a = (new B( ... ct() } }).G')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'a')
+                  Right: 
+                    IFieldReferenceOperation: A B.G (OperationKind.FieldReference, Type: A) (Syntax: '(new B() {  ... ct() } }).G')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: B, IsImplicit) (Syntax: 'new B() { G ... bject() } }')
+
+        Next (Regular) Block[B4]
+            Leaving: {R1}
+}
+
+Block[B4] - Exit
+    Predecessors: [B3]
+    Statements (0)");
+        }
     }
 }

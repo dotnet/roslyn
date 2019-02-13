@@ -286,7 +286,7 @@ namespace RunTests
                 TypeAttributes.Public == (type.Attributes & TypeAttributes.Public) ||
                 TypeAttributes.NestedPublic == (type.Attributes & TypeAttributes.NestedPublic);
             if (!isPublic ||
-                TypeAttributes.Abstract == (type.Attributes & TypeAttributes.Abstract)  ||
+                TypeAttributes.Abstract == (type.Attributes & TypeAttributes.Abstract) ||
                 TypeAttributes.Class != (type.Attributes & TypeAttributes.Class))
             {
                 return false;
@@ -337,7 +337,7 @@ namespace RunTests
         private static bool IsValidIdentifier(MetadataReader reader, StringHandle handle)
         {
             var name = reader.GetString(handle);
-            for (int i=  0; i < name.Length; i++)
+            for (int i = 0; i < name.Length; i++)
             {
                 switch (name[i])
                 {
@@ -359,8 +359,8 @@ namespace RunTests
             }
 
             var typeRef = reader.GetTypeReference((TypeReferenceHandle)type.BaseType);
-            return 
-                reader.GetString(typeRef.Namespace) == "System" && 
+            return
+                reader.GetString(typeRef.Namespace) == "System" &&
                 reader.GetString(typeRef.Name) == "Object";
         }
 
@@ -375,7 +375,7 @@ namespace RunTests
                 var declaringTypeFullName = GetFullName(reader, declaringType);
                 return $"{declaringTypeFullName}+{typeName}";
             }
-            
+
             var namespaceName = reader.GetString(type.Namespace);
             if (string.IsNullOrEmpty(namespaceName))
             {

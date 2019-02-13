@@ -1,3 +1,23 @@
+# Branches that trigger a build on commit
+trigger:
+- master
+- master-vs-deps
+- dev16.0-preview3
+- dev16.0-preview3-vs-deps
+- dev16.0
+- dev16.0-vs-deps
+
+# Branches that trigger builds on PR
+pr:
+- master
+- master-vs-deps
+- features/*
+- demos/*
+- dev16.0-preview3
+- dev16.0-preview3-vs-deps
+- dev16.0
+- dev16.0-vs-deps
+
 jobs:
 - job: Windows_Desktop_Unit_Tests
   pool: dotnet-external-temp
@@ -50,14 +70,14 @@ jobs:
     - task: PublishTestResults@1
       inputs:
         testRunner: XUnit
-        testResultsFiles: '**/xUnitResults/*.xml'
+        testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\Debug\*.xml'
         mergeTestResults: true
         testRunTitle: 'Windows Desktop Spanish'
       condition: succeededOrFailed()
 
     - task: PublishBuildArtifacts@1
       inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(_configuration)'
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\Debug'
         ArtifactName: 'Windows Desktop Spanish' 
         publishLocation: Container
       continueOnError: true
@@ -127,6 +147,22 @@ jobs:
       continueOnError: true
       condition: not(succeeded())
 
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Artifact Packages
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\packages\Release\PreRelease'
+        ArtifactName: 'Packages - PreRelease'
+        publishLocation: Container
+      condition: succeeded()
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish VSIX Packages
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\VSSetup\Release\Installer'
+        ArtifactName: 'VSIX - PreRelease'
+        publishLocation: Container
+      condition: succeeded()
+
 - job: Linux_Test
   pool: DotNetCore-Linux
   strategy:
@@ -139,6 +175,7 @@ jobs:
       mono:
         _args: --testMono --docker
         _name: Mono
+        _configuration: Debug
   timeoutInMinutes: 90
   steps:
     - script: ./eng/cibuild.sh --configuration $(_configuration) --prepareMachine $(_args)

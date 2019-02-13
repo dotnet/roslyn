@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
     internal abstract class AbstractEmbeddedLanguageFeaturesProvider : AbstractEmbeddedLanguagesProvider, IEmbeddedLanguageFeaturesProvider
     {
         new public ImmutableArray<IEmbeddedLanguageFeatures> Languages { get; }
-         
+
         protected AbstractEmbeddedLanguageFeaturesProvider(EmbeddedLanguageInfo info) : base(info)
         {
             // No 'Fallback' language added here.  That's because the Fallback language doesn't

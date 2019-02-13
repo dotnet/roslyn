@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : this(containingSymbol, containingSymbol.TypeSubstitution, originalDefinition, constructedFrom: null)
         {
             Debug.Assert(containingSymbol is SubstitutedNamedTypeSymbol || containingSymbol is SubstitutedErrorTypeSymbol);
-            Debug.Assert(originalDefinition.ContainingType == containingSymbol.OriginalDefinition);
+            Debug.Assert(TypeSymbol.Equals(originalDefinition.ContainingType, containingSymbol.OriginalDefinition, TypeCompareKind.ConsiderEverything2));
         }
 
         protected SubstitutedMethodSymbol(NamedTypeSymbol containingSymbol, TypeMap map, MethodSymbol originalDefinition, MethodSymbol constructedFrom)
@@ -358,8 +358,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        public sealed override bool? NonNullTypes => false;
-
         private int ComputeHashCode()
         {
             int code = this.OriginalDefinition.GetHashCode();
@@ -402,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // This checks if the methods have the same definition and the type parameters on the containing types have been
             // substituted in the same way.
-            if (this.ContainingType != other.ContainingType) return false;
+            if (!TypeSymbol.Equals(this.ContainingType, other.ContainingType, TypeCompareKind.ConsiderEverything2)) return false;
 
             // If both are declarations, then we don't need to check type arguments
             // If exactly one is a declaration, then they re not equal
@@ -419,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int i = 0; i < arity; i++)
             {
                 // TODO: what about annotations
-                if (this.TypeArguments[i].TypeSymbol != other.TypeArguments[i].TypeSymbol)
+                if (!TypeSymbol.Equals(this.TypeArguments[i].TypeSymbol, other.TypeArguments[i].TypeSymbol, TypeCompareKind.ConsiderEverything2))
                 {
                     return false;
                 }

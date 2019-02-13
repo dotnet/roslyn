@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!diagnostics.Add(location, useSiteDiagnostics))
                 {
-                    constraintType.CheckAllConstraints(conversions, location, diagnostics);
+                    constraintType.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
                 }
             }
         }
@@ -370,8 +370,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ref attributes,
                     moduleBuilder.SynthesizeNullableAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
                                                               ImmutableArray.Create(new TypedConstant(byteType, TypedConstantKind.Primitive,
-                                                                                                      (byte)(this.ReferenceTypeConstraintIsNullable == true ? 
-                                                                                                                 NullableAnnotation.Annotated : 
+                                                                                                      (byte)(this.ReferenceTypeConstraintIsNullable == true ?
+                                                                                                                 NullableAnnotation.Annotated :
                                                                                                                  NullableAnnotation.NotAnnotated)))));
             }
         }
@@ -400,14 +400,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if ((constraints & TypeParameterConstraintKind.NullableReferenceType) == TypeParameterConstraintKind.NullableReferenceType)
+            switch (constraints & (TypeParameterConstraintKind.NullableReferenceType | TypeParameterConstraintKind.NotNullableReferenceType))
             {
-                return true;
-            }
-
-            if (NonNullTypes == true)
-            {
-                return false;
+                case TypeParameterConstraintKind.NullableReferenceType:
+                    return true;
+                case TypeParameterConstraintKind.NotNullableReferenceType:
+                    return false;
             }
 
             return null;

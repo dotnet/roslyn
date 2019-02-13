@@ -291,7 +291,7 @@ IVariableDeclaratorOperation (Symbol: Enum1 e1) (OperationKind.VariableDeclarato
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20175")]
-        public void ConversionExpression_Implicit_EnumConversion_NoInitalizer_Invalid()
+        public void ConversionExpression_Implicit_EnumConversion_NoInitializer_Invalid()
         {
             string source = @"
 class Program

@@ -625,7 +625,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         hasErrors = true;
                     }
-                    else if (reorderedArgument.Kind == TypedConstantKind.Array && parameter.Type.TypeKind == TypeKind.Array && (TypeSymbol)reorderedArgument.Type != parameter.Type.TypeSymbol)
+                    else if (reorderedArgument.Kind == TypedConstantKind.Array &&
+                        parameter.Type.TypeKind == TypeKind.Array &&
+                        !((TypeSymbol)reorderedArgument.Type).Equals(parameter.Type.TypeSymbol, TypeCompareKind.AllIgnoreOptions))
                     {
                         // NOTE: As in dev11, we don't allow array covariance conversions (presumably, we don't have a way to
                         // represent the conversion in metadata).
@@ -882,7 +884,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol argumentType = (TypeSymbol)argument.Type;
             // Easy out (i.e. don't bother classifying conversion).
-            if (argumentType == parameter.Type.TypeSymbol)
+            if (TypeSymbol.Equals(argumentType, parameter.Type.TypeSymbol, TypeCompareKind.ConsiderEverything2))
             {
                 result = argument;
                 return true;

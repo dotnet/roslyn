@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Order_modifiers, createChangedDocument, FeaturesResources.Order_modifiers)
             {
             }

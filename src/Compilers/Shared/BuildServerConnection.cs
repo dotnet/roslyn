@@ -56,9 +56,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
     internal sealed class BuildServerConnection
     {
-        internal const string ServerNameDesktop = "VBCSCompiler.exe";
-        internal const string ServerNameCoreClr = "VBCSCompiler.dll";
-
         // Spend up to 1s connecting to existing process (existing processes should be always responsive).
         internal const int TimeOutMsExistingProcess = 1000;
 
@@ -333,13 +330,22 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 // The NamedPipeClientStream class handles the "\\.\pipe\" part for us.
                 Log("Attempt to open named pipe '{0}'", pipeName);
 
-                pipeStream = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+                pipeStream = NamedPipeUtil.CreateClient(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
                 cancellationToken.ThrowIfCancellationRequested();
 
                 Log("Attempt to connect named pipe '{0}'", pipeName);
                 try
                 {
-                    await pipeStream.ConnectAsync(timeoutMs, cancellationToken).ConfigureAwait(false);
+                    // NamedPipeClientStream.ConnectAsync on the "full" framework has a bug where it
+                    // tries to move potentially expensive work (actually connecting to the pipe) to
+                    // a background thread with Task.Factory.StartNew. However, that call will merely
+                    // queue the work onto the TaskScheduler associated with the "current" Task which
+                    // does not guarantee it will be processed on a background thread and this could
+                    // lead to a hang.
+                    // To avoid this, we first force ourselves to a background thread using Task.Run.
+                    // This ensures that the Task created by ConnectAsync will run on the default
+                    // TaskScheduler (i.e., on a threadpool thread) which was the intent all along.
+                    await Task.Run(() => pipeStream.ConnectAsync(timeoutMs, cancellationToken)).ConfigureAwait(false);
                 }
                 catch (Exception e) when (e is IOException || e is TimeoutException)
                 {
@@ -357,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Verify that we own the pipe.
-                if (!CheckPipeConnectionOwnership(pipeStream))
+                if (!NamedPipeUtil.CheckPipeConnectionOwnership(pipeStream))
                 {
                     Log("Owner of named pipe is incorrect");
                     return null;
@@ -374,31 +380,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static bool TryCreateServerCore(string clientDir, string pipeName)
         {
-            bool isRunningOnCoreClr = CoreClrShim.IsRunningOnCoreClr;
-            string expectedPath;
-            string processArguments;
-            if (isRunningOnCoreClr)
-            {
-                // The server should be in the same directory as the client
-                var expectedCompilerPath = Path.Combine(clientDir, ServerNameCoreClr);
-                expectedPath = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet";
-                processArguments = $@"""{expectedCompilerPath}"" ""-pipename:{pipeName}""";
+            var serverPathWithoutExtension = Path.Combine(clientDir, "VBCSCompiler");
+            var serverInfo = RuntimeHostInfo.GetProcessInfo(serverPathWithoutExtension, $"-pipename:{pipeName}");
 
-                if (!File.Exists(expectedCompilerPath))
-                {
-                    return false;
-                }
-            }
-            else
+            if (!File.Exists(serverInfo.toolFilePath))
             {
-                // The server should be in the same directory as the client
-                expectedPath = Path.Combine(clientDir, ServerNameDesktop);
-                processArguments = $@"""-pipename:{pipeName}""";
-
-                if (!File.Exists(expectedPath))
-                {
-                    return false;
-                }
+                return false;
             }
 
             if (PlatformInformation.IsWindows)
@@ -417,9 +404,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                 PROCESS_INFORMATION processInfo;
 
-                Log("Attempting to create process '{0}'", expectedPath);
+                Log("Attempting to create process '{0}'", serverInfo.processFilePath);
 
-                var builder = new StringBuilder($@"""{expectedPath}"" {processArguments}");
+                var builder = new StringBuilder($@"""{serverInfo.processFilePath}"" {serverInfo.commandLineArguments}");
 
                 bool success = CreateProcess(
                     lpApplicationName: null,
@@ -451,8 +438,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 {
                     var startInfo = new ProcessStartInfo()
                     {
-                        FileName = expectedPath,
-                        Arguments = processArguments,
+                        FileName = serverInfo.processFilePath,
+                        Arguments = serverInfo.commandLineArguments,
                         UseShellExecute = false,
                         WorkingDirectory = clientDir,
                         RedirectStandardInput = true,
@@ -469,76 +456,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     return false;
                 }
             }
-        }
-
-        /// <summary>
-        /// Check to ensure that the named pipe server we connected to is owned by the same
-        /// user.
-        /// </summary>
-        /// <remarks>
-        /// The type is embedded in assemblies that need to run cross platform.  While this particular
-        /// code will never be hit when running on non-Windows platforms it does need to work when
-        /// on Windows.  To facilitate that we use reflection to make the check here to enable it to
-        /// compile into our cross plat assemblies.
-        /// </remarks>
-        private static bool CheckPipeConnectionOwnership(NamedPipeClientStream pipeStream)
-        {
-            try
-            {
-                if (PlatformInformation.IsWindows)
-                {
-                    var currentIdentity = WindowsIdentity.GetCurrent();
-                    var currentOwner = currentIdentity.Owner;
-                    var remotePipeSecurity = GetPipeSecurity(pipeStream);
-                    var remoteOwner = remotePipeSecurity.GetOwner(typeof(SecurityIdentifier));
-                    return currentOwner.Equals(remoteOwner);
-                }
-                else
-                {
-                    return CheckIdentityUnix(pipeStream);
-                }
-            }
-            catch (Exception ex)
-            {
-                LogException(ex, "Checking pipe connection");
-                return false;
-            }
-        }
-
-#if NET472
-        internal static bool CheckIdentityUnix(PipeStream stream)
-        {
-            // Identity verification is unavailable in the MSBuild task,
-            // but verification is not needed client-side so that's okay.
-            return true;
-        }
-#else
-        [DllImport("System.Native", EntryPoint = "SystemNative_GetEUid")]
-        private static extern uint GetEUid();
-
-        [DllImport("System.Native", EntryPoint = "SystemNative_GetPeerID", SetLastError = true)]
-        private static extern int GetPeerID(SafeHandle socket, out uint euid);
-
-        internal static bool CheckIdentityUnix(PipeStream stream)
-        {
-            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
-            var handle = (SafePipeHandle)typeof(PipeStream).GetField("_handle", flags).GetValue(stream);
-            var handle2 = (SafeHandle)typeof(SafePipeHandle).GetField("_namedPipeSocketHandle", flags).GetValue(handle);
-
-            uint myID = GetEUid();
-
-            if (GetPeerID(handle, out uint peerID) == -1)
-            {
-                throw new Win32Exception(Marshal.GetLastWin32Error());
-            }
-
-            return myID == peerID;
-        }
-#endif
-
-        private static ObjectSecurity GetPipeSecurity(PipeStream pipeStream)
-        {
-            return pipeStream.GetAccessControl();
         }
 
         /// <returns>
@@ -638,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             return $"{pipeName}.client";
         }
-  
+
         /// <summary>
         /// Gets the value of the temporary path for the current environment assuming the working directory
         /// is <paramref name="workingDir"/>.  This function must emulate <see cref="Path.GetTempPath"/> as 

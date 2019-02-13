@@ -34,7 +34,17 @@
       </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
         <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
-        <target state="new">Adding a method with an explicit interface specifier will prevent the debug session from continuing.</target>
+        <target state="translated">明示的なインターフェイス指定子が含まれるメソッドを追加すると、デバッグ セッションを続行できなくなります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Align_wrapped_arguments">
+        <source>Align wrapped arguments</source>
+        <target state="new">Align wrapped arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Align_wrapped_parameters">
+        <source>Align wrapped parameters</source>
+        <target state="new">Align wrapped parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_namespace_to_0">
@@ -49,12 +59,12 @@
       </trans-unit>
       <trans-unit id="Code_Quality">
         <source>Code Quality</source>
-        <target state="new">Code Quality</target>
+        <target state="translated">コードの品質</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
-        <target state="new">Convert to LINQ</target>
+        <target state="translated">LINQ に変換</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_0">
@@ -64,22 +74,22 @@
       </trans-unit>
       <trans-unit id="Convert_to_class">
         <source>Convert to class</source>
-        <target state="new">Convert to class</target>
+        <target state="translated">Convert to class</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq_call_form">
         <source>Convert to LINQ (call form)</source>
-        <target state="new">Convert to LINQ (call form)</target>
+        <target state="translated">LINQ (呼び出し形式) へ変換</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
-        <target state="new">Convert to struct</target>
+        <target state="translated">Convert to struct</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_tuple">
         <source>Convert to tuple</source>
-        <target state="new">Convert to tuple</target>
+        <target state="translated">Convert to tuple</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
@@ -94,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Fix_formatting">
         <source>Fix formatting</source>
-        <target state="new">Fix formatting</target>
+        <target state="translated">書式設定を修正します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">
@@ -105,6 +115,56 @@
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
         <target state="translated">ドキュメントの書式設定</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_all_arguments">
+        <source>Indent all arguments</source>
+        <target state="new">Indent all arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_all_parameters">
+        <source>Indent all parameters</source>
+        <target state="new">Indent all parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_wrapped_arguments">
+        <source>Indent wrapped arguments</source>
+        <target state="new">Indent wrapped arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_wrapped_parameters">
+        <source>Indent wrapped parameters</source>
+        <target state="new">Indent wrapped parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Local_function_can_be_made_static">
+        <source>Local function can be made static</source>
+        <target state="new">Local function can be made static</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_local_function_static">
+        <source>Make local function 'static'</source>
+        <target state="new">Make local function 'static'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Merge_with_nested_0_statement">
+        <source>Merge with nested '{0}' statement</source>
+        <target state="new">Merge with nested '{0}' statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Merge_with_next_0_statement">
+        <source>Merge with next '{0}' statement</source>
+        <target state="new">Merge with next '{0}' statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Merge_with_outer_0_statement">
+        <source>Merge with outer '{0}' statement</source>
+        <target state="new">Merge with outer '{0}' statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Merge_with_previous_0_statement">
+        <source>Merge with previous '{0}' statement</source>
+        <target state="new">Merge with previous '{0}' statement</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_file_to_0">
@@ -142,24 +202,44 @@
         <target state="new">Introduce query variable</target>
         <note />
       </trans-unit>
+      <trans-unit id="Invert_conditional">
+        <source>Invert conditional</source>
+        <target state="new">Invert conditional</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
         <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
-        <target state="new">Private member '{0}' can be removed as the value assigned to it is never read.</target>
+        <target state="translated">割り当てられている値が読み取られることがないようにプライベートメンバー '{0}' を削除できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_is_unused">
         <source>Private member '{0}' is unused.</source>
-        <target state="new">Private member '{0}' is unused.</target>
+        <target state="translated">プライベート メンバー '{0}' は使用されていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
-        <target state="translated">ソース ファイル {0} を変更すると、次の内部エラーが原因でデバッグ セッションを続行できなくなります: {1}。</target>
+        <target state="translated">ソース ファイル {0} を変更すると、デバッグ セッションが内部エラーのため続行できなくなります: {1}。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invert_conditional">
-        <source>Invert conditional</source>
-        <target state="new">Invert conditional</target>
+      <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
+        <source>Private method '{0}' can be removed as it is never invoked.</source>
+        <target state="new">Private method '{0}' can be removed as it is never invoked.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_0_up">
+        <source>Pull '{0}' up</source>
+        <target state="new">Pull '{0}' up</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_0_up_to_1">
+        <source>Pull '{0}' up to '{1}'</source>
+        <target state="new">Pull '{0}' up to '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_members_up_to_base_type">
+        <source>Pull members up to base type...</source>
+        <target state="new">Pull members up to base type...</target>
         <note />
       </trans-unit>
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
@@ -174,12 +254,12 @@
       </trans-unit>
       <trans-unit id="Remove_unread_private_members">
         <source>Remove unread private members</source>
-        <target state="new">Remove unread private members</target>
+        <target state="translated">読み取られていないプライベート メンバーを削除</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_member">
         <source>Remove unused member</source>
-        <target state="new">Remove unused member</target>
+        <target state="translated">未使用のメンバーを削除</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameter">
@@ -209,7 +289,7 @@
       </trans-unit>
       <trans-unit id="Remove_unused_private_members">
         <source>Remove unused private members</source>
-        <target state="new">Remove unused private members</target>
+        <target state="translated">使用されていないプライベート メンバーを削除する</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -217,9 +297,59 @@
         <target state="new">Replace '{0}' with '{1}' </target>
         <note />
       </trans-unit>
+      <trans-unit id="Split_into_consecutive_0_statements">
+        <source>Split into consecutive '{0}' statements</source>
+        <target state="new">Split into consecutive '{0}' statements</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Split_into_nested_0_statements">
+        <source>Split into nested '{0}' statements</source>
+        <target state="new">Split into nested '{0}' statements</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_all_arguments">
+        <source>Unwrap all arguments</source>
+        <target state="new">Unwrap all arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_all_parameters">
+        <source>Unwrap all parameters</source>
+        <target state="new">Unwrap all parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_and_indent_all_arguments">
+        <source>Unwrap and indent all arguments</source>
+        <target state="new">Unwrap and indent all arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_and_indent_all_parameters">
+        <source>Unwrap and indent all parameters</source>
+        <target state="new">Unwrap and indent all parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_argument_list">
+        <source>Unwrap argument list</source>
+        <target state="new">Unwrap argument list</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_expression">
+        <source>Unwrap expression</source>
+        <target state="new">Unwrap expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_parameter_list">
+        <source>Unwrap parameter list</source>
+        <target state="new">Unwrap parameter list</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
-        <target state="new">Use block body for lambda expressions</target>
+        <target state="translated">ラムダ式にブロック本体を使用する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_local_functions">
+        <source>Use block body for local functions</source>
+        <target state="new">Use block body for local functions</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_compound_assignment">
@@ -239,7 +369,12 @@
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
-        <target state="new">Use expression body for lambda expressions</target>
+        <target state="translated">ラムダ式に式本体を使用する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_local_functions">
+        <source>Use expression body for local functions</source>
+        <target state="new">Use expression body for local functions</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_index_operator">
@@ -249,7 +384,12 @@
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
-        <target state="new">Use interpolated verbatim string</target>
+        <target state="translated">挿入された verbatim 文字列を使用します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_simple_using_statement">
+        <source>Use simple 'using' statement</source>
+        <target state="new">Use simple 'using' statement</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
@@ -262,11 +402,6 @@
         <target state="new">Use range operator</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_can_be_simplified">
-        <source>{0} can be simplified</source>
-        <target state="new">{0} can be simplified</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Value_assigned_to_0_is_never_used">
         <source>Value assigned to '{0}' is never used</source>
         <target state="new">Value assigned to '{0}' is never used</target>
@@ -275,6 +410,41 @@
       <trans-unit id="Value_assigned_to_symbol_is_never_used">
         <source>Value assigned to symbol is never used</source>
         <target state="new">Value assigned to symbol is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_every_argument">
+        <source>Wrap every argument</source>
+        <target state="new">Wrap every argument</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_every_parameter">
+        <source>Wrap every parameter</source>
+        <target state="new">Wrap every parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_expression">
+        <source>Wrap expression</source>
+        <target state="new">Wrap expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_argument_list">
+        <source>Wrap long argument list</source>
+        <target state="new">Wrap long argument list</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_parameter_list">
+        <source>Wrap long parameter list</source>
+        <target state="new">Wrap long parameter list</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrapping">
+        <source>Wrapping</source>
+        <target state="new">Wrapping</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_can_be_simplified">
+        <source>{0} can be simplified</source>
+        <target state="new">{0} can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -624,7 +794,7 @@
       </trans-unit>
       <trans-unit id="in_">
         <source>in</source>
-        <target state="translated">イン</target>
+        <target state="translated">次の値のいずれか</target>
         <note />
       </trans-unit>
       <trans-unit id="Summary_colon">
@@ -654,7 +824,7 @@
       </trans-unit>
       <trans-unit id="Remarks_colon">
         <source>Remarks:</source>
-        <target state="translated">コメント:</target>
+        <target state="translated">注釈:</target>
         <note />
       </trans-unit>
       <trans-unit id="generating_source_for_symbols_of_this_type_is_not_supported">
@@ -969,7 +1139,7 @@
       </trans-unit>
       <trans-unit id="Renaming_a_captured_variable_from_0_to_1_will_prevent_the_debug_session_from_continuing">
         <source>Renaming a captured variable, from '{0}' to '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">キャプチャされた変数の名前を '{0}' から '{1}' に変更すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">キャプチャーされた変数の名前を '{0}' から '{1}' に変更すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_a_catch_finally_handler_with_an_active_statement_in_the_try_block_will_prevent_the_debug_session_from_continuing">
@@ -1210,7 +1380,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Available">
         <source>Available</source>
-        <target state="translated">有効</target>
+        <target state="translated">空き領域</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_Available">
@@ -1345,7 +1515,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
         <source>TODO: dispose managed state (managed objects).</source>
-        <target state="translated">TODO: マネージド状態を破棄します (マネージド オブジェクト)。</target>
+        <target state="translated">TODO: マネージ状態を破棄します (マネージ オブジェクト)。</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_set_large_fields_to_null">
@@ -2022,12 +2192,12 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Generate_overrides">
         <source>Generate overrides...</source>
-        <target state="translated">オーバーライドを生成する...</target>
+        <target state="translated">上書きを生成する...</target>
         <note />
       </trans-unit>
       <trans-unit id="Pick_members_to_override">
         <source>Pick members to override</source>
-        <target state="translated">オーバーライドするメンバーを選択する</target>
+        <target state="translated">上書きするメンバーを選択する</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_null_check">
@@ -2297,22 +2467,27 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">
         <source>updating usages in containing member</source>
-        <target state="new">updating usages in containing member</target>
+        <target state="translated">updating usages in containing member</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_project">
         <source>updating usages in containing project</source>
-        <target state="new">updating usages in containing project</target>
+        <target state="translated">updating usages in containing project</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_type">
         <source>updating usages in containing type</source>
-        <target state="new">updating usages in containing type</target>
+        <target state="translated">updating usages in containing type</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_dependent_projects">
         <source>updating usages in dependent projects</source>
-        <target state="new">updating usages in dependent projects</target>
+        <target state="translated">updating usages in dependent projects</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="using_statement_can_be_simplified">
+        <source>'using' statement can be simplified</source>
+        <target state="new">'using' statement can be simplified</target>
         <note />
       </trans-unit>
     </body>

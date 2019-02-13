@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var nodeMatch = GetStandardSymbolsNodeMatchFunction(symbol, solution, cancellationToken);
             findParentNode = findParentNode ?? (t => t.Parent);
-            (bool matched, CandidateReason reason) symbolsMatch(SyntaxToken token, SemanticModel model) 
+            (bool matched, CandidateReason reason) symbolsMatch(SyntaxToken token, SemanticModel model)
                 => nodeMatch(findParentNode(token), model);
 
             return symbolsMatch;
@@ -718,7 +718,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         public override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            ISymbol symbol, Project project, IImmutableSet<Document> documents, 
+            ISymbol symbol, Project project, IImmutableSet<Document> documents,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             return symbol is TSymbol && CanFind((TSymbol)symbol)
@@ -727,7 +727,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         public override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            SymbolAndProjectId symbolAndProjectId, Document document, SemanticModel semanticModel, 
+            SymbolAndProjectId symbolAndProjectId, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             var symbol = symbolAndProjectId.Symbol;

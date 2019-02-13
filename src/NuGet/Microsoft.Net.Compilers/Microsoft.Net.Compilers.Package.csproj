@@ -5,7 +5,7 @@
     <RoslynProjectType>Custom</RoslynProjectType>
 
     <IsPackable>true</IsPackable>
-    <PackageId>Microsoft.Net.Compilers</PackageId>
+    <NuspecPackageId>Microsoft.Net.Compilers</NuspecPackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DevelopmentDependency>true</DevelopmentDependency>
     <PackageDescription>

@@ -123,6 +123,16 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCollectionInitializer_FadeOutCode"));
 
+        internal static readonly PerLanguageOption<OperatorPlacementWhenWrappingPreference> OperatorPlacementWhenWrapping =
+            new PerLanguageOption<OperatorPlacementWhenWrappingPreference>(
+                nameof(CodeStyleOptions), nameof(OperatorPlacementWhenWrapping),
+                defaultValue: OperatorPlacementWhenWrappingPreference.BeginningOfLine,
+                storageLocations:
+                    new EditorConfigStorageLocation<OperatorPlacementWhenWrappingPreference>(
+                        "dotnet_style_operator_placement_when_wrapping",
+                        OperatorPlacementUtilities.Parse,
+                        OperatorPlacementUtilities.GetEditorConfigString));
+
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferCoalesceExpression = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferCoalesceExpression),
             defaultValue: TrueWithSuggestionEnforcement,
@@ -297,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, NotificationOption.Silent);
 
         private static PerLanguageOption<CodeStyleOption<ParenthesesPreference>> CreateParenthesesOption(
-            string fieldName, CodeStyleOption<ParenthesesPreference> defaultValue, 
+            string fieldName, CodeStyleOption<ParenthesesPreference> defaultValue,
             string styleName)
         {
             return CreateOption(

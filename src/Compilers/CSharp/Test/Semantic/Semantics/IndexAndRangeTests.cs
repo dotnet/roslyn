@@ -2,12 +2,128 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class IndexAndRangeTests : CompilingTestBase
     {
+        [Fact]
+        [WorkItem(31889, "https://github.com/dotnet/roslyn/issues/31889")]
+        public void ArrayRangeIllegalRef()
+        {
+            var comp = CreateCompilationWithIndexAndRange(@"
+public class C {
+    public ref int[] M(int[] arr) {
+        ref int[] x = ref arr[0..2];
+        M(in arr[0..2]);
+        M(arr[0..2]);
+        return ref arr[0..2];
+    }
+    void M(in int[] arr) { }
+}");
+            comp.VerifyDiagnostics(
+                // (4,27): error CS1510: A ref or out value must be an assignable variable
+                //         ref int[] x = ref arr[0..2];
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "arr[0..2]").WithLocation(4, 27),
+                // (5,14): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         M(in arr[0..2]);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "arr[0..2]").WithLocation(5, 14),
+                // (7,20): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref arr[0..2];
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "arr[0..2]").WithLocation(7, 20));
+        }
+
+        [Fact]
+        [WorkItem(31889, "https://github.com/dotnet/roslyn/issues/31889")]
+        public void ArrayRangeIllegalRefNoRange()
+        {
+            var comp = CreateCompilationWithIndex(@"
+public class C {
+    public void M(int[] arr) {
+        ref int[] x = ref arr[0..2];
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (4,31): error CS0518: Predefined type 'System.Range' is not defined or imported
+                //         ref int[] x = ref arr[0..2];
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0..2").WithArguments("System.Range").WithLocation(4, 31));
+        }
+
+        [Fact]
+        [WorkItem(31889, "https://github.com/dotnet/roslyn/issues/31889")]
+        public void FromEndIllegalRef()
+        {
+            var comp = CreateCompilationWithIndex(@"
+using System;
+public class C {
+    public ref Index M() {
+        ref Index x = ref ^0;
+        M(in ^0);
+        M(^0);
+        return ref ^0;
+    }
+    void M(in int[] arr) { }
+}");
+            comp.VerifyDiagnostics(
+                // (5,27): error CS1510: A ref or out value must be an assignable variable
+                //         ref Index x = ref ^0;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "^0").WithLocation(5, 27),
+                // (6,14): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         M(in ^0);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "^0").WithLocation(6, 14),
+                // (7,11): error CS1503: Argument 1: cannot convert from 'System.Index' to 'in int[]'
+                //         M(^0);
+                Diagnostic(ErrorCode.ERR_BadArgType, "^0").WithArguments("1", "System.Index", "in int[]").WithLocation(7, 11),
+                // (8,20): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref ^0;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "^0").WithLocation(8, 20));
+        }
+
+        [Fact]
+        [WorkItem(31889, "https://github.com/dotnet/roslyn/issues/31889")]
+        public void FromEndIllegalRefNoIndex()
+        {
+            var comp = CreateCompilationWithIndex(@"
+public class C {
+    public void M() {
+        ref var x = ref ^0;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (4,25): error CS1510: A ref or out value must be an assignable variable
+                //         ref var x = ref ^0;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "^0").WithLocation(4, 25));
+        }
+
+        [Fact]
+        [WorkItem(31889, "https://github.com/dotnet/roslyn/issues/31889")]
+        public void StringIndexIllegalRef()
+        {
+            var comp = CreateCompilationWithIndexAndRange(@"
+public class C {
+    public ref char M(string s) {
+        ref readonly char x = ref s[^2];
+        M(in s[^2]);
+        M(s[^2]);
+        return ref s[^2];
+    }
+    void M(in char c) { }
+}");
+            comp.VerifyDiagnostics(
+                // (4,35): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         ref readonly char x = ref s[^2];
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s[^2]").WithArguments("string.this[int]").WithLocation(4, 35),
+                // (5,14): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         M(in s[^2]);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s[^2]").WithArguments("string.this[int]").WithLocation(5, 14),
+                // (7,20): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref s[^2];
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s[^2]").WithArguments("string.this[int]").WithLocation(7, 20));
+        }
+
         [Fact]
         public void IndexExpression_TypeNotFound()
         {
@@ -193,19 +309,25 @@ public class Test
         [Fact]
         public void IndexExpression_OlderLanguageVersion()
         {
-            var compilation = CreateCompilationWithIndex(@"
+            var expected = new[]
+            {
+                // (6,17): error CS8652: The feature 'index operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var x = ^1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "^1").WithArguments("index operator").WithLocation(6, 17)
+            };
+            const string source = @"
 class Test
 {
     void M()
     {
         var x = ^1;
     }
-}", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
-                // (6,17): error CS8370: Feature 'index operator' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //         var x = ^1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "^1").WithArguments("index operator", "8.0").WithLocation(6, 17));
+}";
+            var compilation = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected);
+            compilation = CreateCompilationWithIndex(source, parseOptions: TestOptions.RegularDefault).VerifyDiagnostics(expected);
+            compilation = CreateCompilationWithIndex(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
-        
+
         [Fact]
         public void RangeExpression_RangeNotFound()
         {
@@ -649,7 +771,7 @@ public class Test
         [Fact]
         public void RangeExpression_OlderLanguageVersion()
         {
-            var compilation = CreateCompilationWithIndexAndRange(@"
+            const string source = @"
 class Test
 {
     void M()
@@ -659,19 +781,25 @@ class Test
         var c = ..2;
         var d = ..;
     }
-}", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
-                // (6,17): error CS8370: Feature 'range operator' is not available in C# 7.3. Please use language version 8.0 or greater.
+}";
+            var expected = new[]
+            {
+                // (6,17): error CS8652: The feature 'range operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var a = 1..2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1..2").WithArguments("range operator", "8.0").WithLocation(6, 17),
-                // (7,17): error CS8370: Feature 'range operator' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1..2").WithArguments("range operator").WithLocation(6, 17),
+                // (7,17): error CS8652: The feature 'range operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var b = 1..;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1..").WithArguments("range operator", "8.0").WithLocation(7, 17),
-                // (8,17): error CS8370: Feature 'range operator' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1..").WithArguments("range operator").WithLocation(7, 17),
+                // (8,17): error CS8652: The feature 'range operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var c = ..2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "..2").WithArguments("range operator", "8.0").WithLocation(8, 17),
-                // (9,17): error CS8370: Feature 'range operator' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "..2").WithArguments("range operator").WithLocation(8, 17),
+                // (9,17): error CS8652: The feature 'range operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var d = ..;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "..").WithArguments("range operator", "8.0").WithLocation(9, 17));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "..").WithArguments("range operator").WithLocation(9, 17)
+            };
+            CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected);
+            CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularDefault).VerifyDiagnostics(expected);
+            CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact]

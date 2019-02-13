@@ -7,7 +7,7 @@
 set -e
 
 dir="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-dockerfile="$dir"/docker/mono
+dockerfile="$dir"/Mono
 
 [ -z "$CONTAINER_TAG" ] && CONTAINER_TAG="roslyn-build"
 [ -z "$CONTAINER_NAME" ] && CONTAINER_NAME="roslyn-build-container-mono-nightly"
@@ -22,7 +22,7 @@ docker kill $CONTAINER_NAME || true
 
 # Build the docker container (will be fast if it is already built)
 echo "Building Docker Container using Dockerfile: $dockerfile"
-docker build --build-arg USER_ID=$(id -u) -t $CONTAINER_TAG $dockerfile
+docker build --build-arg USER_ID=$(id -u) --build-arg CACHE_BUST=$(date +%s) --no-cache -t $CONTAINER_TAG $dockerfile
 
 # Run the build in the container
 echo "Launching build in Docker Container"

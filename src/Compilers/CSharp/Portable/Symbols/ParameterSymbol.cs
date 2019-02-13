@@ -230,15 +230,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract ConstantValue ExplicitDefaultConstantValue { get; }
 
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                Debug.Assert(IsDefinition);
-                return ContainingSymbol?.NonNullTypes;
-            }
-        }
-
         /// <summary>
         /// Gets the kind of this symbol.
         /// </summary>

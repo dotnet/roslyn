@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             properties = properties.Add(NonNavigable, "");
 
             return new DefaultDefinitionItem(
-                tags: tags, 
+                tags: tags,
                 displayParts: displayParts,
                 nameDisplayParts: ImmutableArray<TaggedText>.Empty,
                 originationParts: originationParts,

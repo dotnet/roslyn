@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis
         {
             diagnosticOptions = new Dictionary<string, ReportDiagnostic>();
             if (rulesetFileFullPath == null)
-            { 
+            {
                 return ReportDiagnostic.Default;
             }
 

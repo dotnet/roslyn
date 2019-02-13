@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             localsDictionary.Add(local.Name, (local, localIndex));
                             localIndex++;
                         }
-                        
+
                         foreach (var argumentName in _sourceMethodParametersInOrder)
                         {
                             (LocalSymbol local, int localIndex) localSymbolAndIndex;
@@ -1446,7 +1446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var field = (FieldSymbol)member;
                 var fieldName = field.Name;
 
-            REPARSE:
+REPARSE:
 
                 DisplayClassVariableKind variableKind;
                 string variableName;

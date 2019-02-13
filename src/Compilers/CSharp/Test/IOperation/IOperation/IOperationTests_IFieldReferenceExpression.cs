@@ -167,7 +167,7 @@ IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (Sys
         [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(7582, "https://github.com/dotnet/roslyn/issues/7582")]
         [Fact]
-        public void IFieldReferenceExpression_ImplicitThis ()
+        public void IFieldReferenceExpression_ImplicitThis()
         {
             string source = @"
 class C
@@ -280,7 +280,7 @@ ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) 
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics,compilationOptions: TestOptions.UnsafeDebugDll);
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

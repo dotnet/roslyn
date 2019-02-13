@@ -163,7 +163,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 supportedPackageIds = ImmutableHashSet.CreateRange(instance.GetPackages().Select((supportedPackage) => supportedPackage.GetId()));
                 installationPath = instance.GetInstallationPath();
 
-                hostProcess = StartNewVisualStudioProcess(installationPath);
+                var instanceVersion = instance.GetInstallationVersion();
+                var majorVersion = int.Parse(instanceVersion.Substring(0, instanceVersion.IndexOf('.')));
+                hostProcess = StartNewVisualStudioProcess(installationPath, majorVersion);
 
                 var procDumpInfo = ProcDumpInfo.ReadFromEnvironment();
                 if (procDumpInfo != null)
@@ -244,17 +246,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 Debug.WriteLine($"An environment variable named 'VSInstallDir' (or equivalent) was found, adding this to the specified requirements. (VSInstallDir: {vsInstallDir})");
             }
 
-            var instances = EnumerateVisualStudioInstances().Where((instance) => {
+            var instances = EnumerateVisualStudioInstances().Where((instance) =>
+            {
                 var isMatch = true;
                 {
-                    isMatch &= instance.GetInstallationVersion().StartsWith(VsProductVersion);
-
                     if (haveVsInstallDir)
                     {
                         var installationPath = instance.GetInstallationPath();
                         installationPath = Path.GetFullPath(installationPath);
                         installationPath = installationPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                         isMatch &= installationPath.Equals(vsInstallDir, StringComparison.OrdinalIgnoreCase);
+                    }
+                    else
+                    {
+                        isMatch &= instance.GetInstallationVersion().StartsWith(VsProductVersion);
                     }
                 }
                 return isMatch;
@@ -290,12 +295,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                                 "There were no instances of Visual Studio found that match the specified requirements.");
         }
 
-        private static Process StartNewVisualStudioProcess(string installationPath)
+        private static Process StartNewVisualStudioProcess(string installationPath, int majorVersion)
         {
             var vsExeFile = Path.Combine(installationPath, @"Common7\IDE\devenv.exe");
+            var vsRegEditExeFile = Path.Combine(installationPath, @"Common7\IDE\VsRegEdit.exe");
 
             if (_firstLaunch)
             {
+                if (majorVersion == 16)
+                {
+                    // Make sure the start window doesn't show on launch
+                    Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU General OnEnvironmentStartup dword 10").WaitForExit();
+                }
+
                 // BUG: Currently building with /p:DeployExtension=true does not always cause the MEF cache to recompose...
                 //      So, run clearcache and updateconfiguration to workaround https://devdiv.visualstudio.com/DevDiv/_workitems?id=385351.
                 Process.Start(vsExeFile, $"/clearcache {VsLaunchArgs}").WaitForExit();

@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (_expressionTemps?.Count > 0)
             {
                 // release in reverse order to keep same temps on top of the temp stack if possible
-                for(int i = _expressionTemps.Count - 1; i >= 0; i--)
+                for (int i = _expressionTemps.Count - 1; i >= 0; i--)
                 {
                     var temp = _expressionTemps[i];
                     FreeTemp(temp);

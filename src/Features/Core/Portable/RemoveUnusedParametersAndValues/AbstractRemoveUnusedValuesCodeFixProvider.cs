@@ -48,10 +48,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         where TBlockSyntax : TStatementSyntax
         where TExpressionStatementSyntax : TStatementSyntax
         where TLocalDeclarationStatementSyntax : TStatementSyntax
-        where TForEachStatementSyntax: TStatementSyntax
+        where TForEachStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
         where TSwitchCaseBlockSyntax : SyntaxNode
-        where TSwitchCaseLabelOrClauseSyntax: SyntaxNode
+        where TSwitchCaseLabelOrClauseSyntax : SyntaxNode
     {
         private static readonly SyntaxAnnotation s_memberAnnotation = new SyntaxAnnotation();
         private static readonly SyntaxAnnotation s_newLocalDeclarationStatementAnnotation = new SyntaxAnnotation();
@@ -86,6 +86,18 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         /// Inserts the given declaration statement at the start of the given switch case block.
         /// </summary>
         protected abstract void InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(TSwitchCaseBlockSyntax switchCaseBlock, SyntaxEditor editor, TLocalDeclarationStatementSyntax declarationStatement);
+
+        /// <summary>
+        /// Gets the replacement node for a compound assignment expression whose
+        /// assigned value is redundant.
+        /// For example, "x += MethodCall()", where assignment to 'x' is redundant
+        /// is replaced with "_ = MethodCall()" or "var unused = MethodCall()"
+        /// </summary>
+        protected abstract SyntaxNode GetReplacementNodeForCompoundAssignment(
+            SyntaxNode originalCompoundAssignment,
+            SyntaxNode newAssignmentTarget,
+            SyntaxEditor editor,
+            ISyntaxFactsService syntaxFacts);
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -465,7 +477,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             // Compound assignment is changed to simple assignment.
                             // For example, "x += MethodCall();", where assignment to 'x' is redundant
                             // is replaced with "_ = MethodCall();" or "var unused = MethodCall();"
-                            nodeReplacementMap.Add(node.Parent, editor.Generator.AssignmentStatement(newNameNode, syntaxFacts.GetRightHandSideOfAssignment(node.Parent)));
+                            nodeReplacementMap.Add(node.Parent, GetReplacementNodeForCompoundAssignment(node.Parent, newNameNode, editor, syntaxFacts));
                         }
                         else
                         {
@@ -802,7 +814,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             }
         }
 
-        protected sealed class UniqueVariableNameGenerator: IDisposable
+        protected sealed class UniqueVariableNameGenerator : IDisposable
         {
             private readonly SyntaxNode _memberDeclaration;
             private readonly SemanticModel _semanticModel;

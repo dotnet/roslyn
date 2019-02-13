@@ -8,33 +8,30 @@
   
   <PropertyGroup>
     <RepositoryUrl>https://github.com/dotnet/roslyn</RepositoryUrl>
-    <PackageLicenseUrl>$(RepositoryUrl)/blob/master/License.txt</PackageLicenseUrl>
     <RepositoryRawUrl>https://raw.githubusercontent.com/dotnet/roslyn</RepositoryRawUrl>
+    
+    <!-- Package Settings -->
+    <PackageLicenseUrl>$(RepositoryUrl)/blob/master/License.txt</PackageLicenseUrl>
+    <!-- The SPDX name for the source license. See https://spdx.org/licenses/. -->
+    <PackageLicenseType>Apache-2.0</PackageLicenseType>
+    <PackageIconUrl>https://go.microsoft.com/fwlink/?LinkID=288859</PackageIconUrl>
     <PackageProjectUrl>https://github.com/dotnet/roslyn</PackageProjectUrl>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics</PackageTags>
-    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
-    
     <!--
-      NU5125 should be removed. See https://github.com/dotnet/roslyn/issues/31589 for details
+      Suppress a warning about upcoming deprecation of PackageLicenseUrl. When embedding licenses are supported,
+      replace PackageLicenseUrl with PackageLicenseExpression. See https://github.com/dotnet/roslyn/issues/31589 for details
     -->
     <NoWarn>$(NoWarn);NU5125</NoWarn>
-  </PropertyGroup>
+    
+    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
 
-  <Import Project="RepoToolset\ProjectLayout.props" />
-  <Import Project="RepoToolset\DefaultVersions.props"/>
-  <Import Project="RepoToolset\ProjectDefaults.props" />
-  <Import Project="RepoToolset\BuildTasks.props" />
-  <Import Project="RepoToolset\StrongName.props" />
-  <Import Project="RepoToolset\VisualStudio.props"/>
-  <Import Project="RepoToolset\Tests.props" />
-
-  <PropertyGroup>
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
 
     <RoslynPortableTargetFrameworks>net472;netcoreapp2.1</RoslynPortableTargetFrameworks>
     <RoslynPortableRuntimeIdentifiers>win;win-x64;linux-x64;osx-x64</RoslynPortableRuntimeIdentifiers>
+    <RoslynEnforceCodeStyle Condition="'$(ContinuousIntegrationBuild)' != 'true'">true</RoslynEnforceCodeStyle>
     <UseSharedCompilation>true</UseSharedCompilation>
 
     <Features>strict, IOperation</Features>
@@ -46,8 +43,7 @@
     <!-- Set to non-existent file to prevent common targets from importing Microsoft.CodeAnalysis.targets -->
     <CodeAnalysisTargets>*none*</CodeAnalysisTargets>
 
-    <ThirdPartyNoticesFilePath>$(MSBuildThisFileDirectory)..\..\src\NuGet\ThirdPartyNotices.rtf</ThirdPartyNoticesFilePath>    
-    <IbcOptimizationDataDir>$(NuGetPackageRoot)roslyndependencies.optimizationdata\$(RoslynDependenciesOptimizationDataVersion)\content\OptimizationData\</IbcOptimizationDataDir>
+    <ThirdPartyNoticesFilePath>$(MSBuildThisFileDirectory)..\..\src\NuGet\ThirdPartyNotices.rtf</ThirdPartyNoticesFilePath>
     <DevDivPackagesDir>$(VisualStudioSetupOutputPath)DevDivPackages\</DevDivPackagesDir>
 
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
@@ -62,6 +58,17 @@
     <WindowsAppContainer>false</WindowsAppContainer>
 
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+  </PropertyGroup>
+
+  <!-- 
+    Disable Source Link and Xliff in WPF temp projects to avoid generating non-deterministic file names to obj dir.
+    The project name is non-deterministic and is included in the Source Link json file name and xlf directory names.
+    It's also not necessary to generate these assets.
+  -->
+  <PropertyGroup Condition="'$(IsWpfTempProject)' == 'true'">
+    <EnableSourceLink>false</EnableSourceLink>
+    <DeterministicSourcePaths>false</DeterministicSourcePaths>
+    <EnableXlfLocalization>false</EnableXlfLocalization>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsTestProject)' == 'true'" >
@@ -87,20 +94,6 @@
     <TypeScriptKey>$(VisualStudioKey)</TypeScriptKey>
     <RemoteLanguageServiceKey>$(VisualStudioKey)</RemoteLanguageServiceKey>
     <VisualStudioDebuggerKey>$(VisualStudioKey)</VisualStudioDebuggerKey>
-  </PropertyGroup>
-
-  <!-- Determine compiler toolset props file to use for this build -->
-  <PropertyGroup>
-    <_PackageName Condition="'$(MSBuildRuntimeType)' != 'Core'">Microsoft.Net.Compilers</_PackageName>
-    <_PackageName Condition="'$(MSBuildRuntimeType)' == 'Core'">Microsoft.NETCore.Compilers</_PackageName>
-    <_PackageVersion Condition="'$(MSBuildRuntimeType)' != 'Core'">$(MicrosoftNetCompilersVersion)</_PackageVersion>
-    <_PackageVersion Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MicrosoftNETCoreCompilersVersion)</_PackageVersion>
-
-    <RoslynToolsetDirectory Condition="'$(BootstrapBuildPath)' == ''">$(NuGetPackageRoot)$(_PackageName.ToLower())\$(_PackageVersion)\</RoslynToolsetDirectory>
-    <RoslynToolsetDirectory Condition="'$(BootstrapBuildPath)' != ''">$(BootstrapBuildPath)</RoslynToolsetDirectory>
-    <RoslynToolsetDirectory Condition="!HasTrailingSlash('$(RoslynToolsetDirectory)')">$(RoslynToolsetDirectory)\</RoslynToolsetDirectory>
-
-    <RoslynToolsetPropsFilePath>$(RoslynToolsetDirectory)build\$(_PackageName).props</RoslynToolsetPropsFilePath>
   </PropertyGroup>
 
   <!-- 
@@ -131,12 +124,24 @@
     <DevEnvDir>$([System.IO.Path]::GetFullPath('$(DevEnvDir)'))</DevEnvDir>
   </PropertyGroup>
 
-  <Import Project="$(RoslynToolsetPropsFilePath)" Condition="Exists('$(RoslynToolsetPropsFilePath)')" />
+  <!-- 
+    Bootstrapping compilers
+  -->
+  <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
+    <_CompilerPackageName Condition="'$(MSBuildRuntimeType)' != 'Core'">Microsoft.Net.Compilers</_CompilerPackageName>
+    <_CompilerPackageName Condition="'$(MSBuildRuntimeType)' == 'Core'">Microsoft.NETCore.Compilers</_CompilerPackageName>
+    <_BootstrapBuildDir>$([MSBuild]::EnsureTrailingSlash($(BootstrapBuildPath)))</_BootstrapBuildDir>
+  </PropertyGroup>
+
+  <Import Project="$(_BootstrapBuildDir)build\$(_CompilerPackageName).props" Condition="'$(BootstrapBuildPath)' != ''" />
 
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.ValidateBootstrap"
-             AssemblyFile="$(RoslynToolsetDirectory)tools\Microsoft.Build.Tasks.CodeAnalysis.dll"
+             AssemblyFile="$(_BootstrapBuildDir)tools\Microsoft.Build.Tasks.CodeAnalysis.dll"
              Condition="'$(BootstrapBuildPath)' != ''" />
 
+  <!--
+    Analyzers
+  -->
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeQuality.Analyzers" Version="$(MicrosoftCodeQualityAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NetCore.Analyzers" Version="$(MicrosoftNetCoreAnalyzersVersion)" PrivateAssets="all" />
@@ -144,16 +149,34 @@
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="$(MicrosoftVisualStudioThreadingAnalyzersVersion)" PrivateAssets="all" />
   </ItemGroup>
 
+  <!-- Language-specific analyzer packages -->
+  <Choose>
+    <When Condition="'$(Language)' == 'VB' and '$(RoslynEnforceCodeStyle)' == 'true'">
+      <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" Version="$(MicrosoftCodeAnalysisVisualBasicCodeStyleVersion)" PrivateAssets="all" />
+      </ItemGroup>
+    </When>
+
+    <When Condition="'$(Language)' == 'C#' and '$(RoslynEnforceCodeStyle)' == 'true'">
+      <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="$(MicrosoftCodeAnalysisCSharpCodeStyleVersion)" PrivateAssets="all" />
+      </ItemGroup>
+    </When>
+  </Choose>
+
+  <PropertyGroup>
+    <!-- Don't treat FormattingAnalyzer as an error, even when TreatWarningsAsErrors is specified. -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);IDE0055</WarningsNotAsErrors>
+  </PropertyGroup>
+
   <!--
-    Language specifc settings
+    Language specific settings
   -->
   <Choose>
     <!-- VB specific settings -->
     <When Condition="'$(Language)' == 'VB'">
       <PropertyGroup>
         <LangVersion>15.5</LangVersion>
-        <RemoveIntegerChecks>true</RemoveIntegerChecks>
-        <RootNamespace></RootNamespace>
         <NoWarn>$(NoWarn);40057</NoWarn>
       </PropertyGroup>
       <ItemGroup>
@@ -188,7 +211,6 @@
                       thorough documentation story
         -->
         <NoWarn>$(NoWarn);1573;1591;1701</NoWarn>
-        <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
       </PropertyGroup>
       <PropertyGroup>
         <DefineConstants Condition="'$(InitialDefineConstants)' != ''">$(DefineConstants);$(InitialDefineConstants)</DefineConstants>

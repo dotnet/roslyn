@@ -125,14 +125,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type = nodeType = accessExpressionType;
             }
 
-            if (accessExpressionType != nodeType && nodeType.IsNullableType())
+            if (!TypeSymbol.Equals(accessExpressionType, nodeType, TypeCompareKind.ConsiderEverything2) && nodeType.IsNullableType())
             {
-                Debug.Assert(accessExpressionType == nodeType.GetNullableUnderlyingType());
+                Debug.Assert(TypeSymbol.Equals(accessExpressionType, nodeType.GetNullableUnderlyingType(), TypeCompareKind.ConsiderEverything2));
                 loweredAccessExpression = _factory.New((NamedTypeSymbol)nodeType, loweredAccessExpression);
             }
             else
             {
-                Debug.Assert(accessExpressionType == nodeType ||
+                Debug.Assert(TypeSymbol.Equals(accessExpressionType, nodeType, TypeCompareKind.ConsiderEverything2) ||
                     (nodeType.SpecialType == SpecialType.System_Void && !used));
             }
 

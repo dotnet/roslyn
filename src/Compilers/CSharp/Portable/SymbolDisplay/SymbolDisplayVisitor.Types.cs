@@ -16,15 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var visitor = (SymbolDisplayVisitor)(visitorOpt ?? this.NotFirstVisitor);
             var typeSymbol = type.TypeSymbol;
 
-            if (typeSymbol.TypeKind == TypeKind.Array)
-            {
-                visitor.VisitArrayType((IArrayTypeSymbol)typeSymbol, typeOpt: type);
-            }
-            else
-            {
-                typeSymbol.Accept(visitor);
-                AddNullableAnnotations(type);
-            }
+            typeSymbol.Accept(visitor);
+            AddNullableAnnotations(type);
         }
 
         public override void VisitArrayType(IArrayTypeSymbol symbol)
@@ -40,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             //See spec section 12.1 for the order of rank specifiers
-            //e.g. int[][,][,,] is stored as 
+            //e.g. int[][,][,,] is stored as
             //     ArrayType
             //         Rank = 1
             //         ElementType = ArrayType
@@ -57,59 +50,66 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            TypeSymbolWithAnnotations underlyingNonArrayTypeWithAnnotations = (symbol as ArrayTypeSymbol)?.ElementType ?? default;
-            var underlyingNonArrayType = symbol.ElementType;
-            while (underlyingNonArrayType.Kind == SymbolKind.ArrayType)
+            TypeSymbolWithAnnotations underlyingTypeWithAnnotations;
+            ITypeSymbol underlyingType = symbol;
+            do
             {
-                underlyingNonArrayTypeWithAnnotations = (underlyingNonArrayType as ArrayTypeSymbol)?.ElementType ?? default;
-                underlyingNonArrayType = ((IArrayTypeSymbol)underlyingNonArrayType).ElementType;
+                underlyingTypeWithAnnotations = (underlyingType as ArrayTypeSymbol)?.ElementType ?? default;
+                underlyingType = ((IArrayTypeSymbol)underlyingType).ElementType;
             }
+            while (underlyingType.Kind == SymbolKind.ArrayType && !ShouldAddNullableAnnotation(underlyingTypeWithAnnotations));
 
-            if (!underlyingNonArrayTypeWithAnnotations.IsNull)
+            if (!underlyingTypeWithAnnotations.IsNull)
             {
-                VisitTypeSymbolWithAnnotations(underlyingNonArrayTypeWithAnnotations);
+                VisitTypeSymbolWithAnnotations(underlyingTypeWithAnnotations);
             }
             else
             {
-                underlyingNonArrayType.Accept(this.NotFirstVisitor);
+                underlyingType.Accept(this.NotFirstVisitor);
             }
 
             var arrayType = symbol;
-            while (arrayType != null)
+            while (arrayType != null && arrayType != underlyingType)
             {
-                if (!this.isFirstSymbolVisited)
+                if (!(arrayType is null) && !this.isFirstSymbolVisited)
                 {
                     AddCustomModifiersIfRequired(arrayType.CustomModifiers, leadingSpace: true);
                 }
 
                 AddArrayRank(arrayType);
-                AddNullableAnnotations(typeOpt);
-
-                typeOpt = (arrayType as ArrayTypeSymbol)?.ElementType ?? default;
                 arrayType = arrayType.ElementType as IArrayTypeSymbol;
             }
         }
 
         private void AddNullableAnnotations(TypeSymbolWithAnnotations typeOpt)
         {
+            if (ShouldAddNullableAnnotation(typeOpt))
+            {
+                AddPunctuation(typeOpt.NullableAnnotation.IsAnyNullable() ? SyntaxKind.QuestionToken : SyntaxKind.ExclamationToken);
+            }
+        }
+
+        private bool ShouldAddNullableAnnotation(TypeSymbolWithAnnotations typeOpt)
+        {
             if (typeOpt.IsNull)
             {
-                return;
+                return false;
             }
-
-            if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
+            else if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
                 !typeOpt.IsNullableType() && !typeOpt.IsValueType &&
                 (typeOpt.NullableAnnotation == NullableAnnotation.Annotated ||
-                 (typeOpt.NullableAnnotation == NullableAnnotation.Nullable && !typeOpt.TypeSymbol.IsUnconstrainedTypeParameter())))
+                 (typeOpt.NullableAnnotation == NullableAnnotation.Nullable && !typeOpt.TypeSymbol.IsTypeParameterDisallowingAnnotation())))
             {
-                AddPunctuation(SyntaxKind.QuestionToken);
+                return true;
             }
             else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
                 !typeOpt.IsValueType &&
-                typeOpt.NullableAnnotation.IsAnyNotNullable() && !typeOpt.TypeSymbol.IsUnconstrainedTypeParameter())
+                typeOpt.NullableAnnotation.IsAnyNotNullable() && !typeOpt.TypeSymbol.IsTypeParameterDisallowingAnnotation())
             {
-                AddPunctuation(SyntaxKind.ExclamationToken);
+                return true;
             }
+
+            return false;
         }
 
         private void AddArrayRank(IArrayTypeSymbol symbol)
@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     AddSpace();
                                 }
 
-                                if (csharpType.IsByRefLikeType)
+                                if (csharpType.IsRefLikeType)
                                 {
                                     AddKeyword(SyntaxKind.RefKeyword);
                                     AddSpace();
@@ -786,10 +786,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (typeParam.HasReferenceTypeConstraint)
                             {
                                 AddKeyword(SyntaxKind.ClassKeyword);
-                                if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
-                                    typeParameterSymbol?.ReferenceTypeConstraintIsNullable == true) // https://github.com/dotnet/roslyn/issues/26198 Switch to public API when we will have one.
+
+                                switch (typeParameterSymbol?.ReferenceTypeConstraintIsNullable) // https://github.com/dotnet/roslyn/issues/26198 Switch to public API when we will have one.
                                 {
-                                    AddPunctuation(SyntaxKind.QuestionToken);
+                                    case true:
+                                        if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier))
+                                        {
+                                            AddPunctuation(SyntaxKind.QuestionToken);
+                                        }
+                                        break;
+
+                                    case false:
+                                        if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier))
+                                        {
+                                            AddPunctuation(SyntaxKind.ExclamationToken);
+                                        }
+                                        break;
                                 }
 
                                 needComma = true;

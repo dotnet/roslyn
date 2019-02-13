@@ -242,13 +242,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get { return null; }
         }
-
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                return _underlyingProperty.NonNullTypes;
-            }
-        }
     }
 }

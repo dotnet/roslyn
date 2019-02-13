@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
             bool isEnabledByDefault = true,
             bool isConfigurable = true,
             params string[] customTags)
-            =>  new DiagnosticDescriptor(
+            => new DiagnosticDescriptor(
                     id, title, messageFormat,
                     DiagnosticCategory.CodeQuality,
                     DiagnosticSeverity.Info,

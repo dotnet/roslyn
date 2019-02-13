@@ -494,8 +494,8 @@ namespace Microsoft.CodeAnalysis
                 if (arg.Length == 0 || !(arg[0] == '/' || arg[0] == '-'))
                 {
                     return false;
-                } 
-                
+                }
+
                 arg = arg.Substring(1);
                 if (!arg.StartsWith(optionName, StringComparison.OrdinalIgnoreCase))
                 {

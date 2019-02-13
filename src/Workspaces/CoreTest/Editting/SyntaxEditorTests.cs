@@ -220,7 +220,7 @@ public class C
 }";
 
             var cu = SyntaxFactory.ParseCompilationUnit(code);
-            
+
             var editor = GetEditor(cu);
 
             var cls = cu.Members[0];

@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class FeaturesResources {
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.FeaturesResources", typeof(FeaturesResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.FeaturesResources", typeof(FeaturesResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -507,6 +506,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Alias_ambiguous_type_0 {
             get {
                 return ResourceManager.GetString("Alias_ambiguous_type_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Align wrapped arguments.
+        /// </summary>
+        internal static string Align_wrapped_arguments {
+            get {
+                return ResourceManager.GetString("Align_wrapped_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Align wrapped parameters.
+        /// </summary>
+        internal static string Align_wrapped_parameters {
+            get {
+                return ResourceManager.GetString("Align_wrapped_parameters", resourceCulture);
             }
         }
         
@@ -1892,6 +1909,42 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Indent all arguments.
+        /// </summary>
+        internal static string Indent_all_arguments {
+            get {
+                return ResourceManager.GetString("Indent_all_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indent all parameters.
+        /// </summary>
+        internal static string Indent_all_parameters {
+            get {
+                return ResourceManager.GetString("Indent_all_parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indent wrapped arguments.
+        /// </summary>
+        internal static string Indent_wrapped_arguments {
+            get {
+                return ResourceManager.GetString("Indent_wrapped_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indent wrapped parameters.
+        /// </summary>
+        internal static string Indent_wrapped_parameters {
+            get {
+                return ResourceManager.GetString("Indent_wrapped_parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to indexer.
         /// </summary>
         internal static string indexer_ {
@@ -2207,6 +2260,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Local function can be made static.
+        /// </summary>
+        internal static string Local_function_can_be_made_static {
+            get {
+                return ResourceManager.GetString("Local_function_can_be_made_static", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to local variable.
         /// </summary>
         internal static string local_variable {
@@ -2270,6 +2332,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Make local function &apos;static&apos;.
+        /// </summary>
+        internal static string Make_local_function_static {
+            get {
+                return ResourceManager.GetString("Make_local_function_static", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Make method synchronous.
         /// </summary>
         internal static string Make_method_synchronous {
@@ -2284,6 +2355,42 @@ namespace Microsoft.CodeAnalysis {
         internal static string Member_name_can_be_simplified {
             get {
                 return ResourceManager.GetString("Member_name_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Merge with nested &apos;{0}&apos; statement.
+        /// </summary>
+        internal static string Merge_with_nested_0_statement {
+            get {
+                return ResourceManager.GetString("Merge_with_nested_0_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Merge with next &apos;{0}&apos; statement.
+        /// </summary>
+        internal static string Merge_with_next_0_statement {
+            get {
+                return ResourceManager.GetString("Merge_with_next_0_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Merge with outer &apos;{0}&apos; statement.
+        /// </summary>
+        internal static string Merge_with_outer_0_statement {
+            get {
+                return ResourceManager.GetString("Merge_with_outer_0_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Merge with previous &apos;{0}&apos; statement.
+        /// </summary>
+        internal static string Merge_with_previous_0_statement {
+            get {
+                return ResourceManager.GetString("Merge_with_previous_0_statement", resourceCulture);
             }
         }
         
@@ -2799,6 +2906,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Private method &apos;{0}&apos; can be removed as it is never invoked..
+        /// </summary>
+        internal static string Private_method_0_can_be_removed_as_it_is_never_invoked {
+            get {
+                return ResourceManager.GetString("Private_method_0_can_be_removed_as_it_is_never_invoked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Project.
         /// </summary>
         internal static string Project {
@@ -2849,6 +2965,33 @@ namespace Microsoft.CodeAnalysis {
         internal static string Property_referenced_implicitly {
             get {
                 return ResourceManager.GetString("Property_referenced_implicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pull &apos;{0}&apos; up.
+        /// </summary>
+        internal static string Pull_0_up {
+            get {
+                return ResourceManager.GetString("Pull_0_up", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pull &apos;{0}&apos; up to &apos;{1}&apos;.
+        /// </summary>
+        internal static string Pull_0_up_to_1 {
+            get {
+                return ResourceManager.GetString("Pull_0_up_to_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pull members up to base type....
+        /// </summary>
+        internal static string Pull_members_up_to_base_type {
+            get {
+                return ResourceManager.GetString("Pull_members_up_to_base_type", resourceCulture);
             }
         }
         
@@ -3363,6 +3506,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Split into consecutive &apos;{0}&apos; statements.
+        /// </summary>
+        internal static string Split_into_consecutive_0_statements {
+            get {
+                return ResourceManager.GetString("Split_into_consecutive_0_statements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Split into nested &apos;{0}&apos; statements.
+        /// </summary>
+        internal static string Split_into_nested_0_statements {
+            get {
+                return ResourceManager.GetString("Split_into_nested_0_statements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Structures.
         /// </summary>
         internal static string Structures {
@@ -3655,6 +3816,69 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unwrap all arguments.
+        /// </summary>
+        internal static string Unwrap_all_arguments {
+            get {
+                return ResourceManager.GetString("Unwrap_all_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unwrap all parameters.
+        /// </summary>
+        internal static string Unwrap_all_parameters {
+            get {
+                return ResourceManager.GetString("Unwrap_all_parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unwrap and indent all arguments.
+        /// </summary>
+        internal static string Unwrap_and_indent_all_arguments {
+            get {
+                return ResourceManager.GetString("Unwrap_and_indent_all_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unwrap and indent all parameters.
+        /// </summary>
+        internal static string Unwrap_and_indent_all_parameters {
+            get {
+                return ResourceManager.GetString("Unwrap_and_indent_all_parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unwrap argument list.
+        /// </summary>
+        internal static string Unwrap_argument_list {
+            get {
+                return ResourceManager.GetString("Unwrap_argument_list", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unwrap expression.
+        /// </summary>
+        internal static string Unwrap_expression {
+            get {
+                return ResourceManager.GetString("Unwrap_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unwrap parameter list.
+        /// </summary>
+        internal static string Unwrap_parameter_list {
+            get {
+                return ResourceManager.GetString("Unwrap_parameter_list", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Updating &apos;{0}&apos; will prevent the debug session from continuing..
         /// </summary>
         internal static string Updating_0_will_prevent_the_debug_session_from_continuing {
@@ -3935,6 +4159,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use block body for local functions.
+        /// </summary>
+        internal static string Use_block_body_for_local_functions {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_local_functions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use block body for methods.
         /// </summary>
         internal static string Use_block_body_for_methods {
@@ -4039,6 +4272,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_expression_body_for_lambda_expressions {
             get {
                 return ResourceManager.GetString("Use_expression_body_for_lambda_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for local functions.
+        /// </summary>
+        internal static string Use_expression_body_for_local_functions {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_local_functions", resourceCulture);
             }
         }
         
@@ -4161,6 +4403,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use simple &apos;using&apos; statement.
+        /// </summary>
+        internal static string Use_simple_using_statement {
+            get {
+                return ResourceManager.GetString("Use_simple_using_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use &apos;throw&apos; expression.
         /// </summary>
         internal static string Use_throw_expression {
@@ -4202,6 +4453,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Using_ref_structs_will_prevent_the_debug_session_from_continuing {
             get {
                 return ResourceManager.GetString("Using_ref_structs_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;using&apos; statement can be simplified.
+        /// </summary>
+        internal static string using_statement_can_be_simplified {
+            get {
+                return ResourceManager.GetString("using_statement_can_be_simplified", resourceCulture);
             }
         }
         
@@ -4302,6 +4562,60 @@ namespace Microsoft.CodeAnalysis {
         internal static string Warning_Method_overrides_symbol_from_metadata {
             get {
                 return ResourceManager.GetString("Warning_Method_overrides_symbol_from_metadata", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap every argument.
+        /// </summary>
+        internal static string Wrap_every_argument {
+            get {
+                return ResourceManager.GetString("Wrap_every_argument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap every parameter.
+        /// </summary>
+        internal static string Wrap_every_parameter {
+            get {
+                return ResourceManager.GetString("Wrap_every_parameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap expression.
+        /// </summary>
+        internal static string Wrap_expression {
+            get {
+                return ResourceManager.GetString("Wrap_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap long argument list.
+        /// </summary>
+        internal static string Wrap_long_argument_list {
+            get {
+                return ResourceManager.GetString("Wrap_long_argument_list", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap long parameter list.
+        /// </summary>
+        internal static string Wrap_long_parameter_list {
+            get {
+                return ResourceManager.GetString("Wrap_long_parameter_list", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrapping.
+        /// </summary>
+        internal static string Wrapping {
+            get {
+                return ResourceManager.GetString("Wrapping", resourceCulture);
             }
         }
         

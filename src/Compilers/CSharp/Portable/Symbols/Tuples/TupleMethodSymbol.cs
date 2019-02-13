@@ -172,8 +172,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        public override bool? NonNullTypes => false;
-
         public override int GetHashCode()
         {
             return _underlyingMethod.ConstructedFrom.GetHashCode();
@@ -191,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            return (object)other != null && _containingType == other._containingType && _underlyingMethod.ConstructedFrom == other._underlyingMethod.ConstructedFrom;
+            return (object)other != null && TypeSymbol.Equals(_containingType, other._containingType, TypeCompareKind.ConsiderEverything2) && _underlyingMethod.ConstructedFrom == other._underlyingMethod.ConstructedFrom;
         }
     }
 }

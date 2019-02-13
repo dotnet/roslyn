@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ValidateFormatString
 {
-    internal abstract class AbstractValidateFormatStringDiagnosticAnalyzer<TSyntaxKind> 
+    internal abstract class AbstractValidateFormatStringDiagnosticAnalyzer<TSyntaxKind>
         : DiagnosticAnalyzer
         where TSyntaxKind : struct
     {
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 syntaxFacts);
 
             if (formatStringLiteralExpressionSyntax == null)
-            { 
+            {
                 return;
             }
 
@@ -359,11 +359,11 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                     var invalidPlaceholderLocation = Location.Create(
                         context.Node.SyntaxTree,
                         new Text.TextSpan(
-                            formatStringPosition + match.Index, 
+                            formatStringPosition + match.Index,
                             invalidPlaceholderText.Length));
                     var diagnostic = Diagnostic.Create(
                         Rule,
-                        invalidPlaceholderLocation, 
+                        invalidPlaceholderLocation,
                         invalidPlaceholderText);
                     context.ReportDiagnostic(diagnostic);
                 }
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             => s_removeEscapedBracketsRegex.Replace(formatString, "  ");
 
         private static bool PlaceholderIndexIsValid(
-            string textInsideBrackets, 
+            string textInsideBrackets,
             int numberOfPlaceholderArguments)
         {
             var placeholderIndexText = textInsideBrackets.IndexOf(",") > 0

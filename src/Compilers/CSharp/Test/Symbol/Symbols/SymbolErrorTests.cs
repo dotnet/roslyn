@@ -881,6 +881,59 @@ interface i1
         }
 
         [Fact]
+        public void CS0065ERR_EventNeedsBothAccessors_Interface05()
+        {
+            var text = @"
+public interface I2 { }
+
+public interface I1
+{
+    event System.Action I2.P10;
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,27): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+                //     event System.Action I2.P10;
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(6, 27),
+                // (6,31): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                //     event System.Action I2.P10;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(6, 31),
+                // (6,28): error CS0541: 'I1.P10': explicit interface declaration can only be declared in a class or struct
+                //     event System.Action I2.P10;
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P10").WithArguments("I1.P10").WithLocation(6, 28),
+                // (6,28): error CS0065: 'I1.P10': event property must have both add and remove accessors
+                //     event System.Action I2.P10;
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P10").WithArguments("I1.P10").WithLocation(6, 28));
+        }
+
+        [Fact]
+        public void CS0065ERR_EventNeedsBothAccessors_Interface06()
+        {
+            var text = @"
+public interface I2 { }
+
+public interface I1
+{
+    event System.Action I2.
+P10;
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,27): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+                //     event System.Action I2.
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(6, 27),
+                // (7,4): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                // P10;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(7, 4),
+                // (7,1): error CS0541: 'I1.P10': explicit interface declaration can only be declared in a class or struct
+                // P10;
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P10").WithArguments("I1.P10").WithLocation(7, 1),
+                // (7,1): error CS0065: 'I1.P10': event property must have both add and remove accessors
+                // P10;
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P10").WithArguments("I1.P10").WithLocation(7, 1));
+        }
+
+        [Fact]
         public void CS0066ERR_EventNotDelegate()
         {
             var text = @"
@@ -1884,6 +1937,9 @@ public class C : I, J
 }
 ");
             compilation.VerifyDiagnostics(
+                // (13,14): error CS8646: 'I.this[int]' is explicitly implemented more than once.
+                // public class C : I, J
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C").WithArguments("I.this[int]").WithLocation(13, 14),
                 // (16,19): error CS0111: Type 'C' already defines a member called 'this' with the same parameter types
                 //     int AliasForI.this[int x] { get { return 0; } set { } } //CS0111
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "C"));
@@ -16166,8 +16222,8 @@ class A : C {
             var errorFieldType = (ErrorTypeSymbol)fieldType;
             Assert.Equal(CandidateReason.Ambiguous, errorFieldType.CandidateReason);
             Assert.Equal(2, errorFieldType.CandidateSymbols.Length);
-            Assert.True((classBinN1 == errorFieldType.CandidateSymbols[0] && classBinN2 == errorFieldType.CandidateSymbols[1]) ||
-                        (classBinN2 == errorFieldType.CandidateSymbols[0] && classBinN1 == errorFieldType.CandidateSymbols[1]),
+            Assert.True((TypeSymbol.Equals(classBinN1, (TypeSymbol)errorFieldType.CandidateSymbols[0], TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(classBinN2, (TypeSymbol)errorFieldType.CandidateSymbols[1], TypeCompareKind.ConsiderEverything2)) ||
+                        (TypeSymbol.Equals(classBinN2, (TypeSymbol)errorFieldType.CandidateSymbols[0], TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(classBinN1, (TypeSymbol)errorFieldType.CandidateSymbols[1], TypeCompareKind.ConsiderEverything2)),
                         "CandidateSymbols must by N1.B and N2.B in some order");
         }
 
@@ -20205,7 +20261,7 @@ namespace B
     }
 }";
             var referenceB = CreateCompilation(codeB, references: new MetadataReference[] { referenceC }, assemblyName: "B").EmitToImageReference();
-            
+
             var codeC2 = @"
 .assembly C { }
 .module C.dll

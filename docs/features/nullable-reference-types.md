@@ -2,6 +2,16 @@ Nullable Reference Types
 =========
 Reference types may be nullable, non-nullable, or null-oblivious (abbreviated here as `?`, `!`, and `~`).
 
+## Setting project level nullable context
+
+Project level nullable context can be set by using "nullable" command line switch:
+-nullable[+|-]                        Specify nullable context option enable|disable.
+-nullable:{enable|disable|safeonly|warnings|safeonlywarnings}   Specify nullable context option enable|disable|safeonly|warnings|safeonlywarnings.
+
+Through msbuild the context could be set by supplying an argument for a "NullableContextOptions" parameter of Csc build task.
+Accepted values are "enable", "disable", "safeonly", "warnings", "safeonlywarnings", or null (for the default nullable context according to the compiler).
+The Microsoft.CSharp.Core.targets passes value of msbuild property named "NullableContextOptions" for that parameter.
+
 ## Annotations
 In source, nullable reference types are annotated with `?`.
 ```c#
@@ -84,14 +94,25 @@ Invocation of methods annotated with the following attributes will also affect f
 - `[AssertsTrue]` (e.g. `Debug.Assert`) and `[AssertsFalse]`
 
 ## `default`
-`default(T)` is `T?` if `T` is a reference type.
-_Is `default(T)` also `T?` if `T` is an unconstrained type parameter?_
-_Is `default(T?)` an error?_
+If `T` is a reference type, `default(T)` is `T?`.
 ```c#
 string? s = default(string); // assigns ?, no warning
 string t = default; // assigns ?, warning
-T t = default; // assigns ?, warning
 ```
+If `T` is a value type, `default(T)` is `T` and any non-value-type fields in `T` are maybe null.
+If `T` is a value type, `new T()` is equivalent to `default(T)`.
+```c#
+struct Pair<T, U> { public T First; public U Second; }
+var p = default(Pair<object?, string>); // ok: Pair<object?, string!> p
+p.Second.ToString(); // warning
+(object?, string) t = default; // ok
+t.Item2.ToString(); // warning
+```
+If `T` is an unconstrained type parameter, `default(T)` is a `T` that is maybe null.
+```c#
+T t = default; // warning
+```
+_Is `default(T?)` an error?_
 
 ### Conversions
 Conversions can be calculated with ~ considered distinct from ? and !, or with ~ implicitly convertible to ? and !.
@@ -126,18 +147,17 @@ var t = maybeNull; // t is !
 ```
 
 ### Suppression operator (`!`)
-The postfix `!` operator sets the top-level nullability to non-nullable.
+The postfix `!` operator sets the top-level nullability to non-nullable. Conversions on a suppressed expression produce no nullability warnings.
 ```c#
 var x = optionalString!; // x is string!
 var y = obliviousString!; // y is string!
 var z = new [] { optionalString, obliviousString }!; // no change, z is string?[]!
 ```
-An error is reported whenever the `!` operator is applied to a value type.
 A warning is reported when using the `!` operator absent a `NonNullTypes` context.
 
-_Should `!` suppress warnings for nested nullability?_
-_Should `nonNull!` result in a warning for unnecessary `!`?_
-_Should `!!` be an error?_
+Unnecessary usages of `!` do not produce any diagnostics, including `!!`.
+
+A suppressed expression `e!` can be target-typed if the operand expression `e` can be target-typed.
 
 ### Explicit cast
 Explicit cast to `?` changes top-level nullability.
@@ -172,10 +192,11 @@ Merging equivalent but not identical types is done as follows:
 - Merging `dynamic` and `object` results in the type `dynamic`.
 - Merging tuple types that differ in element names is specified elsewhere.
 - Merging equivalent types that differ in nullability is performed as follows: merging the types `Tn` and `Um` (where `n` and `m` are differing nullability annotations) results in the type `Vk` where `V` is the result of merging `T` and `U` using the invariant rule, and `k` is as follows:
- - if either `n` or `m` are non-nullable, non-nullable. In this case, if the other is nullable, a warning should be produced.
+ - if either `n` or `m` are non-nullable, non-nullable.
  - if either `n` or `m` are nullable, nullable.
  - otherwise oblivious.
 - Merging constructed generic types is performed as follows: Merging the types `K<A1, A2, ...>` and `K<B1, B2, ...>` results in the type `K<C1, C2, ...>` where `Ci` is the result of merging `Ai` and `Bi` by the invariant rule.
+- Merging tuple types `(A1, A2, ...)` and `(B1, B2, ...)` results in the type `(C1, C2, ...)` where `Ci` is the result of merging `Ai` and `Bi` by the invariant rule.
 - Merging the array types `T[]` and `U[]` results in the type `V[]` where `V` is the result of merging `T` and `U` by the invariant rule.
 
 #### Covariant merging rules
@@ -190,6 +211,7 @@ Merging equivalent but not identical types is done as follows:
   - the invariant rule if `K`'s type parameter in the `i` position is invariant.
   - the covariant rule if `K`'s type parameter in the `i` position is declared `out`.
   - the contravariant rule if the `K`'s type parameter in the `i` position is declared `in`.
+- Merging tuple types `(A1, A2, ...)` and `(B1, B2, ...)` results in the type `(C1, C2, ...)` where `Ci` is the result of merging `Ai` and `Bi` by the covariant rule.
 - Merging the array types `T[]` and `U[]` results in the type `V[]` where `V` is the result of merging `T` and `U` by the invariant rule.
 
 #### Contravariant merging rules
@@ -204,6 +226,7 @@ Merging equivalent but not identical types is done as follows:
   - the invariant rule if `K`'s type parameter in the `i` position is invariant.
   - the covariant rule if `K`'s type parameter in the `i` position is declared `in`.
   - the contravariant rule if `K`'s type parameter in the `i` position is declared `out`.
+- Merging tuple types `(A1, A2, ...)` and `(B1, B2, ...)` results in the type `(C1, C2, ...)` where `Ci` is the result of merging `Ai` and `Bi` by the contravariant rule.
 - Merging the array types `T[]` and `U[]` results in the type `V[]` where `V` is the result of merging `T` and `U` by the invariant rule.
 
 It is intended that these merging rules are associative and commutative, so that a compiler may merge a set of equivalent types pairwise in any order to compute the final result.
@@ -213,16 +236,12 @@ It is intended that these merging rules are associative and commutative, so that
 > ***Open issue***: these rules do not describe the handling of merging pointer types.
 
 ### Array creation
-The calculation of the _best type_ element nullability uses the Conversions rules above.
-The top-level and nested nullability are calculated independently.
-The top-level nullability is the most relaxed of the elements, where `!` is a `~` is a `?`.
-The nested nullability is the merged nullability of the best common type. If there is a merge conflict,
-the nested nullability is `~` and a warning is reported.
+The calculation of the _best type_ element nullability uses the Conversions rules above and the covariant merging rules.
 ```c#
 var w = new [] { notNull, oblivious }; // ~[]!
 var x = new [] { notNull, maybeNull, oblivious }; // ?[]!
 var y = new [] { enumerableOfNotNull, enumerableOfMaybeNull, enumerableOfOblivious }; // IEnumerable<?>!
-var z = new [] { listOfNotNull, listOfMaybeNull, listOfOblivious }; // List<~>!, warning
+var z = new [] { listOfNotNull, listOfMaybeNull, listOfOblivious }; // List<~>!
 ```
 
 ### Null-coalescing operator

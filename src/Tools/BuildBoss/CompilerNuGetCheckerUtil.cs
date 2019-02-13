@@ -50,7 +50,7 @@ namespace BuildBoss
             }
             catch (Exception ex)
             {
-                textWriter.WriteLine($"Error verifying NuPkg files: {ex.Message}");
+                textWriter.WriteLine($"Error verifying: {ex.Message}");
                 return false;
             }
         }
@@ -95,6 +95,11 @@ namespace BuildBoss
                         FindNuGetPackage(Path.Combine(ArtifactsDirectory, "VSSetup", Configuration, "DevDivPackages"), "VS.Tools.Roslyn"),
                         string.Empty,
                         dllRelativeNames);
+
+            allGood &= VerifyVsix(
+                        textWriter,
+                        FindVsix("Roslyn.Compilers.Extension"),
+                        dllRelativeNames.Concat(new[] { "Roslyn.Compilers.Extension.dll" }));
             return allGood;
         }
 
@@ -231,9 +236,20 @@ namespace BuildBoss
         }
 
         private static bool VerifyNuPackage(
-            TextWriter textWriter, 
-            string nupkgFilePath, 
-            string folderRelativePath, 
+            TextWriter textWriter,
+            string nupkgFilePath,
+            string folderRelativePath,
+            IEnumerable<string> dllFileNames) => VerifyCore(textWriter, nupkgFilePath, folderRelativePath, dllFileNames);
+
+        private static bool VerifyVsix(
+            TextWriter textWriter,
+            string vsixFilePath,
+            IEnumerable<string> dllFileNames) => VerifyCore(textWriter, vsixFilePath, folderRelativePath: "", dllFileNames);
+
+        private static bool VerifyCore(
+            TextWriter textWriter,
+            string packageFilePath,
+            string folderRelativePath,
             IEnumerable<string> dllFileNames)
         {
             Debug.Assert(string.IsNullOrEmpty(folderRelativePath) || folderRelativePath[0] != '\\');
@@ -242,7 +258,7 @@ namespace BuildBoss
             // are in any child folder
             IEnumerable<string> getPartsInFolder()
             {
-                using (var package = Package.Open(nupkgFilePath, FileMode.Open, FileAccess.Read))
+                using (var package = Package.Open(packageFilePath, FileMode.Open, FileAccess.Read))
                 {
                     foreach (var part in package.GetParts())
                     {
@@ -275,9 +291,9 @@ namespace BuildBoss
                     elementSelector: _ => false,
                     comparer: PathComparer);
             var allGood = true;
-            var nupkgFileName = Path.GetFileName(nupkgFilePath);
+            var packageFileName = Path.GetFileName(packageFilePath);
 
-            textWriter.WriteLine($"Verifying NuPkg {nupkgFileName}");
+            textWriter.WriteLine($"Verifying {packageFileName}");
             foreach (var relativeName in getPartsInFolder())
             {
                 var name = Path.GetFileName(relativeName);
@@ -313,6 +329,14 @@ namespace BuildBoss
         {
             var file = Directory.EnumerateFiles(directory, partialName + "*.nupkg").SingleOrDefault();
             return file ?? throw new Exception($"Unable to find '{partialName}*.nupkg' in '{directory}'");
+        }
+
+        private string FindVsix(string fileName)
+        {
+            fileName = fileName + ".vsix";
+            var directory = Path.Combine(ArtifactsDirectory, "VSSetup", Configuration);
+            var file = Directory.EnumerateFiles(directory, fileName).SingleOrDefault();
+            return file ?? throw new Exception($"Unable to find '{fileName}' in '{directory}'");
         }
     }
 }

@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract ISyntaxFactsService SyntaxFacts { get; }
 
         internal abstract SyntaxTrivia EndOfLine(string text);
+        internal abstract SyntaxTrivia Whitespace(string text);
 
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
@@ -1082,6 +1083,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract IReadOnlyList<SyntaxNode> GetParameters(SyntaxNode declaration);
 
+        internal abstract SyntaxNode GetParameterListNode(SyntaxNode declaration);
+
         /// <summary>
         /// Inserts the parameters at the specified index into the declaration.
         /// </summary>
@@ -1567,6 +1570,11 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a while-loop statement
         /// </summary>
         public abstract SyntaxNode WhileStatement(SyntaxNode condition, IEnumerable<SyntaxNode> statements);
+
+        /// <summary>
+        /// Creates a block of statements. Not supported in VB.
+        /// </summary>
+        internal abstract SyntaxNode ScopeBlock(IEnumerable<SyntaxNode> statements);
 
         #endregion
 
@@ -2229,6 +2237,14 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an tuple expression.
         /// </summary>
         public abstract SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments);
+
+        #endregion
+
+        #region Patterns
+
+        internal abstract bool SupportsPatterns(ParseOptions options);
+        internal abstract SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxNode pattern);
+        internal abstract SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name);
 
         #endregion
     }

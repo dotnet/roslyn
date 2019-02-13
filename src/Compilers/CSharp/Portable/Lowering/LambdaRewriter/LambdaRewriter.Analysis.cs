@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private readonly MethodSymbol _topLevelMethod;
             private readonly int _topLevelMethodOrdinal;
-            private readonly MethodSymbol _substitutedSourceMethod; 
+            private readonly MethodSymbol _substitutedSourceMethod;
             private readonly VariableSlotAllocator _slotAllocatorOpt;
             private readonly TypeCompilationState _compilationState;
 
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var env = topLevelEnvs[0];
 
                 // The environment must contain only 'this' to be inlined
-                if (env.CapturedVariables.Count > 1 || 
+                if (env.CapturedVariables.Count > 1 ||
                     !env.CapturedVariables.Contains(thisParam))
                 {
                     return;
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return closure.CapturedEnvironments.Contains(env) &&
                             closure.ContainingEnvironmentOpt != null;
                     });
-                    
+
                     if (!cantRemove)
                     {
                         RemoveEnv();

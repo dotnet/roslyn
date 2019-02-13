@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return MakeTupleFieldAccess(syntax, fieldSymbol, rewrittenReceiver, constantValueOpt, resultKind);
             }
-            
+
             BoundExpression result = oldNodeOpt != null ?
                 oldNodeOpt.Update(rewrittenReceiver, fieldSymbol, constantValueOpt, resultKind, type) :
                 new BoundFieldAccess(syntax, rewrittenReceiver, fieldSymbol, constantValueOpt, resultKind, type);
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression MakeTupleFieldAccess(
             SyntaxNode syntax,
-            FieldSymbol tupleField, 
+            FieldSymbol tupleField,
             BoundExpression rewrittenReceiver,
             ConstantValue constantValueOpt,
             LookupResultKind resultKind)
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundDefaultExpression(syntax, tupleField.Type.TypeSymbol);
             }
 
-            if (underlyingField.ContainingType != currentLinkType)
+            if (!TypeSymbol.Equals(underlyingField.ContainingType, currentLinkType, TypeCompareKind.ConsiderEverything2))
             {
                 WellKnownMember wellKnownTupleRest = TupleTypeSymbol.GetTupleTypeMember(TupleTypeSymbol.RestPosition, TupleTypeSymbol.RestPosition);
                 var tupleRestField = (FieldSymbol)TupleTypeSymbol.GetWellKnownMemberInType(currentLinkType.OriginalDefinition, wellKnownTupleRest, _diagnostics, syntax);
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     currentLinkType = currentLinkType.TypeArgumentsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1].TypeSymbol.TupleUnderlyingType;
                 }
-                while (underlyingField.ContainingType != currentLinkType);
+                while (!TypeSymbol.Equals(underlyingField.ContainingType, currentLinkType, TypeCompareKind.ConsiderEverything2));
             }
 
             // make a field access for the most local access

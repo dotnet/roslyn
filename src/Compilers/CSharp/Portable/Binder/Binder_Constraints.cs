@@ -116,11 +116,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics.Add(ErrorCode.ERR_RefValBoundMustBeFirst, syntax.GetFirstToken().GetLocation());
                         }
 
-                        SyntaxToken questionToken = ((ClassOrStructConstraintSyntax)syntax).QuestionToken;
+                        var constraintSyntax = (ClassOrStructConstraintSyntax)syntax;
+                        SyntaxToken questionToken = constraintSyntax.QuestionToken;
                         if (questionToken.IsKind(SyntaxKind.QuestionToken))
                         {
                             constraints |= TypeParameterConstraintKind.NullableReferenceType;
-                            diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(Compilation, NonNullTypesContext, type: default), questionToken.GetLocation());
+
+                            LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(IsNullableEnabled(questionToken), questionToken.GetLocation(), diagnostics);
+                        }
+                        else if (IsNullableEnabled(constraintSyntax.ClassOrStructKeyword))
+                        {
+                            constraints |= TypeParameterConstraintKind.NotNullableReferenceType;
                         }
                         else
                         {

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
             }
 
             return Diagnostic.Create(
-                UnnecessaryWithSuggestionDescriptor, 
+                UnnecessaryWithSuggestionDescriptor,
                 node.SyntaxTree.GetLocation(GetFadeSpan(node)),
                 ImmutableArray.Create(node.GetLocation()));
         }

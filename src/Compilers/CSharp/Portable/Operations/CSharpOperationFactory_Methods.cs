@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private static readonly IConvertibleConversion s_boxedIdentityConversion = Conversion.Identity;
 
-        private static Optional<object> ConvertToOptional(ConstantValue value)
+        internal static Optional<object> ConvertToOptional(ConstantValue value)
         {
             return value != null && !value.IsBad ? new Optional<object>(value.Value) : default(Optional<object>);
         }
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return ImmutableArray.Create(statement);
         }
 
-        private IInstanceReferenceOperation CreateImplicitReciever(SyntaxNode syntax, ITypeSymbol type) =>
+        private IInstanceReferenceOperation CreateImplicitReceiver(SyntaxNode syntax, ITypeSymbol type) =>
             new InstanceReferenceOperation(InstanceReferenceKind.ImplicitReceiver, _semanticModel, syntax, type, constantValue: default, isImplicit: true);
 
         internal IArgumentOperation CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, BoundExpression expression)
@@ -216,23 +216,23 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (containingExpression.Kind)
             {
                 case BoundKind.ObjectInitializerMember:
-                {
-                    var boundObjectInitializerMember = (BoundObjectInitializerMember)containingExpression;
-                    var property = (PropertySymbol)boundObjectInitializerMember.MemberSymbol;
-                    MethodSymbol accessor = isObjectOrCollectionInitializer ? property.GetOwnOrInheritedGetMethod() : property.GetOwnOrInheritedSetMethod();
-                    return DeriveArguments(
-                                boundObjectInitializerMember,
-                                boundObjectInitializerMember.BinderOpt,
-                                property,
-                                accessor,
-                                boundObjectInitializerMember.Arguments,
-                                boundObjectInitializerMember.ArgumentNamesOpt,
-                                boundObjectInitializerMember.ArgsToParamsOpt,
-                                boundObjectInitializerMember.ArgumentRefKindsOpt,
-                                property.Parameters,
-                                boundObjectInitializerMember.Expanded,
-                                boundObjectInitializerMember.Syntax);
-                }
+                    {
+                        var boundObjectInitializerMember = (BoundObjectInitializerMember)containingExpression;
+                        var property = (PropertySymbol)boundObjectInitializerMember.MemberSymbol;
+                        MethodSymbol accessor = isObjectOrCollectionInitializer ? property.GetOwnOrInheritedGetMethod() : property.GetOwnOrInheritedSetMethod();
+                        return DeriveArguments(
+                                    boundObjectInitializerMember,
+                                    boundObjectInitializerMember.BinderOpt,
+                                    property,
+                                    accessor,
+                                    boundObjectInitializerMember.Arguments,
+                                    boundObjectInitializerMember.ArgumentNamesOpt,
+                                    boundObjectInitializerMember.ArgsToParamsOpt,
+                                    boundObjectInitializerMember.ArgumentRefKindsOpt,
+                                    property.Parameters,
+                                    boundObjectInitializerMember.Expanded,
+                                    boundObjectInitializerMember.Syntax);
+                    }
 
                 default:
                     return DeriveArguments(containingExpression);
@@ -244,68 +244,68 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (containingExpression.Kind)
             {
                 case BoundKind.IndexerAccess:
-                {
-                    var boundIndexer = (BoundIndexerAccess)containingExpression;
-                    return DeriveArguments(boundIndexer,
-                                           boundIndexer.BinderOpt,
-                                           boundIndexer.Indexer,
-                                           boundIndexer.UseSetterForDefaultArgumentGeneration ? boundIndexer.Indexer.GetOwnOrInheritedSetMethod() :
-                                                                                                boundIndexer.Indexer.GetOwnOrInheritedGetMethod(),
-                                           boundIndexer.Arguments,
-                                           boundIndexer.ArgumentNamesOpt,
-                                           boundIndexer.ArgsToParamsOpt,
-                                           boundIndexer.ArgumentRefKindsOpt,
-                                           boundIndexer.Indexer.Parameters,
-                                           boundIndexer.Expanded,
-                                           boundIndexer.Syntax);
-                }
+                    {
+                        var boundIndexer = (BoundIndexerAccess)containingExpression;
+                        return DeriveArguments(boundIndexer,
+                                               boundIndexer.BinderOpt,
+                                               boundIndexer.Indexer,
+                                               boundIndexer.UseSetterForDefaultArgumentGeneration ? boundIndexer.Indexer.GetOwnOrInheritedSetMethod() :
+                                                                                                    boundIndexer.Indexer.GetOwnOrInheritedGetMethod(),
+                                               boundIndexer.Arguments,
+                                               boundIndexer.ArgumentNamesOpt,
+                                               boundIndexer.ArgsToParamsOpt,
+                                               boundIndexer.ArgumentRefKindsOpt,
+                                               boundIndexer.Indexer.Parameters,
+                                               boundIndexer.Expanded,
+                                               boundIndexer.Syntax);
+                    }
                 case BoundKind.ObjectCreationExpression:
-                {
-                    var objectCreation = (BoundObjectCreationExpression)containingExpression;
-                    return DeriveArguments(objectCreation,
-                                           objectCreation.BinderOpt,
-                                           objectCreation.Constructor,
-                                           objectCreation.Constructor,
-                                           objectCreation.Arguments,
-                                           objectCreation.ArgumentNamesOpt,
-                                           objectCreation.ArgsToParamsOpt,
-                                           objectCreation.ArgumentRefKindsOpt,
-                                           objectCreation.Constructor.Parameters,
-                                           objectCreation.Expanded,
-                                           objectCreation.Syntax);
-                }
+                    {
+                        var objectCreation = (BoundObjectCreationExpression)containingExpression;
+                        return DeriveArguments(objectCreation,
+                                               objectCreation.BinderOpt,
+                                               objectCreation.Constructor,
+                                               objectCreation.Constructor,
+                                               objectCreation.Arguments,
+                                               objectCreation.ArgumentNamesOpt,
+                                               objectCreation.ArgsToParamsOpt,
+                                               objectCreation.ArgumentRefKindsOpt,
+                                               objectCreation.Constructor.Parameters,
+                                               objectCreation.Expanded,
+                                               objectCreation.Syntax);
+                    }
                 case BoundKind.Call:
-                {
-                    var boundCall = (BoundCall)containingExpression;
-                    return DeriveArguments(boundCall,
-                                           boundCall.BinderOpt,
-                                           boundCall.Method,
-                                           boundCall.Method,
-                                           boundCall.Arguments,
-                                           boundCall.ArgumentNamesOpt,
-                                           boundCall.ArgsToParamsOpt,
-                                           boundCall.ArgumentRefKindsOpt,
-                                           boundCall.Method.Parameters,
-                                           boundCall.Expanded,
-                                           boundCall.Syntax,
-                                           boundCall.InvokedAsExtensionMethod);
-                }
+                    {
+                        var boundCall = (BoundCall)containingExpression;
+                        return DeriveArguments(boundCall,
+                                               boundCall.BinderOpt,
+                                               boundCall.Method,
+                                               boundCall.Method,
+                                               boundCall.Arguments,
+                                               boundCall.ArgumentNamesOpt,
+                                               boundCall.ArgsToParamsOpt,
+                                               boundCall.ArgumentRefKindsOpt,
+                                               boundCall.Method.Parameters,
+                                               boundCall.Expanded,
+                                               boundCall.Syntax,
+                                               boundCall.InvokedAsExtensionMethod);
+                    }
                 case BoundKind.CollectionElementInitializer:
-                {
-                    var boundCollectionElementInitializer = (BoundCollectionElementInitializer)containingExpression;
-                    return DeriveArguments(boundCollectionElementInitializer,
-                                           boundCollectionElementInitializer.BinderOpt,
-                                           boundCollectionElementInitializer.AddMethod,
-                                           boundCollectionElementInitializer.AddMethod,
-                                           boundCollectionElementInitializer.Arguments,
-                                           argumentNamesOpt: default,
-                                           boundCollectionElementInitializer.ArgsToParamsOpt,
-                                           argumentRefKindsOpt: default,
-                                           boundCollectionElementInitializer.AddMethod.Parameters,
-                                           boundCollectionElementInitializer.Expanded,
-                                           boundCollectionElementInitializer.Syntax,
-                                           boundCollectionElementInitializer.InvokedAsExtensionMethod);
-                }
+                    {
+                        var boundCollectionElementInitializer = (BoundCollectionElementInitializer)containingExpression;
+                        return DeriveArguments(boundCollectionElementInitializer,
+                                               boundCollectionElementInitializer.BinderOpt,
+                                               boundCollectionElementInitializer.AddMethod,
+                                               boundCollectionElementInitializer.AddMethod,
+                                               boundCollectionElementInitializer.Arguments,
+                                               argumentNamesOpt: default,
+                                               boundCollectionElementInitializer.ArgsToParamsOpt,
+                                               argumentRefKindsOpt: default,
+                                               boundCollectionElementInitializer.AddMethod.Parameters,
+                                               boundCollectionElementInitializer.Expanded,
+                                               boundCollectionElementInitializer.Syntax,
+                                               boundCollectionElementInitializer.InvokedAsExtensionMethod);
+                    }
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(containingExpression.Kind);

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 PooledHashSet<ISymbol> symbolsRead,
                 PooledHashSet<IMethodSymbol> lambdaOrLocalFunctionsBeingAnalyzed,
                 Func<IMethodSymbol, BasicBlockAnalysisData> analyzeLocalFunction)
-                : base(symbolsWriteMap, symbolsRead, lambdaOrLocalFunctionsBeingAnalyzed)     
+                : base(symbolsWriteMap, symbolsRead, lambdaOrLocalFunctionsBeingAnalyzed)
             {
                 _analyzeLocalFunction = analyzeLocalFunction;
             }

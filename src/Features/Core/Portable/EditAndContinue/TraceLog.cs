@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 ArgsOpt = argsOpt;
             }
 
-            public override string ToString() => 
+            public override string ToString() =>
                 string.Format(MessageFormat, ArgsOpt?.Select(a => (object)a).ToArray() ?? Array.Empty<object>());
         }
 

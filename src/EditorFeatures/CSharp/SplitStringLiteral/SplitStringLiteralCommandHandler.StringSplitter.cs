@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             public StringSplitter(
                 Document document, int position,
                 SyntaxNode root, SourceText sourceText,
-                bool useTabs, int tabSize, 
+                bool useTabs, int tabSize,
                 IndentStyle indentStyle, CancellationToken cancellationToken)
             {
                 Document = document;

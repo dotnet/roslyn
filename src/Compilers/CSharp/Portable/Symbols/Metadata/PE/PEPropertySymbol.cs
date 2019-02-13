@@ -735,14 +735,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { return null; }
         }
 
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
         private sealed class PEPropertySymbolWithCustomModifiers : PEPropertySymbol
         {
             private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
