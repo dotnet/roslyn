@@ -206,13 +206,6 @@ function BuildSolution {
   fi
   
   local projects="$repo_root/$solution" 
-  
-  # https://github.com/dotnet/roslyn/issues/23736
-  local enable_analyzers=!$skip_analyzers
-  UNAME="$(uname)"
-  if [[ "$UNAME" == "Darwin" ]]; then
-    enable_analyzers=false
-  fi
 
   local quiet_restore=""
   if [[ "$ci" != true ]]; then
@@ -250,7 +243,6 @@ function BuildSolution {
     /p:Test=$test \
     /p:Pack=$pack \
     /p:Publish=$publish \
-    /p:UseRoslynAnalyzers=$enable_analyzers \
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
     /p:QuietRestore=$quiet_restore \
