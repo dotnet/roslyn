@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
 {
     internal class CSharpMetadataAsSourceService : AbstractMetadataAsSourceService
     {
-        private static readonly IFormattingRule s_memberSeparationRule = new FormattingRule();
+        private static readonly AbstractFormattingRule s_memberSeparationRule = new FormattingRule();
 
         public CSharpMetadataAsSourceService(HostLanguageServices languageServices)
             : base(languageServices.GetService<ICodeGenerationService>())
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
             return document.WithSyntaxRoot(newRoot);
         }
 
-        protected override IEnumerable<IFormattingRule> GetFormattingRules(Document document)
+        protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
         {
             return s_memberSeparationRule.Concat(Formatter.GetDefaultFormattingRules(document));
         }
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
                 new CSharpParenthesesReducer(),
                 new CSharpDefaultExpressionReducer());
 
-        private class FormattingRule : AbstractFormattingRule
+        private class FormattingRule : AbstractMetadataFormattingRule
         {
             protected override AdjustNewLinesOperation GetAdjustNewLinesOperationBetweenMembersAndUsings(SyntaxToken token1, SyntaxToken token2)
             {
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
                 return FormattingOperations.CreateAdjustNewLinesOperation(GetNumberOfLines(triviaList) + 1, AdjustNewLinesOption.ForceLines);
             }
 
-            public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<AnchorIndentationOperation> nextOperation)
+            public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, in NextAnchorIndentationOperationAction nextOperation)
             {
                 return;
             }

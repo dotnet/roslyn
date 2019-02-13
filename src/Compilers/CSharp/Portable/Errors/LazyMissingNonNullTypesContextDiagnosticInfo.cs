@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void GetRawDiagnosticInfos(bool isNullableEnabled, CSharpParseOptions options, ArrayBuilder<DiagnosticInfo> infos)
         {
             const MessageID featureId = MessageID.IDS_FeatureNullableReferenceTypes;
-            var info = featureId.GetFeatureAvailabilityDiagnosticInfo(options);
+            var info = featureId.GetFeatureAvailabilityDiagnosticInfoOpt(options);
             if (!(info is null))
             {
                 infos.Add(info);
