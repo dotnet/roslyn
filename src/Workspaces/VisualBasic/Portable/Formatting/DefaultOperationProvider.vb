@@ -31,16 +31,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Overrides Sub AddAlignTokensOperationsSlow(operations As List(Of AlignTokensOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextAlignTokensOperationAction)
         End Sub
 
+        <PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowCaptures:=False, AllowImplicitBoxing:=False)>
         Public Overrides Function GetAdjustNewLinesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
             If previousToken.Parent Is Nothing Then
                 Return Nothing
             End If
 
-            Dim combinedTrivia = previousToken.TrailingTrivia.Concat(currentToken.LeadingTrivia)
-            Dim lastTrivia = combinedTrivia.LastOrDefault(AddressOf ColonOrLineContinuationTrivia)
+            Dim combinedTrivia = (previousToken.TrailingTrivia, currentToken.LeadingTrivia)
+
+            Dim lastTrivia = LastOrDefaultTrivia(
+                combinedTrivia,
+                Function(trivia As SyntaxTrivia) ColonOrLineContinuationTrivia(trivia))
+
             If lastTrivia.RawKind = SyntaxKind.ColonTrivia Then
                 Return FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines)
-            ElseIf lastTrivia.RawKind = SyntaxKind.LineContinuationTrivia AndAlso previousToken.Parent.GetAncestorsOrThis(Of SyntaxNode)().Any(AddressOf IsSingleLineIfOrElseClauseSyntax) Then
+            ElseIf lastTrivia.RawKind = SyntaxKind.LineContinuationTrivia AndAlso previousToken.Parent.GetAncestorsOrThis(Of SyntaxNode)().Any(Function(node As SyntaxNode) IsSingleLineIfOrElseClauseSyntax(node)) Then
                 Return Nothing
             End If
 
@@ -89,12 +94,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return Nothing
         End Function
 
-        Private Function IsSingleLineIfOrElseClauseSyntax(node As SyntaxNode) As Boolean
+        Private Shared Function IsSingleLineIfOrElseClauseSyntax(node As SyntaxNode) As Boolean
             Return TypeOf node Is SingleLineIfStatementSyntax OrElse TypeOf node Is SingleLineElseClauseSyntax
         End Function
 
-        Private Function ColonOrLineContinuationTrivia(trivia As SyntaxTrivia) As Boolean
+        Private Shared Function ColonOrLineContinuationTrivia(trivia As SyntaxTrivia) As Boolean
             Return trivia.RawKind = SyntaxKind.ColonTrivia OrElse trivia.RawKind = SyntaxKind.LineContinuationTrivia
+        End Function
+
+        <PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowCaptures:=False, AllowImplicitBoxing:=False)>
+        Private Shared Function LastOrDefaultTrivia(triviaListPair As (SyntaxTriviaList, SyntaxTriviaList), predicate As Func(Of SyntaxTrivia, Boolean)) As SyntaxTrivia
+            For Each trivia In triviaListPair.Item2.Reverse()
+                If predicate(trivia) Then
+                    Return trivia
+                End If
+            Next
+
+            For Each trivia In triviaListPair.Item1.Reverse()
+                If predicate(trivia) Then
+                    Return trivia
+                End If
+            Next
+
+            Return Nothing
         End Function
 
         Private Function ContainEndOfLine(previousToken As SyntaxToken, nextToken As SyntaxToken) As Boolean

@@ -3177,6 +3177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstraintsHelper.CheckMethodConstraints(
                 method,
                 _conversions,
+                includeNullability: true,
                 compilation,
                 diagnosticsBuilder,
                 warningsBuilder,
