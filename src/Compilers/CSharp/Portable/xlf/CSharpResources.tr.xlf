@@ -387,7 +387,7 @@
         <target state="translated">Karşılaştırma sonucunun her zaman true olması mümkündür.</target>
         <note />
       </trans-unit>
-	  <trans-unit id="IDS_CSCHelp">
+      <trans-unit id="IDS_CSCHelp">
         <source>
                              Visual C# Compiler Options
 
@@ -796,11 +796,6 @@
       <trans-unit id="IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator">
         <source>unconstrained type parameters in null coalescing operator</source>
         <target state="translated">null birleştirme işlecinde kısıtlanmamış tür parametreleri</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureUnmanagedConstructedTypes">
-        <source>unmanaged constructed types</source>
-        <target state="translated">yönetilmeyen oluşturulmuş türler</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">

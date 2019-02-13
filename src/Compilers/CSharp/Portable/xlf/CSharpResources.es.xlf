@@ -387,7 +387,7 @@
         <target state="translated">Posiblemente, el resultado de la comparación es siempre true</target>
         <note />
       </trans-unit>
-	  <trans-unit id="IDS_CSCHelp">
+      <trans-unit id="IDS_CSCHelp">
         <source>
                              Visual C# Compiler Options
 
@@ -797,11 +797,6 @@
       <trans-unit id="IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator">
         <source>unconstrained type parameters in null coalescing operator</source>
         <target state="translated">parámetros de tipo sin restricciones en operador de incorporación nulo</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureUnmanagedConstructedTypes">
-        <source>unmanaged constructed types</source>
-        <target state="translated">tipos construidos no administrados</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">
