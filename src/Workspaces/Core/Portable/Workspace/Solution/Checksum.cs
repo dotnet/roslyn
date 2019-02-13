@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private const int HashSize = 20;
 
-        public static readonly Checksum Null = new Checksum((HashData)default);
+        public static readonly Checksum Null = new Checksum(default);
 
         private HashData _checksum;
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (length < HashSize)
                 {
-                    throw new ArgumentException($"checksum must be bigger than the hash size: {HashSize}", "checksum");
+                    throw new ArgumentException($"checksum must be equal or bigger than the hash size: {HashSize}", "checksum");
                 }
 
                 return;
