@@ -4,27 +4,27 @@
     <body>
       <trans-unit id="Add_Await">
         <source>Add Await</source>
-        <target state="new">Add Await</target>
+        <target state="translated">Aggiungi Await</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
         <source>Add Await and 'ConfigureAwait(false)'</source>
-        <target state="new">Add Await and 'ConfigureAwait(false)'</target>
+        <target state="translated">Aggiungi Await a 'ConfigureAwait(false)'</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_Obsolete">
         <source>Add &lt;Obsolete&gt;</source>
-        <target state="new">Add &lt;Obsolete&gt;</target>
+        <target state="translated">Aggiungi &lt;Obsolete&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
-        <target state="new">Add missing Imports</target>
+        <target state="translated">Aggiungi Import mancanti</target>
         <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_Shadows">
         <source>Add 'Shadows'</source>
-        <target state="new">Add 'Shadows'</target>
+        <target state="translated">Aggiungi 'Shadows'</target>
         <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="If_statement_can_be_simplified">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Introduce_Using_statement">
         <source>Introduce 'Using' statement</source>
-        <target state="new">Introduce 'Using' statement</target>
+        <target state="translated">Introduci istruzioni 'Using'</target>
         <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
@@ -89,7 +89,7 @@
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Imports">
         <source>Remove Unnecessary Imports</source>
-        <target state="translated">Rimuovi istruzioni Imports non necessarie</target>
+        <target state="translated">Rimuovi Import non necessari</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -334,7 +334,7 @@
       </trans-unit>
       <trans-unit id="Remove_and_Sort_Imports">
         <source>R&amp;emove and Sort Imports</source>
-        <target state="translated">Ri&amp;muovi e ordina import</target>
+        <target state="translated">Ri&amp;muovi e ordina Import</target>
         <note />
       </trans-unit>
       <trans-unit id="Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName">
@@ -1539,7 +1539,7 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
       </trans-unit>
       <trans-unit id="Imports_statement_is_unnecessary">
         <source>Imports statement is unnecessary.</source>
-        <target state="translated">L'istruzione imports non è necessaria.</target>
+        <target state="translated">L'istruzione Imports non è necessaria.</target>
         <note />
       </trans-unit>
       <trans-unit id="Try_block">
@@ -1729,7 +1729,7 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
       </trans-unit>
       <trans-unit id="Add_Overloads">
         <source>Add 'Overloads'</source>
-        <target state="needs-review-translation">Aggiungi overload</target>
+        <target state="translated">Aggiungi 'Overloads'</target>
         <note>{Locked="Overloads"} "Overloads" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll">
