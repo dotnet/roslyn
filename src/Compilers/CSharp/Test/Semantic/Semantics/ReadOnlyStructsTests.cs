@@ -290,5 +290,25 @@ public class C
                 //     public readonly int M()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("readonly").WithLocation(5, 25));
         }
+
+        [Fact]
+        public void ReadOnlyStructStaticMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public static int i;
+    public static readonly int M()
+    {
+        return i;
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (5,32): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public static readonly int M()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("readonly").WithLocation(5, 32));
+        }
     }
 }
