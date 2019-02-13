@@ -1844,7 +1844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             // We need to continue the walk regardless of whether the receiver should be updated.
                             var receiverType = conditional.Receiver.Type;
-                            if (shouldUpdateType(receiverType))
+                            if (PossiblyNullableType(receiverType))
                             {
                                 slotBuilder.Add(slot);
                             }
@@ -1878,7 +1878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // we need more special handling here
 
                         slot = MakeSlot(operand);
-                        if (slot > 0 && shouldUpdateType(operand.Type))
+                        if (slot > 0 && PossiblyNullableType(operand.Type))
                         {
                             // If we got a slot then all previous BoundCondtionalReceivers must have been handled.
                             Debug.Assert(_lastConditionalAccessSlot == -1);
@@ -1895,10 +1895,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return;
             }
-
-            bool shouldUpdateType(TypeSymbol operandType)
-                => !(operandType is null) && (!operandType.IsValueType || operandType.IsNullableType());
         }
+
+        private static bool PossiblyNullableType(TypeSymbol operandType)
+            => !(operandType is null) && (!operandType.IsValueType || operandType.IsNullableType());
 
         private static void MarkSlotsAsNotNullable(ArrayBuilder<int> slots, ref LocalState stateToUpdate)
         {
@@ -1911,6 +1911,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 stateToUpdate[slot] = NullableAnnotation.NotNullable;
             }
+        }
+
+        private void LearnFromNonNullTest(BoundExpression expression, ref LocalState state)
+        {
+            var slotBuilder = ArrayBuilder<int>.GetInstance();
+            GetSlotsToMarkAsNotNullable(expression, slotBuilder);
+            MarkSlotsAsNotNullable(slotBuilder, ref state);
+            slotBuilder.Free();
         }
 
         private static BoundExpression SkipReferenceConversions(BoundExpression possiblyConversion)
@@ -1934,7 +1942,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
         {
-
             BoundExpression leftOperand = node.LeftOperand;
             BoundExpression rightOperand = node.RightOperand;
             int leftSlot = MakeSlot(leftOperand);
@@ -1986,7 +1993,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var leftState = this.State.Clone();
+            var whenNotNull = this.State.Clone();
+            LearnFromNonNullTest(leftOperand, ref whenNotNull);
+
+            // Consider learning in whenNull branch as well
+            // https://github.com/dotnet/roslyn/issues/30297
+
             if (leftResult.ValueCanBeNull() == false)
             {
                 ReportNonSafetyDiagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, leftOperand.Syntax);
@@ -2001,7 +2013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // https://github.com/dotnet/roslyn/issues/29955 For cases where the left operand determines
             // the type, we should unwrap the right conversion and re-apply.
             rightResult = VisitRvalueWithResult(rightOperand);
-            Join(ref this.State, ref leftState);
+            Join(ref this.State, ref whenNotNull);
             TypeSymbol resultType;
             var leftResultType = leftResult.TypeSymbol;
             var rightResultType = rightResult.TypeSymbol;
@@ -2778,7 +2790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var argument = arguments[i];
                 var argumentType = argument.Type;
-                if ((object)argumentType == null || (argumentType.IsValueType && !argumentType.IsNullableType()))
+                if (!PossiblyNullableType(argumentType))
                 {
                     continue;
                 }
@@ -4726,7 +4738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // We are supposed to track information for the node. Use whatever we managed to
                     // accumulate so far.
-                    if (!resultType.IsValueType || resultType.IsNullableType())
+                    if (PossiblyNullableType(resultType.TypeSymbol))
                     {
                         int slot = MakeMemberSlot(receiverOpt, member);
                         if (slot > 0 && slot < this.State.Capacity)
@@ -5113,7 +5125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NullableAnnotation nullableAnnotation = NullableAnnotation.Unknown;
                 var type = node.Type;
 
-                if (!type.IsValueType || type.IsNullableType())
+                if (PossiblyNullableType(type))
                 {
                     var operandType = _resultType;
                     switch (node.Conversion.Kind)
@@ -5445,10 +5457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReportSafetyDiagnostic(isValueType ? ErrorCode.WRN_NullableValueTypeMayBeNull : ErrorCode.WRN_NullReferenceReceiver, syntaxOpt ?? receiverOpt.Syntax);
                 }
 
-                var slotBuilder = ArrayBuilder<int>.GetInstance();
-                GetSlotsToMarkAsNotNullable(receiverOpt, slotBuilder);
-                MarkSlotsAsNotNullable(slotBuilder, ref State);
-                slotBuilder.Free();
+                LearnFromNonNullTest(receiverOpt, ref this.State);
             }
         }
 
@@ -5556,9 +5565,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitThrowExpression(BoundThrowExpression node)
         {
-            var result = base.VisitThrowExpression(node);
-            SetUnknownResultNullability();
-            return result;
+            VisitThrow(node.Expression);
+            _resultType = default;
+            return null;
+        }
+
+        public override BoundNode VisitThrowStatement(BoundThrowStatement node)
+        {
+            VisitThrow(node.ExpressionOpt);
+            return null;
+        }
+
+        private void VisitThrow(BoundExpression expr)
+        {
+            if (expr != null)
+            {
+                var result = VisitRvalueWithResult(expr);
+                // Cases:
+                // null
+                // null!
+                // Other (typed) expression, including suppressed ones
+                if (expr.ConstantValue?.IsNull == true ||
+                    result.GetValueNullableAnnotation().IsAnyNullable())
+                {
+                    if (!expr.IsSuppressed)
+                    {
+                        ReportSafetyDiagnostic(ErrorCode.WRN_PossibleNull, expr.Syntax);
+                    }
+                }
+            }
+            SetUnreachable();
         }
 
         public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
