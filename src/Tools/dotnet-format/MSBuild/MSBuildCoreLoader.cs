@@ -34,8 +34,15 @@ namespace Microsoft.CodeAnalysis.Tools.MSBuild
         /// </summary>
         public static void LoadDotnetInstance(string workingDirectory)
         {
+            var dotNetBasePath = MSBuildEnvironment.GetDotnetBasePath(workingDirectory);
+
+            // NET Core SDK no longer ships with version matched assemblies
+            // register an assembly loader that will load assemblies with
+            // a higher version number than requested.
+            LooseVersionAssemblyLoader.Register(dotNetBasePath);
+
             // Workaround for https://github.com/Microsoft/msbuild/issues/3352
-            LoadMSBuildAssemblies(MSBuildEnvironment.GetDotnetBasePath(workingDirectory));
+            LoadMSBuildAssemblies(dotNetBasePath);
         }
 
         /// <summary>
