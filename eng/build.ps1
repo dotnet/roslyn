@@ -265,6 +265,7 @@ function TestUsingOptimizedRunner() {
     $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools\net472"
     $args = "`"$xunitDir`""
     $args += " `"-out:$testResultsDir`""
+    $args += " `"-logs:$LogDir`""
     $args += " -nocache"
     $args += " -tfm:net472"
 
