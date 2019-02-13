@@ -115,8 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static readonly EqualityComparer<TypeSymbol> EqualsConsiderEverything = new TypeSymbolComparer(TypeCompareKind.ConsiderEverything);
 
-        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringTupleNames = new TypeSymbolComparer(TypeCompareKind.IgnoreTupleNames);
-
         internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringTupleNamesAndNullability = new TypeSymbolComparer(TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
 
         /// <summary>
@@ -632,7 +630,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// See Type::computeManagedType.
         /// </remarks>
-        internal abstract bool IsManagedType { get; }
+        internal bool IsManagedType => ManagedKind == ManagedKind.Managed;
+
+        /// <summary>
+        /// Indicates whether a type is managed or not (i.e. you can take a pointer to it).
+        /// Contains additional cases to help implement FeatureNotAvailable diagnostics.
+        /// </summary>
+        internal abstract ManagedKind ManagedKind { get; }
+
+        bool ITypeSymbol.IsUnmanagedType => !IsManagedType;
 
         internal bool NeedsNullableAttribute()
         {
@@ -663,15 +669,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Merges nested nullability from an otherwise identical type.
-        /// <paramref name="hadNullabilityMismatch"/> is true if there was conflict
-        /// merging nullability and warning should be reported by the caller.
         /// </summary>
-        internal abstract TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch);
+        internal abstract TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance);
 
         /// <summary>
         /// Returns true if the type may contain embedded references
         /// </summary>
-        internal abstract bool IsByRefLikeType { get; }
+        public abstract bool IsRefLikeType { get; }
 
         /// <summary>
         /// Returns true if the type is a readonly struct

@@ -277,6 +277,20 @@ namespace Microsoft.CodeAnalysis.Serialization
             return (IReadOnlyList<T>)s_cache.GetValue(unorderedList, orderedListGetter);
         }
 
+        public static bool TryGetValue(object value, out Checksum checksum)
+        {
+            // same key should always return same checksum
+            if (!s_cache.TryGetValue(value, out var result))
+            {
+                checksum = default;
+                return false;
+            }
+
+            checksum = (Checksum)result;
+            return true;
+        }
+
+
         public static Checksum GetOrCreate(object value, ConditionalWeakTable<object, object>.CreateValueCallback checksumCreator)
         {
             // same key should always return same checksum

@@ -79,7 +79,7 @@ class Program
     public static void Main()
     {
         Point p = null;
-        Console.WriteLine(p is { X: 3, Y: 4 });
+        Console.WriteLine(p is { X: 3, Y: 4, });
     }
 }
 interface I1
@@ -144,7 +144,7 @@ class Program
     public static void Main()
     {
         Point p = null;
-        Console.WriteLine(p is { X: 3, Y: 4 });
+        Console.WriteLine(p is { X: 3, Y: 4, });
     }
 }
 class Point
@@ -411,7 +411,7 @@ public class C
         {
             switch (anon)
             {
-                case { B: true, V: var val }:
+                case { B: true, V: var val, }:
                     sum += val;
                     break;
             }

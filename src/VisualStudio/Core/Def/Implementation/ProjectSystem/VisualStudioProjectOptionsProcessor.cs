@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string _commandLine = "";
         private CommandLineArguments _commandLineArgumentsForCommandLine;
         private string _explicitRuleSetFilePath;
-        private IReferenceCountedDisposable<IRuleSetFile> _ruleSetFile = null;
+        private IReferenceCountedDisposable<ICacheEntry<string, IRuleSetFile>> _ruleSetFile = null;
 
         public VisualStudioProjectOptionsProcessor(VisualStudioProject project, HostWorkspaceServices workspaceServices)
         {
@@ -82,7 +82,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        public HostWorkspaceServices WorkspaceServices => _workspaceServices;
+        /// <summary>
+        /// Returns the active path to the rule set file that is being used by this project, or null if there isn't a rule set file.
+        /// </summary>
+        public string EffectiveRuleSetFilePath => _ruleSetFile?.Target.Value.FilePath;
 
         private void ReparseCommandLine_NoLock()
         {
@@ -94,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             var effectiveRuleSetPath = ExplicitRuleSetFilePath ?? _commandLineArgumentsForCommandLine.RuleSetPath;
 
-            if (_ruleSetFile?.Target.FilePath != effectiveRuleSetPath)
+            if (_ruleSetFile?.Target.Value.FilePath != effectiveRuleSetPath)
             {
                 // We're changing in some way. Be careful: this might mean the path is switching to or from null, so either side so far
                 // could be changed.
@@ -114,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var sourceSearchPaths = ImmutableArray<string>.Empty;
 
             var referenceResolver = new WorkspaceMetadataFileReferenceResolver(
-                    WorkspaceServices.GetRequiredService<IMetadataService>(),
+                    _workspaceServices.GetRequiredService<IMetadataService>(),
                     new RelativePathResolver(referenceSearchPaths, _commandLineArgumentsForCommandLine.BaseDirectory));
 
             var compilationOptions = _commandLineArgumentsForCommandLine.CompilationOptions
@@ -132,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // We've computed what the base values should be; we now give an opportunity for any host-specific settings to be computed
             // before we apply them
-            compilationOptions = ComputeCompilationOptionsWithHostValues(compilationOptions, this._ruleSetFile?.Target);
+            compilationOptions = ComputeCompilationOptionsWithHostValues(compilationOptions, this._ruleSetFile?.Target.Value);
             parseOptions = ComputeParseOptionsWithHostValues(parseOptions);
 
             // For managed projects, AssemblyName has to be non-null, but the command line we get might be a partial command line

@@ -15,6 +15,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     /// </summary>
     public static partial class RuntimeUtilities
     {
+        internal static bool IsDesktopRuntime =>
+#if NET472
+            true;
+#elif NETCOREAPP2_1
+            false;
+#elif NETSTANDARD2_0
+            throw new PlatformNotSupportedException();
+#else
+#error Unsupported configuration
+#endif
+        internal static bool IsCoreClrRuntime => !IsDesktopRuntime;
+
         internal static BuildPaths CreateBuildPaths(string workingDirectory, string sdkDirectory = null, string tempDirectory = null)
         {
             tempDirectory = tempDirectory ?? Path.GetTempPath();

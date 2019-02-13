@@ -316,6 +316,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             _solution.AddFromTemplate(projectTemplatePath, projectPath, projectName, Exclusive: false);
         }
 
+        public void AddCustomProject(string projectName, string projectFileExtension, string projectFileContent)
+        {
+            var projectPath = Path.Combine(DirectoryName, projectName);
+            Directory.CreateDirectory(projectPath);
+
+            var projectFilePath = Path.Combine(projectPath, projectName + projectFileExtension);
+            File.WriteAllText(projectFilePath, projectFileContent);
+
+            _solution.AddFromFile(projectFilePath);
+        }
+
         // TODO: Adjust language name based on whether we are using a web template
         private string GetProjectTemplatePath(string projectTemplate, string languageName)
         {
@@ -365,7 +376,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
             CloseSolution();
-            ErrorList_InProc.Create().WaitForNoErrorsInErrorList();
+            ErrorList_InProc.Create().WaitForNoErrorsInErrorList(Helper.HangMitigatingTimeout);
 
             foreach (var directoryToDelete in directoriesToDelete)
             {

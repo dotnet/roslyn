@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Simplification
     /// Expands and Reduces subtrees.
     /// 
     /// Expansion:
-    ///      1) Makes inferred names explicit (on anoymous types and tuples).
+    ///      1) Makes inferred names explicit (on anonymous types and tuples).
     ///      2) Replaces names with fully qualified dotted names.
     ///      3) Adds parentheses around expressions
     ///      4) Adds explicit casts/conversions where implicit conversions exist

@@ -968,7 +968,6 @@ class C
                 // (7,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //         var x = new (int, int)(1, arg);
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "(int, int)").WithLocation(7, 21)
-
                 );
         }
 
@@ -9634,9 +9633,9 @@ class C<T>
                 // (16,12): error CS0452: The type 'U' must be a reference type in order to use it as parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'
                 //     (U, U) M<U>(U x)
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "M").WithArguments("System.ValueTuple<T1, T2>", "T2", "U").WithLocation(16, 12),
-                // (15,14): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'
+                // (15,18): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'
                 //     List<(T, T)> field = null;
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "T").WithArguments("System.ValueTuple<T1, T2>", "T2", "T").WithLocation(15, 14),
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "field").WithArguments("System.ValueTuple<T1, T2>", "T2", "T").WithLocation(15, 18),
                 // (20,28): error CS0452: The type 'U' must be a reference type in order to use it as parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'
                 //         return default((U, U));
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "U").WithArguments("System.ValueTuple<T1, T2>", "T2", "U").WithLocation(20, 28),
@@ -9715,9 +9714,9 @@ class C<T> where T : class
                 // (16,12): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'
                 //     (U, U) M<U>(U x) where U : class
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M").WithArguments("System.ValueTuple<T1, T2>", "T2", "U").WithLocation(16, 12),
-                // (15,14): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'
+                // (15,18): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'
                 //     List<(T, T)> field = null;
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "T").WithArguments("System.ValueTuple<T1, T2>", "T2", "T").WithLocation(15, 14),
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "field").WithArguments("System.ValueTuple<T1, T2>", "T2", "T").WithLocation(15, 18),
                 // (18,24): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C<T>'
                 //         var t0 = new C<int>();
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("C<T>", "T", "int").WithLocation(18, 24),
@@ -23393,6 +23392,36 @@ class Derived2 : Base, I<(int a, int b)>
                 // (2,24): error CS0535: 'Derived1' does not implement interface member 'I<(int notA, int notB)>.M()'
                 // class Derived1 : Base, I<(int notA, int notB)>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<(int notA, int notB)>").WithArguments("Derived1", "I<(int notA, int notB)>.M()").WithLocation(2, 24)
+                );
+        }
+
+        [Fact]
+        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        public void ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames_05()
+        {
+            var source = @"
+interface I<T>
+{
+    T M();
+}
+class Base : I<(int a, int b)>
+{
+    public (int a, int b) M() { return (1, 2); }
+}
+class Derived1 : Base, I<(int notA, int notB)>
+{
+    // error
+}
+class Derived2 : Base, I<(int a, int b)>
+{
+    // ok
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,24): error CS8141: The tuple element names in the signature of method 'Base.M()' must match the tuple element names of interface method 'I<(int notA, int notB)>.M()' (including on the return type).
+                // class Derived1 : Base, I<(int notA, int notB)>
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "I<(int notA, int notB)>").WithArguments("Base.M()", "I<(int notA, int notB)>.M()").WithLocation(10, 24)
                 );
         }
 

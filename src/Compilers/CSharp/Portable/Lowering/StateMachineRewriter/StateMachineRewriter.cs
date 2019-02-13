@@ -409,10 +409,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     thenBuilder.Add(extraReset);
                 }
 
-                thenBuilder.Add(
-                    method.IsStatic || method.ThisParameter.Type.IsReferenceType ? // if this is a reference type, no need to copy it since it is not assignable
-                        F.Goto(thisInitialized) : // goto thisInitialized
-                        (BoundStatement)F.StatementList());
+                if (method.IsStatic || method.ThisParameter.Type.IsReferenceType)
+                {
+                    // if this is a reference type, no need to copy it since it is not assignable
+                    thenBuilder.Add(
+                        // goto thisInitialized;
+                        F.Goto(thisInitialized));
+                }
 
                 makeIterator = F.If(
                     // if (this.state == -2 && this.initialThreadId == Thread.CurrentThread.ManagedThreadId)

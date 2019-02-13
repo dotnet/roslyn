@@ -375,14 +375,22 @@ public class Point
 {
     public static void Main()
     {
-        var r = 1 switch { _ => 0 };
+        var r = 1 switch { _ => 0, };
     }
 }";
             CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithoutRecursivePatterns).VerifyDiagnostics(
-                // (5,17): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //         var r = 1 switch { _ => 0 };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { _ => 0 }").WithArguments("recursive patterns", "8.0").WithLocation(5, 17)
+                // (5,17): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var r = 1 switch { _ => 0, };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1 switch { _ => 0, }").WithArguments("recursive patterns").WithLocation(5, 17)
                 );
+
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularDefault).VerifyDiagnostics(
+                // (5,17): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var r = 1 switch { _ => 0, };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1 switch { _ => 0, }").WithArguments("recursive patterns").WithLocation(5, 17)
+                );
+
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact]
@@ -433,48 +441,15 @@ public class Point
                 // (6,34): error CS1525: Invalid expression term '?'
                 //         var r1 = b switch { true ? true : true => true, false => false };
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(6, 34),
-                // (6,48): error CS1513: } expected
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 48),
                 // (6,48): error CS1003: Syntax error, ',' expected
                 //         var r1 = b switch { true ? true : true => true, false => false };
                 Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 48),
-                // (6,51): error CS1002: ; expected
+                // (6,48): error CS8504: Pattern missing
                 //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "true").WithLocation(6, 51),
-                // (6,55): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(6, 48),
+                // (6,57): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
                 //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 55),
-                // (6,55): error CS1513: } expected
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(6, 55),
-                // (6,63): error CS1002: ; expected
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=>").WithLocation(6, 63),
-                // (6,63): error CS1513: } expected
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 63),
-                // (6,72): error CS1002: ; expected
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(6, 72),
-                // (6,73): error CS1597: Semicolon after method or accessor block is not valid
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(6, 73),
-                // (9,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(9, 1),
-                // (7,9): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
-                //         var r2 = b switch { (true ? true : true) => true, false => false };
-                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(7, 9),
-                // (7,18): error CS0103: The name 'b' does not exist in the current context
-                //         var r2 = b switch { (true ? true : true) => true, false => false };
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(7, 18),
-                // (7,20): warning CS8409: The switch expression does not handle all possible inputs (it is not exhaustive).
-                //         var r2 = b switch { (true ? true : true) => true, false => false };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 20),
-                // (6,20): warning CS8409: The switch expression does not handle all possible inputs (it is not exhaustive).
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "false").WithLocation(6, 57)
                 );
         }
 
@@ -488,7 +463,7 @@ public class Point
     public static void Main()
     {
         var b = (true, false);
-        var r1 = b switch { (true ? true : true, _) => true, _ => false };
+        var r1 = b switch { (true ? true : true, _) => true, _ => false, };
         var r2 = b is (true ? true : true, _);
         switch (b.Item1) { case true ? true : true: break; }
     }
@@ -609,7 +584,7 @@ public class Point
     {
         int q = 1;
         int u;
-        var x = q switch { 0 => u=0, 1 => u=M(u), _ => u=2 };
+        var x = q switch { 0 => u=0, 1 => u=M(u), _ => u=2, };
         System.Console.WriteLine(u);
     }
     static int M(int i) => i;
@@ -633,9 +608,9 @@ public class Point
     public static void Main()
     {
         int a = 1;
-        var b = a switch { var x1 => x1 };
+        var b = a switch { var x1 => x1, };
         var c = a switch { var x2 when x2 is var x3 => x3 };
-        var d = a switch { var x4 => x4 is var x5 ? x5 : 1 };
+        var d = a switch { var x4 => x4 is var x5 ? x5 : 1, };
     }
     static int M(int i) => i;
 }";
@@ -1112,28 +1087,40 @@ class Program1
     bool M4(object o) => o switch { 1 => true, _ => false };
 }
 ";
-            var compilation = CreatePatternCompilation(source);
-            compilation.VerifyDiagnostics(
+            var expected = new[]
+            {
                 // (5,31): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
                 //     bool M1(object o) => o is _;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(5, 31),
                 // (11,31): warning CS8513: The name '_' refers to the type 'Program1._', not the discard pattern. Use '@_' for the type, or 'var _' to discard.
                 //     bool M3(object o) => o is _;
                 Diagnostic(ErrorCode.WRN_IsTypeNamedUnderscore, "_").WithArguments("Program1._").WithLocation(11, 31)
-                );
+            };
 
-            compilation = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
-            compilation.VerifyDiagnostics(
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(expected);
+
+            compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics(expected);
+
+            expected = new[]
+            {
                 // (5,31): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
                 //     bool M1(object o) => o is _;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(5, 31),
-                // (6,26): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,26): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     bool M2(object o) => o switch { 1 => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "o switch { 1 => true, _ => false }").WithArguments("recursive patterns", "8.0").WithLocation(6, 26),
-                // (12,26): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "o switch { 1 => true, _ => false }").WithArguments("recursive patterns").WithLocation(6, 26),
+                // (12,26): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     bool M4(object o) => o switch { 1 => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "o switch { 1 => true, _ => false }").WithArguments("recursive patterns", "8.0").WithLocation(12, 26)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "o switch { 1 => true, _ => false }").WithArguments("recursive patterns").WithLocation(12, 26)
+            };
+
+            compilation = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            compilation.VerifyDiagnostics(expected);
+
+            compilation = CreateCompilation(source, parseOptions: TestOptions.RegularDefault);
+            compilation.VerifyDiagnostics(expected);
         }
 
         [Fact]
@@ -2066,13 +2053,13 @@ class Point
             };
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
-                // (10,24): error CS8400: Pattern missing
+                // (10,24): error CS8504: Pattern missing
                 //         if (p is Point(, { })) { }
                 Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(10, 24),
                 // (9,23): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
                 //         if (p is Point({ }, { }, { })) { }
                 Diagnostic(ErrorCode.ERR_BadArgCount, "({ }, { }, { })").WithArguments("Deconstruct", "3").WithLocation(9, 23),
-                // (9,23): error CS8129: No suitable Deconstruct instance or extension method was found for type 'Point', with 3 out parameters and a void return type.
+                // (9,23): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'Point', with 3 out parameters and a void return type.
                 //         if (p is Point({ }, { }, { })) { }
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "({ }, { }, { })").WithArguments("Point", "3").WithLocation(9, 23)
                 );
