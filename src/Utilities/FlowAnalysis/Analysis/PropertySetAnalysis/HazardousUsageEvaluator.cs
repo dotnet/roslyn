@@ -40,7 +40,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <param name="evaluator">Evaluation callback.</param>
         public HazardousUsageEvaluator(string instanceTypeName, string methodName, string parameterNameOfPropertySetObject, EvaluationCallback evaluator)
         {
-            Debug.Fail("TODO: Handle this is the operation visitor");
             InstanceTypeName = instanceTypeName ?? throw new ArgumentNullException(nameof(instanceTypeName));
             MethodName = methodName ?? throw new ArgumentNullException(nameof(methodName));
             ParameterNameOfPropertySetObject = parameterNameOfPropertySetObject ?? throw new ArgumentNullException(nameof(parameterNameOfPropertySetObject));

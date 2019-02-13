@@ -43,6 +43,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             return this.HazardousUsageEvaluators.TryGetValue((null, trackedTypeMethodName, null), out hazardousUsageEvaluator);
         }
 
+        internal bool TryGetHazardousUsageEvaluator(string containingType, string methodName, string parameterName, out HazardousUsageEvaluator hazardousUsageEvaluator)
+        {
+            return this.HazardousUsageEvaluators.TryGetValue((containingType, methodName, parameterName), out hazardousUsageEvaluator);
+        }
+
         internal ImmutableDictionary<INamedTypeSymbol, string> GetTypeToNameMapping(WellKnownTypeProvider wellKnownTypeProvider)
         {
             PooledDictionary<INamedTypeSymbol, string> pooledDictionary = PooledDictionary<INamedTypeSymbol, string>.GetInstance();
@@ -58,7 +63,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
                     if (wellKnownTypeProvider.TryGetTypeByMetadataName(kvp.Key.InstanceTypeName, out INamedTypeSymbol namedTypeSymbol))
                     {
-                        pooledDictionary.Add(namedTypeSymbol, kvp.Key.InstanceTypeName);
+                        pooledDictionary[namedTypeSymbol] = kvp.Key.InstanceTypeName;
                     }
                 }
 

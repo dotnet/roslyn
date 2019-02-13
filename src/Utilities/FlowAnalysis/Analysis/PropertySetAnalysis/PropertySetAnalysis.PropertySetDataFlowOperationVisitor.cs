@@ -166,7 +166,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             {
                 PropertySetAbstractValue baseValue = base.VisitAssignmentOperation(operation, argument);
                 if (operation.Target is IPropertyReferenceOperation propertyReferenceOperation
-                    && propertyReferenceOperation.Property.ContainingType == this.TrackedTypeSymbol
+                    && propertyReferenceOperation.Instance?.Type == this.TrackedTypeSymbol
                     && this.DataFlowAnalysisContext.PropertyMappers.TryGetPropertyMapper(
                         propertyReferenceOperation.Property.Name,
                         out PropertyMapper propertyMapper,
@@ -219,10 +219,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             public override PropertySetAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(IMethodSymbol method, IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments, bool invokedAsDelegate, IOperation originalOperation, PropertySetAbstractValue defaultValue)
             {
                 PropertySetAbstractValue baseValue = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
-                if (visitedInstance?.Type == this.TrackedTypeSymbol
-                    && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetHazardousUsageEvaluator(method.MetadataName, out HazardousUsageEvaluator hazardousUsageEvaluator))
+
+                // If we have a HazardousUsageEvaluator for a method within the tracked type,
+                // or for a method within a different type.
+                IOperation propertySetInstance = visitedInstance;
+                HazardousUsageEvaluator hazardousUsageEvaluator;
+                if ((visitedInstance?.Type == this.TrackedTypeSymbol
+                    && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetHazardousUsageEvaluator(method.MetadataName, out hazardousUsageEvaluator))
+                    || TryFindNonTrackedTypeHazardousUsageEvaluator(out hazardousUsageEvaluator, out propertySetInstance))
                 {
-                    PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(visitedInstance);
+                    PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(propertySetInstance);
                     bool hasFlagged = false;
                     bool hasMaybeFlagged = false;
                     foreach (AbstractLocation location in pointsToAbstractValue.Locations)
@@ -253,6 +259,37 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
 
                 return baseValue;
+
+                // Local functions.
+                bool TryFindNonTrackedTypeHazardousUsageEvaluator(out HazardousUsageEvaluator evaluator, out IOperation instance)
+                {
+                    evaluator = null;
+                    instance = null;
+                    if (!this.DataFlowAnalysisContext.HazardousUsageTypesToNames.TryGetValue(
+                            visitedInstance?.Type as INamedTypeSymbol ?? method.ContainingType,
+                            out string containingTypeName))
+                    {
+                        return false;
+                    }
+
+                    // This doesn't handle the case of multiple instances of the type being tracked.
+                    // If that's needed one day, will need to extend this.
+                    foreach (IArgumentOperation argumentOperation in visitedArguments)
+                    {
+                        if (argumentOperation.Value?.Type == this.TrackedTypeSymbol
+                            && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetHazardousUsageEvaluator(
+                                    containingTypeName,
+                                    method.MetadataName,
+                                    argumentOperation.Parameter.MetadataName,
+                                    out evaluator))
+                        {
+                            instance = argumentOperation.Value;
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
             }
 
             private ValueContentAbstractValue GetValueContentAbstractValue(IOperation operation)
