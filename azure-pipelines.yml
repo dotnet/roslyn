@@ -43,6 +43,7 @@ jobs:
       displayName: Build and Test
 
     - task: PublishTestResults@1
+      displayName: Publish xUnit Test Results
       inputs:
         testRunner: XUnit
         testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(_configuration)\*.xml'
@@ -68,6 +69,7 @@ jobs:
       displayName: Build and Test
 
     - task: PublishTestResults@1
+      displayName: Publish xUnit Test Results
       inputs:
         testRunner: XUnit
         testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\Debug\*.xml'
@@ -99,6 +101,7 @@ jobs:
       displayName: Build and Test
 
     - task: PublishTestResults@1
+      displayName: Publish xUnit Test Results
       inputs:
         testRunner: XUnit
         testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(_configuration)\*.xml'
@@ -181,6 +184,7 @@ jobs:
     - script: ./eng/cibuild.sh --configuration $(_configuration) --prepareMachine $(_args)
       displayName: Build and Test
     - task: PublishTestResults@1
+      displayName: Publish xUnit Test Results
       inputs:
         testRunner: XUnit
         testResultsFiles: '$(Build.SourcesDirectory)/artifacts/TestResults/$(_configuration)/*.xml'
