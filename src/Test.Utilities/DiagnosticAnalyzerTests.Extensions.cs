@@ -171,22 +171,22 @@ namespace Test.Utilities
             // Only check line position if there is an actual line in the real diagnostic
             if (expected.StartLinePosition.Line > 0)
             {
-                if (actualLinePosition.Line + 1 != expected.StartLinePosition.Line)
+                if (actualLinePosition.Line != expected.StartLinePosition.Line)
                 {
                     Assert.True(false,
                         string.Format("Expected diagnostic to be on line \"{0}\" was actually on line \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n",
-                            expected.StartLinePosition.Line, actualLinePosition.Line + 1, FormatDiagnostics(analyzer, diagnostic)));
+                            expected.StartLinePosition.Line + 1, actualLinePosition.Line + 1, FormatDiagnostics(analyzer, diagnostic)));
                 }
             }
 
             // Only check column position if there is an actual column position in the real diagnostic
             if (expected.StartLinePosition.Character > 0)
             {
-                if (actualLinePosition.Character + 1 != expected.StartLinePosition.Character)
+                if (actualLinePosition.Character != expected.StartLinePosition.Character)
                 {
                     Assert.True(false,
                         string.Format("Expected diagnostic to start at column \"{0}\" was actually at column \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n",
-                            expected.StartLinePosition.Character, actualLinePosition.Character + 1, FormatDiagnostics(analyzer, diagnostic)));
+                            expected.StartLinePosition.Character + 1, actualLinePosition.Character + 1, FormatDiagnostics(analyzer, diagnostic)));
                 }
             }
         }
