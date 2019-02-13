@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Testing.Verifiers;
 
 namespace Test.Utilities
 {
-    public static class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
+    public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
         where TAnalyzer : DiagnosticAnalyzer, new()
         where TCodeFix : CodeFixProvider, new()
     {
@@ -25,7 +25,7 @@ namespace Test.Utilities
 
         public static async Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
         {
-            var test = new CSharpCodeFixTest<TAnalyzer, TCodeFix>
+            var test = new Test
             {
                 TestCode = source,
             };
@@ -42,7 +42,7 @@ namespace Test.Utilities
 
         public static async Task VerifyCodeFixAsync(string source, DiagnosticResult[] expected, string fixedSource)
         {
-            var test = new CSharpCodeFixTest<TAnalyzer, TCodeFix>
+            var test = new Test
             {
                 TestCode = source,
                 FixedCode = fixedSource,
