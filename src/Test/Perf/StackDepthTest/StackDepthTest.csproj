@@ -6,7 +6,6 @@
     <TargetFramework>net472</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <IsShipping>false</IsShipping>
-    <ApplicationManifest>$(RepositoryEngineeringDir)config\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

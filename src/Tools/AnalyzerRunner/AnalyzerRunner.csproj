@@ -7,7 +7,6 @@
     <TargetFramework>net472</TargetFramework>
     <!-- Automatically generate the necessary assembly binding redirects -->
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <ApplicationManifest>$(RepositoryEngineeringDir)config\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />

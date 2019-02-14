@@ -14,7 +14,6 @@
     <PackAsToolShimRuntimeIdentifiers>win-x64;win-x86;osx-x64</PackAsToolShimRuntimeIdentifiers>
     
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <ApplicationManifest>$(RepositoryEngineeringDir)config\app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
