@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -411,21 +412,46 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private async Task<Solution> FixSolutionAsync(Solution solution, FixIdContainer enabledFixIds, ProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            progressTracker.AddItems(solution.ProjectIds.Count);
+            // FixProjectAsync reports progress for documents within a project, so we use that information to update
+            // the solution progress.
+            var projectProgressTracker = new ProgressTracker((description, completedItems, totalItems) =>
+            {
+                progressTracker.Description = description;
+
+                // The project progress tracker will report a TotalItems only up to the number of projects processed so
+                // far, but the total number of completed items will be correct. Assert these conditions in debug
+                // builds, but use bounds checks to ensure we don't throw exceptions at runtime.
+                Debug.Assert(completedItems <= progressTracker.TotalItems);
+                completedItems = Math.Min(progressTracker.CompletedItems, completedItems);
+
+                Debug.Assert(completedItems - progressTracker.CompletedItems >= 0);
+                var newCompletedItems = Math.Max(0, completedItems - progressTracker.CompletedItems);
+
+                for (var i = 0; i < newCompletedItems; i++)
+                {
+                    progressTracker.ItemCompleted();
+                }
+            });
+
+            // Prepopulate the solution progress tracker with the total number of documents to process
+            foreach (var projectId in solution.ProjectIds)
+            {
+                var project = solution.GetProject(projectId);
+                if (project.LanguageServices.GetService<ICodeCleanupService>() == null)
+                {
+                    continue;
+                }
+
+                progressTracker.AddItems(project.DocumentIds.Count);
+            }
+
             foreach (var projectId in solution.ProjectIds)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var project = solution.GetProject(projectId);
-                progressTracker.Description = project.Name;
-
-                // FixProjectAsync reports progress for documents within a project, but we limit progress reporting for
-                // a solution to the current project.
-                var projectProgressTracker = new ProgressTracker();
-
                 var newProject = await FixProjectAsync(project, enabledFixIds, projectProgressTracker, cancellationToken).ConfigureAwait(false);
                 solution = newProject.Solution;
-                progressTracker.ItemCompleted();
             }
 
             return solution;
