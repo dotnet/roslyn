@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This structure stores the 20-byte SHA 1 hash as an inline value rather than requiring the use of
+         /// This structure stores the 20-byte SHA256 hash as an inline value rather than requiring the use of
         /// <c>byte[]</c>.
         /// </summary>
         [StructLayout(LayoutKind.Explicit, Size = HashSize)]
