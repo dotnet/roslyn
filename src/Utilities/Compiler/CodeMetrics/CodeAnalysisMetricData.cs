@@ -136,22 +136,6 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         }
 
         #region Core Compute Methods
-        public async static Task<CodeAnalysisMetricData> ComputeAsync(Project project, CancellationToken cancellationToken)
-        {
-            if (project == null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
-            if (!project.SupportsCompilation)
-            {
-                throw new NotSupportedException("Project must support compilation.");
-            }
-
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            return await ComputeAsync(compilation.Assembly, compilation, cancellationToken).ConfigureAwait(false);
-        }
-
         public static Task<CodeAnalysisMetricData> ComputeAsync(Compilation compilation, CancellationToken cancellationToken)
         {
             if (compilation == null)
