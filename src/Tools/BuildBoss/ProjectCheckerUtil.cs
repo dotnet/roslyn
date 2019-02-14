@@ -98,16 +98,6 @@ namespace BuildBoss
             allGood &= IsUnitTestPortableCorrectlySpecified(textWriter, data);
             allGood &= CheckTargetFrameworks(textWriter, data);
 
-            if (data.EffectiveKind == RoslynProjectKind.Exe)
-            {
-                var element = _projectUtil.FindSingleProperty("ApplicationManifest");
-                if (element == null)
-                {
-                    textWriter.WriteLine("Exe projects must specify an ApplicationManifest property");
-                    allGood = false;
-                }
-            }
-
             return allGood;
         }
 
