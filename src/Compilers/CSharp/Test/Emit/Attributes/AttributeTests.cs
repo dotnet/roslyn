@@ -8980,6 +8980,37 @@ namespace a
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Command").WithArguments("Fx", "a.Class1.CommandAttribute.FxCommand").WithLocation(22, 4));
         }
 
+        [Fact, WorkItem(33388, "https://github.com/dotnet/roslyn/issues/33388")]
+        public void AttributeCrashRepro_33388()
+        {
+            string source = @"
+using System;
+
+public static class C
+{
+    public static int M(object obj) => 42;
+    public static int M(C2 c2) => 42;
+}
+
+public class RecAttribute : Attribute
+{
+    public RecAttribute(int i)
+    {
+        this.i = i;
+    }
+
+    private int i;
+}
+
+[Rec(C.M(null))]
+public class C2
+{
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
         #endregion
     }
 }
