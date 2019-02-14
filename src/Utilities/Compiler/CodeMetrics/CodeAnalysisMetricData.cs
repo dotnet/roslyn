@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#if HAS_IOPERATION
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -135,7 +137,6 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             }
         }
 
-        #region Core Compute Methods
         public static Task<CodeAnalysisMetricData> ComputeAsync(Compilation compilation, CancellationToken cancellationToken)
         {
             if (compilation == null)
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 where !child.IsImplicitlyDeclared || (child as INamespaceSymbol)?.IsGlobalNamespace == true
 #endif
                 select Task.Run(() => ComputeAsync(child, semanticModelProvider, cancellationToken))).ConfigureAwait(false)).ToImmutableArray();
-
-        #endregion
     }
 }
+
+#endif
