@@ -160,7 +160,7 @@ namespace RunTests
         private void PrintFailedTestResult(TestResult testResult)
         {
             // Save out the error output for easy artifact inspecting
-            var outputLogPath = Path.Combine(_options.OutputDirectory, $"{testResult.DisplayName}.log");
+            var outputLogPath = Path.Combine(_options.LogFilesOutputDirectory, $"xUnit Failure: {testResult.DisplayName}.log");
             File.WriteAllText(outputLogPath, testResult.StandardOutput ?? "");
 
             ConsoleUtil.WriteLine($"Errors {testResult.AssemblyName}");
