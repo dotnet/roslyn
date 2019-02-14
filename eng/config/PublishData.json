@@ -30,7 +30,7 @@
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
             "channels": [ "dev16.1", "dev16.1p1" ],
-            "vsBranch": "lab/ml"
+            "vsBranch": "master"
         },
         "features/NullableReferenceTypes": {
             "nugetKind": "PerBuildPreRelease",
@@ -38,7 +38,7 @@
             "nuget": [ "https://dotnet.myget.org/F/roslyn-nonnull/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn-nonnull/vsix/upload" ],
             "channels": [ "nonnull" ],
-            "vsBranch": "lab/ml",
+            "vsBranch": "master",
             "ibcSourceBranch": "master-vs-deps"
         },
         "features/dataflow": {
@@ -47,7 +47,7 @@
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
             "channels": [ "dataflow" ],
-            "vsBranch": "lab/ml",
+            "vsBranch": "master",
             "ibcSourceBranch": "master-vs-deps"
         },
         "features/editorconfig-in-compiler": {
@@ -56,7 +56,7 @@
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
             "channels": [ "editorconfig" ],
-            "vsBranch": "lab/ml",
+            "vsBranch": "master",
             "ibcSourceBranch": "master-vs-deps"
         }
     },
