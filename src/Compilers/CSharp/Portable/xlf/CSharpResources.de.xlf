@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
-        <target state="translated">In einer asynchronen foreach-Schleife kann keine Sammlung vom Typ "Dynamisch" verwendet werden.</target>
+        <target state="translated">Eine Sammlung des dynamic-Typs kann in einem asynchronen foreach nicht verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateExplicitImpl">
         <source>'{0}' is explicitly implemented more than once.</source>
-        <target state="translated">"{0}" ist explizit mehrfach implementiert.</target>
+        <target state="translated">"{0}" ist mehrfach explizit implementiert.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
@@ -387,7 +387,7 @@
         <target state="translated">Das Ergebnis des Vergleichs ist möglicherweise immer TRUE.</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_CSCHelp">
+	  <trans-unit id="IDS_CSCHelp">
         <source>
                              Visual C# Compiler Options
 
@@ -795,6 +795,11 @@
       <trans-unit id="IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator">
         <source>unconstrained type parameters in null coalescing operator</source>
         <target state="translated">Uneingeschränkte Typparameter in NULL-Zusammenfügungsoperator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnmanagedConstructedTypes">
+        <source>unmanaged constructed types</source>
+        <target state="translated">Nicht verwaltete konstruierte Typen</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">
@@ -2494,7 +2499,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
         <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
-        <target state="translated">Nur assignment-, call-, increment-, decrement- und new object-Ausdrücke können als Anweisung verwendet werden.</target>
+        <target state="translated">Nur assignment-, call-, increment-, decrement-, await- und new-Objektausdrücke können als Anweisung verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -6960,7 +6965,7 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
         <source>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, IAsyncEnumerable&lt;T&gt;, or IAsyncEnumerator&lt;T&gt;</source>
-        <target state="translated">Der Rückgabetyp einer asynchronen Methode muss "void", "Task", "Task&lt;T&gt;", ein Task-ähnlicher Typ, "IAsyncEnumerable&lt;T&gt;" oder "IAsyncEnumerator&lt;T&gt;" sein.</target>
+        <target state="translated">Eine asynchrone Methode kann einen der folgenden Rückgabetypen haben: void, Task, Task&lt;T&gt;, einen taskähnlichen Typ, IAsyncEnumerable&lt;T&gt; oder IAsyncEnumerator&lt;T&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantReturnVoid">
