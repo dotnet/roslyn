@@ -1961,7 +1961,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!rangeType.IsErrorType())
             {
-                symbolOpt = (MethodSymbol)GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__Create, diagnostics, syntax: node);
+                symbolOpt = (MethodSymbol)GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__ctor, diagnostics, syntax: node);
             }
 
             BoundExpression left = BindRangeExpressionOperand(node.LeftOperand, diagnostics);
