@@ -736,6 +736,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 return Mutex.TryOpenExisting(mutexName, out m);
             }
+            catch
+            {
+                // In the case an exception occured trying to open the Mutex then 
+                // the assumption is that it's not open.
+                return false;
+            }
             finally
             {
                 m?.Dispose();
@@ -745,7 +751,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         public bool TryLock(int timeoutMs)
         {
             if (IsDisposed)
-                throw new InvalidOperationException("Mutex disposed");
+                throw new ObjectDisposedException("Mutex");
             if (IsLocked)
                 throw new InvalidOperationException("Lock already held");
             return IsLocked = Mutex.WaitOne(timeoutMs);
@@ -754,7 +760,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         public void Unlock()
         {
             if (IsDisposed)
-                throw new InvalidOperationException("Mutex disposed");
+                throw new ObjectDisposedException("Mutex");
             if (!IsLocked)
                 throw new InvalidOperationException("Lock not held");
             Mutex.ReleaseMutex();
@@ -807,14 +813,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
         public bool TryLock(int timeoutMs)
         {
             if (IsDisposed)
-                throw new InvalidOperationException("Mutex disposed");
+                throw new ObjectDisposedException("Mutex");
             return HeldMutex.TryLock(timeoutMs);
         }
 
         public void Unlock()
         {
             if (IsDisposed)
-                throw new InvalidOperationException("Mutex disposed");
+                throw new ObjectDisposedException("Mutex");
             HeldMutex.Unlock();
         }
 
