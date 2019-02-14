@@ -160,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            return NavigateTo(textBuffer, vsTextSpan);
+            return NavigateTo(textBuffer, vsTextSpan, options ?? workspace.Options);
         }
 
         public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet options)
@@ -190,7 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            return NavigateTo(textBuffer, vsTextSpan);
+            return NavigateTo(textBuffer, vsTextSpan, options ?? workspace.Options);
         }
 
         public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet options)
@@ -232,7 +232,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            return NavigateTo(textBuffer, vsTextSpan);
+            return NavigateTo(textBuffer, vsTextSpan, options ?? workspace.Options);
         }
 
         /// <summary>
@@ -299,7 +299,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return workspace.CurrentSolution.GetDocument(documentId);
         }
 
-        private bool NavigateTo(ITextBuffer textBuffer, VsTextSpan vsTextSpan)
+        private bool NavigateTo(ITextBuffer textBuffer, VsTextSpan vsTextSpan, OptionSet options)
         {
             using (Logger.LogBlock(FunctionId.NavigationService_VSDocumentNavigationService_NavigateTo, CancellationToken.None))
             {
@@ -317,9 +317,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     return false;
                 }
 
-                return ErrorHandler.Succeeded(
-                    textManager.NavigateToLineAndColumn2(
-                        vsTextBuffer, VSConstants.LOGVIEWID.TextView_guid, vsTextSpan.iStartLine, vsTextSpan.iStartIndex, vsTextSpan.iEndLine, vsTextSpan.iEndIndex, (uint)_VIEWFRAMETYPE.vftCodeWindow));
+                if (options.GetOption(NavigationOptions.PreferProvisionalTab))
+                {
+                    // If we're just opening the provisional tab, then do not "activate" the document
+                    // (i.e. don't give it focus).  This way if a user is just arrowing through a set 
+                    // of FindAllReferences results, they don't have their cursor placed into the document.
+                    var state = __VSNEWDOCUMENTSTATE.NDS_Provisional | __VSNEWDOCUMENTSTATE.NDS_NoActivate;
+                    using (var scope = new NewDocumentStateScope(state, VSConstants.NewDocumentStateReason.Navigation))
+                    {
+                        return NavigateTo();
+                    }
+                }
+                else
+                {
+                    return NavigateTo();
+                }
+
+                bool NavigateTo()
+                {
+                    return ErrorHandler.Succeeded(
+                        textManager.NavigateToLineAndColumn2(
+                            vsTextBuffer,
+                            VSConstants.LOGVIEWID.TextView_guid,
+                            vsTextSpan.iStartLine,
+                            vsTextSpan.iStartIndex,
+                            vsTextSpan.iEndLine,
+                            vsTextSpan.iEndIndex,
+                            (uint)_VIEWFRAMETYPE.vftCodeWindow));
+                }
             }
         }
 
