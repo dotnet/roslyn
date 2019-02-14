@@ -72,7 +72,6 @@ jobs:
               /p:PublishToSymbolServer=true
               /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
               /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
-              /p:IbcOptimizationDataDir=$(Build.SourcesDirectory)\.o\\
     displayName: Build
     condition: succeeded()
 

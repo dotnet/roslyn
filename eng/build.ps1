@@ -209,6 +209,9 @@ function BuildSolution() {
     # Do not set this property to true explicitly, since that would override values set in projects.
     $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" } 
 
+    # Workaround for some machines in the AzDO pool not allowing long paths (%5c is msbuild escaped backslash)
+    $ibcDir = Join-Path $RepoRoot ".o%5c"
+
     # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
     # We don't pass /warnaserror to msbuild ($warnAsError is set to $false by default above), but set 
     # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
@@ -236,6 +239,7 @@ function BuildSolution() {
         /p:VisualStudioIbcSourceBranchName=$ibcSourceBranchName `
         /p:VisualStudioIbcDropId=$ibcDropId `
         /p:EnablePartialNgenOptimization=$applyOptimizationData `
+        /p:IbcOptimizationDataDir=$ibcDir `
         $suppressExtensionDeployment `
         @properties
 }
