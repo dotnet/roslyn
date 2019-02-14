@@ -92,5 +92,54 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                     throw new NotSupportedException();
             }
         }
+
+        private static CodeStyleOption<PreferBracesPreference> ParsePreferBracesPreference(
+            string optionString,
+            CodeStyleOption<PreferBracesPreference> defaultValue)
+        {
+            if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(
+                optionString,
+                out var value,
+                out var notificationOption))
+            {
+                if (notificationOption != null)
+                {
+                    if (bool.TryParse(value, out var boolValue))
+                    {
+                        return boolValue
+                            ? new CodeStyleOption<PreferBracesPreference>(PreferBracesPreference.Always, notificationOption)
+                            : new CodeStyleOption<PreferBracesPreference>(PreferBracesPreference.None, notificationOption);
+                    }
+                }
+
+                if (value == "when_multiline")
+                {
+                    return new CodeStyleOption<PreferBracesPreference>(PreferBracesPreference.WhenMultiline, notificationOption);
+                }
+            }
+
+            return defaultValue;
+        }
+
+        private static string GetPreferBracesPreferenceEditorConfigString(CodeStyleOption<PreferBracesPreference> value)
+        {
+            Debug.Assert(value.Notification != null);
+
+            var notificationString = value.Notification.ToEditorConfigString();
+            switch (value.Value)
+            {
+                case PreferBracesPreference.None:
+                    return $"false:{notificationString}";
+
+                case PreferBracesPreference.WhenMultiline:
+                    return $"when_multiline:{notificationString}";
+
+                case PreferBracesPreference.Always:
+                    return $"true:{notificationString}";
+
+                default:
+                    throw ExceptionUtilities.Unreachable;
+            }
+        }
     }
 }

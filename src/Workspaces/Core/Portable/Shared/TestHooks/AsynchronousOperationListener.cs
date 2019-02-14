@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 
@@ -12,7 +13,8 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     internal sealed partial class AsynchronousOperationListener : IAsynchronousOperationListener, IAsynchronousOperationWaiter
     {
-        private readonly object _gate = new object();
+        private readonly NonReentrantLock _gate = new NonReentrantLock();
+
         private readonly string _featureName;
         private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = new HashSet<TaskCompletionSource<bool>>();
 
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         public IAsyncToken BeginAsyncOperation(string name, object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
         {
-            lock (_gate)
+            using (_gate.DisposableWait(CancellationToken.None))
             {
                 IAsyncToken asyncToken;
                 if (_trackActiveTokens)
@@ -51,53 +53,50 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
         }
 
-        private void Increment()
+        private void Increment_NoLock()
         {
-            lock (_gate)
-            {
-                _counter++;
-            }
+            Contract.ThrowIfFalse(_gate.LockHeldByMe());
+            _counter++;
         }
 
-        private void Decrement(AsyncToken token)
+        private void Decrement_NoLock(AsyncToken token)
         {
-            lock (_gate)
+            Contract.ThrowIfFalse(_gate.LockHeldByMe());
+
+            _counter--;
+            if (_counter == 0)
             {
-                _counter--;
-                if (_counter == 0)
+                foreach (var task in _pendingTasks)
                 {
-                    foreach (var task in _pendingTasks)
-                    {
-                        task.SetResult(true);
-                    }
-
-                    _pendingTasks.Clear();
+                    task.SetResult(true);
                 }
 
-                if (_trackActiveTokens)
-                {
-                    int i = 0;
-                    bool removed = false;
-                    while (i < _diagnosticTokenList.Count)
-                    {
-                        if (_diagnosticTokenList[i] == token)
-                        {
-                            _diagnosticTokenList.RemoveAt(i);
-                            removed = true;
-                            break;
-                        }
+                _pendingTasks.Clear();
+            }
 
-                        i++;
+            if (_trackActiveTokens)
+            {
+                int i = 0;
+                bool removed = false;
+                while (i < _diagnosticTokenList.Count)
+                {
+                    if (_diagnosticTokenList[i] == token)
+                    {
+                        _diagnosticTokenList.RemoveAt(i);
+                        removed = true;
+                        break;
                     }
 
-                    Debug.Assert(removed, "IAsyncToken and Listener mismatch");
+                    i++;
                 }
+
+                Debug.Assert(removed, "IAsyncToken and Listener mismatch");
             }
         }
 
         public Task CreateWaitTask()
         {
-            lock (_gate)
+            using (_gate.DisposableWait(CancellationToken.None))
             {
                 if (_counter == 0)
                 {
@@ -106,7 +105,11 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 }
                 else
                 {
-                    var source = new TaskCompletionSource<bool>();
+                    // Calling SetResult on a normal TaskCompletionSource can cause continuations to run synchronously
+                    // at that point. That's a problem as that may cause additional code to run while we're holding a lock. 
+                    // In order to prevent that, we pass along RunContinuationsAsynchronously in order to ensure that 
+                    // all continuations will run at a future point when this thread has released the lock.
+                    var source = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     _pendingTasks.Add(source);
 
                     return source.Task;
@@ -134,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             get { return _trackActiveTokens; }
             set
             {
-                lock (_gate)
+                using (_gate.DisposableWait(CancellationToken.None))
                 {
                     if (_trackActiveTokens == value)
                     {
@@ -151,7 +154,10 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         {
             get
             {
-                return _counter != 0;
+                using (_gate.DisposableWait(CancellationToken.None))
+                {
+                    return _counter != 0;
+                }
             }
         }
 
@@ -159,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         {
             get
             {
-                lock (_gate)
+                using (_gate.DisposableWait(CancellationToken.None))
                 {
                     if (_diagnosticTokenList == null)
                     {

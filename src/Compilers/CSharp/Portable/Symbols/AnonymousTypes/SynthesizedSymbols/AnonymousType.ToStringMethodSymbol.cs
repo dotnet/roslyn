@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override TypeSymbolWithAnnotations ReturnType
             {
-                get { return TypeSymbolWithAnnotations.Create(this.Manager.System_String, isNullableIfReferenceType: false); }
+                get { return TypeSymbolWithAnnotations.Create(this.Manager.System_String, NullableAnnotation.NotAnnotated); }
             }
 
             public override ImmutableArray<ParameterSymbol> Parameters

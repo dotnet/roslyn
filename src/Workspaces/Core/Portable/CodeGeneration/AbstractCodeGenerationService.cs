@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             {
                 throw new ArgumentException(WorkspacesResources.Could_not_find_location_to_generation_symbol_into);
             }
-            
+
             var transformedDeclaration = declarationTransform(destinationDeclaration, options, availableIndices, cancellationToken);
 
             var destinationTree = destinationDeclaration.SyntaxTree;
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IList<bool> availableIndices,
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
-            where TDeclarationSyntax  : SyntaxNode
+            where TDeclarationSyntax : SyntaxNode
         {
             var currentDestination = destination;
 

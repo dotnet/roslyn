@@ -16,12 +16,12 @@
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleBadWithin">
         <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
-        <target state="new">Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</target>
+        <target state="translated">パラメーター '{0}' は、'INamedTypeSymbol' または 'IAssemblySymbol' でなければなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
-        <target state="new">Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</target>
+        <target state="translated">パラメーター '{0}' は、このコンパイルまたはいくつかの参照アセンブリのシンボルにする必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
@@ -36,7 +36,7 @@
       </trans-unit>
       <trans-unit id="OperationMustNotBeControlFlowGraphPart">
         <source>The provided operation must not be part of a Control Flow Graph.</source>
-        <target state="new">The provided operation must not be part of a Control Flow Graph.</target>
+        <target state="translated">指定された操作を制御フロー グラフの一部にすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="OutputKindNotSupported">
@@ -61,7 +61,7 @@
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
-        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</target>
+        <target state="translated">アナライザー '{0}' の 'SupportedDiagnostics' に null 記述子が含まれています。</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -528,12 +528,12 @@
       </trans-unit>
       <trans-unit id="PEImageDoesntContainManagedMetadata">
         <source>PE image doesn't contain managed metadata.</source>
-        <target state="translated">PE イメージには、マネージド メタデータが含まれていません。</target>
+        <target state="translated">PE イメージには、管理されたメタデータが含まれていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="translated">変更が重なっていてはなりません。</target>
+        <target state="translated">変更は順序付けする必要があり、重複は許可されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
@@ -608,7 +608,7 @@
       </trans-unit>
       <trans-unit id="InvalidNodeToTrack">
         <source>Node to track is not a descendant of the root.</source>
-        <target state="translated">追跡する Node、ルートの子孫ではありません。</target>
+        <target state="translated">追跡するノードは、ルートの子孫ではありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="NodeOrTokenOutOfSequence">
@@ -775,7 +775,7 @@
       </trans-unit>
       <trans-unit id="TupleElementNameCountMismatch">
         <source>If tuple element names are specified, the number of element names must match the cardinality of the tuple.</source>
-        <target state="translated">タプル要素名を指定する場合、要素名の数は、タプルのカーディナリティと一致する必要があります。</target>
+        <target state="translated">タプル要素名を指定する場合、要素名の数は、タプルの基数と一致する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="TupleElementNameEmpty">
@@ -785,7 +785,7 @@
       </trans-unit>
       <trans-unit id="TupleElementLocationCountMismatch">
         <source>If tuple element locations are specified, the number of locations must match the cardinality of the tuple.</source>
-        <target state="translated">タプル要素の場所を指定する場合、場所の数はタプルのカーディナリティと一致する必要があります。</target>
+        <target state="translated">タプル要素の場所を指定する場合、場所の数はタプルの基数と一致する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="TuplesNeedAtLeastTwoElements">

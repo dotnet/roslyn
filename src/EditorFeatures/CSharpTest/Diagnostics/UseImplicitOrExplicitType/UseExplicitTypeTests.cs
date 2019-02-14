@@ -235,6 +235,46 @@ class Program
 }", new TestParameters(options: ExplicitTypeEverywhere()));
         }
 
+        [WorkItem(29718, "https://github.com/dotnet/roslyn/issues/29718")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task NotOnErrorConvertedType_ForEachVariableStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+ @"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        // Error CS1061: 'KeyValuePair<int, int>' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'KeyValuePair<int, int>' could be found (are you missing a using directive or an assembly reference?)
+        // Error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'KeyValuePair<int, int>', with 2 out parameters and a void return type.
+        foreach ([|var|] (key, value) in new Dictionary<int, int>())
+        {
+        }
+    }
+}", new TestParameters(options: ExplicitTypeEverywhere()));
+        }
+
+        [WorkItem(29718, "https://github.com/dotnet/roslyn/issues/29718")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task NotOnErrorConvertedType_AssignmentExpressionStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+ @"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void M(C c)
+    {
+        // Error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+        // Error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+        [|var|] (key, value) = c;
+    }
+}", new TestParameters(options: ExplicitTypeEverywhere()));
+        }
+
         #endregion
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
@@ -1031,7 +1071,7 @@ class C
 {
     static void M()
     {
-        [|var|] cc = new Customer { City = ""Madras"" };
+        [|var|] cc = new Customer { City = ""Chennai"" };
     }
 
     private class Customer
@@ -1045,7 +1085,7 @@ class C
 {
     static void M()
     {
-        Customer cc = new Customer { City = ""Madras"" };
+        Customer cc = new Customer { City = ""Chennai"" };
     }
 
     private class Customer
@@ -1094,7 +1134,7 @@ class C
     {
         [|var|] cs = new List<Customer>
         {
-            new Customer { City = ""Madras"" }
+            new Customer { City = ""Chennai"" }
         };
     }
 
@@ -1112,7 +1152,7 @@ class C
     {
         List<Customer> cs = new List<Customer>
         {
-            new Customer { City = ""Madras"" }
+            new Customer { City = ""Chennai"" }
         };
     }
 
@@ -1900,6 +1940,20 @@ class Program
         {
             Console.WriteLine(value.Value);
         }
+    }
+}", new TestParameters(options: ExplicitTypeEverywhere()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task NotOnConstVar()
+        {
+            // This error case is handled by a separate code fix (UseExplicitTypeForConst).
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        const [|var|] v = 0;
     }
 }", new TestParameters(options: ExplicitTypeEverywhere()));
         }

@@ -114,18 +114,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
                 var diagnostics = await GetDiagnosticsWorkerAsync(workspace, parameters);
-                Assert.Equal(0, diagnostics.Length);
+                Assert.True(0 == diagnostics.Length, $"Expected no diagnostics, but got {diagnostics.Length}");
             }
         }
 
-        protected async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(
-            TestWorkspace workspace, TestParameters parameters)
-        {
-            var (actions, actionToInvoke) = await GetCodeActionsWorkerAsync(workspace, parameters);
-            return (MassageActions(actions), actionToInvoke);
-        }
-
-        protected abstract Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsWorkerAsync(
+        protected abstract Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(
             TestWorkspace workspace, TestParameters parameters);
 
         protected abstract Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(
@@ -436,7 +429,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             // To help when a user just writes a test (and supplied no 'expectedText') just print
             // out the entire 'actualText' (without any trimming).  in the case that we have both,
-            // call the normal Assert helper which will print out a good trimmed diff. 
+            // call the normal Assert helper which will print out a good trimmed diff.
             if (expectedText == "")
             {
                 Assert.Equal((object)expectedText, actualText);
@@ -469,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        private static Document GetDocumentToVerify(DocumentId expectedChangedDocumentId, Solution oldSolution, Solution newSolution)
+        protected static Document GetDocumentToVerify(DocumentId expectedChangedDocumentId, Solution oldSolution, Solution newSolution)
         {
             Document document;
             // If the expectedChangedDocumentId is not mentioned then we expect only single document to be changed
@@ -524,7 +517,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         internal static Task<ImmutableArray<CodeActionOperation>> VerifyActionAndGetOperationsAsync(
             CodeAction action, TestParameters parameters)
         {
-            Assert.NotNull(action);
+            Assert.False(action is null, "No action was offered when one was expected.");
+
             if (parameters.priority != null)
             {
                 Assert.Equal(parameters.priority.Value, action.Priority);
@@ -573,6 +567,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 : ImmutableArray.Create(a)).ToImmutableArray();
         }
 
+        protected static ImmutableArray<CodeAction> GetNestedActions(ImmutableArray<CodeAction> codeActions)
+            => codeActions.SelectMany(a => a.NestedCodeActions).ToImmutableArray();
+
         protected (OptionKey, object) SingleOption<T>(Option<T> option, T enabled)
             => (new OptionKey(option), enabled);
 
@@ -619,6 +616,33 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Tests all the code actions for the given <paramref name="input"/> string.  Each code
+        /// action must produce the corresponding output in the <paramref name="outputs"/> array.
+        /// 
+        /// Will throw if there are more outputs than code actions or more code actions than outputs.
+        /// </summary>
+        protected Task TestAllInRegularAndScriptAsync(
+            string input,
+            params string[] outputs)
+        {
+            return TestAllInRegularAndScriptAsync(input, parameters: default, outputs);
+        }
+
+        protected async Task TestAllInRegularAndScriptAsync(
+            string input,
+            TestParameters parameters,
+            params string[] outputs)
+        {
+            for (int index = 0; index < outputs.Length; index++)
+            {
+                var output = outputs[index];
+                await TestInRegularAndScript1Async(input, output, index, parameters: parameters);
+            }
+
+            await TestActionCountAsync(input, outputs.Length, parameters);
         }
     }
 }

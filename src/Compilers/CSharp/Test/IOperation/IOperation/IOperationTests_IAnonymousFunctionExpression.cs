@@ -753,23 +753,90 @@ struct C
             var graphM = ControlFlowGraph.Create((IMethodBodyOperation)semanticModel.GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single()));
 
             Assert.NotNull(graphM);
+            Assert.Null(graphM.Parent);
 
             IFlowAnonymousFunctionOperation lambdaD1 = getLambda(graphM);
 
             Assert.Throws<ArgumentNullException>(() => graphM.GetLocalFunctionControlFlowGraph(null));
             Assert.Throws<ArgumentOutOfRangeException>(() => graphM.GetLocalFunctionControlFlowGraph(lambdaD1.Symbol));
+            Assert.Throws<ArgumentNullException>(() => graphM.GetLocalFunctionControlFlowGraphInScope(null));
+            Assert.Throws<ArgumentOutOfRangeException>(() => graphM.GetLocalFunctionControlFlowGraphInScope(lambdaD1.Symbol));
 
             var graphD1 = graphM.GetAnonymousFunctionControlFlowGraph(lambdaD1);
             Assert.NotNull(graphD1);
+            Assert.Same(graphM, graphD1.Parent);
+            var graphD1_FromExtension = graphM.GetAnonymousFunctionControlFlowGraphInScope(lambdaD1);
+            Assert.Same(graphD1, graphD1_FromExtension);
 
             IFlowAnonymousFunctionOperation lambdaD2 = getLambda(graphD1);
+            var graphD2 = graphD1.GetAnonymousFunctionControlFlowGraph(lambdaD2);
+            Assert.NotNull(graphD2);
+            Assert.Same(graphD1, graphD2.Parent);
 
             Assert.Throws<ArgumentNullException>(() => graphM.GetAnonymousFunctionControlFlowGraph(null));
             Assert.Throws<ArgumentOutOfRangeException>(() => graphM.GetAnonymousFunctionControlFlowGraph(lambdaD2));
+            Assert.Throws<ArgumentNullException>(() => graphM.GetAnonymousFunctionControlFlowGraphInScope(null));
+            Assert.Throws<ArgumentOutOfRangeException>(() => graphM.GetAnonymousFunctionControlFlowGraphInScope(lambdaD2));
 
             IFlowAnonymousFunctionOperation getLambda(ControlFlowGraph graph)
             {
                 return graph.Blocks.SelectMany(b => b.Operations.SelectMany(o => o.DescendantsAndSelf())).OfType<IFlowAnonymousFunctionOperation>().Single();
+            }
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void LambdaFlow_05()
+        {
+            string source = @"
+struct C
+{
+    void M(System.Action d1, System.Action d2)
+/*<bind>*/{
+        d1 = () => { };
+        d2 = () =>
+        {
+            d1();
+        };
+    }/*</bind>*/
+}
+";
+
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var graphM = ControlFlowGraph.Create((IMethodBodyOperation)semanticModel.GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single()));
+
+            Assert.NotNull(graphM);
+            Assert.Null(graphM.Parent);
+
+            IFlowAnonymousFunctionOperation lambdaD1 = getLambda(graphM, index: 0);
+            Assert.NotNull(lambdaD1);
+            IFlowAnonymousFunctionOperation lambdaD2 = getLambda(graphM, index: 1);
+            Assert.NotNull(lambdaD2);
+
+            Assert.Throws<ArgumentNullException>(() => graphM.GetLocalFunctionControlFlowGraph(null));
+            Assert.Throws<ArgumentOutOfRangeException>(() => graphM.GetLocalFunctionControlFlowGraph(lambdaD1.Symbol));
+            Assert.Throws<ArgumentNullException>(() => graphM.GetLocalFunctionControlFlowGraphInScope(null));
+            Assert.Throws<ArgumentOutOfRangeException>(() => graphM.GetLocalFunctionControlFlowGraphInScope(lambdaD1.Symbol));
+
+            var graphD1 = graphM.GetAnonymousFunctionControlFlowGraph(lambdaD1);
+            Assert.NotNull(graphD1);
+            Assert.Same(graphM, graphD1.Parent);
+            var graphD2 = graphM.GetAnonymousFunctionControlFlowGraph(lambdaD2);
+            Assert.NotNull(graphD2);
+            Assert.Same(graphM, graphD2.Parent);
+
+            var graphD1_FromExtension = graphM.GetAnonymousFunctionControlFlowGraphInScope(lambdaD1);
+            Assert.Same(graphD1, graphD1_FromExtension);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => graphD2.GetAnonymousFunctionControlFlowGraph(lambdaD1));
+            graphD1_FromExtension = graphD2.GetAnonymousFunctionControlFlowGraphInScope(lambdaD1);
+            Assert.Same(graphD1, graphD1_FromExtension);
+
+            IFlowAnonymousFunctionOperation getLambda(ControlFlowGraph graph, int index)
+            {
+                return graph.Blocks.SelectMany(b => b.Operations.SelectMany(o => o.DescendantsAndSelf())).OfType<IFlowAnonymousFunctionOperation>().ElementAt(index);
             }
         }
     }

@@ -16,17 +16,17 @@
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleBadWithin">
         <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
-        <target state="new">Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</target>
+        <target state="translated">Il parametro '{0}' deve essere un elemento 'INamedTypeSymbol' o 'IAssemblySymbol'.</target>
         <note />
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
-        <target state="new">Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</target>
+        <target state="translated">Il parametro '{0}' deve essere un simbolo di questa compilazione oppure un qualsiasi assembly cui viene fatto riferimento.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
         <source>Given operation has a non-null parent.</source>
-        <target state="translated">L'operazione specificata non contiene un elemento padre non Null.</target>
+        <target state="translated">L'operazione specificata contiene un elemento padre non Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
@@ -36,7 +36,7 @@
       </trans-unit>
       <trans-unit id="OperationMustNotBeControlFlowGraphPart">
         <source>The provided operation must not be part of a Control Flow Graph.</source>
-        <target state="new">The provided operation must not be part of a Control Flow Graph.</target>
+        <target state="translated">L'operazione specificata non deve essere inclusa in un grafico del flusso di controllo.</target>
         <note />
       </trans-unit>
       <trans-unit id="OutputKindNotSupported">
@@ -61,7 +61,7 @@
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
-        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</target>
+        <target state="translated">L'analizzatore '{0}' contiene un descrittore Null nel relativo elemento 'SupportedDiagnostics'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -533,7 +533,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="translated">Le modifiche non devono sovrapporsi.</target>
+        <target state="translated">Le modifiche devono essere ordinate e non sovrapposte.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
@@ -608,7 +608,7 @@
       </trans-unit>
       <trans-unit id="InvalidNodeToTrack">
         <source>Node to track is not a descendant of the root.</source>
-        <target state="translated">Il nodo di cui tenere traccia non è un discendente della radice.</target>
+        <target state="translated">Il nodo da tracciare non è un discendente della radice.</target>
         <note />
       </trans-unit>
       <trans-unit id="NodeOrTokenOutOfSequence">

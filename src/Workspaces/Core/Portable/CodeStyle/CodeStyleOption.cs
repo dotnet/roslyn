@@ -189,6 +189,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                Equals(option);
 
         public override int GetHashCode()
-            => Hash.Combine(Value.GetHashCode(), Notification.GetHashCode());
+            => unchecked((Notification.GetHashCode() * (int)0xA5555529) + Value.GetHashCode());
     }
 }

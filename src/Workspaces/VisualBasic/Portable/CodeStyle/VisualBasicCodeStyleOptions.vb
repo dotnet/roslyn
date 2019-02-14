@@ -13,9 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
         End Sub
 
         Private Shared Function CreateOption(Of T)(group As OptionGroup, name As String, defaultValue As T, ParamArray storageLocations As OptionStorageLocation()) As [Option](Of T)
-            Dim [option] = New [Option](Of T)(NameOf(VisualBasicCodeStyleOptions), group, name, defaultValue, storageLocations)
-            s_allOptionsBuilder.Add([option])
-            Return [option]
+            Return CodeStyleHelpers.CreateOption(group, NameOf(VisualBasicCodeStyleOptions), name, defaultValue, s_allOptionsBuilder, storageLocations)
         End Function
 
         Public Shared ReadOnly Property AllOptions As ImmutableArray(Of IOption)
@@ -36,9 +34,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
             EditorConfigStorageLocation.ForStringCodeStyleOption("visual_basic_preferred_modifier_order"),
             New RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{NameOf(PreferredModifierOrder)}"))
 
+        Public Shared ReadOnly UnusedValueExpressionStatement As [Option](Of CodeStyleOption(Of UnusedValuePreference)) =
+            CodeStyleHelpers.CreateUnusedExpressionAssignmentOption(
+                group:=VisualBasicCodeStyleOptionGroups.ExpressionLevelPreferences,
+                feature:=NameOf(VisualBasicCodeStyleOptions),
+                name:=NameOf(UnusedValueExpressionStatement),
+                editorConfigName:="visual_basic_style_unused_value_expression_statement_preference",
+                defaultValue:=New CodeStyleOption(Of UnusedValuePreference)(UnusedValuePreference.UnusedLocalVariable, NotificationOption.Silent),
+                optionsBuilder:=s_allOptionsBuilder)
+
+        Public Shared ReadOnly UnusedValueAssignment As [Option](Of CodeStyleOption(Of UnusedValuePreference)) =
+            CodeStyleHelpers.CreateUnusedExpressionAssignmentOption(
+                group:=VisualBasicCodeStyleOptionGroups.ExpressionLevelPreferences,
+                feature:=NameOf(VisualBasicCodeStyleOptions),
+                name:=NameOf(UnusedValueAssignment),
+                editorConfigName:="visual_basic_style_unused_value_assignment_preference",
+                defaultValue:=New CodeStyleOption(Of UnusedValuePreference)(UnusedValuePreference.UnusedLocalVariable, NotificationOption.Suggestion),
+                optionsBuilder:=s_allOptionsBuilder)
     End Class
 
     Friend NotInheritable Class VisualBasicCodeStyleOptionGroups
         Public Shared ReadOnly Modifier As New OptionGroup(WorkspacesResources.Modifier_preferences, priority:=1)
+        Public Shared ReadOnly ExpressionLevelPreferences As New OptionGroup(WorkspacesResources.Expression_level_preferences, priority:=2)
     End Class
 End Namespace

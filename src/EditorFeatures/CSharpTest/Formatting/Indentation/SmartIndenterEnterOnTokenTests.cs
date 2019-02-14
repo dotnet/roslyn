@@ -11,10 +11,11 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
-    public class SmartIndenterEnterOnTokenTests : FormatterTestsBase
+    public class SmartIndenterEnterOnTokenTests : CSharpFormatterTestsBase
     {
         [WorkItem(537808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537808")]
         [WpfFact]
@@ -1300,7 +1301,7 @@ Program.number}"";
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "PROTOTYPE(patterns2): need to implement indentation for recursive patterns")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task IndentPatternPropertyFirst()
         {
@@ -1376,11 +1377,14 @@ class C
         private async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
             string code,
             int indentationLine,
-            int? expectedIndentation)
+            int? expectedIndentation,
+            int? expectedBlankLineIndentation = null,
+            IndentStyle indentStyle = IndentStyle.Smart)
         {
             // create tree service
             using (var workspace = TestWorkspace.CreateCSharp(code))
             {
+                workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
                 var hostdoc = workspace.Documents.First();
                 var buffer = hostdoc.GetTextBuffer();
                 var snapshot = buffer.CurrentSnapshot;
@@ -1395,7 +1399,9 @@ class C
                         Formatter.GetDefaultFormattingRules(workspace, root.Language),
                         root, line.AsTextLine(), await document.GetOptionsAsync(), CancellationToken.None));
 
-                TestIndentation(indentationLine, expectedIndentation, workspace);
+                TestIndentation(
+                    workspace, indentationLine,
+                    expectedIndentation, expectedBlankLineIndentation);
             }
         }
     }

@@ -322,13 +322,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            // TODO(cyrusn): Add more cases.
+            if (expression.IsParentKind(SyntaxKind.ConstantPattern))
+            {
+                return true;
+            }
+
+            // note: the above list is not intended to be exhaustive.  If more cases
+            // are discovered that should be considered 'constant' contexts in the 
+            // language, then this should be updated accordingly.
             return false;
         }
 
         public static bool IsInOutContext(this ExpressionSyntax expression)
         {
-            var argument = expression.Parent as ArgumentSyntax;
+            var argument = expression?.Parent as ArgumentSyntax;
             return
                 argument != null &&
                 argument.Expression == expression &&
@@ -566,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            if (!(expression is ObjectCreationExpressionSyntax) && 
+            if (!(expression is ObjectCreationExpressionSyntax) &&
                 !(expression is AnonymousObjectCreationExpressionSyntax) &&
                 !expression.IsLeftSideOfAssignExpression())
             {

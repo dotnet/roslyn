@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             token.TrailingTrivia);
                     }
                 }
- 
+
                 return token;
             }
         }

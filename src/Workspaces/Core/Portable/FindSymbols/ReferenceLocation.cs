@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
@@ -39,7 +40,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Indicates if this is a location where the reference is written to.
         /// </summary>
-        internal bool IsWrittenTo { get; }
+        internal bool IsWrittenTo => ValueUsageInfo.IsWrittenTo();
+
+        /// <summary>
+        /// Value usage info for this reference.
+        /// </summary>
+        internal ValueUsageInfo ValueUsageInfo { get; }
 
         /// <summary>
         /// Indicates if this location is a duplicate of some another ReferenceLocation.
@@ -50,14 +56,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public CandidateReason CandidateReason { get; }
 
-        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, bool isWrittenTo, CandidateReason candidateReason)
+        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, ValueUsageInfo valueUsageInfo, CandidateReason candidateReason)
             : this()
         {
             this.Document = document;
             this.Alias = alias;
             this.Location = location;
             this.IsImplicit = isImplicit;
-            this.IsWrittenTo = isWrittenTo;
+            this.ValueUsageInfo = valueUsageInfo;
             this.CandidateReason = candidateReason;
         }
 

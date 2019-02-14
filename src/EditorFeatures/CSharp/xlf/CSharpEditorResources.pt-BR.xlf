@@ -12,6 +12,16 @@
         <target state="new">Move misplaced using directives</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Complete_statement_on_semicolon">
+        <source>Complete statement on ;</source>
+        <target state="new">Complete statement on ;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_interpolated_verbatim_string">
+        <source>Fix interpolated verbatim string</source>
+        <target state="new">Fix interpolated verbatim string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Press_TAB_to_insert">
         <source>     (Press TAB to insert)</source>
         <target state="translated">     (Pressione TAB para inserir)</target>

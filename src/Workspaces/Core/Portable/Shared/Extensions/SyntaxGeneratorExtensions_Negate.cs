@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -34,6 +35,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
+            return Negate(generator, expression, semanticModel, negateBinary: true, cancellationToken);
+        }
+
+        public static SyntaxNode Negate(
+            this SyntaxGenerator generator,
+            SyntaxNode expression,
+            SemanticModel semanticModel,
+            bool negateBinary,
+            CancellationToken cancellationToken)
+        {
             var syntaxFacts = generator.SyntaxFacts;
             if (syntaxFacts.IsParenthesizedExpression(expression))
             {
@@ -41,10 +52,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     generator.Negate(
                         syntaxFacts.GetExpressionOfParenthesizedExpression(expression),
                         semanticModel,
+                        negateBinary,
                         cancellationToken))
                     .WithTriviaFrom(expression);
             }
-            if (syntaxFacts.IsBinaryExpression(expression))
+            if (negateBinary && syntaxFacts.IsBinaryExpression(expression))
             {
                 return GetNegationOfBinaryExpression(expression, generator, semanticModel, cancellationToken);
             }
@@ -280,7 +292,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var operatorToken = syntaxFacts.GetOperatorTokenOfPrefixUnaryExpression(expression);
             var operand = syntaxFacts.GetOperandOfPrefixUnaryExpression(expression);
 
-            return operand.WithPrependedLeadingTrivia(operatorToken.LeadingTrivia);
+            return operand.WithPrependedLeadingTrivia(operatorToken.LeadingTrivia)
+                          .WithAdditionalAnnotations(Simplifier.Annotation);
         }
     }
 }

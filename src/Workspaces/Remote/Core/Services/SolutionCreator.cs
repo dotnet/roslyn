@@ -267,6 +267,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 project = project.Solution.WithProjectOutputRefFilePath(project.Id, newProjectInfo.OutputRefFilePath).GetProject(project.Id);
             }
 
+            if (project.State.ProjectInfo.Attributes.DefaultNamespace != newProjectInfo.DefaultNamespace)
+            {
+                project = project.Solution.WithProjectDefaultNamespace(project.Id, newProjectInfo.DefaultNamespace).GetProject(project.Id);
+            }
+
             if (project.State.ProjectInfo.Attributes.HasAllInformation != newProjectInfo.HasAllInformation)
             {
                 project = project.Solution.WithHasAllInformation(project.Id, newProjectInfo.HasAllInformation).GetProject(project.Id);
@@ -516,7 +521,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 projectInfo.Id, projectInfo.Version, projectInfo.Name, projectInfo.AssemblyName,
                 projectInfo.Language, projectInfo.FilePath, projectInfo.OutputFilePath,
                 compilationOptions, parseOptions,
-                documents, p2p, metadata, analyzers, additionals, projectInfo.IsSubmission).WithHasAllInformation(projectInfo.HasAllInformation);
+                documents, p2p, metadata, analyzers, additionals, projectInfo.IsSubmission)
+                .WithHasAllInformation(projectInfo.HasAllInformation)
+                .WithDefaultNamespace(projectInfo.DefaultNamespace);
         }
 
         private async Task<List<T>> CreateCollectionAsync<T>(ChecksumCollection collections)
@@ -621,9 +628,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task ValidateChecksumAsync(Checksum givenSolutionChecksum, Solution solution)
         {
-            // have this to avoid error on async
-            await Task.CompletedTask.ConfigureAwait(false);
-
 #if DEBUG
             var currentSolutionChecksum = await solution.State.GetChecksumAsync(_cancellationToken).ConfigureAwait(false);
 
@@ -631,8 +635,6 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 return;
             }
-
-            Debug.Assert(false, "checksum not same");
 
             var map = await solution.GetAssetMapAsync(_cancellationToken).ConfigureAwait(false);
             await RemoveDuplicateChecksumsAsync(givenSolutionChecksum, map).ConfigureAwait(false);
@@ -649,9 +651,13 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             Logger.Log(FunctionId.SolutionCreator_AssetDifferences, sb.ToString());
-#endif
 
-            return;
+            Debug.Fail("Differences detected in solution checksum: " + sb.ToString());
+#else
+
+            // have this to avoid error on async
+            await Task.CompletedTask.ConfigureAwait(false);
+#endif
         }
 
         private async Task RemoveDuplicateChecksumsAsync(Checksum givenSolutionChecksum, Dictionary<Checksum, object> map)

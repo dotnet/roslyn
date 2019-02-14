@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpCodeStyleResources {
@@ -62,11 +62,29 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove this value when another is added..
+        ///   Looks up a localized string similar to Indentation preferences.
         /// </summary>
-        internal static string EmptyResource {
+        internal static string Indentation_preferences {
             get {
-                return ResourceManager.GetString("EmptyResource", resourceCulture);
+                return ResourceManager.GetString("Indentation_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Space preferences.
+        /// </summary>
+        internal static string Space_preferences {
+            get {
+                return ResourceManager.GetString("Space_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrapping preferences.
+        /// </summary>
+        internal static string Wrapping_preferences {
+            get {
+                return ResourceManager.GetString("Wrapping_preferences", resourceCulture);
             }
         }
     }

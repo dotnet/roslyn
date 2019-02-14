@@ -5,6 +5,11 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using CSharpWorkspaceResources = Microsoft.CodeAnalysis.CSharp.CSharpCodeStyleResources;
+using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     public static partial class CSharpFormattingOptions
@@ -40,6 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 KeyValuePairUtil.Create("no_change", LabelPositionOptions.NoIndent),
                 KeyValuePairUtil.Create("one_less_than_current", LabelPositionOptions.OneLess),
             });
+        private static readonly BidirectionalMap<string, NewLineOption> s_legacyNewLineOptionsEditorConfigMap =
+            new BidirectionalMap<string, NewLineOption>(new[]
+            {
+                KeyValuePairUtil.Create("object_collection_array_initalizers", NewLineOption.ObjectCollectionsArrayInitializers),
+            });
         private static readonly BidirectionalMap<string, NewLineOption> s_newLineOptionsEditorConfigMap =
             new BidirectionalMap<string, NewLineOption>(new[]
             {
@@ -52,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 KeyValuePairUtil.Create("anonymous_methods", NewLineOption.AnonymousMethods),
                 KeyValuePairUtil.Create("control_blocks", NewLineOption.ControlBlocks),
                 KeyValuePairUtil.Create("anonymous_types", NewLineOption.AnonymousTypes),
-                KeyValuePairUtil.Create("object_collection_array_initalizers", NewLineOption.ObjectCollectionsArrayInitializers),
+                KeyValuePairUtil.Create("object_collection_array_initializers", NewLineOption.ObjectCollectionsArrayInitializers),
                 KeyValuePairUtil.Create("lambdas", NewLineOption.Lambdas),
                 KeyValuePairUtil.Create("local_functions", NewLineOption.LocalFunction),
             });

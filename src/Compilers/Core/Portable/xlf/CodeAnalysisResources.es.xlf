@@ -16,12 +16,12 @@
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleBadWithin">
         <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
-        <target state="new">Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</target>
+        <target state="translated">Parámetro '{0}' debe ser un 'INamedTypeSymbol' o un 'IAssemblySymbol'.</target>
         <note />
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
-        <target state="new">Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</target>
+        <target state="translated">El parámetro "{0}" debe ser un símbolo de esta compilación o algún ensamble al que se hace referencia.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
@@ -36,7 +36,7 @@
       </trans-unit>
       <trans-unit id="OperationMustNotBeControlFlowGraphPart">
         <source>The provided operation must not be part of a Control Flow Graph.</source>
-        <target state="new">The provided operation must not be part of a Control Flow Graph.</target>
+        <target state="translated">La operación proporcionada no debe ser parte de un gráfico de flujo de control.</target>
         <note />
       </trans-unit>
       <trans-unit id="OutputKindNotSupported">
@@ -61,7 +61,7 @@
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
-        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</target>
+        <target state="translated">El analizador de "{0}" contiene un descriptor nulo en "SupportedDiagnostics".</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -101,7 +101,7 @@
       </trans-unit>
       <trans-unit id="Field">
         <source>field</source>
-        <target state="translated">campo</target>
+        <target state="translated">Campo</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeParameter">
@@ -366,7 +366,7 @@
       </trans-unit>
       <trans-unit id="InvalidCharactersInAssemblyName">
         <source>Invalid characters in assembly name</source>
-        <target state="translated">Caracteres no válidos en nombre de ensamblado</target>
+        <target state="translated">Caracteres no válidos en el nombre de ensamblado</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidCharactersInAssemblyCultureName">
@@ -533,7 +533,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="translated">Los cambios no deben superponerse.</target>
+        <target state="translated">Los cambios deben estar ordenados y no superponerse.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">

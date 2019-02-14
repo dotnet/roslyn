@@ -540,7 +540,7 @@ public class _Default
                     eventHandlerName:="Button1_Click",
                     itemidInsertionPoint:=0,
                     useHandlesClause:=False,
-                    additionalFormattingRule:=New BlankLineInGeneratedMethodFormattingRule(),
+                    additionalFormattingRule:=BlankLineInGeneratedMethodFormattingRule.Instance,
                     cancellationToken:=Nothing)
 
                 ' Since a valid handler exists, item2 and item3 of the tuple returned must be nothing
@@ -589,7 +589,7 @@ protected void Button1_Click(object sender, EventArgs e)
                     eventHandlerName:="Button1_Click",
                     itemidInsertionPoint:=0,
                     useHandlesClause:=False,
-                    additionalFormattingRule:=New BlankLineInGeneratedMethodFormattingRule(),
+                    additionalFormattingRule:=BlankLineInGeneratedMethodFormattingRule.Instance,
                     cancellationToken:=Nothing)
 
                 Assert.Equal("Button1_Click(object,System.EventArgs)", eventHandlerIdTextPosition.Item1)

@@ -274,5 +274,97 @@ internal static class C
 #endif
 ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task PartialAtTheEndClass1()
+        {
+            await TestInRegularAndScript1Async(
+@"[|partial|] public class C { }",
+@"public partial class C { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task PartialAtTheEndClass2()
+        {
+            await TestInRegularAndScript1Async(
+@"[|partial|] abstract class C { }",
+@"abstract partial class C { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task PartialAtTheEndClass3()
+        {
+            await TestInRegularAndScript1Async(
+@"[|partial|] sealed class C { }",
+@"sealed partial class C { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task PartialAtTheEndClass4()
+        {
+            await TestInRegularAndScript1Async(
+@"[|partial|] static class C { }",
+@"static partial class C { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task PartialAtTheEndClass5()
+        {
+            await TestInRegularAndScript1Async(
+@"[|partial|] unsafe class C { }",
+@"unsafe partial class C { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task PartialAtTheEndStruct1()
+        {
+            await TestInRegularAndScript1Async(
+@"[|partial|] public struct S { }",
+@"public partial struct S { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task PartialAtTheEndStruct2()
+        {
+            await TestInRegularAndScript1Async(
+@"[|partial|] unsafe struct S { }",
+@"unsafe partial struct S { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task PartialAtTheEndInterface()
+        {
+            await TestInRegularAndScript1Async(
+@"[|partial|] public interface I { }",
+@"public partial interface I { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task PartialAtTheEndMethod1()
+        {
+            await TestInRegularAndScript1Async(
+@"partial class C
+{
+    [|partial|] static void M();
+}",
+@"partial class C
+{
+    static partial void M();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task PartialAtTheEndMethod2()
+        {
+            await TestInRegularAndScript1Async(
+@"partial class C
+{
+    [|partial|] unsafe void M();
+}",
+@"partial class C
+{
+    unsafe partial void M();
+}");
+        }
     }
 }

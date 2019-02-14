@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             private async Task<bool> VerifyUnloadableProjectOutputExistsAsync(string projectPath, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)
             {
-                var outputFilePath = await _buildManager.TryGetOutputFilePathAsync(projectPath, _globalProperties, cancellationToken).ConfigureAwait(false);
+                var outputFilePath = await _buildManager.TryGetOutputFilePathAsync(projectPath, cancellationToken).ConfigureAwait(false);
                 return builder.Contains(outputFilePath)
                     && File.Exists(outputFilePath);
             }

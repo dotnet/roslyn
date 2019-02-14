@@ -11,6 +11,11 @@ Namespace Microsoft.CodeAnalysis.PasteTracking
         Private Const Class2Name = "Class2.cs"
 
         Private Const PastedCode As String = "
+    public void Main(string[] args)
+    {
+    }"
+
+        Private Const UnformattedPastedCode As String = "
 public void Main(string[] args)
 {
 }"
@@ -19,10 +24,10 @@ public void Main(string[] args)
             <Workspace>
                 <Project Language="C#" CommonReferences="True" AssemblyName="Proj1">
                     <Document FilePath="Class1.cs">
-                        public class Class1
-                        {
-                        $$
-                        }
+public class Class1
+{
+$$
+}
                     </Document>
                 </Project>
             </Workspace>
@@ -31,18 +36,18 @@ public void Main(string[] args)
             <Workspace>
                 <Project Language="C#" CommonReferences="True" AssemblyName=<%= Project1Name %>>
                     <Document FilePath=<%= Class1Name %>>
-                        public class Class1
-                        {
-                        $$
-                        }
+public class Class1
+{
+$$
+}
                     </Document>
                     <Document FilePath=<%= Class2Name %>>
-                        public class Class2
-                        {
-                            public const string Greeting = "Hello";
+public class Class2
+{
+    public const string Greeting = "Hello";
 
-                        $$
-                        }
+$$
+}
                     </Document>
                 </Project>
                 <Project Language="C#" CommonReferences="True" AssemblyName=<%= Project2Name %>>
@@ -72,6 +77,17 @@ public void Main(string[] args)
             End Using
         End Function
 
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.PasteTracking)>
+        Public Async Function PasteTracking_HasTextSpan_AfterFormattingPaste() As Task
+            Using testState = New PasteTrackingTestState(SingleFileCode)
+                Dim class1Document = testState.OpenDocument(Project1Name, Class1Name)
+
+                Dim expectedTextSpan = testState.SendPaste(class1Document, UnformattedPastedCode)
+
+                Await testState.AssertHasPastedTextSpanAsync(class1Document, expectedTextSpan)
+            End Using
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.PasteTracking)>

@@ -19,12 +19,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         internal const string RenameToPropertyKey = "RenameTo";
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptor);
-        public bool OpenFileOnly(Workspace workspace) => true;
+
+        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
+            => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
+
+        public bool OpenFileOnly(Workspace workspace)
+            => true;
 
         public override void Initialize(AnalysisContext context)
-        {
-            context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
-        }
+            => context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
@@ -35,8 +38,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 context.ReportDiagnostic(diagnostic);
             }
         }
-
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SyntaxAnalysis;
     }
 }

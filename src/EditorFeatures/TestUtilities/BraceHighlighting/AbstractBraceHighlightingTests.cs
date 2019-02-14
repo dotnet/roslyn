@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         protected async Task TestBraceHighlightingAsync(
             string markup, ParseOptions options = null, bool swapAnglesWithBrackets = false)
         {
-            MarkupTestFile.GetPositionAndSpans(markup, 
+            MarkupTestFile.GetPositionAndSpans(markup,
                 out var text, out int cursorPosition, out var expectedSpans);
 
             // needed because markup test file can't support [|[|] to indicate selecting

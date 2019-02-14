@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool _sawAwait;
         private bool _sawAwaitInExceptionHandler;
+        private bool _needsSpilling;
         private readonly DiagnosticBag _diagnostics;
         private readonly Instrumenter _instrumenter;
         private readonly BoundStatement _rootStatement;
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _compilation = compilation;
             _factory = factory;
             _factory.CurrentFunction = containingMethod;
-            Debug.Assert(factory.CurrentType == (containingType ?? containingMethod.ContainingType));
+            Debug.Assert(TypeSymbol.Equals(factory.CurrentType, (containingType ?? containingMethod.ContainingType), TypeCompareKind.ConsiderEverything2));
             _dynamicFactory = new LoweredDynamicOperationFactory(factory, containingMethodOrdinal);
             _previousSubmissionFields = previousSubmissionFields;
             _allowOmissionOfConditionalCalls = allowOmissionOfConditionalCalls;
@@ -94,10 +95,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, statement, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics,
                                                       dynamicInstrumenter != null ? new DebugInfoInjector(dynamicInstrumenter) : DebugInfoInjector.Singleton);
 
+                statement.CheckLocalsDefined();
                 var loweredStatement = (BoundStatement)localRewriter.Visit(statement);
+                loweredStatement.CheckLocalsDefined();
                 sawLambdas = localRewriter._sawLambdas;
                 sawLocalFunctions = localRewriter._sawLocalFunctions;
                 sawAwaitInExceptionHandler = localRewriter._sawAwaitInExceptionHandler;
+
+                if (localRewriter._needsSpilling && !loweredStatement.HasErrors)
+                {
+                    // Move spill sequences to a top-level statement. This handles "lifting" await and the switch expression.
+                    var spilledStatement = SpillSequenceSpiller.Rewrite(loweredStatement, method, compilationState, diagnostics);
+                    spilledStatement.CheckLocalsDefined();
+                    loweredStatement = spilledStatement;
+                }
+
                 if (dynamicInstrumenter != null)
                 {
                     dynamicAnalysisSpans = dynamicInstrumenter.DynamicAnalysisSpans;
@@ -187,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Dynamic type will be erased in emit phase. It is considered equivalent to Object in lowered bound trees.
             // Unused deconstructions are lowered to produce a return value that isn't a tuple type.
             Debug.Assert(visited == null || visited.HasErrors || ReferenceEquals(visited.Type, node.Type) ||
-                    visited.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames) ||
+                    visited.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) ||
                     IsUnusedDeconstruction(node));
 
             if (visited != null && visited != node)
@@ -244,15 +256,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureIsUnmanagedAttributeExists();
             }
 
-            bool hasConstraintsWithNullableReferenceTypes = typeParameters.Any(
-               typeParameter => typeParameter.ReferenceTypeConstraintIsNullable == true ||
+            bool constraintsNeedNullableAttribute = typeParameters.Any(
+               typeParameter => (typeParameter.HasReferenceTypeConstraint && typeParameter.ReferenceTypeConstraintIsNullable != null) ||
                                 typeParameter.ConstraintTypesNoUseSiteDiagnostics.Any(
-                                    typeConstraint => typeConstraint.ContainsNullableReferenceTypes()));
+                                    typeConstraint => typeConstraint.NeedsNullableAttribute()));
 
-            bool hasReturnTypeWithNullableReferenceTypes = node.Symbol.ReturnType.ContainsNullableReferenceTypes();
-            bool hasParametersWithNullableReferenceTypes = node.Symbol.ParameterTypes.Any(parameter => parameter.ContainsNullableReferenceTypes());
+            bool returnTypeNeedsNullableAttribute = node.Symbol.ReturnType.NeedsNullableAttribute();
+            bool parametersNeedNullableAttribute = node.Symbol.ParameterTypes.Any(parameter => parameter.NeedsNullableAttribute());
 
-            if (hasConstraintsWithNullableReferenceTypes || hasReturnTypeWithNullableReferenceTypes || hasParametersWithNullableReferenceTypes)
+            if (constraintsNeedNullableAttribute || returnTypeNeedsNullableAttribute || parametersNeedNullableAttribute)
             {
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureNullableAttributeExists();
             }
@@ -525,6 +537,137 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundStatementList(node.Syntax, rewrittenStatements, node.HasErrors);
         }
 
+        public override BoundNode VisitArrayAccess(BoundArrayAccess node)
+        {
+            // https://github.com/dotnet/roslyn/issues/30620
+            // If the array access index is of type System.Index or System.Range
+            // we need to emit code as if there were a real indexer, instead
+            // of a simple array element access.
+
+            if (node.Indices.Length != 1)
+            {
+                return base.VisitArrayAccess(node);
+            }
+
+            TypeSymbol rawIndexType = node.Indices[0].Type;
+            if (!(TypeSymbol.Equals(rawIndexType, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything) ||
+                  TypeSymbol.Equals(rawIndexType, _compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything)))
+            {
+                return base.VisitArrayAccess(node);
+            }
+
+            var syntax = node.Syntax;
+            var F = _factory;
+            var indexLocal = F.StoreToTemp(
+                VisitExpression(node.Indices[0]),
+                out BoundAssignmentOperator indexAssign);
+            var arrayLocal = F.StoreToTemp(
+                VisitExpression(node.Expression),
+                out BoundAssignmentOperator arrayAssign);
+            var indexType = VisitType(node.Indices[0].Type);
+
+            var indexValueSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Index__Value);
+            var indexFromEndSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Index__FromEnd);
+
+            BoundExpression resultExpr;
+            if (TypeSymbol.Equals(indexType, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything))
+            {
+
+                // array[Index] is translated to:
+                // array[index.FromEnd ? array.Length - index.Value : index.Value]
+
+                var indexValueExpr = F.Property(indexLocal, indexValueSymbol);
+
+                resultExpr = F.Sequence(
+                    ImmutableArray.Create<LocalSymbol>(
+                        indexLocal.LocalSymbol,
+                        arrayLocal.LocalSymbol),
+                    ImmutableArray.Create<BoundExpression>(
+                        indexAssign,
+                        arrayAssign),
+                    F.ArrayAccess(arrayLocal, ImmutableArray.Create(
+                        F.Conditional(
+                            F.Property(indexLocal, indexFromEndSymbol),
+                            F.Binary(
+                                BinaryOperatorKind.Subtraction,
+                                F.SpecialType(SpecialType.System_Int32),
+                                F.ArrayLength(arrayLocal),
+                                indexValueExpr),
+                            indexValueExpr,
+                            node.Type))));
+            }
+            else if (TypeSymbol.Equals(indexType, _compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything))
+            {
+                // array[Range] is translated to:
+                // var start = range.Start.FromEnd ? array.Length - range.Start.Value : range.Start.Value;
+                // var end = range.End.FromEnd ? array.Length - range.End.Value : range.End.Value;
+                // var length = end - start;
+                // var newArr = new T[length];
+                // Array.Copy(array, start, newArr, 0, length);
+                // push newArray
+
+                var rangeStartSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Range__Start);
+                var rangeEndSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Range__End);
+                var arrayCopySymbol = F.WellKnownMethod(WellKnownMember.System_Array__Copy);
+
+                var startLocal = F.StoreToTemp(
+                    F.Conditional(
+                        F.Property(F.Property(indexLocal, rangeStartSymbol), indexFromEndSymbol),
+                        F.Binary(
+                            BinaryOperatorKind.Subtraction,
+                            F.SpecialType(SpecialType.System_Int32),
+                            F.ArrayLength(arrayLocal),
+                            F.Property(F.Property(indexLocal, rangeStartSymbol), indexValueSymbol)),
+                        F.Property(F.Property(indexLocal, rangeStartSymbol), indexValueSymbol),
+                        F.SpecialType(SpecialType.System_Int32)),
+                    out BoundAssignmentOperator startAssign);
+                var endLocal = F.StoreToTemp(
+                    F.Conditional(
+                        F.Property(F.Property(indexLocal, rangeEndSymbol), indexFromEndSymbol),
+                        F.Binary(
+                            BinaryOperatorKind.Subtraction,
+                            F.SpecialType(SpecialType.System_Int32),
+                            F.ArrayLength(arrayLocal),
+                            F.Property(F.Property(indexLocal, rangeEndSymbol), indexValueSymbol)),
+                        F.Property(F.Property(indexLocal, rangeEndSymbol), indexValueSymbol),
+                        F.SpecialType(SpecialType.System_Int32)),
+                    out BoundAssignmentOperator endAssign);
+                var lengthLocal = F.StoreToTemp(
+                    F.Binary(BinaryOperatorKind.Subtraction, F.SpecialType(SpecialType.System_Int32), endLocal, startLocal),
+                    out BoundAssignmentOperator lengthAssign);
+                var elementType = ((ArrayTypeSymbol)node.Type).ElementType.TypeSymbol;
+                var newArrLocal = F.StoreToTemp(F.Array(elementType, lengthLocal), out BoundAssignmentOperator newArrAssign);
+                var copyExpr = F.Call(null, arrayCopySymbol, ImmutableArray.Create<BoundExpression>(
+                    arrayLocal,
+                    startLocal,
+                    newArrLocal,
+                    F.Literal(0),
+                    lengthLocal));
+                resultExpr = F.Sequence(
+                    ImmutableArray.Create(
+                        indexLocal.LocalSymbol,
+                        arrayLocal.LocalSymbol,
+                        startLocal.LocalSymbol,
+                        endLocal.LocalSymbol,
+                        lengthLocal.LocalSymbol,
+                        newArrLocal.LocalSymbol),
+                    ImmutableArray.Create<BoundExpression>(
+                        indexAssign,
+                        arrayAssign,
+                        startAssign,
+                        endAssign,
+                        lengthAssign,
+                        newArrAssign,
+                        copyExpr),
+                    newArrLocal);
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+            return resultExpr;
+        }
+
         internal static bool IsFieldOrPropertyInitializer(BoundStatement initializer)
         {
             var syntax = initializer.Syntax;
@@ -748,7 +891,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     new LocalRewritingValidator().Visit(node);
                 }
-                catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
+                catch (InsufficientExecutionStackException)
                 {
                     // Intentionally ignored to let the overflow get caught in a more crucial visitor
                 }
@@ -779,6 +922,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node)
             {
                 Fail(node);
                 return null;

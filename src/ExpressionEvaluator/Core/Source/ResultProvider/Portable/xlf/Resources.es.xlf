@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="ErrorName">
         <source>Error</source>
-        <target state="translated">Error</target>
+        <target state="translated">Fehler</target>
         <note>Error result name</note>
       </trans-unit>
       <trans-unit id="ExceptionThrown">

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Remote
     internal partial class CodeAnalysisService : IRemoteSymbolFinder
     {
         public Task FindReferencesAsync(
-            SerializableSymbolAndProjectId symbolAndProjectIdArg, DocumentId[] documentArgs, 
+            SerializableSymbolAndProjectId symbolAndProjectIdArg, DocumentId[] documentArgs,
             SerializableFindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async token =>
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Remote
                                                  .ToImmutableHashSet();
 
                     await SymbolFinder.FindReferencesInCurrentProcessAsync(
-                        symbolAndProjectId.Value, solution, progressCallback, 
+                        symbolAndProjectId.Value, solution, progressCallback,
                         documents, options.Rehydrate(), token).ConfigureAwait(false);
                 }
             }, cancellationToken);

@@ -1090,7 +1090,7 @@ public static int SomeField; }
 static class Test { int a = MyStruct.Some$$Field; }";
 
             await TestAsync(markup,
-                MainDescription($"({FeaturesResources.field}) int MyStruct.SomeField"));
+                MainDescription($"({FeaturesResources.field}) static int MyStruct.SomeField"));
         }
 
         [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
@@ -1104,7 +1104,7 @@ public static int SomeField; }
 static class Test { int a = MyStruct.Some$$Field; }";
 
             await TestAsync(markup,
-                MainDescription($"({FeaturesResources.field}) int MyStruct.SomeField"),
+                MainDescription($"({FeaturesResources.field}) static int MyStruct.SomeField"),
                 Documentation("My Field"));
         }
 
@@ -1117,7 +1117,7 @@ public static int SomeField; }
 static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
 
             await TestAsync(markup,
-                MainDescription($"({FeaturesResources.field}) int MyStruct.SomeField"));
+                MainDescription($"({FeaturesResources.field}) static int MyStruct.SomeField"));
         }
 
         [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
@@ -1131,7 +1131,7 @@ public static int SomeField; }
 static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
 
             await TestAsync(markup,
-                MainDescription($"({FeaturesResources.field}) int MyStruct.SomeField"),
+                MainDescription($"({FeaturesResources.field}) static int MyStruct.SomeField"),
                 Documentation("My Field"));
         }
 
@@ -1139,7 +1139,7 @@ static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
         public async Task TestMetadataFieldMinimal()
         {
             await TestInMethodAsync(@"DateTime dt = DateTime.MaxValue$$",
-                MainDescription($"({FeaturesResources.field}) DateTime DateTime.MaxValue"));
+                MainDescription($"({FeaturesResources.field}) static readonly DateTime DateTime.MaxValue"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1154,7 +1154,7 @@ static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
     }
 }";
             await TestAsync(markup,
-                MainDescription($"({FeaturesResources.field}) System.DateTime System.DateTime.MaxValue"));
+                MainDescription($"({FeaturesResources.field}) static readonly System.DateTime System.DateTime.MaxValue"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1168,7 +1168,7 @@ static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
         DateTime dt = System.DateTime.MaxValue$$
     }
 }",
-                MainDescription($"({FeaturesResources.field}) System.DateTime System.DateTime.MaxValue"));
+                MainDescription($"({FeaturesResources.field}) static readonly System.DateTime System.DateTime.MaxValue"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1184,7 +1184,7 @@ class C
         DateTime dt = System.DateTime.MaxValue$$
     }
 }",
-                MainDescription($"({FeaturesResources.field}) DateTime DateTime.MaxValue"));
+                MainDescription($"({FeaturesResources.field}) static readonly DateTime DateTime.MaxValue"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1241,6 +1241,22 @@ class D
         {
             await TestInMethodAsync(@"bool f = false$$",
                 MainDescription("struct System.Boolean"));
+        }
+
+        [WorkItem(26027, "https://github.com/dotnet/roslyn/issues/26027")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestNullLiteral()
+        {
+            await TestInMethodAsync(@"string f = null$$",
+                MainDescription("class System.String"));
+        }
+
+        [WorkItem(26027, "https://github.com/dotnet/roslyn/issues/26027")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestDefaultLiteral()
+        {
+            await TestInMethodAsync(@"string f = default$$",
+                MainDescription("class System.String"));
         }
 
         [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
@@ -6155,6 +6171,127 @@ class X
     }
 }",
                 MainDescription("void M<T>() where T : unmanaged"));
+        }
+
+        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestGetAccessorDocumentation()
+        {
+            await TestAsync(
+@"
+class X
+{
+    /// <summary>Summary for property Goo</summary>
+    int Goo { g$$et; set; }
+}",
+                Documentation("Summary for property Goo"));
+        }
+
+        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestSetAccessorDocumentation()
+        {
+            await TestAsync(
+@"
+class X
+{
+    /// <summary>Summary for property Goo</summary>
+    int Goo { get; s$$et; }
+}",
+                Documentation("Summary for property Goo"));
+        }
+
+        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestEventAddDocumentation1()
+        {
+            await TestAsync(
+@"
+using System;
+
+class X
+{
+    /// <summary>Summary for event Goo</summary>
+    event EventHandler<EventArgs> Goo
+    {
+        a$$dd => throw null;
+        remove => throw null;
+    }
+}",
+                Documentation("Summary for event Goo"));
+        }
+
+        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestEventAddDocumentation2()
+        {
+            await TestAsync(
+@"
+using System;
+
+class X
+{
+    /// <summary>Summary for event Goo</summary>
+    event EventHandler<EventArgs> Goo;
+
+    void M() => Goo +$$= null;
+}",
+                Documentation("Summary for event Goo"));
+        }
+
+        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestEventRemoveDocumentation1()
+        {
+            await TestAsync(
+@"
+using System;
+
+class X
+{
+    /// <summary>Summary for event Goo</summary>
+    event EventHandler<EventArgs> Goo
+    {
+        add => throw null;
+        r$$emove => throw null;
+    }
+}",
+                Documentation("Summary for event Goo"));
+        }
+
+        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestEventRemoveDocumentation2()
+        {
+            await TestAsync(
+@"
+using System;
+
+class X
+{
+    /// <summary>Summary for event Goo</summary>
+    event EventHandler<EventArgs> Goo;
+
+    void M() => Goo -$$= null;
+}",
+                Documentation("Summary for event Goo"));
+        }
+
+        [WorkItem(30642, "https://github.com/dotnet/roslyn/issues/30642")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task BuiltInOperatorWithUserDefinedEquivalent()
+        {
+            await TestAsync(
+@"
+class X
+{
+    void N(string a, string b)
+    {
+        var v = a $$== b;
+    }
+}",
+                MainDescription("bool string.operator ==(string a, string b)"),
+                SymbolGlyph(Glyph.Operator));
         }
     }
 }

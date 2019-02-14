@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             GenerateMethodBody generateMethodBody)
         {
             Debug.Assert(sourceMethod.IsDefinition);
-            Debug.Assert(sourceMethod.ContainingSymbol == container.SubstitutedSourceType.OriginalDefinition);
+            Debug.Assert(TypeSymbol.Equals((TypeSymbol)sourceMethod.ContainingSymbol, container.SubstitutedSourceType.OriginalDefinition, TypeCompareKind.ConsiderEverything2));
             Debug.Assert(sourceLocals.All(l => l.ContainingSymbol == sourceMethod));
 
             _container = container;
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 (tp, i, arg) => (TypeParameterSymbol)new EETypeParameterSymbol(this, tp, i, getTypeMap),
                 (object)null);
             _allTypeParameters = container.TypeParameters.Concat(_typeParameters);
-            this.TypeMap = new TypeMap(NonNullTypesFalseContext.Instance, allSourceTypeParameters, _allTypeParameters);
+            this.TypeMap = new TypeMap(allSourceTypeParameters, _allTypeParameters);
 
             EENamedTypeSymbol.VerifyTypeParameters(this, _typeParameters);
 
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             if (substitutedSourceHasThisParameter)
             {
                 _thisParameter = MakeParameterSymbol(0, GeneratedNames.ThisProxyFieldName(), substitutedSourceThisParameter);
-                Debug.Assert(_thisParameter.Type.TypeSymbol == this.SubstitutedSourceMethod.ContainingType);
+                Debug.Assert(TypeSymbol.Equals(_thisParameter.Type.TypeSymbol, this.SubstitutedSourceMethod.ContainingType, TypeCompareKind.ConsiderEverything2));
                 parameterBuilder.Add(_thisParameter);
             }
 

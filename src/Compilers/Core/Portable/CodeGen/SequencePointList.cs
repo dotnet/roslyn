@@ -1,15 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -22,8 +16,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal class SequencePointList
     {
-        internal const int HiddenSequencePointLine = 0xFEEFEE;
-
         private readonly SyntaxTree _tree;
         private readonly OffsetAndSpan[] _points;
         private SequencePointList _next;  // Linked list of all points.
@@ -142,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     // a hidden sequence point.
 
                     bool isHidden = span == RawSequencePoint.HiddenSequencePointSpan;
-                    FileLinePositionSpan fileLinePositionSpan = default(FileLinePositionSpan);
+                    FileLinePositionSpan fileLinePositionSpan = default;
                     if (!isHidden)
                     {
                         fileLinePositionSpan = currentTree.GetMappedLineSpanAndVisibility(span, out isHidden);
@@ -161,9 +153,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             builder.Add(new Cci.SequencePoint(
                                 lastDebugDocument,
                                 offset: offsetAndSpan.Offset,
-                                startLine: HiddenSequencePointLine,
+                                startLine: Cci.SequencePoint.HiddenLine,
                                 startColumn: 0,
-                                endLine: HiddenSequencePointLine,
+                                endLine: Cci.SequencePoint.HiddenLine,
                                 endColumn: 0));
                         }
                     }
@@ -178,13 +170,34 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                         if (lastDebugDocument != null)
                         {
+                            int startLine = (fileLinePositionSpan.StartLinePosition.Line == -1) ? 0 : fileLinePositionSpan.StartLinePosition.Line + 1;
+                            int endLine = (fileLinePositionSpan.EndLinePosition.Line == -1) ? 0 : fileLinePositionSpan.EndLinePosition.Line + 1;
+                            int startColumn = fileLinePositionSpan.StartLinePosition.Character + 1;
+                            int endColumn = fileLinePositionSpan.EndLinePosition.Character + 1;
+
+                            // Trim column number if necessary.
+                            // Column must be in range [0, 0xffff) and end column must be greater than start column if on the same line.
+                            // The Portable PDB specifies 0x10000, but System.Reflection.Metadata reader has an off-by-one error.
+                            // Windows PDBs allow the same range.
+                            const int MaxColumn = ushort.MaxValue - 1;
+
+                            if (startColumn > MaxColumn)
+                            {
+                                startColumn = (startLine == endLine) ? MaxColumn - 1 : MaxColumn;
+                            }
+
+                            if (endColumn > MaxColumn)
+                            {
+                                endColumn = MaxColumn;
+                            }
+
                             builder.Add(new Cci.SequencePoint(
                                 lastDebugDocument,
                                 offset: offsetAndSpan.Offset,
-                                startLine: (fileLinePositionSpan.StartLinePosition.Line == -1) ? 0 : fileLinePositionSpan.StartLinePosition.Line + 1,
-                                startColumn: fileLinePositionSpan.StartLinePosition.Character + 1,
-                                endLine: (fileLinePositionSpan.EndLinePosition.Line == -1) ? 0 : fileLinePositionSpan.EndLinePosition.Line + 1,
-                                endColumn: fileLinePositionSpan.EndLinePosition.Character + 1
+                                startLine: startLine,
+                                startColumn: (ushort)startColumn,
+                                endLine: endLine,
+                                endColumn: (ushort)endColumn
                             ));
                         }
                     }
@@ -199,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private FileLinePositionSpan? FindFirstRealSequencePoint()
         {
             SequencePointList current = this;
-            
+
             while (current != null)
             {
                 foreach (var offsetAndSpan in current._points)

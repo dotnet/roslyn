@@ -23,36 +23,25 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
 {
     [ExportLanguageService(typeof(ISynchronousIndentationService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpIndentationService : AbstractIndentationService
+    internal partial class CSharpIndentationService : AbstractIndentationService<CompilationUnitSyntax>
     {
-        private static readonly IFormattingRule s_instance = new FormattingRule();
+        private static readonly AbstractFormattingRule s_instance = new FormattingRule();
 
-        protected override IFormattingRule GetSpecializedIndentationFormattingRule()
+        protected override AbstractFormattingRule GetSpecializedIndentationFormattingRule()
         {
             return s_instance;
         }
 
         protected override AbstractIndenter GetIndenter(
-            ISyntaxFactsService syntaxFacts, SyntaxTree syntaxTree, TextLine lineToBeIndented, IEnumerable<IFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken)
+            ISyntaxFactsService syntaxFacts, SyntaxTree syntaxTree, TextLine lineToBeIndented, IEnumerable<AbstractFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken)
         {
             return new Indenter(
                 syntaxFacts, syntaxTree, formattingRules,
                 optionSet, lineToBeIndented, cancellationToken);
         }
 
-        protected override bool ShouldUseSmartTokenFormatterInsteadOfIndenter(
-            IEnumerable<IFormattingRule> formattingRules,
-            SyntaxNode root,
-            TextLine line,
-            OptionSet optionSet,
-            CancellationToken cancellationToken)
-        {
-            return ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                formattingRules, (CompilationUnitSyntax)root, line, optionSet, cancellationToken);
-        }
-
         public static bool ShouldUseSmartTokenFormatterInsteadOfIndenter(
-            IEnumerable<IFormattingRule> formattingRules,
+            IEnumerable<AbstractFormattingRule> formattingRules,
             CompilationUnitSyntax root,
             TextLine line,
             OptionSet optionSet,
@@ -107,13 +96,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
 
         private class FormattingRule : AbstractFormattingRule
         {
-            public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<IndentBlockOperation> nextOperation)
+            public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextIndentBlockOperationAction nextOperation)
             {
                 // these nodes should be from syntax tree from ITextSnapshot.
                 Debug.Assert(node.SyntaxTree != null);
                 Debug.Assert(node.SyntaxTree.GetText() != null);
 
-                nextOperation.Invoke(list);
+                nextOperation.Invoke();
 
                 ReplaceCaseIndentationRules(list, node);
 

@@ -19,10 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             //  using (goo) { }
             //  using Goo;
             //  using Goo = Bar;
+            //  await using (goo) { }
             return
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
-                IsUsingDirectiveContext(context, cancellationToken);
+                IsUsingDirectiveContext(context, cancellationToken) ||
+                context.IsAwaitStatementContext(position, cancellationToken);
         }
 
         private static bool IsUsingDirectiveContext(CSharpSyntaxContext context, CancellationToken cancellationToken)

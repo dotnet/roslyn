@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                         result.Append(" ");
                         result.Append(member);
 
-                        if (namedType.BaseType() != null)
+                        if ((object)namedType.BaseType() != null)
                         {
                             result.AppendLine();
                             result.Append(memberIndent);

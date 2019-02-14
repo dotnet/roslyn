@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 
             var pdbStream = (pdbFormat == DebugInformationFormat.Embedded) ? null : new MemoryStream();
 
-            return (pe: compilation.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(pdbFormat), pdbStream: pdbStream), 
+            return (pe: compilation.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(pdbFormat), pdbStream: pdbStream),
                     pdb: (pdbStream ?? new MemoryStream()).ToImmutable());
         }
 
@@ -321,7 +321,7 @@ using System.Runtime.CompilerServices;
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "Static execution is runtime defined and this tests Clr behavior only")]
         public void TestPartialPartsDeterministic()
         {
             var x1 =

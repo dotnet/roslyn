@@ -8,14 +8,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
     internal class ContainedDocumentPreserveFormattingRule : AbstractFormattingRule
     {
-        public static readonly IFormattingRule Instance = new ContainedDocumentPreserveFormattingRule();
+        public static readonly AbstractFormattingRule Instance = new ContainedDocumentPreserveFormattingRule();
 
         private static readonly AdjustSpacesOperation s_preserveSpace = FormattingOperations.CreateAdjustSpacesOperation(0, AdjustSpacesOption.PreserveSpaces);
         private static readonly AdjustNewLinesOperation s_preserveLine = FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
 
-        public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustSpacesOperation> nextOperation)
+        public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustSpacesOperation nextOperation)
         {
-            var operation = base.GetAdjustSpacesOperation(previousToken, currentToken, optionSet, nextOperation);
+            var operation = base.GetAdjustSpacesOperation(previousToken, currentToken, optionSet, in nextOperation);
             if (operation != null)
             {
                 return s_preserveSpace;
@@ -24,9 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return operation;
         }
 
-        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustNewLinesOperation> nextOperation)
+        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
         {
-            var operation = base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, nextOperation);
+            var operation = base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, in nextOperation);
             if (operation != null)
             {
                 return s_preserveLine;

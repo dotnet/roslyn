@@ -125,6 +125,12 @@
     <value>Move misplaced using directives</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="Fix_interpolated_verbatim_string" xml:space="preserve">
+    <value>Fix interpolated verbatim string</value>
+  </data>
+  <data name="Complete_statement_on_semicolon" xml:space="preserve">
+    <value>Complete statement on ;</value>
+  </data>
   <data name="Press_TAB_to_insert" xml:space="preserve">
     <value>     (Press TAB to insert)</value>
   </data>

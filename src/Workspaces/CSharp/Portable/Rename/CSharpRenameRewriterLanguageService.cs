@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             private bool IsPossiblyDestructorConflict(SyntaxToken token, string replacementText)
             {
                 return _replacementText == "Finalize" &&
-                    token.IsKind(SyntaxKind.IdentifierToken) && 
+                    token.IsKind(SyntaxKind.IdentifierToken) &&
                     token.Parent.IsKind(SyntaxKind.DestructorDeclaration);
             }
 

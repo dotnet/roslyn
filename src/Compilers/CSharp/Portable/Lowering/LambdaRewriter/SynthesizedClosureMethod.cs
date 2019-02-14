@@ -51,22 +51,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case ClosureKind.Singleton: // all type parameters on method (except the top level method's)
                 case ClosureKind.General: // only lambda's type parameters on method (rest on class)
-                    Debug.Assert(lambdaFrame != null);
+                    Debug.Assert((object)lambdaFrame != null);
                     typeMap = lambdaFrame.TypeMap.WithConcatAlphaRename(
                         originalMethod,
                         this,
-                        nonNullTypesContext: originalMethod,
                         out typeParameters,
                         out constructedFromTypeParameters,
                         lambdaFrame.OriginalContainingMethodOpt);
                     break;
                 case ClosureKind.ThisOnly: // all type parameters on method
                 case ClosureKind.Static:
-                    Debug.Assert(lambdaFrame == null);
+                    Debug.Assert((object)lambdaFrame == null);
                     typeMap = TypeMap.Empty.WithConcatAlphaRename(
                         originalMethod,
                         this,
-                        nonNullTypesContext: originalMethod,
                         out typeParameters,
                         out constructedFromTypeParameters,
                         stopAt: null);

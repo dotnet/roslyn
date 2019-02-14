@@ -4602,7 +4602,7 @@ End Class"
 </symbols>)
         End Sub
 
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         <WorkItem(23525, "https://github.com/dotnet/roslyn/issues/23525")>
         Public Sub InvalidCharacterInPdbPath()
             Using outStream = Temp.CreateFile().Open()

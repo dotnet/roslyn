@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var symbols = GetSymbols(token, semanticModel, cancellationToken)
                 .FilterToVisibleAndBrowsableSymbols(
-                    options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), 
+                    options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language),
                     semanticModel.Compilation);
 
             return (token, semanticModel, symbols);
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private bool TryCreateSpecialTypeItem(
-            Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder, 
+            Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder,
             ImmutableDictionary<string, string> options, out CompletionItem item)
         {
             // If the type is a SpecialType, create an additional item using 
@@ -375,6 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             return SymbolCompletionItem.CreateWithNameAndKind(
                 displayText: insertionText,
+                displayTextSuffix: "",
                 insertionText: insertionText,
                 symbols: ImmutableArray.Create(symbol),
                 contextPosition: position,

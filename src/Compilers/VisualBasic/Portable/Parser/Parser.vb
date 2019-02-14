@@ -514,7 +514,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Try
                 Return parseFunc()
 
-            Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
+            Catch ex As InsufficientExecutionStackException
                 Return CreateForInsufficientStack(restorePoint, defaultFunc())
             End Try
         End Function

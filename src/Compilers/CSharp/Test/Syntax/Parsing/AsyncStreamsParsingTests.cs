@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -23,14 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void UsingAwaitDeclaration_WithCSharp73()
+        public void AwaitUsingDeclaration_WithCSharp73()
         {
             string source = @"
 class C
 {
     async void M()
     {
-        using await (var x = this)
+        await using (var x = this)
         {
         }
     }
@@ -38,9 +39,9 @@ class C
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3));
             tree.GetDiagnostics().Verify(
-                // (6,15): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //         using await (var x = this)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(6, 15)
+                // (6,9): error CS8652: The feature 'async streams' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         await using (var x = this)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("async streams").WithLocation(6, 9)
                 );
 
             UsingTree(source);
@@ -69,8 +70,8 @@ class C
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.UsingStatement);
                             {
-                                N(SyntaxKind.UsingKeyword);
                                 N(SyntaxKind.AwaitKeyword);
+                                N(SyntaxKind.UsingKeyword);
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.VariableDeclaration);
                                 {
@@ -109,14 +110,14 @@ class C
         }
 
         [Fact]
-        public void UsingAwaitDeclaration()
+        public void AwaitUsingDeclaration()
         {
             UsingTree(@"
 class C
 {
     async void M()
     {
-        using await (var x = this)
+        await using (var x = this)
         {
         }
     }
@@ -147,8 +148,8 @@ class C
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.UsingStatement);
                             {
-                                N(SyntaxKind.UsingKeyword);
                                 N(SyntaxKind.AwaitKeyword);
+                                N(SyntaxKind.UsingKeyword);
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.VariableDeclaration);
                                 {
@@ -187,7 +188,70 @@ class C
         }
 
         [Fact]
-        public void UsingAwaitWithExpression()
+        public void AwaitUsingWithExpression()
+        {
+            UsingTree(@"
+class C
+{
+    async void M()
+    {
+        await using (this)
+        {
+        }
+    }
+}
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.UsingStatement);
+                            {
+                                N(SyntaxKind.AwaitKeyword);
+                                N(SyntaxKind.UsingKeyword);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.ThisExpression);
+                                {
+                                    N(SyntaxKind.ThisKeyword);
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(30565, "https://github.com/dotnet/roslyn/issues/30565")]
+        public void AwaitUsingWithExpression_Reversed()
         {
             UsingTree(@"
 class C
@@ -223,21 +287,38 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.UsingStatement);
+                            N(SyntaxKind.LocalDeclarationStatement);
                             {
                                 N(SyntaxKind.UsingKeyword);
-                                N(SyntaxKind.AwaitKeyword);
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.ThisExpression);
+                                N(SyntaxKind.VariableDeclaration);
                                 {
-                                    N(SyntaxKind.ThisKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "await");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.BracketedArgumentList);
+                                        {
+                                            M(SyntaxKind.OpenBracketToken);
+                                            N(SyntaxKind.Argument);
+                                            {
+                                                N(SyntaxKind.ThisExpression);
+                                                {
+                                                    N(SyntaxKind.ThisKeyword);
+                                                }
+                                            }
+                                            M(SyntaxKind.CloseBracketToken);
+                                        }
+                                    }
                                 }
-                                N(SyntaxKind.CloseParenToken);
-                                N(SyntaxKind.Block);
-                                {
-                                    N(SyntaxKind.OpenBraceToken);
-                                    N(SyntaxKind.CloseBraceToken);
-                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
                             }
                             N(SyntaxKind.CloseBraceToken);
                         }
@@ -250,24 +331,24 @@ class C
         }
 
         [Fact]
-        public void ForeachAwait_WithCSharp73()
+        public void AwaitForeach_WithCSharp73()
         {
             string source = @"
 class C
 {
     async void M()
     {
-        foreach await (var i in collection)
+        await foreach (var i in collection)
         {
         }
     }
 }
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3));
-            tree.GetDiagnostics().Verify(
-                // (6,17): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //         foreach await (var i in collection)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(6, 17)
+            tree.GetDiagnostics().Verify( 
+                // (6,9): error CS8652: The feature 'async streams' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         await foreach (var i in collection)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("async streams").WithLocation(6, 9)
                 );
 
             UsingTree(source);
@@ -296,8 +377,8 @@ class C
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.ForEachStatement);
                             {
-                                N(SyntaxKind.ForEachKeyword);
                                 N(SyntaxKind.AwaitKeyword);
+                                N(SyntaxKind.ForEachKeyword);
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.IdentifierName);
                                 {
@@ -327,7 +408,76 @@ class C
         }
 
         [Fact]
-        public void ForeachAwait()
+        public void AwaitForeach()
+        {
+            UsingTree(@"
+class C
+{
+    async void M()
+    {
+        await foreach (var i in collection)
+        {
+        }
+    }
+}
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ForEachStatement);
+                            {
+                                N(SyntaxKind.AwaitKeyword);
+                                N(SyntaxKind.ForEachKeyword);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "var");
+                                }
+                                N(SyntaxKind.IdentifierToken, "i");
+                                N(SyntaxKind.InKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "collection");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(30565, "https://github.com/dotnet/roslyn/issues/30565")]
+        public void AwaitForeach_Reversed()
         {
             UsingTree(@"
 class C
@@ -363,27 +513,50 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.ForEachStatement);
+                            N(SyntaxKind.ForEachVariableStatement);
                             {
                                 N(SyntaxKind.ForEachKeyword);
-                                N(SyntaxKind.AwaitKeyword);
-                                N(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AwaitExpression);
+                                {
+                                    N(SyntaxKind.AwaitKeyword);
+                                    N(SyntaxKind.ParenthesizedExpression);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "var");
+                                        }
+                                        M(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                M(SyntaxKind.InKeyword);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "var");
+                                    N(SyntaxKind.IdentifierToken, "i");
                                 }
-                                N(SyntaxKind.IdentifierToken, "i");
-                                N(SyntaxKind.InKeyword);
+                                M(SyntaxKind.CloseParenToken);
+                                M(SyntaxKind.ExpressionStatement);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                    M(SyntaxKind.SemicolonToken);
+                                }
+                            }
+                            N(SyntaxKind.ExpressionStatement);
+                            {
                                 N(SyntaxKind.IdentifierName);
                                 {
                                     N(SyntaxKind.IdentifierToken, "collection");
                                 }
-                                N(SyntaxKind.CloseParenToken);
-                                N(SyntaxKind.Block);
-                                {
-                                    N(SyntaxKind.OpenBraceToken);
-                                    N(SyntaxKind.CloseBraceToken);
-                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
                             }
                             N(SyntaxKind.CloseBraceToken);
                         }
@@ -396,14 +569,14 @@ class C
         }
 
         [Fact]
-        public void DeconstructionForeachAwait_WithCSharp73()
+        public void DeconstructionAwaitForeach_WithCSharp73()
         {
             string source = @"
 class C
 {
     async void M()
     {
-        foreach await (var (i, j) in collection)
+        await foreach (var (i, j) in collection)
         {
         }
     }
@@ -411,9 +584,9 @@ class C
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3));
             tree.GetDiagnostics().Verify(
-                // (6,17): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //         foreach await (var (i, j) in collection)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(6, 17)
+                // (6,9): error CS8652: The feature 'async streams' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         await foreach (var (i, j) in collection)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("async streams").WithLocation(6, 9)
                 );
 
             UsingTree(source);
@@ -442,8 +615,8 @@ class C
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.ForEachVariableStatement);
                             {
-                                N(SyntaxKind.ForEachKeyword);
                                 N(SyntaxKind.AwaitKeyword);
+                                N(SyntaxKind.ForEachKeyword);
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.DeclarationExpression);
                                 {
@@ -489,14 +662,14 @@ class C
         }
 
         [Fact]
-        public void DeconstructionForeachAwait()
+        public void DeconstructionAwaitForeach()
         {
             UsingTree(@"
 class C
 {
     async void M()
     {
-        foreach await (var (i, j) in collection)
+        await foreach (var (i, j) in collection)
         {
         }
     }
@@ -527,8 +700,8 @@ class C
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.ForEachVariableStatement);
                             {
-                                N(SyntaxKind.ForEachKeyword);
                                 N(SyntaxKind.AwaitKeyword);
+                                N(SyntaxKind.ForEachKeyword);
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.DeclarationExpression);
                                 {

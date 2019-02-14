@@ -71,8 +71,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GeneratedNames.MakeSynthesizedInstrumentationPayloadLocalFieldName(uniqueId++);
                 }
 
-                if (local.SynthesizedKind == SynthesizedLocalKind.UserDefined && local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection)
+                if (local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
+                    (local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection ||
+                     local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchExpressionArm))
                 {
+                    // The programmer can use the same identifier for pattern variables in different
+                    // sections of a switch statement, but they are all hoisted into
+                    // the same frame for the enclosing switch statement and must be given
+                    // unique field names.
                     return GeneratedNames.MakeHoistedLocalFieldName(local.SynthesizedKind, uniqueId++, local.Name);
                 }
             }

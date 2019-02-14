@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             // Does nothing.
         }
 
-        public Task InvokeBelowInputPriority(Action action, CancellationToken cancellationToken = default)
+        public Task InvokeBelowInputPriorityAsync(Action action, CancellationToken cancellationToken = default)
         {
             if (IsForeground() && !IsInputPending())
             {
@@ -87,6 +87,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
                     async () =>
                     {
                         await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                        cancellationToken.ThrowIfCancellationRequested();
+
                         action();
                     },
                     cancellationToken,

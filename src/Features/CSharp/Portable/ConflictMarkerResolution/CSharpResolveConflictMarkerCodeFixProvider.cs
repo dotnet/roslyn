@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution
     {
         private const string CS8300 = nameof(CS8300); // Merge conflict marker encountered
 
-        public CSharpResolveConflictMarkerCodeFixProvider() 
+        public CSharpResolveConflictMarkerCodeFixProvider()
             : base(CS8300)
         {
         }

@@ -3,7 +3,7 @@ This guide is meant to help developers setup an environment for debugging / cont
 Particularly for developers who aren't experienced with .NET Core development on Linux. 
 
 ## Working with the code
-1. Install the [.NET Core SDK](https://www.microsoft.com/net/download/core)
+1. Ensure the commands `git` and `curl` are available
 1. Clone git@github.com:dotnet/roslyn.git
 1. Run `./build.sh --restore`
 1. Run `./build.sh --build`
@@ -47,26 +47,51 @@ command line (replace `/home/jaredpar` as appropriate):
 
 From there you should be able to attach to running processes or load up coredumps.
 
+### Core Dumps
+The CoreClr does not used the standard core dumping mechanisms on Linux. Instead you must specify via 
+enviroment variables that you want a core dump to be produced. The simplest setup is to do the following:
+
+```
+> export COMPlus_DbgEnableMiniDump=1
+> export COMPlus_DbgMiniDumpType=4
+```
+
+This will cause full memory dumps to be produced which can then be loaded into LLDB.
+
+### GC stress failures
+When you suspect there is a GC failure related to your test then you can use the following environement variables
+to help track it down.
+
+```
+> export COMPlus_HeapVerify=1
+> export COMPlus_gcConcurrent=1
+```
+
+The `COMPlus_HeapVerify` variable causes GC to run a verification routine on every entry and exit. Will crash with
+a more actionable trace for the GC team.
+
+The `COMPlus_gcConcurrent` variable removes concurrency in the GC. This helps isolate whether this is a GC failure
+or memory corruption outside the GC. This should be set after you use `COMPLUS_HeapVerify` to determine it is
+indeed crashing in the GC.
+
+Note: this variables can also be used on Windows as well.
+
 ## Ubuntu 18.04
 The recommended OS for developing Roslyn is Ubuntu 18.04. This guide was written using Ubuntu 18.04 but should be 
 applicable to most Linux enviroments. Ubuntu 18.04 was chosen here due to it's support for enhanced VMs in Hyper-V. 
-This makes it easier to use from a Windows machine.
+This makes it easier to use from a Windows machine: full screen, copy / paste, etc ...
 
 ### Hyper-V
-When using Hyper-V to develop you will want to enable enhanced mode. This allows for the VM to be full screen, have 
-clipboard access and support additional devices. Ubuntu 18.04 is the first Linux OS supported in this mode. The 
-mileage with other distros may vary.
+Hyper-V has a builtin Ubuntu 18.04 image which supports enhanced mode. Here is a tutorial for creating 
+such an image:
 
-Enhanced mode support is still fairly new and does require a few manual steps. They are all covered in this 
-blog post:
+https://docs.microsoft.com/en-us/virtualization/hyper-v-on-windows/quick-start/quick-create-virtual-machine
 
-https://blogs.technet.microsoft.com/virtualization/2018/02/28/sneak-peek-taking-a-spin-with-enhanced-linux-vms/
+When following this make sure to:
+1. Click Installation Source and uncheck "Windows Secure Boot"
+1. Complete the Ubuntu installation wizard. Full screen mode won't be available until this is done.
 
-Following the steps on that blog post will get you to a point where you can the features you are looking for. There are
- a couple of deviations from the instructions there:
-
-- There is no longer a config-user.sh script
-- cd into `ubuntu/18.04` instead of `ubuntu/16.04`
+Overall this takes about 5-10 minutes to complete. 
 
 ### Source Link
 Many of the repositories that need to be built use source link and it crashes on Ubuntu 18.04 due to dependency changes. 

@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.UnitTests;
 using static Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CodeModelTestHelpers;
+using Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
@@ -34,8 +35,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
                 WrapperPolicy.s_ComWrapperFactory = MockComWrapperFactory.Instance;
 
                 var visualStudioWorkspaceMock = new MockVisualStudioWorkspace(workspace);
+                var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
 
-                var state = new CodeModelState(workspace.ExportProvider.GetExportedValue<IThreadingContext>(), serviceProvider, project.LanguageServices, visualStudioWorkspaceMock);
+                var state = new CodeModelState(
+                    threadingContext,
+                    serviceProvider,
+                    project.LanguageServices,
+                    visualStudioWorkspaceMock,
+                    new ProjectCodeModelFactory(visualStudioWorkspaceMock, serviceProvider, threadingContext));
 
                 var codeModel = FileCodeModel.Create(state, null, document, new MockTextManagerAdapter()).Handle;
 

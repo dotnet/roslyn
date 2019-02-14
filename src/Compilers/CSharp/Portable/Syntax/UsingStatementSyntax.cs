@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         public UsingStatementSyntax Update(SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
         {
-            return Update(usingKeyword, awaitKeyword: default, openParenToken, declaration, expression, closeParenToken, statement);
+            return Update(awaitKeyword: default, usingKeyword, openParenToken, declaration, expression, closeParenToken, statement);
         }
 
     }
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static UsingStatementSyntax UsingStatement(SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
         {
-            return UsingStatement(usingKeyword, awaitKeyword: default, openParenToken, declaration, expression, closeParenToken, statement);
+            return UsingStatement(awaitKeyword: default, usingKeyword, openParenToken, declaration, expression, closeParenToken, statement);
         }
     }
 }

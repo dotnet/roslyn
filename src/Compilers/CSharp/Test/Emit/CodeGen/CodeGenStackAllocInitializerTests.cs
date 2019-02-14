@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -9,6 +10,83 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.StackAllocInitializer)]
     public class CodeGenStackAllocInitializerTests : CompilingTestBase
     {
+        [Fact]
+        [WorkItem(29092, "https://github.com/dotnet/roslyn/issues/29092")]
+        public void TestMixedWithInitBlock()
+        {
+
+            var text = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        MakeBlock(1, 2, 3);
+    }
+
+    static unsafe void MakeBlock(int a, int b, int c)
+    {
+        int* ptr = stackalloc int[]
+        {
+           0, 0, 0, a, b, c
+        };
+        PrintBytes(ptr, 6);
+    }
+
+    static unsafe void PrintBytes(int* ptr, int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            Console.Write(ptr[i]);
+        }
+    }
+}";
+            CompileAndVerify(text,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3),
+                options: TestOptions.UnsafeReleaseExe,
+                expectedOutput: "000123",
+                verify: Verification.Fails).VerifyIL("Program.MakeBlock",
+@"{
+  // Code size       42 (0x2a)
+  .maxstack  4
+  IL_0000:  ldc.i4.s   24
+  IL_0002:  conv.u
+  IL_0003:  localloc
+  IL_0005:  dup
+  IL_0006:  ldc.i4.0
+  IL_0007:  ldc.i4.s   24
+  IL_0009:  initblk
+  IL_000b:  dup
+  IL_000c:  ldc.i4.3
+  IL_000d:  conv.i
+  IL_000e:  ldc.i4.4
+  IL_000f:  mul
+  IL_0010:  add
+  IL_0011:  ldarg.0
+  IL_0012:  stind.i4
+  IL_0013:  dup
+  IL_0014:  ldc.i4.4
+  IL_0015:  conv.i
+  IL_0016:  ldc.i4.4
+  IL_0017:  mul
+  IL_0018:  add
+  IL_0019:  ldarg.1
+  IL_001a:  stind.i4
+  IL_001b:  dup
+  IL_001c:  ldc.i4.5
+  IL_001d:  conv.i
+  IL_001e:  ldc.i4.4
+  IL_001f:  mul
+  IL_0020:  add
+  IL_0021:  ldarg.2
+  IL_0022:  stind.i4
+  IL_0023:  ldc.i4.6
+  IL_0024:  call       ""void Program.PrintBytes(int*, int)""
+  IL_0029:  ret
+}");
+        }
+
         [Fact]
         public void TestUnmanaged_Pointer()
         {
@@ -41,7 +119,7 @@ unsafe class Test
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3),
                 options: TestOptions.UnsafeReleaseExe,
                 expectedOutput: "424242424242424242",
-                verify: Verification.Fails).VerifyIL("Test.M<T>(T)", 
+                verify: Verification.Fails).VerifyIL("Test.M<T>(T)",
 @"{
   // Code size      163 (0xa3)
   .maxstack  4
@@ -542,7 +620,7 @@ static unsafe class C
             CompileAndVerify(text,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3),
                 options: TestOptions.UnsafeReleaseExe,
-                verify: Verification.Fails ,expectedOutput: @"123").VerifyIL("C.Main",
+                verify: Verification.Fails, expectedOutput: @"123").VerifyIL("C.Main",
 @"{
   // Code size       70 (0x46)
   .maxstack  4

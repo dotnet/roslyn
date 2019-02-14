@@ -191,7 +191,7 @@ In GetInt
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/11036")]
         public void IndexerLvalue()
         {
             CompileAndVerify(@"
@@ -2350,6 +2350,40 @@ class C
                 // (9,9): error CS0306: The type 'Span<byte>' may not be used as a type argument
                 //         Span<byte>? s2 = null;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "Span<byte>?").WithArguments("System.Span<byte>").WithLocation(9, 9));
+        }
+
+        [Fact]
+        [WorkItem(32138, "https://github.com/dotnet/roslyn/issues/31238")]
+        public void ExpressionTreeNotAllowed()
+        {
+            CreateCompilation(@"
+using System;
+using System.Linq.Expressions;
+public class C {
+    public void M() {
+        String x = null;
+        Expression<Func<string>> e0 = () => x ??= null;
+    }
+}").VerifyDiagnostics(
+                // (7,45): error CS8642: An expression tree may not contain a null coalescing assignment
+                //         Expression<Func<string>> e0 = () => x ??= null;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainNullCoalescingAssignment, "x ??= null").WithLocation(7, 45));
+        }
+
+        [Fact]
+        public void PointersDisallowed()
+        {
+            CreateCompilation(@"
+class C
+{
+    unsafe void M(int* i1, int* i2)
+    {
+        i1 ??= i2;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS0019: Operator '??=' cannot be applied to operands of type 'int*' and 'int*'
+                //         i1 ??= i2;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "i1 ??= i2").WithArguments("??=", "int*", "int*").WithLocation(6, 9));
         }
     }
 }

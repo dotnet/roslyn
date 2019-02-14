@@ -7,10 +7,12 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
+Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
@@ -100,11 +102,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                         SpecializedCollections.SingletonEnumerable(GetDiagnosticData(workspace, project.Id))))
 
                 source.AddNewErrors(project.Id, New HashSet(Of DiagnosticData)(SpecializedCollections.SingletonEnumerable(diagnostic)), map)
-                source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
 
                 AddHandler source.DiagnosticsUpdated, Sub(o, a)
                                                           Assert.Equal(1, a.Diagnostics.Length)
                                                       End Sub
+
+                source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
+
                 Await waiter.CreateWaitTask()
             End Using
         End Function
@@ -177,19 +181,150 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 source.AddNewErrors(project.Id, diagnostic)
                 source.AddNewErrors(project.Id, diagnostic)
 
-                source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
-
                 AddHandler source.DiagnosticsUpdated, Sub(o, a)
                                                           Assert.Equal(1, a.Diagnostics.Length)
                                                       End Sub
+
+                source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
+
                 Await waiter.CreateWaitTask()
             End Using
         End Function
 
-        Private Function GetDiagnosticData(workspace As Microsoft.CodeAnalysis.Workspace, projectId As ProjectId, Optional isBuildDiagnostic As Boolean = False) As DiagnosticData
+        <Fact>
+        Public Async Function TestExternalDiagnostics_CompilationEndAnalyzer() As Task
+            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+                Dim waiter = New AsynchronousOperationListener()
+
+                Dim project = workspace.CurrentSolution.Projects.First()
+
+                Dim analyzer = New CompilationEndAnalyzer()
+                Dim compiler = DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp)
+
+                Dim service = New Microsoft.CodeAnalysis.Diagnostics.TestDiagnosticAnalyzerService(LanguageNames.CSharp, New DiagnosticAnalyzer() {compiler, analyzer}.ToImmutableArray())
+                Dim registation = service.CreateIncrementalAnalyzer(workspace)
+
+                Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, New MockDiagnosticUpdateSourceRegistrationService(), waiter)
+
+                Dim diagnostic = GetDiagnosticData(workspace, project.Id, isBuildDiagnostic:=True, id:=analyzer.SupportedDiagnostics(0).Id)
+                source.AddNewErrors(project.Id, diagnostic)
+
+                AddHandler source.DiagnosticsUpdated, Sub(o, a)
+                                                          Assert.Equal(1, a.Diagnostics.Length)
+                                                          Assert.Equal(a.Diagnostics(0).Properties(WellKnownDiagnosticPropertyNames.Origin), WellKnownDiagnosticTags.Build)
+                                                      End Sub
+
+                source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
+
+                Await waiter.CreateWaitTask()
+            End Using
+        End Function
+
+        <Fact>
+        Public Async Function TestExternalDiagnostics_CompilationAnalyzer() As Task
+            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+                Dim waiter = New AsynchronousOperationListener()
+
+                Dim project = workspace.CurrentSolution.Projects.First()
+
+                Dim analyzer = New CompilationAnalyzer()
+                Dim compiler = DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp)
+
+                Dim service = New Microsoft.CodeAnalysis.Diagnostics.TestDiagnosticAnalyzerService(LanguageNames.CSharp, New DiagnosticAnalyzer() {compiler, analyzer}.ToImmutableArray())
+                Dim registation = service.CreateIncrementalAnalyzer(workspace)
+
+                Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, New MockDiagnosticUpdateSourceRegistrationService(), waiter)
+
+                Dim diagnostic = GetDiagnosticData(workspace, project.Id, isBuildDiagnostic:=True, id:=analyzer.SupportedDiagnostics(0).Id)
+                source.AddNewErrors(project.Id, diagnostic)
+
+                AddHandler source.DiagnosticsUpdated, Sub(o, a)
+                                                          Assert.Equal(1, a.Diagnostics.Length)
+                                                          Assert.Equal(a.Diagnostics(0).Properties(WellKnownDiagnosticPropertyNames.Origin), WellKnownDiagnosticTags.Build)
+                                                      End Sub
+
+                source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
+
+                Await waiter.CreateWaitTask()
+            End Using
+        End Function
+
+        <Fact>
+        Public Async Function TestExternalDiagnostics_CompilationAnalyzerWithFSAOn() As Task
+            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+                Dim waiter = New AsynchronousOperationListener()
+
+                ' turn on FSA
+                workspace.Options = workspace.Options.WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, True)
+
+                Dim project = workspace.CurrentSolution.Projects.First()
+
+                Dim analyzer = New CompilationAnalyzer()
+                Dim compiler = DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp)
+
+                Dim service = New Microsoft.CodeAnalysis.Diagnostics.TestDiagnosticAnalyzerService(LanguageNames.CSharp, New DiagnosticAnalyzer() {compiler, analyzer}.ToImmutableArray())
+                Dim registation = service.CreateIncrementalAnalyzer(workspace)
+
+                Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, New MockDiagnosticUpdateSourceRegistrationService(), waiter)
+
+                Dim diagnostic = GetDiagnosticData(workspace, project.Id, isBuildDiagnostic:=True, id:=analyzer.SupportedDiagnostics(0).Id)
+                source.AddNewErrors(project.Id, diagnostic)
+
+                Dim called = False
+                AddHandler source.DiagnosticsUpdated, Sub(o, a)
+                                                          called = True
+                                                      End Sub
+
+                source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
+
+                Await waiter.CreateWaitTask()
+
+                ' error is considered live error, so event shouldn't be raised
+                Assert.False(called)
+            End Using
+        End Function
+
+        Private Class CompilationEndAnalyzer
+            Inherits DiagnosticAnalyzer
+
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+                Get
+                    Return ImmutableArray.Create(DescriptorFactory.CreateSimpleDescriptor("CompilationEndAnalyzer"))
+                End Get
+            End Property
+
+            Public Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterCompilationStartAction(
+                    Sub(startContext)
+                        startContext.RegisterCompilationEndAction(
+                            Sub(endContext)
+                                ' do nothing
+                            End Sub)
+                    End Sub)
+            End Sub
+        End Class
+
+        Private Class CompilationAnalyzer
+            Inherits DiagnosticAnalyzer
+
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+                Get
+                    Return ImmutableArray.Create(DescriptorFactory.CreateSimpleDescriptor("CompilationAnalyzer"))
+                End Get
+            End Property
+
+            Public Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterCompilationAction(
+                    Sub(compilationContext)
+                        ' do nothing
+                    End Sub)
+            End Sub
+        End Class
+
+        Private Function GetDiagnosticData(workspace As Microsoft.CodeAnalysis.Workspace, projectId As ProjectId, Optional isBuildDiagnostic As Boolean = False, Optional id As String = "id") As DiagnosticData
             Dim properties = If(isBuildDiagnostic, DiagnosticData.PropertiesForBuildDiagnostic, ImmutableDictionary(Of String, String).Empty)
             Return New DiagnosticData(
-                "Id", "Test", "Test Message", "Test Message Format", DiagnosticSeverity.Error, True, 0, workspace, projectId, properties:=properties)
+                id, "Test", "Test Message", "Test Message Format", DiagnosticSeverity.Error, True, 0, workspace, projectId, properties:=properties)
         End Function
 
         Private Class TestDiagnosticAnalyzerService
@@ -219,7 +354,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Public Sub Reanalyze(workspace As Microsoft.CodeAnalysis.Workspace, Optional projectIds As IEnumerable(Of ProjectId) = Nothing, Optional documentIds As IEnumerable(Of DocumentId) = Nothing, Optional highPriority As Boolean = False) Implements IDiagnosticAnalyzerService.Reanalyze
             End Sub
 
-            Public Function GetDiagnosticDescriptors(projectOpt As Project) As ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticDescriptor)) Implements IDiagnosticAnalyzerService.GetDiagnosticDescriptors
+            Public Function GetDiagnosticDescriptors(projectOpt As Project) As ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticDescriptor)) Implements IDiagnosticAnalyzerService.CreateDiagnosticDescriptorsPerReference
                 Return ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticDescriptor)).Empty.Add("reference", ImmutableArray.Create(Of DiagnosticDescriptor)(New DiagnosticDescriptor("CS1002", "test", "test", "test", DiagnosticSeverity.Warning, True)))
             End Function
 
@@ -276,6 +411,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Function
 
             Public Function GetHostAnalyzerReferences() As IEnumerable(Of AnalyzerReference) Implements IDiagnosticAnalyzerService.GetHostAnalyzerReferences
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetDiagnosticAnalyzers(project As Project) As ImmutableArray(Of DiagnosticAnalyzer) Implements IDiagnosticAnalyzerService.GetDiagnosticAnalyzers
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function IsCompilationEndAnalyzer(analyzer As DiagnosticAnalyzer, project As Project, compilation As Compilation) As Boolean Implements IDiagnosticAnalyzerService.IsCompilationEndAnalyzer
                 Throw New NotImplementedException()
             End Function
         End Class

@@ -209,7 +209,7 @@ End Module
 ");
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             VisualStudio.Debugger.Go(waitForBreakMode: false);
-            VisualStudio.ActivateMainWindow(skipAttachingThreads: true);
+            VisualStudio.ActivateMainWindow();
             VisualStudio.SolutionExplorer.OpenFile(project, module1FileName);
 
             VisualStudio.SendKeys.Send(VirtualKey.T);
@@ -233,10 +233,10 @@ End Module
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             VisualStudio.SendKeys.Send(VirtualKey.T);
 
-            string microsoftVisualStudionDialogName = "Microsoft Visual Studio";
-            VisualStudio.Dialog.VerifyOpen(microsoftVisualStudionDialogName);
-            VisualStudio.Dialog.Click(microsoftVisualStudionDialogName, "OK");
-            VisualStudio.Dialog.VerifyClosed(microsoftVisualStudionDialogName);
+            string microsoftVisualStudioDialogName = "Microsoft Visual Studio";
+            VisualStudio.Dialog.VerifyOpen(microsoftVisualStudioDialogName);
+            VisualStudio.Dialog.Click(microsoftVisualStudioDialogName, "OK");
+            VisualStudio.Dialog.VerifyClosed(microsoftVisualStudioDialogName);
             VisualStudio.Editor.Verify.IsProjectItemDirty(expectedValue: false);
         }
 

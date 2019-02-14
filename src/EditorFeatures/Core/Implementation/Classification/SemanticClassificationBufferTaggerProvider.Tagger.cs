@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             private Task ProduceTagsAsync<TClassificationService>(
                 TaggerContext<IClassificationTag> context,
-                DocumentSnapshotSpan documentSpan, 
+                DocumentSnapshotSpan documentSpan,
                 ClassificationTypeMap typeMap,
                 IClassificationDelegationService<TClassificationService> delegationService) where TClassificationService : class, ILanguageService
             {

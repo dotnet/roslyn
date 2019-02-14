@@ -850,7 +850,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     var visitedSource = (TypeSymbol)_matcher.Visit(source);
                     var visitedOther = (_deepTranslatorOpt != null) ? (TypeSymbol)_deepTranslatorOpt.Visit(other) : other;
 
-                    return visitedSource?.Equals(visitedOther, TypeCompareKind.IgnoreDynamicAndTupleNames) == true;
+                    return visitedSource?.Equals(visitedOther, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) == true;
                 }
             }
         }
@@ -907,8 +907,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 if ((object)originalDef != type)
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    var translatedTypeArguments = type.GetAllTypeArguments(ref useSiteDiagnostics).SelectAsArray((t, v) => t.WithTypeAndModifiers((TypeSymbol)v.Visit(t.TypeSymbol), 
-                                                                                                                                                  v.VisitCustomModifiers(t.CustomModifiers)), 
+                    var translatedTypeArguments = type.GetAllTypeArguments(ref useSiteDiagnostics).SelectAsArray((t, v) => t.WithTypeAndModifiers((TypeSymbol)v.Visit(t.TypeSymbol),
+                                                                                                                                                  v.VisitCustomModifiers(t.CustomModifiers)),
                                                                                                                  this);
 
                     var translatedOriginalDef = (NamedTypeSymbol)this.Visit(originalDef);

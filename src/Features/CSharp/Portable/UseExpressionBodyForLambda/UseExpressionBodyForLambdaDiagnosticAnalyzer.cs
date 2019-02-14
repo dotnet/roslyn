@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         public override bool OpenFileOnly(Workspace workspace) => false;
 
         public UseExpressionBodyForLambdaDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId, 
+            : base(IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId,
                    UseExpressionBodyTitle)
         {
         }

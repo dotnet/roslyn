@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -52,17 +53,32 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
                 var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
-                var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
-                var options = (CSharpCompilationOptions)workspaceProject.CompilationOptions;
+                var options = (CSharpCompilationOptions)environment.GetUpdatedCompilationOptionOfSingleProject();
 
                 Assert.Equal(expected: ReportDiagnostic.Default, actual: options.GeneralDiagnosticOption);
 
-                project.SetRuleSetFile(ruleSetFile.Path);
+                ((IAnalyzerHost)project).SetRuleSetFile(ruleSetFile.Path);
 
-                workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
-                options = (CSharpCompilationOptions)workspaceProject.CompilationOptions;
+                options = (CSharpCompilationOptions)environment.GetUpdatedCompilationOptionOfSingleProject();
 
                 Assert.Equal(expected: ReportDiagnostic.Error, actual: options.GeneralDiagnosticOption);
+            }
+        }
+
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
+        public void RuleSet_CanBeFetchedFromWorkspace()
+        {
+            using (var ruleSetFile = new DisposableFile())
+            using (var environment = new TestEnvironment())
+            {
+                var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
+
+                ((IAnalyzerHost)project).SetRuleSetFile(ruleSetFile.Path);
+
+                var projectId = environment.Workspace.CurrentSolution.ProjectIds.Single();
+                Assert.Equal(ruleSetFile.Path, environment.Workspace.TryGetRuleSetPathForProject(projectId));
             }
         }
 
@@ -83,14 +99,14 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
                 var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
-                project.SetRuleSetFile(ruleSetFile.Path);
+                ((IAnalyzerHost)project).SetRuleSetFile(ruleSetFile.Path);
 
                 var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
                 var options = (CSharpCompilationOptions)workspaceProject.CompilationOptions;
 
                 Assert.Equal(expected: ReportDiagnostic.Warn, actual: options.GeneralDiagnosticOption);
 
-                project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_WARNINGSAREERRORS, true);
+                project.SetOption(CompilerOptions.OPTID_WARNINGSAREERRORS, true);
 
                 workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
                 options = (CSharpCompilationOptions)workspaceProject.CompilationOptions;
@@ -119,10 +135,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
                 var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
-                project.SetRuleSetFile(ruleSetFile.Path);
+                ((IAnalyzerHost)project).SetRuleSetFile(ruleSetFile.Path);
 
-                var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
-                var options = (CSharpCompilationOptions)workspaceProject.CompilationOptions;
+                var options = (CSharpCompilationOptions)environment.GetUpdatedCompilationOptionOfSingleProject();
 
                 var ca1012DiagnosticOption = options.SpecificDiagnosticOptions["CA1012"];
                 Assert.Equal(expected: ReportDiagnostic.Error, actual: ca1012DiagnosticOption);
@@ -149,11 +164,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
                 var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
-                project.SetRuleSetFile(ruleSetFile.Path);
-                project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_WARNASERRORLIST, "1014");
+                ((IAnalyzerHost)project).SetRuleSetFile(ruleSetFile.Path);
+                project.SetOption(CompilerOptions.OPTID_WARNASERRORLIST, "1014");
 
-                var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
-                var options = (CSharpCompilationOptions)workspaceProject.CompilationOptions;
+                var options = (CSharpCompilationOptions)environment.GetUpdatedCompilationOptionOfSingleProject();
 
                 var ca1014DiagnosticOption = options.SpecificDiagnosticOptions["CS1014"];
                 Assert.Equal(expected: ReportDiagnostic.Error, actual: ca1014DiagnosticOption);
@@ -170,11 +184,11 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
                 var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
                 var pathWithExtraBackslashes = ruleSetFile.Path.Replace(@"\", @"\\");
 
-                project.SetRuleSetFile(pathWithExtraBackslashes);
+                ((IAnalyzerHost)project).SetRuleSetFile(pathWithExtraBackslashes);
 
-                var projectRuleSetFile = project.RuleSetFile;
+                var projectRuleSetFile = project.VisualStudioProjectOptionsProcessor.ExplicitRuleSetFilePath;
 
-                Assert.Equal(expected: ruleSetFile.Path, actual: projectRuleSetFile.Target.FilePath);
+                Assert.Equal(expected: ruleSetFile.Path, actual: projectRuleSetFile);
             }
         }
 
@@ -202,21 +216,21 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
                 var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
-                project.SetRuleSetFile(ruleSetFile.Path);
+                ((IAnalyzerHost)project).SetRuleSetFile(ruleSetFile.Path);
 
-                project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_WARNASERRORLIST, "1014");
+                project.SetOption(CompilerOptions.OPTID_WARNASERRORLIST, "1014");
                 var options = environment.GetUpdatedCompilationOptionOfSingleProject();
                 Assert.Equal(expected: ReportDiagnostic.Error, actual: options.SpecificDiagnosticOptions["CS1014"]);
 
-                project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_WARNNOTASERRORLIST, "1014");
+                project.SetOption(CompilerOptions.OPTID_WARNNOTASERRORLIST, "1014");
                 options = environment.GetUpdatedCompilationOptionOfSingleProject();
                 Assert.Equal(expected: ReportDiagnostic.Suppress, actual: options.SpecificDiagnosticOptions["CS1014"]);
 
-                project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_WARNNOTASERRORLIST, null);
+                project.SetOption(CompilerOptions.OPTID_WARNNOTASERRORLIST, null);
                 options = environment.GetUpdatedCompilationOptionOfSingleProject();
                 Assert.Equal(expected: ReportDiagnostic.Error, actual: options.SpecificDiagnosticOptions["CS1014"]);
 
-                project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_WARNASERRORLIST, null);
+                project.SetOption(CompilerOptions.OPTID_WARNASERRORLIST, null);
                 options = environment.GetUpdatedCompilationOptionOfSingleProject();
                 Assert.Equal(expected: ReportDiagnostic.Suppress, actual: options.SpecificDiagnosticOptions["CS1014"]);
             }
@@ -243,9 +257,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
                 var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
-                project.SetRuleSetFile(ruleSetFile.Path);
-                project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_NOWARNLIST, "1014");
-                project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_WARNASERRORLIST, "1014");
+                ((IAnalyzerHost)project).SetRuleSetFile(ruleSetFile.Path);
+                project.SetOption(CompilerOptions.OPTID_NOWARNLIST, "1014");
+                project.SetOption(CompilerOptions.OPTID_WARNASERRORLIST, "1014");
 
                 var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
                 var options = (CSharpCompilationOptions)workspaceProject.CompilationOptions;

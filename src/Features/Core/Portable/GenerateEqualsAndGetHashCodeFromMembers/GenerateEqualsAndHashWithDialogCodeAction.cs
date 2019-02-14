@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 var generatorOperators = (generateOperatorsOption?.Value).GetValueOrDefault();
 
                 var action = new GenerateEqualsAndGetHashCodeAction(
-                    _document, _textSpan, _containingType, result.Members, 
+                    _document, _textSpan, _containingType, result.Members,
                     _generateEquals, _generateGetHashCode, implementIEquatable, generatorOperators);
                 return await action.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
             }

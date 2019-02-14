@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
         {
             _codeFixServiceOpt = codeFixService;
         }
-        
+
         /// <summary>
         /// Maps format document code cleanup options to DiagnosticId[]
         /// </summary>
@@ -84,7 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                                        IDEDiagnosticIds.UseExpressionBodyForOperatorsDiagnosticId,
                                        IDEDiagnosticIds.UseExpressionBodyForPropertiesDiagnosticId,
                                        IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId,
-                                       IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId)),
+                                       IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId,
+                                       IDEDiagnosticIds.UseExpressionBodyForLocalFunctionsDiagnosticId)),
 
                 (CSharpFeaturesResources.Apply_inline_out_variable_preferences,
                  CodeCleanupOptions.ApplyInlineOutVariablePreferences,

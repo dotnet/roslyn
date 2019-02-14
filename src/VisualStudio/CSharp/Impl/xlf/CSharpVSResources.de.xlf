@@ -14,22 +14,32 @@
       </trans-unit>
       <trans-unit id="CSharp_Coding_Conventions">
         <source>C# Coding Conventions</source>
-        <target state="new">C# Coding Conventions</target>
+        <target state="translated">C#-Codierungskonventionen</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_Formatting_Rules">
         <source>C# Formatting Rules</source>
-        <target state="new">C# Formatting Rules</target>
+        <target state="translated">C#-Formatierungsregeln</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Discard">
+        <source>Discard</source>
+        <target state="new">Discard</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
-        <target state="translated">Einstellungen zur Dokumentformatierung (experimentell) </target>
+        <target state="translated">Einstellungen zur Dokumentformatierung (experimentell)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Event_Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="new">Generate Event Subscription</target>
         <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
-        <target state="translated">In relationalen Operatoren:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
+        <target state="translated">In relationalen Operatoren: &lt; &gt; &lt;= &gt;= is as == !=</target>
         <note />
       </trans-unit>
       <trans-unit id="Inside_namespace">
@@ -59,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
-        <target state="translated">Nicht erforderliche Using-Direktiven entfernen</target>
+        <target state="translated">Nicht benötigte Using-Direktiven entfernen</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_usings">
@@ -382,6 +392,11 @@
         <target state="translated">Zeilenwechseloptionen für Schlüsselwörter</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="new">Unused local</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_var_when_generating_locals">
         <source>Use 'var' when generating locals</source>
         <target state="translated">Beim Generieren lokaler Variablen "var" verwenden.</target>
@@ -454,7 +469,7 @@
       </trans-unit>
       <trans-unit id="Regular">
         <source>Regular</source>
-        <target state="translated">Standard</target>
+        <target state="translated">Regulär</target>
         <note />
       </trans-unit>
       <trans-unit id="Small">
@@ -546,6 +561,11 @@
         <source>Using directives placement</source>
         <target state="new">Using directives placement</target>
         <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="When_on_multiple_lines">
+        <source>When on multiple lines</source>
+        <target state="new">When on multiple lines</target>
+        <note />
       </trans-unit>
       <trans-unit id="When_variable_type_is_apparent">
         <source>When variable type is apparent</source>
@@ -744,7 +764,7 @@
       </trans-unit>
       <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
         <source>Report invalid placeholders in 'string.Format' calls</source>
-        <target state="translated">Ungültige Platzhalter in string.Format-Aufrufen melden</target>
+        <target state="translated">Ungültige Platzhalter in String.Format-Aufrufen melden</target>
         <note />
       </trans-unit>
       <trans-unit id="Separate_using_directive_groups">
@@ -757,19 +777,14 @@
         <target state="translated">Namensv_orschläge anzeigen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate Event Subscription">
-        <source>Generate Event Subscription</source>
-        <target state="translated">Ereignisabonnement erstellen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">
         <source>In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</source>
-        <target state="translated">In arithmetischen Operatoren:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</target>
+        <target state="translated">In arithmetische Operatoren: * / % + - &lt;&lt; &gt;&gt; &amp; ^ |</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators:  &amp;&amp;   ||   ??</source>
-        <target state="translated">In anderen binären Operatoren:  &amp;&amp;   ||   ??</target>
+        <target state="translated">In anderen binären Operatoren: &amp; &amp; ||   ??</target>
         <note />
       </trans-unit>
     </body>

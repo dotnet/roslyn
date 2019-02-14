@@ -55,13 +55,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &&
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -128,13 +123,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &&
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -201,13 +191,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &&
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -274,13 +259,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &&
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -347,13 +327,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &&
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -423,13 +398,8 @@ namespace N
 
         public override bool Equals(object obj)
         {
-            if (!(obj is NewStruct))
-            {
-                return false;
-            }
-
-            var other = (NewStruct)obj;
-            return a == other.a &&
+            return obj is NewStruct other &&
+                   a == other.a &&
                    b == other.b;
         }
 
@@ -496,13 +466,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return System.Collections.Generic.EqualityComparer<object>.Default.Equals(a, other.a) &&
+        return obj is NewStruct other &&
+               System.Collections.Generic.EqualityComparer<object>.Default.Equals(a, other.a) &&
                System.Collections.Generic.EqualityComparer<object>.Default.Equals(b, other.b);
     }
 
@@ -567,13 +532,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &&
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -640,13 +600,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &&
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -725,13 +680,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &&
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -802,13 +752,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &&
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -879,13 +824,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &&
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -964,13 +904,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &&
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -1034,13 +969,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &&
+        return obj is NewStruct other &&
+               a == other.a &&
                System.Collections.Generic.EqualityComparer<object>.Default.Equals(this.Item2, other.Item2);
     }
 
@@ -1121,13 +1051,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &&
+        return obj is NewStruct other &&
+               a == other.a &&
                System.Collections.Generic.EqualityComparer<object>.Default.Equals(b, other.b);
     }
 
@@ -1192,13 +1117,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &&
+        return obj is NewStruct other &&
+               a == other.a &&
                System.Collections.Generic.EqualityComparer<object>.Default.Equals(b, other.b);
     }
 
@@ -1265,13 +1185,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &&
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -1338,13 +1253,8 @@ internal struct NewStruct<X, Y>
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct<X, Y>))
-        {
-            return false;
-        }
-
-        var other = (NewStruct<X, Y>)obj;
-        return System.Collections.Generic.EqualityComparer<List<X>>.Default.Equals(a, other.a) &&
+        return obj is NewStruct<X, Y> other &&
+               System.Collections.Generic.EqualityComparer<List<X>>.Default.Equals(a, other.a) &&
                System.Collections.Generic.EqualityComparer<Y[]>.Default.Equals(b, other.b);
     }
 
@@ -1422,13 +1332,8 @@ internal struct NewStruct1
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct1))
-        {
-            return false;
-        }
-
-        var other = (NewStruct1)obj;
-        return a == other.a &&
+        return obj is NewStruct1 other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -1493,13 +1398,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return this.a == other.a &&
+        return obj is NewStruct other &&
+               this.a == other.a &&
                this.a == other.a;
     }
 
@@ -1576,13 +1476,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &&
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -1659,13 +1554,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &&
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -1742,13 +1632,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &&
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -1825,13 +1710,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &&
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -1901,13 +1781,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return this.Item1 == other.Item1 &&
+        return obj is NewStruct other &&
+               this.Item1 == other.Item1 &&
                this.Item2 == other.Item2;
     }
 
@@ -1985,13 +1860,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return Item1 == other.Item1 &&
+        return obj is NewStruct other &&
+               Item1 == other.Item1 &&
                Item2 == other.Item2;
     }
 
@@ -2094,13 +1964,8 @@ internal struct NewStruct<T>
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct<T>))
-        {
-            return false;
-        }
-
-        var other = (NewStruct<T>)obj;
-        return System.Collections.Generic.EqualityComparer<T>.Default.Equals(a, other.a) &&
+        return obj is NewStruct<T> other &&
+               System.Collections.Generic.EqualityComparer<T>.Default.Equals(a, other.a) &&
                b == other.b;
     }
 
@@ -2201,13 +2066,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &&
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -2308,13 +2168,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &&
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -2427,13 +2282,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &amp;&amp;
+        return obj is NewStruct other &amp;&amp;
+               a == other.a &amp;&amp;
                b == other.b;
     }
 
@@ -2576,13 +2426,8 @@ namespace N
 
         public override bool Equals(object obj)
         {
-            if (!(obj is NewStruct))
-            {
-                return false;
-            }
-
-            var other = (NewStruct)obj;
-            return a == other.a &amp;&amp;
+            return obj is NewStruct other &amp;&amp;
+                   a == other.a &amp;&amp;
                    b == other.b;
         }
 
@@ -2716,13 +2561,8 @@ public struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &amp;&amp;
+        return obj is NewStruct other &amp;&amp;
+               a == other.a &amp;&amp;
                b == other.b;
     }
 
@@ -2844,13 +2684,8 @@ public struct NewStruct
 
     public override bool Equals(object obj)
     {
-        if (!(obj is NewStruct))
-        {
-            return false;
-        }
-
-        var other = (NewStruct)obj;
-        return a == other.a &amp;&amp;
+        return obj is NewStruct other &amp;&amp;
+               a == other.a &amp;&amp;
                b == other.b;
     }
 

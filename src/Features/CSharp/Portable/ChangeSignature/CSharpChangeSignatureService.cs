@@ -624,8 +624,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         public override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
-            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId, 
-            Document document, 
+            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
+            Document document,
             CancellationToken cancellationToken)
         {
             var symbol = symbolAndProjectId.Symbol;
@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return convertedMethodGroups.SelectAsArray(symbolAndProjectId.WithSymbol);
         }
 
-        protected override IEnumerable<IFormattingRule> GetFormattingRules(Document document)
+        protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
         {
             return new[] { new ChangeSignatureFormattingRule() }.Concat(Formatter.GetDefaultFormattingRules(document));
         }

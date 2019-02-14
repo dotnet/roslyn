@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal class SpacingFormattingRule : BaseFormattingRule
     {
-        public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustSpacesOperation> nextOperation)
+        public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustSpacesOperation nextOperation)
         {
             if (optionSet == null)
             {
@@ -65,22 +65,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For Method Call
-            if (currentToken.IsOpenParenInArgumentList())
+            //   MethodName ( args )
+            // Or Positional Pattern
+            //   x is TypeName ( args )
+            if (currentToken.IsOpenParenInArgumentListOrPositionalPattern())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceAfterMethodCallName);
             }
 
-            if (previousToken.IsOpenParenInArgumentList() && currentToken.IsCloseParenInArgumentList())
+            if (previousToken.IsOpenParenInArgumentListOrPositionalPattern() && currentToken.IsCloseParenInArgumentListOrPositionalPattern())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses);
             }
 
-            if (previousToken.IsOpenParenInArgumentList())
+            if (previousToken.IsOpenParenInArgumentListOrPositionalPattern())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinMethodCallParentheses);
             }
 
-            if (currentToken.IsCloseParenInArgumentList())
+            if (currentToken.IsCloseParenInArgumentListOrPositionalPattern())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinMethodCallParentheses);
             }
@@ -326,26 +329,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // Index expressions
-            if (previousKind == SyntaxKind.CaretToken && previousParentKind == SyntaxKind.IndexExpression)
+            if (previousKind == SyntaxKind.CaretToken && previousParentKind == SyntaxKindEx.IndexExpression)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
             }
 
             // Right of Range expressions
-            if (previousKind == SyntaxKind.DotDotToken && previousParentKind == SyntaxKind.RangeExpression)
+            if (previousKind == SyntaxKindEx.DotDotToken && previousParentKind == SyntaxKindEx.RangeExpression)
             {
-                RangeExpressionSyntax rangeExpression = (RangeExpressionSyntax)previousToken.Parent;
-                if (rangeExpression.RightOperand != null)
+#if !CODE_STYLE
+                var rangeExpression = (RangeExpressionSyntax)previousToken.Parent;
+                var hasRightOperand = rangeExpression.RightOperand != null;
+#else
+                var childSyntax = previousToken.Parent.ChildNodesAndTokens();
+                var hasRightOperand = childSyntax.Count > 1 && childSyntax[childSyntax.Count - 2].IsKind(SyntaxKindEx.DotDotToken);
+#endif
+                if (hasRightOperand)
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
                 }
             }
 
             // Left of Range expressions
-            if (currentKind == SyntaxKind.DotDotToken && currentParentKind == SyntaxKind.RangeExpression)
+            if (currentKind == SyntaxKindEx.DotDotToken && currentParentKind == SyntaxKindEx.RangeExpression)
             {
-                RangeExpressionSyntax rangeExpression = (RangeExpressionSyntax)currentToken.Parent;
-                if (rangeExpression.LeftOperand != null)
+#if !CODE_STYLE
+                var rangeExpression = (RangeExpressionSyntax)currentToken.Parent;
+                var hasLeftOperand = rangeExpression.LeftOperand != null;
+#else
+                var childSyntax = currentToken.Parent.ChildNodesAndTokens();
+                var hasLeftOperand = childSyntax.Count > 1 && childSyntax[1].IsKind(SyntaxKindEx.DotDotToken);
+#endif
+                if (hasLeftOperand)
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
                 }
@@ -354,9 +369,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return nextOperation.Invoke();
         }
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
         {
-            nextOperation.Invoke(list);
+            nextOperation.Invoke();
 
             SuppressVariableDeclaration(list, node, optionSet);
         }

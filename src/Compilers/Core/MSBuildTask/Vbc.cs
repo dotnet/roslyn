@@ -55,6 +55,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string)_store[nameof(DisabledWarnings)]; }
         }
 
+        public bool DisableSdkPath
+        {
+            set { _store[nameof(DisableSdkPath)] = value; }
+            get { return _store.GetOrDefault(nameof(DisableSdkPath), false); }
+        }
+
         public string DocumentationFile
         {
             set { _store[nameof(DocumentationFile)] = value; }
@@ -420,6 +426,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/optionstrict:", this.OptionStrictType);
             commandLine.AppendWhenTrue("/nowarn", this._store, "NoWarnings");
             commandLine.AppendSwitchWithSplitting("/nowarn:", this.DisabledWarnings, ",", ';', ',');
+            commandLine.AppendWhenTrue("/nosdkpath", _store, nameof(DisableSdkPath));
             commandLine.AppendPlusOrMinusSwitch("/optioninfer", this._store, "OptionInfer");
             commandLine.AppendWhenTrue("/nostdlib", this._store, "NoStandardLib");
             commandLine.AppendWhenTrue("/novbruntimeref", this._store, "NoVBRuntimeReference");

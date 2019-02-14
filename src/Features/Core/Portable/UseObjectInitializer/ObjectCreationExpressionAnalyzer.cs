@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         TMemberAccessExpressionSyntax,
         TAssignmentStatementSyntax,
         TVariableDeclaratorSyntax> : AbstractObjectCreationExpressionAnalyzer<
-            TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TVariableDeclaratorSyntax, 
+            TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TVariableDeclaratorSyntax,
             Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>>
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode

@@ -4,16 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeLens
 {
@@ -130,13 +127,17 @@ namespace Microsoft.CodeAnalysis.CodeLens
             var startLinePosition = location.GetLineSpan().StartLinePosition;
             var documentId = solution.GetDocument(location.SourceTree)?.Id;
 
-            return new ReferenceLocationDescriptor(longName,
+            return new ReferenceLocationDescriptor(
+                longName,
                 semanticModel.Language,
                 glyph,
+                token.Span.Start,
+                token.Span.Length,
                 startLinePosition.Line,
                 startLinePosition.Character,
                 documentId.ProjectId.Id,
                 documentId.Id,
+                document.FilePath,
                 line.TrimEnd(),
                 referenceSpan.Start,
                 referenceSpan.Length,

@@ -1,10 +1,12 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Composition
+Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
@@ -14,14 +16,16 @@ Namespace Microsoft.CodeAnalysis.PasteTracking
         Implements IDisposable
 
         Private ReadOnly Property PasteTrackingService As PasteTrackingService
-        Private ReadOnly Property PasteCommandHandler As PasteTrackingPasteCommandHandler
+        Private ReadOnly Property PasteTrackingPasteCommandHandler As PasteTrackingPasteCommandHandler
+        Private ReadOnly Property FormatCommandHandler As FormatCommandHandler
 
         Public ReadOnly Property Workspace As TestWorkspace
 
         Public Sub New(workspaceElement As XElement, Optional exportProvider As ExportProvider = Nothing)
             Workspace = TestWorkspace.CreateWorkspace(workspaceElement, exportProvider:=exportProvider)
             PasteTrackingService = GetExportedValue(Of PasteTrackingService)()
-            PasteCommandHandler = GetExportedValue(Of PasteTrackingPasteCommandHandler)()
+            PasteTrackingPasteCommandHandler = GetExportedValue(Of PasteTrackingPasteCommandHandler)()
+            FormatCommandHandler = GetExportedValue(Of FormatCommandHandler)()
         End Sub
 
         Public Function GetService(Of T)() As T
@@ -79,16 +83,21 @@ Namespace Microsoft.CodeAnalysis.PasteTracking
         Public Function SendPaste(hostDocument As TestHostDocument, pastedText As String) As TextSpan
             Dim textView = hostDocument.GetTextView()
             Dim caretPosition = textView.Caret.Position.BufferPosition.Position
+            Dim trackingSpan = textView.TextSnapshot.CreateTrackingSpan(caretPosition, 0, SpanTrackingMode.EdgeInclusive)
+
             Dim editorOperations = GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(textView)
+            Dim insertAction As Action = Sub() editorOperations.InsertText(pastedText)
 
-            SendPaste(textView, AddressOf PasteCommandHandler.ExecuteCommand, Sub() editorOperations.InsertText(pastedText))
+            Dim pasteCommandArgs = New PasteCommandArgs(textView, textView.TextBuffer)
+            Dim executionContext = TestCommandExecutionContext.Create()
 
-            Return New TextSpan(caretPosition, pastedText.Length)
+            ' Insert the formatting command hander to test format on paste scenarios
+            Dim formattingHandler As Action = Sub() FormatCommandHandler.ExecuteCommand(pasteCommandArgs, insertAction, executionContext)
+            PasteTrackingPasteCommandHandler.ExecuteCommand(pasteCommandArgs, formattingHandler, executionContext)
+
+            Dim snapshotSpan = trackingSpan.GetSpan(textView.TextBuffer.CurrentSnapshot)
+            Return New TextSpan(snapshotSpan.Start, snapshotSpan.Length)
         End Function
-
-        Private Sub SendPaste(textView As ITextView, commandHandler As Action(Of PasteCommandArgs, Action, CommandExecutionContext), nextHandler As Action)
-            commandHandler(New PasteCommandArgs(textView, textView.TextBuffer), nextHandler, TestCommandExecutionContext.Create())
-        End Sub
 
         ''' <summary>
         ''' Optionally pass in a TextSpan to assert it is equal to the pasted text span 

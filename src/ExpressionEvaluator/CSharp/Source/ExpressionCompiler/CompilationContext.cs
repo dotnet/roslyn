@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             localsDictionary.Add(local.Name, (local, localIndex));
                             localIndex++;
                         }
-                        
+
                         foreach (var argumentName in _sourceMethodParametersInOrder)
                         {
                             (LocalSymbol local, int localIndex) localSymbolAndIndex;
@@ -1446,7 +1446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var field = (FieldSymbol)member;
                 var fieldName = field.Name;
 
-            REPARSE:
+REPARSE:
 
                 DisplayClassVariableKind variableKind;
                 string variableName;
@@ -1684,8 +1684,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
 
             var indexedTypeParameters = IndexedTypeParameterSymbol.Take(arity);
-            var candidateTypeMap = new TypeMap(NonNullTypesFalseContext.Instance, candidateTypeParameters, indexedTypeParameters, allowAlpha: true);
-            var desiredTypeMap = new TypeMap(NonNullTypesFalseContext.Instance, desiredTypeParameters, indexedTypeParameters, allowAlpha: true);
+            var candidateTypeMap = new TypeMap(candidateTypeParameters, indexedTypeParameters, allowAlpha: true);
+            var desiredTypeMap = new TypeMap(desiredTypeParameters, indexedTypeParameters, allowAlpha: true);
 
             return MemberSignatureComparer.HaveSameConstraints(candidateTypeParameters, candidateTypeMap, desiredTypeParameters, desiredTypeMap);
         }

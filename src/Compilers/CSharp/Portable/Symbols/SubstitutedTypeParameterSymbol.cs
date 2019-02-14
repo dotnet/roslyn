@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif
 
         internal SubstitutedTypeParameterSymbol(Symbol newContainer, TypeMap map, TypeParameterSymbol substitutedFrom, int ordinal)
-            : base(substitutedFrom) 
+            : base(substitutedFrom)
         {
             _container = newContainer;
             // it is important that we don't use the map here in the constructor, as the map is still being filled
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var constraintTypes = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
             _map.SubstituteTypesDistinctWithoutModifiers(_underlyingTypeParameter.GetConstraintTypes(inProgress, early), constraintTypes, null);
-            return constraintTypes.ToImmutableAndFree().WhereAsArray(type => type.SpecialType != SpecialType.System_Object || !type.IsAnnotated);
+            return constraintTypes.ToImmutableAndFree().WhereAsArray(type => type.SpecialType != SpecialType.System_Object || !type.NullableAnnotation.IsAnyNullable());
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)

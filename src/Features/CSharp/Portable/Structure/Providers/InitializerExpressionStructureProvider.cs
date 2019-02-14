@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class InitializerExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<InitializerExpressionSyntax>
     {
         protected override void CollectBlockSpans(
-            InitializerExpressionSyntax node, 
+            InitializerExpressionSyntax node,
             ArrayBuilder<BlockSpan> spans,
             OptionSet options,
             CancellationToken cancellationToken)

@@ -110,8 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         protected virtual bool TryConvertToExpressionBody(
             TDeclaration declaration,
-            ParseOptions options, ExpressionBodyPreference conversionPreference, 
-            out ArrowExpressionClauseSyntax expressionWhenOnSingleLine, 
+            ParseOptions options, ExpressionBodyPreference conversionPreference,
+            out ArrowExpressionClauseSyntax expressionWhenOnSingleLine,
             out SyntaxToken semicolonWhenOnSingleLine)
         {
             return TryConvertToExpressionBodyWorker(
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         public TDeclaration Update(
-            SemanticModel semanticModel, TDeclaration declaration, OptionSet options, 
+            SemanticModel semanticModel, TDeclaration declaration, OptionSet options,
             ParseOptions parseOptions, bool useExpressionBody)
         {
             if (useExpressionBody)

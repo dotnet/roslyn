@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             using (var edit = buffer.CreateEdit())
             {
-                using (var waitScope = context.OperationContext.AddScope(allowCancellation: true, 
+                using (var waitScope = context.OperationContext.AddScope(allowCancellation: true,
                     InteractiveEditorFeaturesResources.Copying_selection_to_Interactive_Window))
                 {
                     var text = GetSelectedText(args, context.OperationContext.UserCancellationToken);

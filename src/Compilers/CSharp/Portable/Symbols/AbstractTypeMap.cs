@@ -125,7 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            // https://github.com/dotnet/roslyn/issues/30072: we're dropping annotation and context
             return TypeSymbolWithAnnotations.Create(result);
         }
 
@@ -162,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var modifier = (NamedTypeSymbol)customModifiers[i].Modifier;
                 var substituted = SubstituteNamedType(modifier);
 
-                if (modifier != substituted)
+                if (!TypeSymbol.Equals(modifier, substituted, TypeCompareKind.ConsiderEverything2))
                 {
                     var builder = ArrayBuilder<CustomModifier>.GetInstance(customModifiers.Length);
                     builder.AddRange(customModifiers, i);
@@ -173,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         modifier = (NamedTypeSymbol)customModifiers[i].Modifier;
                         substituted = SubstituteNamedType(modifier);
 
-                        if (modifier != substituted)
+                        if (!TypeSymbol.Equals(modifier, substituted, TypeCompareKind.ConsiderEverything2))
                         {
                             builder.Add(customModifiers[i].IsOptional ? CSharpCustomModifier.CreateOptional(substituted) : CSharpCustomModifier.CreateRequired(substituted));
                         }
@@ -328,8 +327,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Substitute types, and return the results without duplicates, preserving the original order.
         /// </summary>
         internal void SubstituteTypesDistinctWithoutModifiers(
-            ImmutableArray<TypeSymbolWithAnnotations> original, 
-            ArrayBuilder<TypeSymbolWithAnnotations> result, 
+            ImmutableArray<TypeSymbolWithAnnotations> original,
+            ArrayBuilder<TypeSymbolWithAnnotations> result,
             HashSet<TypeParameterSymbol> ignoreTypesDependentOnTypeParametersOpt)
         {
             if (original.Length == 0)

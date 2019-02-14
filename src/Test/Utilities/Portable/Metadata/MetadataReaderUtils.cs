@@ -181,9 +181,9 @@ namespace Roslyn.Test.Utilities
             return builder.ToImmutableAndFree();
         }
 
-        public static ImmutableArray<bool> ReadBoolArray(this MetadataReader reader, BlobHandle blobHandle)
+        public static ImmutableArray<byte> ReadByteArray(this MetadataReader reader, BlobHandle blobHandle)
         {
-            return ReadArray(reader, blobHandle, (ref BlobReader blobReader) => blobReader.ReadBoolean());
+            return ReadArray(reader, blobHandle, (ref BlobReader blobReader) => blobReader.ReadByte());
         }
 
         public static IEnumerable<CustomAttributeRow> GetCustomAttributeRows(this MetadataReader reader)

@@ -230,7 +230,7 @@ public static class TestReferences
     public static class NetStandard13
     {
         private static readonly Lazy<PortableExecutableReference> s_systemRuntime = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.ReferenceAssemblies_netstandard1_3.System_Runtime).GetReference(display: @"System.Runtime.dll (netstandard13 ref)"),
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard13.System_Runtime).GetReference(display: @"System.Runtime.dll (netstandard13 ref)"),
         LazyThreadSafetyMode.PublicationOnly);
         public static PortableExecutableReference SystemRuntime => s_systemRuntime.Value;
     }

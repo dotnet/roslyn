@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class WorkspacesResources {
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.WorkspacesResources", typeof(WorkspacesResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.WorkspacesResources", typeof(WorkspacesResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -504,6 +503,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Changing document &apos;{0}&apos; is not supported..
+        /// </summary>
+        internal static string Changing_document_0_is_not_supported {
+            get {
+                return ResourceManager.GetString("Changing_document_0_is_not_supported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Changing document properties is not supported.
         /// </summary>
         internal static string Changing_document_property_is_not_supported {
@@ -581,6 +589,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Cycle_detected_in_extensions {
             get {
                 return ResourceManager.GetString("Cycle_detected_in_extensions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DateTimeKind must be Utc.
+        /// </summary>
+        internal static string DateTimeKind_must_be_Utc {
+            get {
+                return ResourceManager.GetString("DateTimeKind_must_be_Utc", resourceCulture);
             }
         }
         
@@ -1224,6 +1241,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parameter preferences.
+        /// </summary>
+        internal static string Parameter_preferences {
+            get {
+                return ResourceManager.GetString("Parameter_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Parentheses preferences.
         /// </summary>
         internal static string Parentheses_preferences {
@@ -1247,6 +1273,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Populate_switch {
             get {
                 return ResourceManager.GetString("Populate_switch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefix &apos;{0}&apos; does not match expected prefix &apos;{1}&apos;.
+        /// </summary>
+        internal static string Prefix_0_does_not_match_expected_prefix_1 {
+            get {
+                return ResourceManager.GetString("Prefix_0_does_not_match_expected_prefix_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefix &apos;{0}&apos; is not expected.
+        /// </summary>
+        internal static string Prefix_0_is_not_expected {
+            get {
+                return ResourceManager.GetString("Prefix_0_is_not_expected", resourceCulture);
             }
         }
         
@@ -1879,6 +1923,42 @@ namespace Microsoft.CodeAnalysis {
         internal static string Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer {
             get {
                 return ResourceManager.GetString("Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to NameOnly.
+        /// </summary>
+        internal static string ValueUsageInfo_NameOnly {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_NameOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Read.
+        /// </summary>
+        internal static string ValueUsageInfo_Read {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_Read", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reference.
+        /// </summary>
+        internal static string ValueUsageInfo_Reference {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_Reference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Write.
+        /// </summary>
+        internal static string ValueUsageInfo_Write {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_Write", resourceCulture);
             }
         }
         

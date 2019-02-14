@@ -1286,7 +1286,7 @@ End Class
         private static void VerifyResolution(string markup, string[] fxCopFullyQualifiedNames, SuppressMessageAttributeState.TargetScope scope, string language, string rootNamespace)
         {
             // Parse out the span containing the declaration of the expected symbol
-            MarkupTestFile.GetPositionAndSpans(markup, 
+            MarkupTestFile.GetPositionAndSpans(markup,
                 out var source, out var pos, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
             Assert.True(pos != null || spans.Count > 0, "Must specify a position or spans marking expected symbols for resolution");

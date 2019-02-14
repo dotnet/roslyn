@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
             }
 
-            if (Type.ContainsNullableReferenceTypes())
+            if (Type.NeedsNullableAttribute())
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, Type));
             }
@@ -199,17 +199,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new SynthesizedParameterSymbolWithCustomModifiers(container, type, ordinal, refKind, name, refCustomModifiers);
         }
 
-        public static ParameterSymbol Create(
-            MethodSymbol container,
-            TypeSymbolWithAnnotations type,
-            int ordinal,
-            ConstantValue defaultValue,
-            string name = "")
-        {
-            Debug.Assert(defaultValue != null);
-            return new SynthesizedParameterSymbolWithDefaultValue(container, type, ordinal, defaultValue, name);
-        }
-
         /// <summary>
         /// For each parameter of a source method, construct a corresponding synthesized parameter
         /// for a destination method.
@@ -234,25 +223,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return ImmutableArray<CustomModifier>.Empty; }
-        }
-
-        private sealed class SynthesizedParameterSymbolWithDefaultValue : SynthesizedParameterSymbolBase
-        {
-            private readonly ConstantValue _defaultValue;
-            public SynthesizedParameterSymbolWithDefaultValue(MethodSymbol container, TypeSymbolWithAnnotations type, int ordinal, ConstantValue defaultValue, string name)
-                : base(container, type, ordinal, RefKind.None, name)
-            {
-                Debug.Assert(!defaultValue.IsBad);
-                _defaultValue = defaultValue;
-            }
-
-            internal override bool IsMetadataOptional => true;
-            internal override ConstantValue ExplicitDefaultConstantValue => _defaultValue;
-
-            public override ImmutableArray<CustomModifier> RefCustomModifiers
-            {
-                get { return ImmutableArray<CustomModifier>.Empty; }
-            }
         }
 
         private sealed class SynthesizedParameterSymbolWithCustomModifiers : SynthesizedParameterSymbolBase

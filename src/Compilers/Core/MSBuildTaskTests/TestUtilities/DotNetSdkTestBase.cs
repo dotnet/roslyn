@@ -88,16 +88,16 @@ public class TestClass
         {
             // Common.props automatically import {project-name}.*.props files from MSBuildProjectExtensionsPath directory, 
             // which is by default set to the IntermediateOutputPath:
-            File.WriteAllText(Path.Combine(objDirectory, projectFileName + ".TestHelpers.g.props"), 
+            File.WriteAllText(Path.Combine(objDirectory, projectFileName + ".TestHelpers.g.props"),
 $@"<Project>
 {content}
 </Project>");
         }
 
         private static void EmitTestHelperTargets(
-            string objDirectory, 
+            string objDirectory,
             string outputFile,
-            string projectFileName, 
+            string projectFileName,
             IEnumerable<string> expressions,
             string additionalContent)
         {

@@ -419,10 +419,10 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInAsyncForeachIn()
+        public async Task TestInAwaitForeachIn()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"foreach await (var v in $$"));
+@"await foreach (var v in $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -555,10 +555,10 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInAsyncUsing()
+        public async Task TestInAwaitUsing()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"using await ($$"));
+@"await using ($$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

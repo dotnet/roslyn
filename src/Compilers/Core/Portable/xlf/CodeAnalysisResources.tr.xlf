@@ -16,12 +16,12 @@
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleBadWithin">
         <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
-        <target state="new">Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</target>
+        <target state="translated">'{0}' parametresi 'INamedTypeSymbol' veya 'IAssemblySymbol' olması gerekir.</target>
         <note />
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
-        <target state="new">Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</target>
+        <target state="translated">'{0}' parametresi bu derleme veya bazı başvurulan derleme bir sembol olması gerekir.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
@@ -36,7 +36,7 @@
       </trans-unit>
       <trans-unit id="OperationMustNotBeControlFlowGraphPart">
         <source>The provided operation must not be part of a Control Flow Graph.</source>
-        <target state="new">The provided operation must not be part of a Control Flow Graph.</target>
+        <target state="translated">Sağlanan işlem denetimi akış grafiği bir parçası olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="OutputKindNotSupported">
@@ -61,7 +61,7 @@
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
-        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</target>
+        <target state="translated">Çözümleyicisi '{0}', 'SupportedDiagnostics' boş bir tanımlayıcısı içerir.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -156,12 +156,12 @@
       </trans-unit>
       <trans-unit id="InMemoryAssembly">
         <source>&lt;in-memory assembly&gt;</source>
-        <target state="translated">&lt;in-memory assembly&gt;</target>
+        <target state="translated">&lt; bellek içi derleme &gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="InMemoryModule">
         <source>&lt;in-memory module&gt;</source>
-        <target state="translated">&lt;in-memory module&gt;</target>
+        <target state="translated">&lt; bellek modülü &gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="SizeHasToBePositive">
@@ -533,7 +533,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="translated">Değişiklikler çakışmamalıdır.</target>
+        <target state="translated">Değişiklikler sıralanmalı ve çakışmamalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">

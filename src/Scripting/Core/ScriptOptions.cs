@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 "System.Threading.Tasks",
                 "System.Threading.Tasks.Parallel",
                 "System.Threading.Thread",
+                "System.ValueTuple",
             };
 
             return ImmutableArray.CreateRange(files.Select(CreateUnresolvedReference));
@@ -312,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with specified <see cref="FileEncoding"/>.
         /// </summary>
-        public ScriptOptions WithFileEncoding(Encoding encoding) => 
+        public ScriptOptions WithFileEncoding(Encoding encoding) =>
             encoding == FileEncoding ? this : new ScriptOptions(this) { FileEncoding = encoding };
     }
 }

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Options
         event EventHandler<OptionChangedEventArgs> OptionChanged;
 
         void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider);
-        
+
         /// <summary>
         /// Returns the <see cref="OptionSet"/> that applies to a specific document, given that document and the global options.
         /// </summary>

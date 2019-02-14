@@ -29,13 +29,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             IDEDiagnosticIds.MoveMisplacedUsingsDiagnosticId,
             s_localizableTitle,
             s_localizableInsideMessage,
-            configurable: true);
+            isConfigurable: true);
 
         internal static readonly DiagnosticDescriptor _outsideDescriptor = CreateDescriptorWithId(
             IDEDiagnosticIds.MoveMisplacedUsingsDiagnosticId,
             s_localizableTitle,
             s_localizableOutsideMessage,
-            configurable: true);
+            isConfigurable: true);
 
         public MisplacedUsingsDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.MoveMisplacedUsingsDiagnosticId, s_localizableTitle)

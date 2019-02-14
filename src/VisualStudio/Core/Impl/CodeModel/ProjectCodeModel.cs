@@ -20,23 +20,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private readonly IThreadingContext _threadingContext;
         private readonly ProjectId _projectId;
         private readonly ICodeModelInstanceFactory _codeModelInstanceFactory;
-        private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
+        private readonly VisualStudioWorkspace _visualStudioWorkspace;
         private readonly IServiceProvider _serviceProvider;
+        private readonly ProjectCodeModelFactory _projectCodeModelFactory;
 
         private CodeModelProjectCache _codeModelCache;
 
-        public ProjectCodeModel(IThreadingContext threadingContext, ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, VisualStudioWorkspaceImpl visualStudioWorkspace, IServiceProvider serviceProvider)
+        public ProjectCodeModel(IThreadingContext threadingContext, ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, VisualStudioWorkspace visualStudioWorkspace, IServiceProvider serviceProvider, ProjectCodeModelFactory projectCodeModelFactory)
         {
             _threadingContext = threadingContext;
             _projectId = projectId;
             _codeModelInstanceFactory = codeModelInstanceFactory;
             _visualStudioWorkspace = visualStudioWorkspace;
             _serviceProvider = serviceProvider;
+            _projectCodeModelFactory = projectCodeModelFactory;
         }
 
         public void OnProjectClosed()
         {
             _codeModelCache?.OnProjectClosed();
+            _projectCodeModelFactory.OnProjectClosed(_projectId);
         }
 
         private CodeModelProjectCache GetCodeModelCache()
@@ -49,19 +52,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 if (_codeModelCache == null)
                 {
                     var workspaceProject = _visualStudioWorkspace.CurrentSolution.GetProject(_projectId);
-                    var hostProject = _visualStudioWorkspace.GetHostProject(_projectId);
-                    if (workspaceProject == null && !hostProject.PushingChangesToWorkspace)
-                    {
-                        // if this project hasn't been pushed yet, push it now so that the user gets a useful experience here.
-                        hostProject.StartPushingToWorkspaceAndNotifyOfOpenDocuments();
-
-                        // re-check to see whether we now has the project in the workspace
-                        workspaceProject = _visualStudioWorkspace.CurrentSolution.GetProject(_projectId);
-                    }
 
                     if (workspaceProject != null)
                     {
-                        _codeModelCache = new CodeModelProjectCache(_threadingContext, _projectId, _codeModelInstanceFactory, _serviceProvider, workspaceProject.LanguageServices, _visualStudioWorkspace);
+                        _codeModelCache = new CodeModelProjectCache(_threadingContext, _projectId, _codeModelInstanceFactory, _projectCodeModelFactory, _serviceProvider, workspaceProject.LanguageServices, _visualStudioWorkspace);
                     }
                 }
 

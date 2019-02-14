@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -26,7 +28,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact(Skip="https://github.com/dotnet/roslyn/issues/26204"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/26204"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public void GenerateMethodInClosedFile()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -138,7 +140,7 @@ class C
             VisualStudio.Editor.Verify.TextContains("Second?.");
         }
 
-        [WpfFact(Skip="https://github.com/dotnet/roslyn/issues/30015")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/30015")]
         [Trait(Traits.Feature, Traits.Features.EditorConfig)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         [WorkItem(15003, "https://github.com/dotnet/roslyn/issues/15003")]
@@ -315,12 +317,13 @@ public class P2 { }");
             var expectedItems = new[]
             {
                 "using System.IO;",
+                "Rename 'P2' to 'Stream'",
                 "System.IO.Stream",
                 "Generate class 'Stream' in new file",
                 "Generate class 'Stream'",
                 "Generate nested class 'Stream'",
                 "Generate new type...",
-                "Rename 'P2' to 'Stream'",
+                "Remove unused variable",
                 "Suppress CS0168",
                 "in Source"
             };

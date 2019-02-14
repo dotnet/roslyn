@@ -79,6 +79,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Complete statement on ;.
+        /// </summary>
+        internal static string Complete_statement_on_semicolon {
+            get {
+                return ResourceManager.GetString("Complete_statement_on_semicolon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix interpolated verbatim string.
+        /// </summary>
+        internal static string Fix_interpolated_verbatim_string {
+            get {
+                return ResourceManager.GetString("Fix_interpolated_verbatim_string", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to      (Press TAB to insert).
         /// </summary>
         internal static string Press_TAB_to_insert {

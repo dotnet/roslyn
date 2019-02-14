@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     RemoteFeatureOptions.SymbolFinderEnabled,
                     serverCallback,
                     nameof(IRemoteSymbolFinder.FindReferencesAsync),
-                    new object[] 
+                    new object[]
                     {
                         SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId),
                         documents?.Select(d => d.Id).ToArray(),

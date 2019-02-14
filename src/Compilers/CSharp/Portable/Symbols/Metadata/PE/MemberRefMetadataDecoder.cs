@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 TypeSymbolWithAnnotations fieldType;
 
                 if ((object)field != null &&
-                    (fieldType = field.Type).TypeSymbol == type &&
+                    TypeSymbol.Equals((fieldType = field.Type).TypeSymbol, type, TypeCompareKind.ConsiderEverything2) &&
                     CustomModifiersMatch(fieldType.CustomModifiers, customModifiers))
                 {
                     // Behavior in the face of multiple matching signatures is
@@ -223,7 +223,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // IndexedTypeParameterSymbol is not going to be exposed anywhere,
             // so we'll cheat and use it here for comparison purposes.
             TypeMap candidateMethodTypeMap = new TypeMap(
-                nonNullTypesContext: NonNullTypesFalseContext.Instance, // The NonNullType context doesn't really matter here, because nullability of reference types is not considered for the purpose of the method.
                 candidateMethod.TypeParameters,
                 IndexedTypeParameterSymbol.Take(candidateMethod.Arity), true);
 
@@ -257,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // CONSIDER: Do we want to add special handling for error types?  Right now, we expect they'll just fail to match.
             var substituted = candidateParam.Type.SubstituteType(candidateMethodTypeMap);
-            if (substituted.TypeSymbol != targetParam.Type)
+            if (!TypeSymbol.Equals(substituted.TypeSymbol, targetParam.Type, TypeCompareKind.ConsiderEverything2))
             {
                 return false;
             }
@@ -285,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // CONSIDER: Do we want to add special handling for error types?  Right now, we expect they'll just fail to match.
             var substituted = candidateMethodType.SubstituteType(candidateMethodTypeMap);
-            if (substituted.TypeSymbol != targetReturnType)
+            if (!TypeSymbol.Equals(substituted.TypeSymbol, targetReturnType, TypeCompareKind.ConsiderEverything2))
             {
                 return false;
             }

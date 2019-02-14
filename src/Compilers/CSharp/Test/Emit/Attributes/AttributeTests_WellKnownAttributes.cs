@@ -1878,7 +1878,7 @@ public class MyClass
 No DecimalConstantAttribute");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/23760")]
         public void DecimalConstant_Indexers()
         {
             string source = @"
@@ -1913,7 +1913,7 @@ public class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/23760")]
         public void DecimalConstant_Delegates()
         {
             string source = @"

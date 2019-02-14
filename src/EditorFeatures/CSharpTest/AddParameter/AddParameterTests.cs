@@ -2478,5 +2478,75 @@ public class C : B
             await TestInRegularAndScriptAsync(code, fix0, index: 0);
             await TestActionCountAsync(code, 1);
         }
+
+        [WorkItem(29753, "https://github.com/dotnet/roslyn/issues/29753")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task LocalFunction_AddParameterToLocalFunctionWithOneParameter()
+        {
+            // CS1501 No overload for method takes 2 arguments
+            var code =
+@"
+class Rsrp
+{
+  public void M()
+  {
+    [|Local|](""ignore this"", true);
+    void Local(string whatever)
+    {
+
+    }
+  }
+}";
+            var fix0 =
+@"
+class Rsrp
+{
+  public void M()
+  {
+    Local(""ignore this"", true);
+    void Local(string whatever, bool v)
+    {
+
+    }
+  }
+}";
+            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+        }
+
+        [WorkItem(29752, "https://github.com/dotnet/roslyn/issues/29752")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task LocalFunction_AddNamedParameterToLocalFunctionWithOneParameter()
+        {
+            // CS1739: The best overload for 'Local' does not have a parameter named 'mynewparameter'
+            var code =
+@"
+class Rsrp
+{
+    public void M()
+    {
+        Local(""ignore this"", [|mynewparameter|]: true);
+        void Local(string whatever)
+        {
+
+        }
+    }
+}
+";
+            var fix0 =
+@"
+class Rsrp
+{
+    public void M()
+    {
+        Local(""ignore this"", mynewparameter: true);
+        void Local(string whatever, bool mynewparameter)
+        {
+
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+        }
     }
 }

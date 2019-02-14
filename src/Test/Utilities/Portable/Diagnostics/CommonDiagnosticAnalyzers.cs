@@ -987,7 +987,7 @@ namespace Microsoft.CodeAnalysis
                             blockContext.RegisterOperationAction(operationContext =>
                             {
                                 ReportDiagnostic(operationContext.ReportDiagnostic, operationContext.Operation.Syntax.GetLocation());
-                                VerifyControlFlowGraph(operationContext, inBlockAnalysisContext: true);                                
+                                VerifyControlFlowGraph(operationContext, inBlockAnalysisContext: true);
                             }, OperationKind.Literal);
                         });
                         break;
@@ -1089,7 +1089,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var diagnostic = Diagnostic.Create(Descriptor, operationContext.Operation.Syntax.GetLocation(), operationContext.ContainingSymbol.Name);
                     operationContext.ReportDiagnostic(diagnostic);
-                }, OperationKind.MethodBodyOperation, OperationKind.ConstructorBodyOperation);
+                }, OperationKind.MethodBody, OperationKind.ConstructorBody);
             }
         }
 
@@ -1569,7 +1569,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     Assert.False(symbolEndContext.Symbol.IsImplicitlyDeclared);
-                    var rule = _topLevelAction ? SymbolStartTopLevelRule  : SymbolStartCompilationLevelRule;
+                    var rule = _topLevelAction ? SymbolStartTopLevelRule : SymbolStartCompilationLevelRule;
                     symbolEndContext.ReportDiagnostic(Diagnostic.Create(rule, Location.None, symbolStartContext.Symbol.Name, _analyzerId));
                 }
 

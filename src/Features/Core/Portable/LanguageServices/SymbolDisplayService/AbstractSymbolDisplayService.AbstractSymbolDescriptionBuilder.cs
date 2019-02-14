@@ -107,6 +107,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormat { get; }
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstants { get; }
+            protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstantsAndModifiers { get; }
 
             protected void AddPrefixTextForAwaitKeyword()
             {
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             protected void AddCaptures(SyntaxNode syntax)
             {
                 var semanticModel = GetSemanticModel(syntax.SyntaxTree);
-                if(semanticModel.IsSpeculativeSemanticModel)
+                if (semanticModel.IsSpeculativeSemanticModel)
                 {
                     // The region analysis APIs used below are not meaningful/applicable in the context of speculation (because they are designed
                     // to ask questions about an expression if it were in a certain *scope* of code, not if it were inserted at a certain *position*).
@@ -488,7 +489,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     }
                 }
 
-                return ToMinimalDisplayParts(symbol, MinimallyQualifiedFormatWithConstants);
+                return ToMinimalDisplayParts(symbol, MinimallyQualifiedFormatWithConstantsAndModifiers);
             }
 
             private async Task AddDescriptionForLocalAsync(ILocalSymbol symbol)

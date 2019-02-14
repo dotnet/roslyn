@@ -2373,7 +2373,7 @@ IInvocationOperation (void P.M2([System.Boolean[missing]? x = null])) (Operation
                 // class P
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "P").WithArguments("object", "0").WithLocation(2, 7)
             };
-            
+
             var compilation = CreateEmptyCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(compilation, expectedOperationTree, expectedDiagnostics);
         }

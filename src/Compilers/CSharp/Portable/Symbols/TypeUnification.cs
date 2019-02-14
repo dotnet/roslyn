@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static bool CanUnify(TypeSymbol t1, TypeSymbol t2)
         {
-            if (t1 == t2)
+            if (TypeSymbol.Equals(t1, t2, TypeCompareKind.ConsiderEverything2))
             {
                 return true;
             }
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var substituted1 = SubstituteAllTypeParameters(substitution, TypeSymbolWithAnnotations.Create(t1));
                 var substituted2 = SubstituteAllTypeParameters(substitution, TypeSymbolWithAnnotations.Create(t2));
 
-                Debug.Assert(substituted1.TypeSymbol.Equals(substituted2.TypeSymbol, TypeCompareKind.IgnoreTupleNames));
+                Debug.Assert(substituted1.TypeSymbol.Equals(substituted2.TypeSymbol, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
                 Debug.Assert(substituted1.CustomModifiers.SequenceEqual(substituted2.CustomModifiers));
             }
 #endif
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return t1.IsSameAs(t2);
             }
 
-            if (t1.TypeSymbol == t2.TypeSymbol && t1.CustomModifiers.SequenceEqual(t2.CustomModifiers))
+            if (TypeSymbol.Equals(t1.TypeSymbol, t2.TypeSymbol, TypeCompareKind.ConsiderEverything2) && t1.CustomModifiers.SequenceEqual(t2.CustomModifiers))
             {
                 return true;
             }
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // If one of the types is a type parameter, then the substitution could make them equal.
-            if (t1.TypeSymbol == t2.TypeSymbol && t1.CustomModifiers.SequenceEqual(t2.CustomModifiers))
+            if (TypeSymbol.Equals(t1.TypeSymbol, t2.TypeSymbol, TypeCompareKind.ConsiderEverything2) && t1.CustomModifiers.SequenceEqual(t2.CustomModifiers))
             {
                 return true;
             }
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (!nt1.IsGenericType)
                         {
-                            return !nt2.IsGenericType && nt1 == nt2;
+                            return !nt2.IsGenericType && TypeSymbol.Equals(nt1, nt2, TypeCompareKind.ConsiderEverything2);
                         }
                         else if (!nt2.IsGenericType)
                         {
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         int arity = nt1.Arity;
 
-                        if (nt2.Arity != arity || nt2.OriginalDefinition != nt1.OriginalDefinition)
+                        if (nt2.Arity != arity || !TypeSymbol.Equals(nt2.OriginalDefinition, nt1.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
                         {
                             return false;
                         }
@@ -183,8 +183,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         for (int i = 0; i < arity; i++)
                         {
-                            if (!CanUnifyHelper(nt1Arguments[i], 
-                                                nt2Arguments[i],  
+                            if (!CanUnifyHelper(nt1Arguments[i],
+                                                nt2Arguments[i],
                                                 ref substitution))
                             {
                                 return false;
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
                 case SymbolKind.TypeParameter:
-                    return type == typeParam;
+                    return TypeSymbol.Equals(type, typeParam, TypeCompareKind.ConsiderEverything2);
                 default:
                     return false;
             }

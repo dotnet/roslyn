@@ -550,7 +550,7 @@ class B
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(    // (11,13): error CS0103: The name 'x' does not exist in the current context
-                                                                        //         A.F(x);
+                                                            //         A.F(x);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x"),
                 // (11,11): error CS0122: 'A.F' is inaccessible due to its protection level
                 //         A.F(x);
@@ -3362,6 +3362,62 @@ static class Extension2
             Assert.False(symbols.Where(s => s.Name == "F2").Any());
             Assert.False(symbols.Where(s => s.Name == "MathMax2").Any());
             Assert.False(symbols.Where(s => s.Name == "MathMax3").Any());
+        }
+
+        [Fact, WorkItem(30726, "https://github.com/dotnet/roslyn/issues/30726")]
+        public void UsingStaticGenericConstraint()
+        {
+            var code = @"
+using static Test<System.String>;
+
+public static class Test<T> where T : struct { }
+";
+            CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static Test<System.String>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static Test<System.String>;").WithLocation(2, 1),
+                // (2,14): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Test<T>'
+                // using static Test<System.String>;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test<System.String>").WithArguments("Test<T>", "T", "string").WithLocation(2, 14));
+        }
+
+        [Fact, WorkItem(30726, "https://github.com/dotnet/roslyn/issues/30726")]
+        public void UsingStaticGenericConstraintNestedType()
+        {
+            var code = @"
+using static A<A<int>[]>.B;
+
+class A<T> where T : class
+{
+    internal static class B { }
+}
+";
+            CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static A<A<int>[]>.B;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A<A<int>[]>.B;").WithLocation(2, 1),
+                // (2,14): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'A<T>'
+                // using static A<A<int>[]>.B;
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "A<A<int>[]>.B").WithArguments("A<T>", "T", "int").WithLocation(2, 14));
+        }
+
+        [Fact, WorkItem(30726, "https://github.com/dotnet/roslyn/issues/30726")]
+        public void UsingStaticMultipleGenericConstraints()
+        {
+            var code = @"
+using static A<int, string>;
+static class A<T, U> where T : class where U : struct { }
+";
+            CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static A<int, string>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A<int, string>;").WithLocation(2, 1),
+                // (2,14): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'A<T, U>'
+                // using static A<int, string>;
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "A<int, string>").WithArguments("A<T, U>", "T", "int").WithLocation(2, 14),
+                // (2,14): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'U' in the generic type or method 'A<T, U>'
+                // using static A<int, string>;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "A<int, string>").WithArguments("A<T, U>", "U", "string").WithLocation(2, 14));
         }
 
         [Fact, WorkItem(8234, "https://github.com/dotnet/roslyn/issues/8234")]

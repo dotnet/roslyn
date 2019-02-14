@@ -440,89 +440,91 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public class ParameterViewModel
         {
-            private readonly IParameterSymbol _parameter;
             private ChangeSignatureDialogViewModel _changeSignatureDialogViewModel;
 
-            public IParameterSymbol ParameterSymbol
-            {
-                get { return _parameter; }
-            }
+            public IParameterSymbol ParameterSymbol { get; }
 
             public ParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel, IParameterSymbol parameter)
             {
                 _changeSignatureDialogViewModel = changeSignatureDialogViewModel;
-                _parameter = parameter;
+                ParameterSymbol = parameter;
             }
 
-            public string ParameterAutomationText
-            {
-                get { return $"{Type} {Parameter}"; }
-            }
+            public string ParameterAutomationText => $"{Type} {Parameter}";
 
             public string Modifier
             {
                 get
                 {
-                    // Todo: support VB
-                    switch (_parameter.RefKind)
+                    switch (ParameterSymbol.Language)
                     {
-                        case RefKind.Out:
-                            return "out";
-                        case RefKind.Ref:
-                            return "ref";
-                        case RefKind.In:
-                            return "in";
+                        case LanguageNames.CSharp:
+                            return ModifierText("out", "ref", "in", "params", "this");
+                        case LanguageNames.VisualBasic:
+                            return ModifierText(@ref: "ByRef", @params: "ParamArray", @this: "Me");
+                        default:
+                            return string.Empty;
                     }
 
-                    if (_parameter.IsParams)
+                    string ModifierText(string @out = default, string @ref = default, string @in = default, string @params = default, string @this = default)
                     {
-                        return "params";
-                    }
+                        switch (ParameterSymbol.RefKind)
+                        {
+                            case RefKind.Out:
+                                return @out ?? string.Empty;
+                            case RefKind.Ref:
+                                return @ref ?? string.Empty;
+                            case RefKind.In:
+                                return @in ?? string.Empty;
+                        }
 
-                    if (_changeSignatureDialogViewModel._thisParameter != null &&
-                        _parameter == _changeSignatureDialogViewModel._thisParameter._parameter)
-                    {
-                        return "this";
-                    }
+                        if (ParameterSymbol.IsParams)
+                        {
+                            return @params ?? string.Empty;
+                        }
 
-                    return string.Empty;
+                        if (_changeSignatureDialogViewModel._thisParameter != null &&
+                            ParameterSymbol == _changeSignatureDialogViewModel._thisParameter.ParameterSymbol)
+                        {
+                            return @this ?? string.Empty;
+                        }
+                        return string.Empty;
+                    }
                 }
             }
 
-            public string Type
-            {
-                get { return _parameter.Type.ToDisplayString(s_parameterDisplayFormat); }
-            }
+            public string Type => ParameterSymbol.Type.ToDisplayString(s_parameterDisplayFormat);
 
-            public string Parameter
-            {
-                get { return _parameter.Name; }
-            }
+            public string Parameter => ParameterSymbol.Name;
 
             public string Default
             {
                 get
                 {
-                    if (!_parameter.HasExplicitDefaultValue)
+                    if (!ParameterSymbol.HasExplicitDefaultValue)
                     {
                         return string.Empty;
                     }
+                    switch (ParameterSymbol.Language)
+                    {
+                        case LanguageNames.CSharp:
+                            return NullText("null");
+                        case LanguageNames.VisualBasic:
+                            return NullText("Nothing");
+                    }
+                    return string.Empty;
 
-                    return _parameter.ExplicitDefaultValue == null
-                        ? "null"
-                        : _parameter.ExplicitDefaultValue is string
-                            ? "\"" + _parameter.ExplicitDefaultValue.ToString() + "\""
-                            : _parameter.ExplicitDefaultValue.ToString();
+                    string NullText(string @null)
+                    {
+                        return ParameterSymbol.ExplicitDefaultValue == null ? @null :
+                               ParameterSymbol.ExplicitDefaultValue is string ? "\"" + ParameterSymbol.ExplicitDefaultValue.ToString() + "\"" :
+                               ParameterSymbol.ExplicitDefaultValue.ToString();
+                    }
+
                 }
             }
 
-            public bool IsDisabled
-            {
-                get
-                {
-                    return _changeSignatureDialogViewModel.IsDisabled(this);
-                }
-            }
+            public bool IsDisabled => _changeSignatureDialogViewModel.IsDisabled(this);
 
             public bool NeedsBottomBorder
             {
@@ -549,19 +551,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 }
             }
 
-            private bool _isRemoved;
-            public bool IsRemoved
-            {
-                get
-                {
-                    return _isRemoved;
-                }
-
-                set
-                {
-                    _isRemoved = value;
-                }
-            }
+            public bool IsRemoved { get; set; }
         }
     }
 }

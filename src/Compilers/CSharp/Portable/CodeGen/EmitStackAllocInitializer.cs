@@ -33,6 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 if (data.All(datum => datum == data[0]))
                 {
                     _builder.EmitStackAllocBlockInitializer(data, inits.Syntax, emitInitBlock: true, _diagnostics);
+
+                    if (initializationStyle == ArrayInitializerStyle.Mixed)
+                    {
+                        EmitElementStackAllocInitializers(elementType, initExprs, includeConstants: false);
+                    }
                 }
                 else if (elementType.SpecialType.SizeInBytes() == 1)
                 {

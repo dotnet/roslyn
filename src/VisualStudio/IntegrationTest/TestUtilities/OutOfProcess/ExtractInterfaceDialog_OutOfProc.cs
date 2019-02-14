@@ -124,6 +124,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             DialogHelpers.PressButton(GetMainWindowHWnd(), ExtractInterfaceDialogID, "SelectAllButton");
         }
 
+        public void SelectSameFile()
+        {
+            DialogHelpers.SelectRadioButton(GetMainWindowHWnd(), ExtractInterfaceDialogID, "DestinationCurrentFileSelectionRadioButton");
+        }
+
         /// <summary>
         /// Clicks the checkbox on the given item, cycling it from on to off or from off to on.
         /// </summary>

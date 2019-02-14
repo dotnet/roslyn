@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             _roleSet = roleSet ?? _textEditorFactoryService.NoRoles;
         }
 
-        public static ContentControl Create(
+        public static ViewHostingControl Create(
             IThreadingContext threadingContext,
             ImmutableArray<SnapshotSpan> spans,
             IProjectionBufferFactoryService projectionBufferFactoryService,
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             return content.Create();
         }
 
-        private ContentControl Create()
+        private ViewHostingControl Create()
         {
             AssertIsForeground();
 
@@ -82,6 +81,9 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 
             // Zoom out a bit to shrink the text.
             view.ZoomLevel *= 0.75;
+
+            // turn off highlight current line
+            view.Options.SetOptionValue(DefaultWpfViewOptions.EnableHighlightCurrentLineId, false);
 
             return view;
         }

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// exposed by the compiler.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal abstract partial class Symbol : ISymbol, IFormattable, INonNullTypesContext
+    internal abstract partial class Symbol : ISymbol, IFormattable
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version of Symbol.
@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)
                 .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
-        internal string GetDebuggerDisplay()
+        internal virtual string GetDebuggerDisplay()
         {
             return $"{this.Kind} {this.ToDisplayString(s_debuggerDisplayFormat)}";
         }
@@ -833,24 +833,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return false;
-            }
-        }
-
-        /// <summary>
-        /// Is module/type/method/field/property/event/parameter definition opted-in/out of treating un-annotated types as non-null.
-        /// This is determined by the presence of the `[NonNullTypes]` attribute.
-        /// Returns null if no attribute was set.
-        /// Not valid to call on non-definitions.
-        ///
-        /// To avoid cycles, this property should not be accessed directly, except in its overrides (fall back to parent).
-        /// It can be accessed indirectly via <see cref="TypeSymbolWithAnnotations.IsNullable"/>
-        /// which delays its evaluation using <see cref="INonNullTypesContext"/>.
-        /// </summary>
-        public virtual bool? NonNullTypes
-        {
-            get
-            {
-                throw ExceptionUtilities.Unreachable;
             }
         }
 
@@ -1002,7 +984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal static bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, ImmutableArray<TypeSymbolWithAnnotations> types, Symbol owner, ref HashSet<TypeSymbol> checkedTypes) 
+        internal static bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, ImmutableArray<TypeSymbolWithAnnotations> types, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
             foreach (var t in types)
             {

@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// that expression. 
         /// </summary>
         public static string GenerateNameForExpression(
-            this SemanticModel semanticModel, ExpressionSyntax expression, 
+            this SemanticModel semanticModel, ExpressionSyntax expression,
             bool capitalize, CancellationToken cancellationToken)
         {
             // Try to find a usable name node that we can use to name the
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static ImmutableArray<ParameterName> GenerateParameterNames(
             this SemanticModel semanticModel,
-            ArgumentListSyntax argumentList, 
+            ArgumentListSyntax argumentList,
             CancellationToken cancellationToken)
         {
             return semanticModel.GenerateParameterNames(

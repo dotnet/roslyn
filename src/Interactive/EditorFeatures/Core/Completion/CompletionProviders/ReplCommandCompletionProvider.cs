@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
                                 {
                                     string completion = GetCompletionString(commandName);
                                     context.AddItem(CommonCompletionItem.Create(
-                                        completion, CompletionItemRules.Default, description: command.Description.ToSymbolDisplayParts(), glyph: Glyph.Intrinsic));
+                                        completion, displayTextSuffix: "", CompletionItemRules.Default, description: command.Description.ToSymbolDisplayParts(), glyph: Glyph.Intrinsic));
                                 }
                             }
                         }

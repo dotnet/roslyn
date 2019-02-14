@@ -489,5 +489,43 @@ class K
                 "Error: Field name value__ is reserved for Enums only.",
                 "Error: Field name value__ is reserved for Enums only.");
         }
+
+        [WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364")]
+        [Fact]
+        public void FixedSizeBufferTrue()
+        {
+            var text =
+@"
+unsafe struct S
+{
+    private fixed byte goo[10];
+}
+";
+            var comp = CreateEmptyCompilation(text);
+            var global = comp.GlobalNamespace;
+            var s = global.GetTypeMember("S");
+            var goo = s.GetMember<FieldSymbol>("goo");
+
+            Assert.True(goo.IsFixedSizeBuffer);
+        }
+
+        [WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364")]
+        [Fact]
+        public void FixedSizeBufferFalse()
+        {
+            var text =
+@"
+unsafe struct S
+{
+    private byte goo;
+}
+";
+            var comp = CreateEmptyCompilation(text);
+            var global = comp.GlobalNamespace;
+            var s = global.GetTypeMember("S");
+            var goo = s.GetMember<FieldSymbol>("goo");
+
+            Assert.False(goo.IsFixedSizeBuffer);
+        }
     }
 }

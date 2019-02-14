@@ -384,6 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool constraintsSatisfied = ConstraintsHelper.CheckMethodConstraints(
                 method,
                 this.Conversions,
+                includeNullability: false,
                 this.Compilation,
                 diagnosticsBuilder,
                 warningsBuilderOpt: null,
@@ -536,11 +537,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var effectiveParameters = GetEffectiveParametersInNormalForm(
-                constructor, 
-                arguments.Arguments.Count, 
-                argumentAnalysis.ArgsToParamsOpt, 
-                arguments.RefKinds, 
-                isMethodGroupConversion: false, 
+                constructor,
+                arguments.Arguments.Count,
+                argumentAnalysis.ArgsToParamsOpt,
+                arguments.RefKinds,
+                isMethodGroupConversion: false,
                 allowRefOmittedArguments: false);
 
             return IsApplicable(
@@ -574,11 +575,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var effectiveParameters = GetEffectiveParametersInExpandedForm(
-                constructor, 
-                arguments.Arguments.Count, 
-                argumentAnalysis.ArgsToParamsOpt, 
-                arguments.RefKinds, 
-                isMethodGroupConversion: false, 
+                constructor,
+                arguments.Arguments.Count,
+                argumentAnalysis.ArgsToParamsOpt,
+                arguments.RefKinds,
+                isMethodGroupConversion: false,
                 allowRefOmittedArguments: false);
 
             // A vararg ctor is never applicable in its expanded form because
@@ -821,7 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsOverride(Symbol overridden, Symbol overrider)
         {
-            if (overridden.ContainingType == overrider.ContainingType ||
+            if (TypeSymbol.Equals(overridden.ContainingType, overrider.ContainingType, TypeCompareKind.ConsiderEverything2) ||
                 !MemberSignatureComparer.SloppyOverrideComparer.Equals(overridden, overrider))
             {
                 // Easy out.
@@ -850,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Don't search beyond the overridden member.
-                if (current.ContainingType == overridden.ContainingType)
+                if (TypeSymbol.Equals(current.ContainingType, overridden.ContainingType, TypeCompareKind.ConsiderEverything2))
                 {
                     return false;
                 }
@@ -2549,7 +2550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // A shortcut, a delegate or an expression tree cannot satisfy other rules.
                 return BetterResult.Neither;
             }
-            else if (type2.GetDelegateType() != null)
+            else if ((object)type2.GetDelegateType() != null)
             {
                 // A shortcut, a delegate or an expression tree cannot satisfy other rules.
                 return BetterResult.Neither;
@@ -2861,10 +2862,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static RefKind GetEffectiveParameterRefKind(
-            ParameterSymbol parameter, 
+            ParameterSymbol parameter,
             RefKind argRefKind,
             bool isMethodGroupConversion,
-            bool allowRefOmittedArguments, 
+            bool allowRefOmittedArguments,
             Binder binder,
             ref bool hasAnyRefOmittedArgument)
         {
@@ -3188,7 +3189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var parameterTypes = leastOverriddenMember.GetParameterTypes();
                     for (int i = 0; i < parameterTypes.Length; i++)
                     {
-                        if (!parameterTypes[i].TypeSymbol.CheckAllConstraints(Conversions))
+                        if (!parameterTypes[i].TypeSymbol.CheckAllConstraints(Compilation, Conversions))
                         {
                             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.ConstructedParameterFailedConstraintsCheck(i));
                         }
@@ -3250,7 +3251,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 originalEffectiveParameters.ParameterTypes,
                 originalEffectiveParameters.ParameterRefKinds,
                 args,
-                out _,
                 ref useSiteDiagnostics);
 
             if (inferenceResult.Success)

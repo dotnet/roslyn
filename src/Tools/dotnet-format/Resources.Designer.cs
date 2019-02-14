@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -109,11 +109,20 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Format complete in {0}ms..
+        ///   Looks up a localized string similar to Format files, but do not save changes to disk..
         /// </summary>
-        internal static string Format_complete_in_0_ms {
+        internal static string Format_files_but_do_not_save_changes_to_disk {
             get {
-                return ResourceManager.GetString("Format_complete_in_0_ms", resourceCulture);
+                return ResourceManager.GetString("Format_files_but_do_not_save_changes_to_disk", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Formatted {0} of {1} files in {2}ms..
+        /// </summary>
+        internal static string Formatted_0_of_1_files_in_2_ms {
+            get {
+                return ResourceManager.GetString("Formatted_0_of_1_files_in_2_ms", resourceCulture);
             }
         }
         
@@ -150,6 +159,16 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter {
         internal static string Loading_workspace {
             get {
                 return ResourceManager.GetString("Loading_workspace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Maximum number of workspace warnings to log has been reached. Set the --verbosity option to the &apos;diagnostic&apos; level to see all warnings..
+        /// </summary>
+        internal static string Maximum_number_of_workspace_warnings_to_log_has_been_reached_Set_the_verbosity_option_to_the_diagnostic_level_to_see_all_warnings {
+            get {
+                return ResourceManager.GetString("Maximum_number_of_workspace_warnings_to_log_has_been_reached_Set_the_verbosity_op" +
+                        "tion_to_the_diagnostic_level_to_see_all_warnings", resourceCulture);
             }
         }
         

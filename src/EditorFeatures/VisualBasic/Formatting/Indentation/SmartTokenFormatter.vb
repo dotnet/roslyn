@@ -13,12 +13,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
         Implements ISmartTokenFormatter
 
         Private ReadOnly _optionSet As OptionSet
-        Private ReadOnly _formattingRules As IEnumerable(Of IFormattingRule)
+        Private ReadOnly _formattingRules As IEnumerable(Of AbstractFormattingRule)
 
         Private ReadOnly _root As CompilationUnitSyntax
 
         Public Sub New(optionSet As OptionSet,
-                       formattingRules As IEnumerable(Of IFormattingRule),
+                       formattingRules As IEnumerable(Of AbstractFormattingRule),
                        root As CompilationUnitSyntax)
             Contract.ThrowIfNull(optionSet)
             Contract.ThrowIfNull(formattingRules)
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             Dim previousToken = token.GetPreviousToken()
 
             Dim spans = SpecializedCollections.SingletonEnumerable(TextSpan.FromBounds(previousToken.SpanStart, token.Span.End))
-            Return Formatter.GetFormattedTextChangesAsync(_root, spans, workspace, _optionSet, _formattingRules, cancellationToken)
+            Return Task.FromResult(Formatter.GetFormattedTextChanges(_root, spans, workspace, _optionSet, _formattingRules, cancellationToken))
         End Function
     End Class
 End Namespace

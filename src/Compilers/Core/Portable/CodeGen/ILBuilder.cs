@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         private static void MarkReachableFrom(ArrayBuilder<BasicBlock> reachableBlocks, BasicBlock block)
         {
-        tryAgain:
+tryAgain:
 
             if (block != null && block.Reachability == Reachability.NotReachable)
             {

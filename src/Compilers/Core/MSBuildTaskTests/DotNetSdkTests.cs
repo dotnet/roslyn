@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [ConditionalFact(typeof(DotNetSdkAvailable))]
         public void TestSourceLink()
         {
-            var sourcePackageDir = Temp.CreateDirectory(); 
+            var sourcePackageDir = Temp.CreateDirectory();
             // TODO: test escaping (https://github.com/dotnet/roslyn/issues/22835): .CreateDirectory("a=b, c");
 
             var libFile = sourcePackageDir.CreateFile("lib.cs").WriteAllText("class Lib { public void M() { } }");
@@ -68,14 +68,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 {
                     "CoreCompile"
                 },
-                expressions: new[] 
+                expressions: new[]
                 {
                     "@(SourceRoot->'%(Identity): %(MappedPath)')",
                     "$(DeterministicSourcePaths)",
                     "$(PathMap)",
                     "$(SourceRootMappedPathsFeatureSupported)"
                 },
-                expectedResults: new[] 
+                expectedResults: new[]
                 {
                     $@"{root2}: /_1/",
                     $@"{root1}: /_/",

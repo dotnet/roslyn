@@ -70,7 +70,7 @@ End Class
             v0.VerifyPdb("C.M",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C" name="M">

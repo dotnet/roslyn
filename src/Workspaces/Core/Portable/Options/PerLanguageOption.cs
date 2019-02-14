@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Options
         public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
         public PerLanguageOption(string feature, string name, T defaultValue)
-            : this (feature, name, defaultValue, storageLocations: Array.Empty<OptionStorageLocation>())
+            : this(feature, name, defaultValue, storageLocations: Array.Empty<OptionStorageLocation>())
         {
         }
 

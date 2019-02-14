@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class InvocationExpressionSignatureHelpProvider
     {
-        private IList<SignatureHelpItem> GetMethodGroupItems(
+        private (IList<SignatureHelpItem>, int?) GetMethodGroupItemsAndSelection(
             InvocationExpressionSyntax invocationExpression,
             SemanticModel semanticModel,
             ISymbolDisplayService symbolDisplayService,
@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             IDocumentationCommentFormattingService documentationCommentFormattingService,
             ISymbol within,
             IEnumerable<IMethodSymbol> methodGroup,
+            SymbolInfo currentSymbol,
             CancellationToken cancellationToken)
         {
             ITypeSymbol throughType = null;
@@ -58,17 +59,18 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 methodGroup = methodGroup.Where(m => m.IsStatic);
             }
 
-            var accessibleMethods = methodGroup.Where(m => m.IsAccessibleWithin(within, throughTypeOpt: throughType)).ToList();
-            if (accessibleMethods.Count == 0)
+            var accessibleMethods = methodGroup.Where(m => m.IsAccessibleWithin(within, throughTypeOpt: throughType)).ToImmutableArrayOrEmpty();
+            if (accessibleMethods.Length == 0)
             {
-                return null;
+                return default;
             }
 
             var methodSet = accessibleMethods.ToSet();
-            accessibleMethods = accessibleMethods.Where(m => !IsHiddenByOtherMethod(m, methodSet)).ToList();
+            accessibleMethods = accessibleMethods.Where(m => !IsHiddenByOtherMethod(m, methodSet)).ToImmutableArrayOrEmpty();
 
-            return accessibleMethods.Select(m =>
-                ConvertMethodGroupMethod(m, invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList();
+            return (accessibleMethods.Select(m =>
+                ConvertMethodGroupMethod(m, invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
+                TryGetSelectedIndex(accessibleMethods, currentSymbol));
         }
 
         private bool IsHiddenByOtherMethod(IMethodSymbol method, ISet<IMethodSymbol> methodSet)

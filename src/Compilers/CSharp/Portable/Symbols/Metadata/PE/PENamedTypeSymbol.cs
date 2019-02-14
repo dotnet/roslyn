@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null)
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved = null)
         {
             if (_lazyInterfaces.IsDefault)
             {
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return InterfacesNoUseSiteDiagnostics();
         }
 
-        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
+        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
         {
             return GetDeclaredBaseType(ignoreNullability: false);
         }
@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if ((object)declaredBase != null)
                 {
                     declaredBase = (NamedTypeSymbol)NullableTypeDecoder.TransformType(
-                        TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, declaredBase), _handle, ContainingPEModule).TypeSymbol;
+                        TypeSymbolWithAnnotations.Create(declaredBase), _handle, ContainingPEModule).TypeSymbol;
                 }
                 Interlocked.CompareExchange(ref _lazyDeclaredBaseTypeWithNullability, declaredBase, ErrorTypeSymbol.UnknownResultType);
             }
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return _lazyDeclaredBaseTypeWithNullability;
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
         {
             if (_lazyDeclaredInterfaces.IsDefault)
             {
@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         TypeSymbol typeSymbol = tokenDecoder.GetTypeOfToken(interfaceHandle);
 
                         typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, interfaceImpl, moduleSymbol);
-                        typeSymbol = NullableTypeDecoder.TransformType(TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, typeSymbol), interfaceImpl, moduleSymbol).TypeSymbol;
+                        typeSymbol = NullableTypeDecoder.TransformType(TypeSymbolWithAnnotations.Create(typeSymbol), interfaceImpl, moduleSymbol).TypeSymbol;
 
                         var namedTypeSymbol = typeSymbol as NamedTypeSymbol ?? new UnsupportedMetadataTypeSymbol(); // interface list contains a bad type
                         symbols.Add(namedTypeSymbol);
@@ -629,13 +629,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     MightContainExtensionMethods ? AttributeDescription.CaseSensitiveExtensionAttribute : default,
                     out _,
                     // Filter out [Obsolete], unless it was user defined
-                    (IsByRefLikeType && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
+                    (IsRefLikeType && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
                     out _,
                     // Filter out [IsReadOnly]
                     IsReadOnly ? AttributeDescription.IsReadOnlyAttribute : default,
                     out _,
                     // Filter out [IsByRefLike]
-                    IsByRefLikeType ? AttributeDescription.IsByRefLikeAttribute : default);
+                    IsRefLikeType ? AttributeDescription.IsByRefLikeAttribute : default);
 
                 ImmutableInterlocked.InterlockedInitialize(ref uncommon.lazyCustomAttributes, loadedCustomAttributes);
             }
@@ -1986,15 +1986,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                bool nonNullTypes;
-                return this.ContainingPEModule.Module.HasNonNullTypesAttribute(_handle, out nonNullTypes) ? nonNullTypes : base.NonNullTypes;
-            }
-        }
-
         internal override bool IsComImport
         {
             get
@@ -2050,7 +2041,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { return (_flags & TypeAttributes.Serializable) != 0; }
         }
 
-        internal override bool IsByRefLikeType
+        public override bool IsRefLikeType
         {
             get
             {
@@ -2171,7 +2162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return null;
                 }
 
-                bool ignoreByRefLikeMarker = this.IsByRefLikeType;
+                bool ignoreByRefLikeMarker = this.IsRefLikeType;
                 ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref uncommon.lazyObsoleteAttributeData, _handle, ContainingPEModule, ignoreByRefLikeMarker);
                 return uncommon.lazyObsoleteAttributeData;
             }
@@ -2441,8 +2432,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // containing symbol for the temporary type is the namespace directly.
                 var nestedType = Create(this.ContainingPEModule, (PENamespaceSymbol)this.ContainingNamespace, _handle, null);
                 var nestedTypeParameters = nestedType.TypeParameters;
-                var containingTypeMap = new TypeMap(nonNullTypesContext: container, containingTypeParameters, IndexedTypeParameterSymbol.Take(n), allowAlpha: false);
-                var nestedTypeMap = new TypeMap(nonNullTypesContext: nestedType, nestedTypeParameters, IndexedTypeParameterSymbol.Take(nestedTypeParameters.Length), allowAlpha: false);
+                var containingTypeMap = new TypeMap(containingTypeParameters, IndexedTypeParameterSymbol.Take(n), allowAlpha: false);
+                var nestedTypeMap = new TypeMap(nestedTypeParameters, IndexedTypeParameterSymbol.Take(nestedTypeParameters.Length), allowAlpha: false);
 
                 for (int i = 0; i < n; i++)
                 {

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 _searchReferenceAssemblies = searchReferenceAssemblies;
                 _packageSources = packageSources;
 
-                if (_searchReferenceAssemblies || packageSources.Length> 0)
+                if (_searchReferenceAssemblies || packageSources.Length > 0)
                 {
                     Contract.ThrowIfNull(symbolSearchService);
                 }
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 bool exact, CancellationToken cancellationToken)
             {
                 var searchScope = new MetadataSymbolsSearchScope(
-                    _owner, _document.Project.Solution, assembly, assemblyProjectId, 
+                    _owner, _document.Project.Solution, assembly, assemblyProjectId,
                     metadataReference, exact, cancellationToken);
                 return DoAsync(searchScope);
             }
@@ -140,6 +140,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     tasks.Add(this.GetReferencesForCollectionInitializerMethodsAsync(searchScope));
                     tasks.Add(this.GetReferencesForQueryPatternsAsync(searchScope));
                     tasks.Add(this.GetReferencesForDeconstructAsync(searchScope));
+                    tasks.Add(this.GetReferencesForGetAwaiterAsync(searchScope));
                 }
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -191,8 +192,8 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
 
                 CalculateContext(
-                    nameNode, _syntaxFacts, 
-                    out var name, out var arity, out var inAttributeContext, 
+                    nameNode, _syntaxFacts,
+                    out var name, out var arity, out var inAttributeContext,
                     out var hasIncompleteParentMember, out var looksGeneric);
 
                 if (ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken: searchScope.CancellationToken))
@@ -217,7 +218,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 // Only keep symbols which are accessible from the current location.
                 var accessibleTypeSymbols = typeSymbols.WhereAsArray(
                     s => ArityAccessibilityAndAttributeContextAreCorrect(
-                        s.Symbol, arity, inAttributeContext, 
+                        s.Symbol, arity, inAttributeContext,
                         hasIncompleteParentMember, looksGeneric));
 
                 // These types may be contained within namespaces, or they may be nested 
@@ -299,10 +300,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                 if (_owner.CanAddImportForMethod(_diagnosticId, _syntaxFacts, _node, out var nameNode) &&
                     nameNode != null)
                 {
-                        // We have code like "Color.Black".  "Color" bound to a 'Color Color' property, and
-                        // 'Black' did not bind.  We want to find a type called 'Color' that will actually
-                        // allow 'Black' to bind.
-                        var syntaxFacts = this._document.GetLanguageService<ISyntaxFactsService>();
+                    // We have code like "Color.Black".  "Color" bound to a 'Color Color' property, and
+                    // 'Black' did not bind.  We want to find a type called 'Color' that will actually
+                    // allow 'Black' to bind.
+                    var syntaxFacts = this._document.GetLanguageService<ISyntaxFactsService>();
                     if (syntaxFacts.IsNameOfMemberAccessExpression(nameNode))
                     {
                         var expression =
@@ -457,6 +458,28 @@ namespace Microsoft.CodeAnalysis.AddImport
                         // find extension methods named "Select"
                         return await GetReferencesForExtensionMethodAsync(
                             searchScope, nameof(Enumerable.Select), type).ConfigureAwait(false);
+                    }
+                }
+
+                return ImmutableArray<SymbolReference>.Empty;
+            }
+
+            /// <summary>
+            /// Searches for extension methods exactly called 'GetAwaiter'.  Returns
+            /// <see cref="SymbolReference"/>s to the <see cref="INamespaceSymbol"/>s that contain
+            /// the static classes that those extension methods are contained in.
+            /// </summary>
+            private async Task<ImmutableArray<SymbolReference>> GetReferencesForGetAwaiterAsync(SearchScope searchScope)
+            {
+                searchScope.CancellationToken.ThrowIfCancellationRequested();
+
+                if (_owner.CanAddImportForGetAwaiter(_diagnosticId, _syntaxFacts, _node))
+                {
+                    var type = _owner.GetAwaitInfo(_semanticModel, _syntaxFacts, _node, searchScope.CancellationToken);
+                    if (type != null)
+                    {
+                        return await GetReferencesForExtensionMethodAsync(searchScope, WellKnownMemberNames.GetAwaiter, type,
+                            m => m.IsValidGetAwaiter()).ConfigureAwait(false);
                     }
                 }
 
