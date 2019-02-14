@@ -643,12 +643,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static string GetMutexDirectory()
         {
-            var homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            if (string.IsNullOrWhiteSpace(homeDirectory))
-                homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            if (string.IsNullOrWhiteSpace(homeDirectory))
-                homeDirectory = BuildServerConnection.GetTempPath(null);
-            var result = Path.Combine(homeDirectory, ".roslyn");
+            var tempPath = BuildServerConnection.GetTempPath(null);
+            var result = Path.Combine(tempPath, ".roslyn");
             Directory.CreateDirectory(result);
             return result;
         }
