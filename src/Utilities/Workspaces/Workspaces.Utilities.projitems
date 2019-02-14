@@ -9,7 +9,6 @@
     <Import_RootNamespace>Analyzer.Utilities</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData_Project.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DocumentChangeAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SolutionChangeAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SyntaxGeneratorExtensions.cs" />
