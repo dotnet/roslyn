@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
 
             fixed (byte* data = checksum)
             {
-                // Avoid a direct dereferencing assignment since sizeof(HashData) may be greater than Sha1HashSize.
+                // Avoid a direct dereferencing assignment since sizeof(HashData) may be greater than HashSize.
                 return new Checksum(HashData.FromPointer((HashData*)data));
             }
         }
