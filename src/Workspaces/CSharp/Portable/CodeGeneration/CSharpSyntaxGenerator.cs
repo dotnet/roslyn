@@ -4270,59 +4270,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxTriviaList RemoveCommentLines(SyntaxTriviaList syntaxTriviaList)
         {
-            IEnumerable<SyntaxTrivia> removeComments()
+            IEnumerable<IEnumerable<SyntaxTrivia>> splitIntoLines(SyntaxTriviaList triviaList)
             {
-                var start = 0;
-                var inComment = false;
-                var sameLine = true;
-                for (var i = start; i < syntaxTriviaList.Count; i++)
+                int index = 0;
+                for (int i = 0; i < triviaList.Count; i++)
                 {
-                    var trivia = syntaxTriviaList[i];
-
-                    if (trivia.IsRegularOrDocComment())
+                    if (triviaList[i].IsEndOfLine())
                     {
-                        inComment = true;
-                    }
-                    else if (sameLine && trivia.IsEndOfLine())
-                    {
-                        sameLine = false;
-                    }
-
-                    if (!sameLine && inComment)
-                    {
-                        // End of line was reached and a comment was detected, remove the line
-                        start = i + 1;
-                        sameLine = true;
-                        inComment = false;
-                        continue;
-                    }
-                    else if (!sameLine)
-                    {
-                        // End of line is reached and no comment was detected, yield the line
-                        for (var j = start; j <= i; j++)
-                        {
-                            yield return syntaxTriviaList[j];
-                        }
-
-                        inComment = false;
-                        sameLine = true;
-                        start = i + 1;
+                        yield return triviaList.TakeRange(index, i);
+                        index = i + 1;
                     }
                 }
-
-                if (inComment)
+                
+                if (index < triviaList.Count)
                 {
-                    // If we ended in the context of a comment don't yield the remaining trivia
-                    yield break;
-                }
-
-                while (start < syntaxTriviaList.Count)
-                {
-                    yield return syntaxTriviaList[start++];
+                    yield return triviaList.TakeRange(index, triviaList.Count - 1);
                 }
             }
 
-            return new SyntaxTriviaList(removeComments());
+            var syntaxWithoutComments = splitIntoLines(syntaxTriviaList)
+                .Where(trivia => !trivia.Any(t => t.IsRegularOrDocComment()))
+                .SelectMany(t => t);
+
+            return new SyntaxTriviaList(syntaxWithoutComments);
         }
         #endregion
 
