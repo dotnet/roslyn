@@ -1081,7 +1081,7 @@ End Class
                               </Document>
                           </Project>
                       </Workspace>)
-                      
+
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionSession()
                 Assert.Equal(1, state.GetCompletionItems().Count)
@@ -2027,6 +2027,11 @@ End Class
                               </Document>)
                 state.SendTypeChars("Task")
                 Await state.WaitForAsynchronousOperationsAsync()
+                ' WaitForAsynchronousOperationsAsync actually does not wait for async completion to complete
+                ' TODO need to re-design WaitForAsynchronousOperationsAsync to handle async completion as well.
+                ' https://github.com/dotnet/roslyn/issues/33379 to fix this.
+                ' As a workaround to wait for async completion to complete, we need to get items.
+                state.GetCompletionItems()
                 state.SendDownKey()
                 state.SendTypeChars(" ")
                 Await state.WaitForAsynchronousOperationsAsync()

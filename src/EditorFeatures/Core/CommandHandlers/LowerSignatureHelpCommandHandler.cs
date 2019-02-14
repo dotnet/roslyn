@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     [Export]
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    [Name(PredefinedCommandHandlerNames.UpperSignatureHelp)]
+    [Name(PredefinedCommandHandlerNames.LowerSignatureHelp)]
     [Order(After = PredefinedCommandHandlerNames.Completion)]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     internal class LowerSignatureHelpCommandHandler :
