@@ -72,8 +72,7 @@ jobs:
       displayName: Publish xUnit Test Results
       inputs:
         testRunner: XUnit
-        testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\Debug\*.xml' 
-        configuration: 'Debug'
+        testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\Debug\*.xml'
         mergeTestResults: true
         testRunTitle: 'Windows Desktop Spanish'
       condition: always()
