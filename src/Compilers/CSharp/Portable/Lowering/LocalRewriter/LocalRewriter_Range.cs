@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -22,34 +23,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 left = tryOptimizeOperand(left);
             }
-            else
-            {
-                left = newIndexZero(fromEnd: false);
-            }
 
             var right = node.RightOperand;
             if (right != null)
             {
                 right = tryOptimizeOperand(right);
             }
-            else
-            {
-                right = newIndexZero(fromEnd: true);
-            }
-
-            var operands = ImmutableArray.Create(left, right);
 
             if (needLifting)
             {
-                return LiftRangeExpression(node, operands);
+                return LiftRangeExpression(node, left, right);
             }
             else
             {
-                BoundExpression rangeCreation = new BoundObjectCreationExpression(
-                    node.Syntax,
-                    node.MethodOpt,
-                    binderOpt: null,
-                    operands);
+                BoundExpression rangeCreation = MakeRangeExpression(node.MethodOpt, left, right);
 
                 if (node.Type.IsNullableType())
                 {
@@ -63,12 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return rangeCreation;
             }
-
-            BoundExpression newIndexZero(bool fromEnd) =>
-                // new Index(0, fromEnd: fromEnd)
-                F.New(
-                    WellKnownMember.System_Index__ctor,
-                    ImmutableArray.Create<BoundExpression>(F.Literal(0), F.Literal(fromEnd)));
 
             BoundExpression tryOptimizeOperand(BoundExpression operand)
             {
@@ -93,21 +74,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression LiftRangeExpression(BoundRangeExpression node, ImmutableArray<BoundExpression> operands)
+        private BoundExpression LiftRangeExpression(BoundRangeExpression node, BoundExpression left, BoundExpression right)
         {
             Debug.Assert(node.Type.IsNullableType());
-            Debug.Assert(operands.Any(operand => operand.Type.IsNullableType()));
-            Debug.Assert(operands.Length == 1 || operands.Length == 2);
+            Debug.Assert(left?.Type.IsNullableType() == true || right?.Type.IsNullableType() == true);
+            Debug.Assert(!(left is null && right is null));
 
-            ArrayBuilder<BoundExpression> sideeffects = ArrayBuilder<BoundExpression>.GetInstance();
-            ArrayBuilder<LocalSymbol> locals = ArrayBuilder<LocalSymbol>.GetInstance();
-            ArrayBuilder<BoundExpression> arguments = ArrayBuilder<BoundExpression>.GetInstance();
+            var sideeffects = ArrayBuilder<BoundExpression>.GetInstance();
+            var locals = ArrayBuilder<LocalSymbol>.GetInstance();
 
-            // left.HasValue && right.HasValue
+            // if (left.HasValue && right.HasValue)
+            //    makeRange(left.GetValueOrDefault(), right.GetValueOrDefault())
             BoundExpression condition = null;
-            foreach (var operand in operands)
+            left = getIndexFromPossibleNullable(left);
+            right = getIndexFromPossibleNullable(right);
+            var rangeExpr = MakeRangeExpression(node.MethodOpt, left, right);
+            BoundExpression getIndexFromPossibleNullable(BoundExpression arg)
             {
-                BoundExpression tempOperand = CaptureExpressionInTempIfNeeded(operand, sideeffects, locals);
+                if (arg is null)
+                    return null;
+
+                BoundExpression tempOperand = CaptureExpressionInTempIfNeeded(arg, sideeffects, locals);
 
                 if (tempOperand.Type.IsNullableType())
                 {
@@ -123,22 +110,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         condition = MakeBinaryOperator(node.Syntax, BinaryOperatorKind.BoolAnd, condition, operandHasValue, boolType, method: null);
                     }
 
-                    arguments.Add(MakeOptimizedGetValueOrDefault(tempOperand.Syntax, tempOperand));
+                    return MakeOptimizedGetValueOrDefault(tempOperand.Syntax, tempOperand);
                 }
                 else
                 {
-                    arguments.Add(tempOperand);
+                    return tempOperand;
                 }
             }
 
             Debug.Assert(condition != null);
-
-            // method(left.GetValueOrDefault(), right.GetValueOrDefault())
-            BoundExpression rangeCall = new BoundObjectCreationExpression(
-                node.Syntax,
-                node.MethodOpt,
-                binderOpt: null,
-                arguments.ToImmutableArray());
 
             if (!TryGetNullableMethod(node.Syntax, node.Type, SpecialMember.System_Nullable_T__ctor, out MethodSymbol nullableCtor))
             {
@@ -146,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // new Nullable(method(left.GetValueOrDefault(), right.GetValueOrDefault()))
-            BoundExpression consequence = new BoundObjectCreationExpression(node.Syntax, nullableCtor, binderOpt: null, rangeCall);
+            BoundExpression consequence = new BoundObjectCreationExpression(node.Syntax, nullableCtor, binderOpt: null, rangeExpr);
 
             // default
             BoundExpression alternative = new BoundDefaultExpression(node.Syntax, constantValueOpt: null, node.Type);
@@ -167,6 +147,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sideEffects: sideeffects.ToImmutableAndFree(),
                 value: conditionalExpression,
                 type: node.Type);
+        }
+
+        private BoundExpression MakeRangeExpression(
+            MethodSymbol constructionMethod,
+            BoundExpression left,
+            BoundExpression right)
+        {
+            var F = _factory;
+            switch (constructionMethod.MethodKind)
+            {
+                case MethodKind.Constructor:
+                    // The constructor can always be used to construct a range, but if
+                    // any of the arguments are missing then we need to construct replacement
+                    // Indexes
+                    left = left ?? newIndexZero(fromEnd: false);
+                    right = right ?? newIndexZero(fromEnd: true);
+
+                    return F.New(constructionMethod, ImmutableArray.Create(left, right));
+
+                case MethodKind.Ordinary:
+                    Debug.Assert(left is null ^ right is null);
+                    var arg = left ?? right;
+                    return F.StaticCall(constructionMethod, ImmutableArray.Create(arg));
+
+                case MethodKind.PropertyGet:
+                    Debug.Assert(left is null && right is null);
+                    return F.StaticCall(constructionMethod, ImmutableArray<BoundExpression>.Empty);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(constructionMethod.MethodKind);
+            }
+
+            BoundExpression newIndexZero(bool fromEnd) =>
+                // new Index(0, fromEnd: fromEnd)
+                F.New(
+                    WellKnownMember.System_Index__ctor,
+                    ImmutableArray.Create<BoundExpression>(F.Literal(0), F.Literal(fromEnd)));
         }
     }
 }
