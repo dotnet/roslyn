@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _fixAllProviderMap = ImmutableDictionary<object, FixAllProviderInfo>.Empty;
         }
 
-        public async Task<FirstDiagnosticResult> GetMostSevereFixableDiagnostic(
+        public async Task<FirstDiagnosticResult> GetMostSevereFixableDiagnosticAsync(
             Document document, TextSpan range, CancellationToken cancellationToken)
         {
             if (document == null || !document.IsOpen())
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return result.ToImmutableAndFree();
         }
 
-        public async Task<CodeFixCollection> GetDocumentFixAllForIdInSpan(Document document, TextSpan range, string diagnosticId, CancellationToken cancellationToken)
+        public async Task<CodeFixCollection> GetDocumentFixAllForIdInSpanAsync(Document document, TextSpan range, string diagnosticId, CancellationToken cancellationToken)
         {
             var diagnostics = (await _diagnosticService.GetDiagnosticsForSpanAsync(document, range, diagnosticId, includeSuppressedDiagnostics: false, cancellationToken: cancellationToken).ConfigureAwait(false)).ToList();
             if (diagnostics.Count == 0)
@@ -229,6 +229,26 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // TODO: Just get the first fix for now until we have a way to config user's preferred fix
             // https://github.com/dotnet/roslyn/issues/27066
             return result.ToImmutableAndFree().FirstOrDefault();
+        }
+
+        public async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(Document document, string diagnosticId, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        {
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var textSpan = new TextSpan(0, tree.Length);
+
+            var fixCollection = await GetDocumentFixAllForIdInSpanAsync(
+                document, textSpan, diagnosticId, cancellationToken).ConfigureAwait(false);
+            if (fixCollection == null)
+            {
+                return document;
+            }
+
+            var fixAllService = document.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
+
+            var solution = await fixAllService.GetFixAllChangedSolutionAsync(
+                fixCollection.FixAllState.CreateFixAllContext(progressTracker, cancellationToken)).ConfigureAwait(false);
+
+            return solution.GetDocument(document.Id);
         }
 
         private async Task AppendFixesAsync(

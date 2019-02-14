@@ -4,13 +4,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using IVsAsyncFileChangeEx = Microsoft.VisualStudio.Shell.IVsAsyncFileChangeEx;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     [Export(typeof(FileChangeWatcherProvider))]
     internal sealed class FileChangeWatcherProvider
     {
-        private readonly TaskCompletionSource<IVsFileChangeEx> _fileChangeService = new TaskCompletionSource<IVsFileChangeEx>(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource<IVsAsyncFileChangeEx> _fileChangeService = new TaskCompletionSource<IVsAsyncFileChangeEx>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         [ImportingConstructor]
         public FileChangeWatcherProvider(IThreadingContext threadingContext, [Import(typeof(SVsServiceProvider))] Shell.IAsyncServiceProvider serviceProvider)
@@ -23,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                    var fileChangeService = (IVsFileChangeEx)await serviceProvider.GetServiceAsync(typeof(SVsFileChangeEx)).ConfigureAwait(true);
+                    var fileChangeService = (IVsAsyncFileChangeEx)await serviceProvider.GetServiceAsync(typeof(SVsFileChangeEx)).ConfigureAwait(true);
                     _fileChangeService.SetResult(fileChangeService);
                 });
         }
