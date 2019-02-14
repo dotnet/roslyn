@@ -162,60 +162,65 @@
         <target state="translated">Não há suporte para adicionar projetos.</target>
         <note />
       </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_BaseType">
+        <source>Base Type</source>
+        <target state="new">Base Type</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_Construct">
+        <source>Construct</source>
+        <target state="new">Construct</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_Declare">
+        <source>Declare</source>
+        <target state="new">Declare</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_Qualify">
+        <source>Qualify</source>
+        <target state="new">Qualify</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_TypeConstraint">
+        <source>Type Constraint</source>
+        <target state="new">Type Constraint</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
       <trans-unit id="Visual_Basic_files">
         <source>Visual Basic files</source>
         <target state="translated">Arquivos do Visual Basic</target>
         <note />
       </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_Base">
-        <source>Base</source>
-        <target state="new">Base</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_Import">
         <source>Import</source>
         <target state="new">Import</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_NamespaceDeclaration">
-        <source>Declaration</source>
-        <target state="new">Declaration</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_ObjectCreation">
-        <source>new()</source>
-        <target state="new">new()</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_Qualified">
-        <source>Qualify</source>
-        <target state="new">Qualify</target>
-        <note />
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_TypeArgument">
         <source>Type Argument</source>
         <target state="new">Type Argument</target>
-        <note />
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Name">
         <source>Name</source>
         <target state="new">Name</target>
-        <note />
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Read">
         <source>Read</source>
         <target state="new">Read</target>
-        <note />
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Reference">
         <source>Reference</source>
         <target state="new">Reference</target>
-        <note />
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Write">
         <source>Write</source>
         <target state="new">Write</target>
-        <note />
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>

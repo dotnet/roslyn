@@ -91,6 +91,58 @@ namespace Microsoft.CodeAnalysis.Remote
         }
     }
 
+    internal class SerializableSymbolUsageInfo : IEquatable<SerializableSymbolUsageInfo>
+    {
+        public bool UsageInfoIsValue;
+        public string UsageInfoString;
+
+        public static SerializableSymbolUsageInfo Dehydrate(SymbolUsageInfo symbolUsageInfo)
+        {
+            bool usageInfoIsValue;
+            string usageInfoString;
+            if (symbolUsageInfo.ValueUsageInfoOpt.HasValue)
+            {
+                usageInfoIsValue = true;
+                usageInfoString = symbolUsageInfo.ValueUsageInfoOpt.Value.ToString();
+            }
+            else
+            {
+                usageInfoIsValue = false;
+                usageInfoString = symbolUsageInfo.TypeOrNamespaceUsageInfoOpt.Value.ToString();
+            }
+
+            return new SerializableSymbolUsageInfo
+            {
+                UsageInfoIsValue = usageInfoIsValue,
+                UsageInfoString = usageInfoString
+            };
+        }
+
+        public SymbolUsageInfo Rehydrate()
+        {
+            return UsageInfoIsValue
+                ? SymbolUsageInfo.Create((ValueUsageInfo)Enum.Parse(typeof(ValueUsageInfo), UsageInfoString))
+                : SymbolUsageInfo.Create((TypeOrNamespaceUsageInfo)Enum.Parse(typeof(TypeOrNamespaceUsageInfo), UsageInfoString));
+        }
+
+        public bool Equals(SerializableSymbolUsageInfo other)
+        {
+            return other != null &&
+                UsageInfoIsValue == other.UsageInfoIsValue &&
+                UsageInfoString == other.UsageInfoString;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as SerializableSymbolUsageInfo);
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(UsageInfoIsValue.GetHashCode(), UsageInfoString.GetHashCode());
+        }
+    }
+
     internal class SerializableReferenceLocation
     {
         public DocumentId Document { get; set; }
@@ -101,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public bool IsImplicit { get; set; }
 
-        internal SymbolUsageInfo SymbolUsageInfo { get; set; }
+        public SerializableSymbolUsageInfo SymbolUsageInfo { get; set; }
 
         public CandidateReason CandidateReason { get; set; }
 
@@ -114,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 Alias = SerializableSymbolAndProjectId.Dehydrate(referenceLocation.Alias, referenceLocation.Document),
                 Location = referenceLocation.Location.SourceSpan,
                 IsImplicit = referenceLocation.IsImplicit,
-                SymbolUsageInfo = referenceLocation.SymbolUsageInfo,
+                SymbolUsageInfo = SerializableSymbolUsageInfo.Dehydrate(referenceLocation.SymbolUsageInfo),
                 CandidateReason = referenceLocation.CandidateReason
             };
         }
@@ -130,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 aliasSymbol,
                 CodeAnalysis.Location.Create(syntaxTree, Location),
                 isImplicit: IsImplicit,
-                symbolUsageInfo: SymbolUsageInfo,
+                symbolUsageInfo: SymbolUsageInfo.Rehydrate(),
                 candidateReason: CandidateReason);
         }
 

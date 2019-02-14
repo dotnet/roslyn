@@ -230,6 +230,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsArgument(SyntaxNode node);
         RefKind GetRefKindOfArgument(SyntaxNode node);
         bool IsTypeArgumentList(SyntaxNode node);
+        bool IsTypeConstraint(SyntaxNode node);
 
         void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);
         bool LooksGeneric(SyntaxNode simpleName);

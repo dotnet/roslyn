@@ -28,7 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
         public const string ColumnName = nameof(SymbolUsageInfo);
 
-        
         // Allow filtering of the column by each allowed SymbolUsageInfo kind.
         public override IEnumerable<string> FilterPresets => SymbolUsageInfo.LocalizableStringsForAllAllowedValues;
         public override bool IsFilterable => true;

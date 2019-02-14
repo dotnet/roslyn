@@ -699,6 +699,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsTypeArgumentList(SyntaxNode node)
             => node.IsKind(SyntaxKind.TypeArgumentList);
 
+        public bool IsTypeConstraint(SyntaxNode node)
+            => node.IsKind(SyntaxKind.TypeConstraint);
+
         public bool IsInConstantContext(SyntaxNode node)
         {
             return (node as ExpressionSyntax).IsInConstantContext();

@@ -17,15 +17,15 @@ namespace Microsoft.CodeAnalysis
         public static readonly SymbolUsageInfo None = Create(ValueUsageInfo.None);
         public static readonly ImmutableArray<string> LocalizableStringsForAllAllowedValues = CreateLocalizableStringsForAllAllowedValues();
 
-        private readonly ValueUsageInfo? _valueUsageInfoOpt;
-        private readonly TypeOrNamespaceUsageInfo? _typeOrNamespaceUsageInfoOpt;
+        public ValueUsageInfo? ValueUsageInfoOpt { get; }
+        public TypeOrNamespaceUsageInfo? TypeOrNamespaceUsageInfoOpt { get; }
 
         private SymbolUsageInfo(ValueUsageInfo? valueUsageInfoOpt, TypeOrNamespaceUsageInfo? typeOrNamespaceUsageInfoOpt)
         {
             Debug.Assert(valueUsageInfoOpt.HasValue ^ typeOrNamespaceUsageInfoOpt.HasValue);
 
-            _valueUsageInfoOpt = valueUsageInfoOpt;
-            _typeOrNamespaceUsageInfoOpt = typeOrNamespaceUsageInfoOpt;
+            ValueUsageInfoOpt = valueUsageInfoOpt;
+            TypeOrNamespaceUsageInfoOpt = typeOrNamespaceUsageInfoOpt;
         }
 
         public static SymbolUsageInfo Create(ValueUsageInfo valueUsageInfo)
@@ -48,18 +48,18 @@ namespace Microsoft.CodeAnalysis
         }
 
         public bool IsReadFrom()
-            => _valueUsageInfoOpt.HasValue && _valueUsageInfoOpt.Value.IsReadFrom();
+            => ValueUsageInfoOpt.HasValue && ValueUsageInfoOpt.Value.IsReadFrom();
 
         public bool IsWrittenTo()
-            => _valueUsageInfoOpt.HasValue && _valueUsageInfoOpt.Value.IsWrittenTo();
+            => ValueUsageInfoOpt.HasValue && ValueUsageInfoOpt.Value.IsWrittenTo();
 
         public bool IsNameOnly()
-            => _valueUsageInfoOpt.HasValue && _valueUsageInfoOpt.Value.IsNameOnly();
+            => ValueUsageInfoOpt.HasValue && ValueUsageInfoOpt.Value.IsNameOnly();
 
         public string ToLocalizableString()
-            => _valueUsageInfoOpt.HasValue ? _valueUsageInfoOpt.Value.ToLocalizableString() : _typeOrNamespaceUsageInfoOpt.Value.ToLocalizableString();
+            => ValueUsageInfoOpt.HasValue ? ValueUsageInfoOpt.Value.ToLocalizableString() : TypeOrNamespaceUsageInfoOpt.Value.ToLocalizableString();
 
         public ImmutableArray<string> ToLocalizableValues()
-            => _valueUsageInfoOpt.HasValue ? _valueUsageInfoOpt.Value.ToLocalizableValues() : _typeOrNamespaceUsageInfoOpt.Value.ToLocalizableValues();
+            => ValueUsageInfoOpt.HasValue ? ValueUsageInfoOpt.Value.ToLocalizableValues() : TypeOrNamespaceUsageInfoOpt.Value.ToLocalizableValues();
     }
 }

@@ -29,28 +29,34 @@ namespace Microsoft.CodeAnalysis
         TypeArgument = 0x02,
 
         /// <summary>
+        /// Represents a type parameter constraint that is a type.
+        /// For example, 'Type' in <code>class Derived{T} where T : Type { }</code>
+        /// </summary>
+        TypeConstraint = 0x04,
+
+        /// <summary>
         /// Represents a base type or interface reference in the base list of a named type.
         /// For example, 'Base' in <code>class Derived : Base { }</code>.
         /// </summary>
-        Base = 0x04,
+        Base = 0x08,
 
         /// <summary>
         /// Represents a reference to a type whose instance is being created.
         /// For example, 'C' in <code>var x = new C();</code>, where 'C' is a named type.
         /// </summary>
-        ObjectCreation = 0x08,
+        ObjectCreation = 0x10,
 
         /// <summary>
         /// Represents a reference to a namespace or type within a using or imports directive.
         /// For example, <code>using NS;</code> or <code>using static NS.Extensions</code> or <code>using Alias = MyType</code>.
         /// </summary>
-        Import = 0x10,
+        Import = 0x20,
 
         /// <summary>
         /// Represents a reference to a namespace name in a namespace declaration context.
         /// For example, 'N1' or <code>namespaces N1.N2 { }</code>.
         /// </summary>
-        NamespaceDeclaration = 0x20,
+        NamespaceDeclaration = 0x40,
     }
 
     internal static class TypeOrNamespaceUsageInfoExtensions
@@ -63,22 +69,25 @@ namespace Microsoft.CodeAnalysis
             switch (info)
             {
                 case TypeOrNamespaceUsageInfo.Qualified:
-                    return WorkspacesResources.TypeOrNamespaceUsageInfo_Qualified;
+                    return WorkspacesResources.TypeOrNamespaceUsageInfo_Qualify;
 
                 case TypeOrNamespaceUsageInfo.TypeArgument:
                     return WorkspacesResources.TypeOrNamespaceUsageInfo_TypeArgument;
 
+                case TypeOrNamespaceUsageInfo.TypeConstraint:
+                    return WorkspacesResources.TypeOrNamespaceUsageInfo_TypeConstraint;
+
                 case TypeOrNamespaceUsageInfo.Base:
-                    return WorkspacesResources.TypeOrNamespaceUsageInfo_Base;
+                    return WorkspacesResources.TypeOrNamespaceUsageInfo_BaseType;
 
                 case TypeOrNamespaceUsageInfo.ObjectCreation:
-                    return WorkspacesResources.TypeOrNamespaceUsageInfo_ObjectCreation;
+                    return WorkspacesResources.TypeOrNamespaceUsageInfo_Construct;
 
                 case TypeOrNamespaceUsageInfo.Import:
                     return WorkspacesResources.TypeOrNamespaceUsageInfo_Import;
 
                 case TypeOrNamespaceUsageInfo.NamespaceDeclaration:
-                    return WorkspacesResources.TypeOrNamespaceUsageInfo_NamespaceDeclaration;
+                    return WorkspacesResources.TypeOrNamespaceUsageInfo_Declare;
 
                 default:
                     Debug.Fail($"Unhandled value: '{info.ToString()}'");

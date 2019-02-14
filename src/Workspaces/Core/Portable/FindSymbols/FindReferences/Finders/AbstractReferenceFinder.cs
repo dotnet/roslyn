@@ -585,6 +585,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     usageInfo |= TypeOrNamespaceUsageInfo.TypeArgument;
                 }
+                else if (syntaxFacts.IsTypeConstraint(node.Parent))
+                {
+                    usageInfo |= TypeOrNamespaceUsageInfo.TypeConstraint;
+                }
                 else if (syntaxFacts.IsBaseTypeList(node.Parent) ||
                     syntaxFacts.IsBaseTypeList(node.Parent?.Parent))
                 {
