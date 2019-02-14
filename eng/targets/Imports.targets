@@ -240,7 +240,7 @@
 
   <Target Name="_CalculateSubstituteVariablesInApplicationManifestInputsOutputs">
     <PropertyGroup>
-      <_OriginalApplicationManifestPath>$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(ApplicationManifest)'))</_OriginalApplicationManifestPath>
+      <_OriginalApplicationManifestPath>$(RepositoryEngineeringDir)config\app.manifest</_OriginalApplicationManifestPath>
       <_UpdatedApplicationManifestPath>$(IntermediateOutputPath)$(AssemblyName).exe.manifest</_UpdatedApplicationManifestPath>
     </PropertyGroup>
   </Target>
@@ -254,7 +254,7 @@
           DependsOnTargets="_CalculateSubstituteVariablesInApplicationManifestInputsOutputs;GetAssemblyVersion"
           Inputs="$(_OriginalApplicationManifestPath)"
           Outputs="$(_UpdatedApplicationManifestPath)"
-          Condition="'$(ApplicationManifest)' != ''">
+          Condition="'$(OutputType)' == 'Exe' And '$(TargetFramework)' == 'net472'">
 
     <Copy SourceFiles="$(_OriginalApplicationManifestPath)" DestinationFiles="$(_UpdatedApplicationManifestPath)" />
 
