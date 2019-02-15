@@ -2131,6 +2131,106 @@ static class C {
                 );
         }
 
+        [Fact, WorkItem(32774, "https://github.com/dotnet/roslyn/issues/32774")]
+        public void BadCode_32774()
+        {
+            var source = @"
+public class Class1
+{
+    static void Main()
+    {
+        System.Console.WriteLine(SwitchCaseThatFails(12.123));
+    }
+
+    public static bool SwitchCaseThatFails(object someObject)
+    {
+        switch (someObject)
+        {
+            case IObject x when x.SubObject != null:
+                return false;
+            case IOtherObject x:
+                return false;
+            case double x:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public interface IObject
+    {
+        IObject SubObject { get; }
+    }
+
+    public interface IOtherObject { }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"True";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("Class1.SwitchCaseThatFails",
+@"{
+  // Code size       97 (0x61)
+  .maxstack  1
+  .locals init (Class1.IObject V_0, //x
+                Class1.IOtherObject V_1, //x
+                double V_2, //x
+                object V_3,
+                object V_4,
+                bool V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.3
+  IL_0007:  ldloc.3
+  IL_0008:  isinst     ""Class1.IObject""
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  brtrue.s   IL_003c
+  IL_0011:  br.s       IL_001f
+  IL_0013:  ldloc.3
+  IL_0014:  isinst     ""Class1.IOtherObject""
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.1
+  IL_001b:  brtrue.s   IL_004b
+  IL_001d:  br.s       IL_0059
+  IL_001f:  ldloc.3
+  IL_0020:  isinst     ""Class1.IOtherObject""
+  IL_0025:  stloc.1
+  IL_0026:  ldloc.1
+  IL_0027:  brtrue.s   IL_004b
+  IL_0029:  br.s       IL_002b
+  IL_002b:  ldloc.3
+  IL_002c:  isinst     ""double""
+  IL_0031:  brfalse.s  IL_0059
+  IL_0033:  ldloc.3
+  IL_0034:  unbox.any  ""double""
+  IL_0039:  stloc.2
+  IL_003a:  br.s       IL_0052
+  IL_003c:  ldloc.0
+  IL_003d:  callvirt   ""Class1.IObject Class1.IObject.SubObject.get""
+  IL_0042:  brtrue.s   IL_0046
+  IL_0044:  br.s       IL_0013
+  IL_0046:  ldc.i4.0
+  IL_0047:  stloc.s    V_5
+  IL_0049:  br.s       IL_005e
+  IL_004b:  br.s       IL_004d
+  IL_004d:  ldc.i4.0
+  IL_004e:  stloc.s    V_5
+  IL_0050:  br.s       IL_005e
+  IL_0052:  br.s       IL_0054
+  IL_0054:  ldc.i4.1
+  IL_0055:  stloc.s    V_5
+  IL_0057:  br.s       IL_005e
+  IL_0059:  ldc.i4.0
+  IL_005a:  stloc.s    V_5
+  IL_005c:  br.s       IL_005e
+  IL_005e:  ldloc.s    V_5
+  IL_0060:  ret
+}");
+        }
+
         // Possible test helper bug on Linux; see https://github.com/dotnet/roslyn/issues/33356
         [ConditionalFact(typeof(WindowsOnly))]
         public void SwitchExpressionSequencePoints()

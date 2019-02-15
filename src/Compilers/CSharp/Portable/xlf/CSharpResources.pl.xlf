@@ -8889,8 +8889,8 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_MismatchedRefEscapeInTernary">
-        <source>Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes</source>
-        <target state="translated">Gałęzie trzyelementowego operatora ref nie mogą odwoływać się do zmiennych z niezgodnymi zakresami deklaracji</target>
+        <source>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</source>
+        <target state="needs-review-translation">Gałęzie trzyelementowego operatora ref nie mogą odwoływać się do zmiennych z niezgodnymi zakresami deklaracji</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeStackAlloc">

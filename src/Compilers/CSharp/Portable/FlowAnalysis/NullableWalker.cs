@@ -2723,7 +2723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // As far as we can tell, there is no scenario relevant to nullability analysis
-                // where splitting an L-value (for instance with a ref ternary) would affect the result.
+                // where splitting an L-value (for instance with a ref conditional) would affect the result.
                 VisitLvalue(argument);
             }
         }

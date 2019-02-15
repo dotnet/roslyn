@@ -387,20 +387,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(node == nodesToLower[indexOfNode]);
                 if (node is BoundTestDecisionDagNode testNode &&
                     testNode.WhenTrue is BoundEvaluationDecisionDagNode evaluationNode &&
-                    // Even if there are other entries to the evaluation point, we need not use it here
-                    // !this._dagNodeLabels.ContainsKey(evaluationPoint) &&
                     TryLowerTypeTestAndCast(testNode.Test, evaluationNode.Evaluation, out BoundExpression sideEffect, out BoundExpression test)
                     )
                 {
                     var whenTrue = evaluationNode.Next;
                     var whenFalse = testNode.WhenFalse;
-                    if (!this._dagNodeLabels.ContainsKey(evaluationNode))
-                    {
+                    bool canEliminateEvaluationNode = !this._dagNodeLabels.ContainsKey(evaluationNode);
+
+                    if (canEliminateEvaluationNode)
                         loweredNodes.Add(evaluationNode);
-                    }
 
                     var nextNode =
                         (indexOfNode + 2 < nodesToLower.Length) &&
+                        canEliminateEvaluationNode &&
                         nodesToLower[indexOfNode + 1] == evaluationNode &&
                         !loweredNodes.Contains(nodesToLower[indexOfNode + 2]) ? nodesToLower[indexOfNode + 2] : null;
 

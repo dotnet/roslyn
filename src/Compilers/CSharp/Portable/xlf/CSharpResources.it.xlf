@@ -8889,8 +8889,8 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <note />
       </trans-unit>
       <trans-unit id="ERR_MismatchedRefEscapeInTernary">
-        <source>Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes</source>
-        <target state="translated">I rami di un operatore ternario ref non possono fare riferimento a variabili con ambiti di dichiarazione incompatibili</target>
+        <source>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</source>
+        <target state="needs-review-translation">I rami di un operatore ternario ref non possono fare riferimento a variabili con ambiti di dichiarazione incompatibili</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeStackAlloc">

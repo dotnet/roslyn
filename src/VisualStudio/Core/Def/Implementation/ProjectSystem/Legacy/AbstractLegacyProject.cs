@@ -31,6 +31,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         protected IProjectCodeModel ProjectCodeModel { get; set; }
         protected VisualStudioWorkspace Workspace { get; }
 
+        /// <summary>
+        /// The path to the directory of the project. Read-only, since although you can rename
+        /// a project in Visual Studio you can't change the folder of a project without an
+        /// unload/reload.
+        /// </summary>
+        private readonly string _projectDirectory = null;
+
         private static readonly char[] PathSeparatorCharacters = { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
 
         #region Mutable fields that should only be used from the UI thread
@@ -62,6 +69,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             if (projectFilePath != null && !File.Exists(projectFilePath))
             {
                 projectFilePath = null;
+            }
+
+            if (projectFilePath != null)
+            {
+                _projectDirectory = Path.GetDirectoryName(projectFilePath);
             }
 
             var projectFactory = componentModel.GetService<VisualStudioProjectFactory>();
@@ -163,7 +175,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             if (!string.IsNullOrEmpty(linkMetadata))
             {
                 var linkFolderPath = Path.GetDirectoryName(linkMetadata);
-                folders = linkFolderPath.Split(PathSeparatorCharacters).ToImmutableArray();
+                folders = linkFolderPath.Split(PathSeparatorCharacters, StringSplitOptions.RemoveEmptyEntries).ToImmutableArray();
+            }
+            else if (!string.IsNullOrEmpty(VisualStudioProject.FilePath))
+            {
+                var relativePath = PathUtilities.GetRelativePath(_projectDirectory, filename);
+                var relativePathParts = relativePath.Split(PathSeparatorCharacters);
+                folders = ImmutableArray.Create(relativePathParts, start: 0, length: relativePathParts.Length - 1);
             }
 
             VisualStudioProject.AddSourceFile(filename, sourceCodeKind, folders);
