@@ -5,8 +5,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -34,7 +34,7 @@ Class Program
 End Class
 ");
 
-            VisualStudio.SendKeys.Send(Shift(VirtualKey.F12));
+            VisualStudio.SendKeys.Send(Shift(VirtualKeyCode.F12));
 
             const string localReferencesCaption = "'local' references";
             var results = VisualStudio.FindReferencesWindow.GetContents(localReferencesCaption);
@@ -81,7 +81,7 @@ Class SomeOtherClass
 End Class
 ");
 
-            VisualStudio.SendKeys.Send(Shift(VirtualKey.F12));
+            VisualStudio.SendKeys.Send(Shift(VirtualKeyCode.F12));
 
             const string alphaReferencesCaption = "'Alpha' references";
             var results = VisualStudio.FindReferencesWindow.GetContents(alphaReferencesCaption);

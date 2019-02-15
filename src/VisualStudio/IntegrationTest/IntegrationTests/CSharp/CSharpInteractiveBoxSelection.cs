@@ -2,8 +2,8 @@
 
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -35,7 +35,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
             VisualStudio.InteractiveWindow.PlaceCaret(">", 1);
             VisualStudio.InteractiveWindow.PlaceCaret("x", 0, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("__", VirtualKey.Escape, "|");
+            VisualStudio.SendKeys.Send("__", VirtualKeyCode.ESCAPE, "|");
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"__234567890ABCDEF
 __234567890ABCDEF
@@ -53,7 +53,7 @@ __|234567890ABCDEF
             InsertInputWithXAtLeft();
             VisualStudio.InteractiveWindow.PlaceCaret("x", 0);
             VisualStudio.InteractiveWindow.PlaceCaret(">", 1, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("__", VirtualKey.Escape, "|");
+            VisualStudio.SendKeys.Send("__", VirtualKeyCode.ESCAPE, "|");
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"__|234567890ABCDEF
 __234567890ABCDEF
@@ -71,7 +71,7 @@ __234567890ABCDEF
             InsertInputWithXAtLeft();
             VisualStudio.InteractiveWindow.PlaceCaret(">", 3);
             VisualStudio.InteractiveWindow.PlaceCaret("x", -2, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("__", VirtualKey.Escape, "|");
+            VisualStudio.SendKeys.Send("__", VirtualKeyCode.ESCAPE, "|");
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"__234567890ABCDEF
 __234567890ABCDEF
@@ -89,7 +89,7 @@ __|234567890ABCDEF
             InsertInputWithXAtLeft();
             VisualStudio.InteractiveWindow.PlaceCaret("x", -2);
             VisualStudio.InteractiveWindow.PlaceCaret(">", 3, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("__", VirtualKey.Escape, "|");
+            VisualStudio.SendKeys.Send("__", VirtualKeyCode.ESCAPE, "|");
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"__|234567890ABCDEF
 __234567890ABCDEF
@@ -107,7 +107,7 @@ __234567890ABCDEF
             InsertInputWithSAndEAtLeft();
             VisualStudio.InteractiveWindow.PlaceCaret("s", -1);
             VisualStudio.InteractiveWindow.PlaceCaret("e", 1, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("__", VirtualKey.Escape, "|");
+            VisualStudio.SendKeys.Send("__", VirtualKeyCode.ESCAPE, "|");
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"1234567890ABCDEF
 1234567890ABCDEF
@@ -125,7 +125,7 @@ __|234567890ABCDEF
             InsertInputWithSAndEAtLeft();
             VisualStudio.InteractiveWindow.PlaceCaret("e", 1);
             VisualStudio.InteractiveWindow.PlaceCaret("s", -1, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("__", VirtualKey.Escape, "|");
+            VisualStudio.SendKeys.Send("__", VirtualKeyCode.ESCAPE, "|");
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"1234567890ABCDEF
 1234567890ABCDEF
@@ -143,7 +143,7 @@ __234567890ABCDEF
             InsertInputWithSAndEAtLeft();
             VisualStudio.InteractiveWindow.PlaceCaret("s", 1);
             VisualStudio.InteractiveWindow.PlaceCaret("e", -1, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("__", VirtualKey.Escape, "|");
+            VisualStudio.SendKeys.Send("__", VirtualKeyCode.ESCAPE, "|");
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"1234567890ABCDEF
 1234567890ABCDEF
@@ -162,7 +162,7 @@ __|234567890ABCDEF
             InsertInputWithSAndEAtLeft();
             VisualStudio.InteractiveWindow.PlaceCaret("e", -1);
             VisualStudio.InteractiveWindow.PlaceCaret("s", 1, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send("__", VirtualKey.Escape, "|");
+            VisualStudio.SendKeys.Send("__", VirtualKeyCode.ESCAPE, "|");
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"1234567890ABCDEF
 1234567890ABCDEF
@@ -267,7 +267,7 @@ __e234567890ABCDEF
             InsertInputWithSAndEInTheMiddle();
             VisualStudio.InteractiveWindow.PlaceCaret("s", -1);
             VisualStudio.InteractiveWindow.PlaceCaret("e", 0, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send(VirtualKey.Backspace, VirtualKey.Backspace);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.BACK, VirtualKeyCode.BACK);
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"1CDEF
 1CDEF
@@ -285,7 +285,7 @@ __e234567890ABCDEF
             InsertInputWithEInTheMiddle();
             VisualStudio.InteractiveWindow.PlaceCaret(">", 0);
             VisualStudio.InteractiveWindow.PlaceCaret("e", 0, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send(VirtualKey.Backspace, VirtualKey.Backspace);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.BACK, VirtualKeyCode.BACK);
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"CDEF
 CDEF
@@ -303,7 +303,7 @@ CDEF
             VisualStudio.InteractiveWindow.InsertCode("1234567890ABCDEF");
             VisualStudio.InteractiveWindow.PlaceCaret("2", -5);
             VisualStudio.InteractiveWindow.PlaceCaret(">", 8, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send(VirtualKey.Backspace);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.BACK);
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"7890ABCDEF");
         }
@@ -314,7 +314,7 @@ CDEF
             VisualStudio.InteractiveWindow.InsertCode("1234567890ABCDEF");
             VisualStudio.InteractiveWindow.PlaceCaret("1", -1);
             VisualStudio.InteractiveWindow.PlaceCaret(">", 5, extendSelection: true, selectBlock: true);
-            VisualStudio.SendKeys.Send(VirtualKey.Delete);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.DELETE);
 
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"4567890ABCDEF");
         }

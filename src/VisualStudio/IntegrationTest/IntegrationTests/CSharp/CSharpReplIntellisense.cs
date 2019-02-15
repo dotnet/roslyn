@@ -3,8 +3,8 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -44,9 +44,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.InsertCode("pub");
             VisualStudio.InteractiveWindow.InvokeCompletionList();
             VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("public");
-            VisualStudio.SendKeys.Send(VirtualKey.Tab);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.TAB);
             VisualStudio.InteractiveWindow.Verify.LastReplInput("public");
-            VisualStudio.SendKeys.Send(VirtualKey.Escape);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.ESCAPE);
         }
 
         [WpfFact]
@@ -55,7 +55,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.InsertCode(@"class C { }
 public delegate R Del<T, R>(T arg);
 Del<C, System");
-            VisualStudio.SendKeys.Send(VirtualKey.Period);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.OEM_PERIOD);
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
             VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("ArgumentException");
         }
@@ -72,7 +72,7 @@ Del<C, System");
         public void VerifyNoCrashOnEnter()
         {
             VisualStudio.Workspace.SetUseSuggestionMode(false);
-            VisualStudio.SendKeys.Send("#help", VirtualKey.Enter, VirtualKey.Enter);
+            VisualStudio.SendKeys.Send("#help", VirtualKeyCode.RETURN, VirtualKeyCode.RETURN);
         }
 
         [WpfFact]
@@ -80,7 +80,7 @@ Del<C, System");
         {
             VisualStudio.Workspace.SetUseSuggestionMode(false);
             VisualStudio.SendKeys.Send("TimeSpan.FromMin");
-            VisualStudio.SendKeys.Send(VirtualKey.Enter, "(0d)", VirtualKey.Enter);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.RETURN, "(0d)", VirtualKeyCode.RETURN);
             VisualStudio.InteractiveWindow.WaitForReplOutput("[00:00:00]");
         }
 
@@ -95,7 +95,7 @@ Del<C, System");
                 VisualStudio.InteractiveWindow.SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
                 VisualStudio.InteractiveWindow.InvokeCompletionList();
                 VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("x", "Complex");
-                VisualStudio.SendKeys.Send(VirtualKey.Escape);
+                VisualStudio.SendKeys.Send(VirtualKeyCode.ESCAPE);
             }
         }
     }

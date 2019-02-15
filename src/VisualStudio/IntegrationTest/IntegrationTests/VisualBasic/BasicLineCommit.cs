@@ -3,8 +3,8 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 using ProjName = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project;
 
@@ -30,7 +30,7 @@ Dim x = Sub()
 End Module");
 
             VisualStudio.Editor.PlaceCaret("Sub()", charsOffset: 1);
-            VisualStudio.Editor.SendKeys(VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.RETURN);
             VisualStudio.Editor.Verify.CaretPosition(48);
         }
 
@@ -44,7 +44,7 @@ End Module");
 End Module");
 
             VisualStudio.Editor.PlaceCaret("    REM");
-            VisualStudio.Editor.SendKeys("sub", VirtualKey.Escape, " goo()", VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys("sub", VirtualKeyCode.ESCAPE, " goo()", VirtualKeyCode.RETURN);
             VisualStudio.Editor.Verify.TextContains(@"Sub goo()
 
     End Sub");
@@ -63,7 +63,7 @@ End Module");
 End Module");
 
             VisualStudio.Editor.PlaceCaret("Module1");
-            VisualStudio.Editor.SendKeys(VirtualKey.Down, VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.DOWN, VirtualKeyCode.RETURN);
             VisualStudio.Editor.Verify.TextContains(@"Module Module1
 
 
@@ -86,7 +86,7 @@ End Module
 ");
 
             VisualStudio.Editor.PlaceCaret("(", charsOffset: 1);
-            VisualStudio.Editor.SendKeys("x   as   integer", VirtualKey.Tab);
+            VisualStudio.Editor.SendKeys("x   as   integer", VirtualKeyCode.TAB);
             VisualStudio.ExecuteCommand("File.SaveSelectedItems");
             VisualStudio.Editor.Verify.TextContains(@"Sub Main(x As Integer)");
             VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_Undo);

@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -11,8 +9,8 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -311,7 +309,7 @@ public class Program
 
 public class P2 { }");
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Backspace, VirtualKey.Backspace, "Stream");
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.BACK, VirtualKeyCode.BACK, "Stream");
 
             VisualStudio.Editor.InvokeCodeActionList();
             var expectedItems = new[]
@@ -351,7 +349,7 @@ namespace NS
         }
     }
 }");
-            VisualStudio.Editor.SendKeys(VirtualKey.Backspace, VirtualKey.Backspace,
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.BACK, VirtualKeyCode.BACK,
                 "Foober");
 
             VisualStudio.Editor.InvokeCodeActionList();

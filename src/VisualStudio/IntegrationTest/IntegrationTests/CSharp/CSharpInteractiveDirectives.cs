@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -229,7 +229,7 @@ public static void Main(string[] args)
             VisualStudio.InteractiveWindow.PlaceCaret("Hello");
             VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "string");
             VisualStudio.InteractiveWindow.PlaceCaret("<summary", charsOffset: -1);
-            VisualStudio.SendKeys.Send(Alt(VirtualKey.Right));
+            VisualStudio.SendKeys.Send(Alt(VirtualKeyCode.RIGHT));
             VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - delimiter");
             VisualStudio.InteractiveWindow.PlaceCaret("summary");
             VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - name");

@@ -6,8 +6,8 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Basic
@@ -80,7 +80,7 @@ End Module";
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Rename);
             AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(VisualStudio.InlineRenameDialog.ValidRenameTag));
 
-            VisualStudio.Editor.SendKeys("SayHello", VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys("SayHello", VirtualKeyCode.RETURN);
             VisualStudio.Editor.Verify.TextContains(@"    Private Sub SayHello()
         Console.WriteLine(""Hello VB!"")
     End Sub");

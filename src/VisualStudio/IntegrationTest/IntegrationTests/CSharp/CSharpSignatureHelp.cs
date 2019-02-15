@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -69,7 +70,7 @@ class C
                 ("i", "an integer, preferably 42."),
                 ("i2", "an integer, anything you like."));
 
-            VisualStudio.Editor.SendKeys(new object[] { VirtualKey.Home, new KeyPress(VirtualKey.End, ShiftState.Shift), VirtualKey.Delete });
+            VisualStudio.Editor.SendKeys(new object[] { VirtualKeyCode.HOME, new KeyPress(VirtualKeyCode.END, VirtualKeyCode.SHIFT), VirtualKeyCode.DELETE });
             VisualStudio.Editor.SendKeys("var op = OutAndParam(");
 
             VisualStudio.Editor.Verify.CurrentSignature("void C.OutAndParam(ref string[][,] strings, out string[] outArr, params dynamic d)\r\nComplex Method Params");

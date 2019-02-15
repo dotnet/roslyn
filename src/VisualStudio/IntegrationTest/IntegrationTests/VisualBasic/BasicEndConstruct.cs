@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -29,7 +30,7 @@ Class Program
     End Sub
 End Class");
             // Send a space to convert virtual whitespace into real whitespace
-            VisualStudio.Editor.SendKeys(VirtualKey.Enter, " ");
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.RETURN, " ");
             VisualStudio.Editor.Verify.TextContains(@"
 Class Program
     Sub Main()
@@ -50,7 +51,7 @@ Class Program
     End Sub
 End Class");
             // Send a space to convert virtual whitespace into real whitespace
-            VisualStudio.Editor.SendKeys("While True", VirtualKey.Enter, " ");
+            VisualStudio.Editor.SendKeys("While True", VirtualKeyCode.RETURN, " ");
             VisualStudio.Editor.Verify.TextContains(@"
 Class Program
     Sub Main()
@@ -68,8 +69,8 @@ End Class", assertCaretPosition: true);
 Interface$$ C
 End Interface");
 
-            VisualStudio.Editor.SendKeys(new KeyPress(VirtualKey.Backspace, ShiftState.Ctrl));
-            VisualStudio.Editor.SendKeys("Class", VirtualKey.Tab);
+            VisualStudio.Editor.SendKeys(new KeyPress(VirtualKeyCode.BACK, VirtualKeyCode.CONTROL));
+            VisualStudio.Editor.SendKeys("Class", VirtualKeyCode.TAB);
             VisualStudio.Editor.Verify.TextContains(@"
 Class C
 End Class");
@@ -84,8 +85,8 @@ Class C
     End Sub
 End Class");
 
-            VisualStudio.Editor.SendKeys(new KeyPress(VirtualKey.Backspace, ShiftState.Ctrl));
-            VisualStudio.Editor.SendKeys("fu", VirtualKey.Tab);
+            VisualStudio.Editor.SendKeys(new KeyPress(VirtualKeyCode.BACK, VirtualKeyCode.CONTROL));
+            VisualStudio.Editor.SendKeys("fu", VirtualKeyCode.TAB);
             VisualStudio.Editor.Verify.TextContains(@"
 Class C
     Public Function Goo()

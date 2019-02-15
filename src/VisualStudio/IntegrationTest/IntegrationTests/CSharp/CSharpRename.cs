@@ -6,9 +6,9 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -57,7 +57,7 @@ class Program
                 var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
                 AssertEx.SetEqual(renameSpans, tags);
 
-                VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+                VisualStudio.Editor.SendKeys(VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN);
                 VisualStudio.Editor.Verify.TextContains(@"
 using System;
 using System.Collections.Generic;
@@ -99,7 +99,7 @@ class [|$$ustom|]Attribute : Attribute
             var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys("Custom", VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys("Custom", VirtualKeyCode.RETURN);
             VisualStudio.Editor.Verify.TextContains(@"
 using System;
 
@@ -251,7 +251,7 @@ class Program
             var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN);
             VisualStudio.Editor.Verify.TextContains(@"
 using System;
 using System.Collections.Generic;
@@ -311,7 +311,7 @@ class Program
             var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN);
             VisualStudio.Editor.Verify.TextContains(@"
 class Program
 {
@@ -359,7 +359,7 @@ class B : I
             var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN);
             VisualStudio.Editor.Verify.TextContains(@"
 interface I
 {
@@ -406,7 +406,7 @@ class SomeOtherClass
             var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN);
             VisualStudio.Editor.Verify.TextContains(@"
 class SomeOtherClass
 {
@@ -446,7 +446,7 @@ class SomeOtherClass
 
             InlineRenameDialog.Invoke();
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.VK_Y);
             VisualStudio.Editor.Verify.TextContains(@"class SomeOtherClass
 {
     void M()
@@ -461,7 +461,7 @@ class y
 {
 }");
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Escape);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.ESCAPE);
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Rename);
 
             VisualStudio.Editor.Verify.TextContains(@"
@@ -509,7 +509,7 @@ public class Class2 { static void Main(string [] args) { } }");
             VisualStudio.Editor.PlaceCaret("Class2");
 
             InlineRenameDialog.Invoke();
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN);
 
             VisualStudio.Editor.Verify.TextContains(@"
 class RenameRocks 
@@ -531,7 +531,7 @@ public class y { static void Main(string [] args) { } }");
         {
             VerifyCrossProjectRename();
 
-            VisualStudio.Editor.SendKeys(Ctrl(VirtualKey.Z));
+            VisualStudio.Editor.SendKeys(Ctrl(VirtualKeyCode.VK_Z));
 
             VisualStudio.Editor.Verify.TextContains(@"
 public class Class2 { static void Main(string [] args) { } }");
@@ -566,7 +566,7 @@ class Program
 
             InlineRenameDialog.Invoke();
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN);
 
             VisualStudio.Editor.Verify.TextContains(@"
 class Program

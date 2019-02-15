@@ -5,8 +5,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -44,7 +44,7 @@ class SomeOtherClass
 }
 ");
 
-            VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
+            VisualStudio.Editor.SendKeys(Shift(VirtualKeyCode.F12));
 
             const string programReferencesCaption = "'Program' references";
             var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption);
@@ -87,7 +87,7 @@ class Program
 }
 ");
 
-                VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
+                VisualStudio.Editor.SendKeys(Shift(VirtualKeyCode.F12));
 
                 const string localReferencesCaption = "'local' references";
                 var results = VisualStudio.FindReferencesWindow.GetContents(localReferencesCaption);
@@ -130,7 +130,7 @@ class Program
 }
 ");
 
-            VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
+            VisualStudio.Editor.SendKeys(Shift(VirtualKeyCode.F12));
 
             const string findReferencesCaption = "'\"1\"' references";
             var results = VisualStudio.FindReferencesWindow.GetContents(findReferencesCaption);

@@ -5,9 +5,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -49,7 +49,7 @@ End Module";
             var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN);
             VisualStudio.Editor.Verify.TextContains(@"
 Imports System
 Imports System.Collections.Generic
@@ -97,7 +97,7 @@ End Module";
             var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN);
             VisualStudio.Editor.Verify.TextContains(@"
 Imports System
 Imports System.Collections.Generic
@@ -140,7 +140,7 @@ End Module";
             var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN);
             VisualStudio.Editor.Verify.TextContains(@"
 Imports System
 Imports System.Collections.Generic
@@ -178,7 +178,7 @@ End Class";
             var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Y, VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN);
             VisualStudio.Editor.Verify.TextContains(@"
 Interface I
     Sub y(y As Integer)
@@ -209,7 +209,7 @@ End Class";
             var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys("Custom", VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys("Custom", VirtualKeyCode.RETURN);
             VisualStudio.Editor.Verify.TextContains(@"
 Import System;
 
@@ -328,7 +328,7 @@ End Class";
             var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys("Custom", VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys("Custom", VirtualKeyCode.RETURN);
             VisualStudio.Editor.Verify.TextContains(@"
 Import System;
 
@@ -354,7 +354,7 @@ End Class";
             var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
             AssertEx.SetEqual(renameSpans, tags);
 
-            VisualStudio.Editor.SendKeys("Custom", VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys("Custom", VirtualKeyCode.RETURN);
             VisualStudio.Editor.Verify.TextContains(@"
 Import System;
 

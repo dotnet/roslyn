@@ -3,6 +3,7 @@
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -39,7 +40,7 @@ public static void Main(string[] args)
             VisualStudio.InteractiveWindow.PlaceCaret("Hello");
             VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "string");
             VisualStudio.InteractiveWindow.PlaceCaret("<summary", charsOffset: -1);
-            VisualStudio.SendKeys.Send(new KeyPress(VirtualKey.Right, ShiftState.Alt));
+            VisualStudio.SendKeys.Send(new KeyPress(VirtualKeyCode.RIGHT, VirtualKeyCode.MENU));
             VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - delimiter");
             VisualStudio.InteractiveWindow.PlaceCaret("summary");
             VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "xml doc comment - name");

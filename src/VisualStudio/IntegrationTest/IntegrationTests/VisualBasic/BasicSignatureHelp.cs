@@ -3,8 +3,8 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -88,7 +88,7 @@ End Class
             SetUpEditor(Baseline);
 
             VisualStudio.Editor.SendKeys("Dim gm = GenericMethod");
-            VisualStudio.Editor.SendKeys(VirtualKey.Escape);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.ESCAPE);
             VisualStudio.Editor.SendKeys("(");
             VisualStudio.Editor.Verify.CurrentSignature("C.GenericMethod(Of T1)(i As T1) As C\r\nHello Generic World!");
             VisualStudio.Editor.Verify.CurrentParameter("i", "Param 1 of type T1");
@@ -129,7 +129,7 @@ Class C(Of T, R)
 End Class");
 
             VisualStudio.Editor.SendKeys("GenericMethod");
-            VisualStudio.Editor.SendKeys(VirtualKey.Escape);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.ESCAPE);
             VisualStudio.Editor.SendKeys("(Of ");
             VisualStudio.Editor.Verify.CurrentSignature("C(Of T, R).GenericMethod(Of T1)(i As T1)\r\nGeneric Method with 1 Type Param");
             VisualStudio.Editor.Verify.CurrentParameter("T1", "Type Parameter");

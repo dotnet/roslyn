@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using UIAutomationClient;
+using WindowsInput.Native;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -134,7 +135,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void DeleteText(string text)
         {
             SelectTextInCurrentDocument(text);
-            SendKeys(VirtualKey.Delete);
+            SendKeys(VirtualKeyCode.DELETE);
         }
 
         public void ReplaceText(string oldText, string newText)
@@ -160,7 +161,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         /// <summary>
         /// Sends key strokes to the active editor in Visual Studio. Various types are supported by this method:
-        /// <see cref="string"/> (each character will be sent separately, <see cref="char"/>, <see cref="VirtualKey"/>
+        /// <see cref="string"/> (each character will be sent separately, <see cref="char"/>, <see cref="VirtualKeyCode"/>
         /// and <see cref="KeyPress"/>.
         /// </summary>
         public void SendKeys(params object[] keys)
@@ -190,7 +191,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void FormatDocument()
         {
             VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.D, ShiftState.Ctrl));
+            SendKeys(new KeyPress(VirtualKeyCode.VK_K, VirtualKeyCode.CONTROL), new KeyPress(VirtualKeyCode.VK_D, VirtualKeyCode.CONTROL));
         }
 
         public void FormatDocumentViaCommand()
@@ -202,7 +203,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void FormatSelection()
         {
             VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.F, ShiftState.Ctrl));
+            SendKeys(new KeyPress(VirtualKeyCode.VK_K, VirtualKeyCode.CONTROL), new KeyPress(VirtualKeyCode.VK_F, VirtualKeyCode.CONTROL));
         }
 
         public void Paste(string text)

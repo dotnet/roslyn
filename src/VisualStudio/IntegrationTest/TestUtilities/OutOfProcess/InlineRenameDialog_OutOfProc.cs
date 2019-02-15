@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using WindowsInput.Native;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -25,19 +26,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void ToggleIncludeComments()
         {
-            VisualStudioInstance.Editor.SendKeys(new KeyPress(VirtualKey.C, ShiftState.Alt));
+            VisualStudioInstance.Editor.SendKeys(new KeyPress(VirtualKeyCode.VK_C, VirtualKeyCode.MENU));
             VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Rename);
         }
 
         public void ToggleIncludeStrings()
         {
-            VisualStudioInstance.Editor.SendKeys(new KeyPress(VirtualKey.S, ShiftState.Alt));
+            VisualStudioInstance.Editor.SendKeys(new KeyPress(VirtualKeyCode.VK_S, VirtualKeyCode.MENU));
             VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Rename);
         }
 
         public void ToggleIncludeOverloads()
         {
-            VisualStudioInstance.Editor.SendKeys(new KeyPress(VirtualKey.O, ShiftState.Alt));
+            VisualStudioInstance.Editor.SendKeys(new KeyPress(VirtualKeyCode.VK_O, VirtualKeyCode.MENU));
             VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Rename);
         }
     }

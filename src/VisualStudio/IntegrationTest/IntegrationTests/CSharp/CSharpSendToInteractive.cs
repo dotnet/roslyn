@@ -3,8 +3,8 @@
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -122,7 +122,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.SolutionExplorer.OpenFile(project, FileName);
             VisualStudio.Editor.PlaceCaret("/* 7 */", charsOffset: 1);
             VisualStudio.Editor.PlaceCaret("/* 8 */", charsOffset: -1, extendSelection: true);
-            VisualStudio.SendKeys.Send(Ctrl(VirtualKey.E), Ctrl(VirtualKey.E));
+            VisualStudio.SendKeys.Send(Ctrl(VirtualKeyCode.VK_E), Ctrl(VirtualKeyCode.VK_E));
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("int j = 7;");
 
             VisualStudio.InteractiveWindow.ClearReplText();
@@ -195,7 +195,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.SolutionExplorer.OpenFile(project, FileName);
             VisualStudio.Editor.PlaceCaret("/* 7 */", charsOffset: 1);
             VisualStudio.Editor.PlaceCaret("/* 8 */", charsOffset: -1, extendSelection: true);
-            VisualStudio.SendKeys.Send(Ctrl(VirtualKey.E), Ctrl(VirtualKey.E));
+            VisualStudio.SendKeys.Send(Ctrl(VirtualKeyCode.VK_E), Ctrl(VirtualKeyCode.VK_E));
             VisualStudio.InteractiveWindow.WaitForLastReplInputContains("// scenario 8");
 
             VisualStudio.InteractiveWindow.ClearReplText();

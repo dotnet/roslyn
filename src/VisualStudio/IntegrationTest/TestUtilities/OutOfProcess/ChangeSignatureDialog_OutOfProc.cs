@@ -4,6 +4,7 @@ using System;
 using System.Threading;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using UIAutomationClient;
+using WindowsInput.Native;
 using Xunit;
 using AutomationElementIdentifiers = System.Windows.Automation.AutomationElementIdentifiers;
 
@@ -46,7 +47,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         }
 
         public void Invoke()
-            => VisualStudioInstance.Editor.SendKeys(new KeyPress(VirtualKey.R, ShiftState.Ctrl), new KeyPress(VirtualKey.V, ShiftState.Ctrl));
+            => VisualStudioInstance.Editor.SendKeys(new KeyPress(VirtualKeyCode.VK_R, VirtualKeyCode.CONTROL), new KeyPress(VirtualKeyCode.VK_V, VirtualKeyCode.CONTROL));
 
         public void ClickOK()
             => DialogHelpers.PressButton(GetMainWindowHWnd(), ChangeSignatureDialogAutomationId, "OKButton");

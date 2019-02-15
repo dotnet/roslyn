@@ -3,8 +3,8 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -34,8 +34,8 @@ End Class");
 
             VisualStudio.Editor.SendKeys(
                "New Object",
-               VirtualKey.Escape,
-               VirtualKey.Tab);
+               VirtualKeyCode.ESCAPE,
+               VirtualKeyCode.TAB);
 
             VisualStudio.Editor.Verify.CurrentLineText("Dim x = {New Object}$$", assertCaretPosition: true);
         }
@@ -89,7 +89,7 @@ Class C
 End Class");
 
             VisualStudio.Editor.SendKeys("Dim x = {");
-            VisualStudio.Editor.SendKeys(VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.RETURN);
             VisualStudio.Editor.Verify.CurrentLineText("            $$}", assertCaretPosition: true, trimWhitespace: false);
             VisualStudio.Editor.Verify.TextContains(@"
 Class C
@@ -113,8 +113,8 @@ End Class");
             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo($$)", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys("x As Long");
-            VisualStudio.Editor.SendKeys(VirtualKey.Escape);
-            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.ESCAPE);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.TAB);
             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo(x As Long)$$", assertCaretPosition: true);
         }
 
@@ -129,7 +129,7 @@ End Class");
             VisualStudio.Editor.SendKeys("Sub Goo(");
             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo($$)", assertCaretPosition: true);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Escape);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.ESCAPE);
             VisualStudio.Editor.SendKeys(')');
             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo()$$", assertCaretPosition: true);
         }
@@ -178,7 +178,7 @@ End Class");
             VisualStudio.Editor.SendKeys("Dim str = \"");
             VisualStudio.Editor.Verify.CurrentLineText("Dim str = \"$$\"", assertCaretPosition: true);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.TAB);
             VisualStudio.Editor.Verify.CurrentLineText("Dim str = \"\"$$", assertCaretPosition: true);
         }
 
@@ -197,9 +197,9 @@ End Class");
 
             VisualStudio.Editor.SendKeys(
                "Dim y = {New C([dim",
-               VirtualKey.Escape,
+               VirtualKeyCode.ESCAPE,
                "]:=\"hello({[\")}",
-               VirtualKey.Enter);
+               VirtualKeyCode.RETURN);
             var actualText = VisualStudio.Editor.GetText();
             Assert.Contains("Dim y = {New C([dim]:=\"hello({[\")}", actualText);
         }
@@ -219,13 +219,13 @@ End Class");
 
             VisualStudio.Editor.SendKeys(
                "Dim y = {New C([dim",
-               VirtualKey.Escape,
-               VirtualKey.Tab,
+               VirtualKeyCode.ESCAPE,
+               VirtualKeyCode.TAB,
                ":=\"hello({[",
-               VirtualKey.Tab,
-               VirtualKey.Tab,
-               VirtualKey.Tab,
-               VirtualKey.Enter);
+               VirtualKeyCode.TAB,
+               VirtualKeyCode.TAB,
+               VirtualKeyCode.TAB,
+               VirtualKeyCode.RETURN);
             var actualText = VisualStudio.Editor.GetText();
             Assert.Contains("Dim y = {New C([dim]:=\"hello({[\")}", actualText);
         }
@@ -315,9 +315,9 @@ Class C
     End Sub
 End Class");
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.RETURN);
             VisualStudio.Editor.SendKeys('(');
-            VisualStudio.Editor.SendKeys(VirtualKey.Backspace);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.BACK);
 
             VisualStudio.Editor.Verify.CurrentLineText("        $$", assertCaretPosition: true, trimWhitespace: false);
         }

@@ -3,6 +3,7 @@
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -21,19 +22,19 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.SubmitText("1 + 2");
             VisualStudio.InteractiveWindow.SubmitText("1.ToString()");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"1\"");
-            VisualStudio.SendKeys.Send(Alt(VirtualKey.Up));
+            VisualStudio.SendKeys.Send(Alt(VirtualKeyCode.UP));
             VisualStudio.InteractiveWindow.Verify.LastReplInput("1.ToString()");
-            VisualStudio.SendKeys.Send(VirtualKey.Enter);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.RETURN);
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"1\"");
-            VisualStudio.SendKeys.Send(Alt(VirtualKey.Up));
+            VisualStudio.SendKeys.Send(Alt(VirtualKeyCode.UP));
             VisualStudio.InteractiveWindow.Verify.LastReplInput("1.ToString()");
-            VisualStudio.SendKeys.Send(Alt(VirtualKey.Up));
+            VisualStudio.SendKeys.Send(Alt(VirtualKeyCode.UP));
             VisualStudio.InteractiveWindow.Verify.LastReplInput("1 + 2");
-            VisualStudio.SendKeys.Send(VirtualKey.Enter);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.RETURN);
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("3");
-            VisualStudio.SendKeys.Send(Alt(VirtualKey.Down));
+            VisualStudio.SendKeys.Send(Alt(VirtualKeyCode.DOWN));
             VisualStudio.InteractiveWindow.Verify.LastReplInput("1.ToString()");
-            VisualStudio.SendKeys.Send(VirtualKey.Enter);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.RETURN);
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"1\"");
         }
 
@@ -41,7 +42,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void VerifyMaybeExecuteInput()
         {
             VisualStudio.InteractiveWindow.InsertCode("2 + 3");
-            VisualStudio.SendKeys.Send(VirtualKey.Enter);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.RETURN);
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("5");
         }
 
@@ -49,9 +50,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void VerifyNewLineAndIndent()
         {
             VisualStudio.InteractiveWindow.InsertCode("3 + ");
-            VisualStudio.SendKeys.Send(VirtualKey.Enter);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.RETURN);
             VisualStudio.InteractiveWindow.InsertCode("4");
-            VisualStudio.SendKeys.Send(VirtualKey.Enter);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.RETURN);
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("7");
         }
 
@@ -66,7 +67,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void VerifyForceNewLineAndIndent()
         {
             VisualStudio.InteractiveWindow.InsertCode("1 + 2");
-            VisualStudio.SendKeys.Send(VirtualKey.Enter);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.RETURN);
             VisualStudio.InteractiveWindow.SubmitText("+ 3");
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("3");
             VisualStudio.InteractiveWindow.Verify.ReplPromptConsistency("<![CDATA[1 + 2 + 3]]>", "6");
@@ -76,8 +77,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public void VerifyCancelInput()
         {
             VisualStudio.InteractiveWindow.InsertCode("1 + 4");
-            VisualStudio.SendKeys.Send(Shift(VirtualKey.Enter));
-            VisualStudio.SendKeys.Send(VirtualKey.Escape);
+            VisualStudio.SendKeys.Send(Shift(VirtualKeyCode.RETURN));
+            VisualStudio.SendKeys.Send(VirtualKeyCode.ESCAPE);
             VisualStudio.InteractiveWindow.Verify.LastReplInput(string.Empty);
         }
 
@@ -86,11 +87,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
             VisualStudio.InteractiveWindow.ClearReplText();
             VisualStudio.InteractiveWindow.InsertCode(" 2 + 4 ");
-            VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Z));
+            VisualStudio.SendKeys.Send(Ctrl(VirtualKeyCode.VK_Z));
             VisualStudio.InteractiveWindow.Verify.ReplPromptConsistency("< ![CDATA[]] >", string.Empty);
-            VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Y));
+            VisualStudio.SendKeys.Send(Ctrl(VirtualKeyCode.VK_Y));
             VisualStudio.InteractiveWindow.Verify.LastReplInput(" 2 + 4 ");
-            VisualStudio.SendKeys.Send(VirtualKey.Enter);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.RETURN);
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("6");
         }
 
@@ -120,7 +121,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_Paste);
             VisualStudio.InteractiveWindow.WaitForLastReplInputContains("TextTextText");
             VisualStudio.InteractiveWindow.Verify.LastReplInput("TextTextText");
-            VisualStudio.SendKeys.Send(VirtualKey.Escape);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.ESCAPE);
         }
 
         //<!-- Regression test for bug 13731.
@@ -137,8 +138,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.ClearScreen();
             VisualStudio.SendKeys.Send(" (");
             VisualStudio.SendKeys.Send(")");
-            VisualStudio.SendKeys.Send(VirtualKey.Left);
-            VisualStudio.SendKeys.Send(VirtualKey.Enter);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.LEFT);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.RETURN);
             VisualStudio.InteractiveWindow.Verify.CaretPosition(12);
         }
     }

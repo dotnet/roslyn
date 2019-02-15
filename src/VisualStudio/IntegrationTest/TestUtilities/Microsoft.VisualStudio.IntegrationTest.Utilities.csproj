@@ -68,6 +68,7 @@
      -->
     <PackageReference Include="Microsoft.Tpl.Dataflow" Version="$(MicrosoftTplDataflowVersion)" ExcludeAssets="all" />
     <PackageReference Include="UIAComWrapper" Version="$(UIAComWrapperVersion)" />
+    <PackageReference Include="InputSimulatorPlus" Version="$(InputSimulatorPlusVersion)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

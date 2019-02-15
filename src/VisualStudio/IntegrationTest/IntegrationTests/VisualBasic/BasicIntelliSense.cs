@@ -3,8 +3,8 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -43,8 +43,8 @@ End Module",
 assertCaretPosition: true);
 
             VisualStudio.SendKeys.Send(
-                VirtualKey.Down,
-                VirtualKey.Tab);
+                VirtualKeyCode.DOWN,
+                VirtualKeyCode.TAB);
 
             VisualStudio.Editor.Verify.TextContains(@"
 Module Module1
@@ -67,7 +67,7 @@ Module Module1
 End Module",
 assertCaretPosition: true);
 
-            VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Z));
+            VisualStudio.SendKeys.Send(Ctrl(VirtualKeyCode.VK_Z));
 
             VisualStudio.Editor.Verify.TextContains(@"
 Module Module1
@@ -77,7 +77,7 @@ Module Module1
 End Module",
 assertCaretPosition: true);
 
-            VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Z));
+            VisualStudio.SendKeys.Send(Ctrl(VirtualKeyCode.VK_Z));
 
             VisualStudio.Editor.Verify.TextContains(@"
 Module Module1
@@ -87,7 +87,7 @@ Module Module1
 End Module",
 assertCaretPosition: true);
 
-            VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Z));
+            VisualStudio.SendKeys.Send(Ctrl(VirtualKeyCode.VK_Z));
 
             VisualStudio.Editor.Verify.TextContains(@"
 Module Module1
@@ -97,7 +97,7 @@ Module Module1
 End Module",
 assertCaretPosition: true);
 
-            VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Z));
+            VisualStudio.SendKeys.Send(Ctrl(VirtualKeyCode.VK_Z));
 
             VisualStudio.Editor.Verify.TextContains(@"
 Module Module1
@@ -107,7 +107,7 @@ Module Module1
 End Module",
 assertCaretPosition: true);
 
-            VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Z));
+            VisualStudio.SendKeys.Send(Ctrl(VirtualKeyCode.VK_Z));
 
             VisualStudio.Editor.Verify.TextContains(@"
 Module Module1
@@ -161,15 +161,15 @@ End Module");
             VisualStudio.SendKeys.Send(' ');
             Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
 
-            VisualStudio.SendKeys.Send(VirtualKey.Backspace);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.BACK);
             Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
 
-            VisualStudio.SendKeys.Send(VirtualKey.Backspace);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.BACK);
             Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.SendKeys.Send(
-                VirtualKey.Left,
-                VirtualKey.Delete);
+                VirtualKeyCode.LEFT,
+                VirtualKeyCode.DELETE);
             Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
         }
 
@@ -275,7 +275,7 @@ End Class");
             VisualStudio.SendKeys.Send(" UF");
             VisualStudio.Editor.Verify.CompletionItemsExist("UFoo");
 
-            VisualStudio.SendKeys.Send(VirtualKey.Enter);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.RETURN);
             Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
             var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"

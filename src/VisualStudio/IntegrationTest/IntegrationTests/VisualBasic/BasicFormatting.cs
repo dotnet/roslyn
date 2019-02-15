@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -66,7 +67,7 @@ Module Program
     End Function
 End Module");
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.Editor.SendKeys("(o", new KeyPress(VirtualKey.Enter, ShiftState.Shift), "'comment");
+            VisualStudio.Editor.SendKeys("(o", new KeyPress(VirtualKeyCode.RETURN, VirtualKeyCode.SHIFT), "'comment");
             VisualStudio.Editor.Verify.TextContains(@"
 Module Program
     Function Main(ooo As Object) As Object

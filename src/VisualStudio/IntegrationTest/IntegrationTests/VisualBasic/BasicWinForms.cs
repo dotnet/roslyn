@@ -3,8 +3,8 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -142,7 +142,7 @@ End Class");
             // Rename control from the code behind file (bug 784595)
             VisualStudio.Editor.SelectTextInCurrentDocument(@"SomeNewButton");
             VisualStudio.ExecuteCommand("Refactor.Rename");
-            VisualStudio.Editor.SendKeys("AnotherNewButton", VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys("AnotherNewButton", VirtualKeyCode.RETURN);
             formActualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"Private Sub SomeButtonHandler(sender As Object, e As EventArgs) Handles AnotherNewButton.Click", formActualText);
         }

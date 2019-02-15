@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -48,7 +48,7 @@ End Module
             VisualStudio.ImmediateWindow.ShowImmediateWindow(clearAll: true);
             VisualStudio.SendKeys.Send("?");
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
-            VisualStudio.SendKeys.Send("n1", VirtualKey.Tab, VirtualKey.Enter);
+            VisualStudio.SendKeys.Send("n1", VirtualKeyCode.TAB, VirtualKeyCode.RETURN);
             Assert.Contains("?n1Var\r\n42", VisualStudio.ImmediateWindow.GetText());
         }
     }

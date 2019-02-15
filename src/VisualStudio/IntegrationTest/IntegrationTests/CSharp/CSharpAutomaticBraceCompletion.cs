@@ -3,8 +3,8 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -32,7 +32,7 @@ class C {
             VisualStudio.Editor.SendKeys("if (true) {");
             VisualStudio.Editor.Verify.CurrentLineText("if (true) { $$}", assertCaretPosition: true);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.TAB);
             VisualStudio.Editor.Verify.CurrentLineText("if (true) { }$$", assertCaretPosition: true);
         }
 
@@ -65,7 +65,7 @@ class C {
 
             VisualStudio.Editor.SendKeys(
                 "if (true) {",
-                VirtualKey.Enter,
+                VirtualKeyCode.RETURN,
                 "var a = 1;");
 
             VisualStudio.Editor.Verify.TextContains(@"
@@ -92,7 +92,7 @@ class C {
 
             VisualStudio.Editor.SendKeys(
                 "if (true) {",
-                VirtualKey.Enter,
+                VirtualKeyCode.RETURN,
                 "var a = 1;",
                 '}');
 
@@ -114,7 +114,7 @@ assertCaretPosition: true);
         {
             VisualStudio.Editor.SendKeys(
                 "class A { int i;",
-                VirtualKey.Enter);
+                VirtualKeyCode.RETURN);
 
             VisualStudio.Editor.Verify.TextContains(@"class A { int i;
 $$}",
@@ -132,7 +132,7 @@ class C {
             VisualStudio.Editor.SendKeys("void Goo(");
             VisualStudio.Editor.Verify.CurrentLineText("void Goo($$)", assertCaretPosition: true);
 
-            VisualStudio.Editor.SendKeys("int x", VirtualKey.Tab);
+            VisualStudio.Editor.SendKeys("int x", VirtualKeyCode.TAB);
             VisualStudio.Editor.Verify.CurrentLineText("void Goo(int x)$$", assertCaretPosition: true);
         }
 
@@ -146,7 +146,7 @@ class C {
 
             VisualStudio.Editor.SendKeys(
                 "void Goo(",
-                VirtualKey.Escape,
+                VirtualKeyCode.ESCAPE,
                 ")");
 
             VisualStudio.Editor.Verify.CurrentLineText("void Goo()$$", assertCaretPosition: true);
@@ -184,7 +184,7 @@ class C {
     $$
 }");
 
-            VisualStudio.Editor.SendKeys("string str = \"", VirtualKey.Tab);
+            VisualStudio.Editor.SendKeys("string str = \"", VirtualKeyCode.TAB);
             VisualStudio.Editor.Verify.CurrentLineText("string str = \"\"$$", assertCaretPosition: true);
         }
 
@@ -216,7 +216,7 @@ class C
             VisualStudio.Editor.Verify.CurrentLineText("var v = $@\"$$\"", assertCaretPosition: true);
 
             // Backspace removes quotes
-            VisualStudio.Editor.SendKeys(VirtualKey.Backspace);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.BACK);
             VisualStudio.Editor.Verify.CurrentLineText("var v = $@$$", assertCaretPosition: true);
 
             // Undo puts them back
@@ -241,7 +241,7 @@ class C {
     $$
 }");
 
-            VisualStudio.Editor.SendKeys("System.Action<", VirtualKey.Tab);
+            VisualStudio.Editor.SendKeys("System.Action<", VirtualKeyCode.TAB);
             VisualStudio.Editor.Verify.CurrentLineText("System.Action<>$$", assertCaretPosition: true);
 
             SetUpEditor(@"
@@ -250,7 +250,7 @@ class C {
     $$
 }");
 
-            VisualStudio.Editor.SendKeys("void GenericMethod<", VirtualKey.Tab);
+            VisualStudio.Editor.SendKeys("void GenericMethod<", VirtualKeyCode.TAB);
             VisualStudio.Editor.Verify.CurrentLineText("void GenericMethod<>$$", assertCaretPosition: true);
 
             SetUpEditor(@"
@@ -290,7 +290,7 @@ class C {
             VisualStudio.Editor.SendKeys("char c = '");
             VisualStudio.Editor.Verify.CurrentLineText("char c = '$$'", assertCaretPosition: true);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Delete, VirtualKey.Backspace);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.DELETE, VirtualKeyCode.BACK);
             VisualStudio.Editor.SendKeys("'\u6666", "'");
 
             VisualStudio.Editor.Verify.CurrentLineText("char c = '\u6666'$$", assertCaretPosition: true);
@@ -311,14 +311,14 @@ class Bar<U>
 
             VisualStudio.Editor.SendKeys(
                 "var arr=new object[,]{{Goo(0",
-                VirtualKey.Tab,
-                VirtualKey.Tab,
+                VirtualKeyCode.TAB,
+                VirtualKeyCode.TAB,
                 ",{Goo(Goo(\"hello",
-                VirtualKey.Tab,
-                VirtualKey.Tab,
-                VirtualKey.Tab,
-                VirtualKey.Tab,
-                VirtualKey.Tab,
+                VirtualKeyCode.TAB,
+                VirtualKeyCode.TAB,
+                VirtualKeyCode.TAB,
+                VirtualKeyCode.TAB,
+                VirtualKeyCode.TAB,
                 ';');
 
             VisualStudio.Editor.Verify.CurrentLineText("var arr = new object[,] { { Goo(0) }, { Goo(Goo(\"hello\")) } };$$", assertCaretPosition: true);
@@ -361,12 +361,12 @@ class C {
             VisualStudio.Editor.SendKeys("string s = \"{([<'");
             VisualStudio.Editor.Verify.CurrentLineText("string s = \"{([<'\"$$", assertCaretPosition: true);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.End, ';', VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.END, ';', VirtualKeyCode.RETURN);
 
             VisualStudio.Editor.SendKeys("string y = @\"{([<'");
             VisualStudio.Editor.Verify.CurrentLineText("string y = @\"{([<'\"$$", assertCaretPosition: true);
 
-            VisualStudio.Editor.SendKeys(VirtualKey.End, ';', VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.END, ';', VirtualKeyCode.RETURN);
 
             VisualStudio.Editor.SendKeys("char ch = '{([<\"");
             VisualStudio.Editor.Verify.CurrentLineText("char ch = '{([<\"'$$", assertCaretPosition: true);
@@ -492,7 +492,7 @@ class C
 }
 ");
 
-            VisualStudio.Editor.SendKeys("new Li(", VirtualKey.Tab);
+            VisualStudio.Editor.SendKeys("new Li(", VirtualKeyCode.TAB);
             VisualStudio.Editor.Verify.CurrentLineText("List<int> li = new List<int>($$)", assertCaretPosition: true);
         }
 
@@ -544,7 +544,7 @@ class $$
             VisualStudio.Editor.Verify.CurrentLineText("class C { $$}", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys(
-                VirtualKey.Enter,
+                VirtualKeyCode.RETURN,
                 "int Prop {");
             VisualStudio.Editor.Verify.TextContains(@"
 class C

@@ -3,8 +3,8 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -27,7 +27,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Editor.SendKeys("usi");
             VisualStudio.Editor.Verify.CompletionItemsExist("using");
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.TAB);
             VisualStudio.Editor.Verify.CurrentLineText("using$$", assertCaretPosition: true);
         }
 
@@ -80,7 +80,7 @@ public static class NavigateTo
             VisualStudio.Editor.SendKeys('.');
             VisualStudio.Editor.Verify.CompletionItemsExist("Search", "Navigate");
 
-            VisualStudio.Editor.SendKeys('S', VirtualKey.Tab);
+            VisualStudio.Editor.SendKeys('S', VirtualKeyCode.TAB);
             VisualStudio.Editor.Verify.CurrentLineText("NavigateTo.Search$$", assertCaretPosition: true);
         }
 
@@ -89,15 +89,15 @@ public static class NavigateTo
         {
             VisualStudio.Workspace.SetUseSuggestionMode(false);
 
-            VisualStudio.Editor.SendKeys("nam Goo", VirtualKey.Enter);
-            VisualStudio.Editor.SendKeys('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
-            VisualStudio.Editor.SendKeys("pu cla Program", VirtualKey.Enter);
-            VisualStudio.Editor.SendKeys('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
-            VisualStudio.Editor.SendKeys("pub stati voi Main(string[] args)", VirtualKey.Enter);
-            VisualStudio.Editor.SendKeys('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys("nam Goo", VirtualKeyCode.RETURN);
+            VisualStudio.Editor.SendKeys('{', VirtualKeyCode.RETURN, '}', VirtualKeyCode.UP, VirtualKeyCode.RETURN);
+            VisualStudio.Editor.SendKeys("pu cla Program", VirtualKeyCode.RETURN);
+            VisualStudio.Editor.SendKeys('{', VirtualKeyCode.RETURN, '}', VirtualKeyCode.UP, VirtualKeyCode.RETURN);
+            VisualStudio.Editor.SendKeys("pub stati voi Main(string[] args)", VirtualKeyCode.RETURN);
+            VisualStudio.Editor.SendKeys('{', VirtualKeyCode.RETURN, '}', VirtualKeyCode.UP, VirtualKeyCode.RETURN);
             VisualStudio.Editor.SendKeys("System.Console.writeline();");
             VisualStudio.Editor.Verify.CurrentLineText("System.Console.WriteLine();$$", assertCaretPosition: true);
-            VisualStudio.Editor.SendKeys(VirtualKey.Home, Shift(VirtualKey.End), VirtualKey.Delete);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.HOME, Shift(VirtualKeyCode.END), VirtualKeyCode.DELETE);
 
             VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_ToggleCompletionMode);
 
@@ -124,7 +124,7 @@ public static class NavigateTo
         public void CtrlSpace()
         {
             SetUpEditor("class c { void M() {$$ } }");
-            VisualStudio.Editor.SendKeys(Ctrl(VirtualKey.Space));
+            VisualStudio.Editor.SendKeys(Ctrl(VirtualKeyCode.SPACE));
             VisualStudio.Editor.Verify.CompletionItemsExist("System");
         }
 
@@ -136,7 +136,7 @@ public static class NavigateTo
             VisualStudio.Editor.Verify.CurrentCompletionItem("c");
             VisualStudio.Editor.Verify.CompletionItemsExist("c");
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Down);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.DOWN);
             VisualStudio.Editor.Verify.CurrentCompletionItem("char");
             VisualStudio.Editor.Verify.CompletionItemsExist("char");
         }
@@ -157,7 +157,7 @@ class Class1
             VisualStudio.Editor.SendKeys("<s");
             VisualStudio.Editor.Verify.CompletionItemsExist("see", "seealso", "summary");
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.RETURN);
             VisualStudio.Editor.Verify.CurrentLineText("///<see cref=\"$$\"/>", assertCaretPosition: true);
         }
 
@@ -215,7 +215,7 @@ class Class1
 
             VisualStudio.Editor.SendKeys(
                 '{',
-                VirtualKey.Enter,
+                VirtualKeyCode.RETURN,
                 "                 ");
 
             VisualStudio.Editor.InvokeCompletionList();
@@ -248,7 +248,7 @@ class Class1
 
             VisualStudio.Editor.SendKeys(
                 'M',
-                Shift(VirtualKey.Enter));
+                Shift(VirtualKeyCode.RETURN));
 
             VisualStudio.Editor.Verify.TextContains(@"
 class Class1
@@ -296,9 +296,9 @@ public class Program
 }");
 
             VisualStudio.Editor.SendKeys(
-                VirtualKey.Delete,
+                VirtualKeyCode.DELETE,
                 "aaa",
-                VirtualKey.Tab);
+                VirtualKeyCode.TAB);
             var actualText = VisualStudio.Editor.GetText();
             Assert.Contains("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa = aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", actualText);
             Assert.True(VisualStudio.Editor.IsCaretOnScreen());
@@ -309,10 +309,10 @@ public class Program
         {
             SetUpEditor(@"$$");
 
-            VisualStudio.Editor.SendKeys(Ctrl(VirtualKey.Space));
+            VisualStudio.Editor.SendKeys(Ctrl(VirtualKeyCode.SPACE));
             Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
 
-            VisualStudio.Editor.SendKeys(Ctrl(VirtualKey.A));
+            VisualStudio.Editor.SendKeys(Ctrl(VirtualKeyCode.VK_A));
             Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
         }
     }

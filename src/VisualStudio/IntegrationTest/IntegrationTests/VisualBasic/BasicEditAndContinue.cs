@@ -3,8 +3,8 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -212,7 +212,7 @@ End Module
             VisualStudio.ActivateMainWindow();
             VisualStudio.SolutionExplorer.OpenFile(project, module1FileName);
 
-            VisualStudio.SendKeys.Send(VirtualKey.T);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.VK_T);
             string editAndContinueDialogName = "Edit and Continue";
             VisualStudio.Dialog.VerifyOpen(editAndContinueDialogName);
             VisualStudio.Dialog.Click(editAndContinueDialogName, "OK");
@@ -222,7 +222,7 @@ End Module
             // This module is referred by the loaded module, but not used. So this will not be loaded
             VisualStudio.SolutionExplorer.OpenFile(basicLibrary, "Class1.vb");
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.SendKeys.Send(VirtualKey.T);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.VK_T);
             VisualStudio.Dialog.VerifyOpen(editAndContinueDialogName);
             VisualStudio.Dialog.Click(editAndContinueDialogName, "OK");
             VisualStudio.Dialog.VerifyClosed(editAndContinueDialogName);
@@ -231,7 +231,7 @@ End Module
             //  This module is not referred by the loaded module. this will not be loaded
             VisualStudio.SolutionExplorer.OpenFile(cSharpLibrary, "File1.cs");
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.SendKeys.Send(VirtualKey.T);
+            VisualStudio.SendKeys.Send(VirtualKeyCode.VK_T);
 
             string microsoftVisualStudioDialogName = "Microsoft Visual Studio";
             VisualStudio.Dialog.VerifyOpen(microsoftVisualStudioDialogName);

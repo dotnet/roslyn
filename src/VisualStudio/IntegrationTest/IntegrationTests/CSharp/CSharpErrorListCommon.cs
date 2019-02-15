@@ -3,7 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -121,7 +121,7 @@ class Program2
 
             VisualStudio.Editor.Activate();
             VisualStudio.Editor.PlaceCaret("aa = aa", charsOffset: -1);
-            VisualStudio.Editor.SendKeys(VirtualKey.Delete);
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.DELETE);
             VisualStudio.ErrorList.ShowErrorList();
             expectedContents = new ErrorListItem[] { };
             actualContents = VisualStudio.ErrorList.GetErrorListContents();

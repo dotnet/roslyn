@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Harness;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests
@@ -96,13 +97,13 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
         }
 
-        protected KeyPress Ctrl(VirtualKey virtualKey)
-            => new KeyPress(virtualKey, ShiftState.Ctrl);
+        protected KeyPress Ctrl(VirtualKeyCode virtualKey)
+            => new KeyPress(virtualKey, VirtualKeyCode.CONTROL);
 
-        protected KeyPress Shift(VirtualKey virtualKey)
-            => new KeyPress(virtualKey, ShiftState.Shift);
+        protected KeyPress Shift(VirtualKeyCode virtualKey)
+            => new KeyPress(virtualKey, VirtualKeyCode.SHIFT);
 
-        protected KeyPress Alt(VirtualKey virtualKey)
-            => new KeyPress(virtualKey, ShiftState.Alt);
+        protected KeyPress Alt(VirtualKeyCode virtualKey)
+            => new KeyPress(virtualKey, VirtualKeyCode.MENU);
     }
 }

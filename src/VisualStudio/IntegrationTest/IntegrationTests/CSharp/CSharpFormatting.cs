@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
+using WindowsInput.Native;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -63,7 +64,7 @@ public class C
     }
 }");
 
-            VisualStudio.Editor.SendKeys(VirtualKey.Backspace, ";");
+            VisualStudio.Editor.SendKeys(VirtualKeyCode.BACK, ";");
             VisualStudio.Editor.Verify.TextContains(@"
 public class C
 {
@@ -257,7 +258,7 @@ class Program
     }
 }");
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
-            VisualStudio.Editor.SendKeys("(ba", new KeyPress(VirtualKey.Enter, ShiftState.Shift), "// comment");
+            VisualStudio.Editor.SendKeys("(ba", new KeyPress(VirtualKeyCode.RETURN, VirtualKeyCode.SHIFT), "// comment");
             VisualStudio.Editor.Verify.TextContains(@"
 class Program
 {
