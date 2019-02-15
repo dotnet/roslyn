@@ -271,6 +271,7 @@
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.TextManager.Interop.10.0"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.TextManager.Interop.12.0"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.TextManager.Interop.16.0.DesignTime"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Utilities"/>
     <PrivateVisualStudioPackage Include="Microsoft.VSSDK.BuildTools"/>
     <PrivateVisualStudioPackage Include="Newtonsoft.Json"/>
