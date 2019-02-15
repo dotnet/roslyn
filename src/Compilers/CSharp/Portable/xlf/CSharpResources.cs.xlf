@@ -1532,6 +1532,16 @@
         <target state="translated">Typ hodnoty, která připouští hodnotu null, nemůže být null.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_PossibleNull">
+        <source>Possible null value.</source>
+        <target state="new">Possible null value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PossibleNull_Title">
+        <source>Possible null value.</source>
+        <target state="new">Possible null value.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
         <target state="translated">Výraz switch nezpracovává všechny možné vstupy (není vyčerpávající).</target>

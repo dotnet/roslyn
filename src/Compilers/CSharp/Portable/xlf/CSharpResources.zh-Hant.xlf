@@ -1532,6 +1532,16 @@
         <target state="translated">可為 Null 的實值型別可為 Null。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_PossibleNull">
+        <source>Possible null value.</source>
+        <target state="new">Possible null value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PossibleNull_Title">
+        <source>Possible null value.</source>
+        <target state="new">Possible null value.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
         <target state="translated">switch 運算式未處理所有可能的輸入 (其並不徹底)。</target>

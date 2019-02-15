@@ -1532,6 +1532,16 @@
         <target state="translated">Тип значения, допускающего NULL, может быть NULL.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_PossibleNull">
+        <source>Possible null value.</source>
+        <target state="new">Possible null value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PossibleNull_Title">
+        <source>Possible null value.</source>
+        <target state="new">Possible null value.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
         <target state="translated">Выражение switch обрабатывает не все возможные входные данные (оно не полное).</target>

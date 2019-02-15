@@ -34,7 +34,8 @@ jobs:
     - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -testVsi 
       displayName: Build and Test
 
-    - task: PublishTestResults@1
+    - task: PublishTestResults@2
+      displayName: Publish xUnit Test Results
       inputs:
         testRunner: XUnit
         testResultsFiles: $(Build.SourcesDirectory)\artifacts\TestResults\$(_configuration)\*.xml

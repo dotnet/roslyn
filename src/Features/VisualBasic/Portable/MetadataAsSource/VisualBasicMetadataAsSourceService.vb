@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis.MetadataAsSource
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
 Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -25,10 +24,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
             MyBase.New(languageServices.GetService(Of ICodeGenerationService)())
         End Sub
 
-        Protected Overrides Async Function AddAssemblyInfoRegionAsync(document As Document, symbol As ISymbol, cancellationToken As CancellationToken) As Task(Of Document)
+        Protected Overrides Async Function AddAssemblyInfoRegionAsync(document As Document, symbolCompilation As Compilation, symbol As ISymbol, cancellationToken As CancellationToken) As Task(Of Document)
             Dim assemblyInfo = MetadataAsSourceHelpers.GetAssemblyInfo(symbol.ContainingAssembly)
-            Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
-            Dim assemblyPath = MetadataAsSourceHelpers.GetAssemblyDisplay(compilation, symbol.ContainingAssembly)
+            Dim assemblyPath = MetadataAsSourceHelpers.GetAssemblyDisplay(symbolCompilation, symbol.ContainingAssembly)
 
             Dim regionTrivia = SyntaxFactory.RegionDirectiveTrivia(
                     SyntaxFactory.Token(SyntaxKind.HashToken),

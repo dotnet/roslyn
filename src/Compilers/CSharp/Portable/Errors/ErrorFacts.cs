@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add(getId(ErrorCode.WRN_NullableValueTypeMayBeNull));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint));
+            builder.Add(getId(ErrorCode.WRN_PossibleNull));
 
             NullableFlowAnalysisSafetyWarnings = builder.ToImmutable();
 
@@ -395,6 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_GivenExpressionNeverMatchesPattern:
                 case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
                 case ErrorCode.WRN_CaseConstantNamedUnderscore:
+                case ErrorCode.WRN_PossibleNull:
                     return 1;
                 default:
                     return 0;
