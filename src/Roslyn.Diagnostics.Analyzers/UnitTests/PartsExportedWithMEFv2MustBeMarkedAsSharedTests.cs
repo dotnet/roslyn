@@ -1,13 +1,19 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Diagnostics;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
-using Test.Utilities;
 using Xunit;
+using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.CodeFixVerifier<
+    Roslyn.Diagnostics.Analyzers.PartsExportedWithMEFv2MustBeMarkedAsSharedAnalyzer,
+    Roslyn.Diagnostics.CSharp.Analyzers.CSharpPartsExportedWithMEFv2MustBeMarkedAsSharedFixer>;
+using VerifyVB = Microsoft.CodeAnalysis.VisualBasic.Testing.XUnit.CodeFixVerifier<
+    Roslyn.Diagnostics.Analyzers.PartsExportedWithMEFv2MustBeMarkedAsSharedAnalyzer,
+    Roslyn.Diagnostics.VisualBasic.Analyzers.BasicPartsExportedWithMEFv2MustBeMarkedAsSharedFixer>;
 
 namespace Roslyn.Diagnostics.Analyzers.UnitTests
 {
-    public class PartsExportedWithMEFv2MustBeMarkedAsSharedTests : DiagnosticAnalyzerTestBase
+    public class PartsExportedWithMEFv2MustBeMarkedAsSharedTests
     {
         private const string CSharpWellKnownAttributesDefinition = @"
 namespace System.Composition
@@ -37,22 +43,12 @@ End Namespace
 
 ";
 
-        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
-        {
-            return new PartsExportedWithMEFv2MustBeMarkedAsSharedAnalyzer();
-        }
-
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return new PartsExportedWithMEFv2MustBeMarkedAsSharedAnalyzer();
-        }
-
         #region No Diagnostic Tests
 
         [Fact]
-        public void NoDiagnosticCases_ResolvedTypes()
+        public async Task NoDiagnosticCases_ResolvedTypes()
         {
-            VerifyCSharp(@"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using System.Composition;
 
@@ -62,7 +58,7 @@ public class C
 }
 " + CSharpWellKnownAttributesDefinition);
 
-            VerifyBasic(@"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System
 Imports System.Composition
 
@@ -73,26 +69,26 @@ End Class
         }
 
         [Fact]
-        public void NoDiagnosticCases_UnresolvedTypes()
+        public async Task NoDiagnosticCases_UnresolvedTypes()
         {
-            VerifyCSharp(@"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
-using System.Composition;
+using System.{|CS0234:Composition|};
 
-[Export(typeof(C)), Shared]
+[{|CS0246:{|CS0246:Export|}|}(typeof(C)), {|CS0246:{|CS0246:Shared|}|}]
 public class C
 {
 }
-", TestValidationMode.AllowCompileErrors);
+");
 
-            VerifyBasic(@"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System
 Imports System.Composition
 
-<Export(GetType(C)), [Shared]> _
+<{|BC30002:Export|}(GetType(C)), {|BC30002:[Shared]|}> _
 Public Class C
 End Class
-", TestValidationMode.AllowCompileErrors);
+");
         }
 
         #endregion
@@ -100,9 +96,9 @@ End Class
         #region Diagnostic Tests
 
         [Fact]
-        public void DiagnosticCases_NoSharedAttribute()
+        public async Task DiagnosticCases_NoSharedAttribute()
         {
-            VerifyCSharp(@"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using System.Composition;
 
@@ -114,7 +110,7 @@ public class C
     // Test0.cs(5,2): warning RS0023: 'C' is exported with MEFv2 and hence must be marked as Shared
     GetCSharpResultAt(5, 2, "C"));
 
-            VerifyBasic(@"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System
 Imports System.Composition
 
@@ -127,9 +123,9 @@ End Class
         }
 
         [Fact]
-        public void DiagnosticCases_DifferentSharedAttribute()
+        public async Task DiagnosticCases_DifferentSharedAttribute()
         {
-            VerifyCSharp(@"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 
 [System.Composition.Export(typeof(C)), Shared]
@@ -144,7 +140,7 @@ public class SharedAttribute: Attribute
     // Test0.cs(4,2): warning RS0023: 'C' is exported with MEFv2 and hence must be marked as Shared
     GetCSharpResultAt(4, 2, "C"));
 
-            VerifyBasic(@"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System
 
 <System.Composition.Export(GetType(C)), [Shared]> _
@@ -163,14 +159,18 @@ End Class
 
         private static DiagnosticResult GetCSharpResultAt(int line, int column, string typeName)
         {
-            var message = string.Format(RoslynDiagnosticsAnalyzersResources.PartsExportedWithMEFv2MustBeMarkedAsSharedMessage, typeName);
-            return GetCSharpResultAt(line, column, RoslynDiagnosticIds.MissingSharedAttributeRuleId, message);
+            return new DiagnosticResult(RoslynDiagnosticIds.MissingSharedAttributeRuleId, DiagnosticSeverity.Warning)
+                .WithLocation(line, column)
+                .WithMessageFormat(RoslynDiagnosticsAnalyzersResources.PartsExportedWithMEFv2MustBeMarkedAsSharedMessage)
+                .WithArguments(typeName);
         }
 
         private static DiagnosticResult GetBasicResultAt(int line, int column, string typeName)
         {
-            var message = string.Format(RoslynDiagnosticsAnalyzersResources.PartsExportedWithMEFv2MustBeMarkedAsSharedMessage, typeName);
-            return GetBasicResultAt(line, column, RoslynDiagnosticIds.MissingSharedAttributeRuleId, message);
+            return new DiagnosticResult(RoslynDiagnosticIds.MissingSharedAttributeRuleId, DiagnosticSeverity.Warning)
+                .WithLocation(line, column)
+                .WithMessageFormat(RoslynDiagnosticsAnalyzersResources.PartsExportedWithMEFv2MustBeMarkedAsSharedMessage)
+                .WithArguments(typeName);
         }
     }
 }

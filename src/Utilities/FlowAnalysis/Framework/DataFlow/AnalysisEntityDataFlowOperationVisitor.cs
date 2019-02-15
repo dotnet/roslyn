@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
@@ -87,39 +88,37 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        protected override void OnLeavingRegion(ControlFlowRegion region)
+        protected override void ProcessOutOfScopeLocalsAndFlowCaptures(IEnumerable<ILocalSymbol> locals, IEnumerable<CaptureId> flowCaptures)
         {
-            base.OnLeavingRegion(region);
+            Debug.Assert(locals.Any() || flowCaptures.Any());
 
-            if (!region.Locals.IsEmpty || !region.CaptureIds.IsEmpty)
+            base.ProcessOutOfScopeLocalsAndFlowCaptures(locals, flowCaptures);
+
+            var allEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+            try
             {
-                var allEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+                AddTrackedEntities(allEntities);
 
-                try
+                // Stop tracking entities for locals and capture Ids that are now out of scope.
+                foreach (var local in locals)
                 {
-                    AddTrackedEntities(allEntities);
+                    var success = AnalysisEntityFactory.TryCreateForSymbolDeclaration(local, out var analysisEntity);
+                    Debug.Assert(success);
 
-                    // Stop tracking entities for locals and capture Ids that are now out of scope.
-                    foreach (var local in region.Locals)
+                    StopTrackingDataForEntity(analysisEntity, allEntities);
+                }
+
+                foreach (var captureId in flowCaptures)
+                {
+                    if (AnalysisEntityFactory.TryGetForFlowCapture(captureId, out var analysisEntity))
                     {
-                        var success = AnalysisEntityFactory.TryCreateForSymbolDeclaration(local, out var analysisEntity);
-                        Debug.Assert(success);
-
                         StopTrackingDataForEntity(analysisEntity, allEntities);
                     }
-
-                    foreach (var captureId in region.CaptureIds)
-                    {
-                        if (AnalysisEntityFactory.TryGetForFlowCapture(captureId, out var analysisEntity))
-                        {
-                            StopTrackingDataForEntity(analysisEntity, allEntities);
-                        }
-                    }
                 }
-                finally
-                {
-                    allEntities.Free();
-                }
+            }
+            finally
+            {
+                allEntities.Free();
             }
         }
 
@@ -297,6 +296,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             IEnumerable<AnalysisEntity> dependentAnalysisEntities;
             if (AnalysisEntityFactory.TryCreate(assignedValueOperation, out AnalysisEntity valueAnalysisEntity))
             {
+                if (!valueAnalysisEntity.Type.HasValueCopySemantics())
+                {
+                    // Unboxing conversion from assigned value (reference type) to target (value copy semantics).
+                    // We do not need to transfer any data for such a case as there is no entity for unboxed value.
+                    return;
+                }
+
                 dependentAnalysisEntities = GetChildAnalysisEntities(valueAnalysisEntity);
             }
             else

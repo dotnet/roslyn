@@ -592,5 +592,8 @@ namespace Analyzer.Utilities.Extensions
         {
             return symbol.Locations.Any(l => l.IsInSource);
         }
+
+        public static bool IsLambdaOrLocalFunction(this ISymbol symbol)
+            => (symbol as IMethodSymbol)?.IsLambdaOrLocalFunction() == true;
     }
 }

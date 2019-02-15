@@ -30,22 +30,6 @@ Category: Performance
 
 Severity: Warning
 
-### RS0016: Add public types and members to the declared API ###
-
-All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.
-
-Category: ApiDesign
-
-Severity: Warning
-
-### RS0017: Remove deleted types and members from the declared API ###
-
-When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.
-
-Category: ApiDesign
-
-Severity: Warning
-
 ### RS0019: SymbolDeclaredEvent must be generated for source symbols ###
 
 Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.
@@ -55,18 +39,6 @@ Category: Reliability
 Severity: Error
 
 ### RS0022: Constructor make noninheritable base class inheritable ###
-
-Category: ApiDesign
-
-Severity: Warning
-
-### RS0024: The contents of the public API files are invalid ###
-
-Category: ApiDesign
-
-Severity: Warning
-
-### RS0025: Do not duplicate symbols in public API files ###
 
 Category: ApiDesign
 

@@ -179,6 +179,9 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsReferenceTypeOrNullableValueType(this ITypeSymbol typeSymbol)
             => typeSymbol != null && (typeSymbol.IsReferenceType || typeSymbol.IsNullableValueType());
 
+        public static bool IsNullableOfBoolean(this ITypeSymbol typeSymbol)
+            => typeSymbol.IsNullableValueType() && ((INamedTypeSymbol)typeSymbol).TypeArguments[0].SpecialType == SpecialType.System_Boolean;
+
         public static Accessibility DetermineMinimalAccessibility(this ITypeSymbol typeSymbol)
         {
             return typeSymbol.Accept(MinimalAccessibilityVisitor.Instance);

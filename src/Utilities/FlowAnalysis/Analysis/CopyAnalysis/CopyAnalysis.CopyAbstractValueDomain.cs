@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 {
@@ -32,7 +33,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                     return 0;
                 }
 
-                if (oldValue.Kind == newValue.Kind)
+                if (oldValue.Kind == newValue.Kind ||
+                    (oldValue.Kind.IsKnown() && newValue.Kind.IsKnown()))
                 {
                     return _entitiesDomain.Compare(oldValue.AnalysisEntities, newValue.AnalysisEntities) * -1;
                 }
@@ -70,8 +72,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                     return CopyAbstractValue.Unknown;
                 }
 
+                Debug.Assert(value1.Kind.IsKnown());
+                Debug.Assert(value2.Kind.IsKnown());
+
                 var mergedEntities = _entitiesDomain.Intersect(value1.AnalysisEntities, value2.AnalysisEntities);
-                return mergedEntities.IsEmpty ? CopyAbstractValue.Unknown : new CopyAbstractValue(mergedEntities);
+                if (mergedEntities.IsEmpty)
+                {
+                    return CopyAbstractValue.Unknown;
+                }
+                else if (mergedEntities.Count == value1.AnalysisEntities.Count)
+                {
+                    Debug.Assert(_entitiesDomain.Equals(mergedEntities, value1.AnalysisEntities));
+                    return value1;
+                }
+                else if (mergedEntities.Count == value2.AnalysisEntities.Count)
+                {
+                    Debug.Assert(_entitiesDomain.Equals(mergedEntities, value2.AnalysisEntities));
+                    return value2;
+                }
+
+                var mergedKind = value1.Kind > value2.Kind ? value1.Kind : value2.Kind;
+                return new CopyAbstractValue(mergedEntities, mergedKind);
             }
         }
     }

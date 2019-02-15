@@ -491,39 +491,57 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         /// <param name="operation">Operation representing the lambda or local function.</param>
         /// <param name="lambdaOrLocalFunction">Method symbol for the lambda or local function.</param>
-        public static ImmutableHashSet<ISymbol> GetCaptures(this IOperation operation, IMethodSymbol lambdaOrLocalFunction)
+        public static PooledHashSet<ISymbol> GetCaptures(this IOperation operation, IMethodSymbol lambdaOrLocalFunction)
         {
             Debug.Assert(operation is IAnonymousFunctionOperation anonymousFunction && anonymousFunction.Symbol.OriginalDefinition.ReturnTypeAndParametersAreSame(lambdaOrLocalFunction.OriginalDefinition) ||
                          operation is ILocalFunctionOperation localFunction && localFunction.Symbol.OriginalDefinition.Equals(lambdaOrLocalFunction.OriginalDefinition));
 
             lambdaOrLocalFunction = lambdaOrLocalFunction.OriginalDefinition;
 
-            var builder = ImmutableHashSet.CreateBuilder<ISymbol>();
-            foreach (var child in operation.Descendants())
+            var builder = PooledHashSet<ISymbol>.GetInstance();
+            var nestedLambdasAndLocalFunctions = PooledHashSet<IMethodSymbol>.GetInstance();
+            nestedLambdasAndLocalFunctions.Add(lambdaOrLocalFunction);
+
+            try
             {
-                switch (child.Kind)
+                foreach (var child in operation.Descendants())
                 {
-                    case OperationKind.LocalReference:
-                        ProcessLocalOrParameter(((ILocalReferenceOperation)child).Local);
-                        break;
+                    switch (child.Kind)
+                    {
+                        case OperationKind.LocalReference:
+                            ProcessLocalOrParameter(((ILocalReferenceOperation)child).Local);
+                            break;
 
-                    case OperationKind.ParameterReference:
-                        ProcessLocalOrParameter(((IParameterReferenceOperation)child).Parameter);
-                        break;
+                        case OperationKind.ParameterReference:
+                            ProcessLocalOrParameter(((IParameterReferenceOperation)child).Parameter);
+                            break;
 
-                    case OperationKind.InstanceReference:
-                        builder.Add(lambdaOrLocalFunction.ContainingType);
-                        break;
+                        case OperationKind.InstanceReference:
+                            builder.Add(lambdaOrLocalFunction.ContainingType);
+                            break;
+
+                        case OperationKind.AnonymousFunction:
+                            nestedLambdasAndLocalFunctions.Add(((IAnonymousFunctionOperation)child).Symbol);
+                            break;
+
+                        case OperationKind.LocalFunction:
+                            nestedLambdasAndLocalFunctions.Add(((ILocalFunctionOperation)child).Symbol);
+                            break;
+                    }
                 }
-            }
 
-            return builder.ToImmutable();
+                return builder;
+            }
+            finally
+            {
+                nestedLambdasAndLocalFunctions.Free();
+            }
 
             // Local functions.
             void ProcessLocalOrParameter(ISymbol symbol)
             {
                 if (symbol.ContainingSymbol?.Kind == SymbolKind.Method &&
-                    symbol.ContainingSymbol.OriginalDefinition != lambdaOrLocalFunction)
+                    !nestedLambdasAndLocalFunctions.Contains(symbol.ContainingSymbol.OriginalDefinition))
                 {
                     builder.Add(symbol);
                 }

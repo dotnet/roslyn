@@ -18,7 +18,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             var sinkInfosBuilder = PooledHashSet<SinkInfo>.GetInstance();
 
             sinkInfosBuilder.AddSinkInfo(
-                WellKnownTypes.SystemReflectionAssembly,
+                WellKnownTypes.SystemReflectionAssemblyFullName,
                 SinkKind.Dll,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
