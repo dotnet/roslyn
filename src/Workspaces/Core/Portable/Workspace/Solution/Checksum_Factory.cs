@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
     {
         public static Checksum Create(Stream stream)
         {
-            using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256))
+            using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
             {
                 using (var pooledBuffer = SharedPools.ByteArray.GetPooledObject())
                 {
@@ -37,11 +37,19 @@ namespace Microsoft.CodeAnalysis
 
                     var bytes = hash.GetHashAndReset();
 
-                    // from SHA2, take only first HashSize for checksum
-                    // this is recommended way to replace SHA1 with SHA256 maintaining same
-                    // memory footprint and collision resistance
-                    // calculating SHA256 is slightly slower than SHA1 but not as much. usually
-                    // about 1.1~1.2 slower.
+                    // if bytes array is bigger than certain size, checksum
+                    // will truncate it to predetermined size. for more detail,
+                    // see the Checksum type
+                    //
+                    // the truncation can happen since different hash algorithm or 
+                    // same algorithm on different platform can have different hash size
+                    // which might be bigger than the Checksum HashSize.
+                    //
+                    // hash algorithm used here should remain functionally correct even
+                    // after the truncation
+                    //
+                    // ex) "https://bugzilla.xamarin.com/show_bug.cgi?id=60298" - LayoutKind.Explicit, Size = 12 ignored with 64bit alignment
+                    // or  "https://github.com/dotnet/roslyn/issues/23722" - Checksum throws on Mono 64-bit
                     return Checksum.From(bytes);
                 }
             }
