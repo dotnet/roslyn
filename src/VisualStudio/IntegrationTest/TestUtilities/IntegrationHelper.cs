@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.Win32;
 using Roslyn.Utilities;
 using WindowsInput;
+using WindowsInput.Native;
 using Process = System.Diagnostics.Process;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
@@ -206,6 +207,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             // NOTE: This assumes that Visual Studio is the active foreground window.
             var simulator = new InputSimulator();
+
+            ResetKeyState(VirtualKeyCode.LCONTROL);
+            ResetKeyState(VirtualKeyCode.RCONTROL);
+            ResetKeyState(VirtualKeyCode.LSHIFT);
+            ResetKeyState(VirtualKeyCode.RSHIFT);
+            ResetKeyState(VirtualKeyCode.LMENU);
+            ResetKeyState(VirtualKeyCode.RMENU);
+
             foreach (var input in inputs)
             {
                 if (input.IsTextEntry)
@@ -219,6 +228,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 else
                 {
                     simulator.Keyboard.KeyPress(input.VirtualKey);
+                }
+            }
+
+            return;
+
+            void ResetKeyState(VirtualKeyCode keyCode)
+            {
+                if (simulator.InputDeviceState.IsHardwareKeyDown(keyCode))
+                {
+                    simulator.Keyboard.KeyUp(keyCode);
                 }
             }
         }
