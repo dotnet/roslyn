@@ -1,254 +1,64 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities
 {
     internal static class WellKnownTypes
     {
-        public const string SystemWebHttpRequest = "System.Web.HttpRequest";
-        public const string SystemDataIDataAdapter = "System.Data.IDataAdapter";
-        public const string SystemDataIDbCommand = "System.Data.IDbCommand";
-        public const string SystemExceptionFullName = "System.Exception";
-        public const string SystemDiagnosticContractsContract = "System.Diagnostics.Contracts.Contract";
-        public const string SystemIDisposable = "System.IDisposable";
-        public const string SystemThreadingMonitor = "System.Threading.Monitor";
-        public const string SystemThreadingTasksTask = "System.Threading.Tasks.Task";
-        public const string SystemCollectionsICollection = "System.Collections.ICollection";
-        public const string SystemRuntimeSerializationSerializationInfo = "System.Runtime.Serialization.SerializationInfo";
-        public const string SystemIEquatable1 = "System.IEquatable`1";
-        public const string SystemWebUIWebControlsSqlDataSource = "System.Web.UI.WebControls.SqlDataSource";
-        public const string SystemDataSqlClientSqlParameter = "System.Data.SqlClient.SqlParameter";
-        public const string SystemDataOleDbOleDbParameter = "System.Data.OleDb.OleDbParameter";
-        public const string SystemDataOdbcOdbcParameter = "System.Data.Odbc.OdbcParameter";
-        public const string SystemBoolean = "System.Boolean";
-        public const string SystemByte = "System.Byte";
-        public const string SystemChar = "System.Char";
-        public const string SystemDateTime = "System.DateTime";
-        public const string SystemDecimal = "System.Decimal";
-        public const string SystemDouble = "System.Double";
-        public const string SystemGlobalizationTimeSpanParse = "System.Globalization.TimeSpanParse";
-        public const string SystemGuid = "System.Guid";
-        public const string SystemInt16 = "System.Int16";
-        public const string SystemInt32 = "System.Int32";
-        public const string SystemInt64 = "System.Int64";
-        public const string SystemNumber = "System.Number";
-        public const string SystemSingle = "System.Single";
-        public const string SystemTimeSpan = "System.TimeSpan";
-        public const string SystemWebHttpCookie = "System.Web.HttpCookie";
-        public const string SystemWebHttpRequestBase = "System.Web.HttpRequestBase";
-        public const string SystemWebHttpRequestWrapper = "System.Web.HttpRequestWrapper";
-        public const string SystemWebUIAdaptersPageAdapter = "System.Web.UI.Adapters.PageAdapter";
-        public const string SystemWebUIDataBoundLiteralControl = "System.Web.UI.DataBoundLiteralControl";
-        public const string SystemWebUIDesignerDataBoundLiteralControl = "System.Web.UI.DesignerDataBoundLiteralControl";
-        public const string SystemWebUIHtmlControlsHtmlInputControl = "System.Web.UI.HtmlControls.HtmlInputControl";
-        public const string SystemWebUIHtmlControlsHtmlInputFile = "System.Web.UI.HtmlControls.HtmlInputFile";
-        public const string SystemWebUIHtmlControlsHtmlInputRadioButton = "System.Web.UI.HtmlControls.HtmlInputRadioButton";
-        public const string SystemWebUIHtmlControlsHtmlInputText = "System.Web.UI.HtmlControls.HtmlInputText";
-        public const string SystemWebUIHtmlControlsHtmlSelect = "System.Web.UI.HtmlControls.HtmlSelect";
-        public const string SystemWebUIHtmlControlsHtmlTextArea = "System.Web.UI.HtmlControls.HtmlTextArea";
-        public const string SystemWebUIHtmlControlsHtmlTitle = "System.Web.UI.HtmlControls.HtmlTitle";
-        public const string SystemWebUIHtmlTextWriter = "System.Web.UI.HtmlTextWriter";
-        public const string SystemWebUIIndexedString = "System.Web.UI.IndexedString";
-        public const string SystemWebUILiteralControl = "System.Web.UI.LiteralControl";
-        public const string SystemWebUIResourceBasedLiteralControl = "System.Web.UI.ResourceBasedLiteralControl";
-        public const string SystemWebUISimplePropertyEntry = "System.Web.UI.SimplePropertyEntry";
-        public const string SystemWebUIStateItem = "System.Web.UI.StateItem";
-        public const string SystemWebUIStringPropertyBuilder = "System.Web.UI.StringPropertyBuilder";
-        public const string SystemWebUITemplateBuilder = "System.Web.UI.TemplateBuilder";
-        public const string SystemWebUITemplateParser = "System.Web.UI.TemplateParser";
-        public const string SystemWebUIWebControlsBaseValidator = "System.Web.UI.WebControls.BaseValidator";
-        public const string SystemWebUIWebControlsBulletedList = "System.Web.UI.WebControls.BulletedList";
-        public const string SystemWebUIWebControlsButton = "System.Web.UI.WebControls.Button";
-        public const string SystemWebUIWebControlsButtonColumn = "System.Web.UI.WebControls.ButtonColumn";
-        public const string SystemWebUIWebControlsButtonField = "System.Web.UI.WebControls.ButtonField";
-        public const string SystemWebUIWebControlsChangePassword = "System.Web.UI.WebControls.ChangePassword";
-        public const string SystemWebUIWebControlsCheckBox = "System.Web.UI.WebControls.CheckBox";
-        public const string SystemWebUIWebControlsCheckBoxField = "System.Web.UI.WebControls.CheckBoxField";
-        public const string SystemWebUIWebControlsCheckBoxList = "System.Web.UI.WebControls.CheckBoxList";
-        public const string SystemWebUIWebControlsCommandEventArgs = "System.Web.UI.WebControls.CommandEventArgs";
-        public const string SystemWebUIWebControlsCreateUserWizard = "System.Web.UI.WebControls.CreateUserWizard";
-        public const string SystemWebUIWebControlsDataKey = "System.Web.UI.WebControls.DataKey";
-        public const string SystemWebUIWebControlsDataList = "System.Web.UI.WebControls.DataList";
-        public const string SystemWebUIWebControlsDetailsView = "System.Web.UI.WebControls.DetailsView";
-        public const string SystemWebUIWebControlsDetailsViewInsertEventArgs = "System.Web.UI.WebControls.DetailsViewInsertEventArgs";
-        public const string SystemWebUIWebControlsDetailsViewUpdateEventArgs = "System.Web.UI.WebControls.DetailsViewUpdateEventArgs";
-        public const string SystemWebUIWebControlsFormView = "System.Web.UI.WebControls.FormView";
-        public const string SystemWebUIWebControlsFormViewInsertEventArgs = "System.Web.UI.WebControls.FormViewInsertEventArgs";
-        public const string SystemWebUIWebControlsFormViewUpdateEventArgs = "System.Web.UI.WebControls.FormViewUpdateEventArgs";
-        public const string SystemWebUIWebControlsGridView = "System.Web.UI.WebControls.GridView";
-        public const string SystemWebUIWebControlsHiddenField = "System.Web.UI.WebControls.HiddenField";
-        public const string SystemWebUIWebControlsHyperLink = "System.Web.UI.WebControls.HyperLink";
-        public const string SystemWebUIWebControlsHyperLinkColumn = "System.Web.UI.WebControls.HyperLinkColumn";
-        public const string SystemWebUIWebControlsHyperLinkField = "System.Web.UI.WebControls.HyperLinkField";
-        public const string SystemWebUIWebControlsImageButton = "System.Web.UI.WebControls.ImageButton";
-        public const string SystemWebUIWebControlsLabel = "System.Web.UI.WebControls.Label";
-        public const string SystemWebUIWebControlsLinkButton = "System.Web.UI.WebControls.LinkButton";
-        public const string SystemWebUIWebControlsListControl = "System.Web.UI.WebControls.ListControl";
-        public const string SystemWebUIWebControlsListItem = "System.Web.UI.WebControls.ListItem";
-        public const string SystemWebUIWebControlsLiteral = "System.Web.UI.WebControls.Literal";
-        public const string SystemWebUIWebControlsLogin = "System.Web.UI.WebControls.Login";
-        public const string SystemWebUIWebControlsMenu = "System.Web.UI.WebControls.Menu";
-        public const string SystemWebUIWebControlsMenuItem = "System.Web.UI.WebControls.MenuItem";
-        public const string SystemWebUIWebControlsMenuItemBinding = "System.Web.UI.WebControls.MenuItemBinding";
-        public const string SystemWebUIWebControlsPasswordRecovery = "System.Web.UI.WebControls.PasswordRecovery";
-        public const string SystemWebUIWebControlsQueryStringParameter = "System.Web.UI.WebControls.QueryStringParameter";
-        public const string SystemWebUIWebControlsRadioButtonList = "System.Web.UI.WebControls.RadioButtonList";
-        public const string SystemWebUIWebControlsServerValidateEventArgs = "System.Web.UI.WebControls.ServerValidateEventArgs";
-        public const string SystemWebUIWebControlsTableCell = "System.Web.UI.WebControls.TableCell";
-        public const string SystemWebUIWebControlsTextBox = "System.Web.UI.WebControls.TextBox";
-        public const string SystemWebUIWebControlsTreeNode = "System.Web.UI.WebControls.TreeNode";
-        public const string SystemWebUIWebControlsTreeNodeBinding = "System.Web.UI.WebControls.TreeNodeBinding";
-        public const string SystemWebUIWebControlsTreeView = "System.Web.UI.WebControls.TreeView";
-        public const string SystemWebUIWebControlsUnit = "System.Web.UI.WebControls.Unit";
-        public const string SystemWebUIWebControlsWebPartsAppearanceEditorPart = "System.Web.UI.WebControls.WebParts.AppearanceEditorPart";
-        public const string SystemWebUIWebControlsWebPartsPersonalizationEntry = "System.Web.UI.WebControls.WebParts.PersonalizationEntry";
-        public const string SystemWebUIWebControlsWebPartsWebPartCatalogAddVerb = "System.Web.UI.WebControls.WebParts.WebPartCatalogAddVerb";
-        public const string SystemWebUIWebControlsWebPartsWebPartCatalogCloseVerb = "System.Web.UI.WebControls.WebParts.WebPartCatalogCloseVerb";
-        public const string SystemWebUIWebControlsWebPartsWebPartCloseVerb = "System.Web.UI.WebControls.WebParts.WebPartCloseVerb";
-        public const string SystemWebUIWebControlsWebPartsWebPartConnectionsCancelVerb = "System.Web.UI.WebControls.WebParts.WebPartConnectionsCancelVerb";
-        public const string SystemWebUIWebControlsWebPartsWebPartConnectionsCloseVerb = "System.Web.UI.WebControls.WebParts.WebPartConnectionsCloseVerb";
-        public const string SystemWebUIWebControlsWebPartsWebPartConnectionsConfigureVerb = "System.Web.UI.WebControls.WebParts.WebPartConnectionsConfigureVerb";
-        public const string SystemWebUIWebControlsWebPartsWebPartConnectionsConnectVerb = "System.Web.UI.WebControls.WebParts.WebPartConnectionsConnectVerb";
-        public const string SystemWebUIWebControlsWebPartsWebPartConnectionsDisconnectVerb = "System.Web.UI.WebControls.WebParts.WebPartConnectionsDisconnectVerb";
-        public const string SystemWebUIWebControlsWebPartsWebPartConnectVerb = "System.Web.UI.WebControls.WebParts.WebPartConnectVerb";
-        public const string SystemWebUIWebControlsWebPartsWebPartDeleteVerb = "System.Web.UI.WebControls.WebParts.WebPartDeleteVerb";
-        public const string SystemWebUIWebControlsWebPartsWebPartEditorApplyVerb = "System.Web.UI.WebControls.WebParts.WebPartEditorApplyVerb";
-        public const string SystemWebUIWebControlsWebPartsWebPartEditorCancelVerb = "System.Web.UI.WebControls.WebParts.WebPartEditorCancelVerb";
-        public const string SystemWebUIWebControlsWebPartsWebPartEditorOKVerb = "System.Web.UI.WebControls.WebParts.WebPartEditorOKVerb";
-        public const string SystemWebUIWebControlsWebPartsWebPartEditVerb = "System.Web.UI.WebControls.WebParts.WebPartEditVerb";
-        public const string SystemWebUIWebControlsWebPartsWebPartExportVerb = "System.Web.UI.WebControls.WebParts.WebPartExportVerb";
-        public const string SystemWebUIWebControlsWebPartsWebPartHeaderCloseVerb = "System.Web.UI.WebControls.WebParts.WebPartHeaderCloseVerb";
-        public const string SystemWebUIWebControlsWebPartsWebPartHelpVerb = "System.Web.UI.WebControls.WebParts.WebPartHelpVerb";
-        public const string SystemWebUIWebControlsWebPartsWebPartMinimizeVerb = "System.Web.UI.WebControls.WebParts.WebPartMinimizeVerb";
-        public const string SystemWebUIWebControlsWebPartsWebPartRestoreVerb = "System.Web.UI.WebControls.WebParts.WebPartRestoreVerb";
-        public const string SystemWebUIWebControlsWebPartsWebPartVerb = "System.Web.UI.WebControls.WebParts.WebPartVerb";
-        public const string SystemWebUIITextControl = "System.Web.UI.ITextControl";
-        public const string SystemCollectionsGenericICollection1 = "System.Collections.Generic.ICollection`1";
-        public const string SystemCollectionsGenericIReadOnlyCollection1 = "System.Collections.Generic.IReadOnlyCollection`1";
-        public const string SystemRuntimeSerializationFormattersBinaryBinaryFormatter = "System.Runtime.Serialization.Formatters.Binary.BinaryFormatter";
-        public const string SystemWebUILosFormatter = "System.Web.UI.LosFormatter";
-        public const string SystemReflectionAssemblyFullName = "System.Reflection.Assembly";
-        public const string SystemAppDomain = "System.AppDomain";
-        public const string SystemWindowsAssemblyPart = "System.Windows.AssemblyPart";
-        public const string SystemWebUIHtmlControlsHtmlContainerControl = "System.Web.UI.HtmlControls.HtmlContainerControl";
-        public const string SystemWebUIHtmlControlsHtmlTable = "System.Web.UI.HtmlControls.HtmlTable";
-        public const string SystemWebUIHtmlControlsHtmlTableRow = "System.Web.UI.HtmlControls.HtmlTableRow";
-        public const string SystemWebUIWebControlsBaseDataList = "System.Web.UI.WebControls.BaseDataList";
-        public const string SystemWebUIWebControlsCalendar = "System.Web.UI.WebControls.Calendar";
-        public const string SystemWebUIWebControlsRepeatInfo = "System.Web.UI.WebControls.RepeatInfo";
-        public const string SystemWebUIWebControlsTable = "System.Web.UI.WebControls.Table";
-        public const string SystemWebHttpResponse = "System.Web.HttpResponse";
-        public const string SystemWebHttpResponseBase = "System.Web.HttpResponseBase";
-        public const string SystemIODirectory = "System.IO.Directory";
-        public const string SystemIOFileFullName = "System.IO.File";
-        public const string SystemIOFileInfo = "System.IO.FileInfo";
-        public const string SystemSecurityCryptographyCipherMode = "System.Security.Cryptography.CipherMode";
-        public const string SystemNetSecurityRemoteCertificateValidationCallback = "System.Net.Security.RemoteCertificateValidationCallback";
-        public const string SystemDiagnosticsProcess = "System.Diagnostics.Process";
-        public const string SystemDiagnosticsProcessStartInfo = "System.Diagnostics.ProcessStartInfo";
-        public const string SystemTextRegularExpressionsRegex = "System.Text.RegularExpressions.Regex";
-        public const string SystemRuntimeSerializationNetDataContractSerializer = "System.Runtime.Serialization.NetDataContractSerializer";
-        public const string SystemWebUIObjectStateFormatter = "System.Web.UI.ObjectStateFormatter";
-        public const string MicrosoftSecurityApplicationAntiXss = "Microsoft.Security.Application.AntiXss";
-        public const string MicrosoftSecurityApplicationAntiXssEncoder = "Microsoft.Security.Application.AntiXssEncoder";
-        public const string MicrosoftSecurityApplicationEncoder = "Microsoft.Security.Application.Encoder";
-        public const string MicrosoftSecurityApplicationUnicodeCharacterEncoder = "Microsoft.Security.Application.UnicodeCharacterEncoder";
-        public const string SystemWebHttpServerUtility = "System.Web.HttpServerUtility";
-        public const string SystemWebHttpServerUtilityBase = "System.Web.HttpServerUtilityBase";
-        public const string SystemWebHttpServerUtilityWrapper = "System.Web.HttpServerUtilityWrapper";
-        public const string SystemWebHttpUtility = "System.Web.HttpUtility";
-        public const string SystemWebSecurityAntiXssAntiXssEncoder = "System.Web.Security.AntiXss.AntiXssEncoder";
-        public const string SystemWebSecurityAntiXssUnicodeCharacterEncoder = "System.Web.Security.AntiXss.UnicodeCharacterEncoder";
-        public const string SystemWebUIAttributeCollection = "System.Web.UI.AttributeCollection";
-        public const string SystemWebUIClientScriptManager = "System.Web.UI.ClientScriptManager";
-        public const string SystemWebUIControl = "System.Web.UI.Control";
-        public const string SystemWebUIControlBuilder = "System.Web.UI.ControlBuilder";
-        public const string SystemWebUIPage = "System.Web.UI.Page";
-        public const string SystemWebUIWebControlsAdCreatedEventArgs = "System.Web.UI.WebControls.AdCreatedEventArgs";
-        public const string SystemWebUIWebControlsBoundField = "System.Web.UI.WebControls.BoundField";
-        public const string SystemWebUIWebControlsCommandField = "System.Web.UI.WebControls.CommandField";
-        public const string SystemWebUIWebControlsDataControlField = "System.Web.UI.WebControls.DataControlField";
-        public const string SystemWebUIWebControlsDataGrid = "System.Web.UI.WebControls.DataGrid";
-        public const string SystemWebUIWebControlsDataGridColumn = "System.Web.UI.WebControls.DataGridColumn";
-        public const string SystemWebUIWebControlsHotSpot = "System.Web.UI.WebControls.HotSpot";
-        public const string SystemWebUIWebControlsHtmlForm = "System.Web.UI.WebControls.HtmlForm";
-        public const string SystemWebUIWebControlsImage = "System.Web.UI.WebControls.Image";
-        public const string SystemWebUIWebControlsImageField = "System.Web.UI.WebControls.ImageField";
-        public const string SystemWebUIWebControlsLoginStatus = "System.Web.UI.WebControls.LoginStatus";
-        public const string SystemWebUIWebControlsPagerSettings = "System.Web.UI.WebControls.PagerSettings";
-        public const string SystemWebUIWebControlsPanel = "System.Web.UI.WebControls.Panel";
-        public const string SystemWebUIWebControlsPanelStyle = "System.Web.UI.WebControls.PanelStyle";
-        public const string SystemWebUIWebControlsRadioButton = "System.Web.UI.WebControls.RadioButton";
-        public const string SystemWebUIWebControlsSiteMapDataSource = "System.Web.UI.WebControls.SiteMapDataSource";
-        public const string SystemWebUIWebControlsTableStyle = "System.Web.UI.WebControls.TableStyle";
-        public const string SystemWebUIWebControlsTreeNodeStyle = "System.Web.UI.WebControls.TreeNodeStyle";
-        public const string SystemWebUIWebControlsWebControl = "System.Web.UI.WebControls.WebControl";
-        public const string SystemWebUIWebControlsWebPartsDeclarativeCatalogPart = "System.Web.UI.WebControls.WebParts.DeclarativeCatalogPart";
-        public const string SystemWebUIWebControlsWebPartsGenericWebPart = "System.Web.UI.WebControls.WebParts.GenericWebPart";
-        public const string SystemWebUIWebControlsWebPartsPageCatalogPart = "System.Web.UI.WebControls.WebParts.PageCatalogPart";
-        public const string SystemWebUIWebControlsWebPartsWebPart = "System.Web.UI.WebControls.WebParts.WebPart";
-        public const string SystemWebUIWebControlsWebPartsWebPartZoneBase = "System.Web.UI.WebControls.WebParts.WebPartZoneBase";
-        public const string SystemWebUIWebControlsWebPartsWebZone = "System.Web.UI.WebControls.WebParts.WebZone";
-        public const string SystemWebUIWebControlsWebPartsZoneLinkButton = "System.Web.UI.WebControls.WebParts.ZoneLinkButton";
-        public const string SystemWebUIWebControlsWizard = "System.Web.UI.WebControls.Wizard";
-        public const string SystemWebUtilHttpEncoder = "System.Web.Util.HttpEncoder";
-
         public static INamedTypeSymbol ICollection(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName(SystemCollectionsICollection);
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsICollection);
         }
 
         public static INamedTypeSymbol GenericICollection(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName(SystemCollectionsGenericICollection1);
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericICollection1);
         }
 
         public static INamedTypeSymbol GenericIReadOnlyCollection(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName(SystemCollectionsGenericIReadOnlyCollection1);
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIReadOnlyCollection1);
         }
 
         public static INamedTypeSymbol IEnumerable(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Collections.IEnumerable");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsIEnumerable);
         }
 
         public static INamedTypeSymbol IEnumerator(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Collections.IEnumerator");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsIEnumerator);
         }
 
         public static INamedTypeSymbol GenericIEnumerable(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Collections.Generic.IEnumerable`1");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIEnumerable1);
         }
 
         public static INamedTypeSymbol GenericIEnumerator(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Collections.Generic.IEnumerator`1");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIEnumerator1);
         }
 
         public static INamedTypeSymbol IList(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Collections.IList");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsIList);
         }
 
         internal static INamedTypeSymbol HttpRequest(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName(SystemWebHttpRequest);
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemWebHttpRequest);
         }
 
         internal static INamedTypeSymbol NameValueCollection(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Collections.Specialized.NameValueCollection");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsSpecializedNameValueCollection);
         }
 
         public static INamedTypeSymbol GenericIList(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Collections.Generic.IList`1");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIList1);
         }
 
         public static INamedTypeSymbol Array(Compilation compilation)
@@ -258,237 +68,239 @@ namespace Analyzer.Utilities
 
         public static INamedTypeSymbol FlagsAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.FlagsAttribute");
+            return compilation.GetTypeByMetadataName(typeof(System.FlagsAttribute).FullName);
         }
 
         public static INamedTypeSymbol StringComparison(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.StringComparison");
+            return compilation.GetTypeByMetadataName(typeof(System.StringComparison).FullName);
         }
 
         public static INamedTypeSymbol CharSet(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Runtime.InteropServices.CharSet");
+            return compilation.GetTypeByMetadataName(typeof(System.Runtime.InteropServices.CharSet).FullName);
         }
 
         public static INamedTypeSymbol DllImportAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Runtime.InteropServices.DllImportAttribute");
+            return compilation.GetTypeByMetadataName(typeof(System.Runtime.InteropServices.DllImportAttribute).FullName);
         }
 
         public static INamedTypeSymbol MarshalAsAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Runtime.InteropServices.MarshalAsAttribute");
+            return compilation.GetTypeByMetadataName(typeof(System.Runtime.InteropServices.MarshalAsAttribute).FullName);
         }
 
         public static INamedTypeSymbol StringBuilder(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Text.StringBuilder");
+            return compilation.GetTypeByMetadataName(typeof(System.Text.StringBuilder).FullName);
         }
 
         public static INamedTypeSymbol UnmanagedType(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Runtime.InteropServices.UnmanagedType");
+            return compilation.GetTypeByMetadataName(typeof(System.Runtime.InteropServices.UnmanagedType).FullName);
         }
 
         public static INamedTypeSymbol MarshalByRefObject(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.MarshalByRefObject");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemMarshalByRefObject);
         }
 
         public static INamedTypeSymbol ExecutionEngineException(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.ExecutionEngineException");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemExecutionEngineException);
         }
 
         public static INamedTypeSymbol OutOfMemoryException(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.OutOfMemoryException");
+            return compilation.GetTypeByMetadataName(typeof(System.OutOfMemoryException).FullName);
         }
 
         public static INamedTypeSymbol StackOverflowException(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.StackOverflowException");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemStackOverflowException);
         }
 
         public static INamedTypeSymbol MemberInfo(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Reflection.MemberInfo");
+            return compilation.GetTypeByMetadataName(typeof(System.Reflection.MemberInfo).FullName);
         }
 
         public static INamedTypeSymbol ParameterInfo(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Reflection.ParameterInfo");
+            return compilation.GetTypeByMetadataName(typeof(System.Reflection.ParameterInfo).FullName);
         }
 
         public static INamedTypeSymbol Monitor(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName(SystemThreadingMonitor);
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemThreadingMonitor);
         }
 
         public static INamedTypeSymbol Thread(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Threading.Thread");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemThreadingThread);
         }
 
         public static INamedTypeSymbol Task(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName(SystemThreadingTasksTask);
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
         }
 
         public static INamedTypeSymbol WebMethodAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Web.Services.WebMethodAttribute");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemWebServicesWebMethodAttribute);
         }
 
         public static INamedTypeSymbol WebUIControl(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Web.UI.Control");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemWebUIControl);
         }
 
         public static INamedTypeSymbol WebUILiteralControl(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Web.UI.LiteralControl");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemWebUILiteralControl);
         }
 
         public static INamedTypeSymbol WinFormsUIControl(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Windows.Forms.Control");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemWindowsFormsControl);
         }
 
         public static INamedTypeSymbol NotImplementedException(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.NotImplementedException");
+            return compilation.GetTypeByMetadataName(typeof(System.NotImplementedException).FullName);
         }
 
         public static INamedTypeSymbol IDisposable(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName(SystemIDisposable);
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
         }
 
         public static INamedTypeSymbol IDeserializationCallback(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Runtime.Serialization.IDeserializationCallback");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationIDeserializationCallback);
         }
 
         public static INamedTypeSymbol ISerializable(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Runtime.Serialization.ISerializable");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationISerializable);
         }
 
         public static INamedTypeSymbol SerializationInfo(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName(SystemRuntimeSerializationSerializationInfo);
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationSerializationInfo);
         }
 
         public static INamedTypeSymbol StreamingContext(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Runtime.Serialization.StreamingContext");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationStreamingContext);
         }
 
         public static INamedTypeSymbol OnDeserializingAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Runtime.Serialization.OnDeserializingAttribute");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationOnDeserializingAttribute);
         }
 
         public static INamedTypeSymbol OnDeserializedAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Runtime.Serialization.OnDeserializedAttribute");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationOnDeserializedAttribute);
         }
 
         public static INamedTypeSymbol OnSerializingAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Runtime.Serialization.OnSerializingAttribute");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationOnSerializingAttribute);
         }
 
         public static INamedTypeSymbol OnSerializedAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Runtime.Serialization.OnSerializedAttribute");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationOnSerializedAttribute);
         }
 
         public static INamedTypeSymbol SerializableAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.SerializableAttribute");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemSerializableAttribute);
         }
 
         public static INamedTypeSymbol NonSerializedAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.NonSerializedAttribute");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemNonSerializedAttribute);
         }
 
         public static INamedTypeSymbol Attribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Attribute");
+            return compilation.GetTypeByMetadataName(typeof(System.Attribute).FullName);
         }
 
         public static INamedTypeSymbol AttributeUsageAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.AttributeUsageAttribute");
+            return compilation.GetTypeByMetadataName(typeof(System.AttributeUsageAttribute).FullName);
         }
 
         public static INamedTypeSymbol AssemblyVersionAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Reflection.AssemblyVersionAttribute");
+            return compilation.GetTypeByMetadataName(typeof(System.Reflection.AssemblyVersionAttribute).FullName);
         }
 
         public static INamedTypeSymbol CLSCompliantAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.CLSCompliantAttribute");
+            return compilation.GetTypeByMetadataName(typeof(System.CLSCompliantAttribute).FullName);
         }
 
         public static INamedTypeSymbol ConditionalAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Diagnostics.ConditionalAttribute");
+            return compilation.GetTypeByMetadataName(typeof(System.Diagnostics.ConditionalAttribute).FullName);
         }
 
         public static INamedTypeSymbol IComparable(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.IComparable");
+            return compilation.GetTypeByMetadataName(typeof(System.IComparable).FullName);
         }
 
         public static INamedTypeSymbol GenericIComparable(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.IComparable`1");
+            return compilation.GetTypeByMetadataName(typeof(System.IComparable<>).FullName);
         }
 
         public static INamedTypeSymbol ComSourceInterfaceAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Runtime.InteropServices.ComSourceInterfacesAttribute");
+#pragma warning disable CS0618 // Type or member is obsolete
+            return compilation.GetTypeByMetadataName(typeof(System.Runtime.InteropServices.ComSourceInterfacesAttribute).FullName);
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public static INamedTypeSymbol GenericEventHandler(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.EventHandler`1");
+            return compilation.GetTypeByMetadataName(typeof(System.EventHandler<>).FullName);
         }
 
         public static INamedTypeSymbol EventArgs(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.EventArgs");
+            return compilation.GetTypeByMetadataName(typeof(System.EventArgs).FullName);
         }
 
         public static INamedTypeSymbol Uri(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Uri");
+            return compilation.GetTypeByMetadataName(typeof(System.Uri).FullName);
         }
 
         public static INamedTypeSymbol ComVisibleAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Runtime.InteropServices.ComVisibleAttribute");
+            return compilation.GetTypeByMetadataName(typeof(System.Runtime.InteropServices.ComVisibleAttribute).FullName);
         }
 
         public static INamedTypeSymbol NeutralResourcesLanguageAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Resources.NeutralResourcesLanguageAttribute");
+            return compilation.GetTypeByMetadataName(typeof(System.Resources.NeutralResourcesLanguageAttribute).FullName);
         }
 
         public static INamedTypeSymbol GeneratedCodeAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.CodeDom.Compiler.GeneratedCodeAttribute");
+            return compilation.GetTypeByMetadataName(typeof(System.CodeDom.Compiler.GeneratedCodeAttribute).FullName);
         }
 
         public static INamedTypeSymbol Console(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Console");
+            return compilation.GetTypeByMetadataName(typeof(System.Console).FullName);
         }
 
         public static INamedTypeSymbol String(Compilation compilation)
@@ -503,42 +315,42 @@ namespace Analyzer.Utilities
 
         public static INamedTypeSymbol X509Certificate(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Security.Cryptography.X509Certificates.X509Certificate");
+            return compilation.GetTypeByMetadataName(typeof(System.Security.Cryptography.X509Certificates.X509Certificate).FullName);
         }
 
         public static INamedTypeSymbol X509Chain(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Security.Cryptography.X509Certificates.X509Chain");
+            return compilation.GetTypeByMetadataName(typeof(System.Security.Cryptography.X509Certificates.X509Chain).FullName);
         }
 
         public static INamedTypeSymbol SslPolicyErrors(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Net.Security.SslPolicyErrors");
+            return compilation.GetTypeByMetadataName(typeof(System.Net.Security.SslPolicyErrors).FullName);
         }
 
         public static INamedTypeSymbol Exception(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName(SystemExceptionFullName);
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemExceptionFullName);
         }
 
         public static INamedTypeSymbol SystemException(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.SystemException");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemSystemException);
         }
 
         public static INamedTypeSymbol InvalidOperationException(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.InvalidOperationException");
+            return compilation.GetTypeByMetadataName(typeof(System.InvalidOperationException).FullName);
         }
 
         public static INamedTypeSymbol ArgumentException(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.ArgumentException");
+            return compilation.GetTypeByMetadataName(typeof(System.ArgumentException).FullName);
         }
 
         public static INamedTypeSymbol NotSupportedException(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.NotSupportedException");
+            return compilation.GetTypeByMetadataName(typeof(System.NotSupportedException).FullName);
         }
 
         public static INamedTypeSymbol KeyNotFoundException(Compilation compilation)
@@ -548,17 +360,17 @@ namespace Analyzer.Utilities
 
         public static INamedTypeSymbol GenericIEqualityComparer(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Collections.Generic.IEqualityComparer`1");
+            return compilation.GetTypeByMetadataName(typeof(System.Collections.Generic.IEqualityComparer<>).FullName);
         }
 
         public static INamedTypeSymbol GenericIEquatable(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName(SystemIEquatable1);
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemIEquatable1);
         }
 
         public static INamedTypeSymbol IHashCodeProvider(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Collections.IHashCodeProvider");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsIHashCodeProvider);
         }
 
         public static INamedTypeSymbol IntPtr(Compilation compilation)
@@ -573,162 +385,162 @@ namespace Analyzer.Utilities
 
         public static INamedTypeSymbol HandleRef(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Runtime.InteropServices.HandleRef");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemRuntimeInteropServicesHandleRef);
         }
 
         public static INamedTypeSymbol DataMemberAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Runtime.Serialization.DataMemberAttribute");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationDataMemberAttribute);
         }
 
         public static INamedTypeSymbol ObsoleteAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.ObsoleteAttribute");
+            return compilation.GetTypeByMetadataName(typeof(System.ObsoleteAttribute).FullName);
         }
 
         public static INamedTypeSymbol PureAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Diagnostics.Contracts.PureAttribute");
+            return compilation.GetTypeByMetadataName(typeof(System.Diagnostics.Contracts.PureAttribute).FullName);
         }
 
         public static INamedTypeSymbol MEFV1ExportAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ExportAttribute");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemComponentModelCompositionExportAttribute);
         }
 
         public static INamedTypeSymbol MEFV2ExportAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Composition.ExportAttribute");
+            return compilation.GetTypeByMetadataName(typeof(System.Composition.ExportAttribute).FullName);
         }
 
         public static INamedTypeSymbol LocalizableAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.ComponentModel.LocalizableAttribute");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemComponentModelLocalizableAttribute);
         }
 
         public static INamedTypeSymbol FieldOffsetAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Runtime.InteropServices.FieldOffsetAttribute");
+            return compilation.GetTypeByMetadataName(typeof(System.Runtime.InteropServices.FieldOffsetAttribute).FullName);
         }
 
         public static INamedTypeSymbol StructLayoutAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Runtime.InteropServices.StructLayoutAttribute");
+            return compilation.GetTypeByMetadataName(typeof(System.Runtime.InteropServices.StructLayoutAttribute).FullName);
         }
 
         public static INamedTypeSymbol IDbCommand(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName(SystemDataIDbCommand);
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemDataIDbCommand);
         }
 
         public static INamedTypeSymbol IDataAdapter(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Data.IDataAdapter");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemDataIDataAdapter);
         }
 
         public static INamedTypeSymbol MvcController(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Web.Mvc.Controller");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemWebMvcController);
         }
 
         public static INamedTypeSymbol MvcControllerBase(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Web.Mvc.ControllerBase");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemWebMvcControllerBase);
         }
 
         public static INamedTypeSymbol ActionResult(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Web.Mvc.ActionResult");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemWebMvcActionResult);
         }
 
         public static INamedTypeSymbol ValidateAntiforgeryTokenAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Web.Mvc.ValidateAntiForgeryTokenAttribute");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemWebMvcValidateAntiForgeryTokenAttribute);
         }
 
         public static INamedTypeSymbol HttpGetAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Web.Mvc.HttpGetAttribute");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemWebMvcHttpGetAttribute);
         }
 
         public static INamedTypeSymbol HttpPostAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Web.Mvc.HttpPostAttribute");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemWebMvcHttpPostAttribute);
         }
 
         public static INamedTypeSymbol HttpPutAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Web.Mvc.HttpPutAttribute");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemWebMvcHttpPutAttribute);
         }
 
         public static INamedTypeSymbol HttpDeleteAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Web.Mvc.HttpDeleteAttribute");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemWebMvcHttpDeleteAttribute);
         }
 
         public static INamedTypeSymbol HttpPatchAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Web.Mvc.HttpPatchAttribute");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemWebMvcHttpPatchAttribute);
         }
 
         public static INamedTypeSymbol AcceptVerbsAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Web.Mvc.AcceptVerbsAttribute");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemWebMvcAcceptVerbsAttribute);
         }
 
         public static INamedTypeSymbol NonActionAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Web.Mvc.NonActionAttribute");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemWebMvcNonActionAttribute);
         }
 
         public static INamedTypeSymbol ChildActionOnlyAttribute(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Web.Mvc.ChildActionOnlyAttribute");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemWebMvcChildActionOnlyAttribute);
         }
 
         public static INamedTypeSymbol HttpVerbs(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Web.Mvc.HttpVerbs");
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemWebMvcHttpVerbs);
         }
 
         public static INamedTypeSymbol IImmutableDictionary(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Collections.Immutable.IImmutableDictionary`2");
+            return compilation.GetTypeByMetadataName(typeof(System.Collections.Immutable.IImmutableDictionary<,>).FullName);
         }
 
         public static INamedTypeSymbol IImmutableList(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Collections.Immutable.IImmutableList`1");
+            return compilation.GetTypeByMetadataName(typeof(System.Collections.Immutable.IImmutableList<>).FullName);
         }
 
         public static INamedTypeSymbol IImmutableQueue(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Collections.Immutable.IImmutableQueue`1");
+            return compilation.GetTypeByMetadataName(typeof(System.Collections.Immutable.IImmutableQueue<>).FullName);
         }
 
         public static INamedTypeSymbol IImmutableSet(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Collections.Immutable.IImmutableSet`1");
+            return compilation.GetTypeByMetadataName(typeof(System.Collections.Immutable.IImmutableSet<>).FullName);
         }
 
         public static INamedTypeSymbol IImmutableStack(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Collections.Immutable.IImmutableStack`1");
+            return compilation.GetTypeByMetadataName(typeof(System.Collections.Immutable.IImmutableStack<>).FullName);
         }
 
         public static INamedTypeSymbol SystemIOFile(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.IO.File");
+            return compilation.GetTypeByMetadataName(typeof(System.IO.File).FullName);
         }
 
         public static INamedTypeSymbol SystemReflectionAssembly(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName("System.Reflection.Assembly");
+            return compilation.GetTypeByMetadataName(typeof(System.Reflection.Assembly).FullName);
         }
 
-        public static ImmutableHashSet<INamedTypeSymbol> IImmutableInterfaces(Compilation compilation)
+        public static System.Collections.Immutable.ImmutableHashSet<INamedTypeSymbol> IImmutableInterfaces(Compilation compilation)
         {
-            var builder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
+            var builder = System.Collections.Immutable.ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
             AddIfNotNull(IImmutableDictionary(compilation));
             AddIfNotNull(IImmutableList(compilation));
             AddIfNotNull(IImmutableQueue(compilation));
@@ -744,6 +556,16 @@ namespace Analyzer.Utilities
                     builder.Add(type);
                 }
             }
+        }
+
+        public static INamedTypeSymbol SystemSecurityCryptographyCipherMode(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemSecurityCryptographyCipherMode);
+        }
+
+        public static INamedTypeSymbol SystemNetSecurityRemoteCertificateValidationCallback(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemNetSecurityRemoteCertificateValidationCallback);
         }
 
         #region Test Framework Types

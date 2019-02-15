@@ -20,7 +20,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             var sinkInfosBuilder = PooledHashSet<SinkInfo>.GetInstance();
 
             sinkInfosBuilder.AddSinkInfo(
-                WellKnownTypes.SystemDataIDbCommand,
+                WellKnownTypeNames.SystemDataIDbCommand,
                 SinkKind.Sql,
                 isInterface: true,
                 isAnyStringParameterInConstructorASink: true,
@@ -30,7 +30,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkMethodParameters: null);
 
             sinkInfosBuilder.AddSinkInfo(
-                WellKnownTypes.SystemDataIDataAdapter,
+                WellKnownTypeNames.SystemDataIDataAdapter,
                 SinkKind.Sql,
                 isInterface: true,
                 isAnyStringParameterInConstructorASink: true,
@@ -38,7 +38,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkMethodParameters: null);
 
             sinkInfosBuilder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsSqlDataSource,
+                WellKnownTypeNames.SystemWebUIWebControlsSqlDataSource,
                 SinkKind.Sql,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,

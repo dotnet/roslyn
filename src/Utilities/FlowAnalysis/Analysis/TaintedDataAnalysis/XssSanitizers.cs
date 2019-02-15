@@ -18,7 +18,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             var builder = PooledHashSet<SanitizerInfo>.GetInstance();
 
             builder.AddSanitizerInfo(
-                WellKnownTypes.MicrosoftSecurityApplicationAntiXss,
+                WellKnownTypeNames.MicrosoftSecurityApplicationAntiXss,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: new[] {
@@ -27,7 +27,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "XmlAttributeEncode",
                 });
             builder.AddSanitizerInfo(
-                WellKnownTypes.MicrosoftSecurityApplicationAntiXssEncoder,
+                WellKnownTypeNames.MicrosoftSecurityApplicationAntiXssEncoder,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: new[] {
@@ -35,16 +35,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "HtmlEncode",
                 });
             builder.AddSanitizerInfo(
-                WellKnownTypes.MicrosoftSecurityApplicationEncoder,
-                isInterface: false,
-                isConstructorSanitizing: false,
-                sanitizingMethods: new[] {
-                    "HtmlAttributeEncode",
-                    "HtmlEncode",
-                    "XmlAttributeEncode",
-                });
-            builder.AddSanitizerInfo(
-                WellKnownTypes.MicrosoftSecurityApplicationUnicodeCharacterEncoder,
+                WellKnownTypeNames.MicrosoftSecurityApplicationEncoder,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: new[] {
@@ -53,52 +44,52 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "XmlAttributeEncode",
                 });
             builder.AddSanitizerInfo(
-                WellKnownTypes.SystemIDisposable,
+                WellKnownTypeNames.MicrosoftSecurityApplicationUnicodeCharacterEncoder,
+                isInterface: false,
+                isConstructorSanitizing: false,
+                sanitizingMethods: new[] {
+                    "HtmlAttributeEncode",
+                    "HtmlEncode",
+                    "XmlAttributeEncode",
+                });
+            builder.AddSanitizerInfo(
+                WellKnownTypeNames.SystemIDisposable,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: new[] {
                     "Dispose",
                 });
             builder.AddSanitizerInfo(
-                WellKnownTypes.SystemWebHttpServerUtility,
+                WellKnownTypeNames.SystemWebHttpServerUtility,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: new[] {
                     "HtmlEncode",
                 });
             builder.AddSanitizerInfo(
-                WellKnownTypes.SystemWebHttpServerUtilityBase,
+                WellKnownTypeNames.SystemWebHttpServerUtilityBase,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: new[] {
                     "HtmlEncode",
                 });
             builder.AddSanitizerInfo(
-                WellKnownTypes.SystemWebHttpServerUtilityWrapper,
+                WellKnownTypeNames.SystemWebHttpServerUtilityWrapper,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: new[] {
                     "HtmlEncode",
                 });
             builder.AddSanitizerInfo(
-                WellKnownTypes.SystemWebHttpUtility,
-                isInterface: false,
-                isConstructorSanitizing: false,
-                sanitizingMethods: new[] {
-                    "HtmlAttributeEncode",
-                    "HtmlEncode",
-                });
-            builder.AddSanitizerInfo(
-                WellKnownTypes.SystemWebSecurityAntiXssAntiXssEncoder,
+                WellKnownTypeNames.SystemWebHttpUtility,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: new[] {
                     "HtmlAttributeEncode",
                     "HtmlEncode",
-                    "XmlAttributeEncode",
                 });
             builder.AddSanitizerInfo(
-                WellKnownTypes.SystemWebSecurityAntiXssUnicodeCharacterEncoder,
+                WellKnownTypeNames.SystemWebSecurityAntiXssAntiXssEncoder,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: new[] {
@@ -107,14 +98,23 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "XmlAttributeEncode",
                 });
             builder.AddSanitizerInfo(
-                WellKnownTypes.SystemWebUIHtmlTextWriter,
+                WellKnownTypeNames.SystemWebSecurityAntiXssUnicodeCharacterEncoder,
+                isInterface: false,
+                isConstructorSanitizing: false,
+                sanitizingMethods: new[] {
+                    "HtmlAttributeEncode",
+                    "HtmlEncode",
+                    "XmlAttributeEncode",
+                });
+            builder.AddSanitizerInfo(
+                WellKnownTypeNames.SystemWebUIHtmlTextWriter,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: new[] {
                     "WriteHtmlAttributeEncode",
                 });
             builder.AddSanitizerInfo(
-                WellKnownTypes.SystemWebUtilHttpEncoder,
+                WellKnownTypeNames.SystemWebUtilHttpEncoder,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: new[] {

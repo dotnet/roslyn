@@ -18,7 +18,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             var sinkInfosBuilder = PooledHashSet<SinkInfo>.GetInstance();
 
             sinkInfosBuilder.AddSinkInfo(
-                WellKnownTypes.SystemReflectionAssemblyFullName,
+                WellKnownTypeNames.SystemReflectionAssemblyFullName,
                 SinkKind.Dll,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -31,7 +31,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ("UnsafeLoadFrom", new[] { "assemblyFile" } ),
                 });
             sinkInfosBuilder.AddSinkInfo(
-                WellKnownTypes.SystemAppDomain,
+                WellKnownTypeNames.SystemAppDomain,
                 SinkKind.Dll,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -42,7 +42,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ("Load", new[] { "rawAssembly", "assemblyRef", "assemblyString", } ),
                 });
             sinkInfosBuilder.AddSinkInfo(
-                WellKnownTypes.SystemWindowsAssemblyPart,
+                WellKnownTypeNames.SystemWindowsAssemblyPart,
                 SinkKind.Dll,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
