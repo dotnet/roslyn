@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
         /// Create Checksum from given byte array. if byte array is bigger than
         /// <see cref="HashSize"/>, it will be truncated to the size
         /// </summary>
-        public static unsafe Checksum From(ImmutableArray<byte> checksum)
+        public static Checksum From(ImmutableArray<byte> checksum)
         {
             if (checksum.Length == 0)
             {
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-         /// This structure stores the 20-byte SHA256 hash as an inline value rather than requiring the use of
+        /// This structure stores the 20-byte SHA256 hash as an inline value rather than requiring the use of
         /// <c>byte[]</c>.
         /// </summary>
         [StructLayout(LayoutKind.Explicit, Size = HashSize)]
