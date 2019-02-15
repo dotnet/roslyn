@@ -20,62 +20,62 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             string[] parseMethods = new string[] { "Parse", "TryParse" };
 
             builder.AddSanitizerInfo(
-                WellKnownTypes.SystemBoolean,
+                WellKnownTypeNames.SystemBoolean,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: parseMethods);
             builder.AddSanitizerInfo(
-                WellKnownTypes.SystemByte,
+                WellKnownTypeNames.SystemByte,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: parseMethods);
             builder.AddSanitizerInfo(
-                WellKnownTypes.SystemChar,
+                WellKnownTypeNames.SystemChar,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: parseMethods);
             builder.AddSanitizerInfo(
-                WellKnownTypes.SystemInt16,
+                WellKnownTypeNames.SystemInt16,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: parseMethods);
             builder.AddSanitizerInfo(
-                WellKnownTypes.SystemInt32,
+                WellKnownTypeNames.SystemInt32,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: parseMethods);
             builder.AddSanitizerInfo(
-                WellKnownTypes.SystemInt64,
+                WellKnownTypeNames.SystemInt64,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: parseMethods);
             builder.AddSanitizerInfo(
-                WellKnownTypes.SystemSingle,
+                WellKnownTypeNames.SystemSingle,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: parseMethods);
             builder.AddSanitizerInfo(
-                WellKnownTypes.SystemDouble,
+                WellKnownTypeNames.SystemDouble,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: parseMethods);
             builder.AddSanitizerInfo(
-                WellKnownTypes.SystemDecimal,
+                WellKnownTypeNames.SystemDecimal,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: parseMethods);
             builder.AddSanitizerInfo(
-                WellKnownTypes.SystemDateTime,
+                WellKnownTypeNames.SystemDateTime,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: parseMethods);
             builder.AddSanitizerInfo(
-                WellKnownTypes.SystemTimeSpan,
+                WellKnownTypeNames.SystemTimeSpan,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: parseMethods);
             builder.AddSanitizerInfo(
-                WellKnownTypes.SystemNumber,
+                WellKnownTypeNames.SystemNumber,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: new string[] {

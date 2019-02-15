@@ -22,7 +22,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             var sourceInfosBuilder = PooledHashSet<SourceInfo>.GetInstance();
 
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebHttpCookie,
+                WellKnownTypeNames.SystemWebHttpCookie,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Domain",
@@ -34,7 +34,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebHttpRequest,
+                WellKnownTypeNames.SystemWebHttpRequest,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "AcceptTypes",
@@ -65,7 +65,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "GetBufferlessInputStream",
                 });
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebHttpRequestBase,
+                WellKnownTypeNames.SystemWebHttpRequestBase,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "AcceptTypes",
@@ -96,7 +96,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "GetBufferlessInputStream",
                 });
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebHttpRequestWrapper,
+                WellKnownTypeNames.SystemWebHttpRequestWrapper,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "AcceptTypes",
@@ -127,97 +127,97 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "GetBufferlessInputStream",
                 });
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIAdaptersPageAdapter,
+                WellKnownTypeNames.SystemWebUIAdaptersPageAdapter,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "QueryString",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIDataBoundLiteralControl,
+                WellKnownTypeNames.SystemWebUIDataBoundLiteralControl,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIDesignerDataBoundLiteralControl,
+                WellKnownTypeNames.SystemWebUIDesignerDataBoundLiteralControl,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIHtmlControlsHtmlInputControl,
+                WellKnownTypeNames.SystemWebUIHtmlControlsHtmlInputControl,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Value",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIIndexedString,
+                WellKnownTypeNames.SystemWebUIIndexedString,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Value" },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUILiteralControl,
+                WellKnownTypeNames.SystemWebUILiteralControl,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIResourceBasedLiteralControl,
+                WellKnownTypeNames.SystemWebUIResourceBasedLiteralControl,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text"
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUISimplePropertyEntry,
+                WellKnownTypeNames.SystemWebUISimplePropertyEntry,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Value",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIStateItem,
+                WellKnownTypeNames.SystemWebUIStateItem,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Value",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIStringPropertyBuilder,
+                WellKnownTypeNames.SystemWebUIStringPropertyBuilder,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUITemplateBuilder,
+                WellKnownTypeNames.SystemWebUITemplateBuilder,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUITemplateParser,
+                WellKnownTypeNames.SystemWebUITemplateParser,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsBaseValidator,
+                WellKnownTypeNames.SystemWebUIWebControlsBaseValidator,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsBulletedList,
+                WellKnownTypeNames.SystemWebUIWebControlsBulletedList,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "SelectedValue",
@@ -225,7 +225,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsButton,
+                WellKnownTypeNames.SystemWebUIWebControlsButton,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "CommandArgument",
@@ -233,28 +233,28 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsButtonColumn,
+                WellKnownTypeNames.SystemWebUIWebControlsButtonColumn,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsButtonField,
+                WellKnownTypeNames.SystemWebUIWebControlsButtonField,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsChangePassword,
+                WellKnownTypeNames.SystemWebUIWebControlsChangePassword,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "TextBoxStyle",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsCheckBox,
+                WellKnownTypeNames.SystemWebUIWebControlsCheckBox,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
@@ -262,7 +262,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsCheckBoxField,
+                WellKnownTypeNames.SystemWebUIWebControlsCheckBoxField,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
@@ -270,127 +270,112 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsCommandEventArgs,
+                WellKnownTypeNames.SystemWebUIWebControlsCommandEventArgs,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "CommandArgument",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsCreateUserWizard,
+                WellKnownTypeNames.SystemWebUIWebControlsCreateUserWizard,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "TextBoxStyle",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsDataKey,
+                WellKnownTypeNames.SystemWebUIWebControlsDataKey,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Value",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsDataList,
+                WellKnownTypeNames.SystemWebUIWebControlsDataList,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "SelectedValue",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsDetailsView,
+                WellKnownTypeNames.SystemWebUIWebControlsDetailsView,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "SelectedValue",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsDetailsViewInsertEventArgs,
+                WellKnownTypeNames.SystemWebUIWebControlsDetailsViewInsertEventArgs,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "CommandArgument",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsDetailsViewUpdateEventArgs,
+                WellKnownTypeNames.SystemWebUIWebControlsDetailsViewUpdateEventArgs,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "CommandArgument",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsFormView,
+                WellKnownTypeNames.SystemWebUIWebControlsFormView,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "SelectedValue",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsFormViewInsertEventArgs,
+                WellKnownTypeNames.SystemWebUIWebControlsFormViewInsertEventArgs,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "CommandArgument",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsFormViewUpdateEventArgs,
+                WellKnownTypeNames.SystemWebUIWebControlsFormViewUpdateEventArgs,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "CommandArgument",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsGridView,
+                WellKnownTypeNames.SystemWebUIWebControlsGridView,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "SelectedValue",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsHiddenField,
+                WellKnownTypeNames.SystemWebUIWebControlsHiddenField,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Value",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsHyperLink,
+                WellKnownTypeNames.SystemWebUIWebControlsHyperLink,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsHyperLinkColumn,
+                WellKnownTypeNames.SystemWebUIWebControlsHyperLinkColumn,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsHyperLinkField,
+                WellKnownTypeNames.SystemWebUIWebControlsHyperLinkField,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsImageButton,
-                isInterface: false,
-                taintedProperties: new string[] {
-                    "CommandArgument",
-                    "Text",
-                },
-                taintedMethods: null);
-            sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsLabel,
-                isInterface: false,
-                taintedProperties: new string[] {
-                    "Text",
-                },
-                taintedMethods: null);
-            sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsLinkButton,
+                WellKnownTypeNames.SystemWebUIWebControlsImageButton,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "CommandArgument",
@@ -398,7 +383,22 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsListControl,
+                WellKnownTypeNames.SystemWebUIWebControlsLabel,
+                isInterface: false,
+                taintedProperties: new string[] {
+                    "Text",
+                },
+                taintedMethods: null);
+            sourceInfosBuilder.AddSourceInfo(
+                WellKnownTypeNames.SystemWebUIWebControlsLinkButton,
+                isInterface: false,
+                taintedProperties: new string[] {
+                    "CommandArgument",
+                    "Text",
+                },
+                taintedMethods: null);
+            sourceInfosBuilder.AddSourceInfo(
+                WellKnownTypeNames.SystemWebUIWebControlsListControl,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "SelectedValue",
@@ -406,7 +406,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsListItem,
+                WellKnownTypeNames.SystemWebUIWebControlsListItem,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
@@ -414,14 +414,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsLiteral,
+                WellKnownTypeNames.SystemWebUIWebControlsLiteral,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsLogin,
+                WellKnownTypeNames.SystemWebUIWebControlsLogin,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "TextBoxStyle",
@@ -429,14 +429,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsMenu,
+                WellKnownTypeNames.SystemWebUIWebControlsMenu,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "SelectedValue",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsMenuItem,
+                WellKnownTypeNames.SystemWebUIWebControlsMenuItem,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
@@ -444,7 +444,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsMenuItemBinding,
+                WellKnownTypeNames.SystemWebUIWebControlsMenuItemBinding,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
@@ -453,7 +453,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsPasswordRecovery,
+                WellKnownTypeNames.SystemWebUIWebControlsPasswordRecovery,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "TextBoxStyle",
@@ -461,42 +461,42 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsQueryStringParameter,
+                WellKnownTypeNames.SystemWebUIWebControlsQueryStringParameter,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "QueryStringField",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsRadioButtonList,
+                WellKnownTypeNames.SystemWebUIWebControlsRadioButtonList,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "TextAlign",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsServerValidateEventArgs,
+                WellKnownTypeNames.SystemWebUIWebControlsServerValidateEventArgs,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Value",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsTableCell,
+                WellKnownTypeNames.SystemWebUIWebControlsTableCell,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsTextBox,
+                WellKnownTypeNames.SystemWebUIWebControlsTextBox,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsTreeNode,
+                WellKnownTypeNames.SystemWebUIWebControlsTreeNode,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
@@ -504,7 +504,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsTreeNodeBinding,
+                WellKnownTypeNames.SystemWebUIWebControlsTreeNodeBinding,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
@@ -513,175 +513,175 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsTreeView,
+                WellKnownTypeNames.SystemWebUIWebControlsTreeView,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "SelectedValue",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsUnit,
+                WellKnownTypeNames.SystemWebUIWebControlsUnit,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Value",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsAppearanceEditorPart,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsAppearanceEditorPart,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Value",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsPersonalizationEntry,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsPersonalizationEntry,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Value",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartCatalogAddVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartCatalogAddVerb,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartCatalogCloseVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartCatalogCloseVerb,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartCloseVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartCloseVerb,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartConnectionsCancelVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartConnectionsCancelVerb,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartConnectionsCloseVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartConnectionsCloseVerb,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartConnectionsConfigureVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartConnectionsConfigureVerb,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartConnectionsConnectVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartConnectionsConnectVerb,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartConnectionsDisconnectVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartConnectionsDisconnectVerb,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartConnectVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartConnectVerb,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartDeleteVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartDeleteVerb,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartEditorApplyVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartEditorApplyVerb,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartEditorCancelVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartEditorCancelVerb,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartEditorOKVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartEditorOKVerb,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartEditVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartEditVerb,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartExportVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartExportVerb,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartHeaderCloseVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartHeaderCloseVerb,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartHelpVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartHelpVerb,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartMinimizeVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartMinimizeVerb,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartRestoreVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartRestoreVerb,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartVerb,
                 isInterface: false,
                 taintedProperties: new string[] {
                     "Text",
                 },
                 taintedMethods: null);
             sourceInfosBuilder.AddSourceInfo(
-                WellKnownTypes.SystemWebUIITextControl,
+                WellKnownTypeNames.SystemWebUIITextControl,
                 isInterface: true,
                 taintedProperties: new string[] {
                     "Text"

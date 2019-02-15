@@ -20,7 +20,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             var builder = PooledHashSet<SinkInfo>.GetInstance();
 
             builder.AddSinkInfo(
-                WellKnownTypes.SystemTextRegularExpressionsRegex,
+                WellKnownTypeNames.SystemTextRegularExpressionsRegex,
                 SinkKind.Regex,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: true,

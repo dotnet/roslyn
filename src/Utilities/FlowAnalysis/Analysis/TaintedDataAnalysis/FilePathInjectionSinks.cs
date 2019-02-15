@@ -18,7 +18,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             PooledHashSet<SinkInfo> builder = PooledHashSet<SinkInfo>.GetInstance();
 
             builder.AddSinkInfo(
-                WellKnownTypes.SystemIODirectory,
+                WellKnownTypeNames.SystemIODirectory,
                 SinkKind.FilePathInjection,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -27,7 +27,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ( "Exists", new[] { "path" } ),
                 });
             builder.AddSinkInfo(
-                WellKnownTypes.SystemIOFileFullName,
+                WellKnownTypeNames.SystemIOFileFullName,
                 SinkKind.FilePathInjection,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -63,7 +63,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ( "WriteAllTextAsync", new[] { "path" } ),
                 });
             builder.AddSinkInfo(
-                WellKnownTypes.SystemIOFileInfo,
+                WellKnownTypeNames.SystemIOFileInfo,
                 SinkKind.FilePathInjection,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: true,

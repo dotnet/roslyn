@@ -20,7 +20,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             var builder = PooledHashSet<SinkInfo>.GetInstance();
 
             builder.AddSinkInfo(
-                WellKnownTypes.SystemDiagnosticsProcess,
+                WellKnownTypeNames.SystemDiagnosticsProcess,
                 SinkKind.ProcessCommand,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -29,7 +29,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ( "Start", new[] { "fileName", "arguments", } ),
                 });
             builder.AddSinkInfo(
-                WellKnownTypes.SystemDiagnosticsProcessStartInfo,
+                WellKnownTypeNames.SystemDiagnosticsProcessStartInfo,
                 SinkKind.ProcessCommand,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: true,

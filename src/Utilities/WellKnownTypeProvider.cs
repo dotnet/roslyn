@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
+using Analyzer.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
@@ -23,14 +24,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Compilation = compilation;
             _fullNameToTypeMap = new ConcurrentDictionary<string, INamedTypeSymbol>(StringComparer.Ordinal);
 
-            Exception = GetTypeByMetadataName(Analyzer.Utilities.WellKnownTypes.SystemExceptionFullName);
-            Contract = GetTypeByMetadataName(Analyzer.Utilities.WellKnownTypes.SystemDiagnosticContractsContract);
-            IDisposable = GetTypeByMetadataName(Analyzer.Utilities.WellKnownTypes.SystemIDisposable);
-            Monitor = GetTypeByMetadataName(Analyzer.Utilities.WellKnownTypes.SystemThreadingMonitor);
-            Task = GetTypeByMetadataName(Analyzer.Utilities.WellKnownTypes.SystemThreadingTasksTask);
+            Exception = GetTypeByMetadataName(WellKnownTypeNames.SystemExceptionFullName);
+            Contract = GetTypeByMetadataName(WellKnownTypeNames.SystemDiagnosticContractsContract);
+            IDisposable = GetTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
+            Monitor = GetTypeByMetadataName(WellKnownTypeNames.SystemThreadingMonitor);
+            Task = GetTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
             CollectionTypes = GetWellKnownCollectionTypes();
-            SerializationInfo = GetTypeByMetadataName(Analyzer.Utilities.WellKnownTypes.SystemRuntimeSerializationSerializationInfo);
-            GenericIEquatable = GetTypeByMetadataName(Analyzer.Utilities.WellKnownTypes.SystemIEquatable1);
+            SerializationInfo = GetTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationSerializationInfo);
+            GenericIEquatable = GetTypeByMetadataName(WellKnownTypeNames.SystemIEquatable1);
         }
 
         public static WellKnownTypeProvider GetOrCreate(Compilation compilation) => s_providerCache.GetValue(compilation, s_ProviderCacheCallback);
@@ -108,19 +109,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private ImmutableHashSet<INamedTypeSymbol> GetWellKnownCollectionTypes()
         {
             var builder = PooledHashSet<INamedTypeSymbol>.GetInstance();
-            var iCollection = GetTypeByMetadataName(Analyzer.Utilities.WellKnownTypes.SystemCollectionsICollection);
+            var iCollection = GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsICollection);
             if (iCollection != null)
             {
                 builder.Add(iCollection);
             }
 
-            var genericICollection = GetTypeByMetadataName(Analyzer.Utilities.WellKnownTypes.SystemCollectionsGenericICollection1);
+            var genericICollection = GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericICollection1);
             if (genericICollection != null)
             {
                 builder.Add(genericICollection);
             }
 
-            var genericIReadOnlyCollection = GetTypeByMetadataName(Analyzer.Utilities.WellKnownTypes.SystemCollectionsGenericIReadOnlyCollection1);
+            var genericIReadOnlyCollection = GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIReadOnlyCollection1);
             if (genericIReadOnlyCollection != null)
             {
                 builder.Add(genericIReadOnlyCollection);

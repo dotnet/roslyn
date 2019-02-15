@@ -21,14 +21,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             SinkKind[] sinkKinds = new SinkKind[] { SinkKind.InformationDisclosure, SinkKind.Xss };
 
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIITextControl,
+                WellKnownTypeNames.SystemWebUIITextControl,
                 sinkKinds,
                 isInterface: true,
                 isAnyStringParameterInConstructorASink: false,
                 sinkProperties: new[] { "Text" },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebHttpResponseBase,
+                WellKnownTypeNames.SystemWebHttpResponseBase,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -40,7 +40,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ("WriteFile", new[] { "filename" } )
                 });
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebHttpResponse,
+                WellKnownTypeNames.SystemWebHttpResponse,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -53,7 +53,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 });
 
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIDesignerDataBoundLiteralControl,
+                WellKnownTypeNames.SystemWebUIDesignerDataBoundLiteralControl,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -62,7 +62,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIHtmlControlsHtmlContainerControl,  // Covers HtmlSelect, HtmlTable, HtmlTableRow
+                WellKnownTypeNames.SystemWebUIHtmlControlsHtmlContainerControl,  // Covers HtmlSelect, HtmlTable, HtmlTableRow
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -71,7 +71,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIHtmlControlsHtmlTitle,
+                WellKnownTypeNames.SystemWebUIHtmlControlsHtmlTitle,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -80,7 +80,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIHtmlTextWriter,
+                WellKnownTypeNames.SystemWebUIHtmlTextWriter,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -89,7 +89,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ( "AddAttribute", new[] { "value" }),
                 });
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUILiteralControl,
+                WellKnownTypeNames.SystemWebUILiteralControl,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -98,7 +98,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIResourceBasedLiteralControl,
+                WellKnownTypeNames.SystemWebUIResourceBasedLiteralControl,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -107,7 +107,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUITemplateBuilder,
+                WellKnownTypeNames.SystemWebUITemplateBuilder,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -116,7 +116,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUITemplateParser,
+                WellKnownTypeNames.SystemWebUITemplateParser,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -125,7 +125,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsBaseDataList,
+                WellKnownTypeNames.SystemWebUIWebControlsBaseDataList,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -134,7 +134,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsBaseValidator,
+                WellKnownTypeNames.SystemWebUIWebControlsBaseValidator,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -143,7 +143,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsButton,
+                WellKnownTypeNames.SystemWebUIWebControlsButton,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -152,7 +152,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsButtonColumn,
+                WellKnownTypeNames.SystemWebUIWebControlsButtonColumn,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -161,7 +161,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsButtonField,
+                WellKnownTypeNames.SystemWebUIWebControlsButtonField,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -170,7 +170,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsCalendar,
+                WellKnownTypeNames.SystemWebUIWebControlsCalendar,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -179,7 +179,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsCheckBox,
+                WellKnownTypeNames.SystemWebUIWebControlsCheckBox,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -188,7 +188,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsCheckBoxField,
+                WellKnownTypeNames.SystemWebUIWebControlsCheckBoxField,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -197,7 +197,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsDetailsView,
+                WellKnownTypeNames.SystemWebUIWebControlsDetailsView,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -206,7 +206,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsFormView,
+                WellKnownTypeNames.SystemWebUIWebControlsFormView,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -215,7 +215,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsGridView,
+                WellKnownTypeNames.SystemWebUIWebControlsGridView,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -224,7 +224,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsHyperLink,
+                WellKnownTypeNames.SystemWebUIWebControlsHyperLink,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -233,7 +233,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsHyperLinkColumn,
+                WellKnownTypeNames.SystemWebUIWebControlsHyperLinkColumn,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -242,7 +242,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsHyperLinkField,
+                WellKnownTypeNames.SystemWebUIWebControlsHyperLinkField,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -251,7 +251,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsImageButton,
+                WellKnownTypeNames.SystemWebUIWebControlsImageButton,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -260,7 +260,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsLabel,
+                WellKnownTypeNames.SystemWebUIWebControlsLabel,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -269,7 +269,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsLinkButton,
+                WellKnownTypeNames.SystemWebUIWebControlsLinkButton,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -278,7 +278,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsListControl,    // Covers BulletedList, CheckBoxList, RadioButtonList
+                WellKnownTypeNames.SystemWebUIWebControlsListControl,    // Covers BulletedList, CheckBoxList, RadioButtonList
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -287,7 +287,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsListItem,
+                WellKnownTypeNames.SystemWebUIWebControlsListItem,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -296,7 +296,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsLiteral,
+                WellKnownTypeNames.SystemWebUIWebControlsLiteral,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -305,7 +305,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsMenuItem,
+                WellKnownTypeNames.SystemWebUIWebControlsMenuItem,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -314,7 +314,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsMenuItemBinding,
+                WellKnownTypeNames.SystemWebUIWebControlsMenuItemBinding,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -324,7 +324,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsRepeatInfo,
+                WellKnownTypeNames.SystemWebUIWebControlsRepeatInfo,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -333,7 +333,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsTable,
+                WellKnownTypeNames.SystemWebUIWebControlsTable,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -342,7 +342,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsTableCell,
+                WellKnownTypeNames.SystemWebUIWebControlsTableCell,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -351,7 +351,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsTextBox,
+                WellKnownTypeNames.SystemWebUIWebControlsTextBox,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -361,7 +361,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsTreeNode,
+                WellKnownTypeNames.SystemWebUIWebControlsTreeNode,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -370,7 +370,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsTreeNodeBinding,
+                WellKnownTypeNames.SystemWebUIWebControlsTreeNodeBinding,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -380,7 +380,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartCatalogAddVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartCatalogAddVerb,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -389,7 +389,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartCatalogCloseVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartCatalogCloseVerb,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -398,7 +398,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartCloseVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartCloseVerb,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -407,7 +407,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartConnectionsCancelVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartConnectionsCancelVerb,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -416,7 +416,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartConnectionsCloseVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartConnectionsCloseVerb,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -425,7 +425,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartConnectionsConfigureVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartConnectionsConfigureVerb,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -434,7 +434,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartConnectionsConnectVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartConnectionsConnectVerb,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -443,7 +443,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartConnectionsDisconnectVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartConnectionsDisconnectVerb,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -452,7 +452,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartConnectVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartConnectVerb,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -461,7 +461,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartDeleteVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartDeleteVerb,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -470,7 +470,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartEditorApplyVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartEditorApplyVerb,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -479,7 +479,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartEditorCancelVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartEditorCancelVerb,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -488,7 +488,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartEditorOKVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartEditorOKVerb,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -497,7 +497,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartEditVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartEditVerb,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -506,7 +506,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartExportVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartExportVerb,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -515,7 +515,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartHeaderCloseVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartHeaderCloseVerb,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -524,7 +524,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartHelpVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartHelpVerb,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -533,7 +533,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartMinimizeVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartMinimizeVerb,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -542,7 +542,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartRestoreVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartRestoreVerb,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
@@ -551,7 +551,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemWebUIWebControlsWebPartsWebPartVerb,
+                WellKnownTypeNames.SystemWebUIWebControlsWebPartsWebPartVerb,
                 sinkKinds,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
