@@ -3131,7 +3131,7 @@ ref struct DisposableEnumerator
             var boundNode = GetBoundForEachStatement(text, TestOptions.Regular7_3);
             var enumeratorInfo = boundNode.EnumeratorInfoOpt;
 
-            Assert.Equal(null, enumeratorInfo.DisposeMethod);
+            Assert.Null(enumeratorInfo.DisposeMethod);
         }
 
         private static BoundForEachStatement GetBoundForEachStatement(string text, CSharpParseOptions options = null, params DiagnosticDescription[] diagnostics)
