@@ -3622,7 +3622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// From ExpressionBinder::EnsureQMarkTypesCompatible:
         ///
-        /// The v2.0 specification states that the types of the second and third operands T and S of a ternary operator
+        /// The v2.0 specification states that the types of the second and third operands T and S of a conditional operator
         /// must be TT and TS such that either (a) TT==TS, or (b), TT->TS or TS->TT but not both.
         ///
         /// Unfortunately that is not what we implemented in v2.0.  Instead, we implemented
