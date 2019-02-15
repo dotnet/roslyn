@@ -6765,7 +6765,7 @@ class C
   IL_0007:  ldc.i4.0
   IL_0008:  ldc.i4.1
   IL_0009:  newobj     ""System.Index..ctor(int, bool)""
-  IL_000e:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_000e:  newobj     ""System.Range..ctor(System.Index, System.Index)""
   IL_0013:  ret
 }");
         }
@@ -6814,7 +6814,7 @@ class C
   IL_0006:  ldc.i4.0
   IL_0007:  ldc.i4.1
   IL_0008:  newobj     ""System.Index..ctor(int, bool)""
-  IL_000d:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_000d:  newobj     ""System.Range..ctor(System.Index, System.Index)""
   IL_0012:  ret
 }");
         }
@@ -6863,7 +6863,7 @@ class C
   IL_0002:  newobj     ""System.Index..ctor(int, bool)""
   IL_0007:  ldc.i4.2
   IL_0008:  call       ""System.Index System.Index.op_Implicit(int)""
-  IL_000d:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_000d:  newobj     ""System.Range..ctor(System.Index, System.Index)""
   IL_0012:  ret
 }");
         }
@@ -6911,7 +6911,7 @@ class C
   IL_0001:  call       ""System.Index System.Index.op_Implicit(int)""
   IL_0006:  ldc.i4.4
   IL_0007:  call       ""System.Index System.Index.op_Implicit(int)""
-  IL_000c:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_000c:  newobj     ""System.Range..ctor(System.Index, System.Index)""
   IL_0011:  ret
 }");
         }
