@@ -744,7 +744,7 @@ hasRelatedInterfaces:
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckMethodConstraints(method, conversions, includeNullability: false, currentCompilation, diagnosticsBuilder, warningsBuilderOpt: null, ref useSiteDiagnosticsBuilder);
+            var result = CheckMethodConstraints(method, conversions, includeNullability: false, currentCompilation, diagnosticsBuilder, nullabilityBuilderOpt: null, ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -775,7 +775,7 @@ hasRelatedInterfaces:
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckMethodConstraints(method, conversions, includeNullability: false, currentCompilation, diagnosticsBuilder, warningsBuilderOpt: null, ref useSiteDiagnosticsBuilder);
+            var result = CheckMethodConstraints(method, conversions, includeNullability: false, currentCompilation, diagnosticsBuilder, nullabilityBuilderOpt: null, ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -819,7 +819,7 @@ hasRelatedInterfaces:
             bool includeNullability,
             Compilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
-            ArrayBuilder<TypeParameterDiagnosticInfo> warningsBuilderOpt,
+            ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityBuilderOpt,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
             BitVector skipParameters = default(BitVector))
         {
@@ -832,7 +832,7 @@ hasRelatedInterfaces:
                 method.TypeArguments,
                 currentCompilation,
                 diagnosticsBuilder,
-                warningsBuilderOpt,
+                nullabilityBuilderOpt,
                 ref useSiteDiagnosticsBuilder,
                 skipParameters);
         }

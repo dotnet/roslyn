@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 includeNullability: false,
                 this.Compilation,
                 diagnosticsBuilder,
-                warningsBuilderOpt: null,
+                nullabilityBuilderOpt: null,
                 ref useSiteDiagnosticsBuilder);
 
             if (!constraintsSatisfied)

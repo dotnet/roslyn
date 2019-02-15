@@ -597,6 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 elementNames.ToImmutableAndFree(),
                                             this.Compilation,
                                             this.ShouldCheckConstraints,
+                                            includeNullability: this.ShouldCheckConstraints,
                                             errorPositions: default(ImmutableArray<bool>),
                                             syntax: syntax,
                                             diagnostics: diagnostics);

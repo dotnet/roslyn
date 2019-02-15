@@ -3172,7 +3172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CheckMethodConstraints(SyntaxNode syntax, MethodSymbol method)
         {
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
-            var warningsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+            var nullabilityBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
             ConstraintsHelper.CheckMethodConstraints(
                 method,
@@ -3180,14 +3180,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 includeNullability: true,
                 compilation,
                 diagnosticsBuilder,
-                warningsBuilder,
+                nullabilityBuilder,
                 ref useSiteDiagnosticsBuilder);
-            foreach (var pair in warningsBuilder)
+            foreach (var pair in nullabilityBuilder)
             {
                 Diagnostics.Add(pair.DiagnosticInfo, syntax.Location);
             }
             useSiteDiagnosticsBuilder?.Free();
-            warningsBuilder.Free();
+            nullabilityBuilder.Free();
             diagnosticsBuilder.Free();
         }
 
@@ -4268,7 +4268,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             variables.FreeAll(v => v.NestedVariables);
 
-            // https://github.com/dotnet/roslyn/issues/33011: Result type should be inferred.
+            // https://github.com/dotnet/roslyn/issues/33011: Result type should be inferred and the constraints should
+            // be re-verified. Even though the standard tuple type has no constraints we support that scenario. Constraints_78
+            // has a test for this case that should start failing when this is fixed.
             SetResult(node);
             return null;
         }
