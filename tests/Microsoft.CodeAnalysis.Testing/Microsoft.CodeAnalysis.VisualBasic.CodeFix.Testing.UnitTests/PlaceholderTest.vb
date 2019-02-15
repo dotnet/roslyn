@@ -2,11 +2,9 @@
 
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.Testing
-    Public Class PlaceholderTest
-        <Fact>
-        <WorkItem(223, "https://github.com/dotnet/roslyn-sdk/issues/223")>
-        Public Sub ThisTestExists()
-        End Sub
-    End Class
-End Namespace
+Public Class PlaceholderTest
+    <Fact>
+    <WorkItem(223, "https://github.com/dotnet/roslyn-sdk/issues/223")>
+    Public Sub ThisTestExists()
+    End Sub
+End Class
