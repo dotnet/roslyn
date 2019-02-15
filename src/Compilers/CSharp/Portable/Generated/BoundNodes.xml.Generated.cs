@@ -3763,27 +3763,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBaseReference : BoundExpression
     {
-        public BoundBaseReference(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.BaseReference, syntax, type, hasErrors)
+        public BoundBaseReference(SyntaxNode syntax, BoundTypeExpression explicitBaseReferenceOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.BaseReference, syntax, type, hasErrors || explicitBaseReferenceOpt.HasErrors())
         {
+            this.ExplicitBaseReferenceOpt = explicitBaseReferenceOpt;
         }
 
-        public BoundBaseReference(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.BaseReference, syntax, type)
-        {
-        }
 
+        public BoundTypeExpression ExplicitBaseReferenceOpt { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitBaseReference(this);
         }
 
-        public BoundBaseReference Update(TypeSymbol type)
+        public BoundBaseReference Update(BoundTypeExpression explicitBaseReferenceOpt, TypeSymbol type)
         {
-            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (explicitBaseReferenceOpt != this.ExplicitBaseReferenceOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundBaseReference(this.Syntax, type, this.HasErrors);
+                var result = new BoundBaseReference(this.Syntax, explicitBaseReferenceOpt, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -9768,6 +9766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitBaseReference(BoundBaseReference node)
         {
+            this.Visit(node.ExplicitBaseReferenceOpt);
             return null;
         }
         public override BoundNode VisitLocal(BoundLocal node)
@@ -10775,8 +10774,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitBaseReference(BoundBaseReference node)
         {
+            BoundTypeExpression explicitBaseReferenceOpt = (BoundTypeExpression)this.Visit(node.ExplicitBaseReferenceOpt);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(type);
+            return node.Update(explicitBaseReferenceOpt, type);
         }
         public override BoundNode VisitLocal(BoundLocal node)
         {
@@ -12251,6 +12251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new TreeDumperNode("baseReference", null, new TreeDumperNode[]
             {
+                new TreeDumperNode("explicitBaseReferenceOpt", null, new TreeDumperNode[] { Visit(node.ExplicitBaseReferenceOpt, null) }),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

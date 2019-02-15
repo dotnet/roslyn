@@ -945,7 +945,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LookupMembersInInterfaceOnly(current, type, name, arity, options, originalBinder, type, diagnose, ref useSiteDiagnostics);
 
-            if (!originalBinder.InCrefButNotParameterOrReturnType)
+            if (!originalBinder.InCrefButNotParameterOrReturnType && (options & LookupOptions.NoObjectMembersOnInterfaces) == 0)
             {
                 var tmp = LookupResult.GetInstance();
                 // NB: we assume use-site-errors on System.Object, if any, have been reported earlier.

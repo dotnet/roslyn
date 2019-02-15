@@ -320,9 +320,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiverOpt = group.ReceiverOpt;
             MethodSymbol method = conversion.Method;
             bool hasErrors = false;
-            if (receiverOpt != null && receiverOpt.Kind == BoundKind.BaseReference && method.IsAbstract)
+
+            if (IsBadBaseAccess(syntax, receiverOpt, method, diagnostics))
             {
-                Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, syntax, method);
                 hasErrors = true;
             }
 
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </returns>
         private bool MemberGroupFinalValidation(BoundExpression receiverOpt, MethodSymbol methodSymbol, SyntaxNode node, DiagnosticBag diagnostics, bool invokedAsExtensionMethod)
         {
-            CheckRuntimeSupportForSymbolAccess(node, methodSymbol, diagnostics);
+            CheckRuntimeSupportForSymbolAccess(node, receiverOpt, methodSymbol, diagnostics);
 
             if (MemberGroupFinalValidationAccessibilityChecks(receiverOpt, methodSymbol, node, diagnostics, invokedAsExtensionMethod))
             {

@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return currTypeExplicitImpl;
                 }
 
-                if (!seenTypeDeclaringInterface || 
+                if (!seenTypeDeclaringInterface ||
                     (!canBeImplementedImplicitly && (object)implementingBaseOpt == null))
                 {
                     if (currType.InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics).ContainsKey(interfaceType))
@@ -1015,6 +1015,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return implicitImpl;
         }
 
+        internal static MethodSymbol TryFindBaseImplementationInInterface(NamedTypeSymbol baseInterface, MethodSymbol method, DiagnosticBag diagnosticsOpt, SyntaxNode nodeOpt, Binder accessCheckBinderOpt)
+        {
+            Debug.Assert(baseInterface.IsInterface);
+            Debug.Assert(diagnosticsOpt is null == nodeOpt is null);
+            Debug.Assert(diagnosticsOpt is null == accessCheckBinderOpt is null);
+
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            Symbol conflictingImplementation1 = null;
+            Symbol conflictingImplementation2 = null;
+            Symbol implementingMember = TypeSymbol.FindImplementationInInterface(method, baseInterface) ??
+                                        TypeSymbol.FindMostSpecificImplementation(method, baseInterface,
+                                                                    ref useSiteDiagnostics,
+                                                                    out conflictingImplementation1, out conflictingImplementation2);
+            if (implementingMember is null)
+            {
+                if (diagnosticsOpt != null)
+                {
+                    if (!(conflictingImplementation1 is null))
+                    {
+                        Debug.Assert(!(conflictingImplementation2 is null));
+                        diagnosticsOpt.Add(ErrorCode.ERR_MostSpecificImplementationIsNotFound, nodeOpt.Location,
+                              method, conflictingImplementation1, conflictingImplementation2);
+                    }
+                    else
+                    {
+                        diagnosticsOpt.Add(ErrorCode.ERR_AbstractBaseCall, nodeOpt.Location, method);
+                    }
+                }
+            }
+            else if (accessCheckBinderOpt != null && !accessCheckBinderOpt.IsAccessible(implementingMember, ref useSiteDiagnostics, accessThroughType: null))
+            {
+                diagnosticsOpt.Add(ErrorCode.ERR_BadAccess, nodeOpt.Location, implementingMember);
+                implementingMember = null;
+            }
+            else if (implementingMember.IsAbstract)
+            {
+                diagnosticsOpt.Add(ErrorCode.ERR_AbstractBaseCall, nodeOpt.Location, implementingMember);
+                implementingMember = null;
+            }
+
+            diagnosticsOpt?.Add(nodeOpt, useSiteDiagnostics);
+
+            return (MethodSymbol)implementingMember;
+        }
+
         private static Symbol FindMostSpecificImplementation(Symbol interfaceMember, NamedTypeSymbol implementingInterface)
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -1031,8 +1076,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// T1 contains T2 among its direct or indirect interfaces.
         /// </summary>
         private static Symbol FindMostSpecificImplementation(Symbol interfaceMember,
-                                                             TypeSymbol implementingType, 
-                                                             ref HashSet<DiagnosticInfo> useSiteDiagnostics, 
+                                                             TypeSymbol implementingType,
+                                                             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
                                                              out Symbol conflictingImplementation1,
                                                              out Symbol conflictingImplementation2)
         {
@@ -1059,7 +1104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         shadowedInterfaces = PooledHashSet<NamedTypeSymbol>.GetInstance();
                         shadowedInterfaces.AddAll(implementation.ContainingType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics));
                     }
-                    else if(!shadowedInterfaces.Contains(interfaceType))
+                    else if (!shadowedInterfaces.Contains(interfaceType))
                     {
                         // we have a conflict
                         conflictingImplementation1 = implementation;

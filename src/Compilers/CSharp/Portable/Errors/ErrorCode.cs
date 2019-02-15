@@ -1692,6 +1692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember = 8706,
 
         ERR_PrivateVirtualAccessor = 8707,
+        ERR_NotBaseOrImplementedInterface = 8708,
 
         #endregion diagnostics introduced for C# 8.0
 
