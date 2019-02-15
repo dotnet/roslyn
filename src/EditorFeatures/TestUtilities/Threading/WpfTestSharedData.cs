@@ -8,7 +8,6 @@ using Xunit.Abstractions;
 
 namespace Roslyn.Test.Utilities
 {
-    [Serializable]
     public sealed class WpfTestSharedData
     {
         internal static readonly WpfTestSharedData Instance = new WpfTestSharedData();
