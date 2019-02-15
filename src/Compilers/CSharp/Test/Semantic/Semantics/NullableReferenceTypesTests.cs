@@ -49171,6 +49171,34 @@ class Program
         }
 
         [Fact]
+        public void Members_FieldCycle_06()
+        {
+            var source =
+@"#pragma warning disable 0649
+class A
+{
+    internal B B = default!;
+}
+class B
+{
+    internal A? A;
+}
+class Program
+{
+    static void M(A a)
+    {
+        a.B.A = a;
+        a.B.A.B.A.ToString();
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         a.B.A.B.A.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.B.A.B.A").WithLocation(15, 9));
+        }
+
+        [Fact]
         public void Members_FieldCycle_Struct()
         {
             var source =
