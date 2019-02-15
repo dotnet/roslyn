@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Analyzer.Utilities;

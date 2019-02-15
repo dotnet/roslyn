@@ -11,9 +11,7 @@ namespace Analyzer.Utilities
     /// <remarks>Useful for long running valueFactory functions, like say performing 
     /// dataflow analysis.  This way DFA is invoked only once per key, even if multiple
     /// threads simultaneously request the same key.</remarks>
-#pragma warning disable CA1812    // SingleThreadedConcurrentDictionary is too used.
     internal class SingleThreadedConcurrentDictionary<TKey, TValue>
-#pragma warning restore CA1812
     {
         /// <summary>
         /// An Entry itself serves a lock object, and contains the real value.

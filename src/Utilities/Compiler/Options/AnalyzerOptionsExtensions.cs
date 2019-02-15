@@ -9,15 +9,11 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-#if HAS_IOPERATION
-using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
-#endif
-
 #pragma warning disable RS1012 // Start action has no registered actions.
 
 namespace Analyzer.Utilities
 {
-    internal static class AnalyzerOptionsExtensions
+    internal static partial class AnalyzerOptionsExtensions
     {
         private static readonly ConditionalWeakTable<AnalyzerOptions, CategorizedAnalyzerConfigOptions> s_cachedOptions
             = new ConditionalWeakTable<AnalyzerOptions, CategorizedAnalyzerConfigOptions>();
@@ -36,15 +32,6 @@ namespace Analyzer.Utilities
             DiagnosticDescriptor rule,
             CancellationToken cancellationToken)
             => options.GetNonFlagsEnumOptionValue(EditorConfigOptionNames.OutputKind, rule, s_defaultOutputKinds, cancellationToken);
-
-#if HAS_IOPERATION
-        public static InterproceduralAnalysisKind GetInterproceduralAnalysisKindOption(
-            this AnalyzerOptions options,
-            DiagnosticDescriptor rule,
-            InterproceduralAnalysisKind defaultValue,
-            CancellationToken cancellationToken)
-            => options.GetNonFlagsEnumOptionValue(EditorConfigOptionNames.InterproceduralAnalysisKind, rule, defaultValue, cancellationToken);
-#endif
 
         private static TEnum GetFlagsEnumOptionValue<TEnum>(
             this AnalyzerOptions options,

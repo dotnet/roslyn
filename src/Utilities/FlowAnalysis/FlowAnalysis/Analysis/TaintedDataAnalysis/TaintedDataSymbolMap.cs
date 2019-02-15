@@ -13,10 +13,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// <summary>
     /// Mapping of <see cref="ITypeSymbol"/> to <see cref="ITaintedDataInfo"/> (tainted data source/sanitizer/sink info).
     /// </summary>
-#pragma warning disable CA1812   // TaintedDataSymbolMap is used in other projects.
     internal class TaintedDataSymbolMap<TInfo> : IEquatable<TaintedDataSymbolMap<TInfo>>
         where TInfo : ITaintedDataInfo
-#pragma warning restore CA1812
     {
         public TaintedDataSymbolMap(WellKnownTypeProvider wellKnownTypeProvider, IEnumerable<TInfo> taintedDataInfos)
         {

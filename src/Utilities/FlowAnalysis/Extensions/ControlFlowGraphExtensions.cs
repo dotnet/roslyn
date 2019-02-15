@@ -3,10 +3,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.FlowAnalysis;
 
-namespace Analyzer.Utilities.Extensions
+namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
     internal static class ControlFlowGraphExtensions
     {

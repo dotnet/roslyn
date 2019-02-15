@@ -3,9 +3,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Analyzer.Utilities.Extensions;
 
-namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
+namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
     /// <summary>
     /// Contains aggregated information about a control flow branch.
