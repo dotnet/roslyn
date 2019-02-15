@@ -6,7 +6,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+
+#if HAS_IOPERATION
 using Microsoft.CodeAnalysis.Operations;
+#endif
 
 namespace Analyzer.Utilities.Extensions
 {
@@ -379,6 +382,7 @@ namespace Analyzer.Utilities.Extensions
                method.Name.StartsWith("Add", StringComparison.Ordinal) &&
                method.ContainingType.AllInterfaces.Any(i => iCollectionTypes.Contains(i.OriginalDefinition));
 
+#if HAS_IOPERATION
         /// <summary>
         /// Returns the topmost <see cref="IBlockOperation"/> for given <paramref name="method"/>.
         /// </summary>
@@ -413,13 +417,14 @@ namespace Analyzer.Utilities.Extensions
 
             return null;
         }
+#endif
 
         public static bool IsLambdaOrLocalFunctionOrDelegate(this IMethodSymbol method)
         {
             switch (method.MethodKind)
             {
                 case MethodKind.LambdaMethod:
-                case MethodKind.LocalFunction:
+                case MethodKindEx.LocalFunction:
                 case MethodKind.DelegateInvoke:
                     return true;
 
