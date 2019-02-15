@@ -220,7 +220,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 compilerOptions.wszOutputPath = "C:\"
                 compilerOptions.wszExeName = "test.dll"
                 project.SetCompilerOptions(compilerOptions)
-
                 Assert.Equal("C:\test.dll", project.GetOutputFileName())
 
                 ' Change output folder from command line arguments - verify that objOutputPath changes.
