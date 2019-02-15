@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -28,21 +27,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         public IEnumerable<TextSpan> GetHighlights(
              SyntaxNode root, int position, CancellationToken cancellationToken)
         {
-            try
-            {
-                return _highlighters.Where(h => h.Metadata.Language == root.Language)
-                                   .Select(h => h.Value.GetHighlights(root, position, cancellationToken))
-                                   .WhereNotNull()
-                                   .Flatten()
-                                   .Distinct();
-            }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
-            {
-                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/763988
-                // We still couldn't identify the root cause for the linked bug above. 
-                // Since high lighting failure is not important enough to crash VS, change crash to NFW.
-                return SpecializedCollections.EmptyEnumerable<TextSpan>();
-            }
+            return _highlighters.Where(h => h.Metadata.Language == root.Language)
+                                .Select(h => h.Value.GetHighlights(root, position, cancellationToken))
+                                .WhereNotNull()
+                                .Flatten()
+                                .Distinct();
         }
     }
 }
