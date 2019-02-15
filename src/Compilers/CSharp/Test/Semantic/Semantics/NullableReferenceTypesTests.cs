@@ -15248,6 +15248,7 @@ class C
 }
 ", options: WithNonNullTypesTrue());
 
+            // Duplicate warnings
             // TODO2
             c.VerifyDiagnostics(
                 // (9,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -15257,6 +15258,31 @@ class C
                 //         G(ref F(s = null));
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(9, 21)
                 );
+        }
+
+        [Fact]
+        [WorkItem(26739, "https://github.com/dotnet/roslyn/issues/26739")]
+        public void RefParameter_EvaluationOrder_VisitMultipleLValues()
+        {
+            var c = CreateCompilation(@"
+class C
+{
+    void F(ref string? s) => throw null!;
+    public void M(bool b)
+    {
+        string? s = string.Empty;
+        string? s2 = string.Empty;
+        F(ref (b ? ref s : ref s2));
+        s.ToString(); // 1
+        s2.ToString(); // 2
+    }
+}
+", options: WithNonNullTypesTrue());
+
+            // Missing warnings
+            // Need to track that an expression as an L-value corresponds to multiple slots
+            // Relates to https://github.com/dotnet/roslyn/issues/33365
+            c.VerifyDiagnostics();
         }
 
         [Fact]
