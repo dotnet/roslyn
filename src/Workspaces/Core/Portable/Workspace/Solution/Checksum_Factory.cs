@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
                     // memory footprint and collision resistance
                     // calculating SHA256 is slightly slower than SHA1 but not as much. usually
                     // about 1.1~1.2 slower.
-                    return Checksum.From(bytes, truncate: true);
+                    return Checksum.From(bytes);
                 }
             }
         }

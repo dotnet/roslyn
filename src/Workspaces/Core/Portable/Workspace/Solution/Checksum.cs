@@ -22,31 +22,41 @@ namespace Microsoft.CodeAnalysis
 
         public static readonly Checksum Null = new Checksum(default);
 
-        private HashData _checksum;
+        private readonly HashData _checksum;
 
-        public static unsafe Checksum From(byte[] checksum, bool truncate = false)
+        /// <summary>
+        /// Create Checksum from given byte array. if byte array is bigger than
+        /// <see cref="HashSize"/>, it will be truncated to the size
+        /// </summary>
+        public static Checksum From(byte[] checksum)
         {
-            Validate(checksum.Length, truncate);
-
             if (checksum.Length == 0)
             {
                 return Null;
             }
 
-            fixed (byte* data = checksum)
+            if (checksum.Length < HashSize)
             {
-                // Avoid a direct dereferencing assignment since sizeof(HashData) may be greater than Sha1HashSize.
-                return new Checksum(HashData.FromPointer((HashData*)data));
+                throw new ArgumentException($"checksum must be equal or bigger than the hash size: {HashSize}", nameof(checksum));
             }
+
+            return FromWorker(checksum);
         }
 
-        public static unsafe Checksum From(ImmutableArray<byte> checksum, bool truncate = false)
+        /// <summary>
+        /// Create Checksum from given byte array. if byte array is bigger than
+        /// <see cref="HashSize"/>, it will be truncated to the size
+        /// </summary>
+        public static unsafe Checksum From(ImmutableArray<byte> checksum)
         {
-            Validate(checksum.Length, truncate);
-
             if (checksum.Length == 0)
             {
                 return Null;
+            }
+
+            if (checksum.Length < HashSize)
+            {
+                throw new ArgumentException($"{nameof(checksum)} must be equal or bigger than the hash size: {HashSize}", nameof(checksum));
             }
 
             using (var pooled = SharedPools.ByteArray.GetPooledObject())
@@ -54,34 +64,31 @@ namespace Microsoft.CodeAnalysis
                 var bytes = pooled.Object;
                 checksum.CopyTo(sourceIndex: 0, bytes, destinationIndex: 0, length: HashSize);
 
-                fixed (byte* data = bytes)
-                {
-                    // Avoid a direct dereferencing assignment since sizeof(HashData) may be greater than Sha1HashSize.
-                    return new Checksum(HashData.FromPointer((HashData*)data));
-                }
+                return FromWorker(bytes);
             }
         }
 
-        private static void Validate(int length, bool truncate)
+        public static Checksum FromSerialized(byte[] checksum)
         {
-            if (length == 0)
+            if (checksum.Length == 0)
             {
-                return;
+                return Null;
             }
 
-            if (truncate)
+            if (checksum.Length != HashSize)
             {
-                if (length < HashSize)
-                {
-                    throw new ArgumentException($"checksum must be equal or bigger than the hash size: {HashSize}", "checksum");
-                }
-
-                return;
+                throw new ArgumentException($"{nameof(checksum)} must be equal to the hash size: {HashSize}", nameof(checksum));
             }
 
-            if (length != HashSize)
+            return FromWorker(checksum);
+        }
+
+        private static unsafe Checksum FromWorker(byte[] checksum)
+        {
+            fixed (byte* data = checksum)
             {
-                throw new ArgumentException($"checksum must be the hash size: {HashSize}", "checksum");
+                // Avoid a direct dereferencing assignment since sizeof(HashData) may be greater than Sha1HashSize.
+                return new Checksum(HashData.FromPointer((HashData*)data));
             }
         }
 
