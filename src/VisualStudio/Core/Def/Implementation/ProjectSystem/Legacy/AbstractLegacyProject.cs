@@ -121,6 +121,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         public string AssemblyName => VisualStudioProject.AssemblyName;
 
+        public string GetOutputFileName()
+            => VisualStudioProject.IntermediateOutputFilePath;
+
         public virtual void Disconnect()
         {
             _batchScopeCreator.StopTrackingProject(VisualStudioProject);
