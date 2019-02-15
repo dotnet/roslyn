@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             continue;
                     }
 
-                    var implementingMemberAndDiagnostics = this.FindImplementationForInterfaceMemberWithDiagnostics(interfaceMember);
+                    var implementingMemberAndDiagnostics = this.FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics(interfaceMember);
                     var implementingMember = implementingMemberAndDiagnostics.Symbol;
                     var synthesizedImplementation = this.SynthesizeInterfaceMemberImplementation(implementingMemberAndDiagnostics, interfaceMember);
 
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            Symbol implementingPropertyOrEvent = this.FindImplementationForInterfaceMemberWithDiagnostics(interfacePropertyOrEvent).Symbol;
+            Symbol implementingPropertyOrEvent = this.FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics(interfacePropertyOrEvent).Symbol;
 
             // If the property or event wasn't implemented, then we'd prefer to report diagnostics about that.
             if ((object)implementingPropertyOrEvent == null)
@@ -1196,7 +1196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // appropriate errors are reported elsewhere. Let's not synthesize
             // forwarding methods, or modify metadata virtualness of the
             // implementing accessors, even for public ones.
-            if (interfaceMethod.AssociatedSymbol?.IsEventOrPropertyWithNonPublicAccessor() == true)
+            if (interfaceMethod.AssociatedSymbol?.IsEventOrPropertyWithImplementableNonPublicAccessor() == true)
             {
                 return null;
             }

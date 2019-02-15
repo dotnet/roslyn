@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return FindMostSpecificImplementation(interfaceMember, (NamedTypeSymbol)this);
             }
 
-            return FindImplementationForInterfaceMemberWithDiagnostics(interfaceMember).Symbol;
+            return FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics(interfaceMember).Symbol;
         }
 
         /// <summary>
@@ -775,9 +775,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Interface member checks
 
-        protected SymbolAndDiagnostics FindImplementationForInterfaceMemberWithDiagnostics(Symbol interfaceMember)
+        protected SymbolAndDiagnostics FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics(Symbol interfaceMember)
         {
             Debug.Assert((object)interfaceMember != null);
+            Debug.Assert(!this.IsInterfaceType());
 
             if (this.IsInterfaceType())
             {
@@ -865,7 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Symbol implicitImpl = null;
             Symbol closestMismatch = null;
-            bool canBeImplementedImplicitly = interfaceMember.DeclaredAccessibility == Accessibility.Public && !interfaceMember.IsEventOrPropertyWithNonPublicAccessor();
+            bool canBeImplementedImplicitly = interfaceMember.DeclaredAccessibility == Accessibility.Public && !interfaceMember.IsEventOrPropertyWithImplementableNonPublicAccessor();
             TypeSymbol implementingBaseOpt = null; // Calculated only if canBeImplementedImplicitly == true
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
@@ -889,6 +890,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // WORKAROUND: see comment on method.
+                // PROTOTYPE(DefaultInterfaceImplementation): Is this workaround still relevant? Do we need it when we are looking
+                //                                            for implementations in interfaces?
                 if (IsExplicitlyImplementedViaAccessors(interfaceMember, currType, out Symbol currTypeExplicitImpl))
                 {
                     // NOTE: may be null.
@@ -982,7 +985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if ((object)closestMismatch != null)
             {
                 Debug.Assert(interfaceMember.DeclaredAccessibility == Accessibility.Public);
-                Debug.Assert(!interfaceMember.IsEventOrPropertyWithNonPublicAccessor());
+                Debug.Assert(!interfaceMember.IsEventOrPropertyWithImplementableNonPublicAccessor());
                 ReportImplicitImplementationMismatchDiagnostics(interfaceMember, implementingType, closestMismatch, diagnostics);
             }
 
@@ -1627,7 +1630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // non-public members and, since candidate's signature doesn't match, runtime will never pick it up either. 
                     else if ((object)closeMismatch == null && implementingTypeIsFromSomeCompilation &&
                              interfaceMember.DeclaredAccessibility == Accessibility.Public &&
-                             !interfaceMember.IsEventOrPropertyWithNonPublicAccessor())
+                             !interfaceMember.IsEventOrPropertyWithImplementableNonPublicAccessor())
                     {
                         // We can ignore custom modifiers here, because our goal is to improve the helpfulness
                         // of an error we're already giving, rather than to generate a new error.

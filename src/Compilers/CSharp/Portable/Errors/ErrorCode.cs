@@ -1691,7 +1691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // This PR can be used to find the relevant code and test files: https://github.com/dotnet/roslyn/pull/18045.
         ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember = 8706,
 
-        ERR_PrivateVirtualAccessor = 8707,
+        // Available 8707,
 
         #endregion diagnostics introduced for C# 8.0
 
