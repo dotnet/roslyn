@@ -3635,7 +3635,7 @@ IFromEndIndexOperation (OperationKind.None, Type: System.Index) (Syntax: '^arg')
 ";
 
             var operation = (IFromEndIndexOperation)VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);
-            Assert.Equal("System.Index..ctor(System.Int32 value, System.Boolean fromEnd)", operation.Symbol.ToTestDisplayString());
+            Assert.Equal("System.Index..ctor(System.Int32 value, [System.Boolean fromEnd = false])", operation.Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -3658,7 +3658,7 @@ IFromEndIndexOperation (IsLifted) (OperationKind.None, Type: System.Index?) (Syn
 ";
 
             var operation = (IFromEndIndexOperation)VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);
-            Assert.Equal("System.Index..ctor(System.Int32 value, System.Boolean fromEnd)", operation.Symbol.ToTestDisplayString());
+            Assert.Equal("System.Index..ctor(System.Int32 value, [System.Boolean fromEnd = false])", operation.Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -3684,7 +3684,7 @@ IFromEndIndexOperation (OperationKind.None, Type: System.Index) (Syntax: '^arg')
 ";
 
             var operation = (IFromEndIndexOperation)VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);
-            Assert.Equal("System.Index..ctor(System.Int32 value, System.Boolean fromEnd)", operation.Symbol.ToTestDisplayString());
+            Assert.Equal("System.Index..ctor(System.Int32 value, [System.Boolean fromEnd = false])", operation.Symbol.ToTestDisplayString());
         }
     }
 }
