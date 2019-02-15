@@ -1503,7 +1503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation = 8324,
         #endregion diagnostics introduced for C# 7.2
 
-        #region diagnostics introduced for `ref readonly`, `ref ternary` and `ref-like` features in C# 7.2
+        #region diagnostics introduced for `ref readonly`, `ref conditional` and `ref-like` features in C# 7.2
         ERR_RefConditionalAndAwait = 8325,
         ERR_RefConditionalNeedsTwoRefs = 8326,
         ERR_RefConditionalDifferentTypes = 8327,
@@ -1538,7 +1538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EscapeStackAlloc = 8353,
         ERR_RefReturnThis = 8354,
         ERR_OutAttrOnInParam = 8355,
-        #endregion diagnostics introduced for `ref readonly`, `ref ternary` and `ref-like` features in C# 7.2
+        #endregion diagnostics introduced for `ref readonly`, `ref conditional` and `ref-like` features in C# 7.2
 
         ERR_PredefinedValueTupleTypeAmbiguous3 = 8356,
         ERR_InvalidVersionFormatDeterministic = 8357,
