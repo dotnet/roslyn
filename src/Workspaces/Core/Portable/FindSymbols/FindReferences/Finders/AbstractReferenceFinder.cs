@@ -423,7 +423,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ISymbol symbol,
             Document document,
-            SemanticModel semanticModel,
             Func<SyntaxTreeIndex, bool> isRelevantDocument,
             CollectMatchingReferences collectMatchingReferences,
             CancellationToken cancellationToken)
@@ -457,7 +456,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInDocumentAsync(symbol, document, semanticModel, isRelevantDocument, collectMatchingReferences, cancellationToken);
+            return FindReferencesInDocumentAsync(symbol, document, isRelevantDocument, collectMatchingReferences, cancellationToken);
 
             bool isRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
                 => syntaxTreeInfo.ContainsForEachStatement;
@@ -486,7 +485,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInDocumentAsync(symbol, document, semanticModel, isRelevantDocument, collectMatchingReferences, cancellationToken);
+            return FindReferencesInDocumentAsync(symbol, document, isRelevantDocument, collectMatchingReferences, cancellationToken);
 
             bool isRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
                 => syntaxTreeInfo.ContainsDeconstruction;
@@ -517,7 +516,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInDocumentAsync(symbol, document, semanticModel, isRelevantDocument, collectMatchingReferences, cancellationToken);
+            return FindReferencesInDocumentAsync(symbol, document, isRelevantDocument, collectMatchingReferences, cancellationToken);
 
             bool isRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
                 => syntaxTreeInfo.ContainsAwait;
