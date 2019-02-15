@@ -773,10 +773,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (receiver?.Kind == BoundKind.BaseReference && eventSymbol.IsAbstract)
                 {
-                    Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, boundEvent.Syntax, eventSymbol);
-                    return false;
+                    var baseReference = (BoundBaseReference)receiver;
+
+                    if (!eventSymbol.IsImplementableInterfaceMember() ||
+                        baseReference.ExplicitBaseReferenceOpt?.Type.IsInterfaceType() != true)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, boundEvent.Syntax, eventSymbol);
+                        return false;
+                    }
                 }
-                else if (ReportUseSiteDiagnostics(eventSymbol, diagnostics, eventSyntax))
+
+                if (ReportUseSiteDiagnostics(eventSymbol, diagnostics, eventSyntax))
                 {
                     // NOTE: BindEventAssignment checks use site errors on the specific accessor 
                     // (since we don't know which is being used).
@@ -952,15 +959,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
                 }
-                else if (receiver?.Kind == BoundKind.BaseReference && setMethod.IsAbstract)
-                {
-                    Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, propertySymbol);
-                    return false;
-                }
-                else if (!object.Equals(setMethod.GetUseSiteDiagnostic(), propertySymbol.GetUseSiteDiagnostic()) && ReportUseSiteDiagnostics(setMethod, diagnostics, propertySyntax))
-                {
-                    return false;
-                }
                 else
                 {
                     var accessThroughType = this.GetAccessThroughType(receiver);
@@ -988,6 +986,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return false;
                     }
+
+                    if (IsBadBaseAccess(node, receiver, setMethod, diagnostics, propertySymbol) ||
+                        (!object.Equals(setMethod.GetUseSiteDiagnostic(), propertySymbol.GetUseSiteDiagnostic()) && ReportUseSiteDiagnostics(setMethod, diagnostics, propertySyntax)))
+                    {
+                        return false;
+                    }
                 }
             }
 
@@ -999,15 +1003,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)getMethod == null)
                 {
                     Error(diagnostics, ErrorCode.ERR_PropertyLacksGet, node, propertySymbol);
-                    return false;
-                }
-                else if (receiver?.Kind == BoundKind.BaseReference && getMethod.IsAbstract)
-                {
-                    Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, propertySymbol);
-                    return false;
-                }
-                else if (!object.Equals(getMethod.GetUseSiteDiagnostic(), propertySymbol.GetUseSiteDiagnostic()) && ReportUseSiteDiagnostics(getMethod, diagnostics, propertySyntax))
-                {
                     return false;
                 }
                 else
@@ -1032,6 +1027,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     ReportDiagnosticsIfObsolete(diagnostics, getMethod, node, receiver?.Kind == BoundKind.BaseReference);
+
+                    if (IsBadBaseAccess(node, receiver, getMethod, diagnostics, propertySymbol) ||
+                        (!object.Equals(getMethod.GetUseSiteDiagnostic(), propertySymbol.GetUseSiteDiagnostic()) && ReportUseSiteDiagnostics(getMethod, diagnostics, propertySyntax)))
+                    {
+                        return false;
+                    }
                 }
             }
 
@@ -1042,6 +1043,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return true;
+        }
+
+        private bool IsBadBaseAccess(SyntaxNode node, BoundExpression receiverOpt, MethodSymbol method, DiagnosticBag diagnostics,
+                                     PropertySymbol propertySymbolOpt = null, bool checkOnlyAccessThroughInterface = false)
+        {
+            if (receiverOpt?.Kind == BoundKind.BaseReference)
+            {
+                var baseReference = (BoundBaseReference)receiverOpt;
+
+                if (method.IsImplementableInterfaceMember() &&
+                    baseReference.ExplicitBaseReferenceOpt?.Type.IsInterfaceType() == true)
+                {
+                    if (TypeSymbol.TryFindBaseImplementationInInterface((NamedTypeSymbol)baseReference.ExplicitBaseReferenceOpt.Type, method, diagnostics, node, this) is null)
+                    {
+                        Debug.Assert(!diagnostics.IsEmptyWithoutResolution);
+                        return true;
+                    }
+                }
+                else if (!checkOnlyAccessThroughInterface && method.IsAbstract)
+                {
+                    Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, propertySymbolOpt ?? (Symbol)method);
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>

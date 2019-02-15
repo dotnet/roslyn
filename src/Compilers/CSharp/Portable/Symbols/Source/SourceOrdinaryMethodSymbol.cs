@@ -691,6 +691,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override Accessibility DeclaredAccessibility
+        {
+            get
+            {
+                if ((object)_explicitInterfaceType != null && ContainingType.IsInterface)
+                {
+                    LazyMethodChecks();
+                    if (!_lazyExplicitInterfaceImplementations.IsDefaultOrEmpty)
+                    {
+                        Debug.Assert(_lazyExplicitInterfaceImplementations.Length == 1);
+                        return _lazyExplicitInterfaceImplementations[0].DeclaredAccessibility;
+                    }
+                }
+
+                return base.DeclaredAccessibility;
+            }
+        }
+
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
