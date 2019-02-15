@@ -130,7 +130,7 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsGenericIReadOnlyCollection1 = "System.Collections.Generic.IReadOnlyCollection`1";
         public const string SystemRuntimeSerializationFormattersBinaryBinaryFormatter = "System.Runtime.Serialization.Formatters.Binary.BinaryFormatter";
         public const string SystemWebUILosFormatter = "System.Web.UI.LosFormatter";
-        public const string SystemReflectionAssembly = "System.Reflection.Assembly";
+        public const string SystemReflectionAssemblyFullName = "System.Reflection.Assembly";
         public const string SystemAppDomain = "System.AppDomain";
         public const string SystemWindowsAssemblyPart = "System.Windows.AssemblyPart";
         public const string SystemWebUIHtmlControlsHtmlContainerControl = "System.Web.UI.HtmlControls.HtmlContainerControl";
@@ -143,7 +143,7 @@ namespace Analyzer.Utilities
         public const string SystemWebHttpResponse = "System.Web.HttpResponse";
         public const string SystemWebHttpResponseBase = "System.Web.HttpResponseBase";
         public const string SystemIODirectory = "System.IO.Directory";
-        public const string SystemIOFile = "System.IO.File";
+        public const string SystemIOFileFullName = "System.IO.File";
         public const string SystemIOFileInfo = "System.IO.FileInfo";
         public const string SystemSecurityCryptographyCipherMode = "System.Security.Cryptography.CipherMode";
         public const string SystemNetSecurityRemoteCertificateValidationCallback = "System.Net.Security.RemoteCertificateValidationCallback";
@@ -364,6 +364,11 @@ namespace Analyzer.Utilities
         public static INamedTypeSymbol IDisposable(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName(SystemIDisposable);
+        }
+
+        public static INamedTypeSymbol IDeserializationCallback(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Runtime.Serialization.IDeserializationCallback");
         }
 
         public static INamedTypeSymbol ISerializable(Compilation compilation)
@@ -709,6 +714,16 @@ namespace Analyzer.Utilities
         public static INamedTypeSymbol IImmutableStack(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Collections.Immutable.IImmutableStack`1");
+        }
+
+        public static INamedTypeSymbol SystemIOFile(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.IO.File");
+        }
+
+        public static INamedTypeSymbol SystemReflectionAssembly(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Reflection.Assembly");
         }
 
         public static ImmutableHashSet<INamedTypeSymbol> IImmutableInterfaces(Compilation compilation)

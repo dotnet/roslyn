@@ -1,14 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Diagnostics.CSharp.Analyzers;
-using Roslyn.Diagnostics.VisualBasic.Analyzers;
-using Test.Utilities;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
+using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.CodeFixVerifier<
+    Roslyn.Diagnostics.CSharp.Analyzers.CSharpSpecializedEnumerableCreationAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyVB = Microsoft.CodeAnalysis.VisualBasic.Testing.XUnit.CodeFixVerifier<
+    Roslyn.Diagnostics.VisualBasic.Analyzers.BasicSpecializedEnumerableCreationAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Roslyn.Diagnostics.Analyzers.UnitTests
 {
-    public class SpecializedEnumerableCreationAnalyzerTests : DiagnosticAnalyzerTestBase
+    public class SpecializedEnumerableCreationAnalyzerTests
     {
         private readonly string _csharpSpecializedCollectionsDefinition = @"
 namespace Roslyn.Utilities
@@ -23,20 +28,20 @@ Namespace Roslyn.Utilities
 End Namespace
 ";
 
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+        private static DiagnosticResult GetCSharpResultAt(int line, int column, DiagnosticDescriptor descriptor)
         {
-            return new CSharpSpecializedEnumerableCreationAnalyzer();
+            return new DiagnosticResult(descriptor).WithLocation(line, column);
         }
 
-        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
+        private static DiagnosticResult GetBasicResultAt(int line, int column, DiagnosticDescriptor descriptor)
         {
-            return new BasicSpecializedEnumerableCreationAnalyzer();
+            return new DiagnosticResult(descriptor).WithLocation(line, column);
         }
 
         [Fact]
-        public void ReturnEmptyArrayCSharp()
+        public async Task ReturnEmptyArrayCSharp()
         {
-            VerifyCSharp(@"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
 
 class C
@@ -51,9 +56,9 @@ class C
         }
 
         [Fact]
-        public void ReturnSingletonArrayCSharp()
+        public async Task ReturnSingletonArrayCSharp()
         {
-            VerifyCSharp(@"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
 
 class C
@@ -70,9 +75,9 @@ class C
         }
 
         [Fact]
-        public void ReturnLinqEmptyEnumerableCSharp()
+        public async Task ReturnLinqEmptyEnumerableCSharp()
         {
-            VerifyCSharp(@"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
 using System.Linq;
 
@@ -85,9 +90,9 @@ class C
         }
 
         [Fact(Skip = "855425")]
-        public void ReturnArrayWithinExpressionCSharp()
+        public async Task ReturnArrayWithinExpressionCSharp()
         {
-            VerifyCSharp(@"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
 
 class C
@@ -102,9 +107,9 @@ class C
         }
 
         [Fact(Skip = "855425")]
-        public void ReturnLinqEmptyEnumerableWithinExpressionCSharp()
+        public async Task ReturnLinqEmptyEnumerableWithinExpressionCSharp()
         {
-            VerifyCSharp(@"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
 using System.Linq;
 
@@ -119,9 +124,9 @@ class C
         }
 
         [Fact]
-        public void ReturnMultiElementArrayCSharp()
+        public async Task ReturnMultiElementArrayCSharp()
         {
-            VerifyCSharp(@"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
 
 class C
@@ -135,9 +140,9 @@ class C
         }
 
         [Fact]
-        public void ReturnJaggedArrayCSharp()
+        public async Task ReturnJaggedArrayCSharp()
         {
-            VerifyCSharp(@"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
 
 class C
@@ -151,9 +156,9 @@ class C
         }
 
         [Fact(Skip = "855425")]
-        public void ImplicitConversionToNestedEnumerableCSharp()
+        public async Task ImplicitConversionToNestedEnumerableCSharp()
         {
-            VerifyCSharp(@"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
 
 class C
@@ -166,9 +171,9 @@ class C
         }
 
         [Fact]
-        public void ReturnEmptyArrayBasic()
+        public async Task ReturnEmptyArrayBasic()
         {
-            VerifyBasic(@"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
 
 Class C
@@ -185,9 +190,9 @@ End Class
         }
 
         [Fact]
-        public void ReturnLinqEmptyEnumerableBasic()
+        public async Task ReturnLinqEmptyEnumerableBasic()
         {
-            VerifyBasic(@"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
 Imports System.Linq
 
@@ -201,9 +206,9 @@ End Class
         }
 
         [Fact]
-        public void ReturnSingletonArrayBasic()
+        public async Task ReturnSingletonArrayBasic()
         {
-            VerifyBasic(@"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
 
 Class C
@@ -220,9 +225,9 @@ End Class
         }
 
         [Fact(Skip = "855425")]
-        public void ReturnArrayWithinExpressionBasic()
+        public async Task ReturnArrayWithinExpressionBasic()
         {
-            VerifyBasic(@"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
 
 Class C
@@ -240,9 +245,9 @@ End Class
         }
 
         [Fact(Skip = "855425")]
-        public void ReturnLinqEmptyEnumerableWithinExpressionBasic()
+        public async Task ReturnLinqEmptyEnumerableWithinExpressionBasic()
         {
-            VerifyBasic(@"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
 Imports System.Linq
 
@@ -260,9 +265,9 @@ End Class
         }
 
         [Fact]
-        public void ReturnMultiElementArrayBasic()
+        public async Task ReturnMultiElementArrayBasic()
         {
-            VerifyBasic(@"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
 
 Class C
@@ -277,9 +282,9 @@ End Class
         }
 
         [Fact]
-        public void ReturnJaggedArrayBasic()
+        public async Task ReturnJaggedArrayBasic()
         {
-            VerifyBasic(@"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
 
 Class C
@@ -298,9 +303,9 @@ End Class
         }
 
         [Fact(Skip = "855425")]
-        public void ImplicitConversionToNestedEnumerableBasic()
+        public async Task ImplicitConversionToNestedEnumerableBasic()
         {
-            VerifyBasic(@"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
 
 Class C

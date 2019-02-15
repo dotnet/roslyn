@@ -3,19 +3,13 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Diagnostics.VisualBasic.Analyzers;
 using Test.Utilities;
+using VerifyVB = Microsoft.CodeAnalysis.VisualBasic.Testing.XUnit.CodeFixVerifier<
+    Roslyn.Diagnostics.VisualBasic.Analyzers.BasicInvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Roslyn.Diagnostics.Analyzers.UnitTests
 {
-    public class InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTests : DiagnosticAnalyzerTestBase
+    public class InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTests
     {
-        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
-        {
-            return new BasicInvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsAnalyzer();
-        }
-
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return null;
-        }
     }
 }
