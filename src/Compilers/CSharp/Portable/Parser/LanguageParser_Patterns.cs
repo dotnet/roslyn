@@ -672,6 +672,11 @@ tryAgain:
                 var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
                 var expression = ParseExpressionCore();
                 var switchExpressionCase = _syntaxFactory.SwitchExpressionArm(pattern, whenClause, arrow, expression);
+
+                // If we're not making progress, abort
+                if (switchExpressionCase.Width == 0 && this.CurrentToken.Kind != SyntaxKind.CommaToken)
+                    break;
+
                 arms.Add(switchExpressionCase);
                 if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
                 {

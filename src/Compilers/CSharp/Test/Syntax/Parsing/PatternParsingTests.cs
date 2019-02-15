@@ -7441,5 +7441,128 @@ switch (e)
             }
             EOF();
         }
+
+        [Fact, WorkItem(32749, "https://github.com/dotnet/roslyn/issues/32749")]
+        public void BrokenSwitchExpression_01()
+        {
+            UsingExpression("(e switch {)",
+                // (1,12): error CS1513: } expected
+                // (e switch {)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(1, 12)
+                );
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.SwitchExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.SwitchKeyword);
+                    N(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(32749, "https://github.com/dotnet/roslyn/issues/32749")]
+        public void BrokenSwitchExpression_02()
+        {
+            UsingExpression("(e switch {,)",
+                // (1,12): error CS8504: Pattern missing
+                // (e switch {,)
+                Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(1, 12),
+                // (1,12): error CS1003: Syntax error, '=>' expected
+                // (e switch {,)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments("=>", ",").WithLocation(1, 12),
+                // (1,12): error CS1525: Invalid expression term ','
+                // (e switch {,)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 12),
+                // (1,13): error CS1513: } expected
+                // (e switch {,)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(1, 13)
+                );
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.SwitchExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.SwitchKeyword);
+                    N(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.SwitchExpressionArm);
+                    {
+                        M(SyntaxKind.ConstantPattern);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.EqualsGreaterThanToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(32749, "https://github.com/dotnet/roslyn/issues/32749")]
+        public void BrokenSwitchExpression_03()
+        {
+            UsingExpression("e switch {,",
+                // (1,11): error CS8504: Pattern missing
+                // e switch {,
+                Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(1, 11),
+                // (1,11): error CS1003: Syntax error, '=>' expected
+                // e switch {,
+                Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments("=>", ",").WithLocation(1, 11),
+                // (1,11): error CS1525: Invalid expression term ','
+                // e switch {,
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 11),
+                // (1,12): error CS1513: } expected
+                // e switch {,
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 12)
+                );
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                M(SyntaxKind.SwitchExpressionArm);
+                {
+                    M(SyntaxKind.ConstantPattern);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.EqualsGreaterThanToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                M(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
     }
 }
