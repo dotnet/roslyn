@@ -142,8 +142,8 @@ jobs:
     continueOnError: true
     condition: succeededOrFailed()
 
-  - task: PublishTestResults@1
-    displayName: Publish Test Results
+  - task: PublishTestResults@2
+    displayName: Publish xUnit Test Results
     inputs:
       testRunner: XUnit
       testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(BuildConfiguration)\*.xml'
