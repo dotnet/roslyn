@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="DateTimeKind_must_be_Utc">
         <source>DateTimeKind must be Utc</source>
-        <target state="new">DateTimeKind must be Utc</target>
+        <target state="translated">DateTimeKind debe ser Utc</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_level_preferences">
@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="Prefix_0_does_not_match_expected_prefix_1">
         <source>Prefix '{0}' does not match expected prefix '{1}'</source>
-        <target state="new">Prefix '{0}' does not match expected prefix '{1}'</target>
+        <target state="translated">El prefijo "{0}" no coincide con el prefijo esperado "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefix_0_is_not_expected">
         <source>Prefix '{0}' is not expected</source>
-        <target state="new">Prefix '{0}' is not expected</target>
+        <target state="translated">No se espera el prefijo "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
@@ -1059,27 +1059,27 @@
       </trans-unit>
       <trans-unit id="ValueUsageInfo_NameOnly">
         <source>NameOnly</source>
-        <target state="new">NameOnly</target>
+        <target state="translated">NameOnly</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Read">
         <source>Read</source>
-        <target state="new">Read</target>
+        <target state="translated">Leer</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Reference">
         <source>Reference</source>
-        <target state="new">Reference</target>
+        <target state="translated">Referencia</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Write">
         <source>Write</source>
-        <target state="new">Write</target>
+        <target state="translated">Escribir</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_preferences">
         <source>Parameter preferences</source>
-        <target state="new">Parameter preferences</target>
+        <target state="translated">Preferencias de parámetro</target>
         <note />
       </trans-unit>
     </body>
