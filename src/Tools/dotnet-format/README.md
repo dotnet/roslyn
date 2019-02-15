@@ -4,12 +4,12 @@
 
 ### How To Install
 
-The `dotnet-format` nuget package is currently in beta and published to nuget.org. You can visit the [dotnet-format nuget page](https://www.nuget.org/packages/dotnet-format/) to get the latest version number.
+The `dotnet-format` nuget package is published to nuget.org. You can visit the [dotnet-format nuget page](https://www.nuget.org/packages/dotnet-format/) to get the latest version number.
 
 You can install the tool using the following command.
 
 ```console
-dotnet tool install -g dotnet-format --version 3.0.0-beta4-19105-10
+dotnet tool install -g dotnet-format
 ```
 
 #### Installing Development Builds
