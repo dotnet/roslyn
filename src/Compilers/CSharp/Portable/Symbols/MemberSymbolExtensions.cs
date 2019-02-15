@@ -138,8 +138,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool isImplementableAndNotPublic(MethodSymbol accessor)
             {
-                return (object)accessor != null && accessor.DeclaredAccessibility != Accessibility.Public && (accessor.IsAbstract || accessor.IsVirtual);
+                return accessor.IsImplementable() && accessor.DeclaredAccessibility != Accessibility.Public;
             }
+        }
+
+        public static bool IsImplementable(this MethodSymbol methodOpt)
+        {
+            return (object)methodOpt != null && (methodOpt.IsAbstract || methodOpt.IsVirtual);
         }
 
         public static bool IsAccessor(this MethodSymbol methodSymbol)

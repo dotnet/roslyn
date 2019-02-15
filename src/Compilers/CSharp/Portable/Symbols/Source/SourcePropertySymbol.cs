@@ -1030,7 +1030,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void CheckExplicitImplementationAccessor(MethodSymbol thisAccessor, MethodSymbol otherAccessor, PropertySymbol explicitlyImplementedProperty, DiagnosticBag diagnostics)
         {
             var thisHasAccessor = (object)thisAccessor != null;
-            var otherHasAccessor = (object)otherAccessor != null && (otherAccessor.IsVirtual || otherAccessor.IsAbstract);
+            var otherHasAccessor = otherAccessor.IsImplementable();
 
             if (otherHasAccessor && !thisHasAccessor)
             {

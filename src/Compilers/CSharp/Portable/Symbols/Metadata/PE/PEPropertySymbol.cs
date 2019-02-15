@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 foreach (var prop in propertiesWithImplementedGetters)
                 {
-                    if (!isImplementableAccessor(prop.SetMethod) || propertiesWithImplementedSetters.Contains(prop))
+                    if (!prop.SetMethod.IsImplementable() || propertiesWithImplementedSetters.Contains(prop))
                     {
                         builder.Add(prop);
                     }
@@ -591,18 +591,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     // No need to worry about duplicates.  If prop was added by the previous loop,
                     // then it must have a GetMethod.
-                    if (!isImplementableAccessor(prop.GetMethod))
+                    if (!prop.GetMethod.IsImplementable())
                     {
                         builder.Add(prop);
                     }
                 }
 
                 return builder.ToImmutableAndFree();
-
-                bool isImplementableAccessor(MethodSymbol accessor)
-                {
-                    return (object)accessor != null && (accessor.IsAbstract || accessor.IsVirtual);
-                }
             }
         }
 
