@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
                 ki = new NativeMethods.KEYBDINPUT
                 {
                     wVk = (ushort)virtualKey,
-                    wScan = 0,
+                    wScan = (ushort)(NativeMethods.MapVirtualKey((uint)virtualKey, NativeMethods.MAPVK_VK_TO_VSC) & 0xFF),
                     dwFlags = dwFlags,
                     time = 0,
                     dwExtraInfo = IntPtr.Zero
