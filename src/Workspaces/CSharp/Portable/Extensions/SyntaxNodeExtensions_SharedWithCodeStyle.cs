@@ -201,8 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsEmbeddedStatementOwner(this SyntaxNode node)
         {
-            return
-                   node is DoStatementSyntax ||
+            return node is DoStatementSyntax ||
                    node is ElseClauseSyntax ||
                    node is FixedStatementSyntax ||
                    node is CommonForEachStatementSyntax ||

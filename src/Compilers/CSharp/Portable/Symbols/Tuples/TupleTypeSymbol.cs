@@ -106,7 +106,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var constructedType = Create(underlyingType, elementNames, errorPositions, locationOpt, elementLocations);
             if (shouldCheckConstraints && diagnostics != null)
             {
-                constructedType.CheckConstraints(compilation.Conversions, syntax, elementLocations, compilation, diagnostics);
+                // https://github.com/dotnet/roslyn/issues/33303
+                // Need to follow up on checking tuple constraints within a method body which may cause us to revisit the 
+                // explicit false below.
+                constructedType.CheckConstraints(compilation.Conversions, includeNullability: false, syntax, elementLocations, compilation, diagnostics);
             }
 
             return constructedType;
@@ -686,13 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingType.InterfacesNoUseSiteDiagnostics(basesBeingResolved);
         }
 
-        internal sealed override bool IsManagedType
-        {
-            get
-            {
-                return _underlyingType.IsManagedType;
-            }
-        }
+        internal sealed override ManagedKind ManagedKind => _underlyingType.ManagedKind;
 
         public override bool IsTupleType
         {

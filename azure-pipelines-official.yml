@@ -133,7 +133,7 @@ jobs:
     continueOnError: true
     condition: succeededOrFailed()
 
-  - task: PublishTestResults@1
+  - task: PublishTestResults@2
     displayName: Publish xUnit Test Results
     inputs:
       testRunner: XUnit
