@@ -214,8 +214,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <WorkItem(33401, "https://github.com/dotnet/roslyn/pull/33401")>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub ProjectOutputPathAndOutputExeNameChange()
-            Dim initialPath = "C:\test.dll"
-
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
                 Dim compilerOptions = CreateMinimalCompilerOptions(project)
@@ -223,7 +221,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 compilerOptions.wszExeName = "test.dll"
                 project.SetCompilerOptions(compilerOptions)
 
-                Assert.Equal(initialPath, project.GetOutputFileName())
+                Assert.Equal("C:\test.dll", project.GetOutputFileName())
 
                 ' Change output folder from command line arguments - verify that objOutputPath changes.
                 Dim newPath = "C:\NewFolder\test.dll"
