@@ -3,20 +3,16 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Diagnostics.CSharp.Analyzers;
 using Roslyn.Diagnostics.VisualBasic.Analyzers;
-using Test.Utilities;
+using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.CodeFixVerifier<
+    Roslyn.Diagnostics.CSharp.Analyzers.CSharpCodeActionCreateAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyVB = Microsoft.CodeAnalysis.VisualBasic.Testing.XUnit.CodeFixVerifier<
+    Roslyn.Diagnostics.VisualBasic.Analyzers.BasicCodeActionCreateAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Roslyn.Diagnostics.Analyzers.UnitTests
 {
-    public class DoNotUseGenericCodeActionCreateToCreateCodeActionTests : DiagnosticAnalyzerTestBase
+    public class DoNotUseGenericCodeActionCreateToCreateCodeActionTests
     {
-        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
-        {
-            return new BasicCodeActionCreateAnalyzer();
-        }
-
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return new CSharpCodeActionCreateAnalyzer();
-        }
     }
 }
