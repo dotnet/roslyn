@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// This decouples constraints checking from syntax and Locations, and supports
     /// callers that may want to create Location instances lazily or not at all.
     /// </summary>
-    internal struct TypeParameterDiagnosticInfo
+    internal readonly struct TypeParameterDiagnosticInfo
     {
         public readonly TypeParameterSymbol TypeParameter;
         public readonly DiagnosticInfo DiagnosticInfo;
@@ -528,7 +528,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxNode typeSyntax,
             ImmutableArray<Location> elementLocations,
             Compilation currentCompilation,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnosticsOpt,
+            DiagnosticBag nullabilityDiagnosticsOpt)
+
         {
             NamedTypeSymbol type = tuple.TupleUnderlyingType;
             if (!RequiresChecking(type))
@@ -542,6 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+            var nullabilityDiagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             var underlyingTupleTypeChain = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             TupleTypeSymbol.GetUnderlyingTypeChain(type, underlyingTupleTypeChain);
 
@@ -549,30 +552,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var underlyingTuple in underlyingTupleTypeChain)
             {
                 ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-                CheckTypeConstraints(underlyingTuple, conversions, includeNullability, currentCompilation, diagnosticsBuilder, warningsBuilderOpt: diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+                CheckTypeConstraints(underlyingTuple, conversions, includeNullability, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: nullabilityDiagnosticsBuilder, ref useSiteDiagnosticsBuilder);
 
                 if (useSiteDiagnosticsBuilder != null)
                 {
                     diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder);
                 }
 
-                foreach (var pair in diagnosticsBuilder)
-                {
-                    var ordinal = pair.TypeParameter.Ordinal;
-
-                    // If this is the TRest type parameter, we report it on 
-                    // the entire type syntax as it does not map to any tuple element.
-                    var location = ordinal == TupleTypeSymbol.RestIndex ? typeSyntax.Location : elementLocations[ordinal + offset];
-                    diagnostics.Add(new CSDiagnostic(pair.DiagnosticInfo, location));
-                }
+                populateDiagnostics(diagnosticsBuilder, diagnosticsOpt);
+                populateDiagnostics(nullabilityDiagnosticsBuilder, nullabilityDiagnosticsOpt);
 
                 diagnosticsBuilder.Clear();
-
+                nullabilityDiagnosticsBuilder.Clear();
                 offset += TupleTypeSymbol.RestIndex;
+
+                void populateDiagnostics(ArrayBuilder<TypeParameterDiagnosticInfo> builder, DiagnosticBag bag)
+                {
+                    if (bag is null)
+                    {
+                        return;
+                    }
+
+                    foreach (var pair in builder)
+                    {
+                        var ordinal = pair.TypeParameter.Ordinal;
+
+                        // If this is the TRest type parameter, we report it on 
+                        // the entire type syntax as it does not map to any tuple element.
+                        var location = ordinal == TupleTypeSymbol.RestIndex ? typeSyntax.Location : elementLocations[ordinal + offset];
+                        bag.Add(new CSDiagnostic(pair.DiagnosticInfo, location));
+                    }
+                }
+
             }
 
             underlyingTupleTypeChain.Free();
             diagnosticsBuilder.Free();
+            nullabilityDiagnosticsBuilder.Free();
         }
 
         public static bool CheckConstraintsForNonTuple(
@@ -594,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = !typeSyntax.HasErrors && CheckTypeConstraints(type, conversions, includeNullability, currentCompilation, diagnosticsBuilder, warningsBuilderOpt: diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+            var result = !typeSyntax.HasErrors && CheckTypeConstraints(type, conversions, includeNullability, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -640,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckTypeConstraints(type, conversions, includeNullability, currentCompilation, diagnosticsBuilder, warningsBuilderOpt: diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+            var result = CheckTypeConstraints(type, conversions, includeNullability, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -781,7 +797,7 @@ hasRelatedInterfaces:
             bool includeNullability,
             Compilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
-            ArrayBuilder<TypeParameterDiagnosticInfo> warningsBuilderOpt,
+            ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder)
         {
             return CheckConstraints(
@@ -793,7 +809,7 @@ hasRelatedInterfaces:
                 type.TypeArgumentsNoUseSiteDiagnostics,
                 currentCompilation,
                 diagnosticsBuilder,
-                warningsBuilderOpt,
+                nullabilityDiagnosticsBuilderOpt,
                 ref useSiteDiagnosticsBuilder);
         }
 
@@ -831,7 +847,7 @@ hasRelatedInterfaces:
         /// <param name="typeArguments">Containing symbol type arguments.</param>
         /// <param name="currentCompilation">Improves error message detail.</param>
         /// <param name="diagnosticsBuilder">Diagnostics.</param>
-        /// <param name="warningsBuilderOpt">Nullability warnings.</param>
+        /// <param name="nullabilityDiagnosticsBuilderOpt">Nullability warnings.</param>
         /// <param name="skipParameters">Parameters to skip.</param>
         /// <param name="useSiteDiagnosticsBuilder"/>
         /// <param name="ignoreTypeConstraintsDependentOnTypeParametersOpt">If an original form of a type constraint 
@@ -846,7 +862,7 @@ hasRelatedInterfaces:
             ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
             Compilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
-            ArrayBuilder<TypeParameterDiagnosticInfo> warningsBuilderOpt,
+            ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
             BitVector skipParameters = default(BitVector),
             HashSet<TypeParameterSymbol> ignoreTypeConstraintsDependentOnTypeParametersOpt = null)
@@ -868,7 +884,7 @@ hasRelatedInterfaces:
                 var typeArgument = typeArguments[i];
                 var typeParameter = typeParameters[i];
 
-                if (!CheckConstraints(containingSymbol, conversions, includeNullability, substitution, typeParameter, typeArgument, currentCompilation, diagnosticsBuilder, warningsBuilderOpt, ref useSiteDiagnosticsBuilder,
+                if (!CheckConstraints(containingSymbol, conversions, includeNullability, substitution, typeParameter, typeArgument, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt, ref useSiteDiagnosticsBuilder,
                                       ignoreTypeConstraintsDependentOnTypeParametersOpt))
                 {
                     succeeded = false;
@@ -888,7 +904,7 @@ hasRelatedInterfaces:
             TypeSymbolWithAnnotations typeArgument,
             Compilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
-            ArrayBuilder<TypeParameterDiagnosticInfo> warningsBuilderOpt,
+            ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
             HashSet<TypeParameterSymbol> ignoreTypeConstraintsDependentOnTypeParametersOpt)
         {
@@ -925,12 +941,12 @@ hasRelatedInterfaces:
                     return false;
                 }
 
-                if (includeNullability && warningsBuilderOpt != null &&
+                if (includeNullability && nullabilityDiagnosticsBuilderOpt != null &&
                     typeParameter.ReferenceTypeConstraintIsNullable == false &&
                     typeArgument.GetValueNullableAnnotation().IsAnyNullable())
                 {
                     var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, containingSymbol.ConstructedFrom(), typeParameter, typeArgument);
-                    warningsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, diagnostic));
+                    nullabilityDiagnosticsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, diagnostic));
                 }
             }
 
@@ -979,14 +995,14 @@ hasRelatedInterfaces:
             {
                 if (SatisfiesConstraintType(conversions.WithNullability(false), typeArgument, constraintType, ref useSiteDiagnostics))
                 {
-                    if (includeNullability && warningsBuilderOpt != null)
+                    if (includeNullability && nullabilityDiagnosticsBuilderOpt != null)
                     {
                         if (!SatisfiesConstraintType(conversions.WithNullability(true), typeArgument, constraintType, ref useSiteDiagnostics) ||
                             (typeArgument.GetValueNullableAnnotation().IsAnyNullable() && !typeArgument.IsValueType &&
                              TypeParameterSymbol.IsNotNullableIfReferenceTypeFromConstraintType(constraintType) == true))
                         {
                             var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, containingSymbol.ConstructedFrom(), constraintType, typeParameter, typeArgument);
-                            warningsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, diagnostic));
+                            nullabilityDiagnosticsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, diagnostic));
                         }
                     }
                     continue;

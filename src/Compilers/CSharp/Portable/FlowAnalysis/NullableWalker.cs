@@ -3522,7 +3522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 tupleOpt = tupleOpt.WithElementTypes(elementTypes);
                 var locations = tupleOpt.TupleElements.SelectAsArray((element, location) => element.Locations.FirstOrDefault() ?? location, node.Syntax.Location);
-                tupleOpt.CheckConstraints(_conversions, includeNullability: true, node.Syntax, locations, compilation, Diagnostics);
+                tupleOpt.CheckConstraints(_conversions, includeNullability: true, node.Syntax, locations, compilation, diagnosticsOpt: null, nullabilityDiagnosticsOpt: Diagnostics);
                 _resultType = TypeSymbolWithAnnotations.Create(tupleOpt, NullableAnnotation.NotNullable);
             }
         }

@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (shouldCheckConstraints && diagnostics != null)
             {
                 bool includeNullability = compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-                constructedType.CheckConstraints(compilation.Conversions, includeNullability, syntax, elementLocations, compilation, diagnostics);
+                constructedType.CheckConstraints(compilation.Conversions, includeNullability, syntax, elementLocations, compilation, diagnostics, diagnostics);
             }
 
             return constructedType;
