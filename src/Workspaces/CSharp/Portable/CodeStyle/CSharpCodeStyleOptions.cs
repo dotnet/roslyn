@@ -206,6 +206,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForStringCodeStyleOption("csharp_preferred_modifier_order"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferredModifierOrder)}")});
 
+        public static readonly Option<CodeStyleOption<bool>> PreferStaticLocalFunction = CreateOption(
+            CSharpCodeStyleOptionGroups.Modifier, nameof(PreferStaticLocalFunction),
+            defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_prefer_static_local_function"),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferStaticLocalFunction)}")});
+
+        public static readonly Option<CodeStyleOption<bool>> PreferSimpleUsingStatement = CreateOption(
+            CSharpCodeStyleOptionGroups.CodeBlockPreferences, nameof(PreferSimpleUsingStatement),
+            defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_prefer_simple_using_statement"),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferSimpleUsingStatement)}")});
+
         public static readonly Option<CodeStyleOption<bool>> PreferLocalOverAnonymousFunction = CreateOption(
             CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferLocalOverAnonymousFunction),
             defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,

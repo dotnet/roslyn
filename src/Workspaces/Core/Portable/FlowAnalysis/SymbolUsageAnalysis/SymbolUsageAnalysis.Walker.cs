@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     {
                         OnWriteReferenceFound(symbol, write, maybeWritten: false);
 
-                        if (operation.Kind == OperationKind.CompoundAssignment &&
+                        if (operation.IsAnyCompoundAssignment() &&
                             operation.Parent?.Kind != OperationKind.ExpressionStatement)
                         {
                             OnReadReferenceFound(symbol);
@@ -205,6 +205,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             public override void VisitCompoundAssignment(ICompoundAssignmentOperation operation)
             {
                 base.VisitCompoundAssignment(operation);
+                ProcessPendingWritesForAssignmentTarget(operation);
+            }
+
+            public override void VisitCoalesceAssignment(ICoalesceAssignmentOperation operation)
+            {
+                base.VisitCoalesceAssignment(operation);
                 ProcessPendingWritesForAssignmentTarget(operation);
             }
 
