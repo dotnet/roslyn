@@ -111,9 +111,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         {
             using (var environment = new TestEnvironment())
             {
+                var initialPath = @"C:\test.dll";
                 var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
                 project.SetOutputFileName(initialPath);
-                Assert.Equal(@"C:\test.dll", project.GetOutputFileName());
+                Assert.Equal(initialPath, project.GetOutputFileName());
 
                 // Change output folder from command line arguments - verify that objOutputPath changes.
                 var newPath = @"C:\NewFolder\test.dll";
