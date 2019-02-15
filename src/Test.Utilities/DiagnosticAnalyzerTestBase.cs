@@ -47,6 +47,7 @@ namespace Test.Utilities
         private static readonly MetadataReference s_systemRuntimeSerialization = MetadataReference.CreateFromFile(typeof(System.Runtime.Serialization.NetDataContractSerializer).Assembly.Location);
         private static readonly MetadataReference s_testReferenceAssembly = MetadataReference.CreateFromFile(typeof(OtherDll.OtherDllStaticMethods).Assembly.Location);
         private static readonly MetadataReference s_systemXmlLinq = MetadataReference.CreateFromFile(typeof(System.Xml.Linq.XAttribute).Assembly.Location);
+        private static readonly MetadataReference s_systemDirectoryServicesDirectoryEntry = MetadataReference.CreateFromFile(typeof(System.DirectoryServices.DirectoryEntry).Assembly.Location);
         protected static readonly CompilationOptions s_CSharpDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
         protected static readonly CompilationOptions s_CSharpUnsafeCodeDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAllowUnsafe(true);
         protected static readonly CompilationOptions s_visualBasicDefaultOptions = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
@@ -444,6 +445,7 @@ namespace Test.Utilities
                 .AddMetadataReference(projectId, s_systemWebReference)
                 .AddMetadataReference(projectId, s_systemXmlLinq)
                 .AddMetadataReference(projectId, s_systemRuntimeSerialization)
+                .AddMetadataReference(projectId, s_systemDirectoryServicesDirectoryEntry)
                 .WithProjectCompilationOptions(projectId, options)
                 .WithProjectParseOptions(projectId, parseOptions)
                 .GetProject(projectId);

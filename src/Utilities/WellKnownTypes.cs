@@ -194,6 +194,10 @@ namespace Analyzer.Utilities
         public const string SystemWebUIWebControlsWebPartsZoneLinkButton = "System.Web.UI.WebControls.WebParts.ZoneLinkButton";
         public const string SystemWebUIWebControlsWizard = "System.Web.UI.WebControls.Wizard";
         public const string SystemWebUtilHttpEncoder = "System.Web.Util.HttpEncoder";
+        public const string MicrosoftSecurityApplicationLdapEncoder = "Microsoft.Security.Application.LdapEncoder";
+        public const string SystemDirectoryServicesActiveDirectoryADSearcher = "System.DirectoryServices.ActiveDirectory.ADSearcher";
+        public const string SystemDirectoryServicesDirectorySearcher = "System.DirectoryServices.DirectorySearcher";
+        public const string SystemDirectoryDirectoryEntry = "System.DirectoryServices.DirectoryEntry";
 
         public static INamedTypeSymbol ICollection(Compilation compilation)
         {

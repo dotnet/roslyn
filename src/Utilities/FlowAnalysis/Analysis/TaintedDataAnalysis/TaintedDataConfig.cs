@@ -183,6 +183,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.ProcessCommand:
                 case SinkKind.Xss:
                 case SinkKind.Regex:
+                case SinkKind.Ldap:
                     return WebInputSources.SourceInfos;
 
                 case SinkKind.InformationDisclosure:
@@ -203,6 +204,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 case SinkKind.Xss:
                     return XssSanitizers.SanitizerInfos;
+
+                case SinkKind.Ldap:
+                    return LdapSanitizers.SanitizerInfos;
 
                 case SinkKind.Dll:
                 case SinkKind.InformationDisclosure:
@@ -239,6 +243,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 case SinkKind.Regex:
                     return RegexSinks.SinkInfos;
+
+                case SinkKind.Ldap:
+                    return LdapSinks.SinkInfos;
 
                 default:
                     Debug.Fail($"Unhandled SinkKind {sinkKind}");

@@ -17,12 +17,13 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageReference Include="xunit.assert" Version="$(XunitVersion)" />
-    <PackageReference Include="Humanizer.Core" Version="$(HumanizerVersion)"/>
+    <PackageReference Include="Humanizer.Core" Version="$(HumanizerVersion)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TestReferenceAssembly\TestReferenceAssembly.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="System.DirectoryServices, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="System.Web" />
   </ItemGroup>
   <Import Project="..\Utilities\Analyzer.Utilities.projitems" Label="Shared" />
