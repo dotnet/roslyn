@@ -1961,18 +1961,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!rangeType.IsErrorType())
             {
-                WellKnownMember requiredRangeMethod;
-
-                if (node.LeftOperand is null)
-                {
-                    requiredRangeMethod = node.RightOperand is null ? WellKnownMember.System_Range__All : WellKnownMember.System_Range__ToEnd;
-                }
-                else
-                {
-                    requiredRangeMethod = node.RightOperand is null ? WellKnownMember.System_Range__FromStart : WellKnownMember.System_Range__Create;
-                }
-
-                symbolOpt = GetWellKnownTypeMember(Compilation, requiredRangeMethod, diagnostics, syntax: node) as MethodSymbol;
+                symbolOpt = (MethodSymbol)GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__ctor, diagnostics, syntax: node);
             }
 
             BoundExpression left = BindRangeExpressionOperand(node.LeftOperand, diagnostics);
