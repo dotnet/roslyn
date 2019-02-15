@@ -4266,6 +4266,45 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments)
             => SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(arguments.Select(AsArgument)));
 
+        internal override SyntaxNode RemoveAllComments(SyntaxNode node)
+        {
+            var modifiedNode = RemoveLeadingAndTrailingComments(node);
+
+            if (modifiedNode is TypeDeclarationSyntax declarationSyntax)
+            {
+                return declarationSyntax.WithOpenBraceToken(RemoveLeadingAndTrailingComments(declarationSyntax.OpenBraceToken))
+                    .WithCloseBraceToken(RemoveLeadingAndTrailingComments(declarationSyntax.CloseBraceToken));
+            }
+
+            return modifiedNode;
+        }
+
+        internal override SyntaxTriviaList RemoveCommentLines(SyntaxTriviaList syntaxTriviaList)
+        {
+            IEnumerable<IEnumerable<SyntaxTrivia>> splitIntoLines(SyntaxTriviaList triviaList)
+            {
+                int index = 0;
+                for (int i = 0; i < triviaList.Count; i++)
+                {
+                    if (triviaList[i].IsEndOfLine())
+                    {
+                        yield return triviaList.TakeRange(index, i);
+                        index = i + 1;
+                    }
+                }
+                
+                if (index < triviaList.Count)
+                {
+                    yield return triviaList.TakeRange(index, triviaList.Count - 1);
+                }
+            }
+
+            var syntaxWithoutComments = splitIntoLines(syntaxTriviaList)
+                .Where(trivia => !trivia.Any(t => t.IsRegularOrDocComment()))
+                .SelectMany(t => t);
+
+            return new SyntaxTriviaList(syntaxWithoutComments);
+        }
         #endregion
 
         #region Patterns
