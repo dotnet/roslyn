@@ -12095,7 +12095,7 @@ struct S2
 
             c.VerifyDiagnostics(
                 // (12,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         string z1 = x1; 
+                //         string z1 = x1;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x1").WithLocation(12, 21),
                 // (24,21): error CS0165: Use of unassigned local variable 'x3'
                 //         string z3 = x3;
@@ -12166,12 +12166,12 @@ struct S2
                 // (150,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         u16 = y16.F4;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y16.F4").WithLocation(150, 15),
-                // (159,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         u17 = y17.F4;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y17.F4").WithLocation(159, 15),
                 // (161,15): error CS0165: Use of unassigned local variable 'x17'
                 //         y17 = x17;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x17").WithArguments("x17").WithLocation(161, 15),
+                // (159,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         u17 = y17.F4;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y17.F4").WithLocation(159, 15),
                 // (170,18): error CS0165: Use of unassigned local variable 'x18'
                 //         S1 y18 = x18;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x18").WithArguments("x18").WithLocation(170, 18),
@@ -12220,12 +12220,12 @@ struct S2
                 // (301,19): hidden CS8607: Expression is probably never null.
                 //         var y32 = new CL1() ?? x32;
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "new CL1()").WithLocation(301, 19),
-                // (306,19): hidden CS8607: Expression is probably never null.
-                //         var y33 = new { p = (object)null } ?? x33;
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "new { p = (object)null }").WithLocation(306, 19),
                 // (306,29): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         var y33 = new { p = (object)null } ?? x33;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)null").WithLocation(306, 29));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)null").WithLocation(306, 29),
+                // (306,19): hidden CS8607: Expression is probably never null.
+                //         var y33 = new { p = (object)null } ?? x33;
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "new { p = (object)null }").WithLocation(306, 19));
         }
 
         [Fact]
@@ -15011,10 +15011,6 @@ class C
             c.VerifyDiagnostics();
         }
 
-        // TODO2
-        //Test ref/out with property, field,
-        //Test with various kinds of identity conversions
-
         [Fact]
         [WorkItem(26739, "https://github.com/dotnet/roslyn/issues/26739")]
         public void RefParameter_TopLevelNullability()
@@ -15071,6 +15067,52 @@ class C
 ", options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(26739, "https://github.com/dotnet/roslyn/issues/26739")]
+        public void RefParameter_VariousLValues()
+        {
+            var c = CreateCompilation(@"
+class C
+{
+    string field = string.Empty;
+    string Property { get; set; } = string.Empty;
+    public void M()
+    {
+        M(ref null); // 1
+        M(ref """"); // 2
+
+        M(ref field); // 3
+        field.ToString(); // 4
+
+        M(ref Property); // 5
+        Property = null; // 6
+    }
+    void M(ref string? s) => throw null!;
+}
+", options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (8,15): error CS1510: A ref or out value must be an assignable variable
+                //         M(ref null); // 1
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "null").WithLocation(8, 15),
+                // (9,15): error CS1510: A ref or out value must be an assignable variable
+                //         M(ref ""); // 2
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, @"""""").WithLocation(9, 15),
+                // (11,15): warning CS8601: Possible null reference assignment.
+                //         M(ref field); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "field").WithLocation(11, 15),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         field.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field").WithLocation(12, 9),
+                // (14,15): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         M(ref Property); // 5
+                Diagnostic(ErrorCode.ERR_RefProperty, "Property").WithArguments("C.Property").WithLocation(14, 15),
+                // (15,20): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         Property = null; // 6
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 20)
+                );
         }
 
         [Fact]
@@ -15248,12 +15290,7 @@ class C
 }
 ", options: WithNonNullTypesTrue());
 
-            // Duplicate warnings
-            // TODO2
             c.VerifyDiagnostics(
-                // (9,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         G(ref F(s = null));
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(9, 21),
                 // (9,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         G(ref F(s = null));
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(9, 21)
