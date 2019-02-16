@@ -8904,8 +8904,8 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_MismatchedRefEscapeInTernary">
-        <source>Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes</source>
-        <target state="translated">Branches eines ternären ref-Operators können nicht auf Variablen mit inkompatiblen Deklarationsbereichen verweisen.</target>
+        <source>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</source>
+        <target state="needs-review-translation">Branches eines ternären ref-Operators können nicht auf Variablen mit inkompatiblen Deklarationsbereichen verweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeStackAlloc">

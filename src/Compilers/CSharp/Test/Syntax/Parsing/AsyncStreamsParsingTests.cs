@@ -345,7 +345,7 @@ class C
 }
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3));
-            tree.GetDiagnostics().Verify( 
+            tree.GetDiagnostics().Verify(
                 // (6,9): error CS8652: The feature 'async streams' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         await foreach (var i in collection)
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("async streams").WithLocation(6, 9)

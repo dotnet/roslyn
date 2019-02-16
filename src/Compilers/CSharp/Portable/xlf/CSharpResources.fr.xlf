@@ -8904,8 +8904,8 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <note />
       </trans-unit>
       <trans-unit id="ERR_MismatchedRefEscapeInTernary">
-        <source>Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes</source>
-        <target state="translated">Les branches d'un opérateur ternaire ref ne peuvent pas faire référence à des variables ayant des portées de déclaration incompatibles</target>
+        <source>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</source>
+        <target state="needs-review-translation">Les branches d'un opérateur ternaire ref ne peuvent pas faire référence à des variables ayant des portées de déclaration incompatibles</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeStackAlloc">
