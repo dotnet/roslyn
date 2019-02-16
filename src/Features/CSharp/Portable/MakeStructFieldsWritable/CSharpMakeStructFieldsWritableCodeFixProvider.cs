@@ -39,7 +39,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             {
                 var diagnosticNode = diagnostic.Location.FindNode(cancellationToken);
 
-                var fieldDeclarations = diagnosticNode.ChildNodes()
+                if (!(diagnosticNode is StructDeclarationSyntax))
+                {
+                    continue;
+                }
+
+                var fieldDeclarations = ((StructDeclarationSyntax)diagnosticNode)
+                    .Members
                     .OfType<FieldDeclarationSyntax>();
 
                 foreach (var fieldDeclaration in fieldDeclarations)
