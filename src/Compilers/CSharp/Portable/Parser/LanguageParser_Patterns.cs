@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     if (!type.IsMissing)
                     {
-                        PatternSyntax p = ParsePatternContinued(type, false);
+                        PatternSyntax p = ParsePatternContinued(type, precedence, whenIsKeyword: false);
                         if (p != null)
                         {
                             return p;
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var resetPoint = this.GetResetPoint();
                 try
                 {
-                    PatternSyntax p = ParsePatternContinued(null, false);
+                    PatternSyntax p = ParsePatternContinued(type: null, precedence, whenIsKeyword: false);
                     if (p != null)
                     {
                         return p;
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                 }
 
-                PatternSyntax p = ParsePatternContinued(type, whenIsKeyword);
+                PatternSyntax p = ParsePatternContinued(type, precedence, whenIsKeyword);
                 if (p != null)
                 {
                     return (whenIsKeyword && p is ConstantPatternSyntax c) ? c.expression : (CSharpSyntaxNode)p;
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private PatternSyntax ParsePatternContinued(TypeSyntax type, bool whenIsKeyword)
+        private PatternSyntax ParsePatternContinued(TypeSyntax type, Precedence precedence, bool whenIsKeyword)
         {
             if (type?.Kind == SyntaxKind.IdentifierName)
             {
@@ -450,7 +450,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // There is an ambiguity between a positional pattern `(` pattern `)`
                         // and a constant expression pattern that happens to be parenthesized.
                         // Per 2017-11-20 LDM we treat such syntax as a parenthesized expression always.
-                        return _syntaxFactory.ConstantPattern(_syntaxFactory.ParenthesizedExpression(openParenToken, cp.Expression, closeParenToken));
+                        ExpressionSyntax expression = _syntaxFactory.ParenthesizedExpression(openParenToken, cp.Expression, closeParenToken);
+                        expression = ParseExpressionContinued(expression, precedence);
+                        return _syntaxFactory.ConstantPattern(expression);
                     }
                 }
 
@@ -615,7 +617,7 @@ tryAgain:
                 nameColon = _syntaxFactory.NameColon(name, colon);
             }
 
-            var pattern = ParsePattern(Precedence.Ternary);
+            var pattern = ParsePattern(Precedence.Conditional);
             return this._syntaxFactory.Subpattern(nameColon, pattern);
         }
 
@@ -642,13 +644,11 @@ tryAgain:
                 expected);
         }
 
-        private ExpressionSyntax ParseSwitchExpression(ExpressionSyntax leftOperand)
+        private ExpressionSyntax ParseSwitchExpression(ExpressionSyntax governingExpression, SyntaxToken switchKeyword)
         {
             // For better error recovery when an expression is typed on a line before a switch statement,
             // the caller checks if the switch keyword is followed by an open curly brace. Only if it is
             // would we attempt to parse it as a switch expression here.
-            var governingExpression = leftOperand;
-            var switchKeyword = this.EatToken();
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
             var arms = this.ParseSwitchExpressionArms();
             var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
@@ -663,15 +663,20 @@ tryAgain:
 
             while (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
-                // We use a precedence that excludes lambdas, assignments, and a ternary which could have a
+                // We use a precedence that excludes lambdas, assignments, and a conditional which could have a
                 // lambda on the right, because we need the parser to leave the EqualsGreaterThanToken
-                // to be consumed by the switch arm. The strange side-effect of that is that the ternary
+                // to be consumed by the switch arm. The strange side-effect of that is that the conditional
                 // expression is not permitted as a constant expression here; it would have to be parenthesized.
                 var pattern = ParsePattern(Precedence.Coalescing, whenIsKeyword: true);
                 var whenClause = ParseWhenClause(Precedence.Coalescing);
                 var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
                 var expression = ParseExpressionCore();
                 var switchExpressionCase = _syntaxFactory.SwitchExpressionArm(pattern, whenClause, arrow, expression);
+
+                // If we're not making progress, abort
+                if (switchExpressionCase.Width == 0 && this.CurrentToken.Kind != SyntaxKind.CommaToken)
+                    break;
+
                 arms.Add(switchExpressionCase);
                 if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
                 {

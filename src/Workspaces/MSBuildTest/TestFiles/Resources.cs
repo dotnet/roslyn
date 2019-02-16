@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
     {
         private static Stream GetResourceStream(string name)
         {
-            var resourceName = $"Microsoft.CodeAnalysis.UnitTests.Resources.{name}";
+            var resourceName = $"Microsoft.CodeAnalysis.MSBuild.UnitTests.Resources.{name}";
 
             var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
             if (resourceStream != null)
@@ -115,6 +115,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string CircularProjectReferences_CircularCSharpProject2 => GetText("CircularProjectReferences.CircularCSharpProject2.csproj");
                 public static string CSharpProject => GetText("ProjectFiles.CSharp.CSharpProject.csproj");
                 public static string DuplicateFile => GetText("ProjectFiles.CSharp.DuplicateFile.csproj");
+                public static string DuplicateProjectReference => GetText("ProjectFiles.CSharp.DuplicateProjectReference.csproj");
                 public static string DuplicatedGuidLibrary1 => GetText("ProjectFiles.CSharp.DuplicatedGuidLibrary1.csproj");
                 public static string DuplicatedGuidLibrary2 => GetText("ProjectFiles.CSharp.DuplicatedGuidLibrary2.csproj");
                 public static string DuplicatedGuidLibrary3 => GetText("ProjectFiles.CSharp.DuplicatedGuidLibrary3.csproj");
