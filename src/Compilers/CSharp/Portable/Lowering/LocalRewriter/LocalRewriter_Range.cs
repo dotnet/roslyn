@@ -15,21 +15,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node != null && node.MethodOpt != null);
 
             bool needLifting = false;
-            var operandsBuilder = new ArrayBuilder<BoundExpression>();
+            var F = _factory;
 
             var left = node.LeftOperand;
             if (left != null)
             {
-                operandsBuilder.Add(tryOptimizeOperand(left));
+                left = tryOptimizeOperand(left);
+            }
+            else
+            {
+                left = newIndexZero(fromEnd: false);
             }
 
             var right = node.RightOperand;
             if (right != null)
             {
-                operandsBuilder.Add(tryOptimizeOperand(right));
+                right = tryOptimizeOperand(right);
+            }
+            else
+            {
+                right = newIndexZero(fromEnd: true);
             }
 
-            ImmutableArray<BoundExpression> operands = operandsBuilder.ToImmutable();
+            var operands = ImmutableArray.Create(left, right);
 
             if (needLifting)
             {
@@ -37,12 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                BoundExpression rangeCreation = MakeCall(
+                BoundExpression rangeCreation = new BoundObjectCreationExpression(
                     node.Syntax,
-                    rewrittenReceiver: null,
                     node.MethodOpt,
-                    operands,
-                    node.MethodOpt.ReturnType.TypeSymbol);
+                    binderOpt: null,
+                    operands);
 
                 if (node.Type.IsNullableType())
                 {
@@ -56,6 +63,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return rangeCreation;
             }
+
+            BoundExpression newIndexZero(bool fromEnd) =>
+                // new Index(0, fromEnd: fromEnd)
+                F.New(
+                    WellKnownMember.System_Index__ctor,
+                    ImmutableArray.Create<BoundExpression>(F.Literal(0), F.Literal(fromEnd)));
 
             BoundExpression tryOptimizeOperand(BoundExpression operand)
             {
@@ -121,12 +134,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(condition != null);
 
             // method(left.GetValueOrDefault(), right.GetValueOrDefault())
-            BoundExpression rangeCall = MakeCall(
+            BoundExpression rangeCall = new BoundObjectCreationExpression(
                 node.Syntax,
-                rewrittenReceiver: null,
                 node.MethodOpt,
-                arguments.ToImmutableArray(),
-                node.MethodOpt.ReturnType.TypeSymbol);
+                binderOpt: null,
+                arguments.ToImmutableArray());
 
             if (!TryGetNullableMethod(node.Syntax, node.Type, SpecialMember.System_Nullable_T__ctor, out MethodSymbol nullableCtor))
             {

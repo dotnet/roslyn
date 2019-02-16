@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
@@ -137,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             }
         }
 
-        private void OnDocumentMonikerChanged(IVsHierarchy hierarchy, string oldMoniker, string newMoniker)
+        private void OnDocumentMonikerChanged(uint docCookie, IVsHierarchy hierarchy, string oldMoniker, string newMoniker)
         {
             // If the moniker change only involves casing differences then the project system will
             // not remove & add the file again with the new name, so we should not clear any state.
@@ -161,7 +162,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 project.RemoveSourceFile(oldMoniker);
             }
 
-            project.AddSourceFile(newMoniker);
+            var info = _rdt.Value.GetDocumentInfo(docCookie);
+            var buffer = TryGetTextBufferFromDocData(info.DocData);
+
+            // If the file extension changed which causes the content type to change
+            // (e.g. from .xaml to .cs) we should not add the new document to Xaml project.
+            if (buffer != null && buffer.ContentType.IsOfType(ContentTypeNames.XamlContentType))
+            {
+                project.AddSourceFile(newMoniker);
+            }
         }
 
         private void OnDocumentClosed(uint docCookie)
@@ -173,6 +182,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 {
                     project.RemoveSourceFile(info.Moniker);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Tries to return an ITextBuffer representing the document from the document's DocData.
+        /// </summary>
+        /// <param name="docData">The DocData from the running document table.</param>
+        /// <returns>The ITextBuffer. If one could not be found, this returns null.</returns>
+        private ITextBuffer TryGetTextBufferFromDocData(object docData)
+        {
+            if (docData is IVsTextBuffer vsTestBuffer)
+            {
+                return _editorAdaptersFactory.GetDocumentBuffer(vsTestBuffer);
+            }
+            else
+            {
+                return null;
             }
         }
     }
