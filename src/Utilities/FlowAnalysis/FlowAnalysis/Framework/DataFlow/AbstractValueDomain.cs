@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// <summary>
     /// Abstract value domain for a <see cref="DataFlowAnalysis"/> to merge and compare values.
     /// </summary>
-    internal abstract class AbstractValueDomain<T> : AbstractDomain<T>
+    public abstract class AbstractValueDomain<T> : AbstractDomain<T>
     {
         /// <summary>
         /// Returns the major Unknown or MayBe top value of the domain.

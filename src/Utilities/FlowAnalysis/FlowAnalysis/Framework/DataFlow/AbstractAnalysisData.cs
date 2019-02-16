@@ -4,7 +4,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
-    internal abstract class AbstractAnalysisData : IDisposable
+    public abstract class AbstractAnalysisData : IDisposable
     {
         public bool IsDisposed { get; private set; }
 

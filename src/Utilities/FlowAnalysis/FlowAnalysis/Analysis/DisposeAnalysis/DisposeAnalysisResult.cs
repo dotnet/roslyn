@@ -7,9 +7,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
     /// <summary>
     /// Analysis result from execution of <see cref="DisposeAnalysis"/> on a control flow graph.
     /// </summary>
-    internal sealed class DisposeAnalysisResult : DataFlowAnalysisResult<DisposeBlockAnalysisResult, DisposeAbstractValue>
+    public sealed class DisposeAnalysisResult : DataFlowAnalysisResult<DisposeBlockAnalysisResult, DisposeAbstractValue>
     {
-        public DisposeAnalysisResult(
+        internal DisposeAnalysisResult(
             DataFlowAnalysisResult<DisposeBlockAnalysisResult, DisposeAbstractValue> coreDisposeAnalysisResult,
             ImmutableDictionary<IFieldSymbol, PointsToAnalysis.PointsToAbstractValue> trackedInstanceFieldPointsToMap)
             : base(coreDisposeAnalysisResult)
@@ -17,6 +17,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             TrackedInstanceFieldPointsToMap = trackedInstanceFieldPointsToMap;
         }
 
-        public ImmutableDictionary<IFieldSymbol, PointsToAnalysis.PointsToAbstractValue> TrackedInstanceFieldPointsToMap { get; }
+        internal ImmutableDictionary<IFieldSymbol, PointsToAnalysis.PointsToAbstractValue> TrackedInstanceFieldPointsToMap { get; }
     }
 }

@@ -6,12 +6,13 @@ using System.Diagnostics;
 
 #pragma warning disable CA1710 // Rename Microsoft.CodeAnalysis.PooledHashSet<T> to end in 'Collection'.
 #pragma warning disable CA1000 // Do not declare static members on generic types
+#pragma warning disable CA2237 // Add [Serializable] to PooledHashSet as this type implements ISerializable
 
 namespace Microsoft.CodeAnalysis
 {
     // HashSet that can be recycled via an object pool
     // NOTE: these HashSets always have the default comparer.
-    internal class PooledHashSet<T> : HashSet<T>
+    public class PooledHashSet<T> : HashSet<T>
     {
         private readonly ObjectPool<PooledHashSet<T>> _pool;
 

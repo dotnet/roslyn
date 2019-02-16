@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// <summary>
     /// Base type for analysis contexts for execution of <see cref="DataFlowAnalysis"/> on a control flow graph.
     /// </summary>
-    internal abstract class AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
+    public abstract class AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         : CacheBasedEquatable<TAnalysisContext>, IDataFlowAnalysisContext
         where TAnalysisContext : class, IDataFlowAnalysisContext
         where TAnalysisResult : IDataFlowAnalysisResult<TAbstractAnalysisValue>

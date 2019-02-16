@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
-    internal abstract partial class PredicatedAnalysisData<TKey, TValue>
+    public abstract partial class PredicatedAnalysisData<TKey, TValue>
     {
         /// <summary>
         /// Analysis data predicated by true/false value of an <see cref="AnalysisEntity"/>.

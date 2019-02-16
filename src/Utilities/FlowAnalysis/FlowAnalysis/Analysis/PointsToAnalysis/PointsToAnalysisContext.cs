@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
     /// <summary>
     /// Analysis context for execution of <see cref="PointsToAnalysis"/> on a control flow graph.
     /// </summary>
-    internal sealed class PointsToAnalysisContext : AbstractDataFlowAnalysisContext<PointsToAnalysisData, PointsToAnalysisContext, PointsToAnalysisResult, PointsToAbstractValue>
+    public sealed class PointsToAnalysisContext : AbstractDataFlowAnalysisContext<PointsToAnalysisData, PointsToAnalysisContext, PointsToAnalysisResult, PointsToAbstractValue>
     {
         private PointsToAnalysisContext(
             AbstractValueDomain<PointsToAbstractValue> valueDomain,
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         {
         }
 
-        public static PointsToAnalysisContext Create(
+        internal static PointsToAnalysisContext Create(
             AbstractValueDomain<PointsToAbstractValue> valueDomain,
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,

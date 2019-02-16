@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 {
     using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
 
-    internal partial class ValueContentAnalysis : ForwardDataFlowAnalysis<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentBlockAnalysisResult, ValueContentAbstractValue>
+    public partial class ValueContentAnalysis : ForwardDataFlowAnalysis<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentBlockAnalysisResult, ValueContentAbstractValue>
     {
         /// <summary>
         /// An abstract analysis domain implementation for <see cref="ValueContentAnalysisData"/> tracked by <see cref="ValueContentAnalysis"/>.

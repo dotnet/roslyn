@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
     /// Result from execution of <see cref="DisposeAnalysis"/> on a basic block.
     /// It store dispose values for each <see cref="AbstractLocation"/> at the start and end of the basic block.
     /// </summary>
-    internal class DisposeBlockAnalysisResult : AbstractBlockAnalysisResult
+    public class DisposeBlockAnalysisResult : AbstractBlockAnalysisResult
     {
-        public DisposeBlockAnalysisResult(BasicBlock basicBlock, DisposeAnalysisData blockAnalysisData)
+        internal DisposeBlockAnalysisResult(BasicBlock basicBlock, DisposeAnalysisData blockAnalysisData)
             : base(basicBlock)
         {
             Data = blockAnalysisData?.ToImmutableDictionary() ?? ImmutableDictionary<AbstractLocation, DisposeAbstractValue>.Empty;

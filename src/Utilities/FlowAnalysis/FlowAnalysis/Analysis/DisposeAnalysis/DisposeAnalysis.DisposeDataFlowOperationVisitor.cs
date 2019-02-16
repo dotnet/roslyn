@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 {
     using DisposeAnalysisData = DictionaryAnalysisData<AbstractLocation, DisposeAbstractValue>;
 
-    internal partial class DisposeAnalysis : ForwardDataFlowAnalysis<DisposeAnalysisData, DisposeAnalysisContext, DisposeAnalysisResult, DisposeBlockAnalysisResult, DisposeAbstractValue>
+    public partial class DisposeAnalysis : ForwardDataFlowAnalysis<DisposeAnalysisData, DisposeAnalysisContext, DisposeAnalysisResult, DisposeBlockAnalysisResult, DisposeAbstractValue>
     {
         /// <summary>
         /// Operation visitor to flow the dispose values across a given statement in a basic block.

@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
-    internal abstract partial class AbstractIndex
+    public abstract partial class AbstractIndex
     {
         private sealed class AnalysisEntityBasedIndex : AbstractIndex
         {

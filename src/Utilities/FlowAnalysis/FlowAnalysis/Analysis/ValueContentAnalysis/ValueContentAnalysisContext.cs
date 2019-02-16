@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
     /// <summary>
     /// Analysis context for execution of <see cref="ValueContentAnalysis"/> on a control flow graph.
     /// </summary>
-    internal sealed class ValueContentAnalysisContext : AbstractDataFlowAnalysisContext<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentAbstractValue>
+    public sealed class ValueContentAnalysisContext : AbstractDataFlowAnalysisContext<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentAbstractValue>
     {
         private ValueContentAnalysisContext(
             AbstractValueDomain<ValueContentAbstractValue> valueDomain,
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         {
         }
 
-        public static ValueContentAnalysisContext Create(
+        internal static ValueContentAnalysisContext Create(
             AbstractValueDomain<ValueContentAbstractValue> valueDomain,
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,

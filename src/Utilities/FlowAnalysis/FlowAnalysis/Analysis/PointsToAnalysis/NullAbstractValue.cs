@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
     /// <summary>
     /// Abstract null value for <see cref="AnalysisEntity"/>/<see cref="IOperation"/> tracked by <see cref="PointsToAnalysis"/>.
     /// </summary>
-    internal enum NullAbstractValue
+    public enum NullAbstractValue
     {
         Invalid,
         Undefined,

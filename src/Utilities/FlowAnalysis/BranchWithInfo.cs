@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     /// <summary>
     /// Contains aggregated information about a control flow branch.
     /// </summary>
-    internal sealed class BranchWithInfo
+    public sealed class BranchWithInfo
     {
-        public BranchWithInfo(ControlFlowBranch branch)
+        internal BranchWithInfo(ControlFlowBranch branch)
             : this(branch.Destination, branch.EnteringRegions, branch.LeavingRegions, branch.FinallyRegions,
                   branch.Semantics, branch.Source.BranchValue,
                   GetControlFlowConditionKind(branch),
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
         }
 
-        public BranchWithInfo(BasicBlock destination)
+        internal BranchWithInfo(BasicBlock destination)
             : this(destination,
                   enteringRegions: ImmutableArray<ControlFlowRegion>.Empty,
                   leavingRegions: ImmutableArray<ControlFlowRegion>.Empty,
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         public IEnumerable<ILocalSymbol> LeavingRegionLocals { get; }
         public IEnumerable<CaptureId> LeavingRegionFlowCaptures { get; }
 
-        public BranchWithInfo WithEmptyRegions(BasicBlock destination)
+        internal BranchWithInfo WithEmptyRegions(BasicBlock destination)
         {
             return new BranchWithInfo(
                 destination,
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 leavingRegionFlowCaptures: ImmutableHashSet<CaptureId>.Empty);
         }
 
-        public BranchWithInfo With(
+        internal BranchWithInfo With(
             IOperation branchValueOpt,
             ControlFlowConditionKind controlFlowConditionKind)
         {

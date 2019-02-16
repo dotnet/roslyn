@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// <summary>
     /// Abstract domain for a <see cref="DataFlowAnalysis"/> to merge and compare values.
     /// </summary>
-    internal abstract class AbstractDomain<T>
+    public abstract class AbstractDomain<T>
     {
         /// <summary>
         /// Returns the minor value of the domain.

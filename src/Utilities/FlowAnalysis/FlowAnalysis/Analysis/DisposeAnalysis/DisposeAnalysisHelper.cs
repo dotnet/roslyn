@@ -20,7 +20,7 @@ namespace Analyzer.Utilities
     /// <summary>
     /// Helper for DisposeAnalysis.
     /// </summary>
-    internal class DisposeAnalysisHelper
+    public class DisposeAnalysisHelper
     {
         private static readonly string[] s_disposeOwnershipTransferLikelyTypes = new string[]
             {

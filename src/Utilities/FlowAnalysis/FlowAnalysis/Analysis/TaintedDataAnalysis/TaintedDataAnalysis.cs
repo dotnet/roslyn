@@ -79,7 +79,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             return analysis.GetOrComputeResultCore(analysisContext, cacheResult: true);
         }
 
-        internal override TaintedDataAnalysisResult ToResult(
+        protected override TaintedDataAnalysisResult ToResult(
             TaintedDataAnalysisContext analysisContext,
             DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue> dataFlowAnalysisResult)
         {
@@ -87,7 +87,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             return new TaintedDataAnalysisResult(dataFlowAnalysisResult, visitor.GetTaintedDataSourceSinkEntries());
         }
 
-        internal override TaintedDataBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, TaintedDataAnalysisData blockAnalysisData)
+        protected override TaintedDataBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, TaintedDataAnalysisData blockAnalysisData)
         {
             return new TaintedDataBlockAnalysisResult(basicBlock, blockAnalysisData);
         }

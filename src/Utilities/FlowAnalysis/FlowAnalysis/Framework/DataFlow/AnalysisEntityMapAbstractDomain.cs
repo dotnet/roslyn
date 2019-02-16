@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// <summary>
     /// An abstract domain implementation for analyses that store dictionary typed data.
     /// </summary>
-    internal abstract class AnalysisEntityMapAbstractDomain<TValue> : MapAbstractDomain<AnalysisEntity, TValue>
+    public abstract class AnalysisEntityMapAbstractDomain<TValue> : MapAbstractDomain<AnalysisEntity, TValue>
     {
         protected AnalysisEntityMapAbstractDomain(AbstractValueDomain<TValue> valueDomain)
             : base(valueDomain)

@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
     /// Result from execution of <see cref="ValueContentAnalysis"/> on a basic block.
     /// It stores data values for each <see cref="AnalysisEntity"/> at the start and end of the basic block.
     /// </summary>
-    internal class ValueContentBlockAnalysisResult : AbstractBlockAnalysisResult
+    public class ValueContentBlockAnalysisResult : AbstractBlockAnalysisResult
     {
-        public ValueContentBlockAnalysisResult(BasicBlock basicBlock, ValueContentAnalysisData blockAnalysisData)
+        internal ValueContentBlockAnalysisResult(BasicBlock basicBlock, ValueContentAnalysisData blockAnalysisData)
             : base(basicBlock)
         {
             Data = blockAnalysisData?.CoreAnalysisData.ToImmutableDictionary() ?? ImmutableDictionary<AnalysisEntity, ValueContentAbstractValue>.Empty;

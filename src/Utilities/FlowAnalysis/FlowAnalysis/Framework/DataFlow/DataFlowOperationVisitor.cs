@@ -11,12 +11,14 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
+#pragma warning disable CA1707 // Identifiers should not contain underscores
+
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     /// <summary>
     /// Operation visitor to flow the abstract dataflow analysis values across a given statement in a basic block.
     /// </summary>
-    internal abstract class DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue> : OperationVisitor<object, TAbstractAnalysisValue>
+    public abstract class DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue> : OperationVisitor<object, TAbstractAnalysisValue>
         where TAnalysisData : AbstractAnalysisData
         where TAnalysisContext : AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisResult : IDataFlowAnalysisResult<TAbstractAnalysisValue>
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected abstract void ResetCurrentAnalysisData();
         protected bool HasPointsToAnalysisResult => DataFlowAnalysisContext.PointsToAnalysisResultOpt != null || IsPointsToAnalysis;
         protected virtual bool IsPointsToAnalysis => false;
-        public Dictionary<ThrowBranchWithExceptionType, TAnalysisData> AnalysisDataForUnhandledThrowOperations { get; private set; }
+        internal Dictionary<ThrowBranchWithExceptionType, TAnalysisData> AnalysisDataForUnhandledThrowOperations { get; private set; }
         public ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>> InterproceduralResultsMap => _interproceduralResultsBuilder.ToImmutable();
 
         protected TAnalysisContext DataFlowAnalysisContext { get; }
@@ -609,9 +611,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         #region Helper methods to get or cache analysis data for visited operations.
 
-        public ImmutableDictionary<IOperation, TAbstractAnalysisValue> GetStateMap() => _valueCacheBuilder.ToImmutable();
+        internal ImmutableDictionary<IOperation, TAbstractAnalysisValue> GetStateMap() => _valueCacheBuilder.ToImmutable();
 
-        public ImmutableDictionary<IOperation, PredicateValueKind> GetPredicateValueKindMap() => _predicateValueKindCacheBuilder.ToImmutable();
+        internal ImmutableDictionary<IOperation, PredicateValueKind> GetPredicateValueKindMap() => _predicateValueKindCacheBuilder.ToImmutable();
 
         public virtual TAnalysisData GetMergedDataForUnhandledThrowOperations()
         {
@@ -743,7 +745,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return defaultValue;
         }
 
-        protected bool TryInferConversion(IConversionOperation operation, out ConversionInference inference)
+        internal bool TryInferConversion(IConversionOperation operation, out ConversionInference inference)
         {
             inference = ConversionInference.Create(operation);
 
@@ -762,7 +764,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return TryInferConversion(operation.Operand, operation.Type, operation.IsTryCast, operation, out inference);
         }
 
-        protected bool TryInferConversion(IIsPatternOperation operation, out ConversionInference inference)
+        internal bool TryInferConversion(IIsPatternOperation operation, out ConversionInference inference)
         {
             var targetType = operation.Pattern.GetPatternType();
             return TryInferConversion(operation.Value, targetType, isTryCast: true, operation, out inference);
@@ -1392,7 +1394,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// Resets all the analysis data for all <see cref="AnalysisEntity"/> instances that share the same <see cref="AnalysisEntity.InstanceLocation"/>
         /// as the given <paramref name="pointsToAbstractValue"/>.
         /// </summary>
-        /// <param name="operation"></param>
         protected abstract void ResetReferenceTypeInstanceAnalysisData(PointsToAbstractValue pointsToAbstractValue);
 
         private void ResetValueTypeInstanceAnalysisData(IOperation operation)
@@ -1470,7 +1471,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <summary>
         /// Gets a new instance of analysis data that should be passed as initial analysis data
         /// for interprocedural analysis.
-        /// The default implementation returns cloned <see cref="CurrentAnalysisData"/>.
+        /// The default implementation returns cloned CurrentAnalysisData.
         /// </summary>
         protected virtual TAnalysisData GetInitialInterproceduralAnalysisData(
             IMethodSymbol invokedMethod,
@@ -1483,10 +1484,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             => GetClonedCurrentAnalysisData();
 
         /// <summary>
-        /// Apply the result data from interprocedural analysis to <see cref="CurrentAnalysisData"/>.
-        /// Default implementation is designed for the default implementation of
-        /// <see cref="GetInitialInterproceduralAnalysisData(IMethodSymbol, (AnalysisEntity InstanceOpt, PointsToAbstractValue PointsToValue)?, (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)?, ImmutableArray{ArgumentInfo{TAbstractAnalysisValue}}, IDictionary{AnalysisEntity, PointsToAbstractValue}, IDictionary{AnalysisEntity, CopyAbstractValue}, bool)"/>
-        /// and overwrites the <see cref="CurrentAnalysisData"/> with the given <paramref name="resultData"/>.
+        /// Apply the result data from interprocedural analysis to CurrentAnalysisData.
+        /// Default implementation is designed for the default implementation of GetInitialInterproceduralAnalysisData.
+        /// and overwrites the CurrentAnalysisData with the given <paramref name="resultData"/>.
         /// </summary>
         protected virtual void ApplyInterproceduralAnalysisResult(TAnalysisData resultData, bool isLambdaOrLocalFunction)
             => CurrentAnalysisData = resultData;
@@ -1798,7 +1798,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         #region Visitor methods
 
-        internal TAbstractAnalysisValue VisitArray(IEnumerable<IOperation> operations, object argument)
+        protected TAbstractAnalysisValue VisitArray(IEnumerable<IOperation> operations, object argument)
         {
             foreach (var operation in operations)
             {

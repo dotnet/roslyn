@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
     /// Contains the <see cref="CoreCopyAnalysisData"/> for entity copy values and
     /// the predicated copy values based on true/false runtime values of predicated entities.
     /// </summary>
-    internal sealed class CopyAnalysisData : AnalysisEntityBasedPredicateAnalysisData<CopyAbstractValue>
+    public sealed class CopyAnalysisData : AnalysisEntityBasedPredicateAnalysisData<CopyAbstractValue>
     {
-        public CopyAnalysisData()
+        internal CopyAnalysisData()
         {
         }
 
-        public CopyAnalysisData(IDictionary<AnalysisEntity, CopyAbstractValue> fromData)
+        internal CopyAnalysisData(IDictionary<AnalysisEntity, CopyAbstractValue> fromData)
             : base(fromData)
         {
             AssertValidCopyAnalysisData();
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         /// We do not support the <see cref="SetAbstractValue(AnalysisEntity, CopyAbstractValue)"/> overload
         /// that updates copy value for each individual entity.
         /// </summary>
-        public void SetAbstactValueForEntities(CopyAbstractValue copyValue, AnalysisEntity entityBeingAssignedOpt)
+        internal void SetAbstactValueForEntities(CopyAbstractValue copyValue, AnalysisEntity entityBeingAssignedOpt)
         {
             foreach (var entity in copyValue.AnalysisEntities)
             {
@@ -186,14 +186,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         }
 
         [Conditional("DEBUG")]
-        public void AssertValidCopyAnalysisData(Func<AnalysisEntity, CopyAbstractValue> tryGetDefaultCopyValueOpt = null, bool initializingParameters = false)
+        internal void AssertValidCopyAnalysisData(Func<AnalysisEntity, CopyAbstractValue> tryGetDefaultCopyValueOpt = null, bool initializingParameters = false)
         {
             AssertValidCopyAnalysisData(CoreAnalysisData, tryGetDefaultCopyValueOpt, initializingParameters);
             AssertValidPredicatedAnalysisData(map => AssertValidCopyAnalysisData(map, tryGetDefaultCopyValueOpt, initializingParameters));
         }
 
         [Conditional("DEBUG")]
-        public static void AssertValidCopyAnalysisData(
+        internal static void AssertValidCopyAnalysisData(
             IDictionary<AnalysisEntity, CopyAbstractValue> map,
             Func<AnalysisEntity, CopyAbstractValue> tryGetDefaultCopyValueOpt = null,
             bool initializingParameters = false)

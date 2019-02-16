@@ -5,9 +5,9 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
-    internal static class BasicBlockExtensions
+    public static class BasicBlockExtensions
     {
-        public static IEnumerable<(BasicBlock predecessorBlock, BranchWithInfo branchWithInfo)> GetPredecessorsWithBranches(this BasicBlock basicBlock, ControlFlowGraph cfg)
+        internal static IEnumerable<(BasicBlock predecessorBlock, BranchWithInfo branchWithInfo)> GetPredecessorsWithBranches(this BasicBlock basicBlock, ControlFlowGraph cfg)
         {
             foreach (ControlFlowBranch predecessorBranch in basicBlock.Predecessors)
             {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
         }
 
-        public static ITypeSymbol GetEnclosingRegionExceptionType(this BasicBlock basicBlock)
+        internal static ITypeSymbol GetEnclosingRegionExceptionType(this BasicBlock basicBlock)
         {
             var region = basicBlock.EnclosingRegion;
             while (region != null)

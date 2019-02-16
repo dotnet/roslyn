@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
     /// <summary>
     /// Abstract dispose value for <see cref="AbstractLocation"/>/<see cref="IOperation"/> tracked by <see cref="DisposeAnalysis"/>.
     /// </summary>
-    internal enum DisposeAbstractValueKind
+    public enum DisposeAbstractValueKind
     {
         /// <summary>
         /// Indicates locations that are not disposable, e.g. value types, constants, etc.

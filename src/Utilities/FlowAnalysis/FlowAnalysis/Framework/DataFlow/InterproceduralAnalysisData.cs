@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// 6. Operation call stack for the current interprocedural analysis.
     /// 7. Set of analysis contexts currently being analyzed.
     /// </summary>
-    internal sealed class InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>
+    public sealed class InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>
         : CacheBasedEquatable<InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>>
         where TAnalysisContext : class, IDataFlowAnalysisContext
     {

@@ -4,7 +4,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 {
     using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
 
-    internal partial class CopyAnalysis : ForwardDataFlowAnalysis<CopyAnalysisData, CopyAnalysisContext, CopyAnalysisResult, CopyBlockAnalysisResult, CopyAbstractValue>
+    public partial class CopyAnalysis : ForwardDataFlowAnalysis<CopyAnalysisData, CopyAnalysisContext, CopyAnalysisResult, CopyBlockAnalysisResult, CopyAbstractValue>
     {
         /// <summary>
         /// Predicate kind for <see cref="CopyDataFlowOperationVisitor.SetAbstractValue(CopyAnalysisData, AnalysisEntity, CopyAbstractValue, System.Func{AnalysisEntity, CopyAbstractValue}, SetCopyAbstractValuePredicateKind?, bool)"/>

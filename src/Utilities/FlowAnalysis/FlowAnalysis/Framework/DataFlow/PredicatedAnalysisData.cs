@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// Predicate analysis data is used to improve the preciseness of analysis when we can apply the <see cref="PerEntityPredicatedAnalysisData.TruePredicatedData"/> or <see cref="PerEntityPredicatedAnalysisData.FalsePredicatedData"/>
     /// on the control flow paths where the corresonding <see cref="AnalysisEntity"/> is known to have <code>true</code> or <code>false</code> value respectively.
     /// </summary>
-    internal abstract partial class PredicatedAnalysisData<TKey, TValue> : AbstractAnalysisData
+    public abstract partial class PredicatedAnalysisData<TKey, TValue> : AbstractAnalysisData
     {
         private DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData> _lazyPredicateDataMap;
 

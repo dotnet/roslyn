@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
     /// <summary>
     /// Dataflow analysis to track dispose state of <see cref="AbstractLocation"/>/<see cref="IOperation"/> instances.
     /// </summary>
-    internal partial class DisposeAnalysis : ForwardDataFlowAnalysis<DisposeAnalysisData, DisposeAnalysisContext, DisposeAnalysisResult, DisposeBlockAnalysisResult, DisposeAbstractValue>
+    public partial class DisposeAnalysis : ForwardDataFlowAnalysis<DisposeAnalysisData, DisposeAnalysisContext, DisposeAnalysisResult, DisposeBlockAnalysisResult, DisposeAbstractValue>
     {
         // Invoking an instance method may likely invalidate all the instance field analysis state, i.e.
         // reference type fields might be re-assigned to point to different objects in the called method.
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         // For dispose analysis, we want to perform an optimistic points to analysis as we assume a disposable field is not likely to be re-assigned to a separate object in helper method invocations in Dispose.
         private const bool PessimisticAnalysis = false;
 
-        public static readonly DisposeAnalysisDomain DisposeAnalysisDomainInstance = new DisposeAnalysisDomain(DisposeAbstractValueDomain.Default);
+        internal static readonly DisposeAnalysisDomain DisposeAnalysisDomainInstance = new DisposeAnalysisDomain(DisposeAbstractValueDomain.Default);
 
         private DisposeAnalysis(DisposeAnalysisDomain analysisDomain, DisposeDataFlowOperationVisitor operationVisitor)
             : base(analysisDomain, operationVisitor)
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             return disposeAnalysis.GetOrComputeResultCore(disposeAnalysisContext, cacheResult: false);
         }
 
-        internal override DisposeAnalysisResult ToResult(DisposeAnalysisContext analysisContext, DataFlowAnalysisResult<DisposeBlockAnalysisResult, DisposeAbstractValue> dataFlowAnalysisResult)
+        protected override DisposeAnalysisResult ToResult(DisposeAnalysisContext analysisContext, DataFlowAnalysisResult<DisposeBlockAnalysisResult, DisposeAbstractValue> dataFlowAnalysisResult)
         {
             var trackedInstanceFieldPointsToMap = analysisContext.TrackInstanceFields ?
                 ((DisposeDataFlowOperationVisitor)OperationVisitor).TrackedInstanceFieldPointsToMap :
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             return new DisposeAnalysisResult(dataFlowAnalysisResult, trackedInstanceFieldPointsToMap);
         }
 
-        internal override DisposeBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, DictionaryAnalysisData<AbstractLocation, DisposeAbstractValue> blockAnalysisData)
+        protected override DisposeBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, DictionaryAnalysisData<AbstractLocation, DisposeAbstractValue> blockAnalysisData)
             => new DisposeBlockAnalysisResult(basicBlock, blockAnalysisData);
     }
 }

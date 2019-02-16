@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,7 +10,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
-    internal sealed class DictionaryAnalysisData<TKey, TValue> : AbstractAnalysisData, IDictionary<TKey, TValue>
+    public sealed class DictionaryAnalysisData<TKey, TValue> : AbstractAnalysisData, IDictionary<TKey, TValue>
     {
         private PooledDictionary<TKey, TValue> _coreAnalysisData;
 

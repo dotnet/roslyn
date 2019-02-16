@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// These analyses operate on the control flow graph starting from the entry block,
     /// flowing the dataflow values forward to the successor blocks until a fix point is reached.
     /// </summary>
-    internal abstract class ForwardDataFlowAnalysis<TAnalysisData, TAnalysisContext, TAnalysisResult, TBlockAnalysisResult, TAbstractAnalysisValue>
+    public abstract class ForwardDataFlowAnalysis<TAnalysisData, TAnalysisContext, TAnalysisResult, TBlockAnalysisResult, TAbstractAnalysisValue>
         : DataFlowAnalysis<TAnalysisData, TAnalysisContext, TAnalysisResult, TBlockAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisData : AbstractAnalysisData
         where TAnalysisContext : AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>

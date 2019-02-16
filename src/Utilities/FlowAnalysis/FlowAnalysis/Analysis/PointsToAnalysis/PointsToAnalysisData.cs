@@ -13,19 +13,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
     /// Contains the <see cref="CorePointsToAnalysisData"/> for entity PointsTo values and
     /// the predicated values based on true/false runtime values of predicated entities.
     /// </summary>
-    internal sealed class PointsToAnalysisData : AnalysisEntityBasedPredicateAnalysisData<PointsToAbstractValue>
+    public sealed class PointsToAnalysisData : AnalysisEntityBasedPredicateAnalysisData<PointsToAbstractValue>
     {
-        public PointsToAnalysisData()
+        internal PointsToAnalysisData()
         {
         }
 
-        public PointsToAnalysisData(IDictionary<AnalysisEntity, PointsToAbstractValue> fromData)
+        internal PointsToAnalysisData(IDictionary<AnalysisEntity, PointsToAbstractValue> fromData)
             : base(fromData)
         {
             AssertValidPointsToAnalysisData(fromData);
         }
 
-        public PointsToAnalysisData(
+        internal PointsToAnalysisData(
             CorePointsToAnalysisData mergedCoreAnalysisData,
             PredicatedAnalysisData<AnalysisEntity, PointsToAbstractValue> predicatedData1,
             PredicatedAnalysisData<AnalysisEntity, PointsToAbstractValue> predicatedData2,
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         }
 
         [Conditional("DEBUG")]
-        public void AssertNoFlowCaptureEntitiesTracked()
+        internal void AssertNoFlowCaptureEntitiesTracked()
         {
             AssertNoFlowCaptureEntitiesTracked(CoreAnalysisData);
             AssertValidPredicatedAnalysisData(map => AssertNoFlowCaptureEntitiesTracked(map));
@@ -94,14 +94,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         }
 
         [Conditional("DEBUG")]
-        public void AssertValidPointsToAnalysisData()
+        internal void AssertValidPointsToAnalysisData()
         {
             AssertValidPointsToAnalysisData(CoreAnalysisData);
             AssertValidPredicatedAnalysisData(map => AssertValidPointsToAnalysisData(map));
         }
 
         [Conditional("DEBUG")]
-        public static void AssertValidPointsToAnalysisData(IDictionary<AnalysisEntity, PointsToAbstractValue> map)
+        internal static void AssertValidPointsToAnalysisData(IDictionary<AnalysisEntity, PointsToAbstractValue> map)
         {
             if (map is CorePointsToAnalysisData corePointsToAnalysisData)
             {
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         }
 
         [Conditional("DEBUG")]
-        public static void AssertValidPointsToAnalysisKeyValuePair(
+        internal static void AssertValidPointsToAnalysisKeyValuePair(
             AnalysisEntity key,
             PointsToAbstractValue value)
         {

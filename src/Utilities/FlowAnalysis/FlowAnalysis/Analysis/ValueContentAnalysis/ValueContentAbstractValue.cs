@@ -17,20 +17,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
     /// <summary>
     /// Abstract value content data value for <see cref="AnalysisEntity"/>/<see cref="IOperation"/> tracked by <see cref="ValueContentAnalysis"/>.
     /// </summary>
-    internal partial class ValueContentAbstractValue : CacheBasedEquatable<ValueContentAbstractValue>
+    public partial class ValueContentAbstractValue : CacheBasedEquatable<ValueContentAbstractValue>
     {
         // Ensure we bound the number of value content literals and avoid infinite analysis iterations.
         private const int LiteralsBound = 10;
 
-        public static readonly ValueContentAbstractValue UndefinedState = new ValueContentAbstractValue(ImmutableHashSet<object>.Empty, ValueContainsNonLiteralState.Undefined);
-        public static readonly ValueContentAbstractValue InvalidState = new ValueContentAbstractValue(ImmutableHashSet<object>.Empty, ValueContainsNonLiteralState.Invalid);
-        public static readonly ValueContentAbstractValue MayBeContainsNonLiteralState = new ValueContentAbstractValue(ImmutableHashSet<object>.Empty, ValueContainsNonLiteralState.Maybe);
-        public static readonly ValueContentAbstractValue DoesNotContainLiteralOrNonLiteralState = new ValueContentAbstractValue(ImmutableHashSet<object>.Empty, ValueContainsNonLiteralState.No);
-        public static readonly ValueContentAbstractValue ContainsEmptyStringLiteralState = new ValueContentAbstractValue(ImmutableHashSet.Create<object>(string.Empty), ValueContainsNonLiteralState.No);
-        public static readonly ValueContentAbstractValue ContainsZeroIntergralLiteralState = new ValueContentAbstractValue(ImmutableHashSet.Create<object>(0), ValueContainsNonLiteralState.No);
-        public static readonly ValueContentAbstractValue ContainsOneIntergralLiteralState = new ValueContentAbstractValue(ImmutableHashSet.Create<object>(1), ValueContainsNonLiteralState.No);
-        private static readonly ValueContentAbstractValue ContainsTrueLiteralState = new ValueContentAbstractValue(ImmutableHashSet.Create<object>(true), ValueContainsNonLiteralState.No);
-        private static readonly ValueContentAbstractValue ContainsFalseLiteralState = new ValueContentAbstractValue(ImmutableHashSet.Create<object>(false), ValueContainsNonLiteralState.No);
+        public static ValueContentAbstractValue UndefinedState { get; } = new ValueContentAbstractValue(ImmutableHashSet<object>.Empty, ValueContainsNonLiteralState.Undefined);
+        public static ValueContentAbstractValue InvalidState { get; } = new ValueContentAbstractValue(ImmutableHashSet<object>.Empty, ValueContainsNonLiteralState.Invalid);
+        public static ValueContentAbstractValue MayBeContainsNonLiteralState { get; } = new ValueContentAbstractValue(ImmutableHashSet<object>.Empty, ValueContainsNonLiteralState.Maybe);
+        public static ValueContentAbstractValue DoesNotContainLiteralOrNonLiteralState { get; } = new ValueContentAbstractValue(ImmutableHashSet<object>.Empty, ValueContainsNonLiteralState.No);
+        public static ValueContentAbstractValue ContainsEmptyStringLiteralState { get; } = new ValueContentAbstractValue(ImmutableHashSet.Create<object>(string.Empty), ValueContainsNonLiteralState.No);
+        public static ValueContentAbstractValue ContainsZeroIntergralLiteralState { get; } = new ValueContentAbstractValue(ImmutableHashSet.Create<object>(0), ValueContainsNonLiteralState.No);
+        public static ValueContentAbstractValue ContainsOneIntergralLiteralState { get; } = new ValueContentAbstractValue(ImmutableHashSet.Create<object>(1), ValueContainsNonLiteralState.No);
+        private static ValueContentAbstractValue ContainsTrueLiteralState { get; } = new ValueContentAbstractValue(ImmutableHashSet.Create<object>(true), ValueContainsNonLiteralState.No);
+        private static ValueContentAbstractValue ContainsFalseLiteralState { get; } = new ValueContentAbstractValue(ImmutableHashSet.Create<object>(false), ValueContainsNonLiteralState.No);
 
         private ValueContentAbstractValue(ImmutableHashSet<object> literalValues, ValueContainsNonLiteralState nonLiteralState)
         {
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             NonLiteralState = nonLiteralState;
         }
 
-        public static ValueContentAbstractValue Create(object literal, ITypeSymbol type)
+        internal static ValueContentAbstractValue Create(object literal, ITypeSymbol type)
         {
             switch (type.SpecialType)
             {
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             return new ValueContentAbstractValue(literalValues, nonLiteralState);
         }
 
-        public static bool IsSupportedType(ITypeSymbol type)
+        internal static bool IsSupportedType(ITypeSymbol type)
         {
             return type.IsPrimitiveType() || type.SpecialType == SpecialType.System_String;
         }
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         public ValueContainsNonLiteralState NonLiteralState { get; }
 
         /// <summary>
-        /// Gets a collection of the literals that could possibly make up the contents of this <see cref="Operand"/>.
+        /// Gets a collection of the literals that could possibly make up the contents of this abstract value.
         /// </summary>
         public ImmutableHashSet<object> LiteralValues { get; }
 
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         /// Performs the union of this state and the other state 
         /// and returns a new <see cref="ValueContentAbstractValue"/> with the result.
         /// </summary>
-        public ValueContentAbstractValue Merge(ValueContentAbstractValue otherState)
+        internal ValueContentAbstractValue Merge(ValueContentAbstractValue otherState)
         {
             if (otherState == null)
             {
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
         public bool IsLiteralState => !LiteralValues.IsEmpty && NonLiteralState == ValueContainsNonLiteralState.No;
 
-        public ValueContentAbstractValue IntersectLiteralValues(ValueContentAbstractValue value2)
+        internal ValueContentAbstractValue IntersectLiteralValues(ValueContentAbstractValue value2)
         {
             Debug.Assert(IsLiteralState);
             Debug.Assert(value2.IsLiteralState);
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         /// Performs the union of this state and the other state for a Binary operation
         /// and returns a new <see cref="ValueContentAbstractValue"/> with the result.
         /// </summary>
-        public ValueContentAbstractValue MergeBinaryOperation(
+        internal ValueContentAbstractValue MergeBinaryOperation(
             ValueContentAbstractValue otherState,
             BinaryOperatorKind binaryOperatorKind,
             ITypeSymbol leftType,

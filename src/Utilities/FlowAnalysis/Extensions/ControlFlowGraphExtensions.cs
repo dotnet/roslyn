@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
-    internal static class ControlFlowGraphExtensions
+    public static class ControlFlowGraphExtensions
     {
         public static BasicBlock GetEntry(this ControlFlowGraph cfg) => cfg.Blocks.Single(b => b.Kind == BasicBlockKind.Entry);
         public static BasicBlock GetExit(this ControlFlowGraph cfg) => cfg.Blocks.Single(b => b.Kind == BasicBlockKind.Exit);

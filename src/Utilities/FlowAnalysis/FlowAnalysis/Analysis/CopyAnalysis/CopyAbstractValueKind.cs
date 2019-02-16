@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
     /// <summary>
     /// Kind for the <see cref="CopyAbstractValue"/>.
     /// </summary>
-    internal enum CopyAbstractValueKind
+    public enum CopyAbstractValueKind
     {
         /// <summary>
         /// Not applicable.

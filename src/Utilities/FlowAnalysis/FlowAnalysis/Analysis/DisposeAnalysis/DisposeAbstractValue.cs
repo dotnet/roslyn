@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
     /// It contains the set of <see cref="IOperation"/>s that dispose an associated disposable <see cref="AbstractLocation"/> and
     /// the dispose <see cref="Kind"/>.
     /// </summary>
-    internal class DisposeAbstractValue : CacheBasedEquatable<DisposeAbstractValue>
+    public class DisposeAbstractValue : CacheBasedEquatable<DisposeAbstractValue>
     {
         public static readonly DisposeAbstractValue NotDisposable = new DisposeAbstractValue(DisposeAbstractValueKind.NotDisposable);
         public static readonly DisposeAbstractValue NotDisposed = new DisposeAbstractValue(DisposeAbstractValueKind.NotDisposed);
@@ -26,21 +26,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             Debug.Assert(kind != DisposeAbstractValueKind.Disposed);
         }
 
-        public DisposeAbstractValue(ImmutableHashSet<IOperation> disposingOrEscapingOperations, DisposeAbstractValueKind kind)
+        internal DisposeAbstractValue(ImmutableHashSet<IOperation> disposingOrEscapingOperations, DisposeAbstractValueKind kind)
         {
             VerifyArguments(disposingOrEscapingOperations, kind);
             DisposingOrEscapingOperations = disposingOrEscapingOperations;
             Kind = kind;
         }
 
-        public DisposeAbstractValue WithNewDisposingOperation(IOperation disposingOperation)
+        internal DisposeAbstractValue WithNewDisposingOperation(IOperation disposingOperation)
         {
             Debug.Assert(Kind != DisposeAbstractValueKind.NotDisposable);
 
             return new DisposeAbstractValue(DisposingOrEscapingOperations.Add(disposingOperation), DisposeAbstractValueKind.Disposed);
         }
 
-        public DisposeAbstractValue WithNewEscapingOperation(IOperation escapingOperation)
+        internal DisposeAbstractValue WithNewEscapingOperation(IOperation escapingOperation)
         {
             Debug.Assert(Kind != DisposeAbstractValueKind.NotDisposable);
 

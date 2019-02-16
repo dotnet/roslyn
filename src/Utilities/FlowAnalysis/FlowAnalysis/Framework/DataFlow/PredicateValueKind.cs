@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
-    internal enum PredicateValueKind
+    public enum PredicateValueKind
     {
         /// <summary>
         /// Predicate always evaluates to true.

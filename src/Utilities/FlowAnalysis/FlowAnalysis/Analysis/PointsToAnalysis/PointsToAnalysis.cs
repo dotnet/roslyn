@@ -5,6 +5,8 @@ using System.Threading;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 {
     using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
@@ -13,9 +15,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
     /// <summary>
     /// Dataflow analysis to track locations pointed to by <see cref="AnalysisEntity"/> and <see cref="IOperation"/> instances.
     /// </summary>
-    internal partial class PointsToAnalysis : ForwardDataFlowAnalysis<PointsToAnalysisData, PointsToAnalysisContext, PointsToAnalysisResult, PointsToBlockAnalysisResult, PointsToAbstractValue>
+    public partial class PointsToAnalysis : ForwardDataFlowAnalysis<PointsToAnalysisData, PointsToAnalysisContext, PointsToAnalysisResult, PointsToBlockAnalysisResult, PointsToAbstractValue>
     {
-        public static readonly AbstractValueDomain<PointsToAbstractValue> PointsToAbstractValueDomainInstance = PointsToAbstractValueDomain.Default;
+        internal static readonly AbstractValueDomain<PointsToAbstractValue> PointsToAbstractValueDomainInstance = PointsToAbstractValueDomain.Default;
 
         private PointsToAnalysis(PointsToAnalysisDomain analysisDomain, PointsToDataFlowOperationVisitor operationVisitor)
             : base(analysisDomain, operationVisitor)
@@ -81,20 +83,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             }
         }
 
-        public static bool ShouldBeTracked(ITypeSymbol typeSymbol) => typeSymbol.IsReferenceTypeOrNullableValueType();
+        internal static bool ShouldBeTracked(ITypeSymbol typeSymbol) => typeSymbol.IsReferenceTypeOrNullableValueType();
 
-        public static bool ShouldBeTracked(AnalysisEntity analysisEntity)
+        internal static bool ShouldBeTracked(AnalysisEntity analysisEntity)
             => ShouldBeTracked(analysisEntity.Type) || analysisEntity.IsLValueFlowCaptureEntity || analysisEntity.IsThisOrMeInstance;
 
         [Conditional("DEBUG")]
-        public static void AssertValidPointsToAnalysisData(PointsToAnalysisData data)
+        internal static void AssertValidPointsToAnalysisData(PointsToAnalysisData data)
         {
             data.AssertValidPointsToAnalysisData();
         }
 
-        internal override PointsToAnalysisResult ToResult(PointsToAnalysisContext analysisContext, PointsToAnalysisResult dataFlowAnalysisResult)
+        protected override PointsToAnalysisResult ToResult(PointsToAnalysisContext analysisContext, PointsToAnalysisResult dataFlowAnalysisResult)
             => dataFlowAnalysisResult;
-        internal override PointsToBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, PointsToAnalysisData blockAnalysisData)
+        protected override PointsToBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, PointsToAnalysisData blockAnalysisData)
             => new PointsToBlockAnalysisResult(basicBlock, blockAnalysisData);
     }
 }

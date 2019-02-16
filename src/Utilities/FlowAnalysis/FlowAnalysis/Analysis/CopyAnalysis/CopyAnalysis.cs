@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
+
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 {
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
     /// <summary>
     /// Dataflow analysis to track <see cref="AnalysisEntity"/> instances that share the same value.
     /// </summary>
-    internal partial class CopyAnalysis : ForwardDataFlowAnalysis<CopyAnalysisData, CopyAnalysisContext, CopyAnalysisResult, CopyBlockAnalysisResult, CopyAbstractValue>
+    public partial class CopyAnalysis : ForwardDataFlowAnalysis<CopyAnalysisData, CopyAnalysisContext, CopyAnalysisResult, CopyBlockAnalysisResult, CopyAbstractValue>
     {
         private CopyAnalysis(CopyDataFlowOperationVisitor operationVisitor)
             : base(operationVisitor.AnalysisDomain, operationVisitor)
@@ -59,8 +60,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             return copyAnalysis.GetOrComputeResultCore(analysisContext, cacheResult: true);
         }
 
-        internal override CopyAnalysisResult ToResult(CopyAnalysisContext analysisContext, CopyAnalysisResult dataFlowAnalysisResult) => dataFlowAnalysisResult;
-        internal override CopyBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, CopyAnalysisData blockAnalysisData)
+        protected override CopyAnalysisResult ToResult(CopyAnalysisContext analysisContext, CopyAnalysisResult dataFlowAnalysisResult) => dataFlowAnalysisResult;
+        protected override CopyBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, CopyAnalysisData blockAnalysisData)
             => new CopyBlockAnalysisResult(basicBlock, blockAnalysisData);
     }
 }

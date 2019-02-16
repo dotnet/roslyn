@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
     /// <summary>
     /// Kind for the <see cref="PointsToAbstractValue"/>.
     /// </summary>
-    internal enum PointsToAbstractValueKind
+    public enum PointsToAbstractValueKind
     {
         /// <summary>
         /// Invalid value based on predicate analysis.

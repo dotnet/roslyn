@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// <summary>
     /// An abstract domain implementation for analyses that store dictionary typed data.
     /// </summary>
-    internal class MapAbstractDomain<TKey, TValue> : AbstractAnalysisDomain<DictionaryAnalysisData<TKey, TValue>>
+    public class MapAbstractDomain<TKey, TValue> : AbstractAnalysisDomain<DictionaryAnalysisData<TKey, TValue>>
     {
         public MapAbstractDomain(AbstractValueDomain<TValue> valueDomain)
         {
@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <summary>
         /// Compares if the abstract dataflow values in <paramref name="oldValue"/> against the values in <paramref name="newValue"/> to ensure
         /// dataflow function is a monotically increasing function. See https://en.wikipedia.org/wiki/Monotonic_function for understanding monotonic functions.
+        /// </summary>
         /// <returns>
         /// 1) 0, if both the dictionaries are identical.
         /// 2) -1, if dictionaries are not identical and for every key in <paramref name="oldValue"/>, the corresponding key exists in <paramref name="newValue"/> and

@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 {
     using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
 
-    internal partial class CopyAnalysis : ForwardDataFlowAnalysis<CopyAnalysisData, CopyAnalysisContext, CopyAnalysisResult, CopyBlockAnalysisResult, CopyAbstractValue>
+    public partial class CopyAnalysis : ForwardDataFlowAnalysis<CopyAnalysisData, CopyAnalysisContext, CopyAnalysisResult, CopyBlockAnalysisResult, CopyAbstractValue>
     {
         /// <summary>
         /// Abstract value domain for <see cref="CopyAnalysis"/> to merge and compare <see cref="CopyAbstractValue"/> values.
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         private sealed class CopyAbstractValueDomain : AbstractValueDomain<CopyAbstractValue>
         {
             public static CopyAbstractValueDomain Default = new CopyAbstractValueDomain();
-            private readonly SetAbstractDomain<AnalysisEntity> _entitiesDomain = new SetAbstractDomain<AnalysisEntity>();
+            private readonly SetAbstractDomain<AnalysisEntity> _entitiesDomain = SetAbstractDomain<AnalysisEntity>.Default;
 
             private CopyAbstractValueDomain() { }
 

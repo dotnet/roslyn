@@ -13,15 +13,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
     /// Abstract PointsTo value for an <see cref="AnalysisEntity"/>/<see cref="IOperation"/> tracked by <see cref="PointsToAnalysis"/>.
     /// It contains the set of possible <see cref="AbstractLocation"/>s that the entity or the operation can point to and the <see cref="Kind"/> of the location(s).
     /// </summary>
-    internal class PointsToAbstractValue : CacheBasedEquatable<PointsToAbstractValue>
+    public class PointsToAbstractValue : CacheBasedEquatable<PointsToAbstractValue>
     {
-        public static PointsToAbstractValue Undefined = new PointsToAbstractValue(PointsToAbstractValueKind.Undefined, NullAbstractValue.Undefined);
-        public static PointsToAbstractValue Invalid = new PointsToAbstractValue(PointsToAbstractValueKind.Invalid, NullAbstractValue.Invalid);
-        public static PointsToAbstractValue Unknown = new PointsToAbstractValue(PointsToAbstractValueKind.Unknown, NullAbstractValue.MaybeNull);
-        public static PointsToAbstractValue UnknownNull = new PointsToAbstractValue(PointsToAbstractValueKind.UnknownNull, NullAbstractValue.Null);
-        public static PointsToAbstractValue UnknownNotNull = new PointsToAbstractValue(PointsToAbstractValueKind.UnknownNotNull, NullAbstractValue.NotNull);
-        public static PointsToAbstractValue NoLocation = new PointsToAbstractValue(ImmutableHashSet.Create(AbstractLocation.NoLocation), NullAbstractValue.NotNull);
-        public static PointsToAbstractValue NullLocation = new PointsToAbstractValue(ImmutableHashSet.Create(AbstractLocation.Null), NullAbstractValue.Null);
+        public static PointsToAbstractValue Undefined { get; } = new PointsToAbstractValue(PointsToAbstractValueKind.Undefined, NullAbstractValue.Undefined);
+        public static PointsToAbstractValue Invalid { get; } = new PointsToAbstractValue(PointsToAbstractValueKind.Invalid, NullAbstractValue.Invalid);
+        public static PointsToAbstractValue Unknown { get; } = new PointsToAbstractValue(PointsToAbstractValueKind.Unknown, NullAbstractValue.MaybeNull);
+        public static PointsToAbstractValue UnknownNull { get; } = new PointsToAbstractValue(PointsToAbstractValueKind.UnknownNull, NullAbstractValue.Null);
+        public static PointsToAbstractValue UnknownNotNull { get; } = new PointsToAbstractValue(PointsToAbstractValueKind.UnknownNotNull, NullAbstractValue.NotNull);
+        public static PointsToAbstractValue NoLocation { get; } = new PointsToAbstractValue(ImmutableHashSet.Create(AbstractLocation.NoLocation), NullAbstractValue.NotNull);
+        public static PointsToAbstractValue NullLocation { get; } = new PointsToAbstractValue(ImmutableHashSet.Create(AbstractLocation.Null), NullAbstractValue.Null);
 
         private PointsToAbstractValue(ImmutableHashSet<AbstractLocation> locations, NullAbstractValue nullState)
         {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             NullState = nullState;
         }
 
-        public static PointsToAbstractValue Create(AbstractLocation location, bool mayBeNull)
+        internal static PointsToAbstractValue Create(AbstractLocation location, bool mayBeNull)
         {
             Debug.Assert(!location.IsNull, "Use 'PointsToAbstractValue.NullLocation' singleton");
             Debug.Assert(!location.IsNoLocation, "Use 'PointsToAbstractValue.NoLocation' singleton");
@@ -66,13 +66,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             return new PointsToAbstractValue(ImmutableHashSet.Create(location), mayBeNull ? NullAbstractValue.MaybeNull : NullAbstractValue.NotNull);
         }
 
-        public static PointsToAbstractValue Create(IOperation lValueCapturedOperation)
+        internal static PointsToAbstractValue Create(IOperation lValueCapturedOperation)
         {
             Debug.Assert(lValueCapturedOperation != null);
             return new PointsToAbstractValue(ImmutableHashSet.Create(lValueCapturedOperation));
         }
 
-        public static PointsToAbstractValue Create(ImmutableHashSet<AbstractLocation> locations, NullAbstractValue nullState)
+        internal static PointsToAbstractValue Create(ImmutableHashSet<AbstractLocation> locations, NullAbstractValue nullState)
         {
             Debug.Assert(!locations.IsEmpty);
 
@@ -92,13 +92,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             return new PointsToAbstractValue(locations, nullState);
         }
 
-        public static PointsToAbstractValue Create(ImmutableHashSet<IOperation> lValueCapturedOperations)
+        internal static PointsToAbstractValue Create(ImmutableHashSet<IOperation> lValueCapturedOperations)
         {
             Debug.Assert(!lValueCapturedOperations.IsEmpty);
             return new PointsToAbstractValue(lValueCapturedOperations);
         }
 
-        public PointsToAbstractValue MakeNonNull()
+        internal PointsToAbstractValue MakeNonNull()
         {
             Debug.Assert(Kind != PointsToAbstractValueKind.KnownLValueCaptures);
 
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             return new PointsToAbstractValue(locations, NullAbstractValue.NotNull);
         }
 
-        public PointsToAbstractValue MakeNull()
+        internal PointsToAbstractValue MakeNull()
         {
             Debug.Assert(Kind != PointsToAbstractValueKind.KnownLValueCaptures);
 
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             return new PointsToAbstractValue(Locations, NullAbstractValue.Null);
         }
 
-        public PointsToAbstractValue MakeMayBeNull()
+        internal PointsToAbstractValue MakeMayBeNull()
         {
             Debug.Assert(Kind != PointsToAbstractValueKind.KnownLValueCaptures);
             Debug.Assert(NullState != NullAbstractValue.Null);

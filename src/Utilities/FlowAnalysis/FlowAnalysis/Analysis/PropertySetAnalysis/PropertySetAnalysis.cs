@@ -88,7 +88,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             return analysis.GetOrComputeResultCore(analysisContext, cacheResult: true);
         }
 
-        internal override PropertySetAnalysisResult ToResult(
+        protected override PropertySetAnalysisResult ToResult(
             PropertySetAnalysisContext analysisContext,
             DataFlowAnalysisResult<PropertySetBlockAnalysisResult, PropertySetAbstractValue> dataFlowAnalysisResult)
         {
@@ -97,6 +97,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 ((PropertySetDataFlowOperationVisitor)this.OperationVisitor).HazardousUsages);
         }
 
-        internal override PropertySetBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, PropertySetAnalysisData blockAnalysisData) => new PropertySetBlockAnalysisResult(basicBlock, blockAnalysisData);
+        protected override PropertySetBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, PropertySetAnalysisData blockAnalysisData) => new PropertySetBlockAnalysisResult(basicBlock, blockAnalysisData);
     }
 }

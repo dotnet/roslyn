@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// <summary>
     /// Interprocedural analysis configuration parameters.
     /// </summary>
-    internal struct InterproceduralAnalysisConfiguration : IEquatable<InterproceduralAnalysisConfiguration>
+    public struct InterproceduralAnalysisConfiguration : IEquatable<InterproceduralAnalysisConfiguration>
     {
         /// <summary>
         /// Defines the max length for method call chain (call stack size) for interprocedural analysis.

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     ///  (2) <see cref="AbstractBlockAnalysisResult"/> for every basic block in the graph.
     ///  (3) Merged analysis state for all the unhandled throw operations in the graph.
     /// </summary>
-    internal class DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> : IDataFlowAnalysisResult<TAbstractAnalysisValue>
+    public class DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> : IDataFlowAnalysisResult<TAbstractAnalysisValue>
         where TBlockAnalysisResult : AbstractBlockAnalysisResult
     {
         private readonly ImmutableDictionary<BasicBlock, TBlockAnalysisResult> _basicBlockStateMap;
@@ -61,8 +61,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
         }
 
+#pragma warning disable CA1043 // Use Integral Or String Argument For Indexers
         public TBlockAnalysisResult this[BasicBlock block] => _basicBlockStateMap[block];
         public TAbstractAnalysisValue this[IOperation operation]
+#pragma warning restore CA1043 // Use Integral Or String Argument For Indexers
         {
             get
             {

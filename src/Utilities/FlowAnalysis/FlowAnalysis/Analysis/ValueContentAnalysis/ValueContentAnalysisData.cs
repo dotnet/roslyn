@@ -11,14 +11,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
     /// Contains the <see cref="CoreValueContentAnalysisData"/> for entity data values and
     /// the predicated values based on true/false runtime values of predicated entities.
     /// </summary>
-    /// <summary>
-    internal sealed class ValueContentAnalysisData : AnalysisEntityBasedPredicateAnalysisData<ValueContentAbstractValue>
+    public sealed class ValueContentAnalysisData : AnalysisEntityBasedPredicateAnalysisData<ValueContentAbstractValue>
     {
-        public ValueContentAnalysisData()
+        internal ValueContentAnalysisData()
         {
         }
 
-        public ValueContentAnalysisData(IDictionary<AnalysisEntity, ValueContentAbstractValue> fromData)
+        internal ValueContentAnalysisData(IDictionary<AnalysisEntity, ValueContentAbstractValue> fromData)
             : base(fromData)
         {
         }
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         {
         }
 
-        public ValueContentAnalysisData(
+        internal ValueContentAnalysisData(
             CoreValueContentAnalysisData mergedCoreAnalysisData,
             PredicatedAnalysisData<AnalysisEntity, ValueContentAbstractValue> predicatedData1,
             PredicatedAnalysisData<AnalysisEntity, ValueContentAbstractValue> predicatedData2,
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         public override AnalysisEntityBasedPredicateAnalysisData<ValueContentAbstractValue> WithMergedData(AnalysisEntityBasedPredicateAnalysisData<ValueContentAbstractValue> data, MapAbstractDomain<AnalysisEntity, ValueContentAbstractValue> coreDataAnalysisDomain)
             => new ValueContentAnalysisData(this, (ValueContentAnalysisData)data, coreDataAnalysisDomain);
 
-        public void Reset(ValueContentAbstractValue resetValue)
+        internal void Reset(ValueContentAbstractValue resetValue)
         {
             base.Reset((analysisEntity, currentValue) => resetValue);
         }

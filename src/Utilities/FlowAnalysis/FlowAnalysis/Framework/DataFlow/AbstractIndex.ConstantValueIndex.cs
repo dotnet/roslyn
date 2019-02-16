@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-
 #pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
-    internal abstract partial class AbstractIndex
+    public abstract partial class AbstractIndex
     {
         private sealed class ConstantValueIndex : AbstractIndex
         {

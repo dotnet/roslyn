@@ -2,13 +2,16 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
+
+#pragma warning disable CA1000 // Do not declare static members on generic types
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
-    internal class SetAbstractDomain<T> : AbstractDomain<ImmutableHashSet<T>>
+    public class SetAbstractDomain<T> : AbstractDomain<ImmutableHashSet<T>>
     {
-        public static SetAbstractDomain<T> Default = new SetAbstractDomain<T>();
+        private SetAbstractDomain() { }
+
+        public static SetAbstractDomain<T> Default { get; } = new SetAbstractDomain<T>();
 
         public override ImmutableHashSet<T> Bottom => ImmutableHashSet<T>.Empty;
 

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
     /// <summary>
     /// Analysis context for execution of <see cref="DisposeAnalysis"/> on a control flow graph.
     /// </summary>
-    internal sealed class DisposeAnalysisContext : AbstractDataFlowAnalysisContext<DisposeAnalysisData, DisposeAnalysisContext, DisposeAnalysisResult, DisposeAbstractValue>
+    public sealed class DisposeAnalysisContext : AbstractDataFlowAnalysisContext<DisposeAnalysisData, DisposeAnalysisContext, DisposeAnalysisResult, DisposeAbstractValue>
     {
         private DisposeAnalysisContext(
             AbstractValueDomain<DisposeAbstractValue> valueDomain,
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             TrackInstanceFields = trackInstanceFields;
         }
 
-        public static DisposeAnalysisContext Create(
+        internal static DisposeAnalysisContext Create(
             AbstractValueDomain<DisposeAbstractValue> valueDomain,
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,
@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 pointsToAnalysisResultOpt, GetOrComputeAnalysisResult, DisposeOwnershipTransferLikelyTypes, TrackInstanceFields, ControlFlowGraph, interproceduralAnalysisData);
         }
 
-        public ImmutableHashSet<INamedTypeSymbol> DisposeOwnershipTransferLikelyTypes { get; }
-        public bool TrackInstanceFields { get; }
+        internal ImmutableHashSet<INamedTypeSymbol> DisposeOwnershipTransferLikelyTypes { get; }
+        internal bool TrackInstanceFields { get; }
 
         protected override void ComputeHashCodePartsSpecific(ArrayBuilder<int> builder)
         {

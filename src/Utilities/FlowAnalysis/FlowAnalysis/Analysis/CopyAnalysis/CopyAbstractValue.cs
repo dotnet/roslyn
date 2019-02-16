@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
     /// <summary>
     /// Abstract copy value shared by a set of one of more <see cref="AnalysisEntity"/> instances tracked by <see cref="CopyAnalysis"/>.
     /// </summary>
-    internal class CopyAbstractValue : CacheBasedEquatable<CopyAbstractValue>
+    public class CopyAbstractValue : CacheBasedEquatable<CopyAbstractValue>
     {
-        public static CopyAbstractValue NotApplicable = new CopyAbstractValue(CopyAbstractValueKind.NotApplicable);
-        public static CopyAbstractValue Invalid = new CopyAbstractValue(CopyAbstractValueKind.Invalid);
-        public static CopyAbstractValue Unknown = new CopyAbstractValue(CopyAbstractValueKind.Unknown);
+        public static CopyAbstractValue NotApplicable { get; } = new CopyAbstractValue(CopyAbstractValueKind.NotApplicable);
+        public static CopyAbstractValue Invalid { get; } = new CopyAbstractValue(CopyAbstractValueKind.Invalid);
+        public static CopyAbstractValue Unknown { get; } = new CopyAbstractValue(CopyAbstractValueKind.Unknown);
 
-        public CopyAbstractValue(ImmutableHashSet<AnalysisEntity> analysisEntities, CopyAbstractValueKind kind)
+        internal CopyAbstractValue(ImmutableHashSet<AnalysisEntity> analysisEntities, CopyAbstractValueKind kind)
         {
             Debug.Assert(analysisEntities.IsEmpty != kind.IsKnown());
             Debug.Assert(kind != CopyAbstractValueKind.KnownReferenceCopy || analysisEntities.All(a => !a.Type.IsValueType));
@@ -41,20 +41,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             Debug.Assert(!kind.IsKnown());
         }
 
-        public CopyAbstractValue(AnalysisEntity analysisEntity)
+        internal CopyAbstractValue(AnalysisEntity analysisEntity)
             : this(ImmutableHashSet.Create(analysisEntity),
                    kind: analysisEntity.Type.IsReferenceType ? CopyAbstractValueKind.KnownReferenceCopy : CopyAbstractValueKind.KnownValueCopy)
         {
         }
 
-        public CopyAbstractValue(ImmutableHashSet<AnalysisEntity> analysisEntities, bool isReferenceCopy)
+        internal CopyAbstractValue(ImmutableHashSet<AnalysisEntity> analysisEntities, bool isReferenceCopy)
             : this(analysisEntities,
                    kind: isReferenceCopy ? CopyAbstractValueKind.KnownReferenceCopy : CopyAbstractValueKind.KnownValueCopy)
         {
             Debug.Assert(!analysisEntities.IsEmpty);
         }
 
-        public CopyAbstractValue WithEntityRemoved(AnalysisEntity entityToRemove)
+        internal CopyAbstractValue WithEntityRemoved(AnalysisEntity entityToRemove)
         {
             Debug.Assert(AnalysisEntities.Contains(entityToRemove));
             Debug.Assert(AnalysisEntities.Count > 1);
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             return new CopyAbstractValue(AnalysisEntities.Remove(entityToRemove), Kind);
         }
 
-        public CopyAbstractValue WithEntitiesRemoved(IEnumerable<AnalysisEntity> entitiesToRemove)
+        internal CopyAbstractValue WithEntitiesRemoved(IEnumerable<AnalysisEntity> entitiesToRemove)
         {
             Debug.Assert(entitiesToRemove.All(entityToRemove => AnalysisEntities.Contains(entityToRemove)));
             Debug.Assert(AnalysisEntities.Count > 1);

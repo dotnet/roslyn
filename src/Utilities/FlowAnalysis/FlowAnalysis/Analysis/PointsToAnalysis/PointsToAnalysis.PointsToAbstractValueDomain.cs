@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 {
     using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
 
-    internal partial class PointsToAnalysis : ForwardDataFlowAnalysis<PointsToAnalysisData, PointsToAnalysisContext, PointsToAnalysisResult, PointsToBlockAnalysisResult, PointsToAbstractValue>
+    public partial class PointsToAnalysis : ForwardDataFlowAnalysis<PointsToAnalysisData, PointsToAnalysisContext, PointsToAnalysisResult, PointsToBlockAnalysisResult, PointsToAbstractValue>
     {
         /// <summary>
         /// Abstract value domain for <see cref="PointsToAnalysis"/> to merge and compare <see cref="PointsToAbstractValue"/> values.
@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         private class PointsToAbstractValueDomain : AbstractValueDomain<PointsToAbstractValue>
         {
             public static PointsToAbstractValueDomain Default = new PointsToAbstractValueDomain();
-            private readonly SetAbstractDomain<AbstractLocation> _locationsDomain = new SetAbstractDomain<AbstractLocation>();
-            private readonly SetAbstractDomain<IOperation> _lValueCapturesDomain = new SetAbstractDomain<IOperation>();
+            private readonly SetAbstractDomain<AbstractLocation> _locationsDomain = SetAbstractDomain<AbstractLocation>.Default;
+            private readonly SetAbstractDomain<IOperation> _lValueCapturesDomain = SetAbstractDomain<IOperation>.Default;
 
             private PointsToAbstractValueDomain() { }
 

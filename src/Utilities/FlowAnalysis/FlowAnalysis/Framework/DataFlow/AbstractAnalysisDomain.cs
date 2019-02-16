@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// <summary>
     /// Abstract analysis domain for a <see cref="DataFlowAnalysis"/> to merge and compare analysis data.
     /// </summary>
-    internal abstract class AbstractAnalysisDomain<TAnalysisData>
+    public abstract class AbstractAnalysisDomain<TAnalysisData>
     {
         /// <summary>
         /// Creates a clone of the analysis data.

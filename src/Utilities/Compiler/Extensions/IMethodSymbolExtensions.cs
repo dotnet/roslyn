@@ -290,7 +290,7 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Checks if the given method implements <see cref="System.Runtime.Serialization.IDeserializationCallback.OnDeserialization"/> or overrides an implementation of <see cref="System.Runtime.Serialization.IDeserializationCallback.OnDeserialization"/>.
+        /// Checks if the given method implements 'System.Runtime.Serialization.IDeserializationCallback.OnDeserialization' or overrides an implementation of 'System.Runtime.Serialization.IDeserializationCallback.OnDeserialization'/>.
         /// </summary>
         public static bool IsOnDeserializationImplementation(this IMethodSymbol method, INamedTypeSymbol iDeserializationCallback)
         {
@@ -374,6 +374,7 @@ namespace Analyzer.Utilities.Extensions
         /// Determine if the specific method is an Add method that adds to a collection.
         /// </summary>
         /// <param name="method">The method to test.</param>
+        /// <param name="iCollectionTypes">Collection types.</param>
         /// <returns>'true' if <paramref name="method"/> is believed to be the add method of a collection.</returns>
         /// <remarks>
         /// The current heuristic is that we consider a method to be an add method if its name begins with "Add" and its

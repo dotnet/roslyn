@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 {
     using DisposeAnalysisData = DictionaryAnalysisData<AbstractLocation, DisposeAbstractValue>;
 
-    internal partial class DisposeAnalysis : ForwardDataFlowAnalysis<DisposeAnalysisData, DisposeAnalysisContext, DisposeAnalysisResult, DisposeBlockAnalysisResult, DisposeAbstractValue>
+    public partial class DisposeAnalysis : ForwardDataFlowAnalysis<DisposeAnalysisData, DisposeAnalysisContext, DisposeAnalysisResult, DisposeBlockAnalysisResult, DisposeAbstractValue>
     {
         /// <summary>
         /// Abstract value domain for <see cref="DisposeAnalysis"/> to merge and compare <see cref="DisposeAbstractValue"/> values.
@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         private class DisposeAbstractValueDomain : AbstractValueDomain<DisposeAbstractValue>
         {
             public static DisposeAbstractValueDomain Default = new DisposeAbstractValueDomain();
-            private readonly SetAbstractDomain<IOperation> _disposingOperationsDomain = new SetAbstractDomain<IOperation>();
+            private readonly SetAbstractDomain<IOperation> _disposingOperationsDomain = SetAbstractDomain<IOperation>.Default;
 
             private DisposeAbstractValueDomain() { }
 

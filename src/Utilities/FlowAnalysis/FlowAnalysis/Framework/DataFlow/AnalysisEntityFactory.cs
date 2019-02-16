@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// This factory also tracks analysis entities that share the same instance location (e.g. value type members).
     /// NOTE: This factory must only be used from within an <see cref="OperationVisitor"/>, as it is tied to the visitor's state tracking via <see cref="_getIsInsideAnonymousObjectInitializer"/> delegate.
     /// </summary>
-    internal sealed class AnalysisEntityFactory
+    public sealed class AnalysisEntityFactory
     {
         private readonly ControlFlowGraph _controlFlowGraph;
         private readonly Dictionary<IOperation, AnalysisEntity> _analysisEntityMap;

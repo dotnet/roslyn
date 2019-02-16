@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </para>
     /// <para>
     /// An analysis location can be created for one of the following cases:
-    ///     1. An allocation or an object creation operation (<see cref="CreateAllocationLocation(IOperation, ITypeSymbol)"/>).
+    ///     1. An allocation or an object creation operation (<see cref="CreateAllocationLocation(IOperation, ITypeSymbol, PointsToAnalysisContext)"/>).
     ///     2. Location for the implicit 'this' or 'Me' instance being analyzed (<see cref="CreateThisOrMeLocation(INamedTypeSymbol)"/>).
-    ///     3. Location created for certain symbols which do not have a declaration in executable code, i.e. no <see cref="IOperation"/> for declaration (such as parameter symbols, member symbols, etc. - <see cref="CreateSymbolLocation(ISymbol)"/>).
+    ///     3. Location created for certain symbols which do not have a declaration in executable code, i.e. no <see cref="IOperation"/> for declaration (such as parameter symbols, member symbols, etc. - <see cref="CreateSymbolLocation(ISymbol, ImmutableStack{IOperation})"/>/>).
     /// </para>
     /// </summary>
-    internal sealed class AbstractLocation : CacheBasedEquatable<AbstractLocation>
+    public sealed class AbstractLocation : CacheBasedEquatable<AbstractLocation>
     {
         private readonly bool _isSpecialSingleton;
         public static readonly AbstractLocation Null = new AbstractLocation(creationOpt: null, creationCallStackOpt: null, analysisEntityOpt: null, symbolOpt: null, locationTypeOpt: null, isSpecialSingleton: true);

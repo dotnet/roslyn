@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
     /// Result from execution of <see cref="CopyAnalysis"/> on a basic block.
     /// It store copy values for each <see cref="AnalysisEntity"/> at the start and end of the basic block.
     /// </summary>
-    internal sealed class CopyBlockAnalysisResult : AbstractBlockAnalysisResult
+    public sealed class CopyBlockAnalysisResult : AbstractBlockAnalysisResult
     {
-        public CopyBlockAnalysisResult(BasicBlock basicBlock, CopyAnalysisData blockAnalysisData)
+        internal CopyBlockAnalysisResult(BasicBlock basicBlock, CopyAnalysisData blockAnalysisData)
             : base(basicBlock)
         {
             Data = blockAnalysisData?.CoreAnalysisData.ToImmutableDictionary() ?? ImmutableDictionary<AnalysisEntity, CopyAbstractValue>.Empty;

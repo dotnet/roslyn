@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             return analysis.GetOrComputeResultCore(analysisContext, cacheResult: true);
         }
 
-        internal override ParameterValidationAnalysisResult ToResult(
+        protected override ParameterValidationAnalysisResult ToResult(
             ParameterValidationAnalysisContext analysisContext,
             DataFlowAnalysisResult<ParameterValidationBlockAnalysisResult, ParameterValidationAbstractValue> dataFlowAnalysisResult)
         {
@@ -109,6 +109,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             return new ParameterValidationAnalysisResult(dataFlowAnalysisResult, newOperationVisitor.HazardousParameterUsages);
         }
 
-        internal override ParameterValidationBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, ParameterValidationAnalysisData blockAnalysisData) => new ParameterValidationBlockAnalysisResult(basicBlock, blockAnalysisData);
+        protected override ParameterValidationBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, ParameterValidationAnalysisData blockAnalysisData) => new ParameterValidationBlockAnalysisResult(basicBlock, blockAnalysisData);
     }
 }

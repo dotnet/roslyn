@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
     /// Result from execution of <see cref="PointsToAnalysis"/> on a basic block.
     /// It stores the PointsTo value for each <see cref="AnalysisEntity"/> at the start and end of the basic block.
     /// </summary>
-    internal class PointsToBlockAnalysisResult : AbstractBlockAnalysisResult
+    public class PointsToBlockAnalysisResult : AbstractBlockAnalysisResult
     {
-        public PointsToBlockAnalysisResult(BasicBlock basicBlock, PointsToAnalysisData blockAnalysisData)
+        internal PointsToBlockAnalysisResult(BasicBlock basicBlock, PointsToAnalysisData blockAnalysisData)
             : base(basicBlock)
         {
             Data = blockAnalysisData?.CoreAnalysisData.ToImmutableDictionary() ?? ImmutableDictionary<AnalysisEntity, PointsToAbstractValue>.Empty;

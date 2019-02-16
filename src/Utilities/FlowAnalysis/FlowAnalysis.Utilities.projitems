@@ -4,6 +4,9 @@
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
     <HasSharedItems>true</HasSharedItems>
     <SharedGUID>ec946164-1e17-410b-b7d9-7de7e6268d63</SharedGUID>
+	
+	<!-- CA1724: Type name conflicts in whole or in part with namepsace name -->
+    <NoWarn>$(NoWarn);CA1724</NoWarn>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
     <Import_RootNamespace>Analyzer.Utilities</Import_RootNamespace>
@@ -12,21 +15,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IOperationExtensions_FlowAnalysis.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\CopyAnalysis\SetCopyAbstractValuePredicateKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PointsToAnalysis\TrackedEntitiesBuilder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\FilePathInjectionSinks.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\PooledHashSetExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\XssSanitizers.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\RegexSinks.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\ProcessCommandSinks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\AbstractAnalysisData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\DictionaryAnalysisData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\AddressSharedEntitiesProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAbstractValue.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAnalysis.PropertySetAbstractValueDomain.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAnalysis.PropertySetDataFlowOperationVisitor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAnalysis.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAnalysisContext.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAnalysisResult.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetBlockAnalysisResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\CopyAnalysis\CopyAbstractValue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\CopyAnalysis\CopyAbstractValueKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\CopyAnalysis\CopyAnalysis.CopyAbstractValueDomain.cs" />
@@ -45,13 +36,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\DisposeAnalysis\DisposeAnalysisHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\DisposeAnalysis\DisposeBlockAnalysisResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\DisposeAnalysis\DisposeAnalysisResult.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\ParameterValidationAnalysis\ParameterValidationAnalysisContext.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\ParameterValidationAnalysis\ParameterValidationAbstractValue.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\ParameterValidationAnalysis\ParameterValidationAnalysis.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\ParameterValidationAnalysis\ParameterValidationAnalysis.ParameterValidationAbstractValueDomain.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\ParameterValidationAnalysis\ParameterValidationAnalysis.ParameterValidationDataFlowOperationVisitor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\ParameterValidationAnalysis\ParameterValidationAnalysisResult.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\ParameterValidationAnalysis\ParameterValidationBlockAnalysisResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PointsToAnalysis\PointsToAnalysisContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PointsToAnalysis\DefaultPointsToValueGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PointsToAnalysis\NullAbstractValue.cs" />
@@ -65,33 +49,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PointsToAnalysis\PointsToAnalysis.PointsToDataFlowOperationVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PointsToAnalysis\PointsToAnalysisData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PointsToAnalysis\PointsToBlockAnalysisResult.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\DllSinks.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\InformationDisclosureSources.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\ITaintedDataInfo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\PrimitiveTypeConverterSanitizers.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\SanitizerInfo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\SinkInfo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\SinkKind.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\SourceInfo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\SymbolAccess.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\SqlSinks.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAbstractValue.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAbstractValueKind.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAnalysis.CoreTaintedDataAnalysisDataDomain.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAnalysis.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAnalysis.TaintedDataAbstractValueDomain.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAnalysis.TaintedDataOperationVisitor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAnalysis.TaintedDataAnalysisDomain.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAnalysisContext.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAnalysisData.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAnalysisResult.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataBlockAnalysisResult.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataConfig.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataSourceSink.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataSymbolMap.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataSymbolMapExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\WebInputSources.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\WebOutputSinks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\ValueContentAnalysis\ValueContentAnalysisContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\ValueContentAnalysis\ValueContentAnalysis.ValueContentAnalysisDomain.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\ValueContentAnalysis\ValueContainsNonLiteralState.cs" />
@@ -148,5 +105,53 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ControlFlowConditionKindExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ControlFlowGraphExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SingleThreadedConcurrentDictionary.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(ExcludeInternalFlowAnalyses)' != 'true'">
+	<Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\FilePathInjectionSinks.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\PooledHashSetExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\XssSanitizers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\RegexSinks.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\ProcessCommandSinks.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\DllSinks.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\InformationDisclosureSources.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\ITaintedDataInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\PrimitiveTypeConverterSanitizers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\SanitizerInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\SinkInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\SinkKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\SourceInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\SymbolAccess.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\SqlSinks.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAbstractValue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAbstractValueKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAnalysis.CoreTaintedDataAnalysisDataDomain.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAnalysis.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAnalysis.TaintedDataAbstractValueDomain.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAnalysis.TaintedDataOperationVisitor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAnalysis.TaintedDataAnalysisDomain.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAnalysisContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAnalysisData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAnalysisResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataBlockAnalysisResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataConfig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataSourceSink.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataSymbolMap.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataSymbolMapExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\WebInputSources.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\WebOutputSinks.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAbstractValue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAnalysis.PropertySetAbstractValueDomain.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAnalysis.PropertySetDataFlowOperationVisitor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAnalysis.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAnalysisContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAnalysisResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetBlockAnalysisResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\ParameterValidationAnalysis\ParameterValidationAnalysisContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\ParameterValidationAnalysis\ParameterValidationAbstractValue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\ParameterValidationAnalysis\ParameterValidationAnalysis.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\ParameterValidationAnalysis\ParameterValidationAnalysis.ParameterValidationAbstractValueDomain.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\ParameterValidationAnalysis\ParameterValidationAnalysis.ParameterValidationDataFlowOperationVisitor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\ParameterValidationAnalysis\ParameterValidationAnalysisResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\ParameterValidationAnalysis\ParameterValidationBlockAnalysisResult.cs" />
   </ItemGroup>
 </Project>

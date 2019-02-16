@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
 #pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
     /// <summary>
     /// Analysis context for execution of <see cref="CopyAnalysis"/> on a control flow graph.
     /// </summary>
-    internal sealed class CopyAnalysisContext : AbstractDataFlowAnalysisContext<CopyAnalysisData, CopyAnalysisContext, CopyAnalysisResult, CopyAbstractValue>
+    public sealed class CopyAnalysisContext : AbstractDataFlowAnalysisContext<CopyAnalysisData, CopyAnalysisContext, CopyAnalysisResult, CopyAbstractValue>
     {
         private CopyAnalysisContext(
             AbstractValueDomain<CopyAbstractValue> valueDomain,
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         {
         }
 
-        public static CopyAnalysisContext Create(
+        internal static CopyAnalysisContext Create(
             AbstractValueDomain<CopyAbstractValue> valueDomain,
             WellKnownTypeProvider wellKnownTypeProvider,
             ControlFlowGraph controlFlowGraph,

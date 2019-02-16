@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// Base class for all the aggregate analysis data with predicated analysis data,
     /// whose <see cref="CoreAnalysisData"/> is keyed by an <see cref="AnalysisEntity"/>.
     /// </summary>
-    internal abstract class AnalysisEntityBasedPredicateAnalysisData<TValue> : PredicatedAnalysisData<AnalysisEntity, TValue>
+    public abstract class AnalysisEntityBasedPredicateAnalysisData<TValue> : PredicatedAnalysisData<AnalysisEntity, TValue>
     {
         protected AnalysisEntityBasedPredicateAnalysisData()
         {
@@ -79,7 +79,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public bool TryGetValue(AnalysisEntity key, out TValue value) => CoreAnalysisData.TryGetValue(key, out value);
 
+#pragma warning disable CA1043 // Use Integral Or String Argument For Indexers
         public TValue this[AnalysisEntity key] => CoreAnalysisData[key];
+#pragma warning restore CA1043 // Use Integral Or String Argument For Indexers
 
         [Conditional("DEBUG")]
         private void AssertValidAnalysisData()
