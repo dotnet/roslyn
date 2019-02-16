@@ -81,6 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
+            protected override BoundExpression ShallowClone()
+                => throw ExceptionUtilities.Unreachable;
+
             public void Free()
             {
                 if (_locals != null) _locals.Free();

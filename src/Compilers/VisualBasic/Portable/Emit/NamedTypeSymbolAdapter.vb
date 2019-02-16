@@ -440,7 +440,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim result As IEnumerable(Of NamedTypeSymbol) =
                 interfaces.Where(Function(sym As NamedTypeSymbol) As Boolean
                                      Return Not (base IsNot Nothing AndAlso
-                                                 base.ImplementsInterface(sym, Nothing) AndAlso
+                                                 base.ImplementsInterface(sym, EqualsIgnoringComparer.InstanceCLRSignatureCompare, Nothing) AndAlso
                                                  Not Me.ImplementsAllMembersOfInterface(sym))
                                  End Function)
 

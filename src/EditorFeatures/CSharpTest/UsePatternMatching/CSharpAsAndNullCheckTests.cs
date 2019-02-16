@@ -100,6 +100,39 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestInSwitchSection()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        switch (o)
+        {
+            default:
+                [|var|] x = o as string;
+                if (x != null)
+                {
+                }
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch (o)
+        {
+            default:
+                if (o is string x)
+                {
+                }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestMissingOnNonDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1373,6 +1406,27 @@ public static class C
         System.Func<C> f = () => c == null ? null : c;
         return c;
     }
+}");
+        }
+
+        [WorkItem(31388, "https://github.com/dotnet/roslyn/issues/31388")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestUseBetweenAssignmentAndIfCondition()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(object o)
+    {
+        [|var|] c = o as C;
+        M2(c != null);
+        if (c == null)
+        {
+            return;
+        }
+    }
+
+    void M2(bool b) { }
 }");
         }
     }

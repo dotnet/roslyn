@@ -44,15 +44,16 @@ namespace Microsoft.CodeAnalysis
         }
 
         private VersionStamp(DateTime utcLastModified, int localIncrement)
+            : this(utcLastModified, localIncrement, GetNextGlobalVersion())
         {
-            _utcLastModified = utcLastModified;
-            _localIncrement = localIncrement;
-            _globalIncrement = GetNextGlobalVersion();
         }
 
         private VersionStamp(DateTime utcLastModified, int localIncrement, int globalIncrement)
         {
-            Contract.ThrowIfFalse(utcLastModified == default || utcLastModified.Kind == DateTimeKind.Utc);
+            if (utcLastModified != default && utcLastModified.Kind != DateTimeKind.Utc)
+            {
+                throw new ArgumentException(WorkspacesResources.DateTimeKind_must_be_Utc, nameof(utcLastModified));
+            }
 
             _utcLastModified = utcLastModified;
             _localIncrement = localIncrement;

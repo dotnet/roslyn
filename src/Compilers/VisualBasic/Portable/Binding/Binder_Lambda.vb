@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If Not targetReturnType.IsErrorType() Then
                         If source.Flags = SourceMemberFlags.Async Then
-                            If Not targetReturnType.OriginalDefinition = Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T) Then
+                            If Not TypeSymbol.Equals(targetReturnType.OriginalDefinition, Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T), TypeCompareKind.ConsiderEverything) Then
                                 ReportDiagnostic(diagnostics, LambdaHeaderErrorNode(source), ERRID.ERR_BadAsyncReturn)
                             End If
                         End If

@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     // Verify the synchronization context was not used incorrectly
                     var testExportJoinableTaskContext = exportProvider.GetExportedValues<TestExportJoinableTaskContext>().SingleOrDefault();
-                    if (testExportJoinableTaskContext?.SynchronizationContext is ThreadingContext.DenyExecutionSynchronizationContext synchronizationContext)
+                    if (testExportJoinableTaskContext?.SynchronizationContext is TestExportJoinableTaskContext.DenyExecutionSynchronizationContext synchronizationContext)
                     {
                         synchronizationContext.ThrowIfSwitchOccurred();
                     }

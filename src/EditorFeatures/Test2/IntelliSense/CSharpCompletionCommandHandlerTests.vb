@@ -172,6 +172,56 @@ class c { void M() { 3.$$ } }
 
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypingDotBeforeExistingDot(completionImplementation As CompletionImplementation) As Task
+            ' Starting C# 8.0 two dots are considered as a DotDotToken of a Range expression.
+            ' However, typing dot before a single dot (and adding the second one) should lead to a completion
+            ' in the context of the previous token if this completion exists.
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class c { void M() { this$$.ToString() } }
+                              </Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Assert.True(state.CompletionItemsContainsAll({"ToString"}))
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypingDotAfterExistingDot(completionImplementation As CompletionImplementation) As Task
+            ' Starting C# 8.0 two dots are considered as a DotDotToken of a Range expression.
+            ' A test above (TestTypingDotBeforeExistingDot) verifies that the completion happens 
+            ' if we type dot before a single dot.
+            ' However, we should not have a completion if typing dot after a dot.
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class c { void M() { this.$$ToString() } }
+                              </Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInvokingCompletionBetweenTwoDots(completionImplementation As CompletionImplementation) As Task
+            ' Starting C# 8.0 two dots are considered as a DotDotToken of a Range expression.
+            ' However, we may want to have a completion when invoking it aqfter the first dot.
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class c { void M() { this.$$.ToString() } }
+                              </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Assert.True(state.CompletionItemsContainsAll({"ToString"}))
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEnterIsConsumed(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                   <Document>
@@ -2039,7 +2089,7 @@ class D : C
                 state.SendTypeChars(" Goo")
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
-                Assert.Contains("public override void Goo<S>(S x = default(S))", state.SubjectBuffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
+                Assert.Contains("public override void Goo<S>(S x = default)", state.SubjectBuffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -4132,6 +4182,102 @@ class C
                 state.SendTypeChars("w")
                 Await state.AssertSelectedCompletionItem(displayText:="when", isHardSelected:=True)
 
+            End Using
+        End Function
+
+        <WorkItem(11959, "https://github.com/dotnet/roslyn/issues/11959")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestGenericAsyncTaskDeclaration(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+namespace A.B
+{
+    class TestClass { }
+}
+
+namespace A
+{
+    class C
+    {
+        async Task&lt;A$$ Method()
+        { }
+    }
+}
+                              </Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertSelectedCompletionItem(displayText:="B", isSoftSelected:=True)
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(18104, "https://github.com/dotnet/roslyn/issues/18104")>
+        Public Async Function TestCompletionTriggeredByClosingParenthesis(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class Program
+{
+    static void Main(string[] args)
+    {
+        Main$$
+    }
+}]]></Document>, includeFormatCommandHandler:=True)
+
+                state.SendTypeChars("(ar")
+                Await state.AssertSelectedCompletionItem(displayText:="args", isHardSelected:=True)
+
+                state.SendTypeChars(")")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("Main(args)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(18104, "https://github.com/dotnet/roslyn/issues/18104")>
+        Public Async Function TestStatementCompletionTriggersFormattingOnSemicolon(completionImplementation As CompletionImplementation) As Task
+            ' This test uses the formatting and complete statement command handlers, but not automatic brace completion.
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class Program
+{
+    static void Main(string[] args)
+    {
+        Main( $$)
+    }
+}]]></Document>, includeFormatCommandHandler:=True)
+
+                state.SendTypeChars("ar")
+                Await state.AssertSelectedCompletionItem(displayText:="args", isHardSelected:=True)
+
+                state.SendTypeChars(";")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("Main(args);", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/31045"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(18104, "https://github.com/dotnet/roslyn/issues/18104")>
+        Public Async Function TestStatementCompletionOnSemicolon(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class Program
+{
+    static void Main(string[] args)
+    {
+        Main$$
+    }
+}]]></Document>)
+
+                state.SendTypeChars("(ar")
+                Await state.AssertSelectedCompletionItem(displayText:="args", isHardSelected:=True)
+
+                state.SendTypeChars(";")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("Main(args);", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 

@@ -125,9 +125,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static readonly Func<SyntaxKind, bool> s_isDotOrArrowOrColonColon =
             k => k == SyntaxKind.DotToken || k == SyntaxKind.MinusGreaterThanToken || k == SyntaxKind.ColonColonToken;
 
-        public static bool IsRightOfDotOrArrowOrColonColon(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        public static bool IsRightOfDotOrArrowOrColonColon(this SyntaxTree syntaxTree, int position, SyntaxToken targetToken, CancellationToken cancellationToken)
         {
-            return syntaxTree.IsRightOf(position, s_isDotOrArrowOrColonColon, cancellationToken);
+            return
+                (targetToken.IsKind(SyntaxKind.DotDotToken) && position == targetToken.SpanStart + 1) ||
+                syntaxTree.IsRightOf(position, s_isDotOrArrowOrColonColon, cancellationToken);
         }
 
         public static bool IsRightOfDotOrArrow(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)

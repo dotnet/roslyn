@@ -261,7 +261,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                     return false;
                 }
 
-                var endIndex = index + 1;
                 for (var i = 0; i < 4; i++)
                 {
                     var ch2 = tokenText[index + i];
@@ -272,7 +271,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                     }
 
                     intChar = (intChar << 4) + HexValue(ch2);
-                    endIndex++;
                 }
 
                 character = (char)intChar;
@@ -292,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 }
 
                 var endIndex = index;
-                for (var i = 0; i < 4; i++)
+                for (var i = 0; i < 4 && endIndex < tokenText.Length; i++)
                 {
                     var ch2 = tokenText[index + i];
                     if (!IsHexDigit(ch2))

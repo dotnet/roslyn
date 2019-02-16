@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     {
                         OnWriteReferenceFound(symbol, write, maybeWritten: false);
 
-                        if (operation.Kind == OperationKind.CompoundAssignment &&
+                        if (operation.IsAnyCompoundAssignment() &&
                             operation.Parent?.Kind != OperationKind.ExpressionStatement)
                         {
                             OnReadReferenceFound(symbol);
@@ -208,6 +208,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 ProcessPendingWritesForAssignmentTarget(operation);
             }
 
+            public override void VisitCoalesceAssignment(ICoalesceAssignmentOperation operation)
+            {
+                base.VisitCoalesceAssignment(operation);
+                ProcessPendingWritesForAssignmentTarget(operation);
+            }
+
             public override void VisitDeconstructionAssignment(IDeconstructionAssignmentOperation operation)
             {
                 base.VisitDeconstructionAssignment(operation);
@@ -216,6 +222,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
             public override void VisitLocalReference(ILocalReferenceOperation operation)
             {
+                if (operation.Local.IsRef)
+                {
+                    // Bail out for ref locals.
+                    // We need points to analysis for analyzing writes to ref locals, which is currently not supported.
+                    return;
+                }
+
                 OnReferenceFound(operation.Local, operation);
             }
 

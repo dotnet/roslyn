@@ -276,8 +276,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateFromEndIndexExpressionOperation((BoundFromEndIndexExpression)boundNode);
                 case BoundKind.RangeExpression:
                     return CreateRangeExpressionOperation((BoundRangeExpression)boundNode);
-                case BoundKind.SuppressNullableWarningExpression:
-                    return CreateSuppressNullableWarningExpressionOperation((BoundSuppressNullableWarningExpression)boundNode);
                 case BoundKind.SwitchSection:
                     return CreateBoundSwitchSectionOperation((BoundSwitchSection)boundNode);
                 case BoundKind.SwitchExpression:
@@ -1504,8 +1502,8 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     enumeratorInfoOpt.GetEnumeratorMethod,
                                                     (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedSymbol,
                                                     enumeratorInfoOpt.MoveNextMethod,
-                                                    enumeratorInfoOpt.NeedsDisposeMethod,
-                                                    knownToImplementIDisposable: enumeratorInfoOpt.NeedsDisposeMethod && (object)enumeratorInfoOpt.GetEnumeratorMethod != null ?
+                                                    enumeratorInfoOpt.NeedsDisposal,
+                                                    knownToImplementIDisposable: enumeratorInfoOpt.NeedsDisposal && (object)enumeratorInfoOpt.GetEnumeratorMethod != null ?
                                                                                      compilation.Conversions.
                                                                                          ClassifyImplicitConversionFromType(enumeratorInfoOpt.GetEnumeratorMethod.ReturnType.TypeSymbol,
                                                                                                                             compilation.GetSpecialType(SpecialType.System_IDisposable),
@@ -1990,17 +1988,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 isImplicit: boundRange.WasCompilerGenerated);
         }
 
-        private IOperation CreateSuppressNullableWarningExpressionOperation(BoundSuppressNullableWarningExpression boundSuppression)
-        {
-            return new CSharpLazySuppressNullableWarningOperation(
-                operationFactory: this,
-                boundSuppression,
-                _semanticModel,
-                boundSuppression.Syntax,
-                boundSuppression.Type,
-                isImplicit: boundSuppression.WasCompilerGenerated);
-        }
-
         private IOperation CreateBoundDiscardPatternOperation(BoundDiscardPattern boundNode)
         {
             return new DiscardPatternOperation(
@@ -2009,6 +1996,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 boundNode.Syntax,
                 isImplicit: boundNode.WasCompilerGenerated);
         }
+
         private IOperation CreateUsingLocalDeclarationsOperation(BoundUsingLocalDeclarations boundNode)
         {
             //TODO: Implement UsingLocalDeclaration operations correctly.
@@ -2019,6 +2007,41 @@ namespace Microsoft.CodeAnalysis.Operations
                                                  constantValue: default,
                                                  getChildren: () => ImmutableArray.Create<IOperation>(CreateBoundMultipleLocalDeclarationsOperation((BoundMultipleLocalDeclarations)boundNode)),
                                                  isImplicit: false);
+        }
+
+        internal IPropertySubpatternOperation CreatePropertySubpattern(BoundSubpattern subpattern, ITypeSymbol matchedType)
+        {
+            SyntaxNode syntax = subpattern.Syntax;
+            return new CSharpLazyPropertySubpatternOperation(this, subpattern, matchedType, syntax, _semanticModel);
+        }
+
+        internal IOperation CreatePropertySubpatternMember(Symbol symbol, ITypeSymbol matchedType, SyntaxNode syntax)
+        {
+            var nameSyntax = (syntax is SubpatternSyntax subpatSyntax ? subpatSyntax.NameColon?.Name : null) ?? syntax;
+            bool isImplicit = nameSyntax == syntax;
+            switch (symbol)
+            {
+                case FieldSymbol field:
+                    {
+                        var constantValue = field.ConstantValue is null ? default(Optional<object>) : new Optional<object>(field.ConstantValue);
+                        var receiver = new InstanceReferenceOperation(
+                            InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax, matchedType, constantValue, isImplicit: true);
+                        return new FieldReferenceOperation(
+                            field, isDeclaration: false, receiver, _semanticModel, nameSyntax, field.Type.TypeSymbol, constantValue, isImplicit: isImplicit);
+                    }
+                case PropertySymbol property:
+                    {
+                        var receiver = new InstanceReferenceOperation(
+                            InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax, matchedType, constantValue: default, isImplicit: true);
+                        return new PropertyReferenceOperation(
+                            property, receiver, ImmutableArray<IArgumentOperation>.Empty, _semanticModel, nameSyntax, property.Type.TypeSymbol,
+                            constantValue: default, isImplicit: isImplicit);
+                    }
+                default:
+                    // We should expose the symbol in this case somehow:
+                    // https://github.com/dotnet/roslyn/issues/33175
+                    return OperationFactory.CreateInvalidOperation(_semanticModel, nameSyntax, ImmutableArray<IOperation>.Empty, isImplicit);
+            }
         }
     }
 }

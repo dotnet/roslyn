@@ -899,6 +899,59 @@ interface i1
         }
 
         [Fact]
+        public void CS0065ERR_EventNeedsBothAccessors_Interface05()
+        {
+            var text = @"
+public interface I2 { }
+
+public interface I1
+{
+    event System.Action I2.P10;
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,27): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+                //     event System.Action I2.P10;
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(6, 27),
+                // (6,31): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                //     event System.Action I2.P10;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(6, 31),
+                // (6,28): error CS0541: 'I1.P10': explicit interface declaration can only be declared in a class or struct
+                //     event System.Action I2.P10;
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P10").WithArguments("I1.P10").WithLocation(6, 28),
+                // (6,28): error CS0065: 'I1.P10': event property must have both add and remove accessors
+                //     event System.Action I2.P10;
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P10").WithArguments("I1.P10").WithLocation(6, 28));
+        }
+
+        [Fact]
+        public void CS0065ERR_EventNeedsBothAccessors_Interface06()
+        {
+            var text = @"
+public interface I2 { }
+
+public interface I1
+{
+    event System.Action I2.
+P10;
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,27): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+                //     event System.Action I2.
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(6, 27),
+                // (7,4): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                // P10;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(7, 4),
+                // (7,1): error CS0541: 'I1.P10': explicit interface declaration can only be declared in a class or struct
+                // P10;
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P10").WithArguments("I1.P10").WithLocation(7, 1),
+                // (7,1): error CS0065: 'I1.P10': event property must have both add and remove accessors
+                // P10;
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P10").WithArguments("I1.P10").WithLocation(7, 1));
+        }
+
+        [Fact]
         public void CS0066ERR_EventNotDelegate()
         {
             var text = @"

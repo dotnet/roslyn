@@ -5,12 +5,10 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertForEachToFor;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -36,24 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
             if (!scope.IntersectsWith(selection))
             {
                 return null;
-            }
-
-            // check whether there is any comments between foreach and ) tokens
-            // if they do, we don't support conversion.
-            foreach (var trivia in foreachStatement.DescendantTrivia(n => n == foreachStatement || scope.Contains(n.FullSpan)))
-            {
-                if (trivia.Span.End <= scope.Start ||
-                    scope.End <= trivia.Span.Start)
-                {
-                    continue;
-                }
-
-                if (trivia.Kind() != SyntaxKind.WhitespaceTrivia &&
-                    trivia.Kind() != SyntaxKind.EndOfLineTrivia)
-                {
-                    // we don't know what to do with these comments
-                    return null;
-                }
             }
 
             return foreachStatement;

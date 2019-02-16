@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class SyntaxKindExtensions
@@ -24,6 +26,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return false;
+        }
+
+        public static SyntaxKind MapCompoundAssignmentKindToBinaryExpressionKind(this SyntaxKind syntaxKind)
+        {
+            switch (syntaxKind)
+            {
+                case SyntaxKind.AddAssignmentExpression:
+                    return SyntaxKind.AddExpression;
+
+                case SyntaxKind.SubtractAssignmentExpression:
+                    return SyntaxKind.SubtractExpression;
+
+                case SyntaxKind.MultiplyAssignmentExpression:
+                    return SyntaxKind.MultiplyExpression;
+
+                case SyntaxKind.DivideAssignmentExpression:
+                    return SyntaxKind.DivideExpression;
+
+                case SyntaxKind.ModuloAssignmentExpression:
+                    return SyntaxKind.ModuloExpression;
+
+                case SyntaxKind.AndAssignmentExpression:
+                    return SyntaxKind.BitwiseAndExpression;
+
+                case SyntaxKind.ExclusiveOrAssignmentExpression:
+                    return SyntaxKind.ExclusiveOrExpression;
+
+                case SyntaxKind.OrAssignmentExpression:
+                    return SyntaxKind.BitwiseOrExpression;
+
+                case SyntaxKind.LeftShiftAssignmentExpression:
+                    return SyntaxKind.LeftShiftExpression;
+
+                case SyntaxKind.RightShiftAssignmentExpression:
+                    return SyntaxKind.RightShiftExpression;
+
+                case SyntaxKind.CoalesceAssignmentExpression:
+                    return SyntaxKind.CoalesceExpression;
+
+                default:
+                    Debug.Fail($"Unhandled compound assignment kind: {syntaxKind}");
+                    return SyntaxKind.None;
+            }
         }
     }
 }

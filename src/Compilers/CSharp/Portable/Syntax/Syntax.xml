@@ -202,12 +202,6 @@
     <Field Name="CloseBracketToken" Type="SyntaxToken">
       <Kind Name="CloseBracketToken"/>
     </Field>
-    <Field Name="QuestionToken" Type="SyntaxToken" Optional="true">
-      <Kind Name="QuestionToken"/>
-      <PropertyComment>
-        <summary>SyntaxToken representing the question mark.</summary>
-      </PropertyComment>
-    </Field>
   </Node>
   <Node Name="PointerTypeSyntax" Base="TypeSyntax">
     <Kind Name="PointerType"/>
@@ -1849,15 +1843,15 @@
   <Node Name="RecursivePatternSyntax" Base="PatternSyntax">
     <Kind Name="RecursivePattern" />
     <Field Name="Type" Type="TypeSyntax" Optional="true" />
-    <Field Name="DeconstructionPatternClause" Type="DeconstructionPatternClauseSyntax" Optional="true" />
+    <Field Name="PositionalPatternClause" Type="PositionalPatternClauseSyntax" Optional="true" />
     <Field Name="PropertyPatternClause" Type="PropertyPatternClauseSyntax" Optional="true" />
     <Field Name="Designation" Type="VariableDesignationSyntax" Optional="true">
       <Kind Name="SingleVariableDesignation"/>
       <Kind Name="DiscardDesignation"/>
     </Field>
   </Node>
-  <Node Name="DeconstructionPatternClauseSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="DeconstructionPatternClause"/>
+  <Node Name="PositionalPatternClauseSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="PositionalPatternClause"/>
     <Field Name="OpenParenToken" Type="SyntaxToken">
       <Kind Name="OpenParenToken"/>
     </Field>
