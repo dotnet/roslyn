@@ -79505,14 +79505,10 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/33011: Should warn for `y.Value.F` only.
             comp.VerifyDiagnostics(
-                // (12,13): warning CS8629: Nullable value type may be null.
-                //         _ = x.Value;
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x.Value").WithLocation(12, 13),
-                // (14,13): warning CS8629: Nullable value type may be null.
-                //         _ = y.Value;
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y.Value").WithLocation(14, 13));
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         y.Value.F.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.Value.F").WithLocation(15, 9));
         }
 
         [Fact]
