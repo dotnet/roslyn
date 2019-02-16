@@ -6,9 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -42,10 +44,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private static readonly EditorOptionKey<bool> NonBlockingCompletionEditorOption = new EditorOptionKey<bool>(NonBlockingCompletion);
 
         private readonly ITextView _textView;
+        private readonly bool _isDebuggerTextView;
+        private readonly ImmutableHashSet<string> _roles;
 
         internal CompletionSource(ITextView textView, IThreadingContext threadingContext) : base(threadingContext)
         {
             _textView = textView;
+            _isDebuggerTextView = textView is IDebuggerTextView;
+            _roles = textView.Roles.ToImmutableHashSet();
         }
 
         public AsyncCompletionData.CompletionStartData InitializeCompletion(
@@ -168,10 +174,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var roslynTrigger = Helpers.GetRoslynTrigger(trigger, triggerLocation);
 
+            var workspace = document.Project.Solution.Workspace;
+
             var completionList = await completionService.GetCompletionsAsync(
                 document,
                 triggerLocation,
-                roslynTrigger).ConfigureAwait(false);
+                roslynTrigger,
+                _roles,
+                _isDebuggerTextView ? workspace.Options.WithDebuggerCompletionOptions() : workspace.Options,
+                cancellationToken).ConfigureAwait(false);
 
             if (completionList == null)
             {

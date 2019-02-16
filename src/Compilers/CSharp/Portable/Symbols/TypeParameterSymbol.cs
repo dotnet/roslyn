@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public sealed override bool IsValueType => GetIsValueType(ConsList<TypeParameterSymbol>.Empty);
-        
+
         internal sealed override ManagedKind ManagedKind
         {
             get

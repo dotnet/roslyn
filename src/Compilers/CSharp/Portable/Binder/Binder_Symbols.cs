@@ -360,8 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ReportUseSiteDiagnostics(constructedType.TypeSymbol.OriginalDefinition, diagnostics, syntax);
                             var type = (NamedTypeSymbol)constructedType.TypeSymbol;
                             var location = syntax.Location;
-                            var conversions = this.Conversions.WithNullability(includeNullability: true);
-                            type.CheckConstraints(this.Compilation, conversions, location, diagnostics);
+                            type.CheckConstraints(this.Compilation, this.Conversions, includeNullability: true, location, diagnostics);
                         }
                         else if (constructedType.TypeSymbol.IsTypeParameterDisallowingAnnotation())
                         {
@@ -1197,8 +1196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (ShouldCheckConstraints && ConstraintsHelper.RequiresChecking(type))
             {
                 bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-                var conversions = this.Conversions.WithNullability(includeNullability);
-                type.CheckConstraintsForNonTuple(conversions, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
+                type.CheckConstraintsForNonTuple(this.Conversions, includeNullability, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
             }
 
             type = (NamedTypeSymbol)TupleTypeSymbol.TransformToTupleIfCompatible(type);
@@ -2223,45 +2221,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, DiagnosticBag diagnostics, Location location)
-        {
-            CSDiagnosticInfo error = GetFeatureAvailabilityDiagnosticInfo(tree, feature);
-
-            if (error is null)
-            {
-                return true;
-            }
-
-            diagnostics.Add(new CSDiagnostic(error, location));
-            return false;
-        }
-
-        internal static CSDiagnosticInfo GetLanguageVersionDiagnosticInfo(LanguageVersion availableVersion, MessageID feature)
-        {
-            LanguageVersion requiredVersion = feature.RequiredVersion();
-            if (requiredVersion > availableVersion)
-            {
-                return new CSDiagnosticInfo(availableVersion.GetErrorCode(), feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
-            }
-
-            return null;
-        }
-
-        private static CSDiagnosticInfo GetFeatureAvailabilityDiagnosticInfo(SyntaxTree tree, MessageID feature)
-        {
-            CSharpParseOptions options = (CSharpParseOptions)tree.Options;
-
-            if (options.IsFeatureEnabled(feature))
-            {
-                return null;
-            }
-
-            string requiredFeature = feature.RequiredFeature();
-            if (requiredFeature != null)
-            {
-                return new CSDiagnosticInfo(ErrorCode.ERR_FeatureIsExperimental, feature.Localize(), requiredFeature);
-            }
-
-            return GetLanguageVersionDiagnosticInfo(options.LanguageVersion, feature);
-        }
+            => feature.CheckFeatureAvailability(diagnostics, location);
     }
 }
