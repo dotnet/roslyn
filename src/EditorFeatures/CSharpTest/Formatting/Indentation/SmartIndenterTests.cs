@@ -2743,6 +2743,29 @@ class C
 {
     public void Test()
     {
+        new List<DateTime>()
+                .Where(d => d.Kind == DateTimeKind.Local ||
+                            d.Kind == DateTimeKind.Utc)
+
+                .ToArray();
+    }
+}";
+
+            AssertSmartIndent(
+                code: code,
+                indentationLine: 7,
+                expectedIndentation: 16);
+        }
+
+        [WpfFact]
+        [WorkItem(33253, "https://github.com/dotnet/roslyn/issues/33253")]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void EnterAfterFluentSequences_3()
+        {
+            var code = @"public class Test
+{
+    public void Test()
+    {
         new List<DateTime>().Where(d => d.Kind == DateTimeKind.Local ||
                                         d.Kind == DateTimeKind.Utc)
 
@@ -2759,7 +2782,7 @@ class C
         [WpfFact]
         [WorkItem(33253, "https://github.com/dotnet/roslyn/issues/33253")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
-        public void EnterAfterFluentSequences_3()
+        public void EnterAfterFluentSequences_4()
         {
             var code = @"public class Test
 {
