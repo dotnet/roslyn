@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 document As Document,
                 position As Integer,
                 restrictToDeclarations As Boolean,
-                cancellationToken As CancellationToken) As Task(Of ISymbol)
+                cancellationToken As CancellationToken) As Task(Of (symbol As ISymbol, selectedIndex As Integer))
             Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim token = tree.GetRoot(cancellationToken).FindToken(If(position <> tree.Length, position, Math.Max(0, position - 1)))
 
@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Dim symbol = TryGetDeclaredSymbol(semanticModel, matchingNode, token, cancellationToken)
             If symbol IsNot Nothing Then
-                Return symbol
+                Return (symbol, 0)
             End If
 
             If matchingNode.Kind() = SyntaxKind.ObjectCreationExpression Then
@@ -112,13 +112,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 If token.Parent.AncestorsAndSelf().Any(Function(a) a Is objectCreation.Type) Then
                     Dim typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type).Symbol
                     If typeSymbol IsNot Nothing AndAlso typeSymbol.IsKind(SymbolKind.NamedType) AndAlso DirectCast(typeSymbol, ITypeSymbol).TypeKind = TypeKind.Delegate Then
-                        Return typeSymbol
+                        Return (typeSymbol, 0)
                     End If
                 End If
             End If
 
             Dim symbolInfo = semanticModel.GetSymbolInfo(matchingNode, cancellationToken)
-            Return If(symbolInfo.Symbol, symbolInfo.CandidateSymbols.FirstOrDefault())
+            Return (If(symbolInfo.Symbol, symbolInfo.CandidateSymbols.FirstOrDefault()), 0)
         End Function
 
         Private Function GetMatchingNode(node As SyntaxNode, restrictToDeclarations As Boolean) As SyntaxNode

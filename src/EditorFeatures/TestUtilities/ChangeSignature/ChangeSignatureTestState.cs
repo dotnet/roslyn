@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.ChangeSignature;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 {
@@ -78,6 +79,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                     this.ErrorSeverity = severity;
                 },
                 CancellationToken.None);
+        }
+
+        public ParameterConfiguration GetParameterConfiguration()
+        {
+            WpfTestRunner.RequireWpfFact($"{nameof(AbstractChangeSignatureService.ChangeSignature)} currently needs to run on a WPF Fact because it's factored in a way that tries popping up UI in some cases.");
+
+            var context = ChangeSignatureService.GetContextAsync(InvocationDocument, _testDocument.CursorPosition.Value, restrictToDeclarations: false, CancellationToken.None)
+                .WaitAndGetResult(CancellationToken.None);
+            return context.ParameterConfiguration;
         }
 
         private static readonly IExportProviderFactory s_exportProviderFactory =

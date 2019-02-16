@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// <summary>
         /// Determines the symbol on which we are invoking ReorderParameters
         /// </summary>
-        public abstract Task<ISymbol> GetInvocationSymbolAsync(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken);
+        public abstract Task<(ISymbol symbol, int selectedIndex)> GetInvocationSymbolAsync(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken);
 
         /// <summary>
         /// Given a SyntaxNode for which we want to reorder parameters/arguments, find the 
@@ -84,10 +84,10 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
         }
 
-        private async Task<ChangeSignatureAnalyzedContext> GetContextAsync(
+        internal async Task<ChangeSignatureAnalyzedContext> GetContextAsync(
             Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
-            var symbol = await GetInvocationSymbolAsync(
+            var (symbol, selectedIndex) = await GetInvocationSymbolAsync(
                 document, position, restrictToDeclarations, cancellationToken).ConfigureAwait(false);
 
             // Cross-language symbols will show as metadata, so map it to source if possible.
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return new ChangeSignatureAnalyzedContext(CannotChangeSignatureReason.IncorrectKind);
             }
 
-            var parameterConfiguration = ParameterConfiguration.Create(symbol.GetParameters().ToList(), symbol is IMethodSymbol && (symbol as IMethodSymbol).IsExtensionMethod);
+            var parameterConfiguration = ParameterConfiguration.Create(symbol.GetParameters().ToList(), symbol is IMethodSymbol && (symbol as IMethodSymbol).IsExtensionMethod, selectedIndex);
             if (!parameterConfiguration.IsChangeable())
             {
                 return new ChangeSignatureAnalyzedContext(CannotChangeSignatureReason.InsufficientParameters);
@@ -484,8 +484,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 origStuff.AddRange(bonusParameters);
                 newStuff.AddRange(bonusParameters);
 
-                var newOrigParams = ParameterConfiguration.Create(origStuff, updatedSignature.OriginalConfiguration.ThisParameter != null);
-                var newUpdatedParams = ParameterConfiguration.Create(newStuff, updatedSignature.OriginalConfiguration.ThisParameter != null);
+                var newOrigParams = ParameterConfiguration.Create(origStuff, updatedSignature.OriginalConfiguration.ThisParameter != null, selectedIndex: 0);
+                var newUpdatedParams = ParameterConfiguration.Create(newStuff, updatedSignature.OriginalConfiguration.ThisParameter != null, selectedIndex: 0);
                 updatedSignature = new SignatureChange(newOrigParams, newUpdatedParams);
             }
 
