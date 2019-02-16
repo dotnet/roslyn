@@ -198,6 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             VisualStudioProject.RemoveSourceFile(filename);
+            ProjectCodeModel.OnSourceFileRemoved(filename);
         }
 
         protected void RefreshBinOutputPath()

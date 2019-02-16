@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var stringLocal = F.StoreToTemp(rewrittenReceiver, out BoundAssignmentOperator stringAssign);
 
                 var indexValueSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Index__Value);
-                var indexFromEndSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Index__FromEnd);
+                var indexFromEndSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Index__IsFromEnd);
 
                 var argType = rewrittenArguments[0].Type;
                 if (TypeSymbol.Equals(argType, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything2))
