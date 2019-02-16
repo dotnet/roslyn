@@ -4166,7 +4166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundExpression ShallowClone()
         {
-            var result = new BoundBaseReference(this.Syntax, this.Type, this.HasErrors);
+            var result = new BoundBaseReference(this.Syntax, this.ExplicitBaseReferenceOpt, this.Type, this.HasErrors);
             result.CopyAttributes(this);
             return result;
         }
@@ -13077,7 +13077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("baseReference", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("explicitBaseReferenceOpt", null, new TreeDumperNode[] { Visit(node.ExplicitBaseReferenceOpt, null) }),
-                new TreeDumperNode("type", node.Type, null)
+                new TreeDumperNode("type", node.Type, null),
                 new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
             }
             );
