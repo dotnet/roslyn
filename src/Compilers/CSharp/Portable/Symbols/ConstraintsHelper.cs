@@ -530,7 +530,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Compilation currentCompilation,
             DiagnosticBag diagnosticsOpt,
             DiagnosticBag nullabilityDiagnosticsOpt)
-
         {
             NamedTypeSymbol type = tuple.TupleUnderlyingType;
             if (!RequiresChecking(type))
@@ -559,17 +558,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder);
                 }
 
-                populateDiagnostics(diagnosticsBuilder, diagnosticsOpt);
-                populateDiagnostics(nullabilityDiagnosticsBuilder, nullabilityDiagnosticsOpt);
+                populateDiagnosticsAndClear(diagnosticsBuilder, diagnosticsOpt);
+                populateDiagnosticsAndClear(nullabilityDiagnosticsBuilder, nullabilityDiagnosticsOpt);
 
-                diagnosticsBuilder.Clear();
-                nullabilityDiagnosticsBuilder.Clear();
                 offset += TupleTypeSymbol.RestIndex;
 
-                void populateDiagnostics(ArrayBuilder<TypeParameterDiagnosticInfo> builder, DiagnosticBag bag)
+                void populateDiagnosticsAndClear(ArrayBuilder<TypeParameterDiagnosticInfo> builder, DiagnosticBag bag)
                 {
                     if (bag is null)
                     {
+                        builder.Clear();
                         return;
                     }
 
@@ -582,6 +580,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var location = ordinal == TupleTypeSymbol.RestIndex ? typeSyntax.Location : elementLocations[ordinal + offset];
                         bag.Add(new CSDiagnostic(pair.DiagnosticInfo, location));
                     }
+
+                    builder.Clear();
                 }
 
             }
@@ -744,7 +744,7 @@ hasRelatedInterfaces:
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckMethodConstraints(method, conversions, includeNullability: false, currentCompilation, diagnosticsBuilder, nullabilityBuilderOpt: null, ref useSiteDiagnosticsBuilder);
+            var result = CheckMethodConstraints(method, conversions, includeNullability: false, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null, ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -775,7 +775,7 @@ hasRelatedInterfaces:
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckMethodConstraints(method, conversions, includeNullability: false, currentCompilation, diagnosticsBuilder, nullabilityBuilderOpt: null, ref useSiteDiagnosticsBuilder);
+            var result = CheckMethodConstraints(method, conversions, includeNullability: false, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null, ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -819,7 +819,7 @@ hasRelatedInterfaces:
             bool includeNullability,
             Compilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
-            ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityBuilderOpt,
+            ArrayBuilder<TypeParameterDiagnosticInfo> nullabilityDiagnosticsBuilderOpt,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
             BitVector skipParameters = default(BitVector))
         {
@@ -832,7 +832,7 @@ hasRelatedInterfaces:
                 method.TypeArguments,
                 currentCompilation,
                 diagnosticsBuilder,
-                nullabilityBuilderOpt,
+                nullabilityDiagnosticsBuilderOpt,
                 ref useSiteDiagnosticsBuilder,
                 skipParameters);
         }
