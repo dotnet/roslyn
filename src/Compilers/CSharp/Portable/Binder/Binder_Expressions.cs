@@ -736,6 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             tupleNames,
                             Compilation,
                             shouldCheckConstraints: false,
+                            includeNullability: false,
                             errorPositions: disallowInferredNames ? inferredPositions : default);
 
                         return new BoundTupleLiteral(syntax, argumentNamesOpt: default, inferredPositions, subExpressions, tupleType);
@@ -814,7 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 tupleTypeOpt = TupleTypeSymbol.Create(node.Location, elements, locations, elementNames,
                     this.Compilation, syntax: node, diagnostics: diagnostics, shouldCheckConstraints: true,
-                    errorPositions: disallowInferredNames ? inferredPositions : default(ImmutableArray<bool>));
+                    includeNullability: false, errorPositions: disallowInferredNames ? inferredPositions : default(ImmutableArray<bool>));
             }
             else
             {
