@@ -1297,6 +1297,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use asynchronous statement.
+        /// </summary>
+        internal static string Use_asynchronous_statement {
+            get {
+                return ResourceManager.GetString("Use_asynchronous_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use explicit type.
         /// </summary>
         internal static string Use_explicit_type {
