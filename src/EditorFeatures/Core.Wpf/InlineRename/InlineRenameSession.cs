@@ -179,6 +179,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 foreach (var d in _workspace.GetOpenDocumentIds())
                 {
                     var document = _baseSolution.GetDocument(d);
+                    if (document == null)
+                    {
+                        continue;
+                    }
+
                     Contract.ThrowIfFalse(document.TryGetText(out var text));
                     Contract.ThrowIfNull(text);
 

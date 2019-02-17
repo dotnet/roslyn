@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var indexType = VisitType(node.Indices[0].Type);
 
             var indexValueSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Index__Value);
-            var indexFromEndSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Index__FromEnd);
+            var indexFromEndSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Index__IsFromEnd);
 
             BoundExpression resultExpr;
             if (TypeSymbol.Equals(indexType, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything))
@@ -922,6 +922,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node)
             {
                 Fail(node);
                 return null;

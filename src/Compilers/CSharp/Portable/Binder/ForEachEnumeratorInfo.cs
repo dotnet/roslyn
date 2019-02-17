@@ -21,12 +21,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly MethodSymbol CurrentPropertyGetter;
         public readonly MethodSymbol MoveNextMethod;
 
-        // Dispose method to be called on the enumerator (may be null).
+        // True if the enumerator needs disposal once used. 
+        // Will be either IDisposable/IAsyncDisposable, or use DisposeMethod below if set
         // Computed during initial binding so that we can expose it in the semantic model.
-        public readonly bool NeedsDisposeMethod;
+        public readonly bool NeedsDisposal;
 
         // When async and needs disposal, this stores the information to await the DisposeAsync() invocation
         public AwaitableInfo DisposeAwaitableInfo;
+
+        // When using pattern-based Dispose, this stores the method to invoke to Dispose
+        public readonly MethodSymbol DisposeMethod;
 
         // Conversions that will be required when the foreach is lowered.
         public readonly Conversion CollectionConversion; //collection expression to collection type
@@ -45,8 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol getEnumeratorMethod,
             MethodSymbol currentPropertyGetter,
             MethodSymbol moveNextMethod,
-            bool needsDisposeMethod,
+            bool needsDisposal,
             AwaitableInfo disposeAwaitableInfo,
+            MethodSymbol disposeMethod,
             Conversion collectionConversion,
             Conversion currentConversion,
             Conversion enumeratorConversion,
@@ -63,8 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.GetEnumeratorMethod = getEnumeratorMethod;
             this.CurrentPropertyGetter = currentPropertyGetter;
             this.MoveNextMethod = moveNextMethod;
-            this.NeedsDisposeMethod = needsDisposeMethod;
+            this.NeedsDisposal = needsDisposal;
             this.DisposeAwaitableInfo = disposeAwaitableInfo;
+            this.DisposeMethod = disposeMethod;
             this.CollectionConversion = collectionConversion;
             this.CurrentConversion = currentConversion;
             this.EnumeratorConversion = enumeratorConversion;
@@ -81,8 +87,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             public MethodSymbol CurrentPropertyGetter;
             public MethodSymbol MoveNextMethod;
 
-            public bool NeedsDisposeMethod;
+            public bool NeedsDisposal;
             public AwaitableInfo DisposeAwaitableInfo;
+            public MethodSymbol DisposeMethod;
 
             public Conversion CollectionConversion;
             public Conversion CurrentConversion;
@@ -103,8 +110,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GetEnumeratorMethod,
                     CurrentPropertyGetter,
                     MoveNextMethod,
-                    NeedsDisposeMethod,
+                    NeedsDisposal,
                     DisposeAwaitableInfo,
+                    DisposeMethod,
                     CollectionConversion,
                     CurrentConversion,
                     EnumeratorConversion,

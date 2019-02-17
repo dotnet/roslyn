@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.CommandLine;
+using System.CommandLine.Rendering;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions.Internal;
 
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Tools.Logging
 {
     internal class SimpleConsoleLogger : ILogger
     {
-        private readonly IConsole _console;
+        private readonly ITerminal _terminal;
         private readonly LogLevel _logLevel;
 
         private static readonly ImmutableDictionary<LogLevel, ConsoleColor> _logLevelColorMap = new Dictionary<LogLevel, ConsoleColor>
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Tools.Logging
 
         public SimpleConsoleLogger(IConsole console, LogLevel logLevel)
         {
-            _console = console;
+            _terminal = console.GetTerminal();
             _logLevel = logLevel;
         }
 
@@ -39,12 +40,12 @@ namespace Microsoft.CodeAnalysis.Tools.Logging
             }
 
             var messageColor = _logLevelColorMap[logLevel];
-            _console.ForegroundColor = messageColor;
+            _terminal.ForegroundColor = messageColor;
 
             var message = formatter(state, exception);
-            _console.Out.WriteLine($"  {message}");
+            _terminal.Out.WriteLine($"  {message}");
 
-            _console.ResetColor();
+            _terminal.ResetColor();
         }
 
         public bool IsEnabled(LogLevel logLevel)

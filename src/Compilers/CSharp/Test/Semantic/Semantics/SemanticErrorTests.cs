@@ -3779,7 +3779,7 @@ class Test
         {
             // See comments in NameCollisionTests for thoughts on this error.
 
-            CreateCompilation(
+            string text =
 @"class C
 {
     static void M(object x)
@@ -3811,13 +3811,33 @@ class Test
     {
         System.Func<int, int> f = q=>q; // 0136
     }
-}
-")
-                .VerifyDiagnostics(
-                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(5, 16),
-                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y").WithArguments("y").WithLocation(9, 17),
-                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(24, 17),
-                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "q").WithArguments("q").WithLocation(30, 35));
+}";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (5,16): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         string x = null; // CS0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(5, 16),
+                // (9,17): error CS0136: A local or parameter named 'y' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             int y = 0; // CS0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y").WithArguments("y").WithLocation(9, 17),
+                // (24,17): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             int value = 0; // CS0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(24, 17),
+                // (30,35): error CS0136: A local or parameter named 'q' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         System.Func<int, int> f = q=>q; // 0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "q").WithArguments("q").WithLocation(30, 35));
+
+            comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (5,16): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         string x = null; // CS0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(5, 16),
+                // (9,17): error CS0136: A local or parameter named 'y' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             int y = 0; // CS0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y").WithArguments("y").WithLocation(9, 17),
+                // (24,17): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             int value = 0; // CS0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(24, 17));
         }
 
         [Fact]
@@ -7801,106 +7821,28 @@ unsafe class C
     I* i;
     C* c;
 }";
-            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (7,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
-                //     object* _object;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "object*").WithArguments("object"),
-                // (22,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
-                //     string* _string;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "string*").WithArguments("string"),
-                // (26,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int?')
-                //     int?* _nullable;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "int?*").WithArguments("int?"),
-                // (27,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
-                //     dynamic* _dynamic;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic*").WithArguments("dynamic"),
-                // (29,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('D')
-                //     D* d;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "D*").WithArguments("D"),
-                // (31,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('I')
-                //     I* i;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "I*").WithArguments("I"),
-                // (32,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
-                //     C* c;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C"),
-                // (7,13): warning CS0169: The field 'C._object' is never used
-                //     object* _object;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_object").WithArguments("C._object"),
-                // (8,11): warning CS0169: The field 'C._void' is never used
-                //     void* _void;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_void").WithArguments("C._void"),
-                // (9,11): warning CS0169: The field 'C._bool' is never used
-                //     bool* _bool;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_bool").WithArguments("C._bool"),
-                // (10,11): warning CS0169: The field 'C._char' is never used
-                //     char* _char;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_char").WithArguments("C._char"),
-                // (11,12): warning CS0169: The field 'C._sbyte' is never used
-                //     sbyte* _sbyte;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_sbyte").WithArguments("C._sbyte"),
-                // (12,11): warning CS0169: The field 'C._byte' is never used
-                //     byte* _byte;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_byte").WithArguments("C._byte"),
-                // (13,12): warning CS0169: The field 'C._short' is never used
-                //     short* _short;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_short").WithArguments("C._short"),
-                // (14,13): warning CS0169: The field 'C._ushort' is never used
-                //     ushort* _ushort;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_ushort").WithArguments("C._ushort"),
-                // (15,10): warning CS0169: The field 'C._int' is never used
-                //     int* _int;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_int").WithArguments("C._int"),
-                // (16,11): warning CS0169: The field 'C._uint' is never used
-                //     uint* _uint;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_uint").WithArguments("C._uint"),
-                // (17,11): warning CS0169: The field 'C._long' is never used
-                //     long* _long;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_long").WithArguments("C._long"),
-                // (18,12): warning CS0169: The field 'C._ulong' is never used
-                //     ulong* _ulong;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_ulong").WithArguments("C._ulong"),
-                // (19,14): warning CS0169: The field 'C._decimal' is never used
-                //     decimal* _decimal;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_decimal").WithArguments("C._decimal"),
-                // (20,12): warning CS0169: The field 'C._float' is never used
-                //     float* _float;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_float").WithArguments("C._float"),
-                // (21,13): warning CS0169: The field 'C._double' is never used
-                //     double* _double;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_double").WithArguments("C._double"),
-                // (22,13): warning CS0169: The field 'C._string' is never used
-                //     string* _string;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_string").WithArguments("C._string"),
-                // (23,20): warning CS0169: The field 'C._intptr' is never used
-                //     System.IntPtr* _intptr;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_intptr").WithArguments("C._intptr"),
-                // (24,21): warning CS0169: The field 'C._uintptr' is never used
-                //     System.UIntPtr* _uintptr;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_uintptr").WithArguments("C._uintptr"),
-                // (25,11): warning CS0169: The field 'C._intptr2' is never used
-                //     int** _intptr2;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_intptr2").WithArguments("C._intptr2"),
-                // (26,11): warning CS0169: The field 'C._nullable' is never used
-                //     int?* _nullable;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_nullable").WithArguments("C._nullable"),
-                // (27,14): warning CS0169: The field 'C._dynamic' is never used
-                //     dynamic* _dynamic;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_dynamic").WithArguments("C._dynamic"),
-                // (28,8): warning CS0169: The field 'C.e' is never used
-                //     E* e;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "e").WithArguments("C.e"),
-                // (29,8): warning CS0169: The field 'C.d' is never used
-                //     D* d;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "d").WithArguments("C.d"),
-                // (30,8): warning CS0169: The field 'C.s' is never used
-                //     S* s;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "s").WithArguments("C.s"),
-                // (31,8): warning CS0169: The field 'C.i' is never used
-                //     I* i;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("C.i"),
-                // (32,8): warning CS0169: The field 'C.c' is never used
-                //     C* c;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C.c"));
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll)
+                .GetDiagnostics()
+                .Where(d => d.Severity == DiagnosticSeverity.Error)
+                .Verify(
+                    // (7,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
+                    //     object* _object;
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "object*").WithArguments("object"),
+                    // (22,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
+                    //     string* _string;
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "string*").WithArguments("string"),
+                    // (27,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
+                    //     dynamic* _dynamic;
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic*").WithArguments("dynamic"),
+                    // (29,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('D')
+                    //     D* d;
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "D*").WithArguments("D"),
+                    // (31,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('I')
+                    //     I* i;
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "I*").WithArguments("I"),
+                    // (32,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                    //     C* c;
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C"));
         }
 
         [Fact]

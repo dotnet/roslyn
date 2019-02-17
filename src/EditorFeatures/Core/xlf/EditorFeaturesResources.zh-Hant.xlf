@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Code_cleanup_is_not_configured">
         <source>Code cleanup is not configured</source>
-        <target state="translated">未設定程式碼清除</target>
+        <target state="translated">Code cleanup is not configured</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_it_now">
@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
-        <target state="translated">格式化文件執行了額外的清除</target>
+        <target state="translated">執行額外清除的格式化文件</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Paste_Tracking">
         <source>Paste Tracking</source>
-        <target state="new">Paste Tracking</target>
+        <target state="translated">貼上追蹤</target>
         <note />
       </trans-unit>
       <trans-unit id="Preprocessor_Text">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
-        <target state="new">String - Escape Character</target>
+        <target state="translated">String - Escape Character</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_Static">
