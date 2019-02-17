@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
     /// </summary>
     internal sealed class SourceReferenceItem
     {
-        // We can have only a handful of different values for ValueUsageInfo flags enum, so the maximum size of this dictionary is capped.
+        // We can have only a handful of different values for enums within SymbolUsageInfo, so the maximum size of this dictionary is capped.
         // So, we store this as a static dictionary which will be held in memory for the lifetime of the process.
-        private static readonly ConcurrentDictionary<SymbolUsageInfo, ReferenceInfoMap> s_valueUsageInfoToReferenceInfoMap
+        private static readonly ConcurrentDictionary<SymbolUsageInfo, ReferenceInfoMap> s_symbolUsageInfoToReferenceInfoMap
             = new ConcurrentDictionary<SymbolUsageInfo, ReferenceInfoMap>();
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         }
 
         private static ReferenceInfoMap GetOrCreateReferenceInfo(SymbolUsageInfo symbolUsageInfo)
-            => s_valueUsageInfoToReferenceInfoMap.GetOrAdd(symbolUsageInfo, v => CreateReferenceInfo(v));
+            => s_symbolUsageInfoToReferenceInfoMap.GetOrAdd(symbolUsageInfo, v => CreateReferenceInfo(v));
 
         private static ReferenceInfoMap CreateReferenceInfo(SymbolUsageInfo symbolUsageInfo)
         {

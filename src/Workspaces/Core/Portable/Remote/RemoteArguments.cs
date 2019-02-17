@@ -93,43 +93,43 @@ namespace Microsoft.CodeAnalysis.Remote
 
     internal class SerializableSymbolUsageInfo : IEquatable<SerializableSymbolUsageInfo>
     {
-        public bool UsageInfoIsValue;
-        public string UsageInfoString;
+        public bool IsValueUsageInfo;
+        public int UsageInfoUnderlyingValue;
 
         public static SerializableSymbolUsageInfo Dehydrate(SymbolUsageInfo symbolUsageInfo)
         {
-            bool usageInfoIsValue;
-            string usageInfoString;
+            bool isValueUsageInfo;
+            int usageInfoUnderlyingValue;
             if (symbolUsageInfo.ValueUsageInfoOpt.HasValue)
             {
-                usageInfoIsValue = true;
-                usageInfoString = symbolUsageInfo.ValueUsageInfoOpt.Value.ToString();
+                isValueUsageInfo = true;
+                usageInfoUnderlyingValue = (int)symbolUsageInfo.ValueUsageInfoOpt.Value;
             }
             else
             {
-                usageInfoIsValue = false;
-                usageInfoString = symbolUsageInfo.TypeOrNamespaceUsageInfoOpt.Value.ToString();
+                isValueUsageInfo = false;
+                usageInfoUnderlyingValue = (int)symbolUsageInfo.TypeOrNamespaceUsageInfoOpt.Value;
             }
 
             return new SerializableSymbolUsageInfo
             {
-                UsageInfoIsValue = usageInfoIsValue,
-                UsageInfoString = usageInfoString
+                IsValueUsageInfo = isValueUsageInfo,
+                UsageInfoUnderlyingValue = usageInfoUnderlyingValue
             };
         }
 
         public SymbolUsageInfo Rehydrate()
         {
-            return UsageInfoIsValue
-                ? SymbolUsageInfo.Create((ValueUsageInfo)Enum.Parse(typeof(ValueUsageInfo), UsageInfoString))
-                : SymbolUsageInfo.Create((TypeOrNamespaceUsageInfo)Enum.Parse(typeof(TypeOrNamespaceUsageInfo), UsageInfoString));
+            return IsValueUsageInfo
+                ? SymbolUsageInfo.Create((ValueUsageInfo)UsageInfoUnderlyingValue)
+                : SymbolUsageInfo.Create((TypeOrNamespaceUsageInfo)UsageInfoUnderlyingValue);
         }
 
         public bool Equals(SerializableSymbolUsageInfo other)
         {
             return other != null &&
-                UsageInfoIsValue == other.UsageInfoIsValue &&
-                UsageInfoString == other.UsageInfoString;
+                IsValueUsageInfo == other.IsValueUsageInfo &&
+                UsageInfoUnderlyingValue == other.UsageInfoUnderlyingValue;
         }
 
         public override bool Equals(object obj)
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public override int GetHashCode()
         {
-            return Hash.Combine(UsageInfoIsValue.GetHashCode(), UsageInfoString.GetHashCode());
+            return Hash.Combine(IsValueUsageInfo.GetHashCode(), UsageInfoUnderlyingValue.GetHashCode());
         }
     }
 

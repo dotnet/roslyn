@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// For namespaces and types, this corresponds to values from <see cref="TypeOrNamespaceUsageInfo"/>.
     /// For methods, fields, properties, events, locals and parameters, this corresponds to values from <see cref="ValueUsageInfo"/>.
     /// </summary>
-    internal readonly struct SymbolUsageInfo
+    internal readonly struct SymbolUsageInfo : IEquatable<SymbolUsageInfo>
     {
         public static readonly SymbolUsageInfo None = Create(ValueUsageInfo.None);
         public static readonly ImmutableArray<string> LocalizableStringsForAllAllowedValues = CreateLocalizableStringsForAllAllowedValues();
@@ -61,5 +62,23 @@ namespace Microsoft.CodeAnalysis
 
         public ImmutableArray<string> ToLocalizableValues()
             => ValueUsageInfoOpt.HasValue ? ValueUsageInfoOpt.Value.ToLocalizableValues() : TypeOrNamespaceUsageInfoOpt.Value.ToLocalizableValues();
+
+        public override bool Equals(object obj)
+            => obj is SymbolUsageInfo && Equals((SymbolUsageInfo)obj);
+
+        public bool Equals(SymbolUsageInfo other)
+        {
+            if (ValueUsageInfoOpt.HasValue)
+            {
+                return other.ValueUsageInfoOpt.HasValue &&
+                    ValueUsageInfoOpt.Value == other.ValueUsageInfoOpt.Value;
+            }
+
+            return other.TypeOrNamespaceUsageInfoOpt.HasValue &&
+                TypeOrNamespaceUsageInfoOpt.Value == other.TypeOrNamespaceUsageInfoOpt.Value;
+        }
+
+        public override int GetHashCode()
+            => Hash.Combine(ValueUsageInfoOpt?.GetHashCode() ?? 0, TypeOrNamespaceUsageInfoOpt?.GetHashCode() ?? 0);
     }
 }
