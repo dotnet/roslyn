@@ -12,5 +12,19 @@ namespace Microsoft.CodeAnalysis.CSharp.AddFileBanner
     {
         protected override bool IsCommentStartCharacter(char ch)
             => ch == '/';
+
+        protected override SyntaxTrivia CreateTrivia(SyntaxTrivia trivia, string text)
+        {
+            switch (trivia.Kind())
+            {
+                case SyntaxKind.SingleLineCommentTrivia:
+                case SyntaxKind.MultiLineCommentTrivia:
+                case SyntaxKind.SingleLineDocumentationCommentTrivia:
+                case SyntaxKind.MultiLineDocumentationCommentTrivia:
+                    return SyntaxFactory.Comment(text);
+            }
+
+            return trivia;
+        }
     }
 }

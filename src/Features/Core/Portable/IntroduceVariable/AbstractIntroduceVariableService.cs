@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -284,7 +285,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             var result = new HashSet<TExpressionSyntax>();
             var matches = from nodeInCurrent in withinNodeInCurrent.DescendantNodesAndSelf().OfType<TExpressionSyntax>()
-                          where NodeMatchesExpression(originalSemanticModel, currentSemanticModel, syntaxFacts, expressionInOriginal, nodeInCurrent, allOccurrences, cancellationToken)
+                          where NodeMatchesExpression(originalSemanticModel, currentSemanticModel, expressionInOriginal, nodeInCurrent, allOccurrences, cancellationToken)
                           select nodeInCurrent;
             result.AddRange(matches.OfType<TExpressionSyntax>());
 
@@ -294,7 +295,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         private bool NodeMatchesExpression(
             SemanticModel originalSemanticModel,
             SemanticModel currentSemanticModel,
-            ISyntaxFactsService syntaxFacts,
             TExpressionSyntax expressionInOriginal,
             TExpressionSyntax nodeInCurrent,
             bool allOccurrences,
@@ -305,17 +305,45 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             {
                 return true;
             }
-            else
+
+            if (allOccurrences && this.CanReplace(nodeInCurrent))
             {
-                if (allOccurrences &&
-                    this.CanReplace(nodeInCurrent))
+                // Original expression and current node being semantically equivalent isn't enough when the original expression 
+                // is a member access via instance reference (either implicit or explicit), the check only ensures that the expression
+                // and current node are both backed by the same member symbol. So in this case, in addition to SemanticEquivalence check, 
+                // we also check if expression and current node are both instance member access.
+                //
+                // For example, even though the first `c` binds to a field and we are introducing a local for it,
+                // we don't want other refrences to that field to be replaced as well (i.e. the second `c` in the expression).
+                //
+                //  class C
+                //  {
+                //      C c;
+                //      void Test()
+                //      {
+                //          var x = [|c|].c;
+                //      }
+                //  }
+
+                if (SemanticEquivalence.AreEquivalent(
+                    originalSemanticModel, currentSemanticModel, expressionInOriginal, nodeInCurrent))
                 {
-                    return SemanticEquivalence.AreEquivalent(
-                        originalSemanticModel, currentSemanticModel, expressionInOriginal, nodeInCurrent);
+                    var originalOperation = originalSemanticModel.GetOperation(expressionInOriginal, cancellationToken);
+                    if (IsInstanceMemberReference(originalOperation))
+                    {
+                        var currentOperation = currentSemanticModel.GetOperation(nodeInCurrent, cancellationToken);
+                        return IsInstanceMemberReference(currentOperation);
+                    }
+
+                    return true;
                 }
             }
 
             return false;
+
+            bool IsInstanceMemberReference(IOperation operation)
+                => operation is IMemberReferenceOperation memberReferenceOperation &&
+                    memberReferenceOperation.Instance?.Kind == OperationKind.InstanceReference;
         }
 
         protected TNode Rewrite<TNode>(

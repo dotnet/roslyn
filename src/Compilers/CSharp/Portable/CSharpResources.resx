@@ -216,6 +216,9 @@
   <data name="IDS_FeatureAsyncStreams" xml:space="preserve">
     <value>async streams</value>
   </data>
+  <data name="IDS_FeatureUnmanagedConstructedTypes" xml:space="preserve">
+    <value>unmanaged constructed types</value>
+  </data>
   <data name="IDS_FeatureDefaultLiteral" xml:space="preserve">
     <value>default literal</value>
   </data>
@@ -2794,6 +2797,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_BadYieldInFinally" xml:space="preserve">
     <value>Cannot yield in the body of a finally clause</value>
   </data>
+  <data name="ERR_IteratorMustBeAsync" xml:space="preserve">
+    <value>Method '{0}' with an iterator block must be 'async' to return '{1}'</value>
+  </data>
   <data name="ERR_BadYieldInTryOfCatch" xml:space="preserve">
     <value>Cannot yield a value in the body of a try block with a catch clause</value>
   </data>
@@ -2812,6 +2818,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_BadDelegateLeave" xml:space="preserve">
     <value>Control cannot leave the body of an anonymous method or lambda expression</value>
   </data>
+  <data name="ERR_IllegalSuppression" xml:space="preserve">
+    <value>The suppression operator is not allowed in this context</value>
+  </data>
   <data name="WRN_IllegalPragma" xml:space="preserve">
     <value>Unrecognized #pragma directive</value>
   </data>
@@ -2819,10 +2828,16 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Unrecognized #pragma directive</value>
   </data>
   <data name="WRN_IllegalPPWarning" xml:space="preserve">
-    <value>Expected disable or restore</value>
+    <value>Expected disable, restore, enable or safeonly</value>
   </data>
   <data name="WRN_IllegalPPWarning_Title" xml:space="preserve">
-    <value>Expected disable or restore after #pragma warning</value>
+    <value>Expected disable, restore, enable or safeonly after #pragma warning</value>
+  </data>
+  <data name="WRN_IllegalPPWarningSafeOnly" xml:space="preserve">
+    <value>Expected nullable</value>
+  </data>
+  <data name="WRN_IllegalPPWarningSafeOnly_Title" xml:space="preserve">
+    <value>Expected nullable after #pragma warning safeonly</value>
   </data>
   <data name="WRN_BadRestoreNumber" xml:space="preserve">
     <value>Cannot restore warning 'CS{0}' because it was disabled globally</value>
@@ -2972,16 +2987,16 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.</value>
   </data>
   <data name="ERR_NoConvToIDisp" xml:space="preserve">
-    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</value>
+    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.</value>
   </data>
   <data name="ERR_NoConvToIDispWrongAsync" xml:space="preserve">
-    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</value>
+    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</value>
   </data>
   <data name="ERR_NoConvToIAsyncDisp" xml:space="preserve">
-    <value>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'</value>
+    <value>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</value>
   </data>
   <data name="ERR_NoConvToIAsyncDispWrongAsync" xml:space="preserve">
-    <value>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'. Did you mean 'using' rather than 'await using'?</value>
+    <value>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</value>
   </data>
   <data name="ERR_BadParamRef" xml:space="preserve">
     <value>Parameter {0} must be declared with the '{1}' keyword</value>
@@ -4636,7 +4651,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 -baseaddress:&lt;address&gt;        Base address for the library to be built
 -checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
                               checksum stored in PDB. Supported values are:
-                              SHA1 (default) or SHA256.
+                              SHA1 or SHA256 (default).
 -codepage:&lt;n&gt;                 Specify the codepage to use when opening source
                               files
 -utf8output                   Output compiler messages in UTF-8 encoding
@@ -4975,7 +4990,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>This combination of arguments to '{0}' is disallowed because it may expose variables referenced by parameter '{1}' outside of their declaration scope</value>
   </data>
   <data name="ERR_MismatchedRefEscapeInTernary" xml:space="preserve">
-    <value>Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes</value>
+    <value>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</value>
   </data>
   <data name="ERR_EscapeStackAlloc" xml:space="preserve">
     <value>A result of a stackalloc expression of type '{0}' cannot be used in this context because it may be exposed outside of the containing method</value>
@@ -5027,6 +5042,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PatternNullableType" xml:space="preserve">
     <value>It is not legal to use nullable type '{0}' in a pattern; use the underlying type '{1}' instead.</value>
+  </data>
+  <data name="ERR_IsNullableType" xml:space="preserve">
+    <value>It is not legal to use nullable reference type '{0}?' in an is-type expression; use the underlying type '{0}' instead.</value>
+  </data>
+  <data name="ERR_AsNullableType" xml:space="preserve">
+    <value>It is not legal to use nullable reference type '{0}?' in an as expression; use the underlying type '{0}' instead.</value>
   </data>
   <data name="ERR_BadPatternExpression" xml:space="preserve">
     <value>Invalid operand for pattern match; value required, but found '{0}'.</value>
@@ -5265,6 +5286,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureNullableReferenceTypes" xml:space="preserve">
     <value>nullable reference types</value>
   </data>
+  <data name="IDS_FeaturePragmaWarningEnableOrSafeOnly" xml:space="preserve">
+    <value>warning action enable or safeonly</value>
+  </data>
   <data name="WRN_ConvertingNullableToNonNullable" xml:space="preserve">
     <value>Converting null literal or possible null value to non-nullable type.</value>
   </data>
@@ -5294,6 +5318,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_NullReferenceArgument_Title" xml:space="preserve">
     <value>Possible null reference argument.</value>
+  </data>
+  <data name="WRN_PossibleNull" xml:space="preserve">
+    <value>Possible null value.</value>
+  </data>
+  <data name="WRN_PossibleNull_Title" xml:space="preserve">
+    <value>Possible null value.</value>
   </data>
   <data name="HDN_NullCheckIsProbablyAlwaysTrue" xml:space="preserve">
     <value>Result of the comparison is possibly always true.</value>
@@ -5409,12 +5439,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullAsNonNullable_Title" xml:space="preserve">
     <value>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</value>
   </data>
-  <data name="WRN_NoBestNullabilityConditionalExpression" xml:space="preserve">
-    <value>No best nullability for operands of conditional expression '{0}' and '{1}'.</value>
-  </data>
-  <data name="WRN_NoBestNullabilityConditionalExpression_Title" xml:space="preserve">
-    <value>No best nullability for operands of conditional expression.</value>
-  </data>
   <data name="ERR_AnnotationDisallowedInObjectCreation" xml:space="preserve">
     <value>Cannot use a nullable reference type in object creation.</value>
   </data>
@@ -5444,18 +5468,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_NullableOptionNotAvailable" xml:space="preserve">
     <value>Invalid '{0}' value: '{1}' for C# {2}. Please use language version {3} or greater.</value>
-  </data>
-  <data name="WRN_CantInferNullabilityOfMethodTypeArgs" xml:space="preserve">
-    <value>The nullability of type arguments for method '{0}' cannot be inferred from the usage. Try specifying the type arguments explicitly.</value>
-  </data>
-  <data name="WRN_CantInferNullabilityOfMethodTypeArgs_Title" xml:space="preserve">
-    <value>The nullability of type arguments for method cannot be inferred from the usage. Try specifying the type arguments explicitly.</value>
-  </data>
-  <data name="WRN_NoBestNullabilityArrayElements" xml:space="preserve">
-    <value>No best nullability found for implicitly-typed array.</value>
-  </data>
-  <data name="WRN_NoBestNullabilityArrayElements_Title" xml:space="preserve">
-    <value>No best nullability found for implicitly-typed array.</value>
   </data>
   <data name="ERR_NonTaskMainCantBeAsync" xml:space="preserve">
     <value>A void or int returning entry point cannot be async</value>
@@ -5679,6 +5691,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureStaticLocalFunctions" xml:space="preserve">
     <value>static local functions</value>
   </data>
+  <data name="IDS_FeatureNameShadowingInNestedFunctions" xml:space="preserve">
+    <value>name shadowing in nested functions</value>
+  </data>
   <data name="ERR_BadDynamicAwaitForEach" xml:space="preserve">
     <value>Cannot use a collection of dynamic type in an asynchronous foreach</value>
   </data>
@@ -5765,5 +5780,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureUsingDeclarations" xml:space="preserve">
     <value>using declarations</value>
+  </data>
+  <data name="ERR_FeatureInPreview" xml:space="preserve">
+    <value>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</value>
   </data>
 </root>

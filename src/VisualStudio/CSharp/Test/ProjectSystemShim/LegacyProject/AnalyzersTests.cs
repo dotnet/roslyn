@@ -65,6 +65,23 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             }
         }
 
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
+        public void RuleSet_CanBeFetchedFromWorkspace()
+        {
+            using (var ruleSetFile = new DisposableFile())
+            using (var environment = new TestEnvironment())
+            {
+                var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
+
+                ((IAnalyzerHost)project).SetRuleSetFile(ruleSetFile.Path);
+
+                var projectId = environment.Workspace.CurrentSolution.ProjectIds.Single();
+                Assert.Equal(ruleSetFile.Path, environment.Workspace.TryGetRuleSetPathForProject(projectId));
+            }
+        }
+
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void RuleSet_ProjectSettingOverridesGeneralOption()

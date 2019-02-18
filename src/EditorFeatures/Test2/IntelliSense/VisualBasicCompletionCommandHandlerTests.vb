@@ -1087,7 +1087,7 @@ End Class
         End Function
 
         <WorkItem(544471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544471")>
-                            <MemberData(NameOf(AllCompletionImplementations))><WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestDontCrashOnEmptyParameterList(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                               <Document>
@@ -1100,7 +1100,7 @@ End Class
         End Function
 
         <WorkItem(544628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544628")>
-                                    <MemberData(NameOf(AllCompletionImplementations))><WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function OnlyMatchOnLowercaseIfPrefixWordMatch(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                               <Document>
@@ -1116,7 +1116,7 @@ End Module
         End Function
 
         <WorkItem(544989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544989")>
-                                            <MemberData(NameOf(AllCompletionImplementations))><WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function MyBaseFinalize(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                               <Document>
@@ -1135,7 +1135,7 @@ End Class
         End Function
 
         <WorkItem(551117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551117")>
-                                                    <MemberData(NameOf(AllCompletionImplementations))><WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNamedParameterSortOrder(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                               <Document>
@@ -1157,7 +1157,7 @@ End Module
         End Function
 
         <WorkItem(546810, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546810")>
-                                                            <MemberData(NameOf(AllCompletionImplementations))><WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestLineContinuationCharacter(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                               <Document>
@@ -1176,7 +1176,7 @@ End Module
         End Function
 
         <WorkItem(547287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547287")>
-                                                                    <MemberData(NameOf(AllCompletionImplementations))><WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNumberDismissesCompletion(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                               <Document>
@@ -1209,7 +1209,7 @@ End Module
             End Using
         End Function
 
-        <MemberData(NameOf(AllCompletionImplementations))><WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestProjections(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                               <Document>
@@ -1302,7 +1302,7 @@ End Module          </text>.NormalizedValue, state.GetDocumentText(), StringComp
         End Function
 
         <WorkItem(622957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622957")>
-                                                                                <MemberData(NameOf(AllCompletionImplementations))><WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestBangFiltersInDocComment(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                   <Document><![CDATA[
@@ -1315,7 +1315,7 @@ End Class
                 Await state.AssertCompletionSession()
                 state.SendTypeChars("!")
                 Await state.AssertCompletionSession()
-                                             Await state.AssertSelectedCompletionItem("!--")
+                Await state.AssertSelectedCompletionItem("!--")
             End Using
         End Function
 

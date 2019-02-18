@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             expectedOperationTree = expectedOperationTree.Replace("\r\n", "\n").Replace("\n", Environment.NewLine);
             expectedOperationTree = expectedOperationTree.Replace("\"", "\"\"");
 
-            AssertEx.AreEqual(expectedOperationTree, actual);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedOperationTree, actual);
         }
 
         #region Logging helpers
@@ -1762,7 +1762,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogNewLine();
         }
 
-        public override void VisitRecursivePattern(IRecursivePatternOperation operation)
+        internal override void VisitRecursivePattern(IRecursivePatternOperation operation)
         {
             LogString(nameof(IRecursivePatternOperation));
             LogPatternProperties(operation);
@@ -1773,11 +1773,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogNewLine();
 
             VisitArray(operation.DeconstructionSubpatterns, $"{nameof(operation.DeconstructionSubpatterns)} ", true, true);
-            VisitArrayCommon(operation.PropertySubpatterns, $"{nameof(operation.PropertySubpatterns)} ", true, true, subpat =>
-            {
-                LogSymbol(subpat.Item1, "MatchedSymbol");
-                Visit(subpat.Item2, ", Pattern");
-            });
+            VisitArray(operation.PropertySubpatterns, $"{nameof(operation.PropertySubpatterns)} ", true, true);
+        }
+
+        internal override void VisitPropertySubpattern(IPropertySubpatternOperation operation)
+        {
+            LogString(nameof(IPropertySubpatternOperation));
+            LogCommonProperties(operation);
+            LogNewLine();
+
+            Visit(operation.Member, $"{nameof(operation.Member)}");
+            Visit(operation.Pattern, $"{nameof(operation.Pattern)}");
         }
 
         public override void VisitIsPattern(IIsPatternOperation operation)
@@ -1878,7 +1884,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
         }
 
-        public override void VisitFromEndIndexOperation(IFromEndIndexOperation operation)
+        internal override void VisitFromEndIndexOperation(IFromEndIndexOperation operation)
         {
             LogString(nameof(IFromEndIndexOperation));
 
@@ -1905,15 +1911,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.LeftOperand, nameof(operation.LeftOperand));
             Visit(operation.RightOperand, nameof(operation.RightOperand));
-        }
-
-        public override void VisitSuppressNullableWarningOperation(ISuppressNullableWarningOperation operation)
-        {
-            LogString(nameof(ISuppressNullableWarningOperation));
-
-            LogCommonPropertiesAndNewLine(operation);
-
-            Visit(operation.Expression, nameof(operation.Expression));
         }
 
         public override void VisitReDim(IReDimOperation operation)

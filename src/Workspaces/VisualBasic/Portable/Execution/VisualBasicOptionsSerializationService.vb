@@ -72,6 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             Dim concurrentBuild As Boolean
             Dim deterministic As Boolean
             Dim publicSign As Boolean
+            Dim metadataImportOptions As MetadataImportOptions = Nothing
             Dim xmlReferenceResolver As XmlReferenceResolver = Nothing
             Dim sourceReferenceResolver As SourceReferenceResolver = Nothing
             Dim metadataReferenceResolver As MetadataReferenceResolver = Nothing
@@ -81,8 +82,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             ReadCompilationOptionsFrom(reader, outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
                 optimizationLevel, checkOverflow, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
                 platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions, concurrentBuild, deterministic,
-                publicSign, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer, strongNameProvider,
-                cancellationToken)
+                publicSign, metadataImportOptions, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
+                assemblyIdentityComparer, strongNameProvider, cancellationToken)
 
             Dim globalImports = GlobalImport.Parse(reader.ReadArray(Of String)())
             Dim rootNamespace = reader.ReadString()
@@ -102,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
                                                      cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
                                                      platform, generalDiagnosticOption, specificDiagnosticOptions, concurrentBuild, deterministic,
                                                      xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer, strongNameProvider,
-                                                     publicSign, reportSuppressedDiagnostics)
+                                                     publicSign, reportSuppressedDiagnostics, metadataImportOptions)
         End Function
 
         Public Overrides Function ReadParseOptionsFrom(reader As ObjectReader, cancellationToken As CancellationToken) As ParseOptions

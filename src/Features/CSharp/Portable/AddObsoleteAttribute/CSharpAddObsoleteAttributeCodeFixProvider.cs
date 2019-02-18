@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddObsoleteAttribute
                 "CS1064"  // The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer element is obsolete"
             );
 
-        public CSharpAddObsoleteAttributeCodeFixProvider() 
+        public CSharpAddObsoleteAttributeCodeFixProvider()
             : base(CSharpSyntaxFactsService.Instance, CSharpFeaturesResources.Add_Obsolete)
         {
         }

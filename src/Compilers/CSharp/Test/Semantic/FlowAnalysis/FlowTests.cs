@@ -1557,6 +1557,29 @@ class C
                 );
         }
 
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void WhidbeyBug467493_WithSuppression()
+        {
+            var source = prefix + @"
+    // Whidbey bug #467493
+    public static void M4() {
+        int x;
+        throw new Exception();
+        ((DI)(delegate { if (x == 1) return 1; Console.WriteLine(""Bug""); } !))();
+    }
+" + suffix;
+
+            // Covers GenerateExplicitConversionErrors
+            CreateCompilation(source).VerifyDiagnostics(
+                // (78,15): error CS1643: Not all code paths return a value in anonymous method of type 'DI'
+                //         ((DI)(delegate { if (x == 1) return 1; Console.WriteLine("Bug"); }))();
+                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate").WithArguments("anonymous method", "DI").WithLocation(78, 15),
+                // (78,9): warning CS0162: Unreachable code detected
+                //         ((DI)(delegate { if (x == 1) return 1; Console.WriteLine("Bug"); }))();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "(").WithLocation(78, 9)
+                );
+        }
+
         [Fact]
         public void AccessingFixedFieldUsesTheReceiver()
         {

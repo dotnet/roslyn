@@ -17,12 +17,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
     {
         private readonly PickMembersDialogViewModel _viewModel;
 
-        /// <summary>
-        /// For test purposes only. The integration tests need to know when the dialog is up and
-        /// ready for automation.
-        /// </summary>
-        internal static event Action TEST_DialogLoaded;
-
         // Expose localized strings for binding
         public string PickMembersDialogTitle => ServicesVSResources.Pick_members;
         public string PickMembersTitle { get; }
@@ -40,17 +34,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
 
             InitializeComponent();
             DataContext = viewModel;
-
-            IsVisibleChanged += PickMembers_IsVisibleChanged;
-        }
-
-        private void PickMembers_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if ((bool)e.NewValue)
-            {
-                IsVisibleChanged -= PickMembers_IsVisibleChanged;
-                TEST_DialogLoaded?.Invoke();
-            }
         }
 
         private void SetCommandBindings()
