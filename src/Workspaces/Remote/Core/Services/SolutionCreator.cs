@@ -1,20 +1,29 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#if DEBUG
+#if false // https://github.com/dotnet/roslyn/issues/33476
+#define VALIDATE_CHECKSUM
+#endif
+#endif
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote.DebugUtil;
-using Microsoft.CodeAnalysis.Remote.Shared;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+
+#if VALIDATE_CHECKSUM
 using System.Diagnostics;
+using System.Text;
+using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Remote.DebugUtil;
+using Microsoft.CodeAnalysis.Remote.Shared;
+#endif
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -628,7 +637,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task ValidateChecksumAsync(Checksum givenSolutionChecksum, Solution solution)
         {
-#if DEBUG
+#if VALIDATE_CHECKSUM
             var currentSolutionChecksum = await solution.State.GetChecksumAsync(_cancellationToken).ConfigureAwait(false);
 
             if (givenSolutionChecksum == currentSolutionChecksum)
@@ -660,6 +669,7 @@ namespace Microsoft.CodeAnalysis.Remote
 #endif
         }
 
+#if VALIDATE_CHECKSUM
         private async Task RemoveDuplicateChecksumsAsync(Checksum givenSolutionChecksum, Dictionary<Checksum, object> map)
         {
             var solutionChecksums = await _assetService.GetAssetAsync<SolutionStateChecksums>(givenSolutionChecksum, _cancellationToken).ConfigureAwait(false);
@@ -683,5 +693,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
         }
+#endif
     }
 }
