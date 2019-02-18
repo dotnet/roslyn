@@ -26,27 +26,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     /// </summary>
     internal static class IntegrationHelper
     {
-        public static bool BlockInput()
-        {
-            var success = NativeMethods.BlockInput(true);
-
-            if (!success)
-            {
-                var hresult = Marshal.GetHRForLastWin32Error();
-
-                if (hresult == VSConstants.E_ACCESSDENIED)
-                {
-                    Debug.WriteLine("Input cannot be blocked because the system requires Administrative privileges.");
-                }
-                else
-                {
-                    Debug.WriteLine("Input cannot be blocked because another thread has blocked the input.");
-                }
-            }
-
-            return success;
-        }
-
         public static void CreateDirectory(string path, bool deleteExisting = false)
         {
             if (deleteExisting)
@@ -430,17 +409,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             while (dte == null);
 
             return (DTE)dte;
-        }
-
-        public static void UnblockInput()
-        {
-            var success = NativeMethods.BlockInput(false);
-
-            if (!success)
-            {
-                var hresult = Marshal.GetHRForLastWin32Error();
-                throw new ExternalException("Input cannot be unblocked because it was blocked by another thread.", hresult);
-            }
         }
 
         public static async Task WaitForResultAsync<T>(Func<T> action, T expectedResult)
