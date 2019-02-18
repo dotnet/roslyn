@@ -135,13 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         private static int TryGetSelectedIndexFromDeclaration(int position, SyntaxNode matchingNode)
         {
             var parameters = matchingNode.ChildNodes().OfType<BaseParameterListSyntax>().SingleOrDefault();
-            var selectedIndex = 0;
-            if (parameters != null)
-            {
-                selectedIndex = GetParameterIndex(parameters.Parameters, position);
-            }
-
-            return selectedIndex;
+            return parameters == null ? 0 : GetParameterIndex(parameters.Parameters, position);
         }
 
         /// <summary>
