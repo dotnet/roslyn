@@ -317,12 +317,13 @@ public class P2 { }");
             var expectedItems = new[]
             {
                 "using System.IO;",
+                "Rename 'P2' to 'Stream'",
                 "System.IO.Stream",
                 "Generate class 'Stream' in new file",
                 "Generate class 'Stream'",
                 "Generate nested class 'Stream'",
                 "Generate new type...",
-                "Rename 'P2' to 'Stream'",
+                "Remove unused variable",
                 "Suppress CS0168",
                 "in Source"
             };

@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Pretty_listing_reformatting_of_code">
         <source>_Pretty listing (reformatting) of code</source>
-        <target state="translated">_Formatowanie (ponowne formatowanie) kodu</target>
+        <target state="translated">_Automatyczne formatowanie (ponowne formatowanie) kodu</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_outlining_mode_when_files_open">
@@ -269,7 +269,7 @@
       </trans-unit>
       <trans-unit id="VB_Coding_Conventions">
         <source>VB Coding Conventions</source>
-        <target state="new">VB Coding Conventions</target>
+        <target state="translated">Konwencje kodowania w języku VB</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">
@@ -299,7 +299,7 @@
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators:  And   AndAlso   Or   OrElse</source>
-        <target state="translated">W innych operatorach binarnych: And   AndAlso   Or   OrElse</target>
+        <target state="translated">W innych operatorach binarnych: And AndAlso Or OrElse</target>
         <note />
       </trans-unit>
     </body>

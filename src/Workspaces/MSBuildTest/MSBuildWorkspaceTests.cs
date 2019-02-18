@@ -22,6 +22,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
+using static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
@@ -1768,7 +1769,7 @@ class C1
         public async Task TestParseOptions_CSharp_LanguageVersion_Default()
         {
             CreateCSharpFiles();
-            await AssertCSParseOptionsAsync(CS.LanguageVersion.CSharp7, options => options.LanguageVersion);
+            await AssertCSParseOptionsAsync(CS.LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), options => options.LanguageVersion);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
@@ -3602,6 +3603,28 @@ class C { }";
 
                 Assert.Contains(project.AdditionalDocuments, doc => doc.Name == "COM1");
                 Assert.Contains(project.AdditionalDocuments, doc => doc.Name == "TEST::");
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [WorkItem(31390, "https://github.com/dotnet/roslyn/issues/31390")]
+        public async Task TestDuplicateProjectReference()
+        {
+            var files = GetDuplicateProjectReferenceSolutionFiles();
+            CreateFiles(files);
+
+            var fullPath = GetSolutionFileName(@"CSharpProjectReference.sln");
+
+            using (var workspace = CreateMSBuildWorkspace())
+            {
+                var solution = await workspace.OpenSolutionAsync(fullPath);
+                var project = solution.Projects.Single(p => p.FilePath.EndsWith("CSharpProject_ProjectReference.csproj"));
+
+                Assert.Single(project.ProjectReferences);
+
+                var compilation = await project.GetCompilationAsync();
+
+                Assert.Single(compilation.References.OfType<CompilationReference>());
             }
         }
 
