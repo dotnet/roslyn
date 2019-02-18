@@ -224,14 +224,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static void CheckFeatureAvailability(this MessageID feature, LanguageVersion availableVersion, DiagnosticBag diagnostics, Location errorLocation)
+        internal static bool CheckFeatureAvailability(this MessageID feature, DiagnosticBag diagnostics, Location errorLocation)
         {
-            LanguageVersion requiredVersion = feature.RequiredVersion();
-            if (requiredVersion > availableVersion)
+            var diag = GetFeatureAvailabilityDiagnosticInfoOpt(feature, (CSharpParseOptions)errorLocation.SourceTree.Options);
+            if (!(diag is null))
             {
-                diagnostics.Add(availableVersion.GetErrorCode(), errorLocation, feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
+                diagnostics.Add(diag, errorLocation);
+                return false;
             }
+            return true;
         }
+
+        internal static CSDiagnosticInfo GetFeatureAvailabilityDiagnosticInfoOpt(this MessageID feature, CSharpParseOptions options)
+            => options.IsFeatureEnabled(feature) ? null : GetDisabledFeatureDiagnosticInfo(feature, options.LanguageVersion);
+
+        internal static CSDiagnosticInfo GetFeatureAvailabilityDiagnosticInfoOpt(this MessageID feature, CSharpCompilation compilation)
+            => compilation.IsFeatureEnabled(feature) ? null : GetDisabledFeatureDiagnosticInfo(feature, compilation.LanguageVersion);
+
+        private static CSDiagnosticInfo GetDisabledFeatureDiagnosticInfo(MessageID feature, LanguageVersion availableVersion)
+        {
+            string requiredFeature = feature.RequiredFeature();
+            if (requiredFeature != null)
+            {
+                return new CSDiagnosticInfo(ErrorCode.ERR_FeatureIsExperimental, feature.Localize(), requiredFeature);
+            }
+
+            LanguageVersion requiredVersion = feature.RequiredVersion();
+            return requiredVersion == LanguageVersion.Preview.MapSpecifiedToEffectiveVersion()
+                ? new CSDiagnosticInfo(ErrorCode.ERR_FeatureInPreview, feature.Localize())
+                : new CSDiagnosticInfo(availableVersion.GetErrorCode(), feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
+        }
+
 
         internal static LanguageVersion RequiredVersion(this MessageID feature)
         {

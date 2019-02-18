@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MetadataReferences;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
@@ -64,7 +65,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private ImmutableDictionary<ProjectId, IVsHierarchy> _projectToHierarchyMap = ImmutableDictionary<ProjectId, IVsHierarchy>.Empty;
         private ImmutableDictionary<ProjectId, Guid> _projectToGuidMap = ImmutableDictionary<ProjectId, Guid>.Empty;
-        private Dictionary<string, List<VisualStudioProject>> _projectSystemNameToProjectsMap = new Dictionary<string, List<VisualStudioProject>>();
+
+        /// <summary>
+        /// A map to fetch the path to a rule set file for a project. This right now is only used to implement
+        /// <see cref="TryGetRuleSetPathForProject(ProjectId)"/> and any other use is extremely suspicious, since direct use of this is out of
+        /// sync with the Workspace if there is active batching happening.
+        /// </summary>
+        private readonly Dictionary<ProjectId, Func<string>> _projectToRuleSetFilePath = new Dictionary<ProjectId, Func<string>>();
+
+        private readonly Dictionary<string, List<VisualStudioProject>> _projectSystemNameToProjectsMap = new Dictionary<string, List<VisualStudioProject>>();
 
         /// <summary>
         /// A set of documents that were added by <see cref="VisualStudioProject.AddSourceTextContainer"/>, and aren't otherwise
@@ -78,6 +87,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal FileChangeWatcher FileChangeWatcher { get; }
         internal FileWatchedPortableExecutableReferenceFactory FileWatchedReferenceFactory { get; }
 
+        private readonly Lazy<IProjectCodeModelFactory> _projectCodeModelFactory;
+
         public VisualStudioWorkspaceImpl(ExportProvider exportProvider, IAsyncServiceProvider asyncServiceProvider)
             : base(VisualStudioMefHostServices.Create(exportProvider))
         {
@@ -85,6 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _textBufferCloneService = exportProvider.GetExportedValue<ITextBufferCloneService>();
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
+            _projectCodeModelFactory = exportProvider.GetExport<IProjectCodeModelFactory>();
 
             // We fetch this lazily because VisualStudioProjectFactory depends on VisualStudioWorkspaceImpl -- we have a circularity. Since this
             // exists right now as a compat shim, we'll just do this.
@@ -134,6 +146,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _projectToHierarchyMap = _projectToHierarchyMap.Add(project.Id, hierarchy);
                 _projectToGuidMap = _projectToGuidMap.Add(project.Id, guid);
                 _projectSystemNameToProjectsMap.MultiAdd(projectSystemName, project);
+            }
+        }
+
+        internal void AddProjectRuleSetFileToInternalMaps(VisualStudioProject project, Func<string> ruleSetFilePathFunc)
+        {
+            lock (_gate)
+            {
+                _projectToRuleSetFilePath.Add(project.Id, ruleSetFilePathFunc);
             }
         }
 
@@ -214,6 +234,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return new StubProject(ProjectTracker, project, GetHierarchy(projectId), project.OutputFilePath);
         }
 
+        // TODO: consider whether this should be going to the project system directly to get this path. This is only called on interactions from the
+        // Solution Explorer in the SolutionExplorerShim, where if we just could more directly get to the rule set file it'd simplify this.
+        internal override string TryGetRuleSetPathForProject(ProjectId projectId)
+        {
+            lock (_gate)
+            {
+                if (_projectToRuleSetFilePath.TryGetValue(projectId, out var ruleSetPathFunc))
+                {
+                    return ruleSetPathFunc();
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        [Obsolete("This is a compatibility shim for Live Unit Testing; please do not use it.")]
         private sealed class StubProject : AbstractProject
         {
             private readonly string _outputPath;
@@ -236,6 +274,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // TypeScript only calls this to immediately check if the document is a ContainedDocument. Because of that we can just check for
             // ContainedDocuments
             return ContainedDocument.TryGetContainedDocument(documentId);
+        }
+
+        public override EnvDTE.FileCodeModel GetFileCodeModel(DocumentId documentId)
+        {
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            var documentFilePath = GetFilePath(documentId);
+            if (documentFilePath == null)
+            {
+                throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
+            }
+
+            return _projectCodeModelFactory.Value.GetOrCreateFileCodeModel(documentId.ProjectId, documentFilePath);
         }
 
         internal override bool TryApplyChanges(
@@ -1340,8 +1394,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     _projectReferenceInfoMap.Remove(projectId);
                 }
 
-                _projectToGuidMap = _projectToGuidMap.Remove(projectId);
                 _projectToHierarchyMap = _projectToHierarchyMap.Remove(projectId);
+                _projectToGuidMap = _projectToGuidMap.Remove(projectId);
+                _projectToRuleSetFilePath.Remove(projectId);
 
                 foreach (var (projectName, projects) in _projectSystemNameToProjectsMap)
                 {

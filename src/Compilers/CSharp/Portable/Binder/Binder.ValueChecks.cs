@@ -3060,10 +3060,10 @@ moreArguments:
                     return true;
 
                 case BoundKind.ConditionalOperator:
-                    var ternary = (BoundConditionalOperator)expression;
+                    var conditional = (BoundConditionalOperator)expression;
 
-                    // only ref ternary may be referenced as a variable
-                    if (!ternary.IsRef)
+                    // only ref conditional may be referenced as a variable
+                    if (!conditional.IsRef)
                     {
                         return false;
                     }
@@ -3071,8 +3071,8 @@ moreArguments:
                     // branch that has no home will need a temporary
                     // if both have no home, just say whole expression has no home 
                     // so we could just use one temp for the whole thing
-                    return HasHome(ternary.Consequence, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt)
-                        && HasHome(ternary.Alternative, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt);
+                    return HasHome(conditional.Consequence, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt)
+                        && HasHome(conditional.Alternative, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt);
 
                 default:
                     return false;

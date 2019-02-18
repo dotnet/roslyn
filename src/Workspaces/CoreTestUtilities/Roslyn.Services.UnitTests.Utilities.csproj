@@ -45,13 +45,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\**\*.*" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Resources\**\*.*" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Resources\Issue29122\" />
     <Compile Include="..\..\VisualStudio\Core\Def\Implementation\ProjectSystem\VisualStudioMefHostServices.cs" Link="MEF\VisualStudioMefHostServices.cs" />
   </ItemGroup>
 </Project>

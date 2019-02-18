@@ -6,7 +6,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
     internal interface IProjectCodeModel
     {
-        EnvDTE.FileCodeModel GetOrCreateFileCodeModel(string filePath);
         EnvDTE.FileCodeModel GetOrCreateFileCodeModel(string filePath, object parent);
         EnvDTE.CodeModel GetOrCreateRootCodeModel(Project parent);
         void OnSourceFileRemoved(string fileName);

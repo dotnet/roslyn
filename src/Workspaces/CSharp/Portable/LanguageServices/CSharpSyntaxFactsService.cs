@@ -265,6 +265,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsReturnStatement(SyntaxNode node)
             => node.Kind() == SyntaxKind.ReturnStatement;
 
+        public bool IsStatement(SyntaxNode node)
+           => node is StatementSyntax;
+
         public bool IsExecutableStatement(SyntaxNode node)
             => node is StatementSyntax;
 
@@ -669,6 +672,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFacts.IsInNamespaceOrTypeContext(node as ExpressionSyntax);
         }
 
+        public bool IsBaseTypeList(SyntaxNode node)
+        {
+            return node.IsKind(SyntaxKind.BaseList);
+        }
+
         public SyntaxNode GetExpressionOfArgument(SyntaxNode node)
         {
             return ((ArgumentSyntax)node).Expression;
@@ -688,6 +696,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                    argument.NameColon == null;
         }
 
+        public bool IsTypeArgumentList(SyntaxNode node)
+            => node.IsKind(SyntaxKind.TypeArgumentList);
+
+        public bool IsTypeConstraint(SyntaxNode node)
+            => node.IsKind(SyntaxKind.TypeConstraint);
 
         public bool IsInConstantContext(SyntaxNode node)
         {
@@ -1348,6 +1361,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (node as MemberAccessExpressionSyntax)?.Name;
         }
 
+        public bool IsLeftSideOfExplicitInterfaceSpecifier(SyntaxNode node)
+            => (node as NameSyntax).IsLeftSideOfExplicitInterfaceSpecifier();
+
         public bool IsLeftSideOfAssignment(SyntaxNode node)
         {
             return (node as ExpressionSyntax).IsLeftSideOfAssignExpression();
@@ -1696,6 +1712,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override bool IsMultiLineCommentTrivia(SyntaxTrivia trivia)
             => trivia.IsMultiLineComment();
+
+        public override bool IsSingleLineDocCommentTrivia(SyntaxTrivia trivia)
+            => trivia.IsSingleLineDocComment();
+
+        public override bool IsMultiLineDocCommentTrivia(SyntaxTrivia trivia)
+            => trivia.IsMultiLineDocComment();
 
         public override bool IsShebangDirectiveTrivia(SyntaxTrivia trivia)
             => trivia.IsShebangDirective();
