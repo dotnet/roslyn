@@ -42,7 +42,7 @@ namespace System
 ";
 
         [Fact]
-        public async Task FixAll()
+        public async Task FixAllForeach()
         {
             await TestInRegularAndScript1Async(
 AsyncStreams + @"
@@ -60,8 +60,79 @@ class Program
     void M(System.Collections.Generic.IAsyncEnumerable<int> collection)
     {
         await foreach (var i in collection) { }
-
         await foreach (var j in collection) { }
+    }
+}", parameters: s_asyncStreamsFeature);
+        }
+
+        [Fact]
+        public async Task FixAllForeachDeconstruction()
+        {
+            await TestInRegularAndScript1Async(
+AsyncStreams + @"
+class Program
+{
+    void M(System.Collections.Generic.IAsyncEnumerable<(int, int)> collection)
+    {
+        foreach (var (i, j) in {|FixAllInDocument:collection|}) { }
+        foreach (var (k, l) in collection) { }
+    }
+}",
+AsyncStreams + @"
+class Program
+{
+    void M(System.Collections.Generic.IAsyncEnumerable<(int, int)> collection)
+    {
+        await foreach (var (i, j) in collection) { }
+        await foreach (var (k, l) in collection) { }
+    }
+}", parameters: s_asyncStreamsFeature);
+        }
+
+        [Fact]
+        public async Task FixAllUsingStatement()
+        {
+            await TestInRegularAndScript1Async(
+AsyncStreams + @"
+class Program
+{
+    void M(System.IAsyncDisposable disposable)
+    {
+        using (var i = {|FixAllInDocument:disposable|}) { }
+        using (var j = disposable) { }
+    }
+}",
+AsyncStreams + @"
+class Program
+{
+    void M(System.IAsyncDisposable disposable)
+    {
+        await using (var i = disposable) { }
+        await using (var j = disposable) { }
+    }
+}", parameters: s_asyncStreamsFeature);
+        }
+
+        [Fact]
+        public async Task FixAllUsingDeclaration()
+        {
+            await TestInRegularAndScript1Async(
+AsyncStreams + @"
+class Program
+{
+    void M(System.IAsyncDisposable disposable)
+    {
+        using var i = {|FixAllInDocument:disposable|};
+        using var j = disposable;
+    }
+}",
+AsyncStreams + @"
+class Program
+{
+    void M(System.IAsyncDisposable disposable)
+    {
+        await using var i = disposable;
+        await using var j = disposable;
     }
 }", parameters: s_asyncStreamsFeature);
         }

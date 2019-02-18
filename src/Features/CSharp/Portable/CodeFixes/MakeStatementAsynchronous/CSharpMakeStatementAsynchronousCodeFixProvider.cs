@@ -65,16 +65,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeStatementAsynchronous
             switch (statementToFix)
             {
                 case ForEachStatementSyntax forEach:
-                    newStatement = forEach.WithAwaitKeyword(SyntaxFactory.Token(SyntaxKind.AwaitKeyword));
+                    newStatement = forEach
+                        .WithForEachKeyword(SyntaxFactory.Token(SyntaxKind.ForEachKeyword))
+                        .WithAwaitKeyword(SyntaxFactory.Token(SyntaxKind.AwaitKeyword).WithLeadingTrivia(forEach.GetLeadingTrivia()));
                     break;
                 case ForEachVariableStatementSyntax forEachDeconstruction:
-                    newStatement = forEachDeconstruction.WithAwaitKeyword(SyntaxFactory.Token(SyntaxKind.AwaitKeyword));
+                    newStatement = forEachDeconstruction
+                        .WithForEachKeyword(SyntaxFactory.Token(SyntaxKind.ForEachKeyword))
+                        .WithAwaitKeyword(SyntaxFactory.Token(SyntaxKind.AwaitKeyword).WithLeadingTrivia(forEachDeconstruction.GetLeadingTrivia()));
                     break;
                 case UsingStatementSyntax usingStatement:
-                    newStatement = usingStatement.WithAwaitKeyword(SyntaxFactory.Token(SyntaxKind.AwaitKeyword));
+                    newStatement = usingStatement
+                        .WithUsingKeyword(SyntaxFactory.Token(SyntaxKind.UsingKeyword))
+                        .WithAwaitKeyword(SyntaxFactory.Token(SyntaxKind.AwaitKeyword).WithLeadingTrivia(usingStatement.GetLeadingTrivia()));
                     break;
                 case LocalDeclarationStatementSyntax localDeclaration:
-                    newStatement = localDeclaration.WithAwaitKeyword(SyntaxFactory.Token(SyntaxKind.AwaitKeyword));
+                    newStatement = localDeclaration
+                        .WithUsingKeyword(SyntaxFactory.Token(SyntaxKind.UsingKeyword))
+                        .WithAwaitKeyword(SyntaxFactory.Token(SyntaxKind.AwaitKeyword).WithLeadingTrivia(localDeclaration.GetLeadingTrivia()));
                     break;
                 default:
                     return;
