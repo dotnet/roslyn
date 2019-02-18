@@ -824,7 +824,7 @@ one");
 		IL_0033: stfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
 		IL_0038: ldc.i4.0
 		IL_0039: ldc.i4.3
-		IL_003a: call class [mscorlib]System.Collections.Generic.IEnumerable`1<int32> [System.Core]System.Linq.Enumerable::Range(int32, int32)
+		IL_003a: call class [mscorlib]System.Collections.Generic.IEnumerable`1<int32> [mscorlib]System.Linq.Enumerable::Range(int32, int32)
 		IL_003f: callvirt instance class [mscorlib]System.Collections.Generic.IEnumerator`1<!0> class [mscorlib]System.Collections.Generic.IEnumerable`1<int32>::GetEnumerator()
 		IL_0044: stloc.2
 		.try
@@ -1043,7 +1043,7 @@ one");
 		IL_0033: stfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
 		IL_0038: ldc.i4.0
 		IL_0039: ldc.i4.3
-		IL_003a: call class [mscorlib]System.Collections.Generic.IEnumerable`1<int32> [System.Core]System.Linq.Enumerable::Range(int32, int32)
+		IL_003a: call class [mscorlib]System.Collections.Generic.IEnumerable`1<int32> [mscorlib]System.Linq.Enumerable::Range(int32, int32)
 		IL_003f: callvirt instance class [mscorlib]System.Collections.Generic.IEnumerator`1<!0> class [mscorlib]System.Collections.Generic.IEnumerable`1<int32>::GetEnumerator()
 		IL_0044: stloc.2
 		.try
@@ -2486,7 +2486,7 @@ one");
 		IL_0033: stfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
 		IL_0038: ldc.i4.0
 		IL_0039: ldc.i4.1
-		IL_003a: call class [mscorlib]System.Collections.Generic.IEnumerable`1<int32> [System.Core]System.Linq.Enumerable::Range(int32, int32)
+		IL_003a: call class [mscorlib]System.Collections.Generic.IEnumerable`1<int32> [mscorlib]System.Linq.Enumerable::Range(int32, int32)
 		IL_003f: callvirt instance class [mscorlib]System.Collections.Generic.IEnumerator`1<!0> class [mscorlib]System.Collections.Generic.IEnumerable`1<int32>::GetEnumerator()
 		IL_0044: stloc.2
 		.try
