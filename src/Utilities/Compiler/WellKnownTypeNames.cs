@@ -234,5 +234,27 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeSerializationOnSerializedAttribute = "System.Runtime.Serialization.OnSerializedAttribute";
         public const string SystemSerializableAttribute = "System.SerializableAttribute";
         public const string SystemNonSerializedAttribute = "System.NonSerializedAttribute";
+        public const string MicrosoftVisualStudioTestToolsUnitTestingTestCleanupAttribute = "Microsoft.VisualStudio.TestTools.UnitTesting.TestCleanupAttribute";
+        public const string MicrosoftVisualStudioTestToolsUnitTestingTestInitializeAttribute = "Microsoft.VisualStudio.TestTools.UnitTesting.TestInitializeAttribute";
+        public const string MicrosoftVisualStudioTestToolsUnitTestingTestMethodAttribute = "Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute";
+        public const string MicrosoftVisualStudioTestToolsUnitTestingDataTestMethodAttribute = "Microsoft.VisualStudio.TestTools.UnitTesting.DataTestMethodAttribute";
+        public const string MicrosoftVisualStudioTestToolsUnitTestingExpectedExceptionAttribute = "Microsoft.VisualStudio.TestTools.UnitTesting.ExpectedExceptionAttribute";
+        public const string MicrosoftVisualStudioTestToolsUnitTestingAssert = "Microsoft.VisualStudio.TestTools.UnitTesting.Assert";
+        public const string MicrosoftVisualStudioTestToolsUnitTestingCollectionAssert = "Microsoft.VisualStudio.TestTools.UnitTesting.CollectionAssert";
+        public const string MicrosoftVisualStudioTestToolsUnitTestingStringAssert = "Microsoft.VisualStudio.TestTools.UnitTesting.StringAssert";
+        public const string XunitAssert = "Xunit.Assert";
+        public const string XunitFactAttribute = "Xunit.FactAttribute";
+        public const string XunitTheoryAttribute = "Xunit.TheoryAttribute";
+        public const string NUnitFrameworkAssert = "NUnit.Framework.Assert";
+        public const string NUnitFrameworkOneTimeSetUpAttribute = "NUnit.Framework.OneTimeSetUpAttribute";
+        public const string NUnitFrameworkOneTimeTearDownAttribute = "NUnit.Framework.OneTimeTearDownAttribute";
+        public const string NUnitFrameworkSetUpAttribute = "NUnit.Framework.SetUpAttribute";
+        public const string NUnitFrameworkSetUpFixtureAttribute = "NUnit.Framework.SetUpFixtureAttribute";
+        public const string NUnitFrameworkTearDownAttribute = "NUnit.Framework.TearDownAttribute";
+        public const string NUnitFrameworkTestAttribute = "NUnit.Framework.TestAttribute";
+        public const string NUnitFrameworkTestCaseAttribute = "NUnit.Framework.TestCaseAttribute";
+        public const string NUnitFrameworkTestCaseSourceAttribute = "NUnit.Framework.TestCaseSourceAttribute";
+        public const string NUnitFrameworkTheoryAttribute = "NUnit.Framework.TheoryAttribute";
+        public const string SystemXmlXmlWriter = "System.Xml.XmlWriter";
     }
 }
