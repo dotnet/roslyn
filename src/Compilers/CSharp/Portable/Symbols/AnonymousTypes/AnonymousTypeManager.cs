@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -52,13 +51,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(type.IsAnonymousType);
             var anonymous = (AnonymousTypePublicSymbol)type;
             var fields = anonymous.TypeDescriptor.Fields;
-            var types = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(fields.Length);
-            for (int i = 0; i < fields.Length; i++)
-            {
-                types.Add(fields[i].Type);
-            }
+            return fields.SelectAsArray(f => f.Type);
+        }
 
-            return types.ToImmutableAndFree();
+        internal static PropertySymbol AsMember(PropertySymbol property, NamedTypeSymbol newOwner)
+        {
+            Debug.Assert(newOwner.IsAnonymousType);
+            var anonymous = (AnonymousTypePublicSymbol)newOwner;
+            int index = property.MemberIndex;
+            return anonymous.Properties[index];
         }
 
         /// <summary>

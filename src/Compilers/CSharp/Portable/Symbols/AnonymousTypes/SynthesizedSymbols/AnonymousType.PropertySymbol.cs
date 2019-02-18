@@ -16,29 +16,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private readonly NamedTypeSymbol _containingType;
             private readonly TypeSymbolWithAnnotations _type;
             private readonly string _name;
+            private readonly int _index;
             private readonly ImmutableArray<Location> _locations;
             private readonly AnonymousTypePropertyGetAccessorSymbol _getMethod;
             private readonly FieldSymbol _backingField;
 
-            internal AnonymousTypePropertySymbol(AnonymousTypeTemplateSymbol container, AnonymousTypeField field, TypeSymbolWithAnnotations fieldTypeSymbol)
+            internal AnonymousTypePropertySymbol(AnonymousTypeTemplateSymbol container, AnonymousTypeField field, TypeSymbolWithAnnotations fieldType, int index)
             {
                 _containingType = container;
-                _type = fieldTypeSymbol;
+                _type = fieldType;
                 _name = field.Name;
+                _index = index;
                 _locations = ImmutableArray<Location>.Empty;
                 _getMethod = new AnonymousTypePropertyGetAccessorSymbol(this);
                 _backingField = new AnonymousTypeFieldSymbol(this);
             }
 
-            internal AnonymousTypePropertySymbol(AnonymousTypePublicSymbol container, AnonymousTypeField field)
+            internal AnonymousTypePropertySymbol(AnonymousTypePublicSymbol container, AnonymousTypeField field, int index)
             {
                 _containingType = container;
                 _type = field.Type;
                 _name = field.Name;
+                _index = index;
                 _locations = ImmutableArray.Create<Location>(field.Location);
                 _getMethod = new AnonymousTypePropertyGetAccessorSymbol(this);
                 _backingField = null;
             }
+
+            internal override int MemberIndex => _index;
 
             public override RefKind RefKind
             {

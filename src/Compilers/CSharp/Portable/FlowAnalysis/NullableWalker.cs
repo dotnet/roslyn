@@ -1410,39 +1410,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
 
-            int receiverSlot = -1;
+            var anonymousType = (NamedTypeSymbol)node.Type;
+            Debug.Assert(anonymousType.IsAnonymousType);
+
             var arguments = node.Arguments;
-            var constructor = node.Constructor;
-            for (int i = 0; i < arguments.Length; i++)
+            var argumentTypes = arguments.SelectAsArray(arg => VisitRvalueWithResult(arg));
+            anonymousType = AnonymousTypeManager.ConstructAnonymousTypeSymbol(anonymousType, argumentTypes);
+
+            int n = arguments.Length;
+            int receiverSlot = GetOrCreateObjectCreationPlaceholderSlot(node);
+            for (int i = 0; i < n; i++)
             {
                 var argument = arguments[i];
-                TypeSymbolWithAnnotations argumentType = VisitRvalueWithResult(argument);
-                var parameter = constructor.Parameters[i];
-                ReportArgumentWarnings(argument, argumentType, parameter);
-
-                // https://github.com/dotnet/roslyn/issues/24018 node.Declarations includes
-                // explicitly-named properties only. For now, skip expressions
-                // with implicit names. See NullableReferenceTypesTests.AnonymousTypes_05.
-                if (node.Declarations.Length < arguments.Length)
-                {
-                    continue;
-                }
-
-                PropertySymbol property = node.Declarations[i].Property;
-                if (receiverSlot <= 0)
-                {
-                    receiverSlot = GetOrCreateObjectCreationPlaceholderSlot(node);
-                }
-
-                TypeSymbolWithAnnotations propertyType = property.Type;
-                ReportAssignmentWarnings(argument, propertyType, argumentType, useLegacyWarnings: false);
-                TrackNullableStateForAssignment(argument, propertyType, GetOrCreateSlot(property, receiverSlot), argumentType, MakeSlot(argument));
+                var argumentType = argumentTypes[i];
+                var property = AnonymousTypeManager.GetAnonymousTypeProperty(anonymousType, i);
+                TrackNullableStateForAssignment(argument, property.Type, GetOrCreateSlot(property, receiverSlot), argumentType, MakeSlot(argument));
             }
 
-            // https://github.com/dotnet/roslyn/issues/24018 _result may need to be a new anonymous
-            // type since the properties may have distinct nullability from original.
-            // (See NullableReferenceTypesTests.AnonymousObjectCreation_02.)
-            ResultType = TypeSymbolWithAnnotations.Create(node.Type, NullableAnnotation.NotNullable);
+            ResultType = TypeSymbolWithAnnotations.Create(anonymousType, NullableAnnotation.NotNullable);
             return null;
         }
 
@@ -3342,6 +3327,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (symbolDefContainer.IsTupleType)
                     {
                         return AsMemberOfTupleType((TupleTypeSymbol)containingType, symbol);
+                    }
+                    if (symbolDefContainer.IsAnonymousType)
+                    {
+                        if (symbol.Kind != SymbolKind.Property)
+                        {
+                            Debug.Assert(false);
+                            break;
+                        }
+                        return AnonymousTypeManager.AsMember((PropertySymbol)symbol, containingType);
                     }
                     var result = symbolDef.SymbolAsMember(containingType);
                     if (result is MethodSymbol resultMethod && resultMethod.IsGenericMethod)

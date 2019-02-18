@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -24,28 +25,58 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool Exists
             {
-                get { return (object)Symbol != null; }
+                get { Debug.Assert((object)Symbol != null);  return (object)Symbol != null; }
             }
+
             public override int GetHashCode()
             {
-                return Roslyn.Utilities.Hash.Combine(Symbol?.OriginalDefinition, ContainingSlot);
+                Debug.Assert((object)Symbol != null);
+
+                int currentKey = ContainingSlot;
+                int thisIndex = Symbol.MemberIndex;
+                return (thisIndex < 0) ?
+                    Hash.Combine(Symbol.OriginalDefinition, currentKey) :
+                    Hash.Combine(thisIndex, currentKey);
             }
+
             public bool Equals(VariableIdentifier other)
             {
-                return ((object)Symbol == null ? (object)other.Symbol == null : Symbol.OriginalDefinition.Equals(other.Symbol.OriginalDefinition)) && ContainingSlot == other.ContainingSlot;
+                Debug.Assert((object)Symbol != null);
+                Debug.Assert((object)other.Symbol != null);
+
+                if (ContainingSlot != other.ContainingSlot)
+                {
+                    return false;
+                }
+
+                int thisIndex = Symbol.MemberIndex;
+                int otherIndex = other.Symbol.MemberIndex;
+                if (thisIndex != otherIndex)
+                {
+                    return false;
+                }
+
+                if (thisIndex < 0)
+                {
+                    return Symbol.OriginalDefinition.Equals(other.Symbol.OriginalDefinition);
+                }
+
+                return true;
             }
+
             public override bool Equals(object obj)
             {
-                VariableIdentifier? other = obj as VariableIdentifier?;
-                return other.HasValue && Equals(other.Value);
+                throw ExceptionUtilities.Unreachable;
             }
+
             public static bool operator ==(VariableIdentifier left, VariableIdentifier right)
             {
-                return left.Equals(right);
+                throw ExceptionUtilities.Unreachable;
             }
+
             public static bool operator !=(VariableIdentifier left, VariableIdentifier right)
             {
-                return !left.Equals(right);
+                throw ExceptionUtilities.Unreachable;
             }
 
             public override string ToString()
