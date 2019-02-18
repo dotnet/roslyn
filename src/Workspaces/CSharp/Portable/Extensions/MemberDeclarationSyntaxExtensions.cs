@@ -295,6 +295,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return ((ConversionOperatorDeclarationSyntax)memberDeclaration).ExpressionBody;
                 case SyntaxKind.ConstructorDeclaration:
                     return ((ConstructorDeclarationSyntax)memberDeclaration).ExpressionBody;
+                case SyntaxKind.DestructorDeclaration:
+                    return ((DestructorDeclarationSyntax)memberDeclaration).ExpressionBody;
                 default:
                     return null;
             }
