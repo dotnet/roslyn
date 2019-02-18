@@ -122,6 +122,11 @@
         <target state="translated">Uma árvore de expressão não pode conter um operador == ou != de tupla</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FeatureInPreview">
+        <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
+        <target state="new">The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureIsExperimental">
         <source>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</source>
         <target state="translated">O recurso '{0}' é experimental e sem suporte; use '/features:{1}' para habilitar.</target>
@@ -790,6 +795,11 @@
       <trans-unit id="IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator">
         <source>unconstrained type parameters in null coalescing operator</source>
         <target state="translated">parâmetros de tipo irrestrito em operador de união nulo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnmanagedConstructedTypes">
+        <source>unmanaged constructed types</source>
+        <target state="new">unmanaged constructed types</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">
@@ -1520,6 +1530,16 @@
       <trans-unit id="WRN_NullableValueTypeMayBeNull_Title">
         <source>Nullable value type may be null.</source>
         <target state="translated">O tipo de valor de nulidade pode ser nulo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PossibleNull">
+        <source>Possible null value.</source>
+        <target state="new">Possible null value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PossibleNull_Title">
+        <source>Possible null value.</source>
+        <target state="new">Possible null value.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
@@ -8884,8 +8904,8 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <note />
       </trans-unit>
       <trans-unit id="ERR_MismatchedRefEscapeInTernary">
-        <source>Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes</source>
-        <target state="translated">Branches de um operador ternário de referência não podem se referir a variáveis com escopos de declaração incompatível</target>
+        <source>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</source>
+        <target state="needs-review-translation">Branches de um operador ternário de referência não podem se referir a variáveis com escopos de declaração incompatível</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeStackAlloc">

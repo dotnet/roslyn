@@ -91,6 +91,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsNullableTypeOrTypeParameter(this TypeSymbol type)
         {
+            if (type is null)
+            {
+                return false;
+            }
+
             if (type.TypeKind == TypeKind.TypeParameter)
             {
                 var constraintTypes = ((TypeParameterSymbol)type).ConstraintTypesNoUseSiteDiagnostics;

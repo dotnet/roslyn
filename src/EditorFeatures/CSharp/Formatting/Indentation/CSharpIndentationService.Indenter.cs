@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             public Indenter(
                 ISyntaxFactsService syntaxFacts,
                 SyntaxTree syntaxTree,
-                IEnumerable<IFormattingRule> rules,
+                IEnumerable<AbstractFormattingRule> rules,
                 OptionSet optionSet,
                 TextLine line,
                 CancellationToken cancellationToken) :

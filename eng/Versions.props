@@ -10,8 +10,8 @@
     Roslyn version
   -->
   <PropertyGroup>
-    <VersionPrefix>3.0.0</VersionPrefix>
-    <PreReleaseVersionLabel>beta4</PreReleaseVersionLabel>
+    <VersionPrefix>3.1.0</VersionPrefix>
+    <PreReleaseVersionLabel>beta1</PreReleaseVersionLabel>
     <SemanticVersioningV1>true</SemanticVersioningV1>
 
     <!-- 
@@ -30,7 +30,7 @@
     <RoslynDiagnosticsNugetPackageVersion>2.6.2-beta2</RoslynDiagnosticsNugetPackageVersion>
     <CodeStyleLayerCodeAnalysisVersion>2.8.2</CodeStyleLayerCodeAnalysisVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.0-beta1-63310-01</MicrosoftCodeAnalysisTestingVersion>
-    <CodeStyleAnalyzerVersion>2.11.0-beta2-63603-03</CodeStyleAnalyzerVersion>
+    <CodeStyleAnalyzerVersion>3.1.0-beta1-19113-04</CodeStyleAnalyzerVersion>
 
     <BasicUndoVersion>0.9.3</BasicUndoVersion>
     <BenchmarkDotNetVersion>0.11.1</BenchmarkDotNetVersion>
@@ -64,7 +64,6 @@
     <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta1-63314-01</MicrosoftDiaSymReaderConverterXmlVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.7.0</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion>1.5.0</MicrosoftDiaSymReaderPortablePdbVersion>
-    <MicrosoftDotNetIBCMergeVersion>4.7.2-alpha-00001</MicrosoftDotNetIBCMergeVersion>
     <MicrosoftDotNetVersionToolsVersion>3.0.0-preview1-03617-02</MicrosoftDotNetVersionToolsVersion>
     <MicrosoftExtensionsDependencyInjectionVersion>2.1.1</MicrosoftExtensionsDependencyInjectionVersion>
     <MicrosoftExtensionsLoggingVersion>2.1.1</MicrosoftExtensionsLoggingVersion>
@@ -73,6 +72,7 @@
     <MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>14.3.25407-alpha</MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>
     <MicrosoftMetadataVisualizerVersion>1.0.0-beta1-63011-01</MicrosoftMetadataVisualizerVersion>
     <MicrosoftMSXMLVersion>8.0.0.0-alpha</MicrosoftMSXMLVersion>
+    <MicrosoftNetFrameworkReferenceAssembliesVersion>1.0.0-alpha-004</MicrosoftNetFrameworkReferenceAssembliesVersion>
     <MicrosoftNetCompilersVersion>3.0.0-beta2-19068-12</MicrosoftNetCompilersVersion>
     <MicrosoftNetCoreAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftNetCoreAnalyzersVersion>
     <MicrosoftNetCoreILAsmVersion>2.0.0</MicrosoftNetCoreILAsmVersion>
@@ -81,6 +81,7 @@
     <MicrosoftNETCoreRuntimeCoreCLRVersion>2.0.0</MicrosoftNETCoreRuntimeCoreCLRVersion>
      <!-- Using a private build of Microsoft.Net.Test.SDK to work around issue https://github.com/Microsoft/vstest/issues/1764 -->	
     <MicrosoftNETTestSdkVersion>15.9.0-dev2</MicrosoftNETTestSdkVersion>
+    <MicrosoftNetFX20Version>1.0.3</MicrosoftNetFX20Version>
     <MicrosoftServiceHubClientVersion>1.3.23</MicrosoftServiceHubClientVersion>
     <MicrosoftTplDataflowVersion>4.5.24</MicrosoftTplDataflowVersion>
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>   
@@ -93,6 +94,8 @@
     <MicrosoftVisualStudioDebuggerEngineVersion>15.0.27309-vsucorediag</MicrosoftVisualStudioDebuggerEngineVersion>
     <MicrosoftVisualStudioDebuggerMetadataVersion>15.0.27309-vsucorediag</MicrosoftVisualStudioDebuggerMetadataVersion>
     <MicrosoftVisualStudioDebuggerUIInterfacesVersion>15.0.27309-vsucorediag</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
+    <MicrosoftVisualStudioDebuggerEngineimplementationVersion>15.7.2082401</MicrosoftVisualStudioDebuggerEngineimplementationVersion>
+    <MicrosoftVisualStudioDebuggerMetadataimplementationVersion>15.7.2082401</MicrosoftVisualStudioDebuggerMetadataimplementationVersion>
     <MicrosoftVisualStudioDesignerInterfacesVersion>1.1.4322</MicrosoftVisualStudioDesignerInterfacesVersion>
     <MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>15.8.27812-alpha</MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>
     <MicrosoftVisualStudioSDKEmbedInteropTypesVersion>15.0.17</MicrosoftVisualStudioSDKEmbedInteropTypesVersion>
@@ -280,6 +283,7 @@
     <UsingToolVSSDK>true</UsingToolVSSDK>
     <UsingToolNetFrameworkReferenceAssemblies>true</UsingToolNetFrameworkReferenceAssemblies>
     <UsingToolIbcOptimization>true</UsingToolIbcOptimization>
+    <UsingToolVisualStudioIbcTraining>true</UsingToolVisualStudioIbcTraining>
     <UsingToolXliff>true</UsingToolXliff>
     <UsingToolXUnit>true</UsingToolXUnit>
 
@@ -311,6 +315,7 @@
       https://dotnet.myget.org/F/sourcelink/api/v3/index.json;
       https://myget.org/F/vs-devcore/api/v3/index.json;
       https://myget.org/F/vs-editor/api/v3/index.json;
+      https://myget.org/F/roslyn_concord/api/v3/index.json;
       https://vside.myget.org/F/vssdk/api/v3/index.json;
       https://vside.myget.org/F/vs-impl/api/v3/index.json;
       https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json;

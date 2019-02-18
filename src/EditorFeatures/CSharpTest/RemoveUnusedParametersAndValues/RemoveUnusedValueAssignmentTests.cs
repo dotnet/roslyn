@@ -1836,8 +1836,7 @@ $@"class C
         switch (p)
         {
             case int _:
-                int x;
-                x = 1;
+                int x = 1;
                 break;
         };
     }
@@ -4012,8 +4011,7 @@ $@"class C
         switch (p)
         {{
             case int {fix}:
-                int x;
-                x = 1;
+                int x = 1;
                 p = x;
                 break;
         }}
@@ -4976,8 +4974,7 @@ $@"class C
         switch(flag)
         {
             case 0:
-                int x;
-                x = 1;
+                int x = 1;
                 return x;
 
             default:
@@ -5020,9 +5017,8 @@ $@"class C
         switch(flag)
         {{
             case 0:
-                int x;
                 {fix} = M2();
-                x = 1;
+                int x = 1;
                 return x;
 
             default:
@@ -6356,6 +6352,155 @@ class C
         void LocalFunctionHandler(object s, ConsoleCancelEventArgs e) => e.Cancel = j != 0;
     }
 }", options: PreferDiscard);
+        }
+
+        [WorkItem(32856, "https://github.com/dotnet/roslyn/issues/32856")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task RedundantAssignment_IfStatementParent()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int j)
+    {
+        if (M2())
+            [|j|] = 0;
+    }
+
+    bool M2() => true;
+}",
+@"class C
+{
+    void M(int j)
+    {
+        if (M2())
+            _ = 0;
+    }
+
+    bool M2() => true;
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(32856, "https://github.com/dotnet/roslyn/issues/32856")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task RedundantAssignment_LoopStatementParent()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int j, int[] array)
+    {
+        for (int i = 0; i < array.Length; i++)
+            [|j|] = i;
+    }
+}",
+@"class C
+{
+    void M(int j, int[] array)
+    {
+        for (int i = 0; i < array.Length; i++)
+            _ = i;
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(33299, "https://github.com/dotnet/roslyn/issues/33299")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task NullCoalesceAssignment_01()
+        {
+            await TestMissingInRegularAndScriptWithAllOptionsAsync(
+@"class C
+{
+    public static void M(C x)
+    {
+        [|x|] = M2();
+        x ??= new C();
+    }
+
+    private static C M2() => null;
+}
+", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [WorkItem(33299, "https://github.com/dotnet/roslyn/issues/33299")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task NullCoalesceAssignment_02()
+        {
+            await TestMissingInRegularAndScriptWithAllOptionsAsync(
+@"class C
+{
+    public static C M(C x)
+    {
+        [|x|] ??= new C();
+        return x;
+    }
+}
+", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [WorkItem(33299, "https://github.com/dotnet/roslyn/issues/33299")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task NullCoalesceAssignment_03()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public static void M(C x)
+    {
+        [|x|] ??= new C();
+    }
+}
+",
+@"class C
+{
+    public static void M(C x)
+    {
+        _ = x ?? new C();
+    }
+}
+", optionName: nameof(PreferDiscard), parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [WorkItem(33299, "https://github.com/dotnet/roslyn/issues/33299")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task NullCoalesceAssignment_04()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public static C M(C x)
+    {
+        return [|x|] ??= new C();
+    }
+}
+",
+@"class C
+{
+    public static C M(C x)
+    {
+        return x ?? new C();
+    }
+}
+", optionName: nameof(PreferDiscard), parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [WorkItem(33299, "https://github.com/dotnet/roslyn/issues/33299")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task NullCoalesceAssignment_05()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public static C M(C x)
+        => [|x|] ??= new C();
+}
+",
+@"class C
+{
+    public static C M(C x)
+        => x ?? new C();
+}
+", optionName: nameof(PreferDiscard), parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
     }
 }
