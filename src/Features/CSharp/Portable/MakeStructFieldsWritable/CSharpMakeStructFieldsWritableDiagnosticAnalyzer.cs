@@ -35,8 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
 
         private sealed class SymbolAnalyzer
         {
-            private bool _hasTypeInstanceAssigment;
             private readonly INamedTypeSymbol _namedTypeSymbol;
+            private bool _hasTypeInstanceAssigment;
+
             private SymbolAnalyzer(INamedTypeSymbol namedTypeSymbol)
             {
                 _namedTypeSymbol = namedTypeSymbol;
@@ -57,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
                     {
                         return;
                     }
+
                     //We check if struct contains any 'readonly' fields
                     if (!HasReadonlyField(namedTypeSymbol))
                     {
