@@ -68,11 +68,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
         private void SendInputs(KeyPress[] inputs)
         {
             var foregroundWindow = IntPtr.Zero;
-            var inputBlocked = false;
 
             try
             {
-                inputBlocked = IntegrationHelper.BlockInput();
                 foregroundWindow = IntegrationHelper.GetForegroundWindow();
 
                 _visualStudioInstance.ActivateMainWindow();
@@ -84,11 +82,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
                 if (foregroundWindow != IntPtr.Zero)
                 {
                     IntegrationHelper.SetForegroundWindow(foregroundWindow);
-                }
-
-                if (inputBlocked)
-                {
-                    IntegrationHelper.UnblockInput();
                 }
             }
 
