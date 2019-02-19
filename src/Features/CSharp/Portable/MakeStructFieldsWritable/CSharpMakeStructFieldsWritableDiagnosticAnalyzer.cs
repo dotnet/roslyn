@@ -83,9 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             {
                 symbolStartContext.RegisterOperationBlockStartAction(blockAction =>
                 {
-                    var isConstructor = false;
-                    blockAction.RegisterOperationAction(
-                        _ => isConstructor = true, OperationKind.ConstructorBody);
+                    var isConstructor = blockAction.OwningSymbol is IMethodSymbol method &&
+                        method.MethodKind == MethodKind.Constructor;
                     blockAction.RegisterOperationAction(
                         operationAction => AnalyzeAssignment(operationAction, isConstructor), OperationKind.SimpleAssignment);
                 });
