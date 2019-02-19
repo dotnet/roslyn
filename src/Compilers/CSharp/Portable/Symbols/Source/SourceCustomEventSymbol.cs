@@ -172,6 +172,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!_explicitInterfaceImplementations.IsDefaultOrEmpty && ContainingType.IsInterface)
                 {
                     Debug.Assert(_explicitInterfaceImplementations.Length == 1);
+                    // PROTOTYPE(DefaultInterfaceImplementation): This is better than 'private' accessibility, but might still be not where
+                    //                                            we want to be for implementations of internal members, because those can be 
+                    //                                            inaccessible for base-access from a different assembly that otherwise has 
+                    //                                            access to the original implemented member. That scenario has the internals
+                    //                                            being exposed to other assemblies by using InternalsVisibleTo attribute. 
+                    //                                            See DefaultInterfaceImplementationTests.ExplicitBase_152 unit-test, for example.
                     return _explicitInterfaceImplementations[0].DeclaredAccessibility;
                 }
 
