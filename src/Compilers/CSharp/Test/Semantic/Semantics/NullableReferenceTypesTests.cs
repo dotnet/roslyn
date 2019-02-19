@@ -79512,6 +79512,38 @@ class Program
         }
 
         [Fact]
+        [WorkItem(33011, "https://github.com/dotnet/roslyn/issues/33011")]
+        public void Deconstruction_ImplicitNullableConversion_03()
+        {
+            var source =
+@"#pragma warning disable 0649
+struct S<T>
+{
+    internal T F;
+}
+class Program
+{
+    static void F<T>((S<T?>, S<T>) t) where T : class, new()
+    {
+        (S<T>? x, S<T?>? y) = t; // 1, 2
+        x.Value.F.ToString(); // 3
+        y.Value.F.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,31): warning CS8619: Nullability of reference types in value of type 'S<T?>' doesn't match target type 'S<T>?'.
+                //         (S<T>? x, S<T?>? y) = t; // 1, 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "t").WithArguments("S<T?>", "S<T>?").WithLocation(10, 31),
+                // (10,31): warning CS8619: Nullability of reference types in value of type 'S<T>' doesn't match target type 'S<T?>?'.
+                //         (S<T>? x, S<T?>? y) = t; // 1, 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "t").WithArguments("S<T>", "S<T?>?").WithLocation(10, 31),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         x.Value.F.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.Value.F").WithLocation(11, 9));
+        }
+
+        [Fact]
         public void Deconstruction_TooFewVariables()
         {
             var source =
