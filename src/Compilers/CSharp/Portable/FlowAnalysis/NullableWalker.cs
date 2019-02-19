@@ -51,14 +51,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Contains a result type which tells us whether the expression may be null,
         /// and an l-value type which tells us whether we can assign null to the expression.
         /// </summary>
-        private struct VisitResult
+        private readonly struct VisitResult
         {
-            public TypeSymbolWithAnnotations ResultType;
-            private TypeSymbolWithAnnotations _lValueType;
-            public TypeSymbolWithAnnotations LValueType
+            public readonly TypeSymbolWithAnnotations ResultType;
+            public readonly TypeSymbolWithAnnotations LValueType;
+
+            public VisitResult(TypeSymbolWithAnnotations resultType, TypeSymbolWithAnnotations lValueType)
             {
-                get => _lValueType;
-                set => _lValueType = value;
+                ResultType = resultType;
+                LValueType = lValueType;
             }
         }
 
@@ -113,7 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// The result and l-value type of the last visited expression.
-        /// Do no get or set directly
         /// </summary>
         private VisitResult _visitResult;
 
@@ -125,14 +125,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             get => _visitResult.ResultType;
             set
             {
-                SetResult(resultType: value, lvalueType: value);
+                SetResult(resultType: value, lvalueType: default);
             }
         }
 
         private void SetResult(TypeSymbolWithAnnotations resultType, TypeSymbolWithAnnotations lvalueType)
         {
-            _visitResult.ResultType = resultType;
-            _visitResult.LValueType = lvalueType;
+            _visitResult = new VisitResult(resultType, lvalueType);
         }
 
         /// <summary>
@@ -609,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Reports top-level nullability problem in assignment.
         /// </summary>
-        private bool ReportNullableAssignmentIfNecessary(BoundExpression value, TypeSymbolWithAnnotations valueType, TypeSymbolWithAnnotations targetType, bool useLegacyWarnings, AssignmentKind assignmentKind = AssignmentKind.Assignment, Symbol target = null)
+        private bool ReportNullableAssignmentIfNecessary(BoundExpression value, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations valueType, bool useLegacyWarnings, AssignmentKind assignmentKind = AssignmentKind.Assignment, Symbol target = null)
         {
             Debug.Assert((object)target != null || assignmentKind != AssignmentKind.Argument);
 
@@ -727,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Report top-level nullability issues
-                ReportNullableAssignmentIfNecessary(value, valueType, targetType, useLegacyWarnings, assignmentKind: AssignmentKind.Assignment);
+                ReportNullableAssignmentIfNecessary(value, targetType, valueType, useLegacyWarnings, AssignmentKind.Assignment);
 
                 // Report nested nullability issues
                 var sourceType = valueType.TypeSymbol;
@@ -747,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Update tracked value on assignment.
         /// </summary>
-        private void TrackNullableStateForAssignment(BoundExpression value, TypeSymbolWithAnnotations valueType, TypeSymbolWithAnnotations targetType, int targetSlot, int valueSlot = -1)
+        private void TrackNullableStateForAssignment(BoundExpression value, TypeSymbolWithAnnotations targetType, int targetSlot, TypeSymbolWithAnnotations valueType, int valueSlot = -1)
         {
             Debug.Assert(value != null);
             Debug.Assert(!IsConditionalState);
@@ -1056,7 +1055,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if ((object)variable != null)
                         {
                             _variableTypes[variable] = expressionResultType;
-                            TrackNullableStateForAssignment(expression, expressionResultType, expressionResultType, GetOrCreateSlot(variable));
+                            TrackNullableStateForAssignment(expression, expressionResultType, GetOrCreateSlot(variable), expressionResultType);
                         }
 
                         whenFalse = NullableAnnotation.NotNullable; // whenFalse is unreachable
@@ -1191,7 +1190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type = valueType;
             }
 
-            TrackNullableStateForAssignment(initializer, valueType, type, slot, MakeSlot(initializer));
+            TrackNullableStateForAssignment(initializer, type, slot, valueType, MakeSlot(initializer));
             return null;
         }
 
@@ -1214,7 +1213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.IsSuppressed && !ResultType.IsNull)
             {
-                ResultType = ResultType.WithTopLevelNonNullability();
+                SetResult(_visitResult.ResultType.WithTopLevelNonNullability(), _visitResult.LValueType);
             }
             return result;
         }
@@ -1341,7 +1340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var type = containingSymbol.GetTypeOrReturnType();
                         ReportAssignmentWarnings(node, type, resultType, useLegacyWarnings: false);
-                        TrackNullableStateForAssignment(node, resultType, type, containingSlot, MakeSlot(node));
+                        TrackNullableStateForAssignment(node, type, containingSlot, resultType, MakeSlot(node));
                     }
                     break;
             }
@@ -1437,7 +1436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 TypeSymbolWithAnnotations propertyType = property.Type;
                 ReportAssignmentWarnings(argument, propertyType, argumentType, useLegacyWarnings: false);
-                TrackNullableStateForAssignment(argument, argumentType, propertyType, GetOrCreateSlot(property, receiverSlot), MakeSlot(argument));
+                TrackNullableStateForAssignment(argument, propertyType, GetOrCreateSlot(property, receiverSlot), argumentType, MakeSlot(argument));
             }
 
             // https://github.com/dotnet/roslyn/issues/24018 _result may need to be a new anonymous
@@ -1523,7 +1522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < n; i++)
                 {
                     var placeholder = placeholders[i];
-                    resultTypes[i] = ApplyConversion(placeholder, placeholder, resultTypes[i], conversions[i], inferredType, checkConversion: true,
+                    resultTypes[i] = ApplyConversion(placeholder, placeholder, conversions[i], inferredType, resultTypes[i], checkConversion: true,
                         fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: true, reportTopLevelWarnings: false);
                 }
 
@@ -1534,7 +1533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var nodeForSyntax = expressions[i];
                     // Report top-level warnings
-                    _ = ApplyConversion(nodeForSyntax, operandOpt: null, operandType: resultTypes[i], conversion: Conversion.Identity, targetTypeWithNullability: inferredType,
+                    _ = ApplyConversion(nodeForSyntax, operandOpt: null, Conversion.Identity, targetTypeWithNullability: inferredType, operandType: resultTypes[i],
                         checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: false);
                 }
             }
@@ -1587,7 +1586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundExpression placeholder = placeholders[i];
                     Conversion conversion = conversionsWithoutNullability.ClassifyConversionFromExpression(placeholder, bestType, ref useSiteDiagnostics);
-                    resultTypes[i] = walker.ApplyConversion(placeholder, placeholder, resultTypes[i], conversion, bestTypeWithObliviousAnnotation,
+                    resultTypes[i] = walker.ApplyConversion(placeholder, placeholder, conversion, bestTypeWithObliviousAnnotation, resultTypes[i],
                         checkConversion: false, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Return,
                         reportRemainingWarnings: false, reportTopLevelWarnings: false);
                 }
@@ -1641,15 +1640,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitRvalue(i);
             }
 
+            TypeSymbolWithAnnotations result;
             if (node.Indices.Length == 1 &&
                 TypeSymbol.Equals(node.Indices[0].Type, compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything2))
             {
-                ResultType = TypeSymbolWithAnnotations.Create(type);
+                result = TypeSymbolWithAnnotations.Create(type);
             }
             else
             {
-                ResultType = type?.ElementType ?? default;
+                result = type?.ElementType ?? default;
             }
+            SetResult(result, result);
 
             return null;
         }
@@ -1942,7 +1943,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var leftState = this.State.Clone();
 
             TypeSymbolWithAnnotations rightResult = VisitOptionalImplicitConversion(rightOperand, targetType, UseLegacyWarnings(leftOperand), AssignmentKind.Assignment);
-            TrackNullableStateForAssignment(rightOperand, rightResult, targetType, leftSlot, MakeSlot(rightOperand));
+            TrackNullableStateForAssignment(rightOperand, targetType, leftSlot, rightResult, MakeSlot(rightOperand));
             Join(ref this.State, ref leftState);
 
             TypeSymbolWithAnnotations resultType = GetNullCoalescingResultType(leftOperand, currentLeftType, rightOperand, rightResult, targetType.TypeSymbol);
@@ -2301,6 +2302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultType = BestTypeInferrer.InferBestTypeForConditionalOperator(consequencePlaceholder, alternativePlaceholder, _conversions, out _, ref useSiteDiagnostics);
             }
 
+            TypeSymbolWithAnnotations visitResult;
             if ((object)resultType != null)
             {
                 var resultTypeWithAnnotations = TypeSymbolWithAnnotations.Create(resultType);
@@ -2312,9 +2314,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     convertedConsequenceResult = ApplyConversion(
                         node.Consequence,
                         consequence,
-                        consequenceResult,
                         consequenceConversion,
                         resultTypeWithAnnotations,
+                        consequenceResult,
                         checkConversion: true,
                         fromExplicitCast: false,
                         useLegacyWarnings: false,
@@ -2327,9 +2329,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     convertedAlternativeResult = ApplyConversion(
                         node.Alternative,
                         alternative,
-                        alternativeResult,
                         alternativeConversion,
                         resultTypeWithAnnotations,
+                        alternativeResult,
                         checkConversion: true,
                         fromExplicitCast: false,
                         useLegacyWarnings: false,
@@ -2340,16 +2342,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (convertedAlternativeResult.IsNull)
                 {
                     Debug.Assert(!convertedConsequenceResult.IsNull);
-                    ResultType = convertedConsequenceResult;
+                    visitResult = convertedConsequenceResult;
                 }
                 else if (convertedConsequenceResult.IsNull)
                 {
                     Debug.Assert(!convertedAlternativeResult.IsNull);
-                    ResultType = convertedAlternativeResult;
+                    visitResult = convertedAlternativeResult;
                 }
                 else
                 {
-                    ResultType = TypeSymbolWithAnnotations.Create(resultType,
+                    visitResult = TypeSymbolWithAnnotations.Create(resultType,
                                                                    convertedConsequenceResult.NullableAnnotation.JoinForFlowAnalysisBranches(convertedAlternativeResult.NullableAnnotation,
                                                                                                                                              resultType,
                                                                                                                                              type => type.IsPossiblyNullableReferenceTypeTypeParameter()));
@@ -2374,8 +2376,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                                                                  type => type.IsPossiblyNullableReferenceTypeTypeParameter());
                 }
 
-                ResultType = TypeSymbolWithAnnotations.Create(node.Type.SetUnknownNullabilityForReferenceTypes(), resultNullableAnnotation);
+                visitResult = TypeSymbolWithAnnotations.Create(node.Type.SetUnknownNullabilityForReferenceTypes(), resultNullableAnnotation);
             }
+            SetResult(visitResult, visitResult);
 
             return null;
 
@@ -2470,7 +2473,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             {
-                ResultType = method.ReturnType;
+                var type = method.ReturnType;
+                SetResult(type, type);
             }
 
             return null;
@@ -2721,7 +2725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Visit(argument);
 
                 // We'll want to use the l-value type, rather than the result type, for method re-inference
-                ResultType = _visitResult.LValueType;
+                SetResult(_visitResult.LValueType, _visitResult.LValueType);
             }
         }
 
@@ -2881,9 +2885,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ApplyConversion(
                             argument,
                             argument,
-                            resultType,
                             conversion,
                             parameterType,
+                            resultType,
                             checkConversion: true,
                             fromExplicitCast: false,
                             useLegacyWarnings: false,
@@ -2896,8 +2900,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!argument.IsSuppressed)
                         {
-                            if (!ReportNullableAssignmentIfNecessary(argument, resultType, parameterType,
-                                useLegacyWarnings: false, assignmentKind: AssignmentKind.Argument, target: parameter))
+                            if (!ReportNullableAssignmentIfNecessary(argument, parameterType, resultType,
+                                useLegacyWarnings: false, AssignmentKind.Argument, target: parameter))
                             {
                                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                                 if (!_conversions.HasIdentityOrImplicitReferenceConversion(resultType.TypeSymbol, parameterType.TypeSymbol, ref useSiteDiagnostics))
@@ -2920,7 +2924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (!argument.IsSuppressed)
                         {
-                            ReportNullableAssignmentIfNecessary(parameterValue, parameterType, lValueType, useLegacyWarnings: UseLegacyWarnings(argument));
+                            ReportNullableAssignmentIfNecessary(parameterValue, lValueType, parameterType, useLegacyWarnings: UseLegacyWarnings(argument));
 
                             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                             if (!_conversions.HasIdentityOrImplicitReferenceConversion(parameterType.TypeSymbol, lValueType.TypeSymbol, ref useSiteDiagnostics))
@@ -2934,7 +2938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // Set nullable state of argument to parameter type.
-                        TrackNullableStateForAssignment(parameterValue, parameterType, lValueType, MakeSlot(argument));
+                        TrackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argument), parameterType);
                     }
                     break;
                 default:
@@ -3389,9 +3393,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ResultType = ApplyConversion(
                 node,
                 operand,
-                operandType,
                 conversion,
                 targetType,
+                operandType,
                 checkConversion: true,
                 fromExplicitCast: fromExplicitCast,
                 useLegacyWarnings: fromExplicitCast,
@@ -3433,9 +3437,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var resultType = ApplyConversion(
                 expr,
                 operand,
-                operandType,
                 conversion,
                 targetTypeOpt,
+                operandType,
                 checkConversion: true,
                 fromExplicitCast: false,
                 useLegacyWarnings: useLegacyWarnings,
@@ -3543,7 +3547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             void trackState(BoundExpression value, FieldSymbol field, TypeSymbolWithAnnotations valueType) =>
-                TrackNullableStateForAssignment(value, valueType, field.Type, GetOrCreateSlot(field, slot), MakeSlot(value));
+                TrackNullableStateForAssignment(value, field.Type, GetOrCreateSlot(field, slot), valueType, MakeSlot(value));
         }
 
         private void TrackNullableStateOfNullableValue(int containingSlot, TypeSymbol containingType, BoundExpression value, TypeSymbolWithAnnotations valueType, int valueSlot)
@@ -3556,7 +3560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(targetSlot > 0);
             if (targetSlot > 0)
             {
-                TrackNullableStateForAssignment(value, valueType, symbol.GetTypeOrReturnType(), targetSlot, valueSlot);
+                TrackNullableStateForAssignment(value, symbol.GetTypeOrReturnType(), targetSlot, valueType, valueSlot);
             }
         }
 
@@ -3688,9 +3692,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypeSymbolWithAnnotations ApplyConversion(
             BoundExpression node,
             BoundExpression operandOpt,
-            TypeSymbolWithAnnotations operandType,
             Conversion conversion,
             TypeSymbolWithAnnotations targetTypeWithNullability,
+            TypeSymbolWithAnnotations operandType,
             bool checkConversion,
             bool fromExplicitCast,
             bool useLegacyWarnings,
@@ -3764,12 +3768,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         operandType = ApplyConversion(
                             node,
                             operandOpt,
-                            operandType,
                             conversion.UserDefinedFromConversion,
                             TypeSymbolWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.FromType),
+                            operandType,
                             checkConversion: true,
                             fromExplicitCast: false,
-                            useLegacyWarnings: useLegacyWarnings,
+                            useLegacyWarnings,
                             assignmentKind,
                             target);
 
@@ -4035,7 +4039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Need to report all warnings that apply since the warnings can be suppressed individually.
                 if (reportTopLevelWarnings)
                 {
-                    ReportNullableAssignmentIfNecessary(node, resultType, targetTypeWithNullability, useLegacyWarnings: useLegacyWarnings, assignmentKind, target);
+                    ReportNullableAssignmentIfNecessary(node, targetTypeWithNullability, resultType, useLegacyWarnings, assignmentKind, target);
                 }
                 if (reportRemainingWarnings && !canConvertNestedNullability)
                 {
@@ -4079,9 +4083,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ApplyConversion(
                 node,
                 operandOpt: null,
-                operandType: operandType,
-                conversion: conversion,
-                targetTypeWithNullability: targetType,
+                conversion,
+                targetType,
+                operandType,
                 checkConversion: false,
                 fromExplicitCast: false,
                 useLegacyWarnings: useLegacyWarnings,
@@ -4173,7 +4177,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitThisOrBaseReference(BoundExpression node)
         {
-            ResultType = TypeSymbolWithAnnotations.Create(node.Type, NullableAnnotation.NotNullable);
+            var result = TypeSymbolWithAnnotations.Create(node.Type, NullableAnnotation.NotNullable);
+            SetResult(result, result);
         }
 
         public override BoundNode VisitParameter(BoundParameter node)
@@ -4205,7 +4210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 TypeSymbolWithAnnotations rightType = VisitOptionalImplicitConversion(right, leftLValueType, UseLegacyWarnings(left), AssignmentKind.Assignment);
-                TrackNullableStateForAssignment(right, rightType, leftLValueType, MakeSlot(left), MakeSlot(right));
+                TrackNullableStateForAssignment(right, leftLValueType, MakeSlot(left), rightType, MakeSlot(right));
                 // https://github.com/dotnet/roslyn/issues/30066 Check node.Type.IsErrorType() instead?
                 ResultType = node.HasErrors ? TypeSymbolWithAnnotations.Create(node.Type) : rightType;
             }
@@ -4297,7 +4302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             var parameter = parameters[i + offset];
-                            VisitArgumentConversion(variable.Expression, underlyingConversion, parameter.RefKind, parameter, parameter.Type, new VisitResult() { ResultType = variable.Type, LValueType = variable.Type }, extensionMethodThisArgument: false);
+                            VisitArgumentConversion(variable.Expression, underlyingConversion, parameter.RefKind, parameter, parameter.Type, new VisitResult(variable.Type, variable.Type), extensionMethodThisArgument: false);
                         }
                     }
                 }
@@ -4490,9 +4495,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultOfOperandConversionType = ApplyConversion(
                         node.Operand,
                         node.Operand,
-                        operandType,
                         node.OperandConversion,
                         targetTypeOfOperandConversion,
+                        operandType,
                         checkConversion: true,
                         fromExplicitCast: false,
                         useLegacyWarnings: false,
@@ -4519,9 +4524,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultOfIncrementType = ApplyConversion(
                     node,
                     node,
-                    resultOfIncrementType,
                     node.ResultConversion,
                     operandType,
+                    resultOfIncrementType,
                     checkConversion: true,
                     fromExplicitCast: false,
                     useLegacyWarnings: false,
@@ -4534,7 +4539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ResultType = (op == UnaryOperatorKind.PrefixIncrement || op == UnaryOperatorKind.PrefixDecrement) ? resultOfIncrementType : operandType;
                     setResult = true;
 
-                    TrackNullableStateForAssignment(node, valueType: resultOfIncrementType, targetType: operandType, targetSlot: MakeSlot(node.Operand));
+                    TrackNullableStateForAssignment(node, targetType: operandType, targetSlot: MakeSlot(node.Operand), valueType: resultOfIncrementType);
                 }
             }
 
@@ -4566,9 +4571,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     leftOnRightType = ApplyConversion(
                         node.Left,
                         node.Left,
-                        leftOnRightType,
                         node.LeftConversion,
                         TypeSymbolWithAnnotations.Create(node.Operator.LeftType),
+                        leftOnRightType,
                         checkConversion: true,
                         fromExplicitCast: false,
                         useLegacyWarnings: false,
@@ -4596,9 +4601,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultType = ApplyConversion(
                         node,
                         node,
-                        resultType,
                         node.FinalConversion,
                         leftLValueType,
+                        resultType,
                         checkConversion: true,
                         fromExplicitCast: false,
                         useLegacyWarnings: false,
@@ -4609,7 +4614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultType = TypeSymbolWithAnnotations.Create(node.Type);
                 }
 
-                TrackNullableStateForAssignment(node, resultType, leftLValueType, MakeSlot(node.Left));
+                TrackNullableStateForAssignment(node, leftLValueType, MakeSlot(node.Left), resultType);
                 ResultType = resultType;
             }
             //else
@@ -4644,7 +4649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void ReportArgumentWarnings(BoundExpression argument, TypeSymbolWithAnnotations argumentType, ParameterSymbol parameter)
         {
             var paramType = parameter.Type;
-            ReportNullableAssignmentIfNecessary(argument, argumentType, paramType, useLegacyWarnings: false, assignmentKind: AssignmentKind.Argument, target: parameter);
+            ReportNullableAssignmentIfNecessary(argument, paramType, argumentType, useLegacyWarnings: false, AssignmentKind.Argument, target: parameter);
 
             if (!argumentType.IsNull && IsNullabilityMismatch(paramType.TypeSymbol, argumentType.TypeSymbol))
             {
@@ -4708,15 +4713,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, node.Indexer, node.ArgsToParamsOpt, node.Expanded);
 
             // https://github.com/dotnet/roslyn/issues/30620 remove before shipping dev16
+            TypeSymbolWithAnnotations type;
             if (node.Arguments.Length == 1 &&
                 TypeSymbol.Equals(node.Arguments[0].Type, compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything2))
             {
-                ResultType = TypeSymbolWithAnnotations.Create(node.Type);
+                type = TypeSymbolWithAnnotations.Create(node.Type);
             }
             else
             {
-                ResultType = node.Indexer.Type;
+                type = node.Indexer.Type;
             }
+            SetResult(type, type);
             return null;
         }
 
@@ -4832,9 +4839,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbolWithAnnotations result = ApplyConversion(
                         node.IterationVariableType,
                         operandOpt: null,
-                        operandType: sourceType,
-                        conversion: conversion,
-                        targetTypeWithNullability: destinationType,
+                        conversion,
+                        destinationType,
+                        sourceType,
                         checkConversion: false,
                         fromExplicitCast: true,
                         useLegacyWarnings: false,
@@ -4878,7 +4885,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitBadExpression(BoundBadExpression node)
         {
             var result = base.VisitBadExpression(node);
-            ResultType = TypeSymbolWithAnnotations.Create(node.Type);
+            var type = TypeSymbolWithAnnotations.Create(node.Type);
+            SetResult(type, type);
             return result;
         }
 
@@ -5309,7 +5317,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckPossibleNullReceiver(receiver);
 
             Debug.Assert(node.Type.IsDynamic());
-            ResultType = TypeSymbolWithAnnotations.Create(node.Type);
+            var result = TypeSymbolWithAnnotations.Create(node.Type);
+            SetResult(result, result);
             return null;
         }
 
@@ -5323,7 +5332,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // https://github.com/dotnet/roslyn/issues/29893 Update applicable members based on inferred argument types.
             NullableAnnotation nullableAnnotation = InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableMethods));
-            ResultType = TypeSymbolWithAnnotations.Create(node.Type, nullableAnnotation);
+            var result = TypeSymbolWithAnnotations.Create(node.Type, nullableAnnotation);
+            SetResult(result, result);
             return null;
         }
 
@@ -5439,7 +5449,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableAnnotation nullableAnnotation = (object)node.Type != null && !node.Type.IsValueType ?
                 InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableIndexers)) :
                 NullableAnnotation.Unknown;
-            ResultType = TypeSymbolWithAnnotations.Create(node.Type, nullableAnnotation);
+            var result = TypeSymbolWithAnnotations.Create(node.Type, nullableAnnotation);
+            SetResult(result, result);
             return null;
         }
 
@@ -5570,7 +5581,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDiscardExpression(BoundDiscardExpression node)
         {
-            SetResult(node);
+            var result = TypeSymbolWithAnnotations.Create(node.Type);
+            SetResult(result, result);
             return null;
         }
 

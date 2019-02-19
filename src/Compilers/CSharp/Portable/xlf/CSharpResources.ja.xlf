@@ -1333,22 +1333,22 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument">
-        <source>Differences in nullability of reference types in argument of type '{0}' prevent it from being used as an input of type '{1}' for parameter '{2}' in '{3}'.</source>
+        <source>Argument of type '{0}' cannot be used as an input of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
         <target state="needs-review-translation">'{0}' 型の引数における参照型の Null 許容性が、'{3}' 内のパラメーター '{2}' に関する対象の型 '{1}' と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput">
-        <source>Differences in nullability of reference types in argument of type '{0}' prevent it from being used as an output of type '{1}' for parameter '{2}' in '{3}'.</source>
-        <target state="new">Differences in nullability of reference types in argument of type '{0}' prevent it from being used as an output of type '{1}' for parameter '{2}' in '{3}'.</target>
+        <source>Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
+        <target state="new">Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput_Title">
-        <source>Differences in nullability of reference types in argument prevent it from being used as an output for target parameter.</source>
-        <target state="new">Differences in nullability of reference types in argument prevent it from being used as an output for target parameter.</target>
+        <source>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</source>
+        <target state="new">Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
-        <source>Differences in nullability of reference types in argument prevent it from being used as an input for target parameter.</source>
+        <source>Value cannot be used as an input for parameter due to differences in the nullability of reference types.</source>
         <target state="needs-review-translation">引数における参照型の Null 許容性が、対象の型と一致しません。</target>
         <note />
       </trans-unit>

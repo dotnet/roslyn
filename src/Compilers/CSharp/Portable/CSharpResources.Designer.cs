@@ -15017,7 +15017,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Differences in nullability of reference types in argument of type &apos;{0}&apos; prevent it from being used as an input of type &apos;{1}&apos; for parameter &apos;{2}&apos; in &apos;{3}&apos;..
+        ///   Looks up a localized string similar to Argument of type &apos;{0}&apos; cannot be used as an input of type &apos;{1}&apos; for parameter &apos;{2}&apos; in &apos;{3}&apos; due to differences in the nullability of reference types..
         /// </summary>
         internal static string WRN_NullabilityMismatchInArgument {
             get {
@@ -15026,7 +15026,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Differences in nullability of reference types in argument prevent it from being used as an input for target parameter..
+        ///   Looks up a localized string similar to Value cannot be used as an input for parameter due to differences in the nullability of reference types..
         /// </summary>
         internal static string WRN_NullabilityMismatchInArgument_Title {
             get {
@@ -15035,7 +15035,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Differences in nullability of reference types in argument of type &apos;{0}&apos; prevent it from being used as an output of type &apos;{1}&apos; for parameter &apos;{2}&apos; in &apos;{3}&apos;..
+        ///   Looks up a localized string similar to Argument of type &apos;{0}&apos; cannot be used as an output of type &apos;{1}&apos; for parameter &apos;{2}&apos; in &apos;{3}&apos; due to differences in the nullability of reference types..
         /// </summary>
         internal static string WRN_NullabilityMismatchInArgumentForOutput {
             get {
@@ -15044,7 +15044,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Differences in nullability of reference types in argument prevent it from being used as an output for target parameter..
+        ///   Looks up a localized string similar to Argument cannot be used as an output for parameter due to differences in the nullability of reference types..
         /// </summary>
         internal static string WRN_NullabilityMismatchInArgumentForOutput_Title {
             get {
