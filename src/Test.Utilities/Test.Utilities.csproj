@@ -19,5 +19,6 @@
     <PackageReference Include="xunit.assert" Version="$(XunitVersion)" />
     <PackageReference Include="Humanizer.Core" Version="$(HumanizerVersion)"/>
   </ItemGroup>
-  <Import Project="..\Utilities\Analyzer.Utilities.projitems" Label="Shared" />
+  <Import Project="..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
+  <Import Project="..\Utilities\Workspaces\Workspaces.Utilities.projitems" Label="Shared" />
 </Project>
