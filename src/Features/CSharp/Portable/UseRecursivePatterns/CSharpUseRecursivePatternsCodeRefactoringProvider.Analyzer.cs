@@ -70,11 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                                 : new TypePattern((TypeSyntax)right));
 
                     // Analyze and combine both operands of an &&-operator.
-                    case SyntaxKind.LogicalAndExpression
-                        // No need to Visit(right) if Visit(left) has already failed.
-                        when Visit(left) is AnalyzedNode analyzedLeft &&
-                            Visit(right) is AnalyzedNode analyzedRight:
-                        return new Conjunction(analyzedLeft, analyzedRight);
+                    case SyntaxKind.LogicalAndExpression:
+                        return Conjunction.Create(Visit(left), Visit(right));
                 }
 
                 // Otherwise, yield as an evaluation node.
@@ -152,13 +149,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                     nodes.Add(Visit(node.Designation));
                 }
 
-                if (nodes.Count == 0)
-                {
-                    nodes.Free();
-                    return NotNullPattern.Instance;
-                }
-
-                return nodes.ToImmutableAndFree().Aggregate((left, right) => new Conjunction(left, right));
+                var result = nodes.Count == 0
+                    ? NotNullPattern.Instance
+                    : nodes.Aggregate((left, right) => new Conjunction(left, right));
+                nodes.Free();
+                return result;
             }
 
             public override AnalyzedNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
