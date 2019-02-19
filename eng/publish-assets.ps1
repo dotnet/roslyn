@@ -126,11 +126,6 @@ function Publish-Entry($publishData, [switch]$isBranch) {
     exit 0
 }
 
-function Test-Member($obj, [string]$name) { 
-    $value = Get-Member -Name $name -InputObject $obj 
-    return $value -ne $null
-}
-
 try {
     if ($configuration -eq "") {
         Write-Host "Must provide the build configuration with -configuration"
@@ -141,29 +136,28 @@ try {
 
     $dotnet = Ensure-DotnetSdk
 
-    Write-Host "Downloading PublishData.json"
-    $publishFileContent = (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/dotnet/roslyn/master/eng/config/PublishData.json" -UseBasicParsing).Content
-    $data = ConvertFrom-Json $publishFileContent
-
     if ($branchName -ne "" -and $releaseName -ne "") {
         Write-Host "Can only specify -branchName or -releaseName, not both"
         exit 1
     }
-    elseif ($branchName -ne "") {
-        if (-not (Test-Member $data.branches $branchName)) { 
-            Write-Host "$branchName is not listed for publishing"
+
+    if ($branchName -ne "") {
+        $data = GetBranchPublishData $branchName
+        if ($data -eq $null) {
+            Write-Host "Branch $branchName not listed for publishing."
             exit 0
         }
 
-        Publish-Entry $data.branches.$branchName -isBranch:$true
+        Publish-Entry $data -isBranch:$true
     }
-    elseif ($releaseName -ne "") { 
-        if (-not (Test-Member $data.releases $releaseName)) { 
-           Write-Host "$releaseName is not a valid release"
-           exit 1
+    elseif ($releaseName -ne "") {
+        $data = GetReleasePublishData $releaseName
+        if ($data -eq $null) {
+            Write-Host "Release $releaseName not listed for publishing."
+            exit 1
         }
 
-        Publish-Entry $data.releases.$releaseName -isBranch:$false
+        Publish-Entry $data -isBranch:$false
     }
     else {
         Write-Host "Need to specify -branchName or -releaseName"
