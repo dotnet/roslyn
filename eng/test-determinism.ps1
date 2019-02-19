@@ -29,8 +29,11 @@ $script:skipList = @()
 function Run-Build([string]$rootDir, [string]$logFileName) {
     # Clean out the previous run
     Write-Host "Cleaning binaries"
+    $stopWatch = [System.Diagnostics.StopWatch]::StartNew()
     Remove-Item -Recurse (Get-BinDir $rootDir) 
     Remove-Item -Recurse (Get-ObjDir $rootDir) 
+    $stopWatch.Stop()
+    Write-Host "Cleaning took $($stopWatch.Elapsed)"
 
     $solution = Join-Path $rootDir "Roslyn.sln"
 
@@ -90,6 +93,7 @@ function Get-FilesToProcess([string]$rootDir) {
 
 # This will build up the map of all of the binaries and their respective hashes.
 function Record-Binaries([string]$rootDir) {
+    $stopWatch = [System.Diagnostics.StopWatch]::StartNew()
     Write-Host "Recording file hashes"
 
     $map = @{ }
@@ -97,6 +101,8 @@ function Record-Binaries([string]$rootDir) {
         Write-Host "`t$($fileData.FileName) = $($fileData.Hash)"
         $map[$fileData.FileId] = $fileData
     }
+    $stopWatch.Stop()
+    Write-Host "Recording took $($stopWatch.Elapsed)"
     return $map
 }
 
@@ -140,6 +146,7 @@ function Test-Build([string]$rootDir, $dataMap, [string]$logFileName) {
     $allGood = $true
 
     Write-Host "Testing the binaries"
+    $stopWatch = [System.Diagnostics.StopWatch]::StartNew()
     foreach ($fileData in Get-FilesToProcess $rootDir) {
         $fileId = $fileData.FileId
         $fileName = $fileData.FileName
@@ -188,6 +195,9 @@ function Test-Build([string]$rootDir, $dataMap, [string]$logFileName) {
         Write-Host "Please send $zipFile to compiler team for analysis"
         exit 1
     }
+
+    $stopWatch.Stop()
+    Write-Host "Testing took $($stopWatch.Elapsed)"
 }
 
 function Run-Test() {
