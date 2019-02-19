@@ -2,6 +2,7 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -71,6 +72,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             var reducedNode = Reducer.Reduce(analyzedNode, semanticModel);
             if (reducedNode is null)
             {
+                return;
+            }
+
+            if (node.IsKind(SyntaxKind.CasePatternSwitchLabel, SyntaxKind.SwitchExpressionArm) &&
+                reducedNode.Kind != NodeKind.Conjunction)
+            {
+                // We don't expect to reach here, but we'll bail out if this assumption didn't hold.
+                Debug.Fail("Unhandled case.");
                 return;
             }
 
