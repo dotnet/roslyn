@@ -47,9 +47,6 @@ namespace Microsoft.CodeAnalysis
                     //
                     // hash algorithm used here should remain functionally correct even
                     // after the truncation
-                    //
-                    // ex) "https://bugzilla.xamarin.com/show_bug.cgi?id=60298" - LayoutKind.Explicit, Size = 12 ignored with 64bit alignment
-                    // or  "https://github.com/dotnet/roslyn/issues/23722" - Checksum throws on Mono 64-bit
                     return Checksum.From(bytes);
                 }
             }

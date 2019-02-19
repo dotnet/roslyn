@@ -88,6 +88,9 @@ namespace Microsoft.CodeAnalysis
             fixed (byte* data = checksum)
             {
                 // Avoid a direct dereferencing assignment since sizeof(HashData) may be greater than HashSize.
+                //
+                // ex) "https://bugzilla.xamarin.com/show_bug.cgi?id=60298" - LayoutKind.Explicit, Size = 12 ignored with 64bit alignment
+                // or  "https://github.com/dotnet/roslyn/issues/23722" - Checksum throws on Mono 64-bit
                 return new Checksum(HashData.FromPointer((HashData*)data));
             }
         }
@@ -153,7 +156,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This structure stores the 20-byte SHA256 hash as an inline value rather than requiring the use of
+        /// This structure stores the 20-byte hash as an inline value rather than requiring the use of
         /// <c>byte[]</c>.
         /// </summary>
         [StructLayout(LayoutKind.Explicit, Size = HashSize)]
