@@ -88,6 +88,138 @@ internal struct NewStruct
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleTypeNoNames()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](1, 2);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewStruct|}(1, 2);
+    }
+}
+
+internal struct NewStruct
+{
+    public int Item1;
+    public int Item2;
+
+    public NewStruct(int item1, int item2)
+    {
+        Item1 = item1;
+        Item2 = item2;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct other &&
+               Item1 == other.Item1 &&
+               Item2 == other.Item2;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = -1030903623;
+        hashCode = hashCode * -1521134295 + Item1.GetHashCode();
+        hashCode = hashCode * -1521134295 + Item2.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int item1, out int item2)
+    {
+        item1 = Item1;
+        item2 = Item2;
+    }
+
+    public static implicit operator (int, int) (NewStruct value)
+    {
+        return (value.Item1, value.Item2);
+    }
+
+    public static implicit operator NewStruct((int, int) value)
+    {
+        return new NewStruct(value.Item1, value.Item2);
+    }
+}";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleTypePartialNames()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](1, b: 2);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewStruct|}(1, b: 2);
+    }
+}
+
+internal struct NewStruct
+{
+    public int Item1;
+    public int b;
+
+    public NewStruct(int item1, int b)
+    {
+        Item1 = item1;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct other &&
+               Item1 == other.Item1 &&
+               b == other.b;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 174326978;
+        hashCode = hashCode * -1521134295 + Item1.GetHashCode();
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int item1, out int b)
+    {
+        item1 = Item1;
+        b = this.b;
+    }
+
+    public static implicit operator (int, int b) (NewStruct value)
+    {
+        return (value.Item1, value.b);
+    }
+
+    public static implicit operator NewStruct((int, int b) value)
+    {
+        return new NewStruct(value.Item1, value.b);
+    }
+}";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task ConvertFromType()
         {
             var text = @"
