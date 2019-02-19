@@ -1559,8 +1559,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                    ref useSiteDiagnostics,
                                                    out okToDowngradeToNeither);
 
-                var type1Normalized = type1.NormalizeTaskTypes(Compilation);
-                var type2Normalized = type2.NormalizeTaskTypes(Compilation);
+                var type1Normalized = type1;
+                var type2Normalized = type2;
+                if ((_binder.Flags & BinderFlags.AttributeArgument) == BinderFlags.None)
+                {
+                    type1Normalized = type1.NormalizeTaskTypes(Compilation);
+                    type2Normalized = type2.NormalizeTaskTypes(Compilation);
+                }
 
                 if (r == BetterResult.Neither)
                 {

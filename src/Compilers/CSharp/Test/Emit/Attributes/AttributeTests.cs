@@ -9008,7 +9008,10 @@ public class C2
 }
 ";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (20,6): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [Rec(C.M(null))]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(null)").WithLocation(20, 6));
         }
 
         #endregion
