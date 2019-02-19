@@ -178,6 +178,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public static void SetForegroundWindow(IntPtr window)
         {
             var activeWindow = NativeMethods.GetLastActivePopup(window);
+            activeWindow = NativeMethods.IsWindowVisible(activeWindow) ? activeWindow : window;
             NativeMethods.SwitchToThisWindow(activeWindow, true);
         }
 
