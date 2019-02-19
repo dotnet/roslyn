@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
 {
     [DebuggerDisplay("Count = {Count,nq}")]
     [DebuggerTypeProxy(typeof(ArrayBuilder<>.DebuggerProxy))]
-    internal sealed partial class ArrayBuilder<T> : IReadOnlyCollection<T>, IReadOnlyList<T>
+    public sealed partial class ArrayBuilder<T> : IReadOnlyCollection<T>, IReadOnlyList<T>
     {
         #region DebuggerProxy
 #pragma warning disable CA1812 // ArrayBuilder<T>.DebuggerProxy is an internal class that is apparently never instantiated - used in DebuggerTypeProxy attribute above.
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var tmp = ArrayBuilder<U>.GetInstance(Count);
-            foreach (var i in this)
+            foreach (var i in _builder)
             {
                 tmp.Add((U)i);
             }
@@ -363,12 +363,12 @@ namespace Microsoft.CodeAnalysis
             return builder;
         }
 
-        public static ObjectPool<ArrayBuilder<T>> CreatePool()
+        internal static ObjectPool<ArrayBuilder<T>> CreatePool()
         {
             return CreatePool(128); // we rarely need more than 10
         }
 
-        public static ObjectPool<ArrayBuilder<T>> CreatePool(int size)
+        internal static ObjectPool<ArrayBuilder<T>> CreatePool(int size)
         {
             ObjectPool<ArrayBuilder<T>> pool = null;
             pool = new ObjectPool<ArrayBuilder<T>>(() => new ArrayBuilder<T>(pool), size);
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis
 
         #endregion
 
-        public Enumerator GetEnumerator()
+        internal Enumerator GetEnumerator()
         {
             return new Enumerator(this);
         }
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis
             var result = ArrayBuilder<S>.GetInstance(Count);
             var set = PooledHashSet<S>.GetInstance();
 
-            foreach (var item in this)
+            foreach (var item in _builder)
             {
                 var selected = selector(item);
                 if (set.Add(selected))

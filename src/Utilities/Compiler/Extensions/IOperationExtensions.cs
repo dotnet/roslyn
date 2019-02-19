@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.Extensions
 {
-    internal static class IOperationExtensions
+    internal static partial class IOperationExtensions
     {
         /// <summary>
         /// Gets the receiver type for an invocation expression (i.e. type of 'A' in invocation 'A.B()')
@@ -326,39 +326,6 @@ namespace Analyzer.Utilities.Extensions
             return null;
         }
 
-        public static bool IsInsideCatchRegion(this IOperation operation, ControlFlowGraph cfg)
-        {
-            foreach (var block in cfg.Blocks)
-            {
-                var isCatchRegionBlock = false;
-                var currentRegion = block.EnclosingRegion;
-                while (currentRegion != null)
-                {
-                    switch (currentRegion.Kind)
-                    {
-                        case ControlFlowRegionKind.Catch:
-                            isCatchRegionBlock = true;
-                            break;
-                    }
-
-                    currentRegion = currentRegion.EnclosingRegion;
-                }
-
-                if (isCatchRegionBlock)
-                {
-                    foreach (var descendant in block.DescendantOperations())
-                    {
-                        if (operation == descendant)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            return false;
-        }
-
         public static bool IsInsideAnonymousFunction(this IOperation operation)
             => operation.GetAncestor<IAnonymousFunctionOperation>(OperationKind.AnonymousFunction) != null;
 
@@ -417,17 +384,6 @@ namespace Analyzer.Utilities.Extensions
                 default:
                     return false;
             }
-        }
-
-        public static ITypeSymbol GetThrowExceptionType(this IOperation thrownOperation, BasicBlock currentBlock)
-        {
-            if (thrownOperation?.Type != null)
-            {
-                return thrownOperation.Type;
-            }
-
-            // rethrow or throw with no argument.
-            return currentBlock.GetEnclosingRegionExceptionType();
         }
 
         public static bool IsLambdaOrLocalFunctionOrDelegateInvocation(this IInvocationOperation operation)
@@ -547,47 +503,6 @@ namespace Analyzer.Utilities.Extensions
                 {
                     builder.Add(symbol);
                 }
-            }
-        }
-
-        /// <summary>
-        /// For a reference operation passed to <see cref="Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor&lt;TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue&gt;.ComputeAnalysisValueForReferenceOperation(IOperation, TAbstractAnalysisValue)"/>, gets the containing instance if any.
-        /// </summary>
-        /// <param name="operation">Reference operation.</param>
-        /// <returns>Containing instance if any, null otherwise.</returns>
-        public static IOperation GetReferenceOperationReferencee(this IOperation operation)
-        {
-            if (operation == null)
-            {
-                throw new ArgumentNullException(nameof(operation));
-            }
-
-            switch (operation)
-            {
-                // Handles:
-                // - IEventReferenceOperation
-                // - IFieldReferenceOperation
-                // - IMethodReferenceOperation
-                // - IPropertyReferenceOperation
-                case IMemberReferenceOperation memberReferenceOperation:
-                    return memberReferenceOperation.Instance;
-
-                case ILocalReferenceOperation _:
-                case IParameterReferenceOperation _:
-                    return null;
-
-                case IArrayElementReferenceOperation arrayElementReferenceOperation:
-                    return arrayElementReferenceOperation.ArrayReference;
-
-                case IDynamicMemberReferenceOperation dynamicMemberReferenceOperation:
-                    return dynamicMemberReferenceOperation.Instance;
-
-                case IFlowCaptureReferenceOperation _:
-                    return null;
-
-                default:
-                    Debug.Fail($"Unhandled IOperation {operation.Kind}");
-                    return null;
             }
         }
 

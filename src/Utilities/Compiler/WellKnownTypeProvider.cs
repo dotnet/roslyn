@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Analyzer.Utilities;
@@ -12,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// <summary>
     /// Provides and caches well known types in a compilation for <see cref="DataFlowAnalysis"/>.
     /// </summary>
-    internal class WellKnownTypeProvider
+    public class WellKnownTypeProvider
     {
         private static readonly ConditionalWeakTable<Compilation, WellKnownTypeProvider> s_providerCache =
             new ConditionalWeakTable<Compilation, WellKnownTypeProvider>();
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public INamedTypeSymbol Exception { get; }
 
         /// <summary>
-        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Diagnostics.Contracts.Contract"/>
+        /// <see cref="INamedTypeSymbol"/> for 'System.Diagnostics.Contracts.Contract' type. />
         /// </summary>
         public INamedTypeSymbol Contract { get; }
 
@@ -64,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public INamedTypeSymbol Monitor { get; }
 
         /// <summary>
-        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Runtime.Serialization.SerializationInfo"/>
+        /// <see cref="INamedTypeSymbol"/> for 'System.Runtime.Serialization.SerializationInfo' type />
         /// </summary>
         public INamedTypeSymbol SerializationInfo { get; }
 
