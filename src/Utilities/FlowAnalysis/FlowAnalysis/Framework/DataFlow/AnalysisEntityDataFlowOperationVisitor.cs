@@ -605,11 +605,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected abstract void ApplyInterproceduralAnalysisResultCore(TAnalysisData resultData);
 
-        protected sealed override void ApplyInterproceduralAnalysisResult(TAnalysisData resultData, bool isLambdaOrLocalFunction)
+        protected sealed override void ApplyInterproceduralAnalysisResult(TAnalysisData resultData, bool isLambdaOrLocalFunction, TAnalysisResult interproceduralResult)
         {
             if (isLambdaOrLocalFunction)
             {
-                base.ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction);
+                base.ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, interproceduralResult);
                 return;
             }
 

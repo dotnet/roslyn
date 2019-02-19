@@ -1488,7 +1488,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// Default implementation is designed for the default implementation of GetInitialInterproceduralAnalysisData.
         /// and overwrites the CurrentAnalysisData with the given <paramref name="resultData"/>.
         /// </summary>
-        protected virtual void ApplyInterproceduralAnalysisResult(TAnalysisData resultData, bool isLambdaOrLocalFunction)
+        protected virtual void ApplyInterproceduralAnalysisResult(TAnalysisData resultData, bool isLambdaOrLocalFunction, TAnalysisResult interproceduralResult)
             => CurrentAnalysisData = resultData;
 
         protected bool TryGetInterproceduralAnalysisResult(IOperation operation, out TAnalysisResult analysisResult)
@@ -1590,7 +1590,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             if (isContextSensitive)
             {
                 var resultData = GetExitBlockOutputData(analysisResult);
-                ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction);
+                ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, analysisResult);
                 Debug.Assert(arguments.All(arg => !_pendingArgumentsToReset.Contains(arg)));
             }
             else
@@ -1627,6 +1627,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             void ResetAnalysisData()
             {
                 // Interprocedural analysis did not succeed, so we need to conservatively reset relevant analysis data.
+                if (!PessimisticAnalysis)
+                {
+                    // We are performing an optimistic analysis, so we should not reset any data.
+                    return;
+                }
+
                 if (isLambdaOrLocalFunction)
                 {
                     // For local/lambda cases, we reset all analysis data.

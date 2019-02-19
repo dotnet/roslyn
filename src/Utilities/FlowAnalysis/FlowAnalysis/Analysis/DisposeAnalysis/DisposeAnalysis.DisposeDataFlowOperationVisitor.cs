@@ -271,6 +271,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 return value;
             }
 
+            protected override void ApplyInterproceduralAnalysisResult(DisposeAnalysisData resultData, bool isLambdaOrLocalFunction, DisposeAnalysisResult interproceduralResult)
+            {
+                base.ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, interproceduralResult);
+
+                // Apply the tracked instance field locations from interprocedural analysis.
+                if (_trackedInstanceFieldLocationsOpt != null)
+                {
+                    foreach (var (field, pointsToValue) in interproceduralResult.TrackedInstanceFieldPointsToMap)
+                    {
+                        if (!_trackedInstanceFieldLocationsOpt.ContainsKey(field))
+                        {
+                            _trackedInstanceFieldLocationsOpt.Add(field, pointsToValue);
+                        }
+                    }
+                }
+            }
             protected override DisposeAbstractValue VisitAssignmentOperation(IAssignmentOperation operation, object argument)
             {
                 var value = base.VisitAssignmentOperation(operation, argument);
