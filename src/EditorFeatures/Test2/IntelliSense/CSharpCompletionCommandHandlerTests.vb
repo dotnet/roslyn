@@ -1735,7 +1735,7 @@ class Goo
         End Function
 
         <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/pull/29820"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function KeywordsOrSymbolsAfterNamedParameter(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                                 <Document>
@@ -1751,11 +1751,11 @@ class Goo
     {
     }
 }
-                              </Document>, languageVersion:=LanguageVersion.CSharp7)
+                              </Document>)
 
                 state.SendTypeChars("a")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAny(displayText:="num", displayTextSuffix:=":"))
+                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "num" AndAlso i.DisplayTextSuffix = ":"))
                 Assert.True(state.CompletionItemsContainsAny({"System"}))
                 Assert.True(state.CompletionItemsContainsAny({"int"}))
             End Using
