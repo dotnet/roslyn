@@ -24,7 +24,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             ISymbol owningSymbol,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
-            DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> pointsToAnalysisResult,
+            PointsToAnalysisResult pointsToAnalysisResult,
             Func<TaintedDataAnalysisContext, TaintedDataAnalysisResult> getOrComputeAnalysisResult,
             ControlFlowGraph parentControlFlowGraph,
             InterproceduralTaintedDataAnalysisData interproceduralAnalysisDataOpt,
@@ -59,7 +59,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             ISymbol owningSymbol,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
-            DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> pointsToAnalysisResult,
+            PointsToAnalysisResult pointsToAnalysisResult,
             Func<TaintedDataAnalysisContext, TaintedDataAnalysisResult> getOrComputeAnalysisResult,
             TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
             TaintedDataSymbolMap<SanitizerInfo> taintedSanitizerInfos,
@@ -87,7 +87,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             IMethodSymbol invokedMethod,
             ControlFlowGraph invokedCfg,
             IOperation operation,
-            DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> pointsToAnalysisResultOpt,
+            PointsToAnalysisResult pointsToAnalysisResultOpt,
             DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue> copyAnalysisResultOpt,
             InterproceduralTaintedDataAnalysisData interproceduralAnalysisData)
         {

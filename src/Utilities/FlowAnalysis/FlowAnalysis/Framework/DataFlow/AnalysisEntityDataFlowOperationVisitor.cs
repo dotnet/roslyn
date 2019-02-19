@@ -189,7 +189,33 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        protected virtual void SetAbstractValueForAssignment(AnalysisEntity targetAnalysisEntity, IOperation assignedValueOperation, TAbstractAnalysisValue assignedValue)
+        protected override void SetAbstractValueForTupleElementAssignment(AnalysisEntity tupleElementEntity, IOperation assignedValueOperation, TAbstractAnalysisValue assignedValue)
+        {
+            if (tupleElementEntity.Type.IsTupleType)
+            {
+                // For nested tuple entity, we only want to flow the value for the tuple, not it's children.
+                // Children of nested tuples should have already been assigned when visiting the nested tuple operation in the base dataflow visitor.
+                SetAbstractValue(tupleElementEntity, assignedValue);
+            }
+            else
+            {
+                SetAbstractValueForAssignment(tupleElementEntity, assignedValueOperation, assignedValue);
+            }
+        }
+
+        protected virtual void SetAbstractValueForAssignment(AnalysisEntity targetAnalysisEntity, IOperation assignedValueOperationOpt, TAbstractAnalysisValue assignedValue)
+        {
+            AnalysisEntity assignedValueEntityOpt = null;
+            if (assignedValueOperationOpt != null)
+            {
+                var success = AnalysisEntityFactory.TryCreate(assignedValueOperationOpt, out assignedValueEntityOpt);
+                Debug.Assert(success || assignedValueEntityOpt == null);
+            }
+
+            SetAbstractValueForAssignment(targetAnalysisEntity, assignedValueEntityOpt, assignedValueOperationOpt, assignedValue);
+        }
+
+        private void SetAbstractValueForAssignment(AnalysisEntity targetAnalysisEntity, AnalysisEntity assignedValueEntityOpt, IOperation assignedValueOperationOpt, TAbstractAnalysisValue assignedValue)
         {
             // Value type and string type assignment has copy semantics.
             if (HasPointsToAnalysisResult &&
@@ -198,11 +224,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 // Reset the analysis values for analysis entities within the target instance.
                 ResetValueTypeInstanceAnalysisData(targetAnalysisEntity);
 
-                if (assignedValueOperation != null)
-                {
-                    // Transfer the values of symbols from the assigned instance to the analysis entities in the target instance.
-                    TransferValueTypeInstanceAnalysisDataForAssignment(targetAnalysisEntity, assignedValueOperation);
-                }
+                // Transfer the values of symbols from the assigned instance to the analysis entities in the target instance.
+                TransferValueTypeInstanceAnalysisDataForAssignment(targetAnalysisEntity, assignedValueEntityOpt, assignedValueOperationOpt);
             }
 
             var addressSharedCopyValue = TryGetAddressSharedCopyValue(targetAnalysisEntity);
@@ -284,32 +307,36 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         /// <summary>
-        /// Transfers the analysis data rooted from <paramref name="assignedValueOperation"/> to <paramref name="targetAnalysisEntity"/>, for a value type assignment operation.
-        /// This involves transfer of data for of all <see cref="AnalysisEntity"/> instances that share the same <see cref="AnalysisEntity.InstanceLocation"/> as the valueAnalysisEntity for the <paramref name="assignedValueOperation"/>
+        /// Transfers the analysis data rooted from <paramref name="valueAnalysisEntityOpt"/> or <paramref name="assignedValueOperationOpt"/> to <paramref name="targetAnalysisEntity"/>, for a value type assignment operation.
+        /// This involves transfer of data for of all <see cref="AnalysisEntity"/> instances that share the same <see cref="AnalysisEntity.InstanceLocation"/> as <paramref name="valueAnalysisEntityOpt"/> or allocation for the <paramref name="assignedValueOperationOpt"/>
         /// to all <see cref="AnalysisEntity"/> instances that share the same <see cref="AnalysisEntity.InstanceLocation"/> as <paramref name="targetAnalysisEntity"/>.
         /// </summary>
-        private void TransferValueTypeInstanceAnalysisDataForAssignment(AnalysisEntity targetAnalysisEntity, IOperation assignedValueOperation)
+        private void TransferValueTypeInstanceAnalysisDataForAssignment(AnalysisEntity targetAnalysisEntity, AnalysisEntity valueAnalysisEntityOpt, IOperation assignedValueOperationOpt)
         {
             Debug.Assert(HasPointsToAnalysisResult);
             Debug.Assert(targetAnalysisEntity.Type.HasValueCopySemantics());
 
             IEnumerable<AnalysisEntity> dependentAnalysisEntities;
-            if (AnalysisEntityFactory.TryCreate(assignedValueOperation, out AnalysisEntity valueAnalysisEntity))
+            if (valueAnalysisEntityOpt != null)
             {
-                if (!valueAnalysisEntity.Type.HasValueCopySemantics())
+                if (!valueAnalysisEntityOpt.Type.HasValueCopySemantics())
                 {
                     // Unboxing conversion from assigned value (reference type) to target (value copy semantics).
                     // We do not need to transfer any data for such a case as there is no entity for unboxed value.
                     return;
                 }
 
-                dependentAnalysisEntities = GetChildAnalysisEntities(valueAnalysisEntity);
+                dependentAnalysisEntities = GetChildAnalysisEntities(valueAnalysisEntityOpt);
+            }
+            else if (assignedValueOperationOpt != null)
+            {
+                // For allocations.
+                PointsToAbstractValue newValueLocation = GetPointsToAbstractValue(assignedValueOperationOpt);
+                dependentAnalysisEntities = GetChildAnalysisEntities(newValueLocation);
             }
             else
             {
-                // For allocations.
-                PointsToAbstractValue newValueLocation = GetPointsToAbstractValue(assignedValueOperation);
-                dependentAnalysisEntities = GetChildAnalysisEntities(newValueLocation);
+                return;
             }
 
             foreach (AnalysisEntity dependentInstance in dependentAnalysisEntities)
@@ -349,7 +376,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private ImmutableHashSet<AnalysisEntity> GetChildAnalysisEntities(PointsToAbstractValue instanceLocationOpt, Func<AnalysisEntity, bool> predicateOpt)
         {
             // We are interested only in dependent child/member infos, not the root info.
-            if (instanceLocationOpt == null)
+            if (instanceLocationOpt == null || instanceLocationOpt.Kind == PointsToAbstractValueKind.Unknown)
             {
                 return ImmutableHashSet<AnalysisEntity>.Empty;
             }
@@ -634,5 +661,72 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> GetClonedAnalysisDataHelper(IDictionary<AnalysisEntity, TAbstractAnalysisValue> analysisData)
             => new DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue>(analysisData);
+
+        #region Visitor methods
+
+        public override TAbstractAnalysisValue VisitDeconstructionAssignment(IDeconstructionAssignmentOperation operation, object argument)
+        {
+            var value = base.VisitDeconstructionAssignment(operation, argument);
+            var assignedInstance = GetPointsToAbstractValue(operation.Value);
+            HandleDeconstructionAssignment(operation.Target, GetChildAnalysisEntities(assignedInstance));
+            return value;
+        }
+
+        private void HandleDeconstructionAssignment(IOperation target, ImmutableHashSet<AnalysisEntity> childEntities)
+        {
+            if (target is IDeclarationExpressionOperation declarationExpressionOperation)
+            {
+                target = declarationExpressionOperation.Expression;
+            }
+
+            if (target is ITupleOperation tupleOperation &&
+                AnalysisEntityFactory.TryCreateForTupleElements(tupleOperation, out var tupleElementEntities))
+            {
+                Debug.Assert(tupleOperation.Elements.Length == tupleElementEntities.Length);
+                for (int i = 0; i < tupleOperation.Elements.Length; i++)
+                {
+                    var element = tupleOperation.Elements[i];
+                    var tupleElementEntity = tupleElementEntities[i];
+                    if (element is ITupleOperation tupleElement)
+                    {
+                        Debug.Assert(tupleElementEntity.SymbolOpt is IFieldSymbol field);
+                        HandleDeconstructionAssignment(tupleElement, childEntities);
+                    }
+                    else if (AnalysisEntityFactory.TryCreate(element, out var elementEntity))
+                    {
+                        var assignedValueEntityOpt = childEntities.FirstOrDefault(c => IsMatchingAssignedEntity(tupleElementEntity, c));
+                        var assignedValue = assignedValueEntityOpt != null ? GetAbstractValue(assignedValueEntityOpt) : ValueDomain.UnknownOrMayBeValue;
+                        SetAbstractValueForAssignment(elementEntity, assignedValueEntityOpt, assignedValueOperationOpt: null, assignedValue);
+                    }
+                }
+            }
+
+            return;
+
+            // Local function
+            bool IsMatchingAssignedEntity(AnalysisEntity tupleElementEntity, AnalysisEntity childEntity)
+            {
+                Debug.Assert(tupleElementEntity != null);
+                if (childEntity == null)
+                {
+                    return false;
+                }
+
+                if (tupleElementEntity.ParentOpt == null)
+                {
+                    // Root tuple entity, compare the underlying tuple types.
+                    return childEntity.ParentOpt == null &&
+                        tupleElementEntity.Type.OriginalDefinition.Equals(childEntity.Type.OriginalDefinition);
+                }
+
+                // Must be a tuple element field entity.
+                return tupleElementEntity.SymbolOpt is IFieldSymbol tupleElementField &&
+                    childEntity.SymbolOpt is IFieldSymbol childEntityField &&
+                    tupleElementField.OriginalDefinition.Equals(childEntityField.OriginalDefinition) &&
+                    IsMatchingAssignedEntity(tupleElementEntity.ParentOpt, childEntity.ParentOpt);
+            }
+        }
+
+        #endregion
     }
 }

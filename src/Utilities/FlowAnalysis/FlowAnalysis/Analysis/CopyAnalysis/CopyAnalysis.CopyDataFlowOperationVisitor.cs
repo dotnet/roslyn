@@ -114,6 +114,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 CurrentAnalysisData.AssertValidCopyAnalysisData();
             }
 
+            protected override void SetAbstractValueForTupleElementAssignment(AnalysisEntity tupleElementEntity, IOperation assignedValueOperation, CopyAbstractValue assignedValue)
+            {
+                // Copy value of assignedValueOperation entity might change between tuple element assignments within the same tuple.
+                // For example, '(a, a)'
+                if (!assignedValue.AnalysisEntities.IsEmpty)
+                {
+                    var currentCopyValue = GetAbstractValue(assignedValue.AnalysisEntities.First());
+                    if (currentCopyValue.Kind != CopyAbstractValueKind.Unknown)
+                    {
+                        assignedValue = currentCopyValue;
+                    }
+                }
+
+                base.SetAbstractValueForTupleElementAssignment(tupleElementEntity, assignedValueOperation, assignedValue);
+            }
+
             private static void SetAbstractValue(
                 CopyAnalysisData copyAnalysisData,
                 AnalysisEntity analysisEntity,

@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     {
         private readonly ControlFlowGraph _controlFlowGraph;
         private readonly Dictionary<IOperation, AnalysisEntity> _analysisEntityMap;
+        private readonly Dictionary<ITupleOperation, ImmutableArray<AnalysisEntity>> _tupleElementEntitiesMap;
         private readonly Dictionary<CaptureId, AnalysisEntity> _captureIdEntityMap;
         private readonly Dictionary<ISymbol, PointsToAbstractValue> _instanceLocationsForSymbols;
         private readonly Func<IOperation, PointsToAbstractValue> _getPointsToAbstractValueOpt;
@@ -53,6 +54,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             _getInterproceduralCallStackForOwningSymbol = getInterproceduralCallStackForOwningSymbol;
 
             _analysisEntityMap = new Dictionary<IOperation, AnalysisEntity>();
+            _tupleElementEntitiesMap = new Dictionary<ITupleOperation, ImmutableArray<AnalysisEntity>>();
             _captureIdEntityMap = new Dictionary<CaptureId, AnalysisEntity>();
 
             _instanceLocationsForSymbols = new Dictionary<ISymbol, PointsToAbstractValue>();
@@ -212,10 +214,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         case ILocalReferenceOperation localReference:
                             return TryCreateForSymbolDeclaration(localReference.Local, out analysisEntity);
 
-                        case ITupleOperation _:
-                            // TODO handle tuple operations
-                            // https://github.com/dotnet/roslyn-analyzers/issues/1571
-                            break;
+                        case ITupleOperation tupleOperation:
+                            return TryCreate(tupleOperation, out analysisEntity);
                     }
 
                     break;
@@ -248,7 +248,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             switch (memberReference)
             {
                 case IFieldReferenceOperation fieldReference:
-                    symbolOpt = fieldReference.Member;
+                    symbolOpt = fieldReference.Field;
+                    if (fieldReference.Field.CorrespondingTupleField != null)
+                    {
+                        // For tuple fields, always use the CorrespondingTupleField (i.e. Item1, Item2, etc.) from the underlying value tuple type.
+                        // This allows seamless operation between named tuple elements and use of Item1, Item2, etc. to access tuple elements.
+                        var name = fieldReference.Field.CorrespondingTupleField.Name;
+                        symbolOpt = fieldReference.Field.ContainingType.GetUnderlyingValueTupleTypeOrThis().GetMembers(name).OfType<IFieldSymbol>().FirstOrDefault()
+                            ?? symbolOpt;
+                    }
                     break;
 
                 case IEventReferenceOperation eventReference:
@@ -284,6 +292,78 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(type != null);
 
             return TryCreate(symbol, indices, type, instance, out analysisEntity);
+        }
+
+        public bool TryCreateForTupleElements(ITupleOperation tupleOperation, out ImmutableArray<AnalysisEntity> elementEntities)
+        {
+            if (_tupleElementEntitiesMap.TryGetValue(tupleOperation, out elementEntities))
+            {
+                return !elementEntities.IsDefault;
+            }
+
+            try
+            {
+                elementEntities = default;
+                if (!tupleOperation.Type.IsTupleType)
+                {
+                    return false;
+                }
+
+                var tupleType = (INamedTypeSymbol)tupleOperation.Type;
+                if (tupleType.TupleElements.IsDefault)
+                {
+                    return false;
+                }
+
+                PointsToAbstractValue instanceLocation = _getPointsToAbstractValueOpt(tupleOperation);
+                var underlyingValueTupleType = tupleType.GetUnderlyingValueTupleTypeOrThis();
+                AnalysisEntity parentEntity = null;
+                if (tupleOperation.TryGetParentTupleOperation(out var parentTupleOperationOpt, out var elementOfParentTupleContainingTuple) &&
+                    TryCreateForTupleElements(parentTupleOperationOpt, out var parentTupleElementEntities))
+                {
+                    Debug.Assert(parentTupleOperationOpt.Elements.Length == parentTupleElementEntities.Length);
+                    for (int i = 0; i < parentTupleOperationOpt.Elements.Length; i++)
+                    {
+                        if (parentTupleOperationOpt.Elements[i] == elementOfParentTupleContainingTuple)
+                        {
+                            parentEntity = parentTupleElementEntities[i];
+                            instanceLocation = parentEntity.InstanceLocation;
+                            break;
+                        }
+                    }
+
+                    Debug.Assert(parentEntity != null);
+                }
+                else
+                {
+                    parentEntity = AnalysisEntity.Create(underlyingValueTupleType, ImmutableArray<AbstractIndex>.Empty,
+                        underlyingValueTupleType, instanceLocation, parentOpt: null);
+                }
+
+                Debug.Assert(parentEntity.InstanceLocation == instanceLocation);
+
+                var builder = ArrayBuilder<AnalysisEntity>.GetInstance(tupleType.TupleElements.Length);
+                foreach (var field in tupleType.TupleElements)
+                {
+                    var tupleFieldName = field.CorrespondingTupleField.Name;
+                    var mappedValueTupleField = underlyingValueTupleType.GetMembers(tupleFieldName).OfType<IFieldSymbol>().FirstOrDefault();
+                    if (mappedValueTupleField == null)
+                    {
+                        builder.Free();
+                        return false;
+                    }
+
+                    builder.Add(AnalysisEntity.Create(mappedValueTupleField, indices: ImmutableArray<AbstractIndex>.Empty,
+                        type: mappedValueTupleField.Type, instanceLocation, parentEntity));
+                }
+
+                elementEntities = builder.ToImmutableAndFree();
+                return true;
+            }
+            finally
+            {
+                _tupleElementEntitiesMap[tupleOperation] = elementEntities;
+            }
         }
 
         public bool TryCreateForArrayElementInitializer(IArrayCreationOperation arrayCreation, ImmutableArray<AbstractIndex> indices, ITypeSymbol elementType, out AnalysisEntity analysisEntity)

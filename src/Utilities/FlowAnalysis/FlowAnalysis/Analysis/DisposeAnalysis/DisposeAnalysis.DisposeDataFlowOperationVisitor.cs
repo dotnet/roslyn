@@ -113,55 +113,34 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 }
             }
 
-            private void HandlePossibleEscapingOperation(IOperation escapingOperation, IOperation escapedInstance)
+            private void HandlePossibleEscapingOperation(IOperation escapingOperation, ImmutableHashSet<AbstractLocation> escapedLocations)
             {
-                Debug.Assert(escapingOperation != null);
-                Debug.Assert(escapedInstance != null);
-
-                PointsToAbstractValue pointsToValue = GetPointsToAbstractValue(escapedInstance);
-                foreach (AbstractLocation location in pointsToValue.Locations)
+                foreach (AbstractLocation escapedLocation in escapedLocations)
                 {
-                    if (CurrentAnalysisData.TryGetValue(location, out DisposeAbstractValue currentDisposeValue))
+                    if (CurrentAnalysisData.TryGetValue(escapedLocation, out DisposeAbstractValue currentDisposeValue))
                     {
                         DisposeAbstractValue newDisposeValue = currentDisposeValue.WithNewEscapingOperation(escapingOperation);
-                        SetAbstractValue(location, newDisposeValue);
+                        SetAbstractValue(escapedLocation, newDisposeValue);
                     }
-                }
-            }
-
-            private void HandlePossibleEscapingForAssignment(IOperation target, IOperation value, IOperation operation)
-            {
-                // FxCop compat: The object assigned to a field or a property or an array element is considered escaped.
-                // TODO: Perform better analysis for array element assignments as we already track element locations.
-                // https://github.com/dotnet/roslyn-analyzers/issues/1577
-                if (target is IMemberReferenceOperation ||
-                    target.Kind == OperationKind.ArrayElementReference)
-                {
-                    HandlePossibleEscapingOperation(operation, value);
                 }
             }
 
             protected override void SetAbstractValueForArrayElementInitializer(IArrayCreationOperation arrayCreation, ImmutableArray<AbstractIndex> indices, ITypeSymbol elementType, IOperation initializer, DisposeAbstractValue value)
             {
-                HandlePossibleEscapingOperation(arrayCreation, initializer);
+                // Escaping from array element assignment is handled in PointsTo analysis.
+                // We do not need to do anything here.
             }
 
             protected override void SetAbstractValueForAssignment(IOperation target, IOperation assignedValueOperation, DisposeAbstractValue assignedValue, bool mayBeAssignment = false)
             {
-                if (assignedValueOperation == null)
-                {
-                    return;
-                }
+                // Assignments should automatically transfer PointsTo value.
+                // We do not need to do anything here.
+            }
 
-                // Temporary workaround for missing dataflow support for tuples
-                // https://github.com/dotnet/roslyn-analyzers/issues/1571
-                if (assignedValueOperation?.Kind == OperationKind.Tuple)
-                {
-                    HandlePossibleEscapingOperation(escapingOperation: assignedValueOperation, escapedInstance: target);
-                    return;
-                }
-
-                HandlePossibleEscapingForAssignment(target, assignedValueOperation, assignedValueOperation);
+            protected override void SetAbstractValueForTupleElementAssignment(AnalysisEntity tupleElementEntity, IOperation assignedValueOperation, DisposeAbstractValue assignedValue)
+            {
+                // Assigning to tuple elements should automatically transfer PointsTo value.
+                // We do not need to do anything here.
             }
 
             protected override void SetValueForParameterPointsToLocationOnEntry(IParameterSymbol parameter, PointsToAbstractValue pointsToAbstractValue)
@@ -172,14 +151,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 }
             }
 
-            protected override void EscapeValueForParameterPointsToLocationOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity, PointsToAbstractValue pointsToAbstractValue)
+            protected override void EscapeValueForParameterPointsToLocationOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity, ImmutableHashSet<AbstractLocation> escapedLocations)
             {
-                if (parameter.RefKind != RefKind.None &&
-                    !pointsToAbstractValue.Locations.IsEmpty &&
-                    parameter.Type.IsDisposable(WellKnownTypeProvider.IDisposable))
-                {
-                    SetAbstractValue(pointsToAbstractValue, ValueDomain.UnknownOrMayBeValue);
-                }
+                Debug.Assert(!escapedLocations.IsEmpty);
+                Debug.Assert(parameter.RefKind != RefKind.None);
+                var escapedDisposableLocations = escapedLocations.Where(l => l.LocationTypeOpt?.IsDisposable(WellKnownTypeProvider.IDisposable) == true);
+                SetAbstractValue(escapedDisposableLocations, ValueDomain.UnknownOrMayBeValue);
             }
 
             protected override DisposeAbstractValue ComputeAnalysisValueForEscapedRefOrOutArgument(IArgumentOperation operation, DisposeAbstractValue defaultValue)
@@ -214,6 +191,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             {
                 _ = base.DefaultVisit(operation, argument);
                 return DisposeAbstractValue.NotDisposable;
+            }
+
+            public override DisposeAbstractValue Visit(IOperation operation, object argument)
+            {
+                var value = base.Visit(operation, argument);
+                HandlePossibleEscapingOperation(operation, GetEscapedLocations(operation));
+                return value;
             }
 
             // FxCop compat: Catches things like static calls to File.Open() and Create()
@@ -257,13 +241,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                             var instanceLocation = GetPointsToAbstractValue(originaOperation);
                             return HandleInstanceCreation(originaOperation.Type, instanceLocation, value);
                         }
-                        else if (arguments.Length > 0 &&
-                            targetMethod.IsCollectionAddMethod(WellKnownTypeProvider.CollectionTypes))
-                        {
-                            // FxCop compat: The object added to a collection is considered escaped.
-                            var lastArgument = arguments[arguments.Length - 1];
-                            HandlePossibleEscapingOperation(originaOperation, lastArgument.Value);
-                        }
 
                         break;
                 }
@@ -287,12 +264,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                     }
                 }
             }
-            protected override DisposeAbstractValue VisitAssignmentOperation(IAssignmentOperation operation, object argument)
-            {
-                var value = base.VisitAssignmentOperation(operation, argument);
-                HandlePossibleEscapingForAssignment(operation.Target, operation.Value, operation);
-                return value;
-            }
 
             protected override void PostProcessArgument(IArgumentOperation operation, bool isEscaped)
             {
@@ -307,7 +278,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 // Local functions.
                 void PostProcessEscapedArgument()
                 {
-                    var possibleEscape = false;
                     if (operation.Parameter.Type.IsDisposable(WellKnownTypeProvider.IDisposable))
                     {
                         // Discover if a disposable object is being passed into the creation method for this new disposable object
@@ -316,43 +286,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                              operation.Parent is IInvocationOperation invocation && IsDisposableCreationSpecialCase(invocation.TargetMethod)) &&
                             DisposeOwnershipTransferLikelyTypes.Contains(operation.Parameter.Type))
                         {
-                            possibleEscape = true;
-                        }
-                        else if (operation.Parameter.RefKind == RefKind.Ref)
-                        {
-                            // Argument passed by ref is considered escaped.
-                            possibleEscape = true;
+                            var pointsToValue = GetPointsToAbstractValue(operation.Value);
+                            HandlePossibleEscapingOperation(operation, pointsToValue.Locations);
                         }
                     }
-
-                    if (possibleEscape)
-                    {
-                        HandlePossibleEscapingOperation(operation, operation.Value);
-                    }
                 }
-            }
-
-            protected override void ProcessReturnValue(IOperation returnValue)
-            {
-                base.ProcessReturnValue(returnValue);
-
-                // Escape the return value, if not currently analyzing an invoked method.
-                if (returnValue != null && DataFlowAnalysisContext.InterproceduralAnalysisDataOpt == null)
-                {
-                    HandlePossibleEscapingOperation(escapingOperation: returnValue, escapedInstance: returnValue);
-                }
-            }
-
-            public override DisposeAbstractValue VisitConversion(IConversionOperation operation, object argument)
-            {
-                var value = base.VisitConversion(operation, argument);
-                if (operation.OperatorMethod != null)
-                {
-                    // Conservatively handle user defined conversions.
-                    HandlePossibleEscapingOperation(operation, operation.Operand);
-                }
-
-                return value;
             }
 
             public override DisposeAbstractValue VisitFieldReference(IFieldReferenceOperation operation, object argument)
