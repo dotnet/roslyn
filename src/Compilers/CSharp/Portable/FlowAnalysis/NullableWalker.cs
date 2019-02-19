@@ -750,7 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Update tracked value on assignment.
         /// </summary>
-        private void TrackNullableStateForAssignment(BoundExpression value, TypeSymbolWithAnnotations targetType, int targetSlot, TypeSymbolWithAnnotations valueType, int valueSlot = -1)
+        private void TrackNullableStateForAssignment(BoundExpression value, TypeSymbolWithAnnotations targetType, int targetSlot, TypeSymbolWithAnnotations valueType, int valueSlot = -1, int slotWatermark = -1)
         {
             Debug.Assert(value != null);
             Debug.Assert(!IsConditionalState);
@@ -780,42 +780,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 InheritDefaultState(targetSlot);
 
-                if (targetType.IsReferenceType)
+                if (slotWatermark < 0)
                 {
-                    // https://github.com/dotnet/roslyn/issues/31395,
-                    // https://github.com/dotnet/roslyn/issues/29968 We should copy all tracked state from `value`,
-                    // regardless of BoundNode type, but we'll need to handle cycles. (For instance, the
-                    // assignment to C.F below. See also NullableReferenceTypesTests.Members_FieldCycle_01.)
-                    // class C
-                    // {
-                    //     C? F;
-                    //     C() { F = this; }
-                    // }
-                    // For now, we copy a limited set of BoundNode types that shouldn't contain cycles.
-                    if ((value.Kind == BoundKind.ObjectCreationExpression || value.Kind == BoundKind.AnonymousObjectCreationExpression || value.Kind == BoundKind.DynamicObjectCreationExpression || targetType.TypeSymbol.IsAnonymousType) &&
-                        areEquivalentTypes(targetType, valueType)) // https://github.com/dotnet/roslyn/issues/29968 Allow assignment to base type.
+                    slotWatermark = GetSlotWatermark();
+                }
+
+                // https://github.com/dotnet/roslyn/issues/33428: Can the areEquivalentTypes check be removed
+                // if InheritNullableStateOfMember asserts the member is valid for target and value?
+                if (areEquivalentTypes(targetType, valueType)) // https://github.com/dotnet/roslyn/issues/29968 Allow assignment to base type.
+                {
+                    if (targetType.IsReferenceType || targetType.IsNullableType())
                     {
+                        // Nullable<T> is handled here rather than in InheritNullableStateOfTrackableStruct since that
+                        // method only clones auto-properties (see https://github.com/dotnet/roslyn/issues/29619).
+                        // When that issue is fixed, Nullable<T> should be handled there instead.
                         if (valueSlot > 0)
                         {
-                            InheritNullableStateOfTrackableType(targetSlot, valueSlot, slotWatermark: GetSlotWatermark());
+                            InheritNullableStateOfTrackableType(targetSlot, valueSlot, slotWatermark);
                         }
                     }
-                }
-                else if (targetType.IsNullableType())
-                {
-                    Debug.Assert(areEquivalentTypes(targetType, valueType));
-                    // Nullable<T> is handled here rather than in InheritNullableStateOfTrackableStruct since that
-                    // method only clones auto-properties (see https://github.com/dotnet/roslyn/issues/29619).
-                    // When that issue is fixed, Nullable<T> should be handled there instead.
-                    if (valueSlot > 0 && areEquivalentTypes(targetType, valueType))
+                    else if (EmptyStructTypeCache.IsTrackableStructType(targetType.TypeSymbol))
                     {
-                        InheritNullableStateOfTrackableType(targetSlot, valueSlot, slotWatermark: GetSlotWatermark());
+                        InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, isDefaultValue: IsDefaultValue(value), slotWatermark);
                     }
-                }
-                else if (EmptyStructTypeCache.IsTrackableStructType(targetType.TypeSymbol) &&
-                    areEquivalentTypes(targetType, valueType))
-                {
-                    InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, isDefaultValue: IsDefaultValue(value), slotWatermark: GetSlotWatermark());
                 }
             }
 
@@ -877,6 +864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(targetContainerSlot > 0);
             Debug.Assert(valueContainerSlot <= slotWatermark);
+            // https://github.com/dotnet/roslyn/issues/33428: Ensure member is valid for target and value.
 
             TypeSymbolWithAnnotations fieldOrPropertyType = member.GetTypeOrReturnType();
 
@@ -902,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (valueContainerSlot > 0)
                 {
                     int valueMemberSlot = VariableSlot(member, valueContainerSlot);
-                    if (valueMemberSlot > 0 && valueMemberSlot <= slotWatermark)
+                    if (valueMemberSlot > 0 && valueMemberSlot < slotWatermark)
                     {
                         InheritNullableStateOfTrackableType(targetMemberSlot, valueMemberSlot, slotWatermark);
                     }
@@ -950,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(valueSlot > 0);
 
             // Clone the state for members that have been set on the value.
-            for (int slot = valueSlot + 1; slot < nextVariableSlot; slot++)
+            for (int slot = valueSlot + 1; slot < slotWatermark; slot++)
             {
                 var variable = variableBySlot[slot];
                 if (variable.ContainingSlot != valueSlot)
@@ -3184,7 +3172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CheckMethodConstraints(SyntaxNode syntax, MethodSymbol method)
         {
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
-            var warningsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+            var nullabilityBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
             ConstraintsHelper.CheckMethodConstraints(
                 method,
@@ -3192,14 +3180,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 includeNullability: true,
                 compilation,
                 diagnosticsBuilder,
-                warningsBuilder,
+                nullabilityBuilder,
                 ref useSiteDiagnosticsBuilder);
-            foreach (var pair in warningsBuilder)
+            foreach (var pair in nullabilityBuilder)
             {
                 Diagnostics.Add(pair.DiagnosticInfo, syntax.Location);
             }
             useSiteDiagnosticsBuilder?.Free();
-            warningsBuilder.Free();
+            nullabilityBuilder.Free();
             diagnosticsBuilder.Free();
         }
 
@@ -3531,7 +3519,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.State[slot] = NullableAnnotation.NotNullable;
                     TrackNullableStateOfTupleElements(slot, tupleOpt, arguments, elementTypes, useRestField: false);
                 }
-                _resultType = TypeSymbolWithAnnotations.Create(tupleOpt.WithElementTypes(elementTypes), NullableAnnotation.NotNullable);
+
+                tupleOpt = tupleOpt.WithElementTypes(elementTypes);
+                var locations = tupleOpt.TupleElements.SelectAsArray((element, location) => element.Locations.FirstOrDefault() ?? location, node.Syntax.Location);
+                tupleOpt.CheckConstraints(_conversions, includeNullability: true, node.Syntax, locations, compilation, diagnosticsOpt: null, nullabilityDiagnosticsOpt: Diagnostics);
+                _resultType = TypeSymbolWithAnnotations.Create(tupleOpt, NullableAnnotation.NotNullable);
             }
         }
 
@@ -4235,7 +4227,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 TypeSymbolWithAnnotations rightType = VisitOptionalImplicitConversion(right, leftType, UseLegacyWarnings(left), AssignmentKind.Assignment);
-                TrackNullableStateForAssignment(right, leftType, MakeSlot(left), rightType, MakeSlot(right));
+                int rightSlot = MakeSlot(right);
+                int slotWatermark = GetSlotWatermark();
+                // leftSlot is calculated last to avoid copying from that slot in cycles.
+                int leftSlot = MakeSlot(left);
+                TrackNullableStateForAssignment(right, leftType, leftSlot, rightType, rightSlot, slotWatermark);
                 // https://github.com/dotnet/roslyn/issues/30066 Check node.Type.IsErrorType() instead?
                 _resultType = node.HasErrors ? TypeSymbolWithAnnotations.Create(node.Type) : rightType;
             }
@@ -4276,7 +4272,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             variables.FreeAll(v => v.NestedVariables);
 
-            // https://github.com/dotnet/roslyn/issues/33011: Result type should be inferred.
+            // https://github.com/dotnet/roslyn/issues/33011: Result type should be inferred and the constraints should
+            // be re-verified. Even though the standard tuple type has no constraints we support that scenario. Constraints_78
+            // has a test for this case that should start failing when this is fixed.
             SetResult(node);
             return null;
         }
@@ -4346,11 +4344,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        int targetSlot = MakeSlot(variable.Expression);
                         var targetType = variable.Type;
                         var valueType = VisitOptionalImplicitConversion(rightPart, targetType, useLegacyWarnings: true, AssignmentKind.Assignment);
                         int valueSlot = MakeSlot(rightPart);
-                        TrackNullableStateForAssignment(rightPart, targetType, targetSlot, valueType, valueSlot);
+                        int slotWatermark = GetSlotWatermark();
+                        // targetSlot is calculated last to avoid copying from that slot in cycles.
+                        int targetSlot = MakeSlot(variable.Expression);
+                        TrackNullableStateForAssignment(rightPart, targetType, targetSlot, valueType, valueSlot, slotWatermark);
                     }
                 }
             }

@@ -323,53 +323,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
         }
-
-        public static ValueUsageInfo GetValueUsageInfo(
-            this SemanticModel semanticModel,
-            SyntaxNode node,
-            ISemanticFactsService semanticFacts,
-            CancellationToken cancellationToken)
-        {
-            if (semanticFacts.IsInOutContext(semanticModel, node, cancellationToken))
-            {
-                return ValueUsageInfo.WritableReference;
-            }
-            else if (semanticFacts.IsInRefContext(semanticModel, node, cancellationToken))
-            {
-                return ValueUsageInfo.ReadableWritableReference;
-            }
-            else if (semanticFacts.IsInInContext(semanticModel, node, cancellationToken))
-            {
-                return ValueUsageInfo.ReadableReference;
-            }
-            else if (semanticFacts.IsOnlyWrittenTo(semanticModel, node, cancellationToken))
-            {
-                return ValueUsageInfo.Write;
-            }
-            else
-            {
-                var operation = semanticModel.GetOperation(node, cancellationToken);
-                switch (operation?.Parent)
-                {
-                    case INameOfOperation _:
-                    case ITypeOfOperation _:
-                    case ISizeOfOperation _:
-                        return ValueUsageInfo.NameOnly;
-                }
-
-                if (node.IsPartOfStructuredTrivia())
-                {
-                    return ValueUsageInfo.NameOnly;
-                }
-
-                var usageInfo = ValueUsageInfo.Read;
-                if (semanticFacts.IsWrittenTo(semanticModel, node, cancellationToken))
-                {
-                    usageInfo |= ValueUsageInfo.Write;
-                }
-
-                return usageInfo;
-            }
-        }
     }
 }

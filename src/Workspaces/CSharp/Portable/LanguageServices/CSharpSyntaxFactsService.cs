@@ -672,6 +672,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFacts.IsInNamespaceOrTypeContext(node as ExpressionSyntax);
         }
 
+        public bool IsBaseTypeList(SyntaxNode node)
+        {
+            return node.IsKind(SyntaxKind.BaseList);
+        }
+
         public SyntaxNode GetExpressionOfArgument(SyntaxNode node)
         {
             return ((ArgumentSyntax)node).Expression;
@@ -691,6 +696,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                    argument.NameColon == null;
         }
 
+        public bool IsTypeArgumentList(SyntaxNode node)
+            => node.IsKind(SyntaxKind.TypeArgumentList);
+
+        public bool IsTypeConstraint(SyntaxNode node)
+            => node.IsKind(SyntaxKind.TypeConstraint);
 
         public bool IsInConstantContext(SyntaxNode node)
         {
@@ -1350,6 +1360,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (node as QualifiedNameSyntax)?.Right ??
                 (node as MemberAccessExpressionSyntax)?.Name;
         }
+
+        public bool IsLeftSideOfExplicitInterfaceSpecifier(SyntaxNode node)
+            => (node as NameSyntax).IsLeftSideOfExplicitInterfaceSpecifier();
 
         public bool IsLeftSideOfAssignment(SyntaxNode node)
         {
