@@ -36,6 +36,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
         }
 
         [Fact]
+        public async Task Simple_WithTrivia()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    /*A*/ void /*B*/ M()
+    {
+        [|return|] 1;
+    }
+}",
+@"class C
+{
+    /*A*/
+    int /*B*/ M()
+    {
+        return 1;
+    }
+}");
+            // Note: the formatting change is introduced by Formatter.FormatAsync
+        }
+
+        [Fact]
         public async Task ReturnString()
         {
             await TestInRegularAndScript1Async(
@@ -58,12 +80,59 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
         [Fact]
         public async Task ReturnNull()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
     {
         [|return|] null;
+    }
+}",
+@"class C
+{
+    object M()
+    {
+        return null;
+    }
+}");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/33481")]
+        public async Task ReturnTypelessTuple()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M()
+    {
+        [|return|] (null, string.Empty);
+    }
+}",
+@"class C
+{
+    object M()
+    {
+        return (null, string.Empty);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task ReturnLambda()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M()
+    {
+        [|return|] () => {};
+    }
+}",
+ @"class C
+{
+    object M()
+    {
+        return () => {};
     }
 }");
         }
@@ -102,6 +171,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FixReturnTy
 @"class C
 {
     async System.Threading.Tasks.Task<string> M()
+    {
+        return """";
+    }
+}");
+        }
+
+        [Fact]
+        public async Task ReturnString_AsyncVoid_WithUsing()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System.Threading.Tasks;
+class C
+{
+    async void M()
+    {
+        [|return|] """";
+    }
+}",
+@"
+using System.Threading.Tasks;
+class C
+{
+    async Task<string> M()
     {
         return """";
     }
