@@ -20,7 +20,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             string[] parseMethods = new string[] { "Parse", "TryParse" };
 
             builder.AddSanitizerInfo(
-                WellKnownTypes.MicrosoftSecurityApplicationEncoder,
+                WellKnownTypeNames.MicrosoftSecurityApplicationEncoder,
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: new[] {

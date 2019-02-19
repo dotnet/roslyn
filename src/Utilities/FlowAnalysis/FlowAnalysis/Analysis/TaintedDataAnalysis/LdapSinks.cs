@@ -18,7 +18,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             var builder = PooledHashSet<SinkInfo>.GetInstance();
 
             builder.AddSinkInfo(
-                WellKnownTypes.SystemDirectoryServicesActiveDirectoryADSearcher,
+                WellKnownTypeNames.SystemDirectoryServicesActiveDirectoryADSearcher,
                 SinkKind.Ldap,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: true,
@@ -27,7 +27,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemDirectoryServicesDirectorySearcher,
+                WellKnownTypeNames.SystemDirectoryServicesDirectorySearcher,
                 SinkKind.Ldap,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: true,
@@ -36,7 +36,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
             builder.AddSinkInfo(
-                WellKnownTypes.SystemDirectoryDirectoryEntry,
+                WellKnownTypeNames.SystemDirectoryDirectoryEntry,
                 SinkKind.Ldap,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
