@@ -320,8 +320,8 @@ new List<C?>(); // ok
 
 ## Generated code
 Older code generation strategies may not be nullable aware.
-Setting the project level nullable context to "enable" could result in many warnings that a user is unable to fix.
-To support this scenario any syntax tree that is determined to be generated will have its nullable state explicitly set to "disable", regardless of the overall project state.
+Setting the project-level nullable context to "enable" could result in many warnings that a user is unable to fix.
+To support this scenario any syntax tree that is determined to be generated will have its nullable state implicitly set to "disable", regardless of the overall project state.
 
 A syntax tree is determined to be generated if meets one or more of the following criteria:
 - File name begins with:
