@@ -848,12 +848,13 @@ interface i1
                 // (6,43): error CS0073: An add or remove accessor must have a body
                 //     event myDelegate myevent { add; remove; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 43),
-                // (6,32): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
+                // (6,32): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     event myDelegate myevent { add; remove; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(6, 32),
-                // (6,37): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(6, 32),
+                // (6,37): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     event myDelegate myevent { add; remove; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "8.0").WithLocation(6, 37));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(6, 37)
+                );
         }
 
         [WorkItem(542570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542570")]
@@ -869,12 +870,13 @@ interface i1
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7,
                               targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
-                // (5,32): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 8.0 or greater.
+                // (5,32): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     event myDelegate myevent { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(5, 32),
-                // (5,39): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(5, 32),
+                // (5,39): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     event myDelegate myevent { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "8.0").WithLocation(5, 39));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(5, 39)
+                );
         }
 
         [WorkItem(542570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542570")]
@@ -890,12 +892,13 @@ interface i1
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7,
                               targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
-                // (5,32): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 8.0 or greater.
+                // (5,32): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     event myDelegate myevent { add {} }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(5, 32),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(5, 32),
                 // (5,22): error CS0065: 'i1.myevent': event property must have both add and remove accessors
                 //     event myDelegate myevent { add {} }
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "myevent").WithArguments("i1.myevent").WithLocation(5, 22));
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "myevent").WithArguments("i1.myevent").WithLocation(5, 22)
+                );
         }
 
         [Fact]
@@ -916,12 +919,16 @@ public interface I1
                 // (6,31): error CS1519: Invalid token ';' in class, struct, or interface member declaration
                 //     event System.Action I2.P10;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(6, 31),
-                // (6,28): error CS0541: 'I1.P10': explicit interface declaration can only be declared in a class or struct
+                // (6,25): error CS0540: 'I1.P10': containing type does not implement interface 'I2'
                 //     event System.Action I2.P10;
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P10").WithArguments("I1.P10").WithLocation(6, 28),
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.P10", "I2").WithLocation(6, 25),
+                // (6,28): error CS0539: 'I1.P10' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     event System.Action I2.P10;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P10").WithArguments("I1.P10").WithLocation(6, 28),
                 // (6,28): error CS0065: 'I1.P10': event property must have both add and remove accessors
                 //     event System.Action I2.P10;
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P10").WithArguments("I1.P10").WithLocation(6, 28));
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P10").WithArguments("I1.P10").WithLocation(6, 28)
+                );
         }
 
         [Fact]
@@ -937,18 +944,22 @@ P10;
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
+                // (6,25): error CS0540: 'I1.P10': containing type does not implement interface 'I2'
+                //     event System.Action I2.
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.P10", "I2").WithLocation(6, 25),
                 // (6,27): error CS0071: An explicit interface implementation of an event must use event accessor syntax
                 //     event System.Action I2.
                 Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(6, 27),
                 // (7,4): error CS1519: Invalid token ';' in class, struct, or interface member declaration
                 // P10;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(7, 4),
-                // (7,1): error CS0541: 'I1.P10': explicit interface declaration can only be declared in a class or struct
+                // (7,1): error CS0539: 'I1.P10' in explicit interface declaration is not found among members of the interface that can be implemented
                 // P10;
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P10").WithArguments("I1.P10").WithLocation(7, 1),
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P10").WithArguments("I1.P10").WithLocation(7, 1),
                 // (7,1): error CS0065: 'I1.P10': event property must have both add and remove accessors
                 // P10;
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P10").WithArguments("I1.P10").WithLocation(7, 1));
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P10").WithArguments("I1.P10").WithLocation(7, 1)
+                );
         }
 
         [Fact]
@@ -8885,18 +8896,18 @@ struct S6<T>
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7);
 
             comp.VerifyDiagnostics(
-                // (5,19): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
+                // (5,19): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         interface IBar { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "IBar").WithArguments("default interface implementation", "8.0").WithLocation(5, 19),
-                // (6,22): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "IBar").WithArguments("default interface implementation").WithLocation(5, 19),
+                // (6,22): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         public class cly {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "cly").WithArguments("default interface implementation", "8.0").WithLocation(6, 22),
-                // (7,16): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "cly").WithArguments("default interface implementation").WithLocation(6, 22),
+                // (7,16): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         struct S { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "S").WithArguments("default interface implementation", "8.0").WithLocation(7, 16),
-                // (8,22): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("default interface implementation").WithLocation(7, 16),
+                // (8,22): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         private enum E { zero,  one }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "E").WithArguments("default interface implementation", "8.0").WithLocation(8, 22)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "E").WithArguments("default interface implementation").WithLocation(8, 22)
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -8921,11 +8932,11 @@ struct S6<T>
                 // (5,16): error CS0525: Interfaces cannot contain instance fields
                 //         string field1;
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field1").WithLocation(5, 16),
-                // (6,21): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
+                // (6,21): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         const ulong field2 = 0;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "field2").WithArguments("default interface implementation", "8.0").WithLocation(6, 21),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "field2").WithArguments("default interface implementation").WithLocation(6, 21),
                 // (7,21): error CS0525: Interfaces cannot contain instance fields
-                //         public IFoo field3;
+                //         public IGoo field3;
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field3").WithLocation(7, 21)
                 );
 
@@ -9535,12 +9546,12 @@ public class Clx
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (11,20): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
+                // (11,20): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         void IFace.F();   // CS0541
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F").WithArguments("default interface implementation", "8.0").WithLocation(11, 20),
-                // (12,23): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F").WithArguments("default interface implementation").WithLocation(11, 20),
+                // (12,23): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         int IFace.P { set; } //CS0541
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "8.0").WithLocation(12, 23),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("default interface implementation").WithLocation(12, 23),
                 // (12,23): error CS0501: 'IFace2.IFace.P.set' must declare a body because it is not marked abstract, extern, or partial
                 //         int IFace.P { set; } //CS0541
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("x.IFace2.x.IFace.P.set").WithLocation(12, 23),
