@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class ArrayBuilder<T>
+    public partial class ArrayBuilder<T>
     {
         /// <summary>
         /// struct enumerator used in foreach.
