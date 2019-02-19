@@ -857,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // 'slotWatermark' is used to avoid inheriting members from inherited members.
+        // 'stopAtSlot' is the slot at which to stop copying in case of cycles.
         private void InheritNullableStateOfMember(int targetContainerSlot, int valueContainerSlot, Symbol member, bool isDefaultValue, int stopAtSlot)
         {
             Debug.Assert(targetContainerSlot > 0);
