@@ -221,9 +221,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
             {
                 // For example, in a tree of the following form:
                 //
-                //      e1 is var v && v.Property == true
+                //      e1 is var v && v is {Property: true}
                 //
-                // We'll try to combine `var v` and `v.Property == true`
+                // We'll try to combine `var v` and `v is {Property: true}`
                 // because `v` is the common expression between the two.
                 if (var.Contains(match.Expression))
                 {
@@ -232,10 +232,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
                     // The result would look like this:
                     //
                     //      PatternMatch(e1, 
-                    //          Conjunction(VarPattern(v),
-                    //          PatternMatch(x.Property, ConstantPattern(true))
+                    //          Conjunction(VarPattern(v), PatternMatch(Property, ConstantPattern(true))))
                     //
-                    // Note we don't pass match's expression because it already exist on the outer match.
+                    // Note we don't pass match's expression (v) because it already exist on the outer match.
                     return new Conjunction(var, match.Pattern);
                 }
 

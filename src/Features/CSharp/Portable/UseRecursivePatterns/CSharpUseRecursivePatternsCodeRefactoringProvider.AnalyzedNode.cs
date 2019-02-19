@@ -297,8 +297,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseRecursivePatterns
 
         // Represents a variable designation in a var-pattern.
         //
-        //   e is var v -> PatternMatch(e, VarPattern(v)
-        //   e is var(x, y) -> PatternMatch(e, PositionalPattern(VarPattern(x), VarPattern(y))
+        //   e is var v -> PatternMatch(e, VarPattern(v))
+        //   e is var(x, y) -> PatternMatch(e, PositionalPattern(VarPattern(x), VarPattern(y)))
         //
         private sealed class VarPattern : AnalyzedNode
         {
