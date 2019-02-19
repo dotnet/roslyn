@@ -556,6 +556,7 @@ namespace Microsoft.CodeAnalysis
             using (_serializationLock.DisposableWait())
             {
                 this.CheckAdditionalDocumentIsInCurrentSolution(documentId);
+                this.CheckDocumentIsOpen(documentId);
 
                 // forget any open document info
                 ClearOpenDocument(documentId);
