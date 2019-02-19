@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis
     // all these are just helper methods
     internal partial class Checksum
     {
-        private static readonly ObjectPool<IncrementalHash> s_objectPool =
+        private static readonly ObjectPool<IncrementalHash> s_incrementalHashPool =
             new ObjectPool<IncrementalHash>(() => IncrementalHash.CreateHash(HashAlgorithmName.SHA1), size: 20);
 
         public static Checksum Create(Stream stream)
         {
-            using (var pooledHash = s_objectPool.GetPooledObject())
+            using (var pooledHash = s_incrementalHashPool.GetPooledObject())
             using (var pooledBuffer = SharedPools.ByteArray.GetPooledObject())
             {
                 stream.Seek(0, SeekOrigin.Begin);
