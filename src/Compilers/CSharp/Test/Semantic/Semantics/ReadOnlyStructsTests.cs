@@ -310,5 +310,80 @@ public struct S
                 //     public static readonly int M()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("readonly").WithLocation(5, 32));
         }
+
+        [Fact]
+        public void ReadOnlyStructProperty()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+    public int P
+    {
+        readonly get
+        {
+            return i;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyStructStaticProperty()
+        {
+            var csharp = @"
+public struct S
+{
+    public static int i;
+    public static int P
+    {
+        readonly get
+        {
+            return i;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (7,18): error CS0106: The modifier 'readonly' is not valid for this item
+                //         readonly get
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("readonly").WithLocation(7, 18));
+        }
+
+        [Fact]
+        public void ReadOnlyStructStaticExpressionProperty()
+        {
+            var csharp = @"
+public struct S
+{
+    public static int i;
+    public static readonly int P => i;
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (5,32): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public static readonly int P => i;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("readonly").WithLocation(5, 32));
+        }
+
+        [Fact]
+        public void ReadOnlyAutoProperty()
+        {
+            var csharp = @"
+public struct S
+{
+    public int P1 { readonly get; }
+    public int P2 { readonly get; set; }
+    public int P3 { readonly get; readonly set; } // PROTOTYPE: readonly set on an auto-property should give an error
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
     }
 }
