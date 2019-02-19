@@ -350,7 +350,7 @@ struct MyStruct2
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
-        public async Task MultipleStructDeclaration_SingleReadonlyField_ThisAssigmentInMethod_ShouldNotReprotDiagnostic()
+        public async Task MultipleStructDeclaration_SingleReadonlyField_ThisAssigmentInMethod_ShouldNotReportDiagnostic()
         {
             await TestDiagnosticMissingAsync(
 @"struct [|MyStruct|]
