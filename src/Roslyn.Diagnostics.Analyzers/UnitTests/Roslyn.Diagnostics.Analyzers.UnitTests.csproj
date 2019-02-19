@@ -2,9 +2,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
-
-    <!-- Do not directly await a task-->
-    <NoWarn>$(NoWarn);CA2007</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Test.Utilities\Test.Utilities.csproj" />
