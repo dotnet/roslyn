@@ -89,6 +89,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 "MSBuildTaskHost.exe",
                 "mspdbsrv.exe",
                 "MStest.exe",
+                "RunTests.exe",
                 "ServiceHub.Host.CLR.exe",
                 "ServiceHub.Host.CLR.x64.exe",
                 "ServiceHub.Host.CLR.x86.exe",
@@ -107,6 +108,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 "vstest.executionengine.clr20.exe",
                 "VSTest.executionEngine.exe",
                 "VSTest.executionEngine.x86.exe",
+                "xunit.console.x86.exe",
             };
 
         /// <summary>
