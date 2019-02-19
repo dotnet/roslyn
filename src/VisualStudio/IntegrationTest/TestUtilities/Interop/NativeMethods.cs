@@ -91,6 +91,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
         [DllImport(User32, SetLastError = true)]
         public static extern void SwitchToThisWindow(IntPtr hWnd, [MarshalAs(UnmanagedType.Bool)] bool fUnknown);
 
+        [DllImport(User32, CharSet = CharSet.Unicode)]
+        public static extern short VkKeyScan(char ch);
+
         #endregion
     }
 }

@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
 using WindowsInput.Native;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
@@ -59,7 +61,46 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
 
         private static void AddInputs(List<KeyPress> inputs, char ch)
         {
-            inputs.Add(new KeyPress(ch));
+            KeyPress keyPress;
+
+            var result = NativeMethods.VkKeyScan(ch);
+            if (result == -1)
+            {
+                // This is a unicode character that must be handled differently
+                keyPress = new KeyPress(ch);
+            }
+            else
+            {
+                var shiftState = (ShiftState)(((ushort)result >> 8) & 0xFF);
+                if ((shiftState & ~(ShiftState.Alt | ShiftState.Shift | ShiftState.Ctrl)) != 0)
+                {
+                    // The modifiers for the key were not recognized
+                    keyPress = new KeyPress(ch);
+                }
+                else
+                {
+                    var virtualKey = (VirtualKeyCode)(result & 0xFF);
+                    var modifiers = ImmutableArray<VirtualKeyCode>.Empty;
+                    if (shiftState.HasFlag(ShiftState.Ctrl))
+                    {
+                        modifiers = modifiers.Add(VirtualKeyCode.CONTROL);
+                    }
+
+                    if (shiftState.HasFlag(ShiftState.Alt))
+                    {
+                        modifiers = modifiers.Add(VirtualKeyCode.MENU);
+                    }
+
+                    if (shiftState.HasFlag(ShiftState.Shift))
+                    {
+                        modifiers = modifiers.Add(VirtualKeyCode.SHIFT);
+                    }
+
+                    keyPress = new KeyPress(virtualKey, modifiers);
+                }
+            }
+
+            inputs.Add(keyPress);
         }
 
         private static void AddInputs(List<KeyPress> inputs, KeyPress keyPress)
