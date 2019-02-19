@@ -195,23 +195,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
 
         private void SendInputs(NativeMethods.INPUT[] inputs)
         {
-            var foregroundWindow = IntPtr.Zero;
+            _visualStudioInstance.ActivateMainWindow();
 
-            try
-            {
-                foregroundWindow = IntegrationHelper.GetForegroundWindow();
-
-                _visualStudioInstance.ActivateMainWindow();
-
-                IntegrationHelper.SendInput(inputs);
-            }
-            finally
-            {
-                if (foregroundWindow != IntPtr.Zero)
-                {
-                    IntegrationHelper.SetForegroundWindow(foregroundWindow);
-                }
-            }
+            IntegrationHelper.SendInput(inputs);
 
             _visualStudioInstance.WaitForApplicationIdle(CancellationToken.None);
         }
