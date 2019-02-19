@@ -862,11 +862,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: we're going to list GetEnumerator, etc for array and string
             // collections, even though we know that's not how the implementation
             // actually enumerates them.
-            MethodSymbol disposeMethod = enumeratorInfoOpt.NeedsDisposeMethod
-                ? enumeratorInfoOpt.IsAsync
+            MethodSymbol disposeMethod = null;
+            if (enumeratorInfoOpt.NeedsDisposal)
+            {
+                if (!(enumeratorInfoOpt.DisposeMethod is null))
+                {
+                    disposeMethod = enumeratorInfoOpt.DisposeMethod;
+                }
+                else
+                {
+                    disposeMethod = enumeratorInfoOpt.IsAsync
                     ? (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync)
-                    : (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose)
-                : null;
+                    : (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose);
+                }
+            }
 
             return new ForEachStatementInfo(
                 enumeratorInfoOpt.GetEnumeratorMethod,
@@ -1888,7 +1897,7 @@ done:
                 case SyntaxKind.GlobalStatement:
                 case SyntaxKind.Subpattern:
                     return node;
-                case SyntaxKind.DeconstructionPatternClause:
+                case SyntaxKind.PositionalPatternClause:
                     return node.Parent;
             }
 

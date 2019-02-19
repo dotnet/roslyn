@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var outerVariables = ArrayBuilder<LocalSymbol>.GetInstance();
                 var loweredSwitchGoverningExpression = _localRewriter.VisitExpression(node.Expression);
                 BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(
-                    node.DecisionDag, loweredSwitchGoverningExpression, result, out BoundExpression optionalSavedInput);
+                    node.DecisionDag, loweredSwitchGoverningExpression, result, out BoundExpression savedInputExpression);
+                Debug.Assert(savedInputExpression != null);
 
                 // lower the decision dag.
                 (ImmutableArray<BoundStatement> loweredDag, ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections) =
@@ -89,10 +90,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result.Add(_factory.Label(node.DefaultLabel));
                     var objectType = _factory.SpecialType(SpecialType.System_Object);
                     var thrownExpression =
-                        (optionalSavedInput != null &&
-                                implicitConversionExists(optionalSavedInput, objectType) &&
+                        (implicitConversionExists(savedInputExpression, objectType) &&
                                 _factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject, isOptional: true) is MethodSymbol exception1)
-                            ? _factory.New(exception1, _factory.Convert(objectType, optionalSavedInput)) :
+                            ? _factory.New(exception1, _factory.Convert(objectType, savedInputExpression)) :
                         (_factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor, isOptional: true) is MethodSymbol exception0)
                             ? _factory.New(exception0) :
                         _factory.New(_factory.WellKnownMethod(WellKnownMember.System_InvalidOperationException__ctor));

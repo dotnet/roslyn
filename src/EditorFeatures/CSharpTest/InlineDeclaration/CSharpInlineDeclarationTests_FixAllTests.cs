@@ -78,7 +78,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task FixAllInDocument3()
         {
-
             await TestInRegularAndScriptAsync(
 @"class C
 {
@@ -93,7 +92,53 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 {
     void M()
     {
+        // Now get final exe and args. CTtrl-F5 wraps exe in cmd prompt
         GetExeAndArguments(useCmdShell, executable, arguments, out string finalExecutable, out string finalArguments);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [WorkItem(29935, "https://github.com/dotnet/roslyn/issues/29935")]
+        public async Task FixAllInDocumentSymbolResolution()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C 
+{
+    void M()
+    {
+        string {|FixAllInDocument:s|};
+        bool b;
+        A(out s, out b);
+    }
+
+    void A(out string s, out bool b)
+    {
+        s = string.Empty;
+        b = false;
+    }
+
+    void A(out string s, out string s2)
+    {
+        s = s2 = string.Empty;
+    }
+}",
+@"class C 
+{
+    void M()
+    {
+        A(out string s, out bool b);
+    }
+
+    void A(out string s, out bool b)
+    {
+        s = string.Empty;
+        b = false;
+    }
+
+    void A(out string s, out string s2)
+    {
+        s = s2 = string.Empty;
     }
 }");
         }
@@ -322,8 +367,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 {
     void M()
     {
-        // trailing
-        /* leading */
+        /* leading */ // trailing
         int.TryParse(v, out int i1);
         int.TryParse(v, out int i2);
     }

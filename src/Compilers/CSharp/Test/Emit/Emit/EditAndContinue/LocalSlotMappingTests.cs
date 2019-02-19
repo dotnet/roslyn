@@ -1626,7 +1626,7 @@ class C
 }";
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
 
-            var v0 = CompileAndVerify(compilation0);
+            var v0 = CompileAndVerify(compilation0, emitOptions: EmitOptions.Default);
             v0.VerifyIL("C.M", @"
 {
   // Code size       93 (0x5d)
@@ -2167,7 +2167,7 @@ class C
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var v0 = CompileAndVerify(compilation0);
+            var v0 = CompileAndVerify(compilation0, emitOptions: EmitOptions.Default);
 
             // Validate presence of a hidden sequence point @IL_0007 that is required for proper function remapping.
             v0.VerifyIL("C.M", @"

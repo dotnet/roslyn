@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override Accessibility DetermineDefaultPropertyAccessibility()
             => Accessibility.Private;
 
-        protected override SyntaxNode GetBody(SyntaxNode functionDeclaration) 
+        protected override SyntaxNode GetBody(SyntaxNode functionDeclaration)
             => InitializeParameterHelpers.GetBody(functionDeclaration);
     }
 }

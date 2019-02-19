@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     public abstract class CodeFixProvider
     {
         /// <summary>
-        /// A list of diagnostic IDs that this provider can provider fixes for.
+        /// A list of diagnostic IDs that this provider can provide fixes for.
         /// </summary>
         public abstract ImmutableArray<string> FixableDiagnosticIds { get; }
 

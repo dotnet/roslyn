@@ -89,6 +89,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
+        Friend ReadOnly Property CurrentVersion As LanguageVersion
+            Get
+                Return LanguageVersion.VisualBasic16
+            End Get
+        End Property
+
         ''' <summary>
         ''' Displays the version number in the format understood on the command-line (/langver flag).
         ''' For instance, "9", "15", "latest".

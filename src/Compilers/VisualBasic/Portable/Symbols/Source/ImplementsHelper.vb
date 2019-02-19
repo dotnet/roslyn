@@ -287,7 +287,7 @@ Next_i:
                                     Continue For ' has been eliminated already
                                 End If
 
-                                If first.ContainingType = second.ContainingType Then
+                                If TypeSymbol.Equals(first.ContainingType, second.ContainingType, TypeCompareKind.ConsiderEverything) Then
                                     ' type substitution can create two methods with same signature in the same type
                                     ' report ambiguity
                                     Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, ERRID.ERR_AmbiguousImplements3,

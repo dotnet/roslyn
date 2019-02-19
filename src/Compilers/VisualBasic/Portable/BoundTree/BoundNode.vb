@@ -38,6 +38,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
+        Protected Sub CopyAttributes(node As BoundNode)
+            If node.WasCompilerGenerated Then
+                Me.SetWasCompilerGenerated()
+            End If
+        End Sub
+
         <Conditional("DEBUG")>
         Private Shared Sub ValidateLocationInformation(kind As BoundKind, syntax As SyntaxNode)
             ' We should always have a syntax node and a syntax tree as well, unless it is a hidden sequence point.
