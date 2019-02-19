@@ -196,6 +196,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             foreach (var input in inputs)
             {
+                if (!input.IsTextEntry && input.VirtualKey == VirtualKeyCode.ESCAPE)
+                {
+                    // Slight delay on Esc to ensure the Ctrl key isn't registered as down
+                    simulator.Keyboard.Sleep(TimeSpan.FromMilliseconds(10));
+                }
+
                 if (input.IsTextEntry)
                 {
                     simulator.Keyboard.TextEntry(input.Character);
