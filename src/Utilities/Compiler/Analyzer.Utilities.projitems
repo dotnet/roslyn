@@ -56,6 +56,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)SymbolDisplayFormats.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FxCopWellKnownDiagnosticTags.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnusedValue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WellKnownTypeNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WellKnownTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WordParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WordParserOptions.cs" />
