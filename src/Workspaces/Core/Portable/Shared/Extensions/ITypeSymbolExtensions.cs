@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// interfaceMember, or this type doesn't supply a member that successfully implements
         /// interfaceMember).
         /// </summary>
-        public static IEnumerable<SymbolAndProjectId> FindImplementationsForInterfaceMember(
+        public static async Task<ImmutableArray<SymbolAndProjectId>> FindImplementationsForInterfaceMemberAsync(
             this SymbolAndProjectId<ITypeSymbol> typeSymbolAndProjectId,
             ISymbol interfaceMember,
             Solution solution,
@@ -106,19 +107,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // If you're looking for the implementations of IGoo<X>.Goo then you want to find both
             // results in C.
 
+            var arrBuilder = ImmutableArray.CreateBuilder<SymbolAndProjectId>();
+
             // TODO(cyrusn): Implement this using the actual code for
             // TypeSymbol.FindImplementationForInterfaceMember
             var typeSymbol = typeSymbolAndProjectId.Symbol;
             if (typeSymbol == null || interfaceMember == null)
             {
-                yield break;
+                return arrBuilder.AsImmutable();
             }
 
             if (interfaceMember.Kind != SymbolKind.Event &&
                 interfaceMember.Kind != SymbolKind.Method &&
                 interfaceMember.Kind != SymbolKind.Property)
             {
-                yield break;
+                return arrBuilder.AsImmutable();
             }
 
             // WorkItem(4843)
@@ -143,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var interfaceType = interfaceMember.ContainingType;
             if (!typeSymbol.ImplementsIgnoringConstruction(interfaceType))
             {
-                yield break;
+                return arrBuilder.AsImmutable();
             }
 
             // We've ascertained that the type T implements some constructed type of the form I<X>.
@@ -163,7 +166,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // if they are considered to be the same type, which provides a more accurate
             // implementations list for interfaces. 
             var typeSymbolProject = solution.GetProject(typeSymbolAndProjectId.ProjectId);
-            var typeSymbolCompilation = typeSymbolProject?.GetCompilationAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+            var typeSymbolCompilation = typeSymbolProject == null ?
+                                        null :
+                                        await typeSymbolProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var constructedInterface in constructedInterfaces)
             {
@@ -196,12 +201,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                         if (result != null)
                         {
-                            yield return typeSymbolAndProjectId.WithSymbol(result);
+                            arrBuilder.Add(typeSymbolAndProjectId.WithSymbol(result));
                             break;
                         }
                     }
                 }
             }
+
+            return arrBuilder.AsImmutable();
         }
 
         private static ISymbol FindImplementations(Workspace workspace, ISymbol constructedInterfaceMember, ITypeSymbol currentType)
