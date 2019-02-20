@@ -424,6 +424,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IFieldSymbol_Nullability As Nullability Implements IFieldSymbol.Nullability
+            Get
+                Return Nullability.NotComputed
+            End Get
+        End Property
+
         Private ReadOnly Property IFieldSymbol_HasConstantValue As Boolean Implements IFieldSymbol.HasConstantValue
             Get
                 Return Me.HasConstantValue

@@ -475,6 +475,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.ElementType.TypeSymbol; }
         }
 
+        Nullability IArrayTypeSymbol.ElementNullability
+        {
+            get => Nullability.NotComputed;
+        }
+
         ImmutableArray<CustomModifier> IArrayTypeSymbol.CustomModifiers
         {
             get { return this.ElementType.CustomModifiers; }

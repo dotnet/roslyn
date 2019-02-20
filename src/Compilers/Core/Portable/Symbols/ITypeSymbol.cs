@@ -111,6 +111,26 @@ namespace Microsoft.CodeAnalysis
         /// has no concept of unmanaged types.
         /// </summary>
         bool IsUnmanagedType { get; }
+
+        // PROTOTYPE(nullable-api): Document
+        string ToDisplayString(Nullability topLevelNullability, SymbolDisplayFormat format = null);
+
+        // PROTOTYPE(nullable-api): Document
+        ImmutableArray<SymbolDisplayPart> ToDisplayParts(Nullability topLevelNullability, SymbolDisplayFormat format = null);
+
+        // PROTOTYPE(nullable-api): Document
+        string ToMinimalDisplayString(
+            SemanticModel semanticModel,
+            Nullability topLevelNullability,
+            int position,
+            SymbolDisplayFormat format = null);
+
+        // PROTOTYPE(nullable-api): Document
+        ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
+            SemanticModel semanticModel,
+            Nullability topLevelNullability,
+            int position,
+            SymbolDisplayFormat format = null);
     }
 
     // Intentionally not extension methods. We don't want them ever be called for symbol classes

@@ -70,6 +70,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
+        public Nullability ElementNullability => throw new System.NotImplementedException();
+
         public bool Equals(IArrayTypeSymbol other)
         {
             return SymbolEquivalenceComparer.Instance.Equals(this, other);

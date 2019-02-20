@@ -5172,6 +5172,14 @@ class C
                 }
             }
 
+            public ImmutableArray<Nullability> TypeArgumentsNullabilities
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
             public ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
             {
                 throw new NotImplementedException();
@@ -5293,6 +5301,26 @@ class C
             }
 
             public string ToMinimalDisplayString(SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public string ToDisplayString(Nullability topLevelNullability, SymbolDisplayFormat format = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public ImmutableArray<SymbolDisplayPart> ToDisplayParts(Nullability topLevelNullability, SymbolDisplayFormat format = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public string ToMinimalDisplayString(SemanticModel semanticModel, Nullability topLevelNullability, int position, SymbolDisplayFormat format = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, Nullability topLevelNullability, int position, SymbolDisplayFormat format = null)
             {
                 throw new NotImplementedException();
             }

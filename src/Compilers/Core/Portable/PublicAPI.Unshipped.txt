@@ -1,6 +1,22 @@
 *REMOVED*Microsoft.CodeAnalysis.Operations.IEventAssignmentOperation.EventReference.get -> Microsoft.CodeAnalysis.Operations.IEventReferenceOperation
+Microsoft.CodeAnalysis.IArrayTypeSymbol.ElementNullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.IDiscardSymbol.Nullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.IEventSymbol.Nullability.get -> Microsoft.CodeAnalysis.Nullability
 Microsoft.CodeAnalysis.IFieldSymbol.IsFixedSizeBuffer.get -> bool
+Microsoft.CodeAnalysis.IFieldSymbol.Nullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.ILocalSymbol.Nullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.IMethodSymbol.ReceiverNullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.IMethodSymbol.ReturnNullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.IMethodSymbol.TypeArgumentsNullabilities.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
+Microsoft.CodeAnalysis.INamedTypeSymbol.TypeArgumentsNullabilities.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
+Microsoft.CodeAnalysis.IParameterSymbol.Nullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.ITypeParameterSymbol.ConstraintsNullabilities.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
+Microsoft.CodeAnalysis.ITypeParameterSymbol.ReferenceTypeConstraintNullability.get -> Microsoft.CodeAnalysis.Nullability
 Microsoft.CodeAnalysis.ITypeSymbol.IsRefLikeType.get -> bool
+Microsoft.CodeAnalysis.ITypeSymbol.ToDisplayParts(Microsoft.CodeAnalysis.Nullability topLevelNullability, Microsoft.CodeAnalysis.SymbolDisplayFormat format = null) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SymbolDisplayPart>
+Microsoft.CodeAnalysis.ITypeSymbol.ToDisplayString(Microsoft.CodeAnalysis.Nullability topLevelNullability, Microsoft.CodeAnalysis.SymbolDisplayFormat format = null) -> string
+Microsoft.CodeAnalysis.ITypeSymbol.ToMinimalDisplayParts(Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.Nullability topLevelNullability, int position, Microsoft.CodeAnalysis.SymbolDisplayFormat format = null) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SymbolDisplayPart>
+Microsoft.CodeAnalysis.ITypeSymbol.ToMinimalDisplayString(Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.Nullability topLevelNullability, int position, Microsoft.CodeAnalysis.SymbolDisplayFormat format = null) -> string
 Microsoft.CodeAnalysis.ITypeSymbol.IsUnmanagedType.get -> bool
 Microsoft.CodeAnalysis.Nullability
 Microsoft.CodeAnalysis.Nullability.MayBeNull = 4 -> Microsoft.CodeAnalysis.Nullability
@@ -40,6 +56,8 @@ Microsoft.CodeAnalysis.Operations.ISwitchExpressionArmOperation.Value.get -> Mic
 Microsoft.CodeAnalysis.Operations.ISwitchExpressionOperation
 Microsoft.CodeAnalysis.Operations.ISwitchExpressionOperation.Arms.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.ISwitchExpressionArmOperation>
 Microsoft.CodeAnalysis.Operations.ISwitchExpressionOperation.Value.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.TypeInfo.ConvertedNullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.TypeInfo.Nullability.get -> Microsoft.CodeAnalysis.Nullability
 abstract Microsoft.CodeAnalysis.Compilation.ClassifyCommonConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Operations.CommonConversion
 abstract Microsoft.CodeAnalysis.Compilation.ContainsSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
 abstract Microsoft.CodeAnalysis.Compilation.GetSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>

@@ -16,14 +16,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             var int32 = c.GetSpecialType(SpecialType.System_Int32);
 
             EqualityTesting.AssertEqual(default(TypeInfo), default(TypeInfo));
-            EqualityTesting.AssertEqual(new TypeInfo(obj, int32), new TypeInfo(obj, int32));
-            EqualityTesting.AssertNotEqual(new TypeInfo(obj, obj), new TypeInfo(obj, int32));
-            EqualityTesting.AssertNotEqual(new TypeInfo(int32, obj), new TypeInfo(obj, obj));
-            EqualityTesting.AssertEqual(new TypeInfo(int32, int32), new TypeInfo(int32, int32));
+            EqualityTesting.AssertEqual(new TypeInfo(obj, int32, Nullability.NotNull, Nullability.MayBeNull),
+                new TypeInfo(obj, int32, Nullability.NotNull, Nullability.MayBeNull));
+            EqualityTesting.AssertNotEqual(new TypeInfo(obj, obj, Nullability.NotNull, Nullability.MayBeNull),
+                new TypeInfo(obj, int32, Nullability.NotNull, Nullability.MayBeNull));
+            EqualityTesting.AssertNotEqual(new TypeInfo(int32, obj, Nullability.NotNull, Nullability.MayBeNull),
+                new TypeInfo(obj, obj, Nullability.NotNull, Nullability.MayBeNull));
+            EqualityTesting.AssertNotEqual(new TypeInfo(obj, int32, Nullability.NotComputed, Nullability.MayBeNull),
+                new TypeInfo(obj, int32, Nullability.NotNull, Nullability.MayBeNull));
+            EqualityTesting.AssertNotEqual(new TypeInfo(obj, int32, Nullability.NotNull, Nullability.NotComputed),
+                new TypeInfo(obj, int32, Nullability.NotNull, Nullability.MayBeNull));
+            EqualityTesting.AssertEqual(new TypeInfo(int32, int32, Nullability.NotComputed, Nullability.NotComputed),
+                new TypeInfo(int32, int32, Nullability.NotComputed, Nullability.NotComputed));
 
             var intEnum1 = c.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(int32);
             var intEnum2 = c.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(int32);
-            EqualityTesting.AssertEqual(new TypeInfo(intEnum1, int32), new TypeInfo(intEnum2, int32));
+            EqualityTesting.AssertEqual(new TypeInfo(intEnum1, int32, Nullability.NotNull, Nullability.NotComputed),
+                new TypeInfo(intEnum2, int32, Nullability.NotNull, Nullability.NotComputed));
         }
     }
 }

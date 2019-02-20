@@ -1144,6 +1144,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property INamedTypeSymbol_TypeArgumentsNullabilities As ImmutableArray(Of Nullability) Implements INamedTypeSymbol.TypeArgumentsNullabilities
+            Get
+                Return Me.TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(Function(t) Nullability.NotComputed)
+            End Get
+        End Property
+
         Private ReadOnly Property INamedTypeSymbol_TypeParameters As ImmutableArray(Of ITypeParameterSymbol) Implements INamedTypeSymbol.TypeParameters
             Get
                 Return StaticCast(Of ITypeParameterSymbol).From(Me.TypeParameters)

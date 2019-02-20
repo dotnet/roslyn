@@ -538,6 +538,22 @@ Done:
             End Get
         End Property
 
+        Private Function ITypeSymbol_ToDisplayString(topLevelNullability As Nullability, Optional format As SymbolDisplayFormat = Nothing) As String Implements ITypeSymbol.ToDisplayString
+            Return ToDisplayString(format)
+        End Function
+
+        Private Function ITypeSymbol_ToDisplayParts(topLevelNullability As Nullability, Optional format As SymbolDisplayFormat = Nothing) As ImmutableArray(Of SymbolDisplayPart) Implements ITypeSymbol.ToDisplayParts
+            Return ToDisplayParts(format)
+        End Function
+
+        Private Function ITypeSymbol_ToMinimalDisplayString(semanticModel As SemanticModel, topLevelNullability As Nullability, position As Integer, Optional format As SymbolDisplayFormat = Nothing) As String Implements ITypeSymbol.ToMinimalDisplayString
+            Return ToMinimalDisplayString(semanticModel, position, format)
+        End Function
+
+        Private Function ITypeSymbol_ToMinimalDisplayParts(semanticModel As SemanticModel, topLevelNullability As Nullability, position As Integer, Optional format As SymbolDisplayFormat = Nothing) As ImmutableArray(Of SymbolDisplayPart) Implements ITypeSymbol.ToMinimalDisplayParts
+            Return ToMinimalDisplayParts(semanticModel, position, format)
+        End Function
+
 #End Region
 
 #Region "Interface checks"

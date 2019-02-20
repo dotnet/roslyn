@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis
 {
     public struct TypeInfo : IEquatable<TypeInfo>
     {
-        internal static readonly TypeInfo None = new TypeInfo(null, null);
+        internal static readonly TypeInfo None = new TypeInfo(null, null, Nullability.NotApplicable, Nullability.NotApplicable);
 
         /// <summary>
         /// The type of the expression represented by the syntax node. For expressions that do not
@@ -17,23 +17,30 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ITypeSymbol Type { get; }
 
+        public Nullability Nullability { get; }
+
         /// <summary>
         /// The type of the expression after it has undergone an implicit conversion. If the type
         /// did not undergo an implicit conversion, returns the same as Type.
         /// </summary>
         public ITypeSymbol ConvertedType { get; }
 
-        internal TypeInfo(ITypeSymbol type, ITypeSymbol convertedType)
+        public Nullability ConvertedNullability { get; }
+
+        internal TypeInfo(ITypeSymbol type, ITypeSymbol convertedType, Nullability nullability, Nullability convertedNullability)
             : this()
         {
             this.Type = type;
+            this.Nullability = nullability;
             this.ConvertedType = convertedType;
+            this.ConvertedNullability = convertedNullability;
         }
 
         public bool Equals(TypeInfo other)
         {
             return object.Equals(this.Type, other.Type)
-                && object.Equals(this.ConvertedType, other.ConvertedType);
+                && object.Equals(this.ConvertedType, other.ConvertedType)
+                && object.Equals(this.Nullability, other.Nullability);
         }
 
         public override bool Equals(object obj)
@@ -43,7 +50,10 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return Hash.Combine(this.ConvertedType, Hash.Combine(this.Type, 0));
+            return Hash.Combine(this.ConvertedType,
+                Hash.Combine(this.Type,
+                Hash.Combine(this.Nullability.GetHashCode(),
+                this.ConvertedNullability.GetHashCode())));
         }
     }
 }

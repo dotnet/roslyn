@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public ITypeSymbol ReceiverType => _symbol.ReceiverType;
 
+            public Nullability ReceiverNullability => _symbol.ReceiverNullability;
+
             public IMethodSymbol ReducedFrom =>
                     // This implementation feels incorrect!
                     _symbol.ReducedFrom;
@@ -83,6 +85,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public ITypeSymbol ReturnType => _symbol.ReturnType;
 
+            public Nullability ReturnNullability => _symbol.ReturnNullability;
+
             public ImmutableArray<AttributeData> GetReturnTypeAttributes()
             {
                 return _symbol.GetReturnTypeAttributes();
@@ -93,6 +97,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public ImmutableArray<CustomModifier> ReturnTypeCustomModifiers => _symbol.ReturnTypeCustomModifiers;
 
             public ImmutableArray<ITypeSymbol> TypeArguments => _symbol.TypeArguments;
+
+            public ImmutableArray<Nullability> TypeArgumentsNullabilities => _symbol.TypeArgumentsNullabilities;
 
             public ImmutableArray<ITypeParameterSymbol> TypeParameters => _symbol.TypeParameters;
 

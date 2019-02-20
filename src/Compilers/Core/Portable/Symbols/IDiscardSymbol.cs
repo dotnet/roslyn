@@ -14,5 +14,8 @@ namespace Microsoft.CodeAnalysis
         /// The type of the discarded value.
         /// </summary>
         ITypeSymbol Type { get; }
+
+        // PROTOTYPE(nullable-api): Document
+        Nullability Nullability { get; }
     }
 }

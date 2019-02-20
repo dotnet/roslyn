@@ -19,6 +19,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ITypeSymbol Type { get; }
 
+        // PROTOTYPE(nullable-api): Document
+        Nullability Nullability { get; }
+
         /// <summary>
         /// Returns true if the event is a WinRT type event.
         /// </summary>

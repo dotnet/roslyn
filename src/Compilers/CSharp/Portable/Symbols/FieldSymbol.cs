@@ -58,6 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
 
+        public Nullability Nullability => Nullability.NotComputed;
+
         /// <summary>
         /// If this field serves as a backing variable for an automatically generated
         /// property or a field-like event, returns that 
