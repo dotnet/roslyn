@@ -1320,5 +1320,79 @@ public sealed class MyTaskMethodBuilder
                 //         await new MyTask();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "await new MyTask();").WithArguments("MyTaskMethodBuilder.AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)", "IMyAwaiter", "TAwaiter", "MyTask.Awaiter").WithLocation(5, 9));
         }
+
+        [Fact, WorkItem(33388, "https://github.com/dotnet/roslyn/pull/33388")]
+        public void AttributeArgument_TaskLikeOverloadResolution()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+class A : Attribute
+{
+    public A(Func<MyTask<int>> f) { }
+    public A(Func<Task<short>> f) { }
+}
+[A(async () => 1)]
+class C
+{
+}
+
+
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+class MyTask
+{
+    internal Awaiter GetAwaiter() => null;
+    internal class Awaiter : INotifyCompletion
+    {
+        public void OnCompleted(Action a) { }
+        internal bool IsCompleted => true;
+        internal void GetResult() { }
+    }
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+class MyTask<T>
+{
+    internal Awaiter GetAwaiter() => null;
+    internal class Awaiter : INotifyCompletion
+    {
+        public void OnCompleted(Action a) { }
+        internal bool IsCompleted => true;
+        internal T GetResult() => default(T);
+    }
+}
+class MyTaskMethodBuilder
+{
+    public static MyTaskMethodBuilder Create() => null;
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetException(Exception e) { }
+    public void SetResult() { }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public MyTask Task => default(MyTask);
+}
+class MyTaskMethodBuilder<T>
+{
+    public static MyTaskMethodBuilder<T> Create() => null;
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetException(Exception e) { }
+    public void SetResult(T t) { }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public MyTask<T> Task => default(MyTask<T>);
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (11,2): error CS0181: Attribute constructor parameter 'f' has type 'Func<MyTask<int>>', which is not a valid attribute parameter type
+                // [A(async () => 1)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("f", "System.Func<MyTask<int>>").WithLocation(11, 2));
+        }
     }
 }
