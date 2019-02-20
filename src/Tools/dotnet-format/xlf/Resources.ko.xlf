@@ -29,12 +29,12 @@
       </trans-unit>
       <trans-unit id="Format_files_but_do_not_save_changes_to_disk">
         <source>Format files, but do not save changes to disk.</source>
-        <target state="new">Format files, but do not save changes to disk.</target>
+        <target state="translated">파일의 형식을 지정하지만 변경 내용을 디스크에 저장하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatted_0_of_1_files_in_2_ms">
         <source>Formatted {0} of {1} files in {2}ms.</source>
-        <target state="new">Formatted {0} of {1} files in {2}ms.</target>
+        <target state="translated">{2}밀리초 내에 {1}개 중 {0}개 파일의 형식을 지정했습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_code_file_0">
@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="Maximum_number_of_workspace_warnings_to_log_has_been_reached_Set_the_verbosity_option_to_the_diagnostic_level_to_see_all_warnings">
         <source>Maximum number of workspace warnings to log has been reached. Set the --verbosity option to the 'diagnostic' level to see all warnings.</source>
-        <target state="new">Maximum number of workspace warnings to log has been reached. Set the --verbosity option to the 'diagnostic' level to see all warnings.</target>
+        <target state="translated">로그의 작업 영역 경고 수가 최대치에 도달했습니다. '진단' 수준에 --verbosity 옵션을 설정하여 모든 경고를 볼 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Multiple_MSBuild_project_files_found_in_0_Specify_which_to_use_with_the_workspace_option">
