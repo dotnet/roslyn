@@ -72,6 +72,11 @@
         <target state="translated">Olarak null olabilecek ilan</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_return_type">
+        <source>Fix return type</source>
+        <target state="new">Fix return type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inline_temporary_variable">
         <source>Inline temporary variable</source>
         <target state="translated">Satır içi geçici değişken</target>
