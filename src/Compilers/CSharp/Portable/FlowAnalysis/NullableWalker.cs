@@ -4369,6 +4369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         TrackNullableStateForAssignment(rightPart, targetType, targetSlot, valueType, valueSlot);
 
                         // Conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
+                        // (Should this check be moved to VisitOptionalImplicitConversion or TrackNullableStateForAssignment?)
                         if (targetSlot > 0 &&
                             underlyingConversion.Kind == ConversionKind.ImplicitNullable &&
                             AreNullableAndUnderlyingTypes(targetType.TypeSymbol, operandType.TypeSymbol, out TypeSymbolWithAnnotations underlyingType))
