@@ -53,12 +53,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly struct VisitResult
         {
-            public readonly TypeSymbolWithAnnotations ResultType;
+            public readonly TypeSymbolWithAnnotations RValueType;
             public readonly TypeSymbolWithAnnotations LValueType;
 
             public VisitResult(TypeSymbolWithAnnotations resultType, TypeSymbolWithAnnotations lValueType)
             {
-                ResultType = resultType;
+                RValueType = resultType;
                 LValueType = lValueType;
             }
         }
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private TypeSymbolWithAnnotations ResultType
         {
-            get => _visitResult.ResultType;
+            get => _visitResult.RValueType;
             set
             {
                 SetResult(resultType: value, lvalueType: default);
@@ -1213,7 +1213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.IsSuppressed && !ResultType.IsNull)
             {
-                SetResult(_visitResult.ResultType.WithTopLevelNonNullability(), _visitResult.LValueType);
+                SetResult(_visitResult.RValueType.WithTopLevelNonNullability(), _visitResult.LValueType);
             }
             return result;
         }
@@ -1260,7 +1260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression initializerOpt)
         {
             Debug.Assert(node.Kind == BoundKind.ObjectCreationExpression || node.Kind == BoundKind.DynamicObjectCreationExpression);
-            var argumentTypes = argumentResults.SelectAsArray(ar => ar.ResultType);
+            var argumentTypes = argumentResults.SelectAsArray(ar => ar.RValueType);
 
             int slot = -1;
             TypeSymbol type = node.Type;
@@ -2410,7 +2410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     (operand, conversion) = RemoveConversion(operand, includeExplicitConversions: false);
                     Visit(operand);
-                    result = _visitResult.ResultType;
+                    result = _visitResult.RValueType;
                 }
                 return (operand, conversion, result);
             }
@@ -2876,7 +2876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitResult result,
             bool extensionMethodThisArgument)
         {
-            var resultType = result.ResultType;
+            var resultType = result.RValueType;
             switch (refKind)
             {
                 case RefKind.None:
@@ -2920,6 +2920,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         var lValueType = result.LValueType;
+                        // The argument and the parameter may have different nested or top-level nullabilities,
+                        // so we're going to check assignment from a fictional value from the parameter to the argument.
                         var parameterValue = new BoundParameter(argument.Syntax, parameter);
 
                         if (!argument.IsSuppressed)
@@ -3125,7 +3127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundExpression>.GetInstance(n);
             for (int i = 0; i < n; i++)
             {
-                builder.Add(getArgumentForMethodTypeInference(arguments[i], argumentResults[i].ResultType));
+                builder.Add(getArgumentForMethodTypeInference(arguments[i], argumentResults[i].RValueType));
             }
             return builder.ToImmutableAndFree();
 
@@ -4553,9 +4555,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
-            Visit(node.Left); // https://github.com/dotnet/roslyn/issues/29962 Method should be called VisitValue rather than VisitLvalue.
+            Visit(node.Left);
             TypeSymbolWithAnnotations leftLValueType = _visitResult.LValueType;
-            TypeSymbolWithAnnotations leftResultType = _visitResult.ResultType;
+            TypeSymbolWithAnnotations leftResultType = _visitResult.RValueType;
 
             TypeSymbolWithAnnotations resultType;
             Debug.Assert(!IsConditionalState);

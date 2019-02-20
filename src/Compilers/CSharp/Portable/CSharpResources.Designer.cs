@@ -15026,7 +15026,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Value cannot be used as an input for parameter due to differences in the nullability of reference types..
+        ///   Looks up a localized string similar to Argument cannot be used as an input for parameter due to differences in the nullability of reference types..
         /// </summary>
         internal static string WRN_NullabilityMismatchInArgument_Title {
             get {

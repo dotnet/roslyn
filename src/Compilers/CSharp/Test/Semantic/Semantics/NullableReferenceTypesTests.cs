@@ -118,7 +118,6 @@ public class C
             var source = @"
 public class C
 {
-    public void M(out string? x) => throw null!;
     public void M2()
     {
         object y! = null;
@@ -129,21 +128,21 @@ public class C
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             // We don't allow suppressions in those positions at this point (LDM 2/13/2019)
             comp.VerifyDiagnostics(
-                // (7,16): warning CS0168: The variable 'y' is declared but never used
+                // (6,16): warning CS0168: The variable 'y' is declared but never used
                 //         object y! = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "y").WithArguments("y").WithLocation(7, 16),
-                // (7,17): error CS1002: ; expected
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "y").WithArguments("y").WithLocation(6, 16),
+                // (6,17): error CS1002: ; expected
                 //         object y! = null;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "!").WithLocation(7, 17),
-                // (7,19): error CS1525: Invalid expression term '='
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "!").WithLocation(6, 17),
+                // (6,19): error CS1525: Invalid expression term '='
                 //         object y! = null;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(7, 19),
-                // (9,9): error CS8598: The suppression operator is not allowed in this context
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(6, 19),
+                // (8,9): error CS8598: The suppression operator is not allowed in this context
                 //         y2! = null;
-                Diagnostic(ErrorCode.ERR_IllegalSuppression, "y2").WithLocation(9, 9),
-                // (9,9): error CS0165: Use of unassigned local variable 'y2'
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "y2").WithLocation(8, 9),
+                // (8,9): error CS0165: Use of unassigned local variable 'y2'
                 //         y2! = null;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "y2").WithArguments("y2").WithLocation(9, 9)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y2").WithArguments("y2").WithLocation(8, 9)
                 );
         }
 
@@ -14989,6 +14988,66 @@ class C
         }
 
         [Fact]
+        [WorkItem(29295, "https://github.com/dotnet/roslyn/issues/29295")]
+        public void CatchException_NullableType()
+        {
+            var c = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        try
+        {
+            System.Console.WriteLine();
+        }
+        catch (System.Exception? e)
+        {
+            var e2 = Copy(e);
+            e2.ToString();
+            e2 = null; // 1
+            e.ToString();
+        }
+    }
+    static U Copy<U>(U u) => throw null!;
+}
+", options: WithNonNullTypesTrue());
+
+            // There is still an issue with catch variables having an "unkonwn" null-state, instead of being initialized with a "not null" state
+            // We expect a warning on // 1
+            // Tracked by https://github.com/dotnet/roslyn/issues/33540
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(29295, "https://github.com/dotnet/roslyn/issues/33540")]
+        public void CatchException_ConstrainedGenericTypeParameter()
+        {
+            var c = CreateCompilation(@"
+class C
+{
+    static void M<T>() where T : System.Exception?
+    {
+        try
+        {
+        }
+        catch (T e)
+        {
+            var e2 = Copy(e);
+            e2.ToString(); // 1
+            e.ToString();
+        }
+    }
+    static U Copy<U>(U u) => throw null!;
+}
+", options: WithNonNullTypesTrue());
+
+            // There is still an issue with catch variables having an "unkonwn" null-state, instead of being initialized with a "not null" state
+            // We expect a warning on // 1
+            // Tracked by https://github.com/dotnet/roslyn/issues/33540
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
         [WorkItem(26739, "https://github.com/dotnet/roslyn/issues/26739")]
         public void RefParameter_TopLevelNullability()
         {
@@ -15529,30 +15588,6 @@ class C<T>
                 //         v3.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "v3").WithLocation(19, 9)
                 );
-        }
-
-        [Fact]
-        [WorkItem(29295, "https://github.com/dotnet/roslyn/issues/29295")]
-        public void CatchException_NullableType()
-        {
-            var c = CreateCompilation(@"
-class C
-{
-    void M()
-    {
-        try
-        {
-            System.Console.WriteLine();
-        }
-        catch (System.Exception? e)
-        {
-            e.ToString();
-        }
-    }
-}
-", options: WithNonNullTypesTrue());
-
-            c.VerifyDiagnostics();
         }
 
         [Fact]

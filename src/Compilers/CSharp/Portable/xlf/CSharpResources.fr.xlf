@@ -1348,7 +1348,7 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
-        <source>Value cannot be used as an input for parameter due to differences in the nullability of reference types.</source>
+        <source>Argument cannot be used as an input for parameter due to differences in the nullability of reference types.</source>
         <target state="needs-review-translation">La nullabilité des types référence dans l'argument ne correspond pas au type cible.</target>
         <note />
       </trans-unit>
