@@ -382,6 +382,40 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken);
         }
 
+        internal static Task<bool> SymbolsAreEquivalentAsync(
+            Solution solution,
+            SymbolAndProjectId symbol1,
+            SymbolAndProjectId symbol2,
+            CancellationToken cancellationToken)
+        {
+            return SymbolsAreEquivalentAsync(solution, symbol1, symbol2, ignoreAssemblies: false, cancellationToken);
+        }
+
+        internal static async Task<bool> SymbolsAreEquivalentAsync(
+            Solution solution,
+            SymbolAndProjectId symbol1,
+            SymbolAndProjectId symbol2,
+            bool ignoreAssemblies,
+            CancellationToken cancellationToken)
+        {
+            // If we're ignoring assemblies, we can just quickly check if the symbols are equivalent
+            // using the SymbolEquivalenceComparer.
+            if (ignoreAssemblies)
+            {
+                return SymbolEquivalenceComparer.IgnoreAssembliesInstance.Equals(symbol1.Symbol, symbol2.Symbol);
+            }
+
+            var project1 = solution.GetProject(symbol1.ProjectId);
+            var project2 = solution.GetProject(symbol2.ProjectId);
+
+            var compilation1 = await project1.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation2 = await project2.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+            return OriginalSymbolsMatch(
+                solution, symbol1.Symbol, symbol2.Symbol,
+                compilation1, compilation2, cancellationToken);
+        }
+
         internal static bool OriginalSymbolsMatch(
             Solution solution,
             ISymbol searchSymbol,
