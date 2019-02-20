@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             for (var current = member; current != null; current = current.OverriddenMember())
             {
-                if (OriginalSymbolsMatch(current.OverriddenMember(), symbol.OriginalDefinition, solution, cancellationToken))
+                if (OriginalSymbolsMatch(solution, current.OverriddenMember(), symbol.OriginalDefinition, cancellationToken))
                 {
                     return true;
                 }
@@ -355,9 +355,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static bool OriginalSymbolsMatch(
+            Solution solution,
             ISymbol searchSymbol,
             ISymbol symbolToMatch,
-            Solution solution,
             CancellationToken cancellationToken)
         {
             if (ReferenceEquals(searchSymbol, symbolToMatch))
@@ -377,15 +377,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return OriginalSymbolsMatch(
-                searchSymbol, symbolToMatch, solution,
+                solution, searchSymbol, symbolToMatch,
                 searchSymbolCompilation, symbolToMatchCompilation,
                 cancellationToken);
         }
 
         internal static bool OriginalSymbolsMatch(
+            Solution solution,
             ISymbol searchSymbol,
             ISymbol symbolToMatch,
-            Solution solution,
             Compilation searchSymbolCompilation,
             Compilation symbolToMatchCompilation,
             CancellationToken cancellationToken)
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (searchSymbol.Kind == SymbolKind.NamedType && symbolToMatch.IsConstructor())
             {
-                return OriginalSymbolsMatch(searchSymbol, symbolToMatch.ContainingType, solution, searchSymbolCompilation, symbolToMatchCompilation, cancellationToken);
+                return OriginalSymbolsMatch(solution, searchSymbol, symbolToMatch.ContainingType, searchSymbolCompilation, symbolToMatchCompilation, cancellationToken);
             }
 
             return false;
@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             CancellationToken cancellationToken)
         {
-            return OriginalSymbolsMatch(namespace1, namespace2, solution, cancellationToken);
+            return OriginalSymbolsMatch(solution, namespace1, namespace2, cancellationToken);
         }
 
         // Verifies that all pairs of named types in equivalentTypesWithDifferingAssemblies are equivalent forwarded types.
