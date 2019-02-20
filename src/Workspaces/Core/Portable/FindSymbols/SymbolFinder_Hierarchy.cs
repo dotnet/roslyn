@@ -370,12 +370,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return false;
             }
 
-            if (!TryGetCompilation(symbolToMatch, solution, out var symbolToMatchCompilation, cancellationToken))
+            if (!TryGetCompilation(searchSymbol, solution, out var searchSymbolCompilation, cancellationToken) ||
+                !TryGetCompilation(symbolToMatch, solution, out var symbolToMatchCompilation, cancellationToken))
             {
                 return false;
             }
 
-            return OriginalSymbolsMatch(searchSymbol, symbolToMatch, solution, null, symbolToMatchCompilation, cancellationToken);
+            return OriginalSymbolsMatch(
+                searchSymbol, symbolToMatch, solution,
+                searchSymbolCompilation, symbolToMatchCompilation,
+                cancellationToken);
         }
 
         internal static bool OriginalSymbolsMatch(
