@@ -9523,11 +9523,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version {5} or greater.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PrivateVirtualAccessor">
-        <source>'{0}': virtual properties in interfaces cannot have private accessors</source>
-        <target state="new">'{0}': virtual properties in interfaces cannot have private accessors</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

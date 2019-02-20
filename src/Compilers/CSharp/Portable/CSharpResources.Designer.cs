@@ -8467,15 +8467,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: virtual properties in interfaces cannot have private accessors.
-        /// </summary>
-        internal static string ERR_PrivateVirtualAccessor {
-            get {
-                return ResourceManager.GetString("ERR_PrivateVirtualAccessor", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: property or indexer cannot have void type.
         /// </summary>
         internal static string ERR_PropertyCantHaveVoidType {

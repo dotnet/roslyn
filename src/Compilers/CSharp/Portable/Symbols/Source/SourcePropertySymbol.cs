@@ -326,13 +326,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         CheckAbstractPropertyAccessorNotPrivate(_getMethod, diagnostics);
                         CheckAbstractPropertyAccessorNotPrivate(_setMethod, diagnostics);
                     }
-                    else if (this.IsVirtual && containingType.IsInterface)
-                    {
-                        // Check virtual property accessors are not private.
-                        // See https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-06-14.md
-                        CheckVirtualPropertyAccessorNotPrivate(_getMethod, diagnostics);
-                        CheckVirtualPropertyAccessorNotPrivate(_setMethod, diagnostics);
-                    }
                 }
                 else
                 {
@@ -1039,14 +1032,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void CheckVirtualPropertyAccessorNotPrivate(SourcePropertyAccessorSymbol accessor, DiagnosticBag diagnostics)
-        {
-            if (accessor.LocalAccessibility == Accessibility.Private)
-            {
-                diagnostics.Add(ErrorCode.ERR_PrivateVirtualAccessor, accessor.Locations[0], accessor);
-            }
-        }
-
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref _lazyDocComment);
@@ -1057,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void CheckExplicitImplementationAccessor(MethodSymbol thisAccessor, MethodSymbol otherAccessor, PropertySymbol explicitlyImplementedProperty, DiagnosticBag diagnostics)
         {
             var thisHasAccessor = (object)thisAccessor != null;
-            var otherHasAccessor = (object)otherAccessor != null;
+            var otherHasAccessor = otherAccessor.IsImplementable();
 
             if (otherHasAccessor && !thisHasAccessor)
             {

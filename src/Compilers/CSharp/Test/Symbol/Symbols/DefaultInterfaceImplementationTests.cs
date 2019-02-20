@@ -13273,7 +13273,7 @@ class Test3 : I3
         }
         set
         {
-            throw null;
+            System.Console.WriteLine(""Test3.set_P3"");
         }
     }
 }
@@ -13283,7 +13283,8 @@ class Test4 : I4
     {
         get
         {
-            throw null;
+            System.Console.WriteLine(""Test4.get_P4"");
+            return 0;
         }
         set
         {
@@ -13301,7 +13302,7 @@ class Test5 : I5
         }
         set
         {
-            throw null;
+            System.Console.WriteLine(""Test5.set_P5"");
         }
     }
 }
@@ -13311,7 +13312,8 @@ class Test6 : I6
     {
         get
         {
-            throw null;
+            System.Console.WriteLine(""Test6.get_P6"");
+            return 0;
         }
         set
         {
@@ -13320,61 +13322,395 @@ class Test6 : I6
     }
 }
 ";
-            ValidatePropertyModifiers_23(source1, source2,
-                // (8,17): error CS8507: 'I3.P3.get': virtual properties in interfaces cannot have private accessors
-                //         private get
-                Diagnostic(ErrorCode.ERR_PrivateVirtualAccessor, "get").WithArguments("I3.P3.get").WithLocation(8, 17),
-                // (26,17): error CS8507: 'I4.P4.set': virtual properties in interfaces cannot have private accessors
-                //         private set {System.Console.WriteLine("set_P4");}
-                Diagnostic(ErrorCode.ERR_PrivateVirtualAccessor, "set").WithArguments("I4.P4.set").WithLocation(26, 17),
-                // (38,17): error CS8507: 'I5.P5.get': virtual properties in interfaces cannot have private accessors
-                //         private get => GetP5();
-                Diagnostic(ErrorCode.ERR_PrivateVirtualAccessor, "get").WithArguments("I5.P5.get").WithLocation(38, 17),
-                // (58,17): error CS8507: 'I6.P6.set': virtual properties in interfaces cannot have private accessors
-                //         private set => System.Console.WriteLine("set_P6");
-                Diagnostic(ErrorCode.ERR_PrivateVirtualAccessor, "set").WithArguments("I6.P6.set").WithLocation(58, 17)
-                );
+            ValidatePropertyModifiers_23(source1, source2);
+
+            var source3 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I3 i3 = new Test3();
+        I4 i4 = new Test4();
+        I5 i5 = new Test5();
+        I6 i6 = new Test6();
+        i3.M2();
+        i4.M2();
+        i5.M2();
+        i6.M2();
+    }
+}
+class Test3 : I3
+{
+    public int P3 
+    {
+        set
+        {
+            System.Console.WriteLine(""Test3.set_P3"");
+        }
+    }
+}
+class Test4 : I4
+{
+    public int P4 
+    {
+        get
+        {
+            System.Console.WriteLine(""Test4.get_P4"");
+            return 0;
+        }
+    }
+}
+class Test5 : I5
+{
+    public int P5 
+    {
+        set
+        {
+            System.Console.WriteLine(""Test5.set_P5"");
+        }
+    }
+}
+class Test6 : I6
+{
+    public int P6 
+    {
+        get
+        {
+            System.Console.WriteLine(""Test6.get_P6"");
+            return 0;
+        }
+    }
+}
+";
+            ValidatePropertyModifiers_23(source1, source3);
+
+            var source4 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I3 i3 = new Test3();
+        I4 i4 = new Test4();
+        I5 i5 = new Test5();
+        I6 i6 = new Test6();
+        i3.M2();
+        i4.M2();
+        i5.M2();
+        i6.M2();
+    }
+}
+class Test3 : I3
+{
+    public virtual int P3 
+    {
+        get
+        {
+            throw null;
+        }
+        set
+        {
+            System.Console.WriteLine(""Test3.set_P3"");
+        }
+    }
+}
+class Test4 : I4
+{
+    public virtual int P4 
+    {
+        get
+        {
+            System.Console.WriteLine(""Test4.get_P4"");
+            return 0;
+        }
+        set
+        {
+            throw null;
+        }
+    }
+}
+class Test5 : I5
+{
+    public virtual int P5 
+    {
+        get
+        {
+            throw null;
+        }
+        set
+        {
+            System.Console.WriteLine(""Test5.set_P5"");
+        }
+    }
+}
+class Test6 : I6
+{
+    public virtual int P6 
+    {
+        get
+        {
+            System.Console.WriteLine(""Test6.get_P6"");
+            return 0;
+        }
+        set
+        {
+            throw null;
+        }
+    }
+}
+";
+            ValidatePropertyModifiers_23(source1, source4);
+
+            var source5 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I3 i3 = new Test3();
+        I4 i4 = new Test4();
+        I5 i5 = new Test5();
+        I6 i6 = new Test6();
+        i3.M2();
+        i4.M2();
+        i5.M2();
+        i6.M2();
+    }
+}
+class Test3 : I3
+{
+    public virtual int P3 
+    {
+        set
+        {
+            System.Console.WriteLine(""Test3.set_P3"");
+        }
+    }
+}
+class Test4 : I4
+{
+    public virtual int P4 
+    {
+        get
+        {
+            System.Console.WriteLine(""Test4.get_P4"");
+            return 0;
+        }
+    }
+}
+class Test5 : I5
+{
+    public virtual int P5 
+    {
+        set
+        {
+            System.Console.WriteLine(""Test5.set_P5"");
+        }
+    }
+}
+class Test6 : I6
+{
+    public virtual int P6 
+    {
+        get
+        {
+            System.Console.WriteLine(""Test6.get_P6"");
+            return 0;
+        }
+    }
+}
+";
+            ValidatePropertyModifiers_23(source1, source5);
+
+            var source6 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I3 i3 = new Test3();
+        I4 i4 = new Test4();
+        I5 i5 = new Test5();
+        I6 i6 = new Test6();
+        i3.M2();
+        i4.M2();
+        i5.M2();
+        i6.M2();
+    }
+}
+class Test3 : I3
+{
+    int I3.P3 
+    {
+        set
+        {
+            System.Console.WriteLine(""Test3.set_P3"");
+        }
+    }
+}
+class Test4 : I4
+{
+    int I4.P4 
+    {
+        get
+        {
+            System.Console.WriteLine(""Test4.get_P4"");
+            return 0;
+        }
+    }
+}
+class Test5 : I5
+{
+    int I5.P5 
+    {
+        set
+        {
+            System.Console.WriteLine(""Test5.set_P5"");
+        }
+    }
+}
+class Test6 : I6
+{
+    int I6.P6 
+    {
+        get
+        {
+            System.Console.WriteLine(""Test6.get_P6"");
+            return 0;
+        }
+    }
+}
+";
+            ValidatePropertyModifiers_23(source1, source6);
+
+            var source7 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I3 i3 = new Test33();
+        I4 i4 = new Test44();
+        I5 i5 = new Test55();
+        I6 i6 = new Test66();
+        i3.M2();
+        i4.M2();
+        i5.M2();
+        i6.M2();
+    }
+}
+interface Test3 : I3
+{
+    int I3.P3 
+    {
+        set
+        {
+            System.Console.WriteLine(""Test3.set_P3"");
+        }
+    }
+}
+class Test33 : Test3 {}
+interface Test4 : I4
+{
+    int I4.P4 
+    {
+        get
+        {
+            System.Console.WriteLine(""Test4.get_P4"");
+            return 0;
+        }
+    }
+}
+class Test44 : Test4 {}
+interface Test5 : I5
+{
+    int I5.P5 
+    {
+        set
+        {
+            System.Console.WriteLine(""Test5.set_P5"");
+        }
+    }
+}
+class Test55 : Test5 {}
+interface Test6 : I6
+{
+    int I6.P6 
+    {
+        get
+        {
+            System.Console.WriteLine(""Test6.get_P6"");
+            return 0;
+        }
+    }
+}
+class Test66 : Test6 {}
+";
+            ValidatePropertyModifiers_23(source1, source7);
         }
 
-        private void ValidatePropertyModifiers_23(string source1, string source2, params DiagnosticDescription[] expected)
+        private void ValidatePropertyModifiers_23(string source1, string source2)
         {
-            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
-            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation1.VerifyDiagnostics(expected);
-
-            Validate1(compilation1.SourceModule);
-
-            void Validate1(ModuleSymbol m)
+            foreach (var metadataImportOptions in new[] { MetadataImportOptions.All, MetadataImportOptions.Public })
             {
-                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
-                var im = test1.InterfacesNoUseSiteDiagnostics().Single().ContainingModule;
+                var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe.WithMetadataImportOptions(metadataImportOptions),
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                compilation1.VerifyDiagnostics();
 
-                ValidateProperty23(GetSingleProperty(im, "I3"), false, Accessibility.Private, Accessibility.Public, m.GlobalNamespace.GetTypeMember("Test3"));
-                ValidateProperty23(GetSingleProperty(im, "I4"), false, Accessibility.Public, Accessibility.Private, m.GlobalNamespace.GetTypeMember("Test4"));
-                ValidateProperty23(GetSingleProperty(im, "I5"), false, Accessibility.Private, Accessibility.Public, m.GlobalNamespace.GetTypeMember("Test5"));
-                ValidateProperty23(GetSingleProperty(im, "I6"), false, Accessibility.Public, Accessibility.Private, m.GlobalNamespace.GetTypeMember("Test6"));
+                Validate1(compilation1.SourceModule);
+
+                void Validate1(ModuleSymbol m)
+                {
+                    var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                    var im = test1.InterfacesNoUseSiteDiagnostics().Single().ContainingModule;
+
+                    ValidateProperty23(GetSingleProperty(im, "I3"), false, Accessibility.Private, Accessibility.Public, m.GlobalNamespace.GetTypeMember("Test3"));
+                    ValidateProperty23(GetSingleProperty(im, "I4"), false, Accessibility.Public, Accessibility.Private, m.GlobalNamespace.GetTypeMember("Test4"));
+                    ValidateProperty23(GetSingleProperty(im, "I5"), false, Accessibility.Private, Accessibility.Public, m.GlobalNamespace.GetTypeMember("Test5"));
+                    ValidateProperty23(GetSingleProperty(im, "I6"), false, Accessibility.Public, Accessibility.Private, m.GlobalNamespace.GetTypeMember("Test6"));
+                }
+
+                var expectedOutput =
+@"
+get_P3
+Test3.set_P3
+Test4.get_P4
+set_P4
+get_P5
+Test5.set_P5
+Test6.get_P6
+set_P6
+";
+
+                CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null : expectedOutput, verify: VerifyOnCoreClr, symbolValidator: Validate1);
+
+                var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(metadataImportOptions),
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                compilation2.VerifyDiagnostics();
+
+                ValidateProperty23(GetSingleProperty(compilation2, "I3"), false, Accessibility.Private, Accessibility.Public);
+                ValidateProperty23(GetSingleProperty(compilation2, "I4"), false, Accessibility.Public, Accessibility.Private);
+                ValidateProperty23(GetSingleProperty(compilation2, "I5"), false, Accessibility.Private, Accessibility.Public);
+                ValidateProperty23(GetSingleProperty(compilation2, "I6"), false, Accessibility.Public, Accessibility.Private);
+
+                foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+                {
+                    var compilation3 = CreateCompilation(source2, new[] { reference },
+                                                         options: TestOptions.DebugExe.WithMetadataImportOptions(metadataImportOptions),
+                                                         parseOptions: TestOptions.Regular,
+                                                         targetFramework: TargetFramework.NetStandardLatest);
+                    Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                    compilation3.VerifyDiagnostics();
+                    Validate1(compilation3.SourceModule);
+
+                    CompileAndVerify(compilation3, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null : expectedOutput, verify: VerifyOnCoreClr, symbolValidator: Validate1);
+                }
             }
-
-            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
-            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation2.VerifyDiagnostics(expected);
-
-            ValidateProperty23(GetSingleProperty(compilation2, "I3"), false, Accessibility.Private, Accessibility.Public);
-            ValidateProperty23(GetSingleProperty(compilation2, "I4"), false, Accessibility.Public, Accessibility.Private);
-            ValidateProperty23(GetSingleProperty(compilation2, "I5"), false, Accessibility.Private, Accessibility.Public);
-            ValidateProperty23(GetSingleProperty(compilation2, "I6"), false, Accessibility.Public, Accessibility.Private);
-
-            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() },
-                                                 options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
-            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation3.VerifyEmitDiagnostics();
-            Validate1(compilation3.SourceModule);
         }
 
         private static void ValidateProperty23(PropertySymbol p1, bool isAbstract, Accessibility getAccess, Accessibility setAccess, NamedTypeSymbol test1 = null)
@@ -13387,17 +13723,35 @@ class Test6 : I6
             Assert.False(p1.IsOverride);
             Assert.Equal(Accessibility.Public, p1.DeclaredAccessibility);
 
+            PropertySymbol implementingProperty = null;
             if ((object)test1 != null)
             {
-                Assert.Same(test1.GetMember(p1.Name), test1.FindImplementationForInterfaceMember(p1));
+                implementingProperty = GetSingleProperty(test1);
+                Assert.Same(implementingProperty, test1.FindImplementationForInterfaceMember(p1));
+                if (implementingProperty.GetMethod?.ExplicitInterfaceImplementations.Length > 0 ||
+                    implementingProperty.SetMethod?.ExplicitInterfaceImplementations.Length > 0)
+                {
+                    Assert.Same(p1, implementingProperty.ExplicitInterfaceImplementations.Single());
+                }
+                else
+                {
+                    Assert.Empty(implementingProperty.ExplicitInterfaceImplementations);
+                }
             }
 
-            ValidateMethod23(p1.GetMethod, isAbstract, getAccess, test1);
-            ValidateMethod23(p1.SetMethod, isAbstract, setAccess, test1);
+            ValidateMethod23(p1, p1.GetMethod, isAbstract, getAccess, test1, implementingProperty?.GetMethod);
+            ValidateMethod23(p1, p1.SetMethod, isAbstract, setAccess, test1, implementingProperty?.SetMethod);
         }
 
-        private static void ValidateMethod23(MethodSymbol m1, bool isAbstract, Accessibility access, NamedTypeSymbol test1)
+        private static void ValidateMethod23(PropertySymbol p1, MethodSymbol m1, bool isAbstract, Accessibility access, NamedTypeSymbol test1, MethodSymbol implementingMethod)
         {
+            if (m1 is null)
+            {
+                Assert.Equal(Accessibility.Private, access);
+                Assert.Equal(MetadataImportOptions.Public, ((PEModuleSymbol)p1.ContainingModule).ImportOptions);
+                return;
+            }
+
             Assert.Equal(isAbstract, m1.IsAbstract);
             Assert.NotEqual(isAbstract || access == Accessibility.Private, m1.IsVirtual);
             Assert.Equal(isAbstract || access != Accessibility.Private, m1.IsMetadataVirtual());
@@ -13410,7 +13764,7 @@ class Test6 : I6
 
             if ((object)test1 != null)
             {
-                Assert.Same(access != Accessibility.Private ? test1.GetMember(m1.Name) : null, test1.FindImplementationForInterfaceMember(m1));
+                Assert.Same(access != Accessibility.Private ? implementingMethod : null, test1.FindImplementationForInterfaceMember(m1));
             }
         }
 
@@ -14940,16 +15294,18 @@ class Test1 : I1
     }
 }
 
-class Test2 : I1
+interface ITest1 : I1
 {
     int I1.P3
     {
+        get {throw null;} 
         set {}
     }
 
     int I1.P4
     {
-        get => throw null; 
+        get {throw null;} 
+        set {}
     }
 }
 
@@ -14982,16 +15338,18 @@ public interface I2
         }
     }
 
-    class Test4 : I2
+    interface ITest3 : I2
     {
         int I2.P5
         {
+            get {throw null;} 
             set {}
         }
 
         int I2.P6
         {
-            get => throw null; 
+            get {throw null;} 
+            set {}
         }
     }
 }
@@ -15001,46 +15359,35 @@ public interface I2
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            // PROTOTYPE(DefaultInterfaceImplementation): Private accessor is never virtual (the behavior goes back to native compiler). 
-            //                                            So, should we complain about them at all, or shoudl we treat private accessors
-            //                                            as not implementable and ignore them for the purpose of interface implementation? 
+            // PROTOTYPE(DefaultInterfaceImplementation): The wording "accessor not found in interface member" is somewhat misleading
+            //                                            in this scenario. The accessor is there, but cannot be implemented. Prehaps
+            //                                            the message should be adjusted. Should also check diagnostics for an attempt
+            //                                            to implement other sealed members.
             compilation1.VerifyDiagnostics(
-                // (6,17): error CS8507: 'I1.P3.get': virtual properties in interfaces cannot have private accessors
-                //         private get {throw null;}
-                Diagnostic(ErrorCode.ERR_PrivateVirtualAccessor, "get").WithArguments("I1.P3.get").WithLocation(6, 17),
-                // (13,17): error CS8507: 'I1.P4.set': virtual properties in interfaces cannot have private accessors
-                //         private set {}
-                Diagnostic(ErrorCode.ERR_PrivateVirtualAccessor, "set").WithArguments("I1.P4.set").WithLocation(13, 17),
-                // (19,12): error CS0122: 'I1.P3.get' is inaccessible due to its protection level
-                //     int I1.P3
-                Diagnostic(ErrorCode.ERR_BadAccess, "P3").WithArguments("I1.P3.get").WithLocation(19, 12),
-                // (25,12): error CS0122: 'I1.P4.set' is inaccessible due to its protection level
-                //     int I1.P4
-                Diagnostic(ErrorCode.ERR_BadAccess, "P4").WithArguments("I1.P4.set").WithLocation(25, 12),
-                // (34,12): error CS0122: 'I1.P3.get' is inaccessible due to its protection level
-                //     int I1.P3
-                Diagnostic(ErrorCode.ERR_BadAccess, "P3").WithArguments("I1.P3.get").WithLocation(34, 12),
-                // (34,12): error CS0551: Explicit interface implementation 'Test2.I1.P3' is missing accessor 'I1.P3.get'
-                //     int I1.P3
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "P3").WithArguments("Test2.I1.P3", "I1.P3.get").WithLocation(34, 12),
-                // (39,12): error CS0122: 'I1.P4.set' is inaccessible due to its protection level
-                //     int I1.P4
-                Diagnostic(ErrorCode.ERR_BadAccess, "P4").WithArguments("I1.P4.set").WithLocation(39, 12),
-                // (39,12): error CS0551: Explicit interface implementation 'Test2.I1.P4' is missing accessor 'I1.P4.set'
-                //     int I1.P4
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "P4").WithArguments("Test2.I1.P4", "I1.P4.set").WithLocation(39, 12),
-                // (49,17): error CS8507: 'I2.P5.get': virtual properties in interfaces cannot have private accessors
-                //         private get {throw null;}
-                Diagnostic(ErrorCode.ERR_PrivateVirtualAccessor, "get").WithArguments("I2.P5.get").WithLocation(49, 17),
-                // (56,17): error CS8507: 'I2.P6.set': virtual properties in interfaces cannot have private accessors
-                //         private set {}
-                Diagnostic(ErrorCode.ERR_PrivateVirtualAccessor, "set").WithArguments("I2.P6.set").WithLocation(56, 17),
-                // (76,16): error CS0551: Explicit interface implementation 'I2.Test4.I2.P5' is missing accessor 'I2.P5.get'
-                //         int I2.P5
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "P5").WithArguments("I2.Test4.I2.P5", "I2.P5.get").WithLocation(76, 16),
-                // (81,16): error CS0551: Explicit interface implementation 'I2.Test4.I2.P6' is missing accessor 'I2.P6.set'
-                //         int I2.P6
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "P6").WithArguments("I2.Test4.I2.P6", "I2.P6.set").WithLocation(81, 16)
+                // (21,9): error CS0550: 'Test1.I1.P3.get' adds an accessor not found in interface member 'I1.P3'
+                //         get {throw null;} 
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("Test1.I1.P3.get", "I1.P3").WithLocation(21, 9),
+                // (28,9): error CS0550: 'Test1.I1.P4.set' adds an accessor not found in interface member 'I1.P4'
+                //         set {}
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("Test1.I1.P4.set", "I1.P4").WithLocation(28, 9),
+                // (36,9): error CS0550: 'ITest1.I1.P3.get' adds an accessor not found in interface member 'I1.P3'
+                //         get {throw null;} 
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("ITest1.I1.P3.get", "I1.P3").WithLocation(36, 9),
+                // (43,9): error CS0550: 'ITest1.I1.P4.set' adds an accessor not found in interface member 'I1.P4'
+                //         set {}
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("ITest1.I1.P4.set", "I1.P4").WithLocation(43, 9),
+                // (65,13): error CS0550: 'I2.Test3.I2.P5.get' adds an accessor not found in interface member 'I2.P5'
+                //             get {throw null;} 
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("I2.Test3.I2.P5.get", "I2.P5").WithLocation(65, 13),
+                // (72,13): error CS0550: 'I2.Test3.I2.P6.set' adds an accessor not found in interface member 'I2.P6'
+                //             set {}
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("I2.Test3.I2.P6.set", "I2.P6").WithLocation(72, 13),
+                // (80,13): error CS0550: 'I2.ITest3.I2.P5.get' adds an accessor not found in interface member 'I2.P5'
+                //             get {throw null;} 
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("I2.ITest3.I2.P5.get", "I2.P5").WithLocation(80, 13),
+                // (87,13): error CS0550: 'I2.ITest3.I2.P6.set' adds an accessor not found in interface member 'I2.P6'
+                //             set {}
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("I2.ITest3.I2.P6.set", "I2.P6").WithLocation(87, 13)
                 );
         }
 
@@ -17702,7 +18049,7 @@ class Test3 : I3
         }
         set
         {
-            throw null;
+            System.Console.WriteLine(""Test3.set_P3"");
         }
     }
 }
@@ -17712,7 +18059,8 @@ class Test4 : I4
     {
         get
         {
-            throw null;
+            System.Console.WriteLine(""Test4.get_P4"");
+            return 0;
         }
         set
         {
@@ -17730,7 +18078,7 @@ class Test5 : I5
         }
         set
         {
-            throw null;
+            System.Console.WriteLine(""Test5.set_P5"");
         }
     }
 }
@@ -17740,7 +18088,8 @@ class Test6 : I6
     {
         get
         {
-            throw null;
+            System.Console.WriteLine(""Test6.get_P6"");
+            return 0;
         }
         set
         {
@@ -17749,20 +18098,332 @@ class Test6 : I6
     }
 }
 ";
-            ValidatePropertyModifiers_23(source1, source2,
-                // (9,17): error CS8507: 'I3.this[int].get': virtual properties in interfaces cannot have private accessors
-                //         private get
-                Diagnostic(ErrorCode.ERR_PrivateVirtualAccessor, "get").WithArguments("I3.this[int].get").WithLocation(9, 17),
-                // (27,17): error CS8507: 'I4.this[int].set': virtual properties in interfaces cannot have private accessors
-                //         private set {System.Console.WriteLine("set_P4");}
-                Diagnostic(ErrorCode.ERR_PrivateVirtualAccessor, "set").WithArguments("I4.this[int].set").WithLocation(27, 17),
-                // (39,17): error CS8507: 'I5.this[int].get': virtual properties in interfaces cannot have private accessors
-                //         private get => GetP5();
-                Diagnostic(ErrorCode.ERR_PrivateVirtualAccessor, "get").WithArguments("I5.this[int].get").WithLocation(39, 17),
-                // (59,17): error CS8507: 'I6.this[int].set': virtual properties in interfaces cannot have private accessors
-                //         private set => System.Console.WriteLine("set_P6");
-                Diagnostic(ErrorCode.ERR_PrivateVirtualAccessor, "set").WithArguments("I6.this[int].set").WithLocation(59, 17)
-                );
+            ValidatePropertyModifiers_23(source1, source2);
+
+            var source3 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I3 i3 = new Test3();
+        I4 i4 = new Test4();
+        I5 i5 = new Test5();
+        I6 i6 = new Test6();
+        i3.M2();
+        i4.M2();
+        i5.M2();
+        i6.M2();
+    }
+}
+class Test3 : I3
+{
+    public int this[int x] 
+    {
+        set
+        {
+            System.Console.WriteLine(""Test3.set_P3"");
+        }
+    }
+}
+class Test4 : I4
+{
+    public int this[int x] 
+    {
+        get
+        {
+            System.Console.WriteLine(""Test4.get_P4"");
+            return 0;
+        }
+    }
+}
+class Test5 : I5
+{
+    public int this[int x] 
+    {
+        set
+        {
+            System.Console.WriteLine(""Test5.set_P5"");
+        }
+    }
+}
+class Test6 : I6
+{
+    public int this[int x] 
+    {
+        get
+        {
+            System.Console.WriteLine(""Test6.get_P6"");
+            return 0;
+        }
+    }
+}
+";
+            ValidatePropertyModifiers_23(source1, source3);
+
+            var source4 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I3 i3 = new Test3();
+        I4 i4 = new Test4();
+        I5 i5 = new Test5();
+        I6 i6 = new Test6();
+        i3.M2();
+        i4.M2();
+        i5.M2();
+        i6.M2();
+    }
+}
+class Test3 : I3
+{
+    public virtual int this[int x] 
+    {
+        get
+        {
+            throw null;
+        }
+        set
+        {
+            System.Console.WriteLine(""Test3.set_P3"");
+        }
+    }
+}
+class Test4 : I4
+{
+    public virtual int this[int x] 
+    {
+        get
+        {
+            System.Console.WriteLine(""Test4.get_P4"");
+            return 0;
+        }
+        set
+        {
+            throw null;
+        }
+    }
+}
+class Test5 : I5
+{
+    public virtual int this[int x] 
+    {
+        get
+        {
+            throw null;
+        }
+        set
+        {
+            System.Console.WriteLine(""Test5.set_P5"");
+        }
+    }
+}
+class Test6 : I6
+{
+    public virtual int this[int x] 
+    {
+        get
+        {
+            System.Console.WriteLine(""Test6.get_P6"");
+            return 0;
+        }
+        set
+        {
+            throw null;
+        }
+    }
+}
+";
+            ValidatePropertyModifiers_23(source1, source4);
+
+            var source5 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I3 i3 = new Test3();
+        I4 i4 = new Test4();
+        I5 i5 = new Test5();
+        I6 i6 = new Test6();
+        i3.M2();
+        i4.M2();
+        i5.M2();
+        i6.M2();
+    }
+}
+class Test3 : I3
+{
+    public virtual int this[int x] 
+    {
+        set
+        {
+            System.Console.WriteLine(""Test3.set_P3"");
+        }
+    }
+}
+class Test4 : I4
+{
+    public virtual int this[int x] 
+    {
+        get
+        {
+            System.Console.WriteLine(""Test4.get_P4"");
+            return 0;
+        }
+    }
+}
+class Test5 : I5
+{
+    public virtual int this[int x] 
+    {
+        set
+        {
+            System.Console.WriteLine(""Test5.set_P5"");
+        }
+    }
+}
+class Test6 : I6
+{
+    public virtual int this[int x] 
+    {
+        get
+        {
+            System.Console.WriteLine(""Test6.get_P6"");
+            return 0;
+        }
+    }
+}
+";
+            ValidatePropertyModifiers_23(source1, source5);
+
+            var source6 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I3 i3 = new Test3();
+        I4 i4 = new Test4();
+        I5 i5 = new Test5();
+        I6 i6 = new Test6();
+        i3.M2();
+        i4.M2();
+        i5.M2();
+        i6.M2();
+    }
+}
+class Test3 : I3
+{
+    int I3.this[int x] 
+    {
+        set
+        {
+            System.Console.WriteLine(""Test3.set_P3"");
+        }
+    }
+}
+class Test4 : I4
+{
+    int I4.this[int x] 
+    {
+        get
+        {
+            System.Console.WriteLine(""Test4.get_P4"");
+            return 0;
+        }
+    }
+}
+class Test5 : I5
+{
+    int I5.this[int x] 
+    {
+        set
+        {
+            System.Console.WriteLine(""Test5.set_P5"");
+        }
+    }
+}
+class Test6 : I6
+{
+    int I6.this[int x] 
+    {
+        get
+        {
+            System.Console.WriteLine(""Test6.get_P6"");
+            return 0;
+        }
+    }
+}
+";
+            ValidatePropertyModifiers_23(source1, source6);
+
+            var source7 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I3 i3 = new Test33();
+        I4 i4 = new Test44();
+        I5 i5 = new Test55();
+        I6 i6 = new Test66();
+        i3.M2();
+        i4.M2();
+        i5.M2();
+        i6.M2();
+    }
+}
+interface Test3 : I3
+{
+    int I3.this[int x] 
+    {
+        set
+        {
+            System.Console.WriteLine(""Test3.set_P3"");
+        }
+    }
+}
+class Test33 : Test3 {}
+interface Test4 : I4
+{
+    int I4.this[int x] 
+    {
+        get
+        {
+            System.Console.WriteLine(""Test4.get_P4"");
+            return 0;
+        }
+    }
+}
+class Test44 : Test4 {}
+interface Test5 : I5
+{
+    int I5.this[int x] 
+    {
+        set
+        {
+            System.Console.WriteLine(""Test5.set_P5"");
+        }
+    }
+}
+class Test55 : Test5 {}
+interface Test6 : I6
+{
+    int I6.this[int x] 
+    {
+        get
+        {
+            System.Console.WriteLine(""Test6.get_P6"");
+            return 0;
+        }
+    }
+}
+class Test66 : Test6 {}
+";
+            ValidatePropertyModifiers_23(source1, source7);
         }
 
         [Fact]
@@ -19019,12 +19680,6 @@ public class Test1 : I1, I2, I3, I4
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (12,57): error CS8507: 'I3.this[int].set': virtual properties in interfaces cannot have private accessors
-                //     public int this[int x] { get => throw null; private set => throw null; }
-                Diagnostic(ErrorCode.ERR_PrivateVirtualAccessor, "set").WithArguments("I3.this[int].set").WithLocation(12, 57),
-                // (4,31): error CS8507: 'I1.this[int].get': virtual properties in interfaces cannot have private accessors
-                //     int this[int x] { private get => throw null; set => throw null; }
-                Diagnostic(ErrorCode.ERR_PrivateVirtualAccessor, "get").WithArguments("I1.this[int].get").WithLocation(4, 31),
                 // (29,13): error CS0271: The property or indexer 'I1.this[int]' cannot be used in this context because the get accessor is inaccessible
                 //         x = i1[0];
                 Diagnostic(ErrorCode.ERR_InaccessibleGetter, "i1[0]").WithArguments("I1.this[int]").WithLocation(29, 13),
@@ -19172,16 +19827,18 @@ class Test1 : I1
     }
 }
 
-class Test2 : I1
+interface ITest1 : I1
 {
     int I1.this[short x]
     {
-        set {throw null;}
+        get {throw null;} 
+        set {}
     }
 
     int I1.this[int x]
     {
-        get => throw null; 
+        get {throw null;} 
+        set {}
     }
 }
 
@@ -19214,16 +19871,18 @@ public interface I2
         }
     }
 
-    class Test4 : I2
+    interface ITest3 : I2
     {
         int I2.this[short x]
         {
-            set {throw null;}
+            get {throw null;} 
+            set {}
         }
 
         int I2.this[int x]
         {
-            get => throw null; 
+            get {throw null;} 
+            set {}
         }
     }
 }
@@ -19233,46 +19892,31 @@ public interface I2
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            // PROTOTYPE(DefaultInterfaceImplementation): Private accessor is never virtual (the behavior goes back to native compiler). 
-            //                                            So, should we complain about them at all, or shoudl we treat private accessors
-            //                                            as not implementable and ignore them for the purpose of interface implementation? 
             compilation1.VerifyDiagnostics(
-                // (6,17): error CS8507: 'I1.this[short].get': virtual properties in interfaces cannot have private accessors
-                //         private get {throw null;}
-                Diagnostic(ErrorCode.ERR_PrivateVirtualAccessor, "get").WithArguments("I1.this[short].get").WithLocation(6, 17),
-                // (13,17): error CS8507: 'I1.this[int].set': virtual properties in interfaces cannot have private accessors
-                //         private set {}
-                Diagnostic(ErrorCode.ERR_PrivateVirtualAccessor, "set").WithArguments("I1.this[int].set").WithLocation(13, 17),
-                // (19,12): error CS0122: 'I1.this[short].get' is inaccessible due to its protection level
-                //     int I1.this[short x]
-                Diagnostic(ErrorCode.ERR_BadAccess, "this").WithArguments("I1.this[short].get").WithLocation(19, 12),
-                // (25,12): error CS0122: 'I1.this[int].set' is inaccessible due to its protection level
-                //     int I1.this[int x]
-                Diagnostic(ErrorCode.ERR_BadAccess, "this").WithArguments("I1.this[int].set").WithLocation(25, 12),
-                // (34,12): error CS0122: 'I1.this[short].get' is inaccessible due to its protection level
-                //     int I1.this[short x]
-                Diagnostic(ErrorCode.ERR_BadAccess, "this").WithArguments("I1.this[short].get").WithLocation(34, 12),
-                // (34,12): error CS0551: Explicit interface implementation 'Test2.I1.this[short]' is missing accessor 'I1.this[short].get'
-                //     int I1.this[short x]
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "this").WithArguments("Test2.I1.this[short]", "I1.this[short].get").WithLocation(34, 12),
-                // (39,12): error CS0122: 'I1.this[int].set' is inaccessible due to its protection level
-                //     int I1.this[int x]
-                Diagnostic(ErrorCode.ERR_BadAccess, "this").WithArguments("I1.this[int].set").WithLocation(39, 12),
-                // (39,12): error CS0551: Explicit interface implementation 'Test2.I1.this[int]' is missing accessor 'I1.this[int].set'
-                //     int I1.this[int x]
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "this").WithArguments("Test2.I1.this[int]", "I1.this[int].set").WithLocation(39, 12),
-                // (49,17): error CS8507: 'I2.this[short].get': virtual properties in interfaces cannot have private accessors
-                //         private get {throw null;}
-                Diagnostic(ErrorCode.ERR_PrivateVirtualAccessor, "get").WithArguments("I2.this[short].get").WithLocation(49, 17),
-                // (56,17): error CS8507: 'I2.this[int].set': virtual properties in interfaces cannot have private accessors
-                //         private set {}
-                Diagnostic(ErrorCode.ERR_PrivateVirtualAccessor, "set").WithArguments("I2.this[int].set").WithLocation(56, 17),
-                // (76,16): error CS0551: Explicit interface implementation 'I2.Test4.I2.this[short]' is missing accessor 'I2.this[short].get'
-                //         int I2.this[short x]
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "this").WithArguments("I2.Test4.I2.this[short]", "I2.this[short].get").WithLocation(76, 16),
-                // (81,16): error CS0551: Explicit interface implementation 'I2.Test4.I2.this[int]' is missing accessor 'I2.this[int].set'
-                //         int I2.this[int x]
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "this").WithArguments("I2.Test4.I2.this[int]", "I2.this[int].set").WithLocation(81, 16)
+                // (21,9): error CS0550: 'Test1.I1.this[short].get' adds an accessor not found in interface member 'I1.this[short]'
+                //         get {throw null;} 
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("Test1.I1.this[short].get", "I1.this[short]").WithLocation(21, 9),
+                // (28,9): error CS0550: 'Test1.I1.this[int].set' adds an accessor not found in interface member 'I1.this[int]'
+                //         set {}
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("Test1.I1.this[int].set", "I1.this[int]").WithLocation(28, 9),
+                // (36,9): error CS0550: 'ITest1.I1.this[short].get' adds an accessor not found in interface member 'I1.this[short]'
+                //         get {throw null;} 
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("ITest1.I1.this[short].get", "I1.this[short]").WithLocation(36, 9),
+                // (43,9): error CS0550: 'ITest1.I1.this[int].set' adds an accessor not found in interface member 'I1.this[int]'
+                //         set {}
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("ITest1.I1.this[int].set", "I1.this[int]").WithLocation(43, 9),
+                // (65,13): error CS0550: 'I2.Test3.I2.this[short].get' adds an accessor not found in interface member 'I2.this[short]'
+                //             get {throw null;} 
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("I2.Test3.I2.this[short].get", "I2.this[short]").WithLocation(65, 13),
+                // (72,13): error CS0550: 'I2.Test3.I2.this[int].set' adds an accessor not found in interface member 'I2.this[int]'
+                //             set {}
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("I2.Test3.I2.this[int].set", "I2.this[int]").WithLocation(72, 13),
+                // (80,13): error CS0550: 'I2.ITest3.I2.this[short].get' adds an accessor not found in interface member 'I2.this[short]'
+                //             get {throw null;} 
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("I2.ITest3.I2.this[short].get", "I2.this[short]").WithLocation(80, 13),
+                // (87,13): error CS0550: 'I2.ITest3.I2.this[int].set' adds an accessor not found in interface member 'I2.this[int]'
+                //             set {}
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("I2.ITest3.I2.this[int].set", "I2.this[int]").WithLocation(87, 13)
                 );
         }
 
@@ -25368,31 +26012,33 @@ class Test1 : I1
 
         private void ValidatePropertyImplementationInDerived_01(string source1, string source2)
         {
-            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
-            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation1.VerifyDiagnostics();
+            foreach (var options in new[] { TestOptions.DebugExe, TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All) })
+            {
+                var compilation1 = CreateCompilation(source1 + source2, options: options,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                compilation1.VerifyDiagnostics();
 
-            ValidatePropertyImplementationInDerived_01(compilation1.SourceModule);
+                ValidatePropertyImplementationInDerived_01(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                CompileAndVerify(compilation1,
+                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-                verify: VerifyOnCoreClr,
-                symbolValidator: ValidatePropertyImplementationInDerived_01);
+                    verify: VerifyOnCoreClr,
+                    symbolValidator: ValidatePropertyImplementationInDerived_01);
 
-            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
-            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: options,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            ValidatePropertyImplementationInDerived_01(compilation2.SourceModule);
+                ValidatePropertyImplementationInDerived_01(compilation2.SourceModule);
 
-            compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2,
+                compilation2.VerifyDiagnostics();
+                CompileAndVerify(compilation2,
 #if Issue32540_Is_Fixed // https://github.com/dotnet/roslyn/issues/32540
                 expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"I2.M1
@@ -25400,16 +26046,16 @@ I4.M1
 ",
 #endif
                 verify: VerifyOnCoreClr,
-                symbolValidator: ValidatePropertyImplementationInDerived_01);
+                    symbolValidator: ValidatePropertyImplementationInDerived_01);
 
-            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
-            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            ValidatePropertyImplementationInDerived_01(compilation3.SourceModule);
+                var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: options,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                ValidatePropertyImplementationInDerived_01(compilation3.SourceModule);
 
-            compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3,
+                compilation3.VerifyDiagnostics();
+                CompileAndVerify(compilation3,
 #if Issue32540_Is_Fixed // https://github.com/dotnet/roslyn/issues/32540
                 expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"I2.M1
@@ -25417,7 +26063,8 @@ I4.M1
 ",
 #endif
                 verify: VerifyOnCoreClr,
-                symbolValidator: ValidatePropertyImplementationInDerived_01);
+                    symbolValidator: ValidatePropertyImplementationInDerived_01);
+            }
         }
 
         private static void ValidatePropertyImplementationInDerived_01(ModuleSymbol m)
@@ -25449,8 +26096,8 @@ I4.M1
             VerifyFindImplementationForInterfaceMemberSame(i1i2m1, i1, i2m1);
             VerifyFindImplementationForInterfaceMemberSame(i1i4m1, i1, i4m1);
 
-            VerifyFindImplementationForInterfaceMemberSame(null, i2, i2m1);
-            VerifyFindImplementationForInterfaceMemberSame(null, i4, i4m1);
+            VerifyFindImplementationForInterfaceMemberSame(i2m1.IsAbstract ? null : i2m1, i2, i2m1);
+            VerifyFindImplementationForInterfaceMemberSame(i4m1.IsAbstract ? null : i4m1, i4, i4m1);
 
             VerifyFindImplementationForInterfaceMemberSame(i1i2m1, i3, i2m1);
             VerifyFindImplementationForInterfaceMemberSame(i1i4m1, i3, i4m1);
@@ -25466,7 +26113,7 @@ I4.M1
             {
                 if ((object)interfaceAccessor != null)
                 {
-                    Assert.Same(accessor, implementingType.FindImplementationForInterfaceMember(interfaceAccessor));
+                    Assert.Same(interfaceAccessor.DeclaredAccessibility == Accessibility.Private ? null : accessor, implementingType.FindImplementationForInterfaceMember(interfaceAccessor));
                 }
                 else
                 {
@@ -27036,6 +27683,62 @@ I2.I1.M1.set
 ",
                 verify: VerifyOnCoreClr,
                 symbolValidator: Validate);
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_15()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    virtual int M1 {get => throw null; private set => throw null;} 
+}
+
+public interface I4
+{
+    int M1 {set => throw null; private get => throw null;} 
+}
+
+public interface I5 : I4
+{
+}
+
+public interface I1 : I2, I5
+{
+    int I2.M1
+    {
+        get
+        {
+            System.Console.WriteLine(""I2.M1"");
+            return 1;
+        }
+    }
+    int I4.M1 
+    {
+        set => System.Console.WriteLine(""I4.M1"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+";
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I2 i2 = new Test1();
+        _ = i2.M1;
+        I4 i4 = new Test1();
+        i4.M1 = 0;
+    }
+}
+";
+
+            ValidatePropertyImplementationInDerived_01(source1, source2);
         }
 
         [Fact]
@@ -29582,6 +30285,61 @@ class Test2 : I2<long>
 ";
 
             ValidatePropertyImplementationInDerived_14(source1, source2);
+        }
+
+        [Fact]
+        public void IndexerImplementationInDerived_15()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    int this[int x] {get => throw null; private set => throw null;} 
+}
+
+public interface I4
+{
+    int this[int x] {set => throw null; private get => throw null;} 
+}
+
+public interface I5 : I4
+{
+}
+
+public interface I1 : I2, I5
+{
+    int I2.this[int x]
+    {
+        get
+        {
+            System.Console.WriteLine(""I2.M1"");
+            return 1;
+        }
+    }
+    int I4.this[int x] 
+    {
+        set => System.Console.WriteLine(""I4.M1"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+";
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I2 i2 = new Test1();
+        _ = i2[0];
+        I4 i4 = new Test1();
+        i4[0] = 0;
+    }
+}
+";
+            ValidatePropertyImplementationInDerived_01(source1, source2);
         }
 
         [Fact]

@@ -5796,9 +5796,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember" xml:space="preserve">
     <value>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version {5} or greater.</value>
   </data>
-  <data name="ERR_PrivateVirtualAccessor" xml:space="preserve">
-    <value>'{0}': virtual properties in interfaces cannot have private accessors</value>
-  </data>
   <data name="ERR_NotBaseOrImplementedInterface" xml:space="preserve">
     <value>'{0}' is not base type or interface of {1}.</value>
   </data>
