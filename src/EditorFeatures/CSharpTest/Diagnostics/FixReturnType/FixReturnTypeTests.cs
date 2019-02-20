@@ -272,5 +272,19 @@ class C
     }
 }");
         }
+
+        [Fact]
+        public async Task ExpressionBodied()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M() => 1[||];
+}",
+@"class C
+{
+    int M() => 1[||];
+}");
+        }
     }
 }

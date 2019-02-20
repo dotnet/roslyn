@@ -25,12 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
     internal class CSharpFixReturnTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         // error CS0127: Since 'M()' returns void, a return keyword must not be followed by an object expression
-        private const string CS0127 = nameof(CS0127);
-
         // error CS1997: Since 'M()' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
-        private const string CS1997 = nameof(CS1997);
-
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0127, CS1997);
+        // error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS0127", "CS1997", "CS0201");
 
         public CSharpFixReturnTypeCodeFixProvider()
             : base(supportsFixAll: false)
@@ -59,15 +56,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
         {
             Debug.Assert(diagnostics.Length == 1);
             var location = diagnostics[0].Location;
-            var returnStatement = (ReturnStatementSyntax)location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-
-            var returnedValue = returnStatement.Expression;
+            var node = location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+            var returnedValue = node is ReturnStatementSyntax returnStatement ? returnStatement.Expression : node;
             if (returnedValue == null)
             {
                 return default;
             }
 
-            var (declarationTypeToFix, useTask) = TryGetDeclarationTypeToFix(returnStatement);
+            var (declarationTypeToFix, useTask) = TryGetDeclarationTypeToFix(node);
             if (declarationTypeToFix == null)
             {
                 return default;
@@ -111,11 +107,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
 
         private static (TypeSyntax type, bool useTask) TryGetDeclarationTypeToFix(SyntaxNode node)
         {
-            if (!node.IsKind(SyntaxKind.ReturnStatement))
-            {
-                return default;
-            }
-
             return node.GetAncestors().Select(a => TryGetReturnTypeToFix(a)).FirstOrDefault(p => p != default);
 
             // Local functions
