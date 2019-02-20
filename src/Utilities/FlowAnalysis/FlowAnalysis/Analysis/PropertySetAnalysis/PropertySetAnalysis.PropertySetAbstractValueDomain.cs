@@ -32,6 +32,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     return 0;
                 }
 
+                // The PropertySetAbstractValue indexer allows accessing beyond KnownValuesCount (returns Unknown),
+                // so looping through the max of the two KnownValuesCount.
                 int maxKnownCount = Math.Max(oldValue.KnownValuesCount, newValue.KnownValuesCount);
                 int result = 0;
                 for (int i = 0; i < maxKnownCount; i++)
@@ -46,7 +48,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     }
                     else
                     {
-                        Debug.Assert(oldValue[i] > newValue[i]);
                         FireNonMonotonicAssertIfNeeded(assertMonotonicity);
                         return 1;
                     }
@@ -60,6 +61,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 Debug.Assert(value1 != null);
                 Debug.Assert(value2 != null);
 
+                // The PropertySetAbstractValue indexer allows accessing beyond KnownValuesCount (returns Unknown),
+                // so looping through the max of the two KnownValuesCount.
                 int maxKnownCount = Math.Max(value1.KnownValuesCount, value2.KnownValuesCount);
                 ArrayBuilder<PropertySetAbstractValueKind> builder = ArrayBuilder<PropertySetAbstractValueKind>.GetInstance(maxKnownCount);
                 try

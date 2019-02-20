@@ -78,6 +78,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <param name="index">Index of the property, from the corresponding
         /// <see cref="PropertyMapperCollection"/>'s initialization.</param>
         /// <returns>The property's <see cref="PropertySetAbstractValueKind"/>.</returns>
+        /// <remarks>If accessing an index greater than or equal to KnownValuesCount, the property's
+        /// abstract value is implicitly <see cref="PropertySetAbstractValueKind.Unknown"/>.</remarks>
         public PropertySetAbstractValueKind this[int index]
         {
             get

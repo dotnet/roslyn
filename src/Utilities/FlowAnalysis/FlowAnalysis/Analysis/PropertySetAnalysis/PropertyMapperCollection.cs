@@ -31,6 +31,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             }
 
             this.PropertyMappersWithIndex = builder.ToImmutable();
+            this.RequiresValueContentAnalysis = this.PropertyMappersWithIndex.Values.Any(t => t.PropertyMapper.RequiresValueContentAnalysis);
         }
 
         public PropertyMapperCollection(params PropertyMapper[] propertyMappers)
@@ -44,13 +45,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
         private ImmutableDictionary<string, (int Index, PropertyMapper PropertyMapper)> PropertyMappersWithIndex { get; }
 
-        internal bool RequiresValueContentAnalysis
-        {
-            get
-            {
-                return this.PropertyMappersWithIndex.Values.Any(t => t.PropertyMapper.RequiresValueContentAnalysis);
-            }
-        }
+        internal bool RequiresValueContentAnalysis { get; }
 
         internal int Count => this.PropertyMappersWithIndex.Count;
 
