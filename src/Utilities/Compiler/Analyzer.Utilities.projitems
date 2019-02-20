@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>ec946164-1e17-410b-b7d9-7de7e6268d63</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Analyzer.Utilities</Import_RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersion)' != '1.2.1'">
+    <DefineConstants>$(DefineConstants);HAS_IOPERATION</DefineConstants>
+    <HasIOperation>true</HasIOperation>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(HasIOperation)' == 'true'">
+    <Compile Include="$(MSBuildThisFileDirectory)WellKnownTypeProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ImmutableHashSetExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\PooledHashSetExtensions.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.AssemblyMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.EventMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.FieldMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.MethodMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.NamedTypeMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.NamespaceMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.PropertyMetricData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\ComputationalComplexityMetrics.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\MetricsHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\SemanticModelProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CommonAccessibilityUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DoNotCatchGeneralUnlessRethrown.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\KeyValuePairExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\MethodKindEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DisposeMethodKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperationBlockAnalysisContextExtension.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\WellKnownDiagnosticTagsExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledHashSet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\ArrayBuilder.Enumerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\ArrayBuilder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\ObjectPool.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticModelExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HashUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticCategory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IDictionaryExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IEnumerableExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IEnumerableOfIMethodSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IMethodSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\INamedTypeSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IOperationExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ISymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ObjectExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SymbolVisibility.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxNodeExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\UriExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfigOptionNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\SymbolVisibilityGroup.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\AnalyzerOptionsExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\CategorizedAnalyzerConfigOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfigParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SymbolDisplayFormats.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FxCopWellKnownDiagnosticTags.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UnusedValue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WellKnownTypeNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WellKnownTypes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WordParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WordParserOptions.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)DiagnosticCategoryAndIdRanges.txt" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)DiagnosticCategoryAndIdRanges.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(MicrosoftCodeAnalysisVersion)" />
+  </ItemGroup>
+</Project>
