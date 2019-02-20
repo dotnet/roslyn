@@ -791,12 +791,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // When that issue is fixed, Nullable<T> should be handled there instead.
                         if (valueSlot > 0)
                         {
-                            InheritNullableStateOfTrackableType(targetSlot, valueSlot, stopAtSlot: targetSlot);
+                            InheritNullableStateOfTrackableType(targetSlot, valueSlot, skipSlot: targetSlot);
                         }
                     }
                     else if (EmptyStructTypeCache.IsTrackableStructType(targetType.TypeSymbol))
                     {
-                        InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, isDefaultValue: IsDefaultValue(value), stopAtSlot: targetSlot);
+                        InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, isDefaultValue: IsDefaultValue(value), skipSlot: targetSlot);
                     }
                 }
             }
@@ -839,29 +839,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void InheritNullableStateOfTrackableStruct(TypeSymbol targetType, int targetSlot, int valueSlot, bool isDefaultValue, int stopAtSlot = -1)
+        private void InheritNullableStateOfTrackableStruct(TypeSymbol targetType, int targetSlot, int valueSlot, bool isDefaultValue, int skipSlot = -1)
         {
             Debug.Assert(targetSlot > 0);
             Debug.Assert(EmptyStructTypeCache.IsTrackableStructType(targetType));
 
-            if (stopAtSlot < 0)
+            if (skipSlot < 0)
             {
-                stopAtSlot = targetSlot;
+                skipSlot = targetSlot;
             }
 
             // https://github.com/dotnet/roslyn/issues/29619 Handle properties not backed by fields.
             // See ModifyMembers_StructPropertyNoBackingField and PropertyCycle_Struct tests.
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(targetType))
             {
-                InheritNullableStateOfMember(targetSlot, valueSlot, field, isDefaultValue: isDefaultValue, stopAtSlot);
+                InheritNullableStateOfMember(targetSlot, valueSlot, field, isDefaultValue: isDefaultValue, skipSlot);
             }
         }
 
-        // 'stopAtSlot' is the slot at which to stop copying in case of cycles.
-        private void InheritNullableStateOfMember(int targetContainerSlot, int valueContainerSlot, Symbol member, bool isDefaultValue, int stopAtSlot)
+        // 'skipSlot' is the original target slot that should be skipped in case of cycles.
+        private void InheritNullableStateOfMember(int targetContainerSlot, int valueContainerSlot, Symbol member, bool isDefaultValue, int skipSlot)
         {
             Debug.Assert(targetContainerSlot > 0);
-            Debug.Assert(stopAtSlot > 0);
+            Debug.Assert(skipSlot > 0);
             // https://github.com/dotnet/roslyn/issues/33428: Ensure member is valid for target and value.
 
             TypeSymbolWithAnnotations fieldOrPropertyType = member.GetTypeOrReturnType();
@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (valueContainerSlot > 0)
                 {
                     valueMemberSlot = VariableSlot(member, valueContainerSlot);
-                    if (valueMemberSlot == stopAtSlot)
+                    if (valueMemberSlot == skipSlot)
                     {
                         return;
                     }
@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (valueMemberSlot > 0)
                 {
-                    InheritNullableStateOfTrackableType(targetMemberSlot, valueMemberSlot, stopAtSlot);
+                    InheritNullableStateOfTrackableType(targetMemberSlot, valueMemberSlot, skipSlot);
                 }
             }
             else if (EmptyStructTypeCache.IsTrackableStructType(fieldOrPropertyType.TypeSymbol))
@@ -904,11 +904,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (targetMemberSlot > 0)
                 {
                     int valueMemberSlot = (valueContainerSlot > 0) ? GetOrCreateSlot(member, valueContainerSlot) : -1;
-                    if (valueMemberSlot == stopAtSlot)
+                    if (valueMemberSlot == skipSlot)
                     {
                         return;
                     }
-                    InheritNullableStateOfTrackableStruct(fieldOrPropertyType.TypeSymbol, targetMemberSlot, valueMemberSlot, isDefaultValue: isDefaultValue, stopAtSlot);
+                    InheritNullableStateOfTrackableStruct(fieldOrPropertyType.TypeSymbol, targetMemberSlot, valueMemberSlot, isDefaultValue: isDefaultValue, skipSlot);
                 }
             }
         }
@@ -930,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void InheritNullableStateOfTrackableType(int targetSlot, int valueSlot, int stopAtSlot)
+        private void InheritNullableStateOfTrackableType(int targetSlot, int valueSlot, int skipSlot)
         {
             Debug.Assert(targetSlot > 0);
             Debug.Assert(valueSlot > 0);
@@ -945,7 +945,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 var member = variable.Symbol;
                 Debug.Assert(member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Property || member.Kind == SymbolKind.Event);
-                InheritNullableStateOfMember(targetSlot, valueSlot, member, isDefaultValue: false, stopAtSlot);
+                InheritNullableStateOfMember(targetSlot, valueSlot, member, isDefaultValue: false, skipSlot);
             }
         }
 
