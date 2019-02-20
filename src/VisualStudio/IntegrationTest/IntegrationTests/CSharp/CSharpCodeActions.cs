@@ -140,7 +140,8 @@ class C
             VisualStudio.Editor.Verify.TextContains("Second?.");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/30015")]
+        // DO NOT SKIP THIS TEST. IT MUST PASS.
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.EditorConfig)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         [WorkItem(15003, "https://github.com/dotnet/roslyn/issues/15003")]
