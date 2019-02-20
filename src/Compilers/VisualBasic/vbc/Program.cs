@@ -25,6 +25,10 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 
         private static int MainCore(string[] args)
         {
+#if BOOTSTRAP
+            ExitingTraceListener.Install();
+#endif
+
 #if NET472
             var loader = new DesktopAnalyzerAssemblyLoader();
 #else
