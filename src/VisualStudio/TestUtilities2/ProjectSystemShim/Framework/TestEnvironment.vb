@@ -22,6 +22,8 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Leg
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Moq
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
+Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 
@@ -56,6 +58,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             ExportProvider = s_exportProviderFactory.Value.CreateExportProvider()
             _workspace = ExportProvider.GetExportedValue(Of VisualStudioWorkspaceImpl)
             ThreadingContext = ExportProvider.GetExportedValue(Of IThreadingContext)()
+            Interop.WrapperPolicy.s_ComWrapperFactory = MockComWrapperFactory.Instance
 
             Dim mockServiceProvider As MockServiceProvider = ExportProvider.GetExportedValue(Of MockServiceProvider)()
             mockServiceProvider.MockMonitorSelection = New MockShellMonitorSelection(solutionIsFullyLoaded)
@@ -82,10 +85,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Public Overrides Sub DisplayReferencedSymbols(solution As Microsoft.CodeAnalysis.Solution, referencedSymbols As IEnumerable(Of ReferencedSymbol))
                 Throw New NotImplementedException()
             End Sub
-
-            Public Overrides Function GetFileCodeModel(documentId As DocumentId) As EnvDTE.FileCodeModel
-                Throw New NotImplementedException()
-            End Function
 
             Public Overrides Function TryGoToDefinition(symbol As ISymbol, project As Microsoft.CodeAnalysis.Project, cancellationToken As CancellationToken) As Boolean
                 Throw New NotImplementedException()

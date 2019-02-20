@@ -736,6 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             tupleNames,
                             Compilation,
                             shouldCheckConstraints: false,
+                            includeNullability: false,
                             errorPositions: disallowInferredNames ? inferredPositions : default);
 
                         return new BoundTupleLiteral(syntax, argumentNamesOpt: default, inferredPositions, subExpressions, tupleType);
@@ -814,7 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 tupleTypeOpt = TupleTypeSymbol.Create(node.Location, elements, locations, elementNames,
                     this.Compilation, syntax: node, diagnostics: diagnostics, shouldCheckConstraints: true,
-                    errorPositions: disallowInferredNames ? inferredPositions : default(ImmutableArray<bool>));
+                    includeNullability: false, errorPositions: disallowInferredNames ? inferredPositions : default(ImmutableArray<bool>));
             }
             else
             {
@@ -1973,18 +1974,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!rangeType.IsErrorType())
             {
-                WellKnownMember requiredRangeMethod;
-
-                if (node.LeftOperand is null)
-                {
-                    requiredRangeMethod = node.RightOperand is null ? WellKnownMember.System_Range__All : WellKnownMember.System_Range__ToEnd;
-                }
-                else
-                {
-                    requiredRangeMethod = node.RightOperand is null ? WellKnownMember.System_Range__FromStart : WellKnownMember.System_Range__Create;
-                }
-
-                symbolOpt = GetWellKnownTypeMember(Compilation, requiredRangeMethod, diagnostics, syntax: node) as MethodSymbol;
+                symbolOpt = (MethodSymbol)GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__ctor, diagnostics, syntax: node);
             }
 
             BoundExpression left = BindRangeExpressionOperand(node.LeftOperand, diagnostics);
