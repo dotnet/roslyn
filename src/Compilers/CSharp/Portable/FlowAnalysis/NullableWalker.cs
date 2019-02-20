@@ -750,7 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Update tracked value on assignment.
         /// </summary>
-        private void TrackNullableStateForAssignment(BoundExpression value, TypeSymbolWithAnnotations targetType, int targetSlot, TypeSymbolWithAnnotations valueType, int valueSlot = -1, int slotWatermark = -1)
+        private void TrackNullableStateForAssignment(BoundExpression value, TypeSymbolWithAnnotations targetType, int targetSlot, TypeSymbolWithAnnotations valueType, int valueSlot = -1)
         {
             Debug.Assert(value != null);
             Debug.Assert(!IsConditionalState);
@@ -780,11 +780,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 InheritDefaultState(targetSlot);
 
-                if (slotWatermark < 0)
-                {
-                    slotWatermark = GetSlotWatermark();
-                }
-
                 // https://github.com/dotnet/roslyn/issues/33428: Can the areEquivalentTypes check be removed
                 // if InheritNullableStateOfMember asserts the member is valid for target and value?
                 if (areEquivalentTypes(targetType, valueType)) // https://github.com/dotnet/roslyn/issues/29968 Allow assignment to base type.
@@ -796,12 +791,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // When that issue is fixed, Nullable<T> should be handled there instead.
                         if (valueSlot > 0)
                         {
-                            InheritNullableStateOfTrackableType(targetSlot, valueSlot, slotWatermark);
+                            InheritNullableStateOfTrackableType(targetSlot, valueSlot, skipSlot: targetSlot);
                         }
                     }
                     else if (EmptyStructTypeCache.IsTrackableStructType(targetType.TypeSymbol))
                     {
-                        InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, isDefaultValue: IsDefaultValue(value), slotWatermark);
+                        InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, isDefaultValue: IsDefaultValue(value), skipSlot: targetSlot);
                     }
                 }
             }
@@ -809,8 +804,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool areEquivalentTypes(TypeSymbolWithAnnotations t1, TypeSymbolWithAnnotations t2) =>
                 t1.TypeSymbol.Equals(t2.TypeSymbol, TypeCompareKind.AllIgnoreOptions);
         }
-
-        private int GetSlotWatermark() => this.nextVariableSlot;
 
         private void ReportNonSafetyDiagnostic(SyntaxNode syntax)
         {
@@ -846,24 +839,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void InheritNullableStateOfTrackableStruct(TypeSymbol targetType, int targetSlot, int valueSlot, bool isDefaultValue, int slotWatermark)
+        private void InheritNullableStateOfTrackableStruct(TypeSymbol targetType, int targetSlot, int valueSlot, bool isDefaultValue, int skipSlot = -1)
         {
             Debug.Assert(targetSlot > 0);
             Debug.Assert(EmptyStructTypeCache.IsTrackableStructType(targetType));
+
+            if (skipSlot < 0)
+            {
+                skipSlot = targetSlot;
+            }
 
             // https://github.com/dotnet/roslyn/issues/29619 Handle properties not backed by fields.
             // See ModifyMembers_StructPropertyNoBackingField and PropertyCycle_Struct tests.
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(targetType))
             {
-                InheritNullableStateOfMember(targetSlot, valueSlot, field, isDefaultValue: isDefaultValue, slotWatermark);
+                InheritNullableStateOfMember(targetSlot, valueSlot, field, isDefaultValue: isDefaultValue, skipSlot);
             }
         }
 
-        // 'slotWatermark' is used to avoid inheriting members from inherited members.
-        private void InheritNullableStateOfMember(int targetContainerSlot, int valueContainerSlot, Symbol member, bool isDefaultValue, int slotWatermark)
+        // 'skipSlot' is the original target slot that should be skipped in case of cycles.
+        private void InheritNullableStateOfMember(int targetContainerSlot, int valueContainerSlot, Symbol member, bool isDefaultValue, int skipSlot)
         {
             Debug.Assert(targetContainerSlot > 0);
-            Debug.Assert(valueContainerSlot <= slotWatermark);
+            Debug.Assert(skipSlot > 0);
             // https://github.com/dotnet/roslyn/issues/33428: Ensure member is valid for target and value.
 
             TypeSymbolWithAnnotations fieldOrPropertyType = member.GetTypeOrReturnType();
@@ -874,12 +872,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (fieldOrPropertyType.IsReferenceType || fieldOrPropertyType.IsPossiblyNullableReferenceTypeTypeParameter() || fieldOrPropertyType.IsNullableType())
             {
                 int targetMemberSlot = GetOrCreateSlot(member, targetContainerSlot);
+                Debug.Assert(targetMemberSlot > 0);
+
                 NullableAnnotation value = (isDefaultValue && fieldOrPropertyType.IsReferenceType) ?
                     NullableAnnotation.Nullable :
                     fieldOrPropertyType.NullableAnnotation;
+                int valueMemberSlot = -1;
+
                 if (valueContainerSlot > 0)
                 {
-                    int valueMemberSlot = VariableSlot(member, valueContainerSlot);
+                    valueMemberSlot = VariableSlot(member, valueContainerSlot);
+                    if (valueMemberSlot == skipSlot)
+                    {
+                        return;
+                    }
                     value = valueMemberSlot > 0 && valueMemberSlot < this.State.Capacity ?
                         this.State[valueMemberSlot] :
                         NullableAnnotation.Unknown;
@@ -887,13 +893,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 this.State[targetMemberSlot] = value;
 
-                if (valueContainerSlot > 0)
+                if (valueMemberSlot > 0)
                 {
-                    int valueMemberSlot = VariableSlot(member, valueContainerSlot);
-                    if (valueMemberSlot > 0 && valueMemberSlot < slotWatermark)
-                    {
-                        InheritNullableStateOfTrackableType(targetMemberSlot, valueMemberSlot, slotWatermark);
-                    }
+                    InheritNullableStateOfTrackableType(targetMemberSlot, valueMemberSlot, skipSlot);
                 }
             }
             else if (EmptyStructTypeCache.IsTrackableStructType(fieldOrPropertyType.TypeSymbol))
@@ -901,16 +903,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int targetMemberSlot = GetOrCreateSlot(member, targetContainerSlot);
                 if (targetMemberSlot > 0)
                 {
-                    int valueMemberSlot = -1;
-                    if (valueContainerSlot > 0)
+                    int valueMemberSlot = (valueContainerSlot > 0) ? GetOrCreateSlot(member, valueContainerSlot) : -1;
+                    if (valueMemberSlot == skipSlot)
                     {
-                        int slot = GetOrCreateSlot(member, valueContainerSlot);
-                        if (slot < slotWatermark)
-                        {
-                            valueMemberSlot = slot;
-                        }
+                        return;
                     }
-                    InheritNullableStateOfTrackableStruct(fieldOrPropertyType.TypeSymbol, targetMemberSlot, valueMemberSlot, isDefaultValue: isDefaultValue, slotWatermark);
+                    InheritNullableStateOfTrackableStruct(fieldOrPropertyType.TypeSymbol, targetMemberSlot, valueMemberSlot, isDefaultValue: isDefaultValue, skipSlot);
                 }
             }
         }
@@ -932,13 +930,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void InheritNullableStateOfTrackableType(int targetSlot, int valueSlot, int slotWatermark)
+        private void InheritNullableStateOfTrackableType(int targetSlot, int valueSlot, int skipSlot)
         {
             Debug.Assert(targetSlot > 0);
             Debug.Assert(valueSlot > 0);
 
             // Clone the state for members that have been set on the value.
-            for (int slot = valueSlot + 1; slot < slotWatermark; slot++)
+            for (int slot = valueSlot + 1; slot < nextVariableSlot; slot++)
             {
                 var variable = variableBySlot[slot];
                 if (variable.ContainingSlot != valueSlot)
@@ -947,7 +945,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 var member = variable.Symbol;
                 Debug.Assert(member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Property || member.Kind == SymbolKind.Event);
-                InheritNullableStateOfMember(targetSlot, valueSlot, member, isDefaultValue: false, slotWatermark);
+                InheritNullableStateOfMember(targetSlot, valueSlot, member, isDefaultValue: false, skipSlot);
             }
         }
 
@@ -1004,8 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameterType.TypeSymbol,
                         slot,
                         valueSlot: -1,
-                        isDefaultValue: parameter.ExplicitDefaultConstantValue?.IsNull == true,
-                        slotWatermark: GetSlotWatermark());
+                        isDefaultValue: parameter.ExplicitDefaultConstantValue?.IsNull == true);
                 }
             }
         }
@@ -1293,8 +1290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 type,
                                 slot,
                                 valueSlot: -1,
-                                isDefaultValue: isDefaultValueTypeConstructor,
-                                slotWatermark: GetSlotWatermark());
+                                isDefaultValue: isDefaultValueTypeConstructor);
                         }
                     }
                 }
@@ -4227,11 +4223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 TypeSymbolWithAnnotations rightType = VisitOptionalImplicitConversion(right, leftType, UseLegacyWarnings(left), AssignmentKind.Assignment);
-                int rightSlot = MakeSlot(right);
-                int slotWatermark = GetSlotWatermark();
-                // leftSlot is calculated last to avoid copying from that slot in cycles.
-                int leftSlot = MakeSlot(left);
-                TrackNullableStateForAssignment(right, leftType, leftSlot, rightType, rightSlot, slotWatermark);
+                TrackNullableStateForAssignment(right, leftType, MakeSlot(left), rightType, MakeSlot(right));
                 // https://github.com/dotnet/roslyn/issues/30066 Check node.Type.IsErrorType() instead?
                 _resultType = node.HasErrors ? TypeSymbolWithAnnotations.Create(node.Type) : rightType;
             }
@@ -4336,21 +4328,58 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < n; i++)
                 {
                     var variable = variables[i];
+                    var underlyingConversion = conversion.UnderlyingConversions[i];
                     var rightPart = rightParts[i];
                     var nestedVariables = variable.NestedVariables;
                     if (nestedVariables != null)
                     {
-                        VisitDeconstructionArguments(nestedVariables, conversion.UnderlyingConversions[i], rightPart);
+                        VisitDeconstructionArguments(nestedVariables, underlyingConversion, rightPart);
                     }
                     else
                     {
                         var targetType = variable.Type;
-                        var valueType = VisitOptionalImplicitConversion(rightPart, targetType, useLegacyWarnings: true, AssignmentKind.Assignment);
-                        int valueSlot = MakeSlot(rightPart);
-                        int slotWatermark = GetSlotWatermark();
-                        // targetSlot is calculated last to avoid copying from that slot in cycles.
+                        TypeSymbolWithAnnotations operandType;
+                        TypeSymbolWithAnnotations valueType;
+                        int valueSlot;
+                        if (underlyingConversion.IsIdentity)
+                        {
+                            operandType = default;
+                            valueType = VisitOptionalImplicitConversion(rightPart, targetType, useLegacyWarnings: true, AssignmentKind.Assignment);
+                            valueSlot = MakeSlot(rightPart);
+                        }
+                        else
+                        {
+                            operandType = VisitRvalueWithResult(rightPart);
+                            valueType = ApplyConversion(
+                                rightPart,
+                                rightPart,
+                                underlyingConversion,
+                                targetType,
+                                operandType,
+                                checkConversion: true,
+                                fromExplicitCast: false,
+                                useLegacyWarnings: true,
+                                AssignmentKind.Assignment,
+                                reportTopLevelWarnings: true,
+                                reportRemainingWarnings: true);
+                            valueSlot = -1;
+                        }
+
                         int targetSlot = MakeSlot(variable.Expression);
-                        TrackNullableStateForAssignment(rightPart, targetType, targetSlot, valueType, valueSlot, slotWatermark);
+                        TrackNullableStateForAssignment(rightPart, targetType, targetSlot, valueType, valueSlot);
+
+                        // Conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
+                        // (Should this check be moved to VisitOptionalImplicitConversion or TrackNullableStateForAssignment?)
+                        if (targetSlot > 0 &&
+                            underlyingConversion.Kind == ConversionKind.ImplicitNullable &&
+                            AreNullableAndUnderlyingTypes(targetType.TypeSymbol, operandType.TypeSymbol, out TypeSymbolWithAnnotations underlyingType))
+                        {
+                            valueSlot = MakeSlot(rightPart);
+                            if (valueSlot > 0)
+                            {
+                                TrackNullableStateOfNullableValue(targetSlot, targetType.TypeSymbol, rightPart, underlyingType, valueSlot);
+                            }
+                        }
                     }
                 }
             }
@@ -5085,7 +5114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (slot > 0)
                 {
                     this.State[slot] = NullableAnnotation.NotNullable;
-                    InheritNullableStateOfTrackableStruct(type, slot, valueSlot: -1, isDefaultValue: true, slotWatermark: GetSlotWatermark());
+                    InheritNullableStateOfTrackableStruct(type, slot, valueSlot: -1, isDefaultValue: true);
                 }
             }
             _resultType = TypeSymbolWithAnnotations.Create(type, (type is null || type.IsNullableType() || !type.IsValueType) ? NullableAnnotation.Nullable : NullableAnnotation.Unknown);
