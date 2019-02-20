@@ -98,7 +98,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 "ServiceHub.SettingsHost.exe",
                 "ServiceHub.VSDetouredHost.exe",
                 "vbc.exe",
-                "vbc2.exe",
                 "VBCSCompiler.exe",
                 "VStest.Console.Exe",
                 "VSTest.DiscoveryEngine.exe",
@@ -108,6 +107,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 "vstest.executionengine.clr20.exe",
                 "VSTest.executionEngine.exe",
                 "VSTest.executionEngine.x86.exe",
+                "xunit.console.exe",
                 "xunit.console.x86.exe",
             };
 
