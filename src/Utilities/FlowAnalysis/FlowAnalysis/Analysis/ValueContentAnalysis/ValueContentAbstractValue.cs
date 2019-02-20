@@ -120,9 +120,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             return new ValueContentAbstractValue(literalValues, nonLiteralState);
         }
 
-        internal static bool IsSupportedType(ITypeSymbol type)
+        internal static bool IsSupportedType(ITypeSymbol type, out ITypeSymbol valueTypeSymbol)
         {
-            return type.IsPrimitiveType() || type.SpecialType == SpecialType.System_String;
+            if (type.IsPrimitiveType() || type.SpecialType == SpecialType.System_String)
+            {
+                valueTypeSymbol = type;
+                return true;
+            }
+            else if (type is INamedTypeSymbol namedTypeSymbol
+                && namedTypeSymbol.EnumUnderlyingType != null)
+            {
+                valueTypeSymbol = namedTypeSymbol.EnumUnderlyingType;
+                return true;
+            }
+            else
+            {
+                valueTypeSymbol = null;
+                return false;
+            }
         }
 
         /// <summary>

@@ -152,11 +152,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                     return ValueContentAbstractValue.DoesNotContainLiteralOrNonLiteralState;
                 }
 
-                if (ValueContentAbstractValue.IsSupportedType(operation.Type))
+                if (ValueContentAbstractValue.IsSupportedType(operation.Type, out ITypeSymbol valueTypeSymbol))
                 {
                     if (operation.ConstantValue.HasValue && operation.ConstantValue.Value != null)
                     {
-                        return ValueContentAbstractValue.Create(operation.ConstantValue.Value, operation.Type);
+                        return ValueContentAbstractValue.Create(operation.ConstantValue.Value, valueTypeSymbol);
                     }
                     else
                     {

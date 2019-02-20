@@ -2,13 +2,10 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
-using Xunit;
 
 namespace Test.Utilities
 {
@@ -50,25 +47,10 @@ namespace Test.Utilities
             ImmutableArray<Diagnostic> diagnostics = newCompilation.GetDiagnostics();
             if (validationMode != TestValidationMode.AllowCompileErrors)
             {
-                ValidateNoCompileErrors(diagnostics);
+                CompilationUtils.ValidateNoCompileErrors(diagnostics);
             }
 
             return driver.GetDiagnosticsAsync(newCompilation).Result.AddRange(exceptionDiagnostics);
-        }
-
-        private static void ValidateNoCompileErrors(ImmutableArray<Diagnostic> compilerDiagnostics)
-        {
-            var compileErrors = compilerDiagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).ToArray();
-
-            if (compileErrors.Any())
-            {
-                var builder = new StringBuilder();
-                builder.Append($"Test contains compilation error(s). Pass {nameof(TestValidationMode)}.{nameof(TestValidationMode.AllowCompileErrors)} if these are intended:");
-                builder.Append(string.Concat(compileErrors.Select(x => "\n" + x.ToString())));
-
-                string message = builder.ToString();
-                Assert.True(false, message);
-            }
         }
     }
 }

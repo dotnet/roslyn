@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
@@ -22,17 +23,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         private sealed class PropertySetDataFlowOperationVisitor :
             AbstractLocationDataFlowOperationVisitor<PropertySetAnalysisData, PropertySetAnalysisContext, PropertySetAnalysisResult, PropertySetAbstractValue>
         {
-            private readonly ImmutableDictionary<(Location Location, IMethodSymbol Method), PropertySetAbstractValue>.Builder _hazardousUsageBuilder;
-            private readonly INamedTypeSymbol DeserializerTypeSymbol;
+            private readonly ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>.Builder _hazardousUsageBuilder;
+
+            /// <summary>
+            /// The type containing the property set we're tracking.
+            /// </summary>
+            private readonly INamedTypeSymbol TrackedTypeSymbol;
 
             public PropertySetDataFlowOperationVisitor(PropertySetAnalysisContext analysisContext)
                 : base(analysisContext)
             {
                 Debug.Assert(analysisContext.PointsToAnalysisResultOpt != null);
 
-                _hazardousUsageBuilder = ImmutableDictionary.CreateBuilder<(Location Location, IMethodSymbol Method), PropertySetAbstractValue>();
+                _hazardousUsageBuilder = ImmutableDictionary.CreateBuilder<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>();
 
-                this.WellKnownTypeProvider.TryGetTypeByMetadataName(analysisContext.TypeToTrackMetadataName, out this.DeserializerTypeSymbol);
+                this.WellKnownTypeProvider.TryGetTypeByMetadataName(analysisContext.TypeToTrackMetadataName, out this.TrackedTypeSymbol);
             }
 
             public override int GetHashCode()
@@ -40,7 +45,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 return HashUtilities.Combine(_hazardousUsageBuilder.GetHashCode(), base.GetHashCode());
             }
 
-            public ImmutableDictionary<(Location Location, IMethodSymbol Method), PropertySetAbstractValue> HazardousUsages
+            public ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> HazardousUsages
             {
                 get
                 {
@@ -98,16 +103,62 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             public override PropertySetAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object argument)
             {
                 PropertySetAbstractValue abstractValue = base.VisitObjectCreation(operation, argument);
-                if (operation.Type == this.DeserializerTypeSymbol)
+                if (operation.Type != this.TrackedTypeSymbol)
                 {
-                    abstractValue = this.DataFlowAnalysisContext.IsNewInstanceFlagged
-                        ? PropertySetAbstractValue.Flagged
-                        : PropertySetAbstractValue.Unflagged;
-                    PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(operation);
-                    this.SetAbstractValue(pointsToAbstractValue, abstractValue);
                     return abstractValue;
                 }
 
+                ConstructorMapper constructorMapper = this.DataFlowAnalysisContext.ConstructorMapper;
+                if (!constructorMapper.PropertyAbstractValues.IsEmpty)
+                {
+                    abstractValue = PropertySetAbstractValue.GetInstance(constructorMapper.PropertyAbstractValues);
+                }
+                else if (constructorMapper.MapFromNullAbstractValue != null)
+                {
+                    ArrayBuilder<NullAbstractValue> builder = ArrayBuilder<NullAbstractValue>.GetInstance();
+                    try
+                    {
+                        foreach (IArgumentOperation argumentOperation in operation.Arguments)
+                        {
+                            builder.Add(this.GetNullAbstractValue(argumentOperation));
+                        }
+
+                        abstractValue = constructorMapper.MapFromNullAbstractValue(operation.Constructor, builder);
+                    }
+                    finally
+                    {
+                        builder.Free();
+                    }
+                }
+                else if (constructorMapper.MapFromValueContentAbstractValue != null)
+                {
+                    Debug.Assert(this.DataFlowAnalysisContext.ValueContentAnalysisResultOpt != null);
+                    ArrayBuilder<NullAbstractValue> nullBuilder = ArrayBuilder<NullAbstractValue>.GetInstance();
+                    ArrayBuilder<ValueContentAbstractValue> valueContentBuilder = ArrayBuilder<ValueContentAbstractValue>.GetInstance();
+                    try
+                    {
+                        foreach (IArgumentOperation argumentOperation in operation.Arguments)
+                        {
+                            nullBuilder.Add(this.GetNullAbstractValue(argumentOperation));
+                            valueContentBuilder.Add(this.GetValueContentAbstractValue(argumentOperation));
+                        }
+
+                        abstractValue = constructorMapper.MapFromValueContentAbstractValue(operation.Constructor, valueContentBuilder, nullBuilder);
+                    }
+                    finally
+                    {
+                        nullBuilder.Free();
+                        valueContentBuilder.Free();
+                    }
+                }
+                else
+                {
+                    Debug.Fail("Unhandled ConstructorMapper");
+                    return abstractValue;
+                }
+
+                PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(operation);
+                this.SetAbstractValue(pointsToAbstractValue, abstractValue);
                 return abstractValue;
             }
 
@@ -115,32 +166,51 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             {
                 PropertySetAbstractValue baseValue = base.VisitAssignmentOperation(operation, argument);
                 if (operation.Target is IPropertyReferenceOperation propertyReferenceOperation
-                    && propertyReferenceOperation.Property.MatchPropertyByName(
-                        this.DeserializerTypeSymbol,
-                        this.DataFlowAnalysisContext.PropertyToSetFlag))
+                    && propertyReferenceOperation.Instance?.Type == this.TrackedTypeSymbol
+                    && this.DataFlowAnalysisContext.PropertyMappers.TryGetPropertyMapper(
+                        propertyReferenceOperation.Property.Name,
+                        out PropertyMapper propertyMapper,
+                        out int index))
                 {
-                    PointsToAbstractValue pointsToAbstractValue = GetPointsToAbstractValue(propertyReferenceOperation.Instance);
-                    NullAbstractValue nullAbstractValue = this.GetNullAbstractValue(operation.Value);
-                    PropertySetAbstractValue abstractValue;
+                    PropertySetAbstractValueKind propertySetAbstractValueKind;
 
-                    if (nullAbstractValue == NullAbstractValue.Null)
+                    if (propertyMapper.MapFromNullAbstractValue != null)
                     {
-                        abstractValue = this.DataFlowAnalysisContext.IsNullPropertyFlagged
-                            ? PropertySetAbstractValue.Flagged
-                            : PropertySetAbstractValue.Unflagged;
+                        propertySetAbstractValueKind = propertyMapper.MapFromNullAbstractValue(
+                            this.GetNullAbstractValue(operation.Value));
                     }
-                    else if (nullAbstractValue == NullAbstractValue.NotNull)
+                    else if (propertyMapper.MapFromValueContentAbstractValue != null)
                     {
-                        abstractValue = this.DataFlowAnalysisContext.IsNullPropertyFlagged
-                            ? PropertySetAbstractValue.Unflagged
-                            : PropertySetAbstractValue.Flagged;
+                        Debug.Assert(this.DataFlowAnalysisContext.ValueContentAnalysisResultOpt != null);
+                        propertySetAbstractValueKind = propertyMapper.MapFromValueContentAbstractValue(
+                            this.GetValueContentAbstractValue(operation.Value));
                     }
                     else
                     {
-                        abstractValue = PropertySetAbstractValue.MaybeFlagged;
+                        Debug.Fail("Unhandled PropertyMapper");
+                        return baseValue;
                     }
 
-                    this.SetAbstractValue(pointsToAbstractValue, abstractValue);
+                    baseValue = null;
+                    PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(propertyReferenceOperation.Instance);
+                    foreach (AbstractLocation location in pointsToAbstractValue.Locations)
+                    {
+                        PropertySetAbstractValue propertySetAbstractValue = this.GetAbstractValue(location);
+                        propertySetAbstractValue = propertySetAbstractValue.ReplaceAt(index, propertySetAbstractValueKind);
+
+                        if (baseValue == null)
+                        {
+                            baseValue = propertySetAbstractValue;
+                        }
+                        else
+                        {
+                            baseValue = this.DataFlowAnalysisContext.ValueDomain.Merge(baseValue, propertySetAbstractValue);
+                        }
+
+                        this.SetAbstractValue(location, propertySetAbstractValue);
+                    }
+
+                    return baseValue ?? PropertySetAbstractValue.Unknown.ReplaceAt(index, propertySetAbstractValueKind);
                 }
 
                 return baseValue;
@@ -149,23 +219,29 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             public override PropertySetAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(IMethodSymbol method, IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments, bool invokedAsDelegate, IOperation originalOperation, PropertySetAbstractValue defaultValue)
             {
                 PropertySetAbstractValue baseValue = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
-                if (visitedInstance?.Type == this.DeserializerTypeSymbol
-                    && this.DataFlowAnalysisContext.MethodNamesToCheckForFlaggedUsage.Contains(method.MetadataName))
+
+                // If we have a HazardousUsageEvaluator for a method within the tracked type,
+                // or for a method within a different type.
+                IOperation propertySetInstance = visitedInstance;
+                HazardousUsageEvaluator hazardousUsageEvaluator;
+                if ((visitedInstance?.Type == this.TrackedTypeSymbol
+                    && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetHazardousUsageEvaluator(method.MetadataName, out hazardousUsageEvaluator))
+                    || TryFindNonTrackedTypeHazardousUsageEvaluator(out hazardousUsageEvaluator, out propertySetInstance))
                 {
-                    PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(visitedInstance);
+                    PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(propertySetInstance);
                     bool hasFlagged = false;
                     bool hasMaybeFlagged = false;
                     foreach (AbstractLocation location in pointsToAbstractValue.Locations)
                     {
                         PropertySetAbstractValue locationAbstractValue = this.GetAbstractValue(location);
-                        if (locationAbstractValue == PropertySetAbstractValue.Flagged)
+
+                        HazardousUsageEvaluationResult evaluationResult = hazardousUsageEvaluator.Evaluator(method, locationAbstractValue);
+                        if (evaluationResult == HazardousUsageEvaluationResult.Flagged)
                         {
                             hasFlagged = true;
                         }
-                        else if (locationAbstractValue == PropertySetAbstractValue.MaybeFlagged
-                            || locationAbstractValue == PropertySetAbstractValue.Unknown)
+                        else if (evaluationResult == HazardousUsageEvaluationResult.MaybeFlagged)
                         {
-                            // NotApplicable also means we don't know.
                             hasMaybeFlagged = true;
                         }
                     }
@@ -173,16 +249,55 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     (Location, IMethodSymbol) key = (originalOperation.Syntax.GetLocation(), method);
                     if (hasFlagged && !hasMaybeFlagged)
                     {
-                        this._hazardousUsageBuilder.Add(key, PropertySetAbstractValue.Flagged);
+                        this._hazardousUsageBuilder.Add(key, HazardousUsageEvaluationResult.Flagged);
                     }
                     else if ((hasFlagged || hasMaybeFlagged)
                         && !this._hazardousUsageBuilder.ContainsKey(key))   // Keep existing value, if there is one.
                     {
-                        this._hazardousUsageBuilder.Add(key, PropertySetAbstractValue.MaybeFlagged);
+                        this._hazardousUsageBuilder.Add(key, HazardousUsageEvaluationResult.MaybeFlagged);
                     }
                 }
 
                 return baseValue;
+
+                // Local functions.
+                bool TryFindNonTrackedTypeHazardousUsageEvaluator(out HazardousUsageEvaluator evaluator, out IOperation instance)
+                {
+                    evaluator = null;
+                    instance = null;
+                    if (!this.DataFlowAnalysisContext.HazardousUsageTypesToNames.TryGetValue(
+                            visitedInstance?.Type as INamedTypeSymbol ?? method.ContainingType,
+                            out string containingTypeName))
+                    {
+                        return false;
+                    }
+
+                    // This doesn't handle the case of multiple instances of the type being tracked.
+                    // If that's needed one day, will need to extend this.
+                    foreach (IArgumentOperation argumentOperation in visitedArguments)
+                    {
+                        if (argumentOperation.Value?.Type == this.TrackedTypeSymbol
+                            && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetHazardousUsageEvaluator(
+                                    containingTypeName,
+                                    method.MetadataName,
+                                    argumentOperation.Parameter.MetadataName,
+                                    out evaluator))
+                        {
+                            instance = argumentOperation.Value;
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+            }
+
+            private ValueContentAbstractValue GetValueContentAbstractValue(IOperation operation)
+            {
+                Debug.Assert(
+                    this.DataFlowAnalysisContext.ValueContentAnalysisResultOpt != null,
+                    "PropertySetAnalysis should have computed ValueContentAnalysisResult if attempting to access it");
+                return this.DataFlowAnalysisContext.ValueContentAnalysisResultOpt[operation];
             }
         }
     }
