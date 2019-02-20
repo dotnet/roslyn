@@ -83,9 +83,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 var semanticModel = await _document.GetSemanticModelForNodeAsync(startToken.Parent, _cancellationToken).ConfigureAwait(false);
 
-                var (returnType, tokenAfterReturnType) = await _provider.DetermineReturnTypeAsync(
+                var (succeeded, returnType, tokenAfterReturnType) = await _provider.DetermineReturnTypeAsync(
                     _document, startToken, _cancellationToken).ConfigureAwait(false);
-                if (returnType.Symbol == null)
+                if (!succeeded)
                 {
                     return null;
                 }
