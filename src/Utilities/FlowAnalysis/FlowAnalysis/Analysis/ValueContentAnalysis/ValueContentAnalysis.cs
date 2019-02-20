@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 out pointsToAnalysisResultOpt, pessimisticAnalysis, performPointsToAndCopyAnalysis);
         }
 
-        public static ValueContentAnalysisResult GetOrComputeResult(
+        internal static ValueContentAnalysisResult GetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
             WellKnownTypeProvider wellKnownTypeProvider,

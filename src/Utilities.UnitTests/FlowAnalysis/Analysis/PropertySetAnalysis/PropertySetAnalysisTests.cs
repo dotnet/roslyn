@@ -603,7 +603,7 @@ class TestClass
             new PropertySetAnalysisParameters(
                 "TestTypeToTrackWithConstructor",
                 new ConstructorMapper(
-                    (IMethodSymbol method, IReadOnlyList<ValueContentAbstractValue> argumentValueContentAbstractValues, IReadOnlyList <NullAbstractValue> argumentNullAbstractValues) =>
+                    (IMethodSymbol method, IReadOnlyList<ValueContentAbstractValue> argumentValueContentAbstractValues, IReadOnlyList<NullAbstractValue> argumentNullAbstractValues) =>
                     {
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
