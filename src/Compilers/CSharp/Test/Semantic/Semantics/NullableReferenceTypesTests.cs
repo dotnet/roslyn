@@ -49171,6 +49171,34 @@ class Program
         }
 
         [Fact]
+        public void Members_FieldCycle_06()
+        {
+            var source =
+@"#pragma warning disable 0649
+class A
+{
+    internal B B = default!;
+}
+class B
+{
+    internal A? A;
+}
+class Program
+{
+    static void M(A a)
+    {
+        a.B.A = a;
+        a.B.A.B.A.ToString();
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         a.B.A.B.A.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.B.A.B.A").WithLocation(15, 9));
+        }
+
+        [Fact]
         public void Members_FieldCycle_Struct()
         {
             var source =
@@ -79477,14 +79505,42 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/33011: Should warn for `y.Value.F` only.
             comp.VerifyDiagnostics(
-                // (12,13): warning CS8629: Nullable value type may be null.
-                //         _ = x.Value;
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x.Value").WithLocation(12, 13),
-                // (14,13): warning CS8629: Nullable value type may be null.
-                //         _ = y.Value;
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y.Value").WithLocation(14, 13));
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         y.Value.F.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.Value.F").WithLocation(15, 9));
+        }
+
+        [Fact]
+        [WorkItem(33011, "https://github.com/dotnet/roslyn/issues/33011")]
+        public void Deconstruction_ImplicitNullableConversion_03()
+        {
+            var source =
+@"#pragma warning disable 0649
+struct S<T>
+{
+    internal T F;
+}
+class Program
+{
+    static void F<T>((S<T?>, S<T>) t) where T : class, new()
+    {
+        (S<T>? x, S<T?>? y) = t; // 1, 2
+        x.Value.F.ToString(); // 3
+        y.Value.F.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,31): warning CS8619: Nullability of reference types in value of type 'S<T?>' doesn't match target type 'S<T>?'.
+                //         (S<T>? x, S<T?>? y) = t; // 1, 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "t").WithArguments("S<T?>", "S<T>?").WithLocation(10, 31),
+                // (10,31): warning CS8619: Nullability of reference types in value of type 'S<T>' doesn't match target type 'S<T?>?'.
+                //         (S<T>? x, S<T?>? y) = t; // 1, 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "t").WithArguments("S<T>", "S<T?>?").WithLocation(10, 31),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         x.Value.F.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.Value.F").WithLocation(11, 9));
         }
 
         [Fact]
