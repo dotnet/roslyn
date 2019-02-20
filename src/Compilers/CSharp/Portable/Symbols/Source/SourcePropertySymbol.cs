@@ -114,6 +114,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? propertySyntax.ExpressionBody
                 : ((IndexerDeclarationSyntax)syntax).ExpressionBody;
             bool hasExpressionBody = arrowExpression != null;
+
+            if (!hasExpressionBody && HasReadOnlyModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword));
+            }
+
             bool hasInitializer = !isIndexer && propertySyntax.Initializer != null;
 
             bool notRegularProperty = (!IsAbstract && !IsExtern && !isIndexer && hasAccessorList);
@@ -627,6 +633,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (_modifiers & DeclarationModifiers.New) != 0; }
         }
 
+        private bool HasReadOnlyModifier
+        {
+            get { return (_modifiers & DeclarationModifiers.ReadOnly) != 0; }
+        }
+
         public override MethodSymbol GetMethod
         {
             get { return _getMethod; }
@@ -811,6 +822,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         allowedModifiers |= DeclarationModifiers.Static;
                     }
                 }
+            }
+
+            if (ContainingType.IsStructType())
+            {
+                allowedModifiers |= DeclarationModifiers.ReadOnly;
             }
 
             if (!isInterface)

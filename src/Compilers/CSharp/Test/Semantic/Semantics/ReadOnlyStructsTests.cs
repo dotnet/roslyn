@@ -332,6 +332,29 @@ public struct S
         }
 
         [Fact]
+        public void ReadOnlyClassProperty()
+        {
+            var csharp = @"
+public class C
+{
+    public int i;
+    public int P
+    {
+        readonly get
+        {
+            return i;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (7,18): error CS0106: The modifier 'readonly' is not valid for this item
+                //         readonly get
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("readonly").WithLocation(7, 18));
+        }
+
+        [Fact]
         public void ReadOnlyStructStaticProperty()
         {
             var csharp = @"
@@ -366,9 +389,40 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (5,32): error CS0106: The modifier 'readonly' is not valid for this item
+                // (5,37): error CS0106: The modifier 'readonly' is not valid for this item
                 //     public static readonly int P => i;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("readonly").WithLocation(5, 32));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "i").WithArguments("readonly").WithLocation(5, 37));
+        }
+
+        [Fact]
+        public void ReadOnlyStructExpressionProperty()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+    public readonly int P => i;
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyStructBlockProperty()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+    public readonly int P { get { return i; } }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (5,25): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public readonly int P { get { return i; } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("readonly").WithLocation(5, 25));
         }
 
         [Fact]
