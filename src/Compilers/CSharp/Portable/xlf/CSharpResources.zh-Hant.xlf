@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="ERR_AsNullableType">
         <source>It is not legal to use nullable reference type '{0}?' in an as expression; use the underlying type '{0}' instead.</source>
-        <target state="new">It is not legal to use nullable reference type '{0}?' in an as expression; use the underlying type '{0}' instead.</target>
+        <target state="translated">在運算式中使用可為 Null 的參考型別 '{0}?' 不合法，請改用基礎類型 '{0}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
         <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
-        <target state="new">The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</target>
+        <target state="translated">功能 '{0}' 目前處於預覽階段，且*不受支援*。若要使用預覽功能，請使用「預覽語言」版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureIsExperimental">
@@ -159,7 +159,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
-        <target state="new">The suppression operator is not allowed in this context</target>
+        <target state="translated">此內容不允許隱藏項目運算子。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="ERR_IsNullableType">
         <source>It is not legal to use nullable reference type '{0}?' in an is-type expression; use the underlying type '{0}' instead.</source>
-        <target state="new">It is not legal to use nullable reference type '{0}?' in an is-type expression; use the underlying type '{0}' instead.</target>
+        <target state="translated">在 is-type 運算式中使用可為 Null 的參考型別 '{0}' 不合法嗎? 請改用基礎類型 '{0}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IsPatternImpossible">
@@ -199,7 +199,7 @@
       </trans-unit>
       <trans-unit id="ERR_IteratorMustBeAsync">
         <source>Method '{0}' with an iterator block must be 'async' to return '{1}'</source>
-        <target state="new">Method '{0}' with an iterator block must be 'async' to return '{1}'</target>
+        <target state="translated">具有迭代器區塊的方法 '{0}' 必須為「非同步」才能傳回 '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPattern">
@@ -214,12 +214,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="needs-review-translation">'{0}': 在非同步 using 陳述式中所使用的類型，必須隱含可轉換為 'System.IAsyncDisposable'。您指的是 'using' 而不是 'await using' 嗎?</target>
+        <target state="translated">'{0}': 在非同步 using 陳述式中使用的類型，必須可隱含地轉換為 'System.IAsyncDisposable' 或實作合適的 'DisposeAsync' 方法。您指的是 'using' 而不是 'await using' 嗎?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
         <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</source>
-        <target state="needs-review-translation">'{0}': 在 using 陳述式中所使用的類型，必須隱含可轉換為 'System.IDisposable'。您指的是 'await using' 而不是 'using' 嗎?</target>
+        <target state="translated">'{0}': 在 using 陳述式中使用的類型，必須可隱含地轉換為 'System.IDisposable' 或實作合適的 'Dispose' 方法。您指的是 'await using' 而不是 'using' 嗎?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
@@ -534,151 +534,151 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="new">
-                             Visual C# Compiler Options
+        <target state="translated">
+                              Visual C# 編譯器選項
 
-                       - OUTPUT FILES -
--out:&lt;file&gt;                   Specify output file name (default: base name of
-                              file with main class or first file)
--target:exe                   Build a console executable (default) (Short
-                              form: -t:exe)
--target:winexe                Build a Windows executable (Short form:
-                              -t:winexe)
--target:library               Build a library (Short form: -t:library)
--target:module                Build a module that can be added to another
-                              assembly (Short form: -t:module)
--target:appcontainerexe       Build an Appcontainer executable (Short form:
-                              -t:appcontainerexe)
--target:winmdobj              Build a Windows Runtime intermediate file that
-                              is consumed by WinMDExp (Short form: -t:winmdobj)
--doc:&lt;file&gt;                   XML Documentation file to generate
--refout:&lt;file&gt;                Reference assembly output to generate
--platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
-                              anycpu. The default is anycpu.
+                        - 輸出檔案 -
+-out:&lt;檔案&gt;                  指定輸出檔案名稱 (預設: 具有主要
+                               類別的檔案或第一個檔案的基底名稱)
+-target:exe                   建置主控台可執行檔 (預設) (簡短
+                               形式: -t:exe)
+-target:winexe                建置 Windows 可執行檔 (簡短形式:
+                               -t:winexe)
+-target:library               建置程式庫 (簡短形式: -t:library)
+-target:module                建置可新增至其他組件的
+                               模組 (簡短形式: -t:module)
+-target:appcontainerexe       建置 Appcontainer 可執行檔 (簡短形式:
+                               -t:appcontainerexe)
+-target:winmdobj              建置 WinMDExp 所使用的 Windows 執行階段
+                               中繼檔案 (簡短形式: -t:winmdobj)
+-doc:&lt;檔案&gt;                   要產生的 XML 文件檔案
+-refout:&lt;檔案&gt;                要產生的參考組件輸出
+-platform:&lt;字串&gt;            限制此程式碼可執行的平台: x86、
+                                Itanium、x64、arm、arm64、anycpu32bitpreferred 或
+                               anycpu。預設為 anycpu。
 
-                       - INPUT FILES -
--recurse:&lt;wildcard&gt;           Include all files in the current directory and
-                              subdirectories according to the wildcard
-                              specifications
--reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
-                              file using the given alias (Short form: -r)
--reference:&lt;file list&gt;        Reference metadata from the specified assembly
-                              files (Short form: -r)
--addmodule:&lt;file list&gt;        Link the specified modules into this assembly
--link:&lt;file list&gt;             Embed metadata from the specified interop
-                              assembly files (Short form: -l)
--analyzer:&lt;file list&gt;         Run the analyzers from this assembly
-                              (Short form: -a)
--additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
-                              generation but may be used by analyzers for producing
-                              errors or warnings.
--embed                        Embed all source files in the PDB.
--embed:&lt;file list&gt;            Embed specific files in the PDB
+                        - 輸入檔案 -
+-recurse:&lt;萬用字元&gt;           根據萬用字元規格，包含
+                               目前目錄和子目錄中的所有
+                               檔案
+-reference:&lt;別名&gt;=&lt;檔案&gt;     使用給定的別名，參考指定組件檔
+                               的中繼資料 (簡短形式: -r)
+-reference:&lt;檔案清單&gt;         參考指定組件檔的
+                               中繼資料 (簡短形式: -r)
+-addmodule:&lt;檔案清單&gt;        將指定的模組連結至這個組件中
+-link:&lt;檔案清單&gt;             從指定的 Interop 組件檔內嵌
+                               中繼資料 (簡短形式: -l)
+-analyzer:&lt;檔案清單&gt;          從這個組件執行分析器
+                               (簡短形式: -a)
+-additionalfile:&lt;檔案清單&gt;   不會直接影響程式碼產生，
+                               但分析器可用以產生錯誤或警告的
+                               其他檔案。
+-embed                        內嵌 PDB 中的所有來源檔案。
+-embed:&lt;檔案清單&gt;            內嵌 PDB 中的特定檔案
 
-                       - RESOURCES -
--win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
--win32icon:&lt;file&gt;             Use this icon for the output
--win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
--nowin32manifest              Do not include the default Win32 manifest
--resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
--linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
-                              (Short form: -linkres) Where the resinfo format
-                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+                        - 資源 -
+-win32res:&lt;檔案&gt;              指定 Win32 資源檔 (.res)
+-win32icon:&lt;檔案&gt;             在輸出使用此圖示
+-win32manifest:&lt;檔案&gt;          指定 Win32 資訊清單檔案 (.xml)
+-nowin32manifest              不要包含預設 Win32 資訊清單
+-resource:&lt;資源資訊&gt;           內嵌指定的資源 (簡短形式: -res)
+-linkresource:&lt;資源資訊&gt;       將指定的資源連結至這個組件
+                               (簡短形式: -linkres) 其中 resinfo 的格式
+                               為 &lt;檔案&gt;[,&lt;字串名稱&gt;[,public|private]]
 
-                       - CODE GENERATION -
--debug[+|-]                   Emit debugging information
+                        - 程式碼產生 -
+-debug[+|-]                   發出偵錯資訊
 -debug:{full|pdbonly|portable|embedded}
-                              Specify debugging type ('full' is default,
-                              'portable' is a cross-platform format,
-                              'embedded' is a cross-platform format embedded into
-                              the target .dll or .exe)
--optimize[+|-]                Enable optimizations (Short form: -o)
--deterministic                Produce a deterministic assembly
-                              (including module version GUID and timestamp)
--refonly                      Produce a reference assembly in place of the main output
--instrument:TestCoverage      Produce an assembly instrumented to collect
-                              coverage information
--sourcelink:&lt;file&gt;            Source link info to embed into PDB.
+                               指定偵錯類型 ('full' 為預設，
+                               'portable' 為跨平台格式，
+                               'embedded' 為內嵌至 target .dll 或 .exe 中的
+                               跨平台格式)
+-optimize[+|-]                啟用最佳化 (簡短形式: -o)
+-deterministic                產生確定性組件
+                               (包括模組版本 GUID 與時間戳記)
+-refonly                      產生參考組件以代替主要輸出
+-instrument:TestCoverage      產生檢測組件，以收集
+                               涵蓋範圍資訊
+-sourcelink:&lt;檔案&gt;            要內嵌至 PDB 中的來源連結資訊。
 
-                       - ERRORS AND WARNINGS -
--warnaserror[+|-]             Report all warnings as errors
--warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
--warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
--nowarn:&lt;warn list&gt;           Disable specific warning messages
--ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
-                              diagnostics.
--errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
-                              diagnostics.
--reportanalyzer               Report additional analyzer information, such as
-                              execution time.
+                        - 錯誤與警告 -
+-warnaserror[+|-]             將所有警告回報為錯誤
+-warnaserror[+|-]:&lt;警告清單&gt; 將特定警告回報為錯誤
+-warn:&lt;n&gt;                     設定警告層級 (0-4) (簡短形式: -w)
+-nowarn:&lt;警告清單&gt;           停用特定的警告訊息
+-ruleset:&lt;檔案&gt;                指定會停用特定診斷的
+                                規則集檔案。
+-errorlog:&lt;檔案&gt;               指定要記錄所有編譯器和分析器診斷的
+                               檔案。
+-reportanalyzer               回報其他分析器資訊，例如
+                               執行時間。
 
-                       - LANGUAGE -
--checked[+|-]                 Generate overflow checks
--unsafe[+|-]                  Allow 'unsafe' code
--define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
-                              form: -d)
--langversion:?                Display the allowed values for language version
--langversion:&lt;string&gt;         Specify language version such as
-                              `default` (latest major version), or
-                              `latest` (latest version, including minor versions),
-                              or specific versions like `6` or `7.1`
--nullable[+|-]                Specify nullable context option enable|disable.
+                        - 語言 -
+-checked[+|-]                 產生溢位檢查
+-unsafe[+|-]                  允許 'unsafe' 程式碼
+-define:&lt;符號清單&gt;         定義條件式編譯符號 (簡短
+                               形式: -d)
+-langversion:?                顯示語言版本允許的值
+-langversion:&lt;字串&gt;         指定語言版本，例如
+                               `default` (最新的主要版本)、
+                               `latest` (最新版本，包含次要版本)
+                               或特定版本，例如 `6` 或 `7.1`
+-nullable[+|-]                指定可為 Null 的文字選項 enable|disable。
 -nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
-                              Specify nullable context option enable|disable|safeonly|warnings|safeonlywarnings.
+                              指定可為 Null 的文字選項 enable|disable|safeonly|warnings|safeonlywarnings。
 
-                       - SECURITY -
--delaysign[+|-]               Delay-sign the assembly using only the public
-                              portion of the strong name key
--publicsign[+|-]              Public-sign the assembly using only the public
-                              portion of the strong name key
--keyfile:&lt;file&gt;               Specify a strong name key file
--keycontainer:&lt;string&gt;        Specify a strong name key container
--highentropyva[+|-]           Enable high-entropy ASLR
+                        - 安全性 -
+-delaysign[+|-]                只使用強式名稱金鑰的公開部分
+                               延遲簽署組件
+-publicsign[+|-]              只使用強式名稱金鑰的公開部分
+                               公開簽署組件
+-keyfile:&lt;檔案&gt;                指定強式名稱金鑰檔
+-keycontainer:&lt;字串&gt;         指定強式名稱金鑰容器
+-highentropyva[+|-]           啟用高熵 ASLR
 
-                       - MISCELLANEOUS -
-@&lt;file&gt;                       Read response file for more options
--help                         Display this usage message (Short form: -?)
--nologo                       Suppress compiler copyright message
--noconfig                     Do not auto include CSC.RSP file
--parallel[+|-]                Concurrent build.
--version                      Display the compiler version number and exit.
+                        - 其他 -
+ @&lt;檔案&gt;                        讀取回應檔以取得更多選項
+-help                         顯示這個使用訊息 (簡短形式: -?)
+-nologo                       隱藏編譯器著作權訊息
+-noconfig                     不自動納入 CSC.RSP 檔
+-parallel[+|-]                 並行建置。
+-version                      顯示編譯器版本號碼並結束。
 
-                       - ADVANCED -
--baseaddress:&lt;address&gt;        Base address for the library to be built
--checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
-                              checksum stored in PDB. Supported values are:
-                              SHA1 or SHA256 (default).
--codepage:&lt;n&gt;                 Specify the codepage to use when opening source
-                              files
--utf8output                   Output compiler messages in UTF-8 encoding
--main:&lt;type&gt;                  Specify the type that contains the entry point
-                              (ignore all other possible entry points) (Short
-                              form: -m)
--fullpaths                    Compiler generates fully qualified paths
--filealign:&lt;n&gt;                Specify the alignment used for output file
-                              sections
+                        - 進階 -
+-baseaddress:&lt;位址&gt;        要建置的程式庫基底位址
+-checksumalgorithm:&lt;演算法&gt;      為計算儲存在 PDB 中的原始
+                               程式檔總和檢查碼指定演算法。支援的值為:
+                               SHA1 或 SHA256 (預設)。
+-codepage:&lt;n&gt;                 指定開啟原始程式檔時要使用的
+                               字碼頁
+-utf8output                   以 UTF-8 編碼方式輸出編譯器訊息
+-main:&lt;類型&gt;                  指定包含進入點
+                               (忽略所有其他可能的進入點) (簡短
+                               形式: -m)
+-fullpaths                    編譯器會產生完整路徑
+-filealign:&lt;n&gt;                 指定用於輸出檔案區段的
+                               對齊方式
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              Specify a mapping for source path names output by
-                              the compiler.
--pdb:&lt;file&gt;                   Specify debug information file name (default:
-                              output file name with .pdb extension)
--errorendlocation             Output line and column of the end location of
-                              each error
--preferreduilang              Specify the preferred output language name.
--nosdkpath                    Disable searching the default SDK path for standard library assemblies.
--nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
--subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
--lib:&lt;file list&gt;              Specify additional directories to search in for
-                              references
--errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
-                              prompt, send, queue, or none. The default is
-                              queue.
--appconfig:&lt;file&gt;             Specify an application configuration file
-                              containing assembly binding settings
--moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
-                              a part of
--modulename:&lt;string&gt;          Specify the name of the source module
+                               為編譯器輸出的來源路徑名稱
+                               指定對應。
+-pdb:&lt;檔案&gt;                   指定偵錯資訊檔案名稱 (預設:
+                               副檔名為 .pdb 的輸出檔案名稱)
+-errorendlocation             輸出每個錯誤之結束位置的
+                               行與欄
+-preferreduilang              指定慣用的輸出語言名稱。
+-nosdkpath                    停用標準程式庫組件的搜尋預設 SDK 路徑。
+-nostdlib[+|-]                不要參考標準程式庫 (mscorlib.dll)
+-subsystemversion:&lt;字串&gt;    指定這個組件的子系統版本
+-lib:&lt;檔案清單&gt;              指定要搜尋的其他目錄以供
+                               參考
+-errorreport:&lt;字串&gt;         指定如何處理內部編譯器錯誤:
+                               prompt、send、queue 或 none。預設為
+                               queue。
+-appconfig:&lt;檔案&gt;             指定包含組件繫結設定的
+                               應用程式設定檔
+-moduleassemblyname:&lt;字串&gt;  組件名稱，其中將會包含
+                               此模組
+-modulename:&lt;字串&gt;          指定來源模組的名稱
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -729,7 +729,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
         <source>name shadowing in nested functions</source>
-        <target state="new">name shadowing in nested functions</target>
+        <target state="translated">巢狀函式中的名稱鏡像處理</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
@@ -744,7 +744,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnableOrSafeOnly">
         <source>warning action enable or safeonly</source>
-        <target state="new">warning action enable or safeonly</target>
+        <target state="translated">警告動作 enable 或 safeonly</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRangeOperator">
@@ -844,12 +844,12 @@
       </trans-unit>
       <trans-unit id="IDS_XMLBADINCLUDE">
         <source> Include tag is invalid </source>
-        <target state="translated"> Include 標記無效 </target>
+        <target state="translated"> Include 標籤無效 </target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_XMLNOINCLUDE">
         <source> No matching elements were found for the following include tag </source>
-        <target state="translated"> 找不到與下列 include 標記相符的項目 </target>
+        <target state="translated"> 找不到與下列 include 標籤相符的項目 </target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_XMLMISSINGINCLUDEFILE">
@@ -1249,12 +1249,12 @@
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarningSafeOnly">
         <source>Expected nullable</source>
-        <target state="new">Expected nullable</target>
+        <target state="translated">必須是可為 Null 的項目</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarningSafeOnly_Title">
         <source>Expected nullable after #pragma warning safeonly</source>
-        <target state="new">Expected nullable after #pragma warning safeonly</target>
+        <target state="translated">在#pragma warning safeonly 後面必須是可為 Null 的項目</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IsTypeNamedUnderscore">
@@ -1584,7 +1584,7 @@
       </trans-unit>
       <trans-unit id="XML_ExpectedEndOfTag">
         <source>Expected '&gt;' or '/&gt;' to close tag '{0}'.</source>
-        <target state="translated">必須以 '&gt;' 或 '/&gt;' 做為結束標記 '{0}'。</target>
+        <target state="translated">必須以 '&gt;' 或 '/&gt;' 做為結束標籤 '{0}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_ExpectedIdentifier">
@@ -1634,17 +1634,17 @@
       </trans-unit>
       <trans-unit id="XML_EndTagNotExpected">
         <source>End tag was not expected at this location.</source>
-        <target state="translated">此位置不可出現結束標記。</target>
+        <target state="translated">此位置不可出現結束標籤。</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_ElementTypeMatch">
         <source>End tag '{0}' does not match the start tag '{1}'.</source>
-        <target state="translated">結束標記 '{0}' 與起始標記 '{1}' 不對稱。</target>
+        <target state="translated">結束標籤 '{0}' 與起始標籤 '{1}' 不對稱。</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_EndTagExpected">
         <source>Expected an end tag for element '{0}'.</source>
-        <target state="translated">必須是元素 '{0}' 的結束標記。</target>
+        <target state="translated">必須是元素 '{0}' 的結束標籤。</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_WhitespaceMissing">
@@ -5262,42 +5262,42 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="WRN_DuplicateParamTag">
         <source>XML comment has a duplicate param tag for '{0}'</source>
-        <target state="translated">XML 註解中的 '{0}' 有重複的 param 標記</target>
+        <target state="translated">XML 註解中的 '{0}' 有重複的 param 標籤</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateParamTag_Title">
         <source>XML comment has a duplicate param tag</source>
-        <target state="translated">XML 註解中有重複的 param 標記</target>
+        <target state="translated">XML 註解中有重複的 param 標籤</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnmatchedParamTag">
         <source>XML comment has a param tag for '{0}', but there is no parameter by that name</source>
-        <target state="translated">XML 註解中的 '{0}' 有 param 標記，但沒有該名稱的參數。</target>
+        <target state="translated">XML 註解中的 '{0}' 有 param 標籤，但沒有該名稱的參數。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnmatchedParamTag_Title">
         <source>XML comment has a param tag, but there is no parameter by that name</source>
-        <target state="translated">XML 註解具有 param 標記，但是沒有該名稱的參數</target>
+        <target state="translated">XML 註解具有 param 標籤，但是沒有該名稱的參數</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnmatchedParamRefTag">
         <source>XML comment on '{1}' has a paramref tag for '{0}', but there is no parameter by that name</source>
-        <target state="translated">{1}' 上的 XML 註解中的 '{0}' 有 paramref 標記，但沒有該名稱的參數。</target>
+        <target state="translated">{1}' 上的 XML 註解中的 '{0}' 有 paramref 標籤，但沒有該名稱的參數。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnmatchedParamRefTag_Title">
         <source>XML comment has a paramref tag, but there is no parameter by that name</source>
-        <target state="translated">XML 註解具有 paramref 標記，但是沒有該名稱的參數</target>
+        <target state="translated">XML 註解具有 paramref 標籤，但是沒有該名稱的參數</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingParamTag">
         <source>Parameter '{0}' has no matching param tag in the XML comment for '{1}' (but other parameters do)</source>
-        <target state="translated">參數 '{0}' 在 '{1}' 的 XML 註解中沒有相符的 param 標記 (但其他參數有)</target>
+        <target state="translated">參數 '{0}' 在 '{1}' 的 XML 註解中沒有相符的 param 標籤 (但其他參數有)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingParamTag_Title">
         <source>Parameter has no matching param tag in the XML comment (but other parameters do)</source>
-        <target state="translated">在 XML 註解中，參數沒有相符的 param 標記 (但其他參數則相反)</target>
+        <target state="translated">在 XML 註解中，參數沒有相符的 param 標籤 (但其他參數則相反)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRef">
@@ -5612,12 +5612,12 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
         <source>Expected disable, restore, enable or safeonly</source>
-        <target state="needs-review-translation">必須是 disable 或 restore</target>
+        <target state="translated">必須是 disable、restore、enable 或 safeonly</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
         <source>Expected disable, restore, enable or safeonly after #pragma warning</source>
-        <target state="needs-review-translation">#pragma 警告後面必須有 disable 或 restore</target>
+        <target state="translated">#pragma warning 後面必須有 disable、restore、enable 或 safeonly</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">
@@ -5862,7 +5862,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
         <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.</source>
-        <target state="needs-review-translation">'{0}': 在 using 陳述式中所用的類型，必須可以隱含轉換成 'System.IDisposable'。</target>
+        <target state="translated">'{0}': 在 using 陳述式中使用的類型，必須可隱含地轉換為 'System.IDisposable' 或實作合適的 'Dispose' 方法。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -6092,42 +6092,42 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="WRN_DuplicateTypeParamTag">
         <source>XML comment has a duplicate typeparam tag for '{0}'</source>
-        <target state="translated">XML 註解中的 '{0}' 有重複的 typeparam 標記</target>
+        <target state="translated">XML 註解中的 '{0}' 有重複的 typeparam 標籤</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateTypeParamTag_Title">
         <source>XML comment has a duplicate typeparam tag</source>
-        <target state="translated">XML 註解中有重複的 typeparam 標記</target>
+        <target state="translated">XML 註解中有重複的 typeparam 標籤</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnmatchedTypeParamTag">
         <source>XML comment has a typeparam tag for '{0}', but there is no type parameter by that name</source>
-        <target state="translated">XML 註解中的 '{0}' 有 typeparam 標記，但沒有該名稱的類型參數。</target>
+        <target state="translated">XML 註解中的 '{0}' 有 typeparam 標籤，但沒有該名稱的類型參數。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnmatchedTypeParamTag_Title">
         <source>XML comment has a typeparam tag, but there is no type parameter by that name</source>
-        <target state="translated">XML 註解具有 typeparam 標記，但是沒有該名稱的類型參數</target>
+        <target state="translated">XML 註解具有 typeparam 標籤，但是沒有該名稱的類型參數</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnmatchedTypeParamRefTag">
         <source>XML comment on '{1}' has a typeparamref tag for '{0}', but there is no type parameter by that name</source>
-        <target state="translated">{1}' 上的 XML 註解中的 '{0}' 有 typeparamref 標記，但沒有該名稱的類型參數。</target>
+        <target state="translated">{1}' 上的 XML 註解中的 '{0}' 有 typeparamref 標籤，但沒有該名稱的類型參數。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnmatchedTypeParamRefTag_Title">
         <source>XML comment has a typeparamref tag, but there is no type parameter by that name</source>
-        <target state="translated">XML 註解具有 typeparamref 標記，但是沒有該名稱的類型參數</target>
+        <target state="translated">XML 註解具有 typeparamref 標籤，但是沒有該名稱的類型參數</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingTypeParamTag">
         <source>Type parameter '{0}' has no matching typeparam tag in the XML comment on '{1}' (but other type parameters do)</source>
-        <target state="translated">類型參數 '{0}' 在 '{1}' 的 XML 註解中沒有相符的 typeparam 標記 (但是其他類型參數有)</target>
+        <target state="translated">類型參數 '{0}' 在 '{1}' 的 XML 註解中沒有相符的 typeparam 標籤 (但是其他類型參數有)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingTypeParamTag_Title">
         <source>Type parameter has no matching typeparam tag in the XML comment (but other type parameters do)</source>
-        <target state="translated">在 XML 註解中，類型參數沒有相符的 typeparam 標記 (但其他類型參數則相反)</target>
+        <target state="translated">在 XML 註解中，類型參數沒有相符的 typeparam 標籤 (但其他類型參數則相反)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantChangeTypeOnOverride">
@@ -9470,7 +9470,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
         <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="needs-review-translation">'{0}': 在 async using 陳述式中所用的類型，必須可以隱含轉換成 'System.IAsyncDisposable'</target>
+        <target state="translated">'{0}': 在非同步 using 陳述式中使用的類型，必須可隱含地轉換為 'System.IAsyncDisposable' 或實作合適的 'DisposeAsync' 方法。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">
