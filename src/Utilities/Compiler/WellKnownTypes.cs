@@ -9,7 +9,6 @@ namespace Analyzer.Utilities
     {
         public const string SystemSecurityCryptographyCipherMode = "System.Security.Cryptography.CipherMode";
         public const string SystemNetSecurityRemoteCertificateValidationCallback = "System.Net.Security.RemoteCertificateValidationCallback";
-        public const string SystemAppContext = "System.AppContext";
 
         public static INamedTypeSymbol ICollection(Compilation compilation)
         {
