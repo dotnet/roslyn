@@ -61,17 +61,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return this.Symbol.GetHashCode();
         }
 
-        public static SymbolAndProjectId Create(
-            ISymbol symbol, ProjectId projectId)
-        {
-            return new SymbolAndProjectId(symbol, projectId);
-        }
+        public static SymbolAndProjectId Create(ISymbol symbol, Project project)
+            => Create(symbol, project.Id);
 
-        public static SymbolAndProjectId<TSymbol> Create<TSymbol>(
-            TSymbol symbol, ProjectId projectId) where TSymbol : ISymbol
-        {
-            return new SymbolAndProjectId<TSymbol>(symbol, projectId);
-        }
+        public static SymbolAndProjectId Create(ISymbol symbol, ProjectId projectId)
+            => new SymbolAndProjectId(symbol, projectId);
+
+        public static SymbolAndProjectId<TSymbol> Create<TSymbol>(TSymbol symbol, Project project) where TSymbol : ISymbol
+            => Create(symbol, project.Id);
+
+        public static SymbolAndProjectId<TSymbol> Create<TSymbol>(TSymbol symbol, ProjectId projectId) where TSymbol : ISymbol
+            => new SymbolAndProjectId<TSymbol>(symbol, projectId);
 
         public SymbolAndProjectId<TOther> WithSymbol<TOther>(TOther other)
             where TOther : ISymbol

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             var (tupleExprOrTypeNode, tupleType) = await TryGetTupleInfoAsync(
                 document, context.Span, cancellationToken).ConfigureAwait(false);
 
-            if (tupleExprOrTypeNode == null || tupleType == null)
+            if (tupleExprOrTypeNode == null || tupleType.Symbol == null)
             {
                 return;
             }
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             // Check if the tuple type actually references another anonymous type inside of it.
             // If it does, we can't convert this.  There is no way to describe this anonymous type
             // in the concrete type we create.
-            var fields = tupleType.TupleElements;
+            var fields = tupleType.Symbol.TupleElements;
             var containsAnonymousType = fields.Any(p => p.Type.ContainsAnonymousType());
             if (containsAnonymousType)
             {
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             }
         }
 
-        private async Task<(SyntaxNode, INamedTypeSymbol)> TryGetTupleInfoAsync(
+        private async Task<(SyntaxNode, SymbolAndProjectId<INamedTypeSymbol>)> TryGetTupleInfoAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var position = span.Start;
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 return default;
             }
 
-            return (expressionOrType, tupleType);
+            return (expressionOrType, SymbolAndProjectId.Create(tupleType, document.Project));
         }
 
         private async Task<Solution> ConvertToStructAsync(
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 document, span, cancellationToken).ConfigureAwait(false);
 
             Debug.Assert(tupleExprOrTypeNode != null);
-            Debug.Assert(tupleType != null);
+            Debug.Assert(tupleType.Symbol != null);
 
             var position = span.Start;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -210,19 +210,19 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 "NewStruct", n => semanticModel.LookupSymbols(position, name: n).IsEmpty);
 
             var capturedTypeParameters =
-                tupleType.TupleElements.Select(p => p.Type)
-                                       .SelectMany(t => t.GetReferencedTypeParameters())
-                                       .Distinct()
-                                       .ToImmutableArray();
+                tupleType.Symbol.TupleElements.Select(p => p.Type)
+                                              .SelectMany(t => t.GetReferencedTypeParameters())
+                                              .Distinct()
+                                              .ToImmutableArray();
 
             // Next, generate the full struct that will be used to replace all instances of this
             // tuple type.
             var namedTypeSymbol = await GenerateFinalNamedTypeAsync(
-                document, scope, structName, capturedTypeParameters, tupleType, cancellationToken).ConfigureAwait(false);
+                document, scope, structName, capturedTypeParameters, tupleType.Symbol, cancellationToken).ConfigureAwait(false);
 
             var documentToEditorMap = new Dictionary<Document, SyntaxEditor>();
             var documentsToUpdate = await GetDocumentsToUpdateAsync(
-                document, tupleExprOrTypeNode, tupleType, scope, cancellationToken).ConfigureAwait(false);
+                document, tupleExprOrTypeNode, tupleType.Symbol, scope, cancellationToken).ConfigureAwait(false);
 
             // Next, go through and replace all matching tuple expressions and types in the appropriate
             // scope with the new named type we've generated.  
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         private async Task ReplaceExpressionAndTypesInScopeAsync(
             Dictionary<Document, SyntaxEditor> documentToEditorMap,
             ImmutableArray<DocumentToUpdate> documentsToUpdate,
-            SyntaxNode tupleExprOrTypeNode, INamedTypeSymbol tupleType,
+            SyntaxNode tupleExprOrTypeNode, SymbolAndProjectId<INamedTypeSymbol> tupleType,
             string structName, ImmutableArray<ITypeParameterSymbol> typeParameters,
             INamespaceSymbol containingNamespace, CancellationToken cancellationToken)
         {
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
         private async Task<bool> ReplaceTupleExpressionsAndTypesInDocumentAsync(
             Document document, SyntaxEditor editor, SyntaxNode startingNode,
-            INamedTypeSymbol tupleType, TNameSyntax fullyQualifiedStructName,
+            SymbolAndProjectId<INamedTypeSymbol> tupleType, TNameSyntax fullyQualifiedStructName,
             string structName, ImmutableArray<ITypeParameterSymbol> typeParameters,
             SyntaxNode containerToUpdate, CancellationToken cancellationToken)
         {
@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
         private async Task<bool> ReplaceMatchingTupleExpressionsAsync(
             Document document, SyntaxEditor editor, SyntaxNode startingNode,
-            INamedTypeSymbol tupleType, TNameSyntax qualifiedTypeName,
+            SymbolAndProjectId<INamedTypeSymbol> tupleType, TNameSyntax qualifiedTypeName,
             string typeName, ImmutableArray<ITypeParameterSymbol> typeParameters,
             SyntaxNode containingMember, CancellationToken cancellationToken)
         {
@@ -576,7 +576,11 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                     continue;
                 }
 
-                if (AreEquivalent(comparer, tupleType, childType))
+                var areEquivalent = await AreEquivalentAsync(
+                        comparer, document.Project.Solution, tupleType,
+                        SymbolAndProjectId.Create(childType, document.Project),
+                        cancellationToken).ConfigureAwait(false);
+                if (areEquivalent)
                 {
                     changed = true;
                     ReplaceWithObjectCreation(
@@ -588,9 +592,9 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             return changed;
         }
 
-        private static bool AreEquivalent(StringComparer comparer, INamedTypeSymbol tupleType, INamedTypeSymbol childType)
-            => SymbolEquivalenceComparer.Instance.Equals(tupleType, childType) &&
-               NamesMatch(comparer, tupleType.TupleElements, childType.TupleElements);
+        private static async Task<bool> AreEquivalentAsync(StringComparer comparer, Solution solution, SymbolAndProjectId<INamedTypeSymbol> tupleType, SymbolAndProjectId<INamedTypeSymbol> childType, CancellationToken cancellationToken)
+            => await SymbolFinder.SymbolsAreEquivalentAsync(solution, tupleType, childType, cancellationToken).ConfigureAwait(false) &&
+               NamesMatch(comparer, tupleType.Symbol.TupleElements, childType.Symbol.TupleElements);
 
         private static bool NamesMatch(
             StringComparer comparer, ImmutableArray<IFieldSymbol> fields1, ImmutableArray<IFieldSymbol> fields2)
@@ -665,7 +669,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
         private async Task<bool> ReplaceMatchingTupleTypesAsync(
             Document document, SyntaxEditor editor, SyntaxNode startingNode,
-            INamedTypeSymbol tupleType, TNameSyntax qualifiedTypeName,
+            SymbolAndProjectId<INamedTypeSymbol> tupleType, TNameSyntax qualifiedTypeName,
             string typeName, ImmutableArray<ITypeParameterSymbol> typeParameters,
             SyntaxNode containingMember, CancellationToken cancellationToken)
         {
@@ -685,7 +689,11 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                     continue;
                 }
 
-                if (AreEquivalent(comparer, tupleType, childType))
+                var areEquivalent = await AreEquivalentAsync(
+                    comparer, document.Project.Solution, tupleType,
+                    SymbolAndProjectId.Create(childType, document.Project),
+                    cancellationToken).ConfigureAwait(false);
+                if (areEquivalent)
                 {
                     changed = true;
                     ReplaceWithTypeNode(
