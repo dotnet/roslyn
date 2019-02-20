@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -107,21 +108,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // If you're looking for the implementations of IGoo<X>.Goo then you want to find both
             // results in C.
 
-            var arrBuilder = ImmutableArray.CreateBuilder<SymbolAndProjectId>();
+            var arrBuilder = ArrayBuilder<SymbolAndProjectId>.GetInstance();
 
             // TODO(cyrusn): Implement this using the actual code for
             // TypeSymbol.FindImplementationForInterfaceMember
             var typeSymbol = typeSymbolAndProjectId.Symbol;
             if (typeSymbol == null || interfaceMember == null)
             {
-                return arrBuilder.AsImmutable();
+                return arrBuilder.ToImmutableAndFree();
             }
 
             if (interfaceMember.Kind != SymbolKind.Event &&
                 interfaceMember.Kind != SymbolKind.Method &&
                 interfaceMember.Kind != SymbolKind.Property)
             {
-                return arrBuilder.AsImmutable();
+                return arrBuilder.ToImmutableAndFree();
             }
 
             // WorkItem(4843)
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var interfaceType = interfaceMember.ContainingType;
             if (!typeSymbol.ImplementsIgnoringConstruction(interfaceType))
             {
-                return arrBuilder.AsImmutable();
+                return arrBuilder.ToImmutableAndFree();
             }
 
             // We've ascertained that the type T implements some constructed type of the form I<X>.
@@ -208,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return arrBuilder.AsImmutable();
+            return arrBuilder.ToImmutableAndFree();
         }
 
         private static ISymbol FindImplementations(Workspace workspace, ISymbol constructedInterfaceMember, ITypeSymbol currentType)
