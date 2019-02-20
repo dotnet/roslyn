@@ -1561,7 +1561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var type1Normalized = type1;
                 var type2Normalized = type2;
-                if ((_binder.Flags & BinderFlags.AttributeArgument) == BinderFlags.None)
+                if (!_binder.InAttributeArgument)
                 {
                     type1Normalized = type1.NormalizeTaskTypes(Compilation);
                     type2Normalized = type2.NormalizeTaskTypes(Compilation);
