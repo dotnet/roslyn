@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 var logDir = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots");
                 var baseFileName = $"{DateTime.Now:HH.mm.ss}-{testName}-{eventArgs.Exception.GetType().Name}";
 
-                var maxLength = logDir.Length + 1 + baseFileName.Length + ".Watson.log".Length;
+                var maxLength = logDir.Length + 1 + baseFileName.Length + ".Watson.log".Length + 1;
                 const int MaxPath = 260;
                 if (maxLength > MaxPath)
                 {
