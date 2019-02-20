@@ -4511,9 +4511,9 @@ select t";
         public void BaseExpression_07()
         {
             UsingExpression("base(SomeType)", TestOptions.Regular7_3,
-                // (1,5): error CS8370: Feature 'specifying base type in base expression' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,5): error CS8652: The feature 'specifying base type in base expression' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // base(SomeType)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(").WithArguments("specifying base type in base expression", "8.0").WithLocation(1, 5)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(").WithArguments("specifying base type in base expression").WithLocation(1, 5)
                 );
             N(SyntaxKind.BaseExpression);
             {
