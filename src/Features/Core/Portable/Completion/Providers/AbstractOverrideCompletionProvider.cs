@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -22,7 +23,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public abstract SyntaxToken FindStartingToken(SyntaxTree tree, int position, CancellationToken cancellationToken);
-        public abstract ImmutableArray<ISymbol> FilterOverrides(ImmutableArray<ISymbol> members, ITypeSymbol returnType);
+        public abstract Task<ImmutableArray<SymbolAndProjectId>> FilterOverridesAsync(
+            Solution solution, ImmutableArray<SymbolAndProjectId> members, SymbolAndProjectId<ITypeSymbol> returnType, CancellationToken cancellationToken);
         public abstract bool TryDetermineModifiers(SyntaxToken startToken, SourceText text, int startLine, out Accessibility seenAccessibility, out DeclarationModifiers modifiers);
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
@@ -49,12 +51,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 newOverriddenMember, newContainingType, newDocument, modifiers, cancellationToken);
         }
 
-        public abstract bool TryDetermineReturnType(
-            SyntaxToken startToken,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken,
-            out ITypeSymbol returnType,
-            out SyntaxToken nextToken);
+        public abstract Task<(bool succeeded, SymbolAndProjectId<ITypeSymbol> returnType, SyntaxToken nextToken)> DetermineReturnTypeAsync(
+            Document document, SyntaxToken startToken, CancellationToken cancellationToken);
 
         protected bool IsOnStartLine(int position, SourceText text, int startLine)
         {

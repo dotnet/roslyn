@@ -1,11 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -127,45 +129,54 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return overridesToken.Kind = SyntaxKind.OverridesKeyword AndAlso IsOnStartLine(overridesToken.Parent.SpanStart, text, startLine)
         End Function
 
-        Public Overrides Function TryDetermineReturnType(startToken As SyntaxToken,
-                                                         semanticModel As SemanticModel,
-                                                         cancellationToken As CancellationToken,
-                                                         ByRef returnType As ITypeSymbol, ByRef nextToken As SyntaxToken) As Boolean
-            nextToken = startToken
-            returnType = Nothing
+        Public Overrides Function DetermineReturnTypeAsync(
+                document As Document,
+                startToken As SyntaxToken,
+                cancellationToken As CancellationToken) As Task(Of (succeeded As Boolean, returnType As SymbolAndProjectId(Of ITypeSymbol), nextToken As SyntaxToken))
 
-            Return True
+            Return Task.FromResult(Of (succeeded As Boolean, returnType As SymbolAndProjectId(Of ITypeSymbol), nextToken As SyntaxToken))(
+                (True, Nothing, Nothing))
         End Function
 
-        Public Overrides Function FilterOverrides(members As ImmutableArray(Of ISymbol),
-                                                  returnType As ITypeSymbol) As ImmutableArray(Of ISymbol)
+        Public Overrides Function FilterOverridesAsync(
+                solution As Solution,
+                members As ImmutableArray(Of SymbolAndProjectId),
+                returnType As SymbolAndProjectId(Of ITypeSymbol),
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SymbolAndProjectId))
+
             ' Start by removing Finalize(), which we never want to show.
-            Dim finalizeMethod = members.OfType(Of IMethodSymbol)().Where(Function(x) x.Name = "Finalize" AndAlso OverridesObjectMethod(x)).SingleOrDefault()
-            If finalizeMethod IsNot Nothing Then
+            Dim finalizeMethod = members.Where(Function(m) TypeOf m.Symbol Is IMethodSymbol).
+                                         Where(Function(x) x.Symbol.Name = "Finalize" AndAlso OverridesObjectMethod(DirectCast(x.Symbol, IMethodSymbol))).
+                                         SingleOrDefault()
+
+            If finalizeMethod.Symbol IsNot Nothing Then
                 members = members.Remove(finalizeMethod)
             End If
 
             If Me._isFunction Then
                 ' Function: look for non-void return types
-                Dim filteredMembers = members.OfType(Of IMethodSymbol)().Where(Function(m) Not m.ReturnsVoid)
+                Dim filteredMembers = members.WhereAsArray(
+                    Function(s) TypeOf s.Symbol Is IMethodSymbol AndAlso Not DirectCast(s.Symbol, IMethodSymbol).ReturnsVoid)
+
                 If filteredMembers.Any Then
-                    Return ImmutableArray(Of ISymbol).CastUp(filteredMembers.ToImmutableArray())
+                    Return Task.FromResult(filteredMembers)
                 End If
             ElseIf Me._isProperty Then
                 ' Property: return properties
-                Dim filteredMembers = members.Where(Function(m) m.Kind = SymbolKind.Property)
+                Dim filteredMembers = members.WhereAsArray(Function(m) m.Symbol.Kind = SymbolKind.Property)
                 If filteredMembers.Any Then
-                    Return filteredMembers.ToImmutableArray()
+                    Return Task.FromResult(filteredMembers)
                 End If
             ElseIf Me._isSub Then
                 ' Sub: look for void return types
-                Dim filteredMembers = members.OfType(Of IMethodSymbol)().Where(Function(m) m.ReturnsVoid)
+                Dim filteredMembers = members.WhereAsArray(
+                    Function(s) TypeOf s.Symbol Is IMethodSymbol AndAlso DirectCast(s.Symbol, IMethodSymbol).ReturnsVoid)
                 If filteredMembers.Any Then
-                    Return ImmutableArray(Of ISymbol).CastUp(filteredMembers.ToImmutableArray())
+                    Return Task.FromResult(filteredMembers)
                 End If
             End If
 
-            Return members.WhereAsArray(Function(m) Not m.IsKind(SymbolKind.Event))
+            Return Task.FromResult(members.WhereAsArray(Function(m) Not m.Symbol.IsKind(SymbolKind.Event)))
         End Function
 
         Private Function OverridesObjectMethod(method As IMethodSymbol) As Boolean

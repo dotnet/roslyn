@@ -2,12 +2,15 @@
 
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -41,26 +44,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return tree.FindTokenOnLeftOfPosition(tokenSpanEnd, cancellationToken);
         }
 
-        public override bool TryDetermineReturnType(SyntaxToken startToken, SemanticModel semanticModel, CancellationToken cancellationToken, out ITypeSymbol returnType, out SyntaxToken nextToken)
+        public override async Task<(bool succeeded, SymbolAndProjectId<ITypeSymbol> returnType, SyntaxToken nextToken)> DetermineReturnTypeAsync(
+            Document document, SyntaxToken startToken, CancellationToken cancellationToken)
         {
-            nextToken = startToken;
-            returnType = null;
             if (startToken.Parent is TypeSyntax typeSyntax)
             {
                 // 'partial' is actually an identifier.  If we see it just bail.  This does mean
                 // we won't handle overrides that actually return a type called 'partial'.  And
                 // not a single tear was shed.
-                if (typeSyntax is IdentifierNameSyntax &&
-                    ((IdentifierNameSyntax)typeSyntax).Identifier.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword))
+                if (typeSyntax is IdentifierNameSyntax identifierName &&
+                    identifierName.Identifier.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword))
                 {
-                    return false;
+                    return default;
                 }
 
-                returnType = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).Type;
-                nextToken = typeSyntax.GetFirstToken().GetPreviousToken();
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                var returnType = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).Type;
+                var nextToken = typeSyntax.GetFirstToken().GetPreviousToken();
+                return (true, SymbolAndProjectId.Create(returnType, document.Project), nextToken);
             }
 
-            return true;
+            return (true, default, default);
         }
 
         public override bool TryDetermineModifiers(SyntaxToken startToken, SourceText text, int startLine, out Accessibility seenAccessibility,
@@ -174,10 +179,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return token.GetPreviousTokenIfTouchingWord(position);
         }
 
-        public override ImmutableArray<ISymbol> FilterOverrides(ImmutableArray<ISymbol> members, ITypeSymbol returnType)
+        public override async Task<ImmutableArray<SymbolAndProjectId>> FilterOverridesAsync(
+            Solution solution, ImmutableArray<SymbolAndProjectId> members, SymbolAndProjectId<ITypeSymbol> returnType, CancellationToken cancellationToken)
         {
-            var filteredMembers = members.WhereAsArray(m =>
-                SymbolEquivalenceComparer.Instance.Equals(GetReturnType(m), returnType));
+            var builder = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+
+            foreach (var member in members)
+            {
+                var areEquivalent = await SymbolFinder.SymbolsAreEquivalentAsync(
+                    solution, member.WithSymbol(GetReturnType(member.Symbol)), returnType, cancellationToken).ConfigureAwait(false);
+                if (areEquivalent)
+                {
+                    builder.Add(member);
+                }
+            }
+
+            var filteredMembers = builder.ToImmutableAndFree();
 
             // Don't filter by return type if we would then have nothing to show.
             // This way, the user gets completion even if they speculatively typed the wrong return type

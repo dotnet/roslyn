@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -81,20 +82,33 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
 
                 var semanticModel = await _document.GetSemanticModelForNodeAsync(startToken.Parent, _cancellationToken).ConfigureAwait(false);
-                if (!_provider.TryDetermineReturnType(startToken, semanticModel, _cancellationToken, out var returnType, out var tokenAfterReturnType) ||
-                    !_provider.TryDetermineModifiers(tokenAfterReturnType, _text, _startLineNumber, out var seenAccessibility, out var modifiers) ||
-                    !TryDetermineOverridableMembers(semanticModel, startToken, seenAccessibility, out var overridableMembers))
+
+                var (returnType, tokenAfterReturnType) = await _provider.DetermineReturnTypeAsync(
+                    _document, startToken, _cancellationToken).ConfigureAwait(false);
+                if (returnType.Symbol == null)
                 {
                     return null;
                 }
 
-                overridableMembers = _provider.FilterOverrides(overridableMembers, returnType);
+                if (!_provider.TryDetermineModifiers(tokenAfterReturnType, _text, _startLineNumber, out var seenAccessibility, out var modifiers))
+                {
+                    return null;
+                }
+
+                var overridableMembers = await DetermineOverridableMembersAsync(startToken, seenAccessibility).ConfigureAwait(false);
+                if (overridableMembers.Length == 0)
+                {
+                    return null;
+                }
+
+                overridableMembers = await _provider.FilterOverridesAsync(
+                    _document.Project.Solution, overridableMembers, returnType, _cancellationToken).ConfigureAwait(false);
                 var symbolDisplayService = _document.GetLanguageService<ISymbolDisplayService>();
 
-                var resolvableMembers = overridableMembers.Where(m => CanResolveSymbolKey(m, semanticModel.Compilation));
+                var resolvableMembers = overridableMembers.Where(m => CanResolveSymbolKey(m.Symbol, semanticModel.Compilation));
 
                 return overridableMembers.Select(m => CreateItem(
-                    m, symbolDisplayService, semanticModel, startToken, modifiers)).ToList();
+                    m.Symbol, symbolDisplayService, semanticModel, startToken, modifiers)).ToList();
             }
 
             private bool CanResolveSymbolKey(ISymbol m, Compilation compilation)
@@ -125,10 +139,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     rules: _provider.GetRules());
             }
 
-            private bool TryDetermineOverridableMembers(
-                SemanticModel semanticModel, SyntaxToken startToken,
-                Accessibility seenAccessibility, out ImmutableArray<ISymbol> overridableMembers)
+            private async Task<ImmutableArray<SymbolAndProjectId>> DetermineOverridableMembersAsync(
+                SyntaxToken startToken, Accessibility seenAccessibility)
             {
+                var semanticModel = await _document.GetSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
                 var containingType = semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(startToken.SpanStart, _cancellationToken);
                 var result = containingType.GetOverridableMembers(_cancellationToken);
 
@@ -138,8 +152,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     result = result.WhereAsArray(m => m.DeclaredAccessibility == seenAccessibility);
                 }
 
-                overridableMembers = result;
-                return overridableMembers.Length > 0;
+                var overridableMembers = result.SelectAsArray(m => SymbolAndProjectId.Create(m, _document.Project));
+                return overridableMembers;
             }
 
             private bool TryCheckForTrailingTokens(int position)
