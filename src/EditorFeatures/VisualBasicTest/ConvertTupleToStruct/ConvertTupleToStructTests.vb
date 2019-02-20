@@ -1611,6 +1611,9 @@ class Test
 end class
 
 Friend Structure NewStruct
+    Public Item1 As Integer
+    Public Item2 As Integer
+
     Public Sub New(item1 As Integer, item2 As Integer)
         Me.Item1 = item1
         Me.Item2 = item2
@@ -1622,14 +1625,14 @@ Friend Structure NewStruct
         End If
 
         Dim other = DirectCast(obj, NewStruct)
-        Return Me.Item1 = other.Item1 AndAlso
-               Me.Item2 = other.Item2
+        Return Item1 = other.Item1 AndAlso
+               Item2 = other.Item2
     End Function
 
     Public Overrides Function GetHashCode() As Integer
         Dim hashCode As Long = -1030903623
-        hashCode = (hashCode * -1521134295 + Me.Item1.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + Me.Item2.GetHashCode()).GetHashCode()
+        hashCode = (hashCode * -1521134295 + Item1.GetHashCode()).GetHashCode()
+        hashCode = (hashCode * -1521134295 + Item2.GetHashCode()).GetHashCode()
         Return hashCode
     End Function
 

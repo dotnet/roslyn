@@ -1092,32 +1092,33 @@ class Test
 internal struct NewStruct
 {
     public int a;
+    public object Item2;
 
     public NewStruct(int a, object item2)
     {
         this.a = a;
-        this.Item2 = item2;
+        Item2 = item2;
     }
 
     public override bool Equals(object obj)
     {
         return obj is NewStruct other &&
                a == other.a &&
-               System.Collections.Generic.EqualityComparer<object>.Default.Equals(this.Item2, other.Item2);
+               System.Collections.Generic.EqualityComparer<object>.Default.Equals(Item2, other.Item2);
     }
 
     public override int GetHashCode()
     {
         var hashCode = 913311208;
         hashCode = hashCode * -1521134295 + a.GetHashCode();
-        hashCode = hashCode * -1521134295 + System.Collections.Generic.EqualityComparer<object>.Default.GetHashCode(this.Item2);
+        hashCode = hashCode * -1521134295 + System.Collections.Generic.EqualityComparer<object>.Default.GetHashCode(Item2);
         return hashCode;
     }
 
     public void Deconstruct(out int a, out object item2)
     {
         a = this.a;
-        item2 = this.Item2;
+        item2 = Item2;
     }
 
     public static implicit operator (int a, object) (NewStruct value)
@@ -1905,31 +1906,34 @@ class Test
 
 internal struct NewStruct
 {
+    public int Item1;
+    public int Item2;
+
     public NewStruct(int item1, int item2)
     {
-        this.Item1 = item1;
-        this.Item2 = item2;
+        Item1 = item1;
+        Item2 = item2;
     }
 
     public override bool Equals(object obj)
     {
         return obj is NewStruct other &&
-               this.Item1 == other.Item1 &&
-               this.Item2 == other.Item2;
+               Item1 == other.Item1 &&
+               Item2 == other.Item2;
     }
 
     public override int GetHashCode()
     {
         var hashCode = -1030903623;
-        hashCode = hashCode * -1521134295 + this.Item1.GetHashCode();
-        hashCode = hashCode * -1521134295 + this.Item2.GetHashCode();
+        hashCode = hashCode * -1521134295 + Item1.GetHashCode();
+        hashCode = hashCode * -1521134295 + Item2.GetHashCode();
         return hashCode;
     }
 
     public void Deconstruct(out int item1, out int item2)
     {
-        item1 = this.Item1;
-        item2 = this.Item2;
+        item1 = Item1;
+        item2 = Item2;
     }
 
     public static implicit operator (int, int) (NewStruct value)
