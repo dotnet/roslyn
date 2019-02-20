@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private readonly ITextDifferencingSelectorService _differenceSelectorService;
         private readonly HostType _hostType;
         private readonly ReiteratedVersionSnapshotTracker _snapshotTracker;
-        private readonly IFormattingRule _vbHelperFormattingRule;
+        private readonly AbstractFormattingRule _vbHelperFormattingRule;
         private readonly VisualStudioProject _project;
 
         public bool SupportsRename { get { return _hostType == HostType.Razor; } }
@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             IVsHierarchy hierarchy,
             uint itemId,
             IComponentModel componentModel,
-            IFormattingRule vbHelperFormattingRule)
+            AbstractFormattingRule vbHelperFormattingRule)
             : base(threadingContext)
         {
             _componentModel = componentModel;
@@ -784,11 +784,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         }
 
         private void AdjustIndentationForSpan(
-            Document document, ITextEdit edit, TextSpan visibleSpan, IFormattingRule baseIndentationRule, OptionSet options)
+            Document document, ITextEdit edit, TextSpan visibleSpan, AbstractFormattingRule baseIndentationRule, OptionSet options)
         {
             var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
 
-            using (var rulePool = SharedPools.Default<List<IFormattingRule>>().GetPooledObject())
+            using (var rulePool = SharedPools.Default<List<AbstractFormattingRule>>().GetPooledObject())
             using (var spanPool = SharedPools.Default<List<TextSpan>>().GetPooledObject())
             {
                 var venusFormattingRules = rulePool.Object;

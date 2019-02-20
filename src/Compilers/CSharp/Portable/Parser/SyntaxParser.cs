@@ -1070,34 +1070,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             new CSharpRequiredLanguageVersion(requiredVersion));
             }
 
-            if (IsFeatureEnabled(feature))
-            {
-                return node;
-            }
-
-            var featureName = feature.Localize();
-            var requiredFeature = feature.RequiredFeature();
-            if (requiredFeature != null)
+            var info = feature.GetFeatureAvailabilityDiagnosticInfoOpt(this.Options);
+            if (info != null)
             {
                 if (forceWarning)
                 {
-                    SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(ErrorCode.ERR_FeatureIsExperimental, featureName, requiredFeature);
-                    return this.AddError(node, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
+                    return AddError(node, ErrorCode.WRN_ErrorOverride, info, (int)info.Code);
                 }
 
-                return this.AddError(node, ErrorCode.ERR_FeatureIsExperimental, featureName, requiredFeature);
-            }
-            else
-            {
-                if (forceWarning)
-                {
-                    SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(availableVersion.GetErrorCode(), featureName,
-                        new CSharpRequiredLanguageVersion(requiredVersion));
-                    return this.AddError(node, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
-                }
+                return AddError(node, info.Code, info.Arguments);
             }
 
-            return this.AddError(node, availableVersion.GetErrorCode(), featureName, new CSharpRequiredLanguageVersion(requiredVersion));
+            return node;
         }
 
         protected bool IsFeatureEnabled(MessageID feature)
