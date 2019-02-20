@@ -138,9 +138,9 @@ public class X
 }";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-    // (11,18): error CS8105: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
-    //         if (x is Nullable<int> y) Console.WriteLine($"expression {x} is Nullable<int> y");
-    Diagnostic(ErrorCode.ERR_PatternNullableType, "Nullable<int>").WithArguments("int?", "int").WithLocation(11, 18)
+                // (11,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+                //         if (x is Nullable<int> y) Console.WriteLine($"expression {x} is Nullable<int> y");
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "Nullable<int>").WithArguments("int?", "int").WithLocation(11, 18)
                 );
         }
 

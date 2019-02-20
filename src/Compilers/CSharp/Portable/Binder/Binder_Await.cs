@@ -34,18 +34,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundAwaitExpression(node, expression, info, awaitExpressionType, hasErrors);
         }
 
-        internal AwaitableInfo BindAwaitInfo(BoundExpression expression, SyntaxNode node, Location location, DiagnosticBag diagnostics, ref bool hasErrors)
+        internal AwaitableInfo BindAwaitInfo(BoundExpression expressionOpt, SyntaxNode node, Location location, DiagnosticBag diagnostics, ref bool hasErrors)
         {
-            MethodSymbol getAwaiter;
-            PropertySymbol isCompleted;
-            MethodSymbol getResult;
+            hasErrors |= ReportBadAwaitWithoutAsync(location, diagnostics);
+            hasErrors |= ReportBadAwaitContext(node, location, diagnostics);
 
-            hasErrors |=
-                ReportBadAwaitWithoutAsync(location, diagnostics) |
-                ReportBadAwaitContext(node, location, diagnostics) |
-                !GetAwaitableExpressionInfo(expression, out getAwaiter, out isCompleted, out getResult, out _, node, diagnostics);
+            if (expressionOpt is null)
+            {
+                return AwaitableInfo.Empty;
+            }
+            else
+            {
+                MethodSymbol getAwaiter;
+                PropertySymbol isCompleted;
+                MethodSymbol getResult;
+                hasErrors |= !GetAwaitableExpressionInfo(expressionOpt, out getAwaiter, out isCompleted, out getResult, out _, node, diagnostics);
 
-            return new AwaitableInfo(getAwaiter, isCompleted, getResult);
+                return new AwaitableInfo(getAwaiter, isCompleted, getResult);
+            }
         }
 
         /// <summary>

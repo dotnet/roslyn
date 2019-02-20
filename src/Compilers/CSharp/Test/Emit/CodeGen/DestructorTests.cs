@@ -295,7 +295,7 @@ public class Program
             compVerifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void DestructorOverridesNonDestructor()
         {
             var text = @"

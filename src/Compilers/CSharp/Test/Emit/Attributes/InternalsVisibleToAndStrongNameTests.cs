@@ -1373,7 +1373,7 @@ public class C
                 //confirm file does not claim to be signed
                 Assert.Equal(0, (int)(flags & CorFlags.StrongNameSigned));
 
-                var corlibName = CoreClrShim.IsRunningOnCoreClr ? "netstandard" : "mscorlib";
+                var corlibName = RuntimeUtilities.IsCoreClrRuntime ? "netstandard" : "mscorlib";
                 EntityHandle token = metadata.Module.GetTypeRef(metadata.Module.GetAssemblyRef(corlibName), "System.Runtime.CompilerServices", "AssemblyAttributesGoHere");
                 Assert.False(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
                 var attrInfos = metadata.Module.FindTargetAttributes(token, expectedModuleAttr);

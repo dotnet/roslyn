@@ -1142,19 +1142,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             AliasSymbol alias;
             TypeSymbol type = this.BindType(typeSyntax, diagnostics, out alias).TypeSymbol;
 
-            bool typeHasErrors = type.IsErrorType();
-
-            if (!typeHasErrors && type.IsManagedType)
-            {
-                diagnostics.Add(ErrorCode.ERR_ManagedAddr, node.Location, type);
-                typeHasErrors = true;
-            }
+            bool typeHasErrors = type.IsErrorType() || CheckManagedAddr(type, node, diagnostics);
 
             BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, type, typeHasErrors);
             ConstantValue constantValue = GetConstantSizeOf(type);
             bool hasErrors = ReferenceEquals(constantValue, null) && ReportUnsafeIfNotAllowed(node, diagnostics, type);
             return new BoundSizeOfOperator(node, boundType, constantValue,
                 this.GetSpecialType(SpecialType.System_Int32, diagnostics, node), hasErrors);
+        }
+
+        /// <returns>true if managed type-related errors were found, otherwise false.</returns>
+        private static bool CheckManagedAddr(TypeSymbol type, SyntaxNode node, DiagnosticBag diagnostics)
+        {
+            var managedKind = type.ManagedKind;
+            if (managedKind == ManagedKind.Managed)
+            {
+                diagnostics.Add(ErrorCode.ERR_ManagedAddr, node.Location, type);
+                return true;
+            }
+            else if (managedKind == ManagedKind.UnmanagedWithGenerics)
+            {
+                var supported = CheckFeatureAvailability(node, MessageID.IDS_FeatureUnmanagedConstructedTypes, diagnostics);
+                return !supported;
+            }
+
+            return false;
         }
 
         internal static ConstantValue GetConstantSizeOf(TypeSymbol type)
@@ -2821,7 +2833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // SPEC ends
 
-            var type = (ArrayTypeSymbol)BindType(node.Type, diagnostics).TypeSymbol;
+            var type = (ArrayTypeSymbol)BindArrayType(node.Type, diagnostics, permitDimensions: true, basesBeingResolved: null).TypeSymbol;
 
             // CONSIDER: 
             //
@@ -2837,7 +2849,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // error has already been reported) so that "go to definition" works.
 
             ArrayBuilder<BoundExpression> sizes = ArrayBuilder<BoundExpression>.GetInstance();
-            foreach (var arg in node.Type.RankSpecifiers[0].Sizes)
+            ArrayRankSpecifierSyntax firstRankSpecifier = node.Type.RankSpecifiers[0];
+            foreach (var arg in firstRankSpecifier.Sizes)
             {
                 // These make the parse tree nicer, but they shouldn't actually appear in the bound tree.
                 if (arg.Kind() != SyntaxKind.OmittedArraySizeExpression)
@@ -2853,6 +2866,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     sizes.Add(size);
+                }
+                else if (node.Initializer is null && arg == firstRankSpecifier.Sizes[0])
+                {
+                    Error(diagnostics, ErrorCode.ERR_MissingArraySize, firstRankSpecifier);
+                }
+            }
+
+            // produce errors for additional sizes in the ranks
+            for (int additionalRankIndex = 1; additionalRankIndex < node.Type.RankSpecifiers.Count; additionalRankIndex++)
+            {
+                var rank = node.Type.RankSpecifiers[additionalRankIndex];
+                var dimension = rank.Sizes;
+                foreach (var arg in dimension)
+                {
+                    if (arg.Kind() != SyntaxKind.OmittedArraySizeExpression)
+                    {
+                        var size = BindValue(arg, diagnostics, BindValueKind.RValue);
+                        Error(diagnostics, ErrorCode.ERR_InvalidArray, dimension[0]);
+                        // Capture the invalid sizes for `SemanticModel` and `IOperation`
+                        sizes.Add(size);
+                    }
                 }
             }
 
@@ -2873,7 +2907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> boundInitializerExpressions = BindArrayInitializerExpressions(initializer, diagnostics, dimension: 1, rank: rank);
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, out _, ref useSiteDiagnostics);
+            TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
             if ((object)bestType == null || bestType.SpecialType == SpecialType.System_Void) // Dev10 also reports ERR_ImplicitlyTypedArrayNoBestType for void.
@@ -2900,7 +2934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> boundInitializerExpressions = BindArrayInitializerExpressions(initializer, diagnostics, dimension: 1, rank: 1);
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, out _, ref useSiteDiagnostics);
+            TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
             if ((object)bestType == null || bestType.SpecialType == SpecialType.System_Void)
@@ -2909,9 +2943,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bestType = CreateErrorType();
             }
 
-            if (!bestType.IsErrorType() && bestType.IsManagedType)
+            if (!bestType.IsErrorType())
             {
-                Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, bestType);
+                CheckManagedAddr(bestType, node, diagnostics);
             }
 
             return BindStackAllocWithInitializer(
@@ -3258,14 +3292,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ArrayTypeSyntax arrayTypeSyntax = (ArrayTypeSyntax)typeSyntax;
-            TypeSyntax elementTypeSyntax = arrayTypeSyntax.ElementType;
-            var elementType = BindType(elementTypeSyntax, diagnostics);
+            var elementTypeSyntax = arrayTypeSyntax.ElementType;
+            var arrayType = (ArrayTypeSymbol)BindArrayType(arrayTypeSyntax, diagnostics, permitDimensions: true, basesBeingResolved: null).TypeSymbol;
+            var elementType = arrayType.ElementType;
 
             TypeSymbol type = GetStackAllocType(node, elementType, diagnostics, out bool hasErrors);
-            if (!elementType.IsErrorType() && elementType.IsManagedType)
+            if (!elementType.IsErrorType())
             {
-                Error(diagnostics, ErrorCode.ERR_ManagedAddr, elementTypeSyntax, elementType.TypeSymbol);
-                hasErrors = true;
+                hasErrors = hasErrors || CheckManagedAddr(elementType.TypeSymbol, elementTypeSyntax, diagnostics);
             }
 
             SyntaxList<ArrayRankSpecifierSyntax> rankSpecifiers = arrayTypeSyntax.RankSpecifiers;
@@ -3317,7 +3351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (node.Initializer == null)
             {
-                // ERR_MissingArraySize is already reported
+                Error(diagnostics, ErrorCode.ERR_MissingArraySize, rankSpecifiers[0]);
                 count = BadExpression(countSyntax);
                 hasErrors = true;
             }

@@ -173,6 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_Disposable = MessageBase + 12753,
         IDS_FeatureUsingDeclarations = MessageBase + 12754,
         IDS_FeatureStaticLocalFunctions = MessageBase + 12755,
+        IDS_FeatureNameShadowingInNestedFunctions = MessageBase + 12756,
+        IDS_FeatureUnmanagedConstructedTypes = MessageBase + 12757,
 
         IDS_DefaultInterfaceImplementation = MessageBase + 12800,
         IDS_BaseTypeInBaseExpression = MessageBase + 12801,
@@ -225,14 +227,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static void CheckFeatureAvailability(this MessageID feature, LanguageVersion availableVersion, DiagnosticBag diagnostics, Location errorLocation)
+        internal static bool CheckFeatureAvailability(this MessageID feature, DiagnosticBag diagnostics, Location errorLocation)
         {
-            LanguageVersion requiredVersion = feature.RequiredVersion();
-            if (requiredVersion > availableVersion)
+            var diag = GetFeatureAvailabilityDiagnosticInfoOpt(feature, (CSharpParseOptions)errorLocation.SourceTree.Options);
+            if (!(diag is null))
             {
-                diagnostics.Add(availableVersion.GetErrorCode(), errorLocation, feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
+                diagnostics.Add(diag, errorLocation);
+                return false;
             }
+            return true;
         }
+
+        internal static CSDiagnosticInfo GetFeatureAvailabilityDiagnosticInfoOpt(this MessageID feature, CSharpParseOptions options)
+            => options.IsFeatureEnabled(feature) ? null : GetDisabledFeatureDiagnosticInfo(feature, options.LanguageVersion);
+
+        internal static CSDiagnosticInfo GetFeatureAvailabilityDiagnosticInfoOpt(this MessageID feature, CSharpCompilation compilation)
+            => compilation.IsFeatureEnabled(feature) ? null : GetDisabledFeatureDiagnosticInfo(feature, compilation.LanguageVersion);
+
+        private static CSDiagnosticInfo GetDisabledFeatureDiagnosticInfo(MessageID feature, LanguageVersion availableVersion)
+        {
+            string requiredFeature = feature.RequiredFeature();
+            if (requiredFeature != null)
+            {
+                return new CSDiagnosticInfo(ErrorCode.ERR_FeatureIsExperimental, feature.Localize(), requiredFeature);
+            }
+
+            LanguageVersion requiredVersion = feature.RequiredVersion();
+            return requiredVersion == LanguageVersion.Preview.MapSpecifiedToEffectiveVersion()
+                ? new CSDiagnosticInfo(ErrorCode.ERR_FeatureInPreview, feature.Localize())
+                : new CSDiagnosticInfo(availableVersion.GetErrorCode(), feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
+        }
+
 
         internal static LanguageVersion RequiredVersion(this MessageID feature)
         {
@@ -255,6 +280,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureRecursivePatterns:
                 case MessageID.IDS_FeatureUsingDeclarations:
                 case MessageID.IDS_FeatureStaticLocalFunctions:
+                case MessageID.IDS_FeatureNameShadowingInNestedFunctions:
+                case MessageID.IDS_FeatureUnmanagedConstructedTypes: // semantic check
                 case MessageID.IDS_DefaultInterfaceImplementation: // semantic check
                 case MessageID.IDS_BaseTypeInBaseExpression:
                     return LanguageVersion.CSharp8;

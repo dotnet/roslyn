@@ -204,13 +204,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                     break;
-
-                case BoundKind.SuppressNullableWarningExpression:
-                    {
-                        var outer = (BoundSuppressNullableWarningExpression)expr;
-                        var inner = CheckValue(outer.Expression, valueKind, diagnostics);
-                        return outer.Update(inner, inner.Type);
-                    }
             }
 
             bool hasResolutionErrors = false;
@@ -291,6 +284,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private static bool IsLegalSuppressionValueKind(BindValueKind valueKind)
+        {
+            // Need to review allowed uses of the suppression operator
+            // Tracked by https://github.com/dotnet/roslyn/issues/31297
+
+            switch (valueKind)
+            {
+                case BindValueKind.RValue:
+                case BindValueKind.RValueOrMethodGroup:
+                case BindValueKind.RefOrOut:
+                    return true;
+            }
+
+            // all others are illegal
+            return false;
+        }
+
         /// <summary>
         /// The purpose of this method is to determine if the expression satisfies desired capabilities. 
         /// If it is not then this code gives an appropriate error message.
@@ -313,6 +323,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (expr.IsSuppressed && !IsLegalSuppressionValueKind(valueKind))
+            {
+                Error(diagnostics, ErrorCode.ERR_IllegalSuppression, node);
+                return false;
+            }
+
             switch (expr.Kind)
             {
                 // we need to handle properties and event in a special way even in an RValue case because of getters
@@ -322,11 +338,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.EventAccess:
                     return CheckEventValueKind((BoundEventAccess)expr, valueKind, diagnostics);
-
-                case BoundKind.SuppressNullableWarningExpression:
-                    // https://github.com/dotnet/roslyn/issues/29710 We can reach this assertion
-                    Debug.Assert(false);
-                    return CheckValueKind(node, ((BoundSuppressNullableWarningExpression)expr).Expression, valueKind, checkingReceiver, diagnostics);
             }
 
             // easy out for a very common RValue case.
@@ -383,8 +394,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                // array elements and pointer dereferencing are readwrite variables
+                // array access is readwrite variable if the indexing expression is not System.Range
                 case BoundKind.ArrayAccess:
+                    {
+                        if (RequiresRefAssignableVariable(valueKind))
+                        {
+                            Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                            return false;
+                        }
+
+                        var boundAccess = (BoundArrayAccess)expr;
+                        if (boundAccess.Indices.Length == 1 &&
+                            TypeSymbol.Equals(
+                                boundAccess.Indices[0].Type,
+                                Compilation.GetWellKnownType(WellKnownType.System_Range),
+                                TypeCompareKind.ConsiderEverything))
+                        {
+                            // Range indexer is an rvalue
+                            Error(diagnostics, GetStandardLvalueError(valueKind), node);
+                            return false;
+                        }
+                        return true;
+                    }
+
+                // pointer dereferencing is a readwrite variable
                 case BoundKind.PointerIndirectionOperator:
                 // The undocumented __refvalue(tr, T) expression results in a variable of type T.
                 case BoundKind.RefValueOperator:
@@ -2388,6 +2421,11 @@ moreArguments:
                     // just say it does not escape anywhere, so that we do not get false errors.
                     return scopeOfTheContainingExpression;
 
+                case BoundKind.DisposableValuePlaceholder:
+                    // Disposable value placeholder is only ever used to lookup a pattern dispose method
+                    // then immediately discarded. The actual expression will be generated during lowering 
+                    return scopeOfTheContainingExpression;
+
                 case BoundKind.PointerElementAccess:
                 case BoundKind.PointerIndirectionOperator:
                     // Unsafe code will always be allowed to escape.
@@ -3049,10 +3087,10 @@ moreArguments:
                     return true;
 
                 case BoundKind.ConditionalOperator:
-                    var ternary = (BoundConditionalOperator)expression;
+                    var conditional = (BoundConditionalOperator)expression;
 
-                    // only ref ternary may be referenced as a variable
-                    if (!ternary.IsRef)
+                    // only ref conditional may be referenced as a variable
+                    if (!conditional.IsRef)
                     {
                         return false;
                     }
@@ -3060,8 +3098,8 @@ moreArguments:
                     // branch that has no home will need a temporary
                     // if both have no home, just say whole expression has no home 
                     // so we could just use one temp for the whole thing
-                    return HasHome(ternary.Consequence, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt)
-                        && HasHome(ternary.Alternative, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt);
+                    return HasHome(conditional.Consequence, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt)
+                        && HasHome(conditional.Alternative, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt);
 
                 default:
                     return false;

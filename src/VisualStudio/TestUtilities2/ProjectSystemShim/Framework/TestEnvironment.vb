@@ -40,6 +40,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 Dim catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
                 catalog = catalog.WithParts(GetType(FileChangeWatcherProvider),
                                             GetType(MockVisualStudioWorkspace),
+                                            GetType(MetadataReferences.FileWatchedPortableExecutableReferenceFactory),
                                             GetType(VisualStudioProjectFactory),
                                             GetType(MockServiceProvider),
                                             GetType(SolutionEventsBatchScopeCreator),
@@ -63,6 +64,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             mockServiceProvider.MockMonitorSelection = New MockShellMonitorSelection(solutionIsFullyLoaded)
             ServiceProvider = mockServiceProvider
         End Sub
+
+        Public ReadOnly Property ProjectFactory As VisualStudioProjectFactory
+            Get
+                Return ExportProvider.GetExportedValue(Of VisualStudioProjectFactory)
+            End Get
+        End Property
 
         <PartNotDiscoverable>
         <Export(GetType(VisualStudioWorkspace))>
@@ -145,6 +152,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Implements Shell.IAsyncServiceProvider
 
             Private ReadOnly _exportProvider As Composition.ExportProvider
+            Private ReadOnly _fileChangeEx As MockVsFileChangeEx = New MockVsFileChangeEx
 
             Public MockMonitorSelection As IVsMonitorSelection
 
@@ -173,7 +181,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                         Return New MockVsSmartOpenScope
 
                     Case GetType(SVsFileChangeEx)
-                        Return New MockVsFileChangeEx
+                        Return _fileChangeEx
 
                     Case Else
                         Return Nothing

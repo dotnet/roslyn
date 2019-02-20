@@ -41,15 +41,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int DeclarationModifiersOffset = SpecialTypeSize;
             private const int DeclarationModifiersSize = 23;
 
-            private const int IsManagedTypeOffset = DeclarationModifiersOffset + DeclarationModifiersSize;
-            private const int IsManagedTypeSize = 2;
+            private const int ManagedKindOffset = DeclarationModifiersOffset + DeclarationModifiersSize;
+            private const int ManagedKindSize = 2;
 
-            private const int FieldDefinitionsNotedOffset = IsManagedTypeOffset + IsManagedTypeSize;
+            private const int FieldDefinitionsNotedOffset = ManagedKindOffset + ManagedKindSize;
             private const int FieldDefinitionsNotedSize = 1;
 
             private const int SpecialTypeMask = (1 << SpecialTypeSize) - 1;
             private const int DeclarationModifiersMask = (1 << DeclarationModifiersSize) - 1;
-            private const int IsManagedTypeMask = (1 << IsManagedTypeSize) - 1;
+            private const int ManagedKindMask = (1 << ManagedKindSize) - 1;
 
             private const int FieldDefinitionsNotedBit = 1 << FieldDefinitionsNotedOffset;
 
@@ -79,9 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return (DeclarationModifiers)((_flags >> DeclarationModifiersOffset) & DeclarationModifiersMask); }
             }
 
-            public ThreeState IsManagedType
+            public ManagedKind ManagedKind
             {
-                get { return (ThreeState)((_flags >> IsManagedTypeOffset) & IsManagedTypeMask); }
+                get { return (ManagedKind)((_flags >> ManagedKindOffset) & ManagedKindMask); }
             }
 
             public bool FieldDefinitionsNoted
@@ -146,9 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return (bits & mask) == 0 || (bits & mask) == mask;
             }
 
-            public void SetIsManagedType(bool isManagedType)
+            public void SetManagedKind(ManagedKind managedKind)
             {
-                int bitsToSet = ((int)isManagedType.ToThreeState() & IsManagedTypeMask) << IsManagedTypeOffset;
+                int bitsToSet = ((int)managedKind & ManagedKindMask) << ManagedKindOffset;
                 Debug.Assert(BitsAreUnsetOrSame(_flags, bitsToSet));
                 ThreadSafeFlagOperations.Set(ref _flags, bitsToSet);
             }
@@ -687,18 +687,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsManagedType
+        internal override ManagedKind ManagedKind
         {
             get
             {
-                var isManagedType = _flags.IsManagedType;
-                if (!isManagedType.HasValue())
+                var managedKind = _flags.ManagedKind;
+                if (managedKind == ManagedKind.Unknown)
                 {
-                    bool value = base.IsManagedType;
-                    _flags.SetIsManagedType(value);
-                    return value;
+                    var baseKind = base.ManagedKind;
+                    _flags.SetManagedKind(baseKind);
+                    return baseKind;
                 }
-                return isManagedType.Value();
+                return managedKind;
             }
         }
 

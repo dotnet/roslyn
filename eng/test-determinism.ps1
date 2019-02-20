@@ -227,7 +227,7 @@ try {
 
     $skipAnalyzers = $true
     $binaryLog = $true
-    $official = $false
+    $officialBuildId = ""
     $ci = $true
     $properties = @()
     

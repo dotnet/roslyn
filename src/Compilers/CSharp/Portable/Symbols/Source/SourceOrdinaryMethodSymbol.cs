@@ -1070,14 +1070,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var syntax = this.GetSyntax();
                 Debug.Assert(syntax.ExplicitInterfaceSpecifier != null);
-                _explicitInterfaceType.CheckAllConstraints(conversions, new SourceLocation(syntax.ExplicitInterfaceSpecifier.Name), diagnostics);
+                _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(syntax.ExplicitInterfaceSpecifier.Name), diagnostics);
             }
 
-            this.ReturnType.CheckAllConstraints(conversions, this.Locations[0], diagnostics);
+            this.ReturnType.CheckAllConstraints(DeclaringCompilation, conversions, this.Locations[0], diagnostics);
 
             foreach (var parameter in this.Parameters)
             {
-                parameter.Type.CheckAllConstraints(conversions, parameter.Locations[0], diagnostics);
+                parameter.Type.CheckAllConstraints(DeclaringCompilation, conversions, parameter.Locations[0], diagnostics);
             }
 
             var implementingPart = this.SourcePartialImplementation;

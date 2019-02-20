@@ -64,6 +64,9 @@ Just like in iterator methods, there are several restrictions on where a yield s
 
 An asynchronous `using` is lowered just like a regular `using`, except that `Dispose()` is replaced with `await DisposeAsync()`.
 
+Note that pattern-based lookup for `DisposeAsync` binds to instance methods that can be invoked without arguments.
+Extension methods do not contribute. The result of `DisposeAsync` must be awaitable.
+
 ### Detailed design for `await foreach` statement
 
 An `await foreach` is lowered just like a regular `foreach`, except that:
@@ -71,8 +74,9 @@ An `await foreach` is lowered just like a regular `foreach`, except that:
 - `MoveNext()` is replaced with `await MoveNextAsync()`
 - `Dispose()` is replaced with `await DisposeAsync()`
 
-Note that pattern-based lookup for `GetAsyncEnumerator` and `MoveNextAsync` do not place particular requirements on those methods,
-as long as they could be invoked without arguments.
+Note that pattern-based lookup for `GetAsyncEnumerator`, `MoveNextAsync` and `DisposeAsync` binds to instance methods that can be invoked without arguments.
+Extension methods do not contribute. The result of `MoveNextAsync` and `DisposeAsync` must be awaitable.
+Disposal for `await foreach` does not include a fallback to a runtime check for an interface implementation.
 
 Asynchronous foreach loops are disallowed on collections of type dynamic,
 as there is no asynchronous equivalent of the non-generic `IEnumerable` interface.
@@ -101,7 +105,7 @@ finally
 ### Detailed design for async-iterator methods
 
 An async-iterator method is replaced by a kick-off method, which initializes a state machine. It does not start running the state machine (unlike kick-off methods for regular async method).
-The kick-off method method is marked with both `AsyncStateMachineAttribute` and `IteratorStateMachineAttribute`.
+The kick-off method method is marked with `AsyncIteratorStateMachineAttribute`.
 
 The state machine for an enumerable async-iterator method primarily implements `IAsyncEnumerable<T>` and `IAsyncEnumerator<T>`.
 For an enumerator async-iterator, it only implements `IAsyncEnumerator<T>`.

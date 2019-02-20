@@ -46,8 +46,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private string _incomingFilePath;
         private Document _previousDocument;
 
-        private readonly ITextManagerAdapter _textManagerAdapter;
-
         private readonly CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement> _codeElementTable;
 
         // These are used during batching.
@@ -73,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             _parentHandle = new ComHandle<object, object>(parent);
             _documentId = documentId;
-            _textManagerAdapter = textManagerAdapter;
+            TextManagerAdapter = textManagerAdapter;
 
             _codeElementTable = new CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement>(state.ThreadingContext);
 
@@ -84,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal ITextManagerAdapter TextManagerAdapter
         {
-            get { return _textManagerAdapter; }
+            get; set;
         }
 
         /// <summary>

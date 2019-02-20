@@ -16,6 +16,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     [CompilerTrait(CompilerFeature.DefaultInterfaceImplementation)]
     public class DefaultInterfaceImplementationTests : CSharpTestBase
     {
+        /// <summary>
+        /// PROTOTYPE(DefaultInterfaceImplementation): This is a temporary workaround to unblock merge from master and avoid 
+        /// modifying a lot of tests in the process.
+        /// </summary>
+        private static class CoreClrShim
+        {
+            internal static bool IsRunningOnCoreClr => ExecutionConditionUtil.IsCoreClr;
+        }
+
         [Fact]
         [WorkItem(33083, "https://github.com/dotnet/roslyn/issues/33083")]
         public void MethodImplementation_011()
@@ -1201,10 +1210,10 @@ class Test1 : I1
             Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
 
             compilation1.VerifyDiagnostics(
-                // (4,10): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (4,10): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     void M1() 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M1").WithArguments("default interface implementation", "8.0").WithLocation(4, 10),
-                // (4,10): error CS8501: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("default interface implementation").WithLocation(4, 10),
+                // (4,10): error CS8701: Target runtime doesn't support default interface implementation.
                 //     void M1() 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M1").WithLocation(4, 10)
                 );
@@ -1267,9 +1276,9 @@ class Test1 : I1
             Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
 
             compilation1.VerifyDiagnostics(
-                // (4,10): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (4,10): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     void M1() 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M1").WithArguments("default interface implementation", "8.0").WithLocation(4, 10)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("default interface implementation").WithLocation(4, 10)
                 );
 
             Assert.True(m1.IsMetadataVirtual());
@@ -1376,9 +1385,9 @@ class Test1 : I1
             Assert.Null(test1.FindImplementationForInterfaceMember(m1));
 
             compilation1.VerifyDiagnostics(
-                // (4,17): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (4,17): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static void M1() 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M1").WithArguments("default interface implementation", "8.0").WithLocation(4, 17)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("default interface implementation").WithLocation(4, 17)
                 );
 
             Assert.False(m1.IsMetadataVirtual());
@@ -2778,34 +2787,34 @@ class Test1 : I1
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (4,15): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (4,15): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     int P1 => 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1").WithArguments("default interface implementation", "8.0").WithLocation(4, 15),
-                // (4,15): error CS8501: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1").WithArguments("default interface implementation").WithLocation(4, 15),
+                // (4,15): error CS8701: Target runtime doesn't support default interface implementation.
                 //     int P1 => 1;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "1").WithLocation(4, 15),
-                // (5,14): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (5,14): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     int P3 { get => 3; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(5, 14),
-                // (5,14): error CS8501: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("default interface implementation").WithLocation(5, 14),
+                // (5,14): error CS8701: Target runtime doesn't support default interface implementation.
                 //     int P3 { get => 3; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(5, 14),
-                // (6,14): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,14): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     int P5 { set => System.Console.WriteLine(5); }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(6, 14),
-                // (6,14): error CS8501: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("default interface implementation").WithLocation(6, 14),
+                // (6,14): error CS8701: Target runtime doesn't support default interface implementation.
                 //     int P5 { set => System.Console.WriteLine(5); }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(6, 14),
-                // (7,14): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (7,14): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     int P7 { get { return 7;} set {} }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(7, 14),
-                // (7,14): error CS8501: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("default interface implementation").WithLocation(7, 14),
+                // (7,14): error CS8701: Target runtime doesn't support default interface implementation.
                 //     int P7 { get { return 7;} set {} }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(7, 14),
-                // (7,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (7,31): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     int P7 { get { return 7;} set {} }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(7, 31),
-                // (7,31): error CS8501: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("default interface implementation").WithLocation(7, 31),
+                // (7,31): error CS8701: Target runtime doesn't support default interface implementation.
                 //     int P7 { get { return 7;} set {} }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(7, 31)
                 );
@@ -2881,21 +2890,21 @@ class Test1 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (4,15): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (4,15): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     int P1 => 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1").WithArguments("default interface implementation", "8.0").WithLocation(4, 15),
-                // (5,14): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1").WithArguments("default interface implementation").WithLocation(4, 15),
+                // (5,14): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     int P3 { get => 3; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(5, 14),
-                // (6,14): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("default interface implementation").WithLocation(5, 14),
+                // (6,14): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     int P5 { set => System.Console.WriteLine(5); }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(6, 14),
-                // (7,14): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("default interface implementation").WithLocation(6, 14),
+                // (7,14): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     int P7 { get { return 7;} set {} }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(7, 14),
-                // (7,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("default interface implementation").WithLocation(7, 14),
+                // (7,31): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     int P7 { get { return 7;} set {} }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(7, 31)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("default interface implementation").WithLocation(7, 31)
                 );
 
             ValidatePropertyImplementation_501(compilation1.SourceModule, "Test1");
@@ -2969,21 +2978,21 @@ class Test1 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (4,22): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (4,22): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static int P1 => 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1").WithArguments("default interface implementation", "8.0").WithLocation(4, 22),
-                // (5,21): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1").WithArguments("default interface implementation").WithLocation(4, 22),
+                // (5,21): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static int P3 { get => 3; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(5, 21),
-                // (6,21): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("default interface implementation").WithLocation(5, 21),
+                // (6,21): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static int P5 { set => System.Console.WriteLine(5); }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(6, 21),
-                // (7,21): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("default interface implementation").WithLocation(6, 21),
+                // (7,21): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static int P7 { get { return 7;} set {} }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(7, 21),
-                // (7,38): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("default interface implementation").WithLocation(7, 21),
+                // (7,38): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static int P7 { get { return 7;} set {} }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(7, 38)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("default interface implementation").WithLocation(7, 38)
                 );
 
             var derived = compilation1.SourceModule.GlobalNamespace.GetTypeMember("Test1");
@@ -4197,34 +4206,34 @@ class Test1 : I1
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (4,26): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (4,26): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     int this[sbyte i] => 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1").WithArguments("default interface implementation", "8.0").WithLocation(4, 26),
-                // (4,26): error CS8501: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1").WithArguments("default interface implementation").WithLocation(4, 26),
+                // (4,26): error CS8701: Target runtime doesn't support default interface implementation.
                 //     int this[sbyte i] => 1;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "1").WithLocation(4, 26),
-                // (6,7): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,7): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     { get => 3; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(6, 7),
-                // (6,7): error CS8501: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("default interface implementation").WithLocation(6, 7),
+                // (6,7): error CS8701: Target runtime doesn't support default interface implementation.
                 //     { get => 3; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(6, 7),
-                // (8,7): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (8,7): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     { set => System.Console.WriteLine(5); }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(8, 7),
-                // (8,7): error CS8501: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("default interface implementation").WithLocation(8, 7),
+                // (8,7): error CS8701: Target runtime doesn't support default interface implementation.
                 //     { set => System.Console.WriteLine(5); }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(8, 7),
-                // (11,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (11,9): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         get { return 7;} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(11, 9),
-                // (11,9): error CS8501: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("default interface implementation").WithLocation(11, 9),
+                // (11,9): error CS8701: Target runtime doesn't support default interface implementation.
                 //         get { return 7;} 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(11, 9),
-                // (12,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (12,9): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         set {} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(12, 9),
-                // (12,9): error CS8501: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("default interface implementation").WithLocation(12, 9),
+                // (12,9): error CS8701: Target runtime doesn't support default interface implementation.
                 //         set {} 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(12, 9)
                 );
@@ -4306,21 +4315,21 @@ class Test1 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (4,26): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (4,26): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     int this[sbyte i] => 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1").WithArguments("default interface implementation", "8.0").WithLocation(4, 26),
-                // (6,7): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1").WithArguments("default interface implementation").WithLocation(4, 26),
+                // (6,7): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     { get => 3; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(6, 7),
-                // (8,7): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("default interface implementation").WithLocation(6, 7),
+                // (8,7): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     { set => System.Console.WriteLine(5); }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(8, 7),
-                // (11,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("default interface implementation").WithLocation(8, 7),
+                // (11,9): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         get { return 7;} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(11, 9),
-                // (12,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("default interface implementation").WithLocation(11, 9),
+                // (12,9): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         set {} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(12, 9)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("default interface implementation").WithLocation(12, 9)
                 );
 
             ValidateIndexerImplementation_501(compilation1.SourceModule, "Test1");
@@ -4403,30 +4412,30 @@ class Test1 : I1
                 // (4,16): error CS0106: The modifier 'static' is not valid for this item
                 //     static int this[sbyte i] => 1;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(4, 16),
-                // (4,33): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (4,33): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static int this[sbyte i] => 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1").WithArguments("default interface implementation", "8.0").WithLocation(4, 33),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1").WithArguments("default interface implementation").WithLocation(4, 33),
                 // (5,16): error CS0106: The modifier 'static' is not valid for this item
                 //     static int this[short i] 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(5, 16),
-                // (6,7): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,7): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     { get => 3; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(6, 7),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("default interface implementation").WithLocation(6, 7),
                 // (7,16): error CS0106: The modifier 'static' is not valid for this item
                 //     static int this[int i] 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(7, 16),
-                // (8,7): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (8,7): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     { set => System.Console.WriteLine(5); }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(8, 7),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("default interface implementation").WithLocation(8, 7),
                 // (9,16): error CS0106: The modifier 'static' is not valid for this item
                 //     static int this[long i] 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(9, 16),
-                // (11,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (11,9): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         get { return 7;} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(11, 9),
-                // (12,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("default interface implementation").WithLocation(11, 9),
+                // (12,9): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         set {} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(12, 9)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("default interface implementation").WithLocation(12, 9)
                 );
 
             ValidateIndexerImplementation_501(compilation1.SourceModule, "Test1");
@@ -5418,16 +5427,16 @@ class Test1 : I1
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (6,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,9): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         add {} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(6, 9),
-                // (6,9): error CS8501: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(6, 9),
+                // (6,9): error CS8701: Target runtime doesn't support default interface implementation.
                 //         add {} 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(6, 9),
-                // (7,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (7,9): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         remove {} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(7, 9),
-                // (7,9): error CS8501: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(7, 9),
+                // (7,9): error CS8701: Target runtime doesn't support default interface implementation.
                 //         remove {} 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(7, 9)
                 );
@@ -5486,12 +5495,12 @@ class Test1 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (6,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,9): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         add {} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(6, 9),
-                // (7,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(6, 9),
+                // (7,9): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         remove {} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(7, 9)
                 );
 
             ValidateEventImplementation_501(compilation1.SourceModule, "Test1");
@@ -5557,12 +5566,12 @@ class Test1 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (6,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,9): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         add {} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(6, 9),
-                // (7,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(6, 9),
+                // (7,9): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         remove {} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(7, 9)
                 );
 
             var derived = compilation1.GlobalNamespace.GetTypeMember("Test1");
@@ -19608,79 +19617,79 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_EventNeedsBothAccessors).Verify(
-                // (4,32): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (4,32): error CS8703: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public event System.Action P01;
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P01").WithArguments("public", "7.3", "8.0").WithLocation(4, 32),
                 // (5,35): error CS0106: The modifier 'protected' is not valid for this item
                 //     protected event System.Action P02 {add{}}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P02").WithArguments("protected").WithLocation(5, 35),
-                // (5,40): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (5,40): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     protected event System.Action P02 {add{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(5, 40),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(5, 40),
                 // (6,44): error CS0106: The modifier 'protected internal' is not valid for this item
                 //     protected internal event System.Action P03 {remove{}}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P03").WithArguments("protected internal").WithLocation(6, 44),
-                // (6,49): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,49): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     protected internal event System.Action P03 {remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(6, 49),
-                // (7,39): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(6, 49),
+                // (7,39): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     internal event System.Action P04 {add{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(7, 39),
-                // (8,38): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(7, 39),
+                // (8,38): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     private event System.Action P05 {remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(8, 38),
-                // (9,37): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(8, 38),
+                // (9,37): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static event System.Action P06 {add{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(9, 37),
-                // (10,38): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(9, 37),
+                // (10,38): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     virtual event System.Action P07 {remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(10, 38),
-                // (11,37): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(10, 38),
+                // (11,37): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     sealed event System.Action P08 {add{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(11, 37),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(11, 37),
                 // (12,34): error CS0106: The modifier 'override' is not valid for this item
                 //     override event System.Action P09 {remove{}}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P09").WithArguments("override").WithLocation(12, 34),
-                // (12,39): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (12,39): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     override event System.Action P09 {remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(12, 39),
-                // (13,39): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(12, 39),
+                // (13,39): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     abstract event System.Action P10 {add{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(13, 39),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(13, 39),
                 // (13,39): error CS0500: 'I1.P10.add' cannot declare a body because it is marked abstract
                 //     abstract event System.Action P10 {add{}}
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I1.P10.add").WithLocation(13, 39),
-                // (14,37): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (14,37): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     extern event System.Action P11 {add{} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(14, 37),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(14, 37),
                 // (14,37): error CS0179: 'I1.P11.add' cannot be extern and declare a body
                 //     extern event System.Action P11 {add{} remove{}}
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("I1.P11.add").WithLocation(14, 37),
-                // (14,43): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (14,43): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     extern event System.Action P11 {add{} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(14, 43),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(14, 43),
                 // (14,43): error CS0179: 'I1.P11.remove' cannot be extern and declare a body
                 //     extern event System.Action P11 {add{} remove{}}
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("I1.P11.remove").WithLocation(14, 43),
-                // (15,37): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (15,37): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     extern event System.Action P12 {add; remove;}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(15, 37),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(15, 37),
                 // (15,37): warning CS0626: Method, operator, or accessor 'I1.P12.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern event System.Action P12 {add; remove;}
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "add").WithArguments("I1.P12.add").WithLocation(15, 37),
                 // (15,40): error CS0073: An add or remove accessor must have a body
                 //     extern event System.Action P12 {add; remove;}
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(15, 40),
-                // (15,42): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (15,42): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     extern event System.Action P12 {add; remove;}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(15, 42),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(15, 42),
                 // (15,42): warning CS0626: Method, operator, or accessor 'I1.P12.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern event System.Action P12 {add; remove;}
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "remove").WithArguments("I1.P12.remove").WithLocation(15, 42),
                 // (15,48): error CS0073: An add or remove accessor must have a body
                 //     extern event System.Action P12 {add; remove;}
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(15, 48),
-                // (16,32): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (16,32): error CS8703: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     extern event System.Action P13;
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P13").WithArguments("extern", "7.3", "8.0").WithLocation(16, 32),
                 // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
@@ -22444,39 +22453,39 @@ class Test2 : I1, I2, I3, I4, I5
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(
-                // (4,32): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (4,32): error CS8703: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     extern event System.Action P1; 
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("extern", "7.3", "8.0").WithLocation(4, 32),
-                // (8,40): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (8,40): error CS8703: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     virtual extern event System.Action P2;
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("extern", "7.3", "8.0").WithLocation(8, 40),
-                // (8,40): error CS8503: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (8,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     virtual extern event System.Action P2;
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("virtual", "7.3", "8.0").WithLocation(8, 40),
-                // (12,39): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (12,39): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     static extern event System.Action P3; 
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P3").WithArguments("static", "7.3", "8.0").WithLocation(12, 39),
-                // (12,39): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (12,39): error CS8703: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     static extern event System.Action P3; 
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P3").WithArguments("extern", "7.3", "8.0").WithLocation(12, 39),
-                // (16,40): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (16,40): error CS8703: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private extern event System.Action P4;
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P4").WithArguments("private", "7.3", "8.0").WithLocation(16, 40),
-                // (16,40): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (16,40): error CS8703: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private extern event System.Action P4;
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P4").WithArguments("extern", "7.3", "8.0").WithLocation(16, 40),
-                // (20,39): error CS8503: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (20,39): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     extern sealed event System.Action P5;
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("sealed", "7.3", "8.0").WithLocation(20, 39),
-                // (20,39): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (20,39): error CS8703: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     extern sealed event System.Action P5;
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("extern", "7.3", "8.0").WithLocation(20, 39),
-                // (26,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (26,9): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         add => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(26, 9),
-                // (27,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(26, 9),
+                // (27,9): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         remove => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(27, 9),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(27, 9),
                 // (8,40): warning CS0626: Method, operator, or accessor 'I2.P2.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     virtual extern event System.Action P2;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P2").WithArguments("I2.P2.add").WithLocation(8, 40),
@@ -23348,18 +23357,18 @@ class Test1 : I1.T1
             }
 
             compilation1.VerifyDiagnostics(
-                // (4,15): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (4,15): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     interface T1
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "T1").WithArguments("default interface implementation", "8.0").WithLocation(4, 15),
-                // (9,11): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T1").WithArguments("default interface implementation").WithLocation(4, 15),
+                // (9,11): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     class T2
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "T2").WithArguments("default interface implementation", "8.0").WithLocation(9, 11),
-                // (12,12): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T2").WithArguments("default interface implementation").WithLocation(9, 11),
+                // (12,12): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     struct T3
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "T3").WithArguments("default interface implementation", "8.0").WithLocation(12, 12),
-                // (15,10): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T3").WithArguments("default interface implementation").WithLocation(12, 12),
+                // (15,10): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     enum T4
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "T4").WithArguments("default interface implementation", "8.0").WithLocation(15, 10)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T4").WithArguments("default interface implementation").WithLocation(15, 10)
                 );
         }
 
@@ -23925,12 +23934,12 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (14,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (14,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     void I2.M1() 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M1").WithArguments("default interface implementation", "8.0").WithLocation(14, 13),
-                // (18,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("default interface implementation").WithLocation(14, 13),
+                // (18,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     void I4.M1() 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M1").WithArguments("default interface implementation", "8.0").WithLocation(18, 13)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("default interface implementation").WithLocation(18, 13)
                 );
 
             ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
@@ -24357,9 +24366,9 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(
-                // (9,20): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (9,20): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     extern void I2.M1(); 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M1").WithArguments("default interface implementation", "8.0").WithLocation(9, 20),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("default interface implementation").WithLocation(9, 20),
                 // (9,20): warning CS0626: Method, operator, or accessor 'I1.I2.M1()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern void I2.M1(); 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M1").WithArguments("I1.I2.M1()").WithLocation(9, 20)
@@ -25552,15 +25561,15 @@ class Test1 : I1
             ValidatePropertyImplementationInDerived_02(source1,
                 new DiagnosticDescription[]
                 {
-                // (14,18): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (14,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     int I2.M1 => Getter();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "Getter()").WithArguments("default interface implementation", "8.0").WithLocation(14, 18),
-                // (16,17): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Getter()").WithArguments("default interface implementation").WithLocation(14, 18),
+                // (16,17): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     private int Getter()
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "Getter").WithArguments("default interface implementation", "8.0").WithLocation(16, 17),
-                // (24,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Getter").WithArguments("default interface implementation").WithLocation(16, 17),
+                // (24,9): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         set 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(24, 9)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("default interface implementation").WithLocation(24, 9)
                 },
                 // (6,15): error CS8506: 'I1.I2.M1.get' cannot implement interface member 'I2.M1.get' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test1 : I1
@@ -26017,9 +26026,9 @@ class Test1 : I1
                 },
                 new DiagnosticDescription[]
                 {
-                // (9,23): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (9,23): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     extern int I2.M1 {get;} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(9, 23),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("default interface implementation").WithLocation(9, 23),
                 // (9,23): warning CS0626: Method, operator, or accessor 'I1.I2.M1.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern int I2.M1 {get;} 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.I2.M1.get").WithLocation(9, 23)
@@ -27287,18 +27296,18 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (16,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (16,9): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         add => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(16, 9),
-                // (17,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(16, 9),
+                // (17,9): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         remove => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(17, 9),
-                // (22,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(17, 9),
+                // (22,9): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         add => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(22, 9),
-                // (23,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(22, 9),
+                // (23,9): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         remove => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(23, 9)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(23, 9)
                 );
 
             ValidateEventImplementationInDerived_01(compilation1.SourceModule);
@@ -27739,24 +27748,21 @@ class Test2 : I4
                 // (30,30): error CS1519: Invalid token ';' in class, struct, or interface member declaration
                 //     event System.Action I3.M1;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(30, 30),
-                // (30,30): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                // (30,28): error CS0065: 'I4.I3.M1': event property must have both add and remove accessors
                 //     event System.Action I3.M1;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(30, 30),
-                // (30,28): error CS0539: 'I4.' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     event System.Action I3.M1;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "").WithArguments("I4.").WithLocation(30, 28),
-                // (30,28): error CS0065: 'I4.': event property must have both add and remove accessors
-                //     event System.Action I3.M1;
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "").WithArguments("I4.").WithLocation(30, 28),
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "M1").WithArguments("I4.I3.M1").WithLocation(30, 28),
                 // (10,28): error CS0065: 'I2.I1.M1': event property must have both add and remove accessors
                 //     event System.Action I1.M1
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "M1").WithArguments("I2.I1.M1").WithLocation(10, 28),
                 // (14,28): error CS0065: 'I2.I1.M2': event property must have both add and remove accessors
                 //     event System.Action I1.M2 
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "M2").WithArguments("I2.I1.M2").WithLocation(14, 28),
-                // (33,15): error CS0535: 'Test2' does not implement interface member 'I3.M1'
+                // (33,15): error CS0535: 'Test2' does not implement interface member 'I3.M1.remove'
                 // class Test2 : I4
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I4").WithArguments("Test2", "I3.M1").WithLocation(33, 15),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I4").WithArguments("Test2", "I3.M1.remove").WithLocation(33, 15),
+                // (33,15): error CS0535: 'Test2' does not implement interface member 'I3.M1.add'
+                // class Test2 : I4
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I4").WithArguments("Test2", "I3.M1.add").WithLocation(33, 15),
                 // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.M1.remove'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1.remove").WithLocation(20, 15),
@@ -28672,15 +28678,15 @@ class Test1 : I1
             ValidatePropertyImplementationInDerived_02(source1,
                 new DiagnosticDescription[]
                 {
-                // (16,17): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (16,17): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     private int Getter()
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "Getter").WithArguments("default interface implementation", "8.0").WithLocation(16, 17),
-                // (14,27): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Getter").WithArguments("default interface implementation").WithLocation(16, 17),
+                // (14,27): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     int I2.this[int x] => Getter();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "Getter()").WithArguments("default interface implementation", "8.0").WithLocation(14, 27),
-                // (24,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Getter()").WithArguments("default interface implementation").WithLocation(14, 27),
+                // (24,9): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         set 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(24, 9)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("default interface implementation").WithLocation(24, 9)
                 },
                 // (6,15): error CS8506: 'I1.I2.this[int].get' cannot implement interface member 'I2.this[int].get' in type 'Test1' because feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class Test1 : I1
@@ -29061,9 +29067,9 @@ class Test1 : I1
                 },
                 new DiagnosticDescription[]
                 {
-                // (9,32): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (9,32): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     extern int I2.this[int x] {get;} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(9, 32),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("default interface implementation").WithLocation(9, 32),
                 // (9,32): warning CS0626: Method, operator, or accessor 'I1.I2.this[int].get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern int I2.this[int x] {get;} 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.I2.this[int].get").WithLocation(9, 32)
@@ -29720,21 +29726,21 @@ class Test2 : I1
                                                  parseOptions: TestOptions.Regular7_3);
 
             compilation4.VerifyDiagnostics(
-                // (4,16): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (4,16): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static int F1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F1").WithArguments("default interface implementation", "8.0").WithLocation(4, 16),
-                // (5,23): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("default interface implementation").WithLocation(4, 16),
+                // (5,23): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static int F2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F2").WithArguments("default interface implementation", "8.0").WithLocation(5, 23),
-                // (6,25): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F2").WithArguments("default interface implementation").WithLocation(5, 23),
+                // (6,25): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     internal static int F3;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F3").WithArguments("default interface implementation", "8.0").WithLocation(6, 25),
-                // (7,24): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F3").WithArguments("default interface implementation").WithLocation(6, 25),
+                // (7,24): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     private static int F4;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F4").WithArguments("default interface implementation", "8.0").WithLocation(7, 24),
-                // (9,18): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F4").WithArguments("default interface implementation").WithLocation(7, 24),
+                // (9,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public class TestHelper
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "TestHelper").WithArguments("default interface implementation").WithLocation(9, 18)
                 );
 
             Validate1(compilation4.SourceModule);
@@ -29835,21 +29841,21 @@ class Test2 : I1
                                                  parseOptions: TestOptions.Regular7_3);
 
             compilation4.VerifyDiagnostics(
-                // (4,25): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (4,25): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static readonly int F1 = 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F1").WithArguments("default interface implementation", "8.0").WithLocation(4, 25),
-                // (5,32): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("default interface implementation").WithLocation(4, 25),
+                // (5,32): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static readonly int F2 = 2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F2").WithArguments("default interface implementation", "8.0").WithLocation(5, 32),
-                // (6,34): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F2").WithArguments("default interface implementation").WithLocation(5, 32),
+                // (6,34): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     internal static readonly int F3 = 3;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F3").WithArguments("default interface implementation", "8.0").WithLocation(6, 34),
-                // (7,33): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F3").WithArguments("default interface implementation").WithLocation(6, 34),
+                // (7,33): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     private static readonly int F4 = 4;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F4").WithArguments("default interface implementation", "8.0").WithLocation(7, 33),
-                // (9,18): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F4").WithArguments("default interface implementation").WithLocation(7, 33),
+                // (9,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public class TestHelper
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "TestHelper").WithArguments("default interface implementation").WithLocation(9, 18)
                 );
 
             Validate1(compilation4.SourceModule);
@@ -29945,21 +29951,21 @@ class Test2 : I1
                                                          parseOptions: TestOptions.Regular7_3);
 
             compilation4.VerifyDiagnostics(
-                // (4,15): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (4,15): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     const int F1 = 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F1").WithArguments("default interface implementation", "8.0").WithLocation(4, 15),
-                // (5,22): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("default interface implementation").WithLocation(4, 15),
+                // (5,22): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public const int F2 = 2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F2").WithArguments("default interface implementation", "8.0").WithLocation(5, 22),
-                // (6,24): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F2").WithArguments("default interface implementation").WithLocation(5, 22),
+                // (6,24): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     internal const int F3 = 3;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F3").WithArguments("default interface implementation", "8.0").WithLocation(6, 24),
-                // (7,23): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F3").WithArguments("default interface implementation").WithLocation(6, 24),
+                // (7,23): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     private const int F4 = 4;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "F4").WithArguments("default interface implementation", "8.0").WithLocation(7, 23),
-                // (9,18): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F4").WithArguments("default interface implementation").WithLocation(7, 23),
+                // (9,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public class TestHelper
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "TestHelper").WithArguments("default interface implementation").WithLocation(9, 18)
                 );
 
             Validate1(compilation4.SourceModule);
@@ -30116,30 +30122,30 @@ class Test2 : I1
                                                  parseOptions: TestOptions.Regular7_3);
 
             compilation4.VerifyDiagnostics(
-                // (4,16): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (4,16): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     static int F1 {get; set;}
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7.3", "8.0").WithLocation(4, 16),
-                // (5,23): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (5,23): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public static int F2 {get; set;}
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7.3", "8.0").WithLocation(5, 23),
-                // (5,23): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (5,23): error CS8703: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public static int F2 {get; set;}
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7.3", "8.0").WithLocation(5, 23),
-                // (6,25): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (6,25): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     internal static int F3 {get; set;}
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7.3", "8.0").WithLocation(6, 25),
-                // (6,25): error CS8503: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (6,25): error CS8703: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     internal static int F3 {get; set;}
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7.3", "8.0").WithLocation(6, 25),
-                // (7,24): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (7,24): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private static int F4 {get; set;}
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("static", "7.3", "8.0").WithLocation(7, 24),
-                // (7,24): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (7,24): error CS8703: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private static int F4 {get; set;}
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7.3", "8.0").WithLocation(7, 24),
-                // (9,18): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (9,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public class TestHelper
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "TestHelper").WithArguments("default interface implementation").WithLocation(9, 18)
                 );
 
             Validate1(compilation4.SourceModule);
@@ -30256,9 +30262,9 @@ class Test2 : I1
                 // (7,24): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private static int F4 {get;} = 4;
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7.3", "8.0").WithLocation(7, 24),
-                // (9,18): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (9,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public class TestHelper
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "TestHelper").WithArguments("default interface implementation").WithLocation(9, 18)
                 );
 
             Validate1(compilation4.SourceModule);
@@ -30352,33 +30358,33 @@ class Test2 : I1
                                                  parseOptions: TestOptions.Regular7_3);
 
             compilation4.VerifyDiagnostics(
-                // (4,16): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (4,16): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     static int F1 {get; private set;}
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7.3", "8.0").WithLocation(4, 16),
-                // (4,33): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (4,33): error CS8703: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     static int F1 {get; private set;}
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("private", "7.3", "8.0").WithLocation(4, 33),
-                // (5,23): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (5,23): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public static int F2 {get; private set;}
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7.3", "8.0").WithLocation(5, 23),
-                // (5,23): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (5,23): error CS8703: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public static int F2 {get; private set;}
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7.3", "8.0").WithLocation(5, 23),
-                // (5,40): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (5,40): error CS8703: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public static int F2 {get; private set;}
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("private", "7.3", "8.0").WithLocation(5, 40),
-                // (6,25): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (6,25): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     internal static int F3 {get; private set;}
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7.3", "8.0").WithLocation(6, 25),
-                // (6,25): error CS8503: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (6,25): error CS8703: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     internal static int F3 {get; private set;}
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7.3", "8.0").WithLocation(6, 25),
-                // (6,42): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (6,42): error CS8703: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     internal static int F3 {get; private set;}
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("private", "7.3", "8.0").WithLocation(6, 42),
-                // (8,18): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (8,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public class TestHelper
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "TestHelper").WithArguments("default interface implementation").WithLocation(8, 18)
                 );
 
             Validate1(compilation4.SourceModule);
@@ -30516,9 +30522,9 @@ class Test2 : I1
                                                  parseOptions: TestOptions.Regular7_3);
 
             compilation4.VerifyDiagnostics(
-                // (9,18): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (9,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public class TestHelper
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(9, 18),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "TestHelper").WithArguments("default interface implementation").WithLocation(9, 18),
                 // (4,32): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     static event System.Action F1;
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7.3", "8.0").WithLocation(4, 32),
@@ -30633,28 +30639,28 @@ class Test2 : I1
                                                  parseOptions: TestOptions.Regular7_3);
 
             compilation4.VerifyDiagnostics(
-                // (9,18): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (9,18): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public class TestHelper
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(9, 18),
-                // (4,32): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "TestHelper").WithArguments("default interface implementation").WithLocation(9, 18),
+                // (4,32): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     static event System.Action F1 = () => System.Console.Write(1);
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7.3", "8.0").WithLocation(4, 32),
-                // (5,39): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (5,39): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public static event System.Action F2 = () => System.Console.Write(2);
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7.3", "8.0").WithLocation(5, 39),
-                // (5,39): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (5,39): error CS8703: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     public static event System.Action F2 = () => System.Console.Write(2);
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7.3", "8.0").WithLocation(5, 39),
-                // (6,41): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (6,41): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     internal static event System.Action F3 = () => System.Console.Write(3);
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7.3", "8.0").WithLocation(6, 41),
-                // (6,41): error CS8503: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (6,41): error CS8703: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     internal static event System.Action F3 = () => System.Console.Write(3);
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7.3", "8.0").WithLocation(6, 41),
-                // (7,40): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (7,40): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private static event System.Action F4 = () => System.Console.Write(4);
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("static", "7.3", "8.0").WithLocation(7, 40),
-                // (7,40): error CS8503: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                // (7,40): error CS8703: The modifier 'private' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
                 //     private static event System.Action F4 = () => System.Console.Write(4);
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7.3", "8.0").WithLocation(7, 40)
                 );
@@ -31157,72 +31163,72 @@ true
                                                  parseOptions: TestOptions.Regular7_3);
 
             compilation6.VerifyDiagnostics(
-                // (4,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (4,31): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator +(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "+").WithArguments("default interface implementation", "8.0").WithLocation(4, 31),
-                // (10,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "+").WithArguments("default interface implementation").WithLocation(4, 31),
+                // (10,31): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator -(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "-").WithArguments("default interface implementation", "8.0").WithLocation(10, 31),
-                // (16,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "-").WithArguments("default interface implementation").WithLocation(10, 31),
+                // (16,31): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator !(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "!").WithArguments("default interface implementation", "8.0").WithLocation(16, 31),
-                // (22,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "!").WithArguments("default interface implementation").WithLocation(16, 31),
+                // (22,31): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator ~(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "~").WithArguments("default interface implementation", "8.0").WithLocation(22, 31),
-                // (28,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "~").WithArguments("default interface implementation").WithLocation(22, 31),
+                // (28,31): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator ++(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "++").WithArguments("default interface implementation", "8.0").WithLocation(28, 31),
-                // (34,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "++").WithArguments("default interface implementation").WithLocation(28, 31),
+                // (34,31): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator --(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "--").WithArguments("default interface implementation", "8.0").WithLocation(34, 31),
-                // (40,33): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "--").WithArguments("default interface implementation").WithLocation(34, 31),
+                // (40,33): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static bool operator true(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "true").WithArguments("default interface implementation", "8.0").WithLocation(40, 33),
-                // (46,33): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "true").WithArguments("default interface implementation").WithLocation(40, 33),
+                // (46,33): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static bool operator false(I1 x)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "false").WithArguments("default interface implementation", "8.0").WithLocation(46, 33),
-                // (52,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "false").WithArguments("default interface implementation").WithLocation(46, 33),
+                // (52,31): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator +(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "+").WithArguments("default interface implementation", "8.0").WithLocation(52, 31),
-                // (58,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "+").WithArguments("default interface implementation").WithLocation(52, 31),
+                // (58,31): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator -(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "-").WithArguments("default interface implementation", "8.0").WithLocation(58, 31),
-                // (64,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "-").WithArguments("default interface implementation").WithLocation(58, 31),
+                // (64,31): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator *(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "*").WithArguments("default interface implementation", "8.0").WithLocation(64, 31),
-                // (70,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "*").WithArguments("default interface implementation").WithLocation(64, 31),
+                // (70,31): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator /(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "/").WithArguments("default interface implementation", "8.0").WithLocation(70, 31),
-                // (76,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "/").WithArguments("default interface implementation").WithLocation(70, 31),
+                // (76,31): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator %(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "%").WithArguments("default interface implementation", "8.0").WithLocation(76, 31),
-                // (82,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "%").WithArguments("default interface implementation").WithLocation(76, 31),
+                // (82,31): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator &(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "&").WithArguments("default interface implementation", "8.0").WithLocation(82, 31),
-                // (88,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&").WithArguments("default interface implementation").WithLocation(82, 31),
+                // (88,31): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator |(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "|").WithArguments("default interface implementation", "8.0").WithLocation(88, 31),
-                // (94,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "|").WithArguments("default interface implementation").WithLocation(88, 31),
+                // (94,31): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator ^(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "^").WithArguments("default interface implementation", "8.0").WithLocation(94, 31),
-                // (100,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "^").WithArguments("default interface implementation").WithLocation(94, 31),
+                // (100,31): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator <<(I1 x, int y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "<<").WithArguments("default interface implementation", "8.0").WithLocation(100, 31),
-                // (106,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "<<").WithArguments("default interface implementation").WithLocation(100, 31),
+                // (106,31): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator >>(I1 x, int y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, ">>").WithArguments("default interface implementation", "8.0").WithLocation(106, 31),
-                // (112,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>").WithArguments("default interface implementation").WithLocation(106, 31),
+                // (112,31): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator >(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, ">").WithArguments("default interface implementation", "8.0").WithLocation(112, 31),
-                // (118,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">").WithArguments("default interface implementation").WithLocation(112, 31),
+                // (118,31): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator <(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "<").WithArguments("default interface implementation", "8.0").WithLocation(118, 31),
-                // (124,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "<").WithArguments("default interface implementation").WithLocation(118, 31),
+                // (124,31): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator >=(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, ">=").WithArguments("default interface implementation", "8.0").WithLocation(124, 31),
-                // (130,31): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">=").WithArguments("default interface implementation").WithLocation(124, 31),
+                // (130,31): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator <=(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "<=").WithArguments("default interface implementation", "8.0").WithLocation(130, 31)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "<=").WithArguments("default interface implementation").WithLocation(130, 31)
                 );
 
             var compilation7 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
@@ -31230,69 +31236,69 @@ true
 
             var expected7 = new DiagnosticDescription[]
             {
-                // (9,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (9,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = +x;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "+x").WithArguments("default interface implementation", "8.0").WithLocation(9, 13),
-                // (10,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "+x").WithArguments("default interface implementation").WithLocation(9, 13),
+                // (10,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = -x;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "-x").WithArguments("default interface implementation", "8.0").WithLocation(10, 13),
-                // (11,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "-x").WithArguments("default interface implementation").WithLocation(10, 13),
+                // (11,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = !x;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "!x").WithArguments("default interface implementation", "8.0").WithLocation(11, 13),
-                // (12,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "!x").WithArguments("default interface implementation").WithLocation(11, 13),
+                // (12,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = ~x;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "~x").WithArguments("default interface implementation", "8.0").WithLocation(12, 13),
-                // (13,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "~x").WithArguments("default interface implementation").WithLocation(12, 13),
+                // (13,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = ++x;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "++x").WithArguments("default interface implementation", "8.0").WithLocation(13, 13),
-                // (14,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "++x").WithArguments("default interface implementation").WithLocation(13, 13),
+                // (14,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = x--;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x--").WithArguments("default interface implementation", "8.0").WithLocation(14, 13),
-                // (16,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x--").WithArguments("default interface implementation").WithLocation(14, 13),
+                // (16,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = x + y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x + y").WithArguments("default interface implementation", "8.0").WithLocation(16, 13),
-                // (17,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x + y").WithArguments("default interface implementation").WithLocation(16, 13),
+                // (17,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = x - y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x - y").WithArguments("default interface implementation", "8.0").WithLocation(17, 13),
-                // (18,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x - y").WithArguments("default interface implementation").WithLocation(17, 13),
+                // (18,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = x * y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x * y").WithArguments("default interface implementation", "8.0").WithLocation(18, 13),
-                // (19,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x * y").WithArguments("default interface implementation").WithLocation(18, 13),
+                // (19,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = x / y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x / y").WithArguments("default interface implementation", "8.0").WithLocation(19, 13),
-                // (20,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x / y").WithArguments("default interface implementation").WithLocation(19, 13),
+                // (20,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = x % y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x % y").WithArguments("default interface implementation", "8.0").WithLocation(20, 13),
-                // (21,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x % y").WithArguments("default interface implementation").WithLocation(20, 13),
+                // (21,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         if (x && y) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x && y").WithArguments("default interface implementation", "8.0").WithLocation(21, 13),
-                // (21,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x && y").WithArguments("default interface implementation").WithLocation(21, 13),
+                // (21,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         if (x && y) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x && y").WithArguments("default interface implementation", "8.0").WithLocation(21, 13),
-                // (22,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x && y").WithArguments("default interface implementation").WithLocation(21, 13),
+                // (22,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = x | y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x | y").WithArguments("default interface implementation", "8.0").WithLocation(22, 13),
-                // (23,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x | y").WithArguments("default interface implementation").WithLocation(22, 13),
+                // (23,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = x ^ y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x ^ y").WithArguments("default interface implementation", "8.0").WithLocation(23, 13),
-                // (24,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x ^ y").WithArguments("default interface implementation").WithLocation(23, 13),
+                // (24,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = x << 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x << 1").WithArguments("default interface implementation", "8.0").WithLocation(24, 13),
-                // (25,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x << 1").WithArguments("default interface implementation").WithLocation(24, 13),
+                // (25,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = x >> 2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x >> 2").WithArguments("default interface implementation", "8.0").WithLocation(25, 13),
-                // (26,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >> 2").WithArguments("default interface implementation").WithLocation(25, 13),
+                // (26,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = x > y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x > y").WithArguments("default interface implementation", "8.0").WithLocation(26, 13),
-                // (27,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x > y").WithArguments("default interface implementation").WithLocation(26, 13),
+                // (27,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = x < y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x < y").WithArguments("default interface implementation", "8.0").WithLocation(27, 13),
-                // (28,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x < y").WithArguments("default interface implementation").WithLocation(27, 13),
+                // (28,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = x >= y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x >= y").WithArguments("default interface implementation", "8.0").WithLocation(28, 13),
-                // (29,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >= y").WithArguments("default interface implementation").WithLocation(28, 13),
+                // (29,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = x <= y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x <= y").WithArguments("default interface implementation", "8.0").WithLocation(29, 13)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x <= y").WithArguments("default interface implementation").WithLocation(29, 13)
             };
             compilation7.VerifyDiagnostics(expected7);
 
@@ -31320,12 +31326,12 @@ class Test3 : I1
 
             var expected9 = new DiagnosticDescription[]
             {
-                // (8,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (8,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         if (x) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x").WithArguments("default interface implementation", "8.0").WithLocation(8, 13),
-                // (9,13): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("default interface implementation").WithLocation(8, 13),
+                // (9,13): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = x & y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "x & y").WithArguments("default interface implementation", "8.0").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x & y").WithArguments("default interface implementation").WithLocation(9, 13)
             };
             compilation9.VerifyDiagnostics(expected9);
 

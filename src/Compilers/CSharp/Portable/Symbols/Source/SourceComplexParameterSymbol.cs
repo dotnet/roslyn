@@ -252,13 +252,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 while (true)
                 {
+                    if (expr.IsSuppressed)
+                    {
+                        return true;
+                    }
+
                     switch (expr.Kind)
                     {
                         case BoundKind.Conversion:
                             expr = ((BoundConversion)expr).Operand;
                             break;
-                        case BoundKind.SuppressNullableWarningExpression:
-                            return true;
                         default:
                             return false;
                     }

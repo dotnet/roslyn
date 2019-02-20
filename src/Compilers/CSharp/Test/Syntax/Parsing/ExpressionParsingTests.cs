@@ -4008,9 +4008,10 @@ select t";
         public void NullCoalescingAssignmentCSharp7_3()
         {
             UsingExpression("a ??= b", TestOptions.Regular7_3,
-                // (1,3): error CS8370: Feature 'coalescing assignment' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,3): error CS8652: The feature 'coalescing assignment' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // a ??= b
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "??=").WithArguments("coalescing assignment", "8.0").WithLocation(1, 3));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "??=").WithArguments("coalescing assignment").WithLocation(1, 3));
+
             N(SyntaxKind.CoalesceAssignmentExpression);
             {
                 N(SyntaxKind.IdentifierName);
@@ -4510,9 +4511,9 @@ select t";
         public void BaseExpression_07()
         {
             UsingExpression("base(SomeType)", TestOptions.Regular7_3,
-                // (1,5): error CS8370: Feature 'specifying base type in base expression' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (1,5): error CS8652: The feature 'specifying base type in base expression' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // base(SomeType)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(").WithArguments("specifying base type in base expression", "8.0").WithLocation(1, 5)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(").WithArguments("specifying base type in base expression").WithLocation(1, 5)
                 );
             N(SyntaxKind.BaseExpression);
             {

@@ -694,7 +694,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var location = this.Locations[0];
 
             this.CheckModifiersAndType(diagnostics);
-            this.Type.CheckAllConstraints(conversions, location, diagnostics);
+            this.Type.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
 
             if (this.Type.NeedsNullableAttribute())
             {

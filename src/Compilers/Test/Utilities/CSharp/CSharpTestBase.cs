@@ -891,7 +891,7 @@ namespace System.Runtime.CompilerServices
                 string assemblyName = "",
                 string sourceFileName = "")
         {
-            IEnumerable<MetadataReference> allReferences = CoreClrShim.IsRunningOnCoreClr
+            IEnumerable<MetadataReference> allReferences = RuntimeUtilities.IsCoreClrRuntime
                 ? TargetFrameworkUtil.NetStandard20References
                 : TargetFrameworkUtil.Mscorlib461ExtendedReferences;
 
@@ -2029,6 +2029,33 @@ namespace System
                 references: new List<MetadataReference>() { reference.EmitToImageReference() },
                 options: options,
                 parseOptions: parseOptions);
+        }
+        #endregion
+
+        #region Theory Helpers
+
+        public static IEnumerable<object[]> NonNullTypesTrueAndFalseDebugDll
+        {
+            get
+            {
+                return new List<object[]>()
+                {
+                    new object[] { WithNonNullTypesTrue(TestOptions.DebugDll) },
+                    new object[] { WithNonNullTypesFalse(TestOptions.DebugDll) }
+                };
+            }
+        }
+
+        public static IEnumerable<object[]> NonNullTypesTrueAndFalseReleaseDll
+        {
+            get
+            {
+                return new List<object[]>()
+                {
+                    new object[] { WithNonNullTypesTrue(TestOptions.ReleaseDll) },
+                    new object[] { WithNonNullTypesFalse(TestOptions.ReleaseDll) }
+                };
+            }
         }
         #endregion
 
