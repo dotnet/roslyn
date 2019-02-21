@@ -1628,6 +1628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
+                    Debug.Assert(!allSame);
                     result = BetterResult.Neither;
                     break;
                 }
@@ -1658,40 +1659,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             GetParameterCounts(m1, arguments, out m1ParameterCount, out m1ParametersUsedIncludingExpansionAndOptional);
             GetParameterCounts(m2, arguments, out m2ParameterCount, out m2ParametersUsedIncludingExpansionAndOptional);
-
-            // We might have got out of the loop above early and allSame isn't completely calculated.
-            // We need to ensure that we are not going to skip over the next 'if' because of that.
-            if (allSame && m1ParametersUsedIncludingExpansionAndOptional == m2ParametersUsedIncludingExpansionAndOptional)
-            {
-                // Complete comparison for the remaining parameter types
-                for (i = i + 1; i < arguments.Count; ++i)
-                {
-                    var argumentKind = arguments[i].Kind;
-
-                    // If these are both applicable varargs methods and we're looking at the __arglist argument
-                    // then clearly neither of them is going to be better in this argument.
-                    if (argumentKind == BoundKind.ArgListOperator)
-                    {
-                        Debug.Assert(i == arguments.Count - 1);
-                        Debug.Assert(m1.Member.GetIsVararg() && m2.Member.GetIsVararg());
-                        continue;
-                    }
-
-                    var parameter1 = GetParameter(i, m1.Result, m1LeastOverridenParameters);
-                    var type1 = GetParameterType(parameter1, m1.Result);
-                    var type1Normalized = type1.NormalizeTaskTypes(Compilation);
-
-                    var parameter2 = GetParameter(i, m2.Result, m2LeastOverridenParameters);
-                    var type2 = GetParameterType(parameter2, m2.Result);
-                    var type2Normalized = type2.NormalizeTaskTypes(Compilation);
-
-                    if (Conversions.ClassifyImplicitConversionFromType(type1Normalized, type2Normalized, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
-                    {
-                        allSame = false;
-                        break;
-                    }
-                }
-            }
 
             // SPEC VIOLATION: When checking for matching parameter type sequences {P1, P2, …, PN} and {Q1, Q2, …, QN},
             //                 native compiler includes types of optional parameters. We partially duplicate this behavior
