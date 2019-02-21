@@ -180,6 +180,40 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             var activeWindow = NativeMethods.GetLastActivePopup(window);
             activeWindow = NativeMethods.IsWindowVisible(activeWindow) ? activeWindow : window;
             NativeMethods.SwitchToThisWindow(activeWindow, true);
+
+            if (!NativeMethods.SetForegroundWindow(activeWindow))
+            {
+                if (!NativeMethods.AllocConsole())
+                {
+                    Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+                }
+
+                try
+                {
+                    var consoleWindow = NativeMethods.GetConsoleWindow();
+                    if (consoleWindow == IntPtr.Zero)
+                    {
+                        throw new InvalidOperationException("Failed to obtain the console window.");
+                    }
+
+                    if (!NativeMethods.SetWindowPos(consoleWindow, IntPtr.Zero, 0, 0, 0, 0, NativeMethods.SWP_NOZORDER))
+                    {
+                        Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+                    }
+                }
+                finally
+                {
+                    if (!NativeMethods.FreeConsole())
+                    {
+                        Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+                    }
+                }
+
+                if (!NativeMethods.SetForegroundWindow(activeWindow))
+                {
+                    throw new InvalidOperationException("Failed to set the foreground window.");
+                }
+            }
         }
 
         public static void SendInput(NativeMethods.INPUT[] inputs)

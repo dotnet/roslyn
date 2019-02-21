@@ -20,6 +20,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
         [DllImport(Kernel32)]
         public static extern uint GetCurrentThreadId();
 
+        [DllImport(Kernel32, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool AllocConsole();
+
+        [DllImport(Kernel32, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool FreeConsole();
+
+        [DllImport(Kernel32, SetLastError = false)]
+        public static extern IntPtr GetConsoleWindow();
+
         #endregion
 
         #region ole32.dll
@@ -146,6 +157,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
 
         [DllImport(User32, CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern IntPtr SendMessage(IntPtr hWnd, uint uMsg, IntPtr wParam, [Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder lParam);
+
+        [DllImport(User32, SetLastError = false)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [DllImport(User32, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
+
+        public const uint SWP_NOZORDER = 4;
 
         [DllImport(User32, SetLastError = true)]
         public static extern IntPtr GetLastActivePopup(IntPtr hWnd);
