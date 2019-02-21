@@ -325,20 +325,20 @@ namespace Microsoft.CodeAnalysis
                 switch (_sectionName[Position])
                 {
                     case '*':
-                    {
-                        int nextPos = Position + 1;
-                        if (nextPos < _sectionName.Length &&
-                            _sectionName[nextPos] == '*')
                         {
-                            Position += 2;
-                            return TokenKind.StarStar;
+                            int nextPos = Position + 1;
+                            if (nextPos < _sectionName.Length &&
+                                _sectionName[nextPos] == '*')
+                            {
+                                Position += 2;
+                                return TokenKind.StarStar;
+                            }
+                            else
+                            {
+                                Position++;
+                                return TokenKind.Star;
+                            }
                         }
-                        else
-                        {
-                            Position++;
-                            return TokenKind.Star;
-                        }
-                    }
 
                     case '?':
                         Position++;
@@ -357,45 +357,45 @@ namespace Microsoft.CodeAnalysis
                         return TokenKind.CloseCurly;
 
                     case '\\':
-                    {
-                        // Backslash escapes the next character
-                        Position++;
-                        if (Position >= _sectionName.Length)
                         {
-                            return TokenKind.BadToken;
-                        }
-
-                        // Check for all of the possible escapes
-                        switch (_sectionName[Position++])
-                        {
-                            case '\\':
-                                // "\\" -> "\"
-                                return TokenKind.Backslash;
-
-                            case '*':
-                                // "\*" -> "\*"
-                                return TokenKind.LiteralStar;
-
-                            case '?':
-                                // "\?" -> "\?"
-                                return TokenKind.LiteralQuestion;
-
-                            case '{':
-                                // "\{" -> "{"
-                                return TokenKind.LiteralOpenBrace;
-
-                            case ',':
-                                // "\," -> ","
-                                return TokenKind.LiteralComma;
-
-                            case '}':
-                                // "\}" -> "}"
-                                return TokenKind.LiteralCloseBrace;
-
-                            default:
+                            // Backslash escapes the next character
+                            Position++;
+                            if (Position >= _sectionName.Length)
+                            {
                                 return TokenKind.BadToken;
+                            }
+
+                            // Check for all of the possible escapes
+                            switch (_sectionName[Position++])
+                            {
+                                case '\\':
+                                    // "\\" -> "\"
+                                    return TokenKind.Backslash;
+
+                                case '*':
+                                    // "\*" -> "\*"
+                                    return TokenKind.LiteralStar;
+
+                                case '?':
+                                    // "\?" -> "\?"
+                                    return TokenKind.LiteralQuestion;
+
+                                case '{':
+                                    // "\{" -> "{"
+                                    return TokenKind.LiteralOpenBrace;
+
+                                case ',':
+                                    // "\," -> ","
+                                    return TokenKind.LiteralComma;
+
+                                case '}':
+                                    // "\}" -> "}"
+                                    return TokenKind.LiteralCloseBrace;
+
+                                default:
+                                    return TokenKind.BadToken;
+                            }
                         }
-                    }
 
                     default:
                         // Don't increment position, since caller needs to fetch the character

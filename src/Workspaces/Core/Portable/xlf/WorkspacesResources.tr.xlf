@@ -9,17 +9,17 @@
       </trans-unit>
       <trans-unit id="CSharp_files">
         <source>C# files</source>
-        <target state="new">C# files</target>
+        <target state="translated">C# dosyalarını</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_document_0_is_not_supported">
         <source>Changing document '{0}' is not supported.</source>
-        <target state="new">Changing document '{0}' is not supported.</target>
+        <target state="translated">Değişen belge '{0}' desteklenmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Core_EditorConfig_Options">
         <source>Core EditorConfig Options</source>
-        <target state="new">Core EditorConfig Options</target>
+        <target state="translated">Çekirdek EditorConfig seçenekleri</target>
         <note />
       </trans-unit>
       <trans-unit id="DateTimeKind_must_be_Utc">
@@ -29,47 +29,42 @@
       </trans-unit>
       <trans-unit id="Expression_level_preferences">
         <source>Expression-level preferences</source>
-        <target state="new">Expression-level preferences</target>
+        <target state="translated">İfade düzey tercihleri</target>
         <note />
       </trans-unit>
       <trans-unit id="Field_preferences">
         <source>Field preferences</source>
-        <target state="new">Field preferences</target>
+        <target state="translated">Alan tercihleri</target>
         <note />
       </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
-        <target state="new">Indentation and spacing</target>
+        <target state="translated">Girinti ve aralığı</target>
         <note />
       </trans-unit>
       <trans-unit id="Language_keywords_vs_BCL_types_preferences">
         <source>Language keywords vs BCL types preferences</source>
-        <target state="new">Language keywords vs BCL types preferences</target>
+        <target state="translated">Dil anahtar kelimeler vs BCL türleri tercihleri</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifier_preferences">
         <source>Modifier preferences</source>
-        <target state="new">Modifier preferences</target>
+        <target state="translated">Değiştirici tercihleri</target>
         <note />
       </trans-unit>
       <trans-unit id="New_line_preferences">
         <source>New line preferences</source>
-        <target state="new">New line preferences</target>
+        <target state="translated">Yeni satır tercihleri</target>
         <note />
       </trans-unit>
       <trans-unit id="Organize_usings">
         <source>Organize usings</source>
-        <target state="new">Organize usings</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parameter_preferences">
-        <source>Parameter preferences</source>
-        <target state="new">Parameter preferences</target>
+        <target state="translated">Kullanımları Düzenle</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_preferences">
         <source>Parentheses preferences</source>
-        <target state="new">Parentheses preferences</target>
+        <target state="translated">Parantez tercihleri</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefix_0_does_not_match_expected_prefix_1">
@@ -89,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories">
         <source>Remove the line below if you want to inherit .editorconfig settings from higher directories</source>
-        <target state="new">Remove the line below if you want to inherit .editorconfig settings from higher directories</target>
+        <target state="translated">.Editorconfig ayarları daha yüksek dizinlerden devralmak isterseniz aşağıdaki satırı Kaldır</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
@@ -167,30 +162,65 @@
         <target state="translated">Projelerin eklenmesi desteklenmiyor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_BaseType">
+        <source>Base Type</source>
+        <target state="new">Base Type</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_Construct">
+        <source>Construct</source>
+        <target state="new">Construct</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_Declare">
+        <source>Declare</source>
+        <target state="new">Declare</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_Qualify">
+        <source>Qualify</source>
+        <target state="new">Qualify</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_TypeConstraint">
+        <source>Type Constraint</source>
+        <target state="new">Type Constraint</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
       <trans-unit id="Visual_Basic_files">
         <source>Visual Basic files</source>
-        <target state="new">Visual Basic files</target>
+        <target state="translated">Visual Basic dosyaları</target>
         <note />
       </trans-unit>
-      <trans-unit id="ValueUsageInfo_NameOnly">
-        <source>NameOnly</source>
-        <target state="new">NameOnly</target>
-        <note />
+      <trans-unit id="TypeOrNamespaceUsageInfo_Import">
+        <source>Import</source>
+        <target state="new">Import</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_TypeArgument">
+        <source>Type Argument</source>
+        <target state="new">Type Argument</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Name">
+        <source>Name</source>
+        <target state="new">Name</target>
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Read">
         <source>Read</source>
         <target state="new">Read</target>
-        <note />
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Reference">
         <source>Reference</source>
         <target state="new">Reference</target>
-        <note />
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Write">
         <source>Write</source>
         <target state="new">Write</target>
-        <note />
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
@@ -759,27 +789,27 @@
       </trans-unit>
       <trans-unit id="Class">
         <source>Class</source>
-        <target state="translated">Sınıf</target>
+        <target state="new">Class</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Delegate">
         <source>Delegate</source>
-        <target state="translated">Temsilci</target>
+        <target state="new">Delegate</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Enum">
         <source>Enum</source>
-        <target state="translated">Sabit listesi</target>
+        <target state="new">Enum</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Event">
         <source>Event</source>
-        <target state="translated">Olay</target>
+        <target state="new">Event</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Interface">
         <source>Interface</source>
-        <target state="translated">Arabirim</target>
+        <target state="new">Interface</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Non_Field_Members">
@@ -804,7 +834,7 @@
       </trans-unit>
       <trans-unit id="Property">
         <source>Property</source>
-        <target state="translated">Özellik</target>
+        <target state="new">Property</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Public_or_Protected_Field">
@@ -824,7 +854,7 @@
       </trans-unit>
       <trans-unit id="Struct">
         <source>Struct</source>
-        <target state="translated">Yapı</target>
+        <target state="new">Struct</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Types">
@@ -834,7 +864,7 @@
       </trans-unit>
       <trans-unit id="Method">
         <source>Method</source>
-        <target state="translated">Metot</target>
+        <target state="translated">yöntem</target>
         <note>{locked:method} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Missing_prefix_colon_0">
@@ -849,7 +879,7 @@
       </trans-unit>
       <trans-unit id="None">
         <source>None</source>
-        <target state="translated">Hiçbiri</target>
+        <target state="translated">yok</target>
         <note />
       </trans-unit>
       <trans-unit id="Missing_suffix_colon_0">
@@ -909,167 +939,167 @@
       </trans-unit>
       <trans-unit id="Alternation_conditions_cannot_be_comments">
         <source>Alternation conditions cannot be comments</source>
-        <target state="new">Alternation conditions cannot be comments</target>
+        <target state="translated">Değişim koşulları yorum olamaz</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a|(?#b)</note>
       </trans-unit>
       <trans-unit id="Alternation_conditions_do_not_capture_and_cannot_be_named">
         <source>Alternation conditions do not capture and cannot be named</source>
-        <target state="new">Alternation conditions do not capture and cannot be named</target>
+        <target state="translated">Değişim koşulları yakalamak değil ve adlandırılamaz</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</note>
       </trans-unit>
       <trans-unit id="A_subtraction_must_be_the_last_element_in_a_character_class">
         <source>A subtraction must be the last element in a character class</source>
-        <target state="new">A subtraction must be the last element in a character class</target>
+        <target state="translated">Bir çıkarma bir karakter sınıfı içinde son öğe olması gerekir</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
       </trans-unit>
       <trans-unit id="Cannot_include_class_0_in_character_range">
         <source>Cannot include class \{0} in character range</source>
-        <target state="new">Cannot include class \{0} in character range</target>
+        <target state="translated">Sınıf \{0 içeremez} karakter aralığı</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-\w]. {0} is the invalid class (\w here)</note>
       </trans-unit>
       <trans-unit id="Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue">
         <source>Capture group numbers must be less than or equal to Int32.MaxValue</source>
-        <target state="new">Capture group numbers must be less than or equal to Int32.MaxValue</target>
+        <target state="translated">Yakalama grup numaraları Int32.MaxValue eşit veya daha az olmalıdır</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{2147483648}</note>
       </trans-unit>
       <trans-unit id="Capture_number_cannot_be_zero">
         <source>Capture number cannot be zero</source>
-        <target state="new">Capture number cannot be zero</target>
+        <target state="translated">Yakalama numarası sıfır olamaz</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;0&gt;a)</note>
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
         <source>Illegal \ at end of pattern</source>
-        <target state="new">Illegal \ at end of pattern</target>
+        <target state="translated">Yasadışı \ model sonunda</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \</note>
       </trans-unit>
       <trans-unit id="Illegal_x_y_with_x_less_than_y">
         <source>Illegal {x,y} with x &gt; y</source>
-        <target state="new">Illegal {x,y} with x &gt; y</target>
+        <target state="translated">Yasadışı {x, y} x &gt; y</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{1,0}</note>
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">
         <source>Incomplete \p{X} character escape</source>
-        <target state="new">Incomplete \p{X} character escape</target>
+        <target state="translated">Tamamlanmamış \p{X} karakter kaçış</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p{ Cc }</note>
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
-        <target state="new">Insufficient hexadecimal digits</target>
+        <target state="translated">Yetersiz onaltılık basamak</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \x</note>
       </trans-unit>
       <trans-unit id="Invalid_group_name_Group_names_must_begin_with_a_word_character">
         <source>Invalid group name: Group names must begin with a word character</source>
-        <target state="new">Invalid group name: Group names must begin with a word character</target>
+        <target state="translated">Geçersiz grup adı: grup adları bir sözcük karakteri ile başlamalıdır</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
       </trans-unit>
       <trans-unit id="Malformed">
         <source>malformed</source>
-        <target state="new">malformed</target>
+        <target state="translated">Hatalı biçimlendirilmiş</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</note>
       </trans-unit>
       <trans-unit id="Malformed_character_escape">
         <source>Malformed \p{X} character escape</source>
-        <target state="new">Malformed \p{X} character escape</target>
+        <target state="translated">Hatalı biçimlendirilmiş \p{X} karakter kaçış</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p {Cc}</note>
       </trans-unit>
       <trans-unit id="Malformed_named_back_reference">
         <source>Malformed \k&lt;...&gt; named back reference</source>
-        <target state="new">Malformed \k&lt;...&gt; named back reference</target>
+        <target state="translated">Hatalı biçimlendirilmiş \k &lt;&gt;... arka başvuru adı</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k'</note>
       </trans-unit>
       <trans-unit id="Missing_control_character">
         <source>Missing control character</source>
-        <target state="new">Missing control character</target>
+        <target state="translated">Eksik denetim karakteri</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier {0}</source>
-        <target state="new">Nested quantifier {0}</target>
+        <target state="translated">İç içe geçmiş nicelik belirteci {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
         <source>Not enough )'s</source>
-        <target state="new">Not enough )'s</target>
+        <target state="translated">Değil yeterli)'ın</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
         <source>Quantifier {x,y} following nothing</source>
-        <target state="new">Quantifier {x,y} following nothing</target>
+        <target state="translated">Nicelik belirteci {x, y} hiçbir şey takip</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group">
         <source>reference to undefined group</source>
-        <target state="new">reference to undefined group</target>
+        <target state="translated">tanımsız grubuna başvuru</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1))</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_name_0">
         <source>Reference to undefined group name {0}</source>
-        <target state="new">Reference to undefined group name {0}</target>
+        <target state="translated">{0} tanımsız grup adı referansı</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k&lt;a&gt;. Here, {0} will be the name of the undefined group ('a')</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_number_0">
         <source>Reference to undefined group number {0}</source>
-        <target state="new">Reference to undefined group number {0}</target>
+        <target state="translated">Tanımlanmamış grup numarası {0} referansı</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;-1&gt;). Here, {0} will be the number of the undefined group ('1')</note>
       </trans-unit>
       <trans-unit id="Too_many_bars_in_conditional_grouping">
         <source>Too many | in (?()|)</source>
-        <target state="new">Too many | in (?()|)</target>
+        <target state="translated">Çok fazla | içinde (?) (|)</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0)a|b|)</note>
       </trans-unit>
       <trans-unit id="Too_many_close_parens">
         <source>Too many )'s</source>
-        <target state="new">Too many )'s</target>
+        <target state="translated">Çok fazla)'s</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
       </trans-unit>
       <trans-unit id="Unknown_property">
         <source>Unknown property</source>
-        <target state="new">Unknown property</target>
+        <target state="translated">Bilinmeyen Özellik</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p{}</note>
       </trans-unit>
       <trans-unit id="Unknown_property_0">
         <source>Unknown property '{0}'</source>
-        <target state="new">Unknown property '{0}'</target>
+        <target state="translated">'Bilinmeyen {0}' özelliği</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p{xxx}. Here, {0} will be the name of the unknown property ('xxx')</note>
       </trans-unit>
       <trans-unit id="Unrecognized_control_character">
         <source>Unrecognized control character</source>
-        <target state="new">Unrecognized control character</target>
+        <target state="translated">Tanınmayan denetim karakteri</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [\c]</note>
       </trans-unit>
       <trans-unit id="Unrecognized_escape_sequence_0">
         <source>Unrecognized escape sequence \{0}</source>
-        <target state="new">Unrecognized escape sequence \{0}</target>
+        <target state="translated">Tanınmayan çıkış sırası \{0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \m. Here, {0} will be the unrecognized character ('m')</note>
       </trans-unit>
       <trans-unit id="Unrecognized_grouping_construct">
         <source>Unrecognized grouping construct</source>
-        <target state="new">Unrecognized grouping construct</target>
+        <target state="translated">Tanınmayan gruplama yapısı</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;</note>
       </trans-unit>
       <trans-unit id="Unterminated_character_class_set">
         <source>Unterminated [] set</source>
-        <target state="new">Unterminated [] set</target>
+        <target state="translated">Sonlandırılmamış [] kümesi</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [</note>
       </trans-unit>
       <trans-unit id="Unterminated_regex_comment">
         <source>Unterminated (?#...) comment</source>
-        <target state="new">Unterminated (?#...) comment</target>
+        <target state="translated">Sonlandırılmamış (?... #) yorum</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?#</note>
       </trans-unit>
       <trans-unit id="dot_NET_Coding_Conventions">
         <source>.NET Coding Conventions</source>
-        <target state="new">.NET Coding Conventions</target>
+        <target state="translated">.NET kodlama kuralları</target>
         <note />
       </trans-unit>
       <trans-unit id="this_dot_and_Me_dot_preferences">
         <source>this. and Me. preferences</source>
-        <target state="new">this. and Me. preferences</target>
+        <target state="translated">Bu. ve bana tercihleri</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
         <source>[x-y] range in reverse order</source>
-        <target state="new">[x-y] range in reverse order</target>
+        <target state="translated">[x-y] aralığı ters sırada</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [b-a]</note>
       </trans-unit>
       <trans-unit id="Variables_captured_colon">
@@ -1079,8 +1109,13 @@
       </trans-unit>
       <trans-unit id="Regex_issue_0">
         <source>Regex issue: {0}</source>
-        <target state="new">Regex issue: {0}</target>
+        <target state="translated">Regex sorunu: {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. {0} will be the actual text of one of the above Regular Expression errors.</note>
+      </trans-unit>
+      <trans-unit id="Parameter_preferences">
+        <source>Parameter preferences</source>
+        <target state="new">Parameter preferences</target>
+        <note />
       </trans-unit>
     </body>
   </file>

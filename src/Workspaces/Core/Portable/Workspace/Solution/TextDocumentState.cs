@@ -139,11 +139,7 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    using (ExceptionHelpers.SuppressFailFast())
-                    {
-                        var result = await loader.LoadTextAndVersionAsync(services.Workspace, documentId, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-                        return result;
-                    }
+                    return await loader.LoadTextAndVersionAsync(services.Workspace, documentId, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -184,11 +180,7 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    using (ExceptionHelpers.SuppressFailFast())
-                    {
-                        var result = loader.LoadTextAndVersionSynchronously(services.Workspace, documentId, cancellationToken);
-                        return result;
-                    }
+                    return loader.LoadTextAndVersionSynchronously(services.Workspace, documentId, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {

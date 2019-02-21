@@ -16,6 +16,8 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
@@ -112,10 +114,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             if (_invisibleEditor != null)
             {
-                // we are shutting down, so do not worry about editCount. If the editor is still alive, dispose it.
+                // we are shutting down, so do not worry about editCount. We will detach our format tracking from the text
+                // buffer now; if anybody else had an invisible editor open to this file, we wouldn't want our format tracking
+                // to trigger. We can safely do that on a background thread since it's just disconnecting a few event handlers.
+                // We have to defer the shutdown of the invisible editor though as that requires talking to the UI thread.
+                // We don't want to block up file removal on the UI thread since we want that path to stay asynchronous.
                 CodeModelService.DetachFormatTrackingToBuffer(_invisibleEditor.TextBuffer);
-                _invisibleEditor.Dispose();
-                _invisibleEditor = null;
+
+                State.ProjectCodeModelFactory.ScheduleDeferredCleanupTask(() => { _invisibleEditor.Dispose(); });
             }
 
             base.Shutdown();

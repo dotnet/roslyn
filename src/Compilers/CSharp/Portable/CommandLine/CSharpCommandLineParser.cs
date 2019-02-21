@@ -1252,7 +1252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 embedAllSourceFiles = true;
                                 continue;
                             }
-                            
+
                             foreach (var path in ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
                             {
                                 embeddedFiles.Add(ToCommandLineSourceFile(path));

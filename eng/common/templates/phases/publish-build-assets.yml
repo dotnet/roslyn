@@ -29,10 +29,10 @@ phases:
           condition: ${{ parameters.condition }}
           continueOnError: ${{ parameters.continueOnError }}
         - script: eng\common\publishbuildassets.cmd
-            -configuration $(_BuildConfig)
             /p:ManifestsPath='$(Build.StagingDirectory)/Download/AssetManifests'
             /p:BuildAssetRegistryToken=$(MaestroAccessToken)
             /p:MaestroApiEndpoint=https://maestro-prod.westus2.cloudapp.azure.com
+            /p:Configuration=$(_BuildConfig)
           displayName: Publish Build Assets
           condition: ${{ parameters.condition }}
           continueOnError: ${{ parameters.continueOnError }}

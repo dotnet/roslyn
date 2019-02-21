@@ -94,6 +94,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         protected abstract Option<CodeStyleOption<UnusedValuePreference>> UnusedValueAssignmentOption { get; }
 
         /// <summary>
+        /// Indicates if we should bail from removable assignment analysis for the given
+        /// symbol write operation.
+        /// Removable assignment analysis determines if the assigned value for the symbol write
+        /// has no side effects and can be removed without changing the semantics.
+        /// </summary>
+        protected virtual bool ShouldBailOutFromRemovableAssignmentAnalysis(IOperation unusedSymbolWriteOperation)
+            => false;
+
+        /// <summary>
         /// Indicates if the given expression statement operation has an explicit "Call" statement syntax indicating explicit discard.
         /// For example, VB "Call" statement.
         /// </summary>
@@ -304,5 +313,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             Debug.Assert(TryGetUnusedValuePreference(diagnostic, out _));
             return diagnostic.Properties.ContainsKey(IsRemovableAssignmentKey);
         }
+
+        /// <summary>
+        /// Returns true for symbols whose name starts with an underscore and
+        /// are optionally followed by an integer, such as '_', '_1', '_2', etc.
+        /// These are treated as special discard symbol names.
+        /// </summary>
+        private static bool IsSymbolWithSpecialDiscardName(ISymbol symbol)
+            => symbol.Name.StartsWith("_") &&
+               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name.Substring(1), out _));
     }
 }
