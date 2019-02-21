@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class LocalDataFlowPass<TLocalState>
     {
-        internal struct VariableIdentifier : IEquatable<VariableIdentifier>
+        internal readonly struct VariableIdentifier : IEquatable<VariableIdentifier>
         {
             public readonly Symbol Symbol;
             public readonly int ContainingSlot;
@@ -25,43 +25,45 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool Exists
             {
-                get { Debug.Assert((object)Symbol != null);  return (object)Symbol != null; }
+                get { return (object)Symbol != null; }
             }
 
             public override int GetHashCode()
             {
-                Debug.Assert((object)Symbol != null);
+                Debug.Assert(Exists);
 
                 int currentKey = ContainingSlot;
-                int thisIndex = Symbol.MemberIndex;
-                return (thisIndex < 0) ?
+                // MemberIndexOpt, if available, is a cheap approach to comparing relative members.
+                int? thisIndex = Symbol.MemberIndexOpt;
+                return thisIndex.HasValue ?
                     Hash.Combine(Symbol.OriginalDefinition, currentKey) :
-                    Hash.Combine(thisIndex, currentKey);
+                    Hash.Combine(thisIndex.GetValueOrDefault(), currentKey);
             }
 
             public bool Equals(VariableIdentifier other)
             {
-                Debug.Assert((object)Symbol != null);
-                Debug.Assert((object)other.Symbol != null);
+                Debug.Assert(Exists);
+                Debug.Assert(other.Exists);
 
                 if (ContainingSlot != other.ContainingSlot)
                 {
                     return false;
                 }
 
-                int thisIndex = Symbol.MemberIndex;
-                int otherIndex = other.Symbol.MemberIndex;
+                // MemberIndexOpt, if available, is a cheap approach to comparing relative members.
+                int? thisIndex = Symbol.MemberIndexOpt;
+                int? otherIndex = other.Symbol.MemberIndexOpt;
                 if (thisIndex != otherIndex)
                 {
                     return false;
                 }
 
-                if (thisIndex < 0)
+                if (thisIndex.HasValue)
                 {
-                    return Symbol.OriginalDefinition.Equals(other.Symbol.OriginalDefinition);
+                    return true;
                 }
 
-                return true;
+                return Symbol.OriginalDefinition.Equals(other.Symbol.OriginalDefinition);
             }
 
             public override bool Equals(object obj)
@@ -69,11 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw ExceptionUtilities.Unreachable;
             }
 
+            [Obsolete]
             public static bool operator ==(VariableIdentifier left, VariableIdentifier right)
             {
                 throw ExceptionUtilities.Unreachable;
             }
 
+            [Obsolete]
             public static bool operator !=(VariableIdentifier left, VariableIdentifier right)
             {
                 throw ExceptionUtilities.Unreachable;

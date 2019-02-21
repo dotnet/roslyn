@@ -210,12 +210,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The index of this member in the containing symbol. This is an optional
         /// property, implemented by anonymous type properties only, for comparing
-        /// symbols in flow analysis. Returns -1 if not implemented.
+        /// symbols in flow analysis.
         /// </summary>
         /// <remarks>
         /// Should this be used for tuple fields as well?
         /// </remarks>
-        internal virtual int MemberIndex => -1;
+        internal virtual int? MemberIndexOpt => null;
 
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another

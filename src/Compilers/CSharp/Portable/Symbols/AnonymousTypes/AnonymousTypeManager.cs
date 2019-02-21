@@ -54,14 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return fields.SelectAsArray(f => f.Type);
         }
 
-        internal static PropertySymbol AsMember(PropertySymbol property, NamedTypeSymbol newOwner)
-        {
-            Debug.Assert(newOwner.IsAnonymousType);
-            var anonymous = (AnonymousTypePublicSymbol)newOwner;
-            int index = property.MemberIndex;
-            return anonymous.Properties[index];
-        }
-
         /// <summary>
         /// Given an anonymous type and new field types construct a new anonymous type symbol; 
         /// a new type symbol will reuse type descriptor from the constructed type with new type arguments.

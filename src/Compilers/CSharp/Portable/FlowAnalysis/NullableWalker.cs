@@ -1414,20 +1414,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(anonymousType.IsAnonymousType);
 
             var arguments = node.Arguments;
-            var argumentTypes = arguments.SelectAsArray(arg => VisitRvalueWithResult(arg));
+            var argumentTypes = arguments.SelectAsArray((arg, visitor) => VisitRvalueWithResult(arg), this);
+
             if (argumentTypes.All(t => !t.IsNull))
             {
                 anonymousType = AnonymousTypeManager.ConstructAnonymousTypeSymbol(anonymousType, argumentTypes);
-            }
-
-            int n = arguments.Length;
-            int receiverSlot = GetOrCreateObjectCreationPlaceholderSlot(node);
-            for (int i = 0; i < n; i++)
-            {
-                var argument = arguments[i];
-                var argumentType = argumentTypes[i];
-                var property = AnonymousTypeManager.GetAnonymousTypeProperty(anonymousType, i);
-                TrackNullableStateForAssignment(argument, property.Type, GetOrCreateSlot(property, receiverSlot), argumentType, MakeSlot(argument));
+                int n = arguments.Length;
+                int receiverSlot = GetOrCreateObjectCreationPlaceholderSlot(node);
+                for (int i = 0; i < n; i++)
+                {
+                    var argument = arguments[i];
+                    var argumentType = argumentTypes[i];
+                    var property = AnonymousTypeManager.GetAnonymousTypeProperty(anonymousType, i);
+                    TrackNullableStateForAssignment(argument, property.Type, GetOrCreateSlot(property, receiverSlot), argumentType, MakeSlot(argument));
+                }
             }
 
             ResultType = TypeSymbolWithAnnotations.Create(anonymousType, NullableAnnotation.NotNullable);
@@ -3333,12 +3333,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     if (symbolDefContainer.IsAnonymousType)
                     {
-                        if (symbol.Kind != SymbolKind.Property)
+                        int? memberIndex = symbol.MemberIndexOpt;
+                        if (!memberIndex.HasValue)
                         {
-                            Debug.Assert(false);
+                            Debug.Assert(false); // If the assert fails, handle additional cases.
                             break;
                         }
-                        return AnonymousTypeManager.AsMember((PropertySymbol)symbol, containingType);
+                        return AnonymousTypeManager.GetAnonymousTypeProperty(containingType, memberIndex.GetValueOrDefault());
                     }
                     var result = symbolDef.SymbolAsMember(containingType);
                     if (result is MethodSymbol resultMethod && resultMethod.IsGenericMethod)
