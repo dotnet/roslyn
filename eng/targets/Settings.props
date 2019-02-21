@@ -2,8 +2,9 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <PropertyGroup>
-    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  <PropertyGroup Condition="'$(CopyrightMicrosoft)' != ''">
+    <Copyright>$(CopyrightMicrosoft)</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
   
   <PropertyGroup>
@@ -11,9 +12,9 @@
     <RepositoryRawUrl>https://raw.githubusercontent.com/dotnet/roslyn</RepositoryRawUrl>
     
     <!-- Package Settings -->
-    <PackageLicenseUrl>$(RepositoryUrl)/blob/master/License.txt</PackageLicenseUrl>
+    <PackageLicenseUrl Condition="'$(PackageLicenseExpression)' == ''">$(RepositoryUrl)/blob/master/License.txt</PackageLicenseUrl>
     <!-- The SPDX name for the source license. See https://spdx.org/licenses/. -->
-    <PackageLicenseType>Apache-2.0</PackageLicenseType>
+    <PackageLicenseType Condition="'$(PackageLicenseExpression)' == ''">Apache-2.0</PackageLicenseType>
     <PackageIconUrl>https://go.microsoft.com/fwlink/?LinkID=288859</PackageIconUrl>
     <PackageProjectUrl>https://github.com/dotnet/roslyn</PackageProjectUrl>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics</PackageTags>
