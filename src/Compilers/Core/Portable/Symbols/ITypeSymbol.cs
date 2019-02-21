@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis
         bool IsUnmanagedType { get; }
 
         /// <summary>
-        /// True if the type is a readonly struct.
+        /// True if the type is readonly.
         /// </summary>
         bool IsReadOnly { get; }
     }
