@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis
 {
     public struct TypeInfo : IEquatable<TypeInfo>
     {
-        internal static readonly TypeInfo None = new TypeInfo(null, null, Nullability.NotApplicable, Nullability.NotApplicable);
+        internal static readonly TypeInfo None = new TypeInfo(null, null, Nullability.NotComputed, Nullability.NotComputed);
 
         /// <summary>
         /// The type of the expression represented by the syntax node. For expressions that do not
@@ -40,7 +40,8 @@ namespace Microsoft.CodeAnalysis
         {
             return object.Equals(this.Type, other.Type)
                 && object.Equals(this.ConvertedType, other.ConvertedType)
-                && object.Equals(this.Nullability, other.Nullability);
+                && object.Equals(this.Nullability, other.Nullability)
+                && object.Equals(this.ConvertedNullability, other.ConvertedNullability);
         }
 
         public override bool Equals(object obj)
