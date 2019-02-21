@@ -256,5 +256,9 @@ namespace Analyzer.Utilities
         public const string NUnitFrameworkTestCaseSourceAttribute = "NUnit.Framework.TestCaseSourceAttribute";
         public const string NUnitFrameworkTheoryAttribute = "NUnit.Framework.TheoryAttribute";
         public const string SystemXmlXmlWriter = "System.Xml.XmlWriter";
+        public const string MicrosoftSecurityApplicationLdapEncoder = "Microsoft.Security.Application.LdapEncoder";
+        public const string SystemDirectoryServicesActiveDirectoryADSearcher = "System.DirectoryServices.ActiveDirectory.ADSearcher";
+        public const string SystemDirectoryServicesDirectorySearcher = "System.DirectoryServices.DirectorySearcher";
+        public const string SystemDirectoryDirectoryEntry = "System.DirectoryServices.DirectoryEntry";
     }
 }
