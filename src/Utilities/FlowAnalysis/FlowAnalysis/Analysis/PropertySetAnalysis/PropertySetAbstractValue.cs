@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
@@ -21,32 +22,77 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
     /// The reason for the "sparse" array is so that the Unknown value doesn't
     /// have to be aware of how many properties are being tracked.
     /// </remarks>
-    internal class PropertySetAbstractValue
+    internal partial class PropertySetAbstractValue
     {
         public static readonly PropertySetAbstractValue Unknown = new PropertySetAbstractValue();
 
-        public static PropertySetAbstractValue GetInstance(ImmutableArray<PropertySetAbstractValueKind> propertyAbstractValues)
-        {
-            // TODO: Pool instances.
-            return new PropertySetAbstractValue(propertyAbstractValues);
-        }
-
-        public static PropertySetAbstractValue GetInstance(ArrayBuilder<PropertySetAbstractValueKind> arrayBuilder)
-        {
-            // TODO: Pool instances.
-            return new PropertySetAbstractValue(arrayBuilder.ToImmutable());
-        }
+        private static readonly ValuePool Pool = new ValuePool();
 
         public static PropertySetAbstractValue GetInstance(PropertySetAbstractValueKind v1)
         {
-            // TODO: Pool instances.
-            return GetInstance(ImmutableArray.Create<PropertySetAbstractValueKind>(v1));
+            return Pool.GetInstance(v1);
         }
 
         public static PropertySetAbstractValue GetInstance(PropertySetAbstractValueKind v1, PropertySetAbstractValueKind v2)
         {
-            // TODO: Pool instances.
-            return GetInstance(ImmutableArray.Create<PropertySetAbstractValueKind>(v1, v2));
+            return Pool.GetInstance(v1, v2);
+        }
+
+        public static PropertySetAbstractValue GetInstance(ArrayBuilder<PropertySetAbstractValueKind> propertyAbstractValues)
+        {
+            if (TryGetPooledInstance(propertyAbstractValues, out PropertySetAbstractValue instance))
+            {
+                return instance;
+            }
+            else
+            {
+                return new PropertySetAbstractValue(propertyAbstractValues.ToImmutable());
+            }
+        }
+
+        public static PropertySetAbstractValue GetInstance(ImmutableArray<PropertySetAbstractValueKind> propertyAbstractValues)
+        {
+            if (TryGetPooledInstance(propertyAbstractValues, out PropertySetAbstractValue instance))
+            {
+                return instance;
+            }
+            else
+            {
+                return new PropertySetAbstractValue(propertyAbstractValues);
+            }
+        }
+
+        private static bool TryGetPooledInstance(IReadOnlyList<PropertySetAbstractValueKind> values, out PropertySetAbstractValue instance)
+        {
+            if (values.Count == 0)
+            {
+                instance = Unknown;
+                return true;
+            }
+            else if (values.Count == 1)
+            {
+                instance = Pool.GetInstance(values[0]);
+                return true;
+            }
+            else if (values.Count == 2)
+            {
+                instance = Pool.GetInstance(values[0], values[1]);
+                return true;
+            }
+            else
+            {
+                for (int i = 2; i < values.Count; i++)
+                {
+                    if (values[i] != PropertySetAbstractValueKind.Unknown)
+                    {
+                        instance = null;
+                        return false;
+                    }
+                }
+
+                instance = Pool.GetInstance(values[0], values[1]);
+                return true;
+            }
         }
 
         private PropertySetAbstractValue(ImmutableArray<PropertySetAbstractValueKind> propertyAbstractValues)

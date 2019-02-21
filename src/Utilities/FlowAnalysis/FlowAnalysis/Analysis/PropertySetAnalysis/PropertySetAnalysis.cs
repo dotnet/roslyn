@@ -20,7 +20,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
     /// </summary>
     internal partial class PropertySetAnalysis : ForwardDataFlowAnalysis<PropertySetAnalysisData, PropertySetAnalysisContext, PropertySetAnalysisResult, PropertySetBlockAnalysisResult, PropertySetAbstractValue>
     {
-        public static readonly PropertySetAnalysisDomain BinaryFormatterAnalysisDomainInstance = new PropertySetAnalysisDomain(PropertySetAbstractValueDomain.Default);
+        public static readonly PropertySetAnalysisDomain PropertySetAnalysisDomainInstance = new PropertySetAnalysisDomain(PropertySetAbstractValueDomain.Default);
 
         private PropertySetAnalysis(PropertySetAnalysisDomain analysisDomain, PropertySetDataFlowOperationVisitor operationVisitor)
             : base(analysisDomain, operationVisitor)
@@ -114,7 +114,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         private static PropertySetAnalysisResult GetOrComputeResultForAnalysisContext(PropertySetAnalysisContext analysisContext)
         {
             var operationVisitor = new PropertySetDataFlowOperationVisitor(analysisContext);
-            var analysis = new PropertySetAnalysis(BinaryFormatterAnalysisDomainInstance, operationVisitor);
+            var analysis = new PropertySetAnalysis(PropertySetAnalysisDomainInstance, operationVisitor);
             return analysis.GetOrComputeResultCore(analysisContext, cacheResult: true);
         }
 
