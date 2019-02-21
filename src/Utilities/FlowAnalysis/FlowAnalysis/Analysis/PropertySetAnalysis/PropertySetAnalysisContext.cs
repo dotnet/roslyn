@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
     using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
-    using InterproceduralBinaryFormatterAnalysisData = InterproceduralAnalysisData<DictionaryAnalysisData<AbstractLocation, PropertySetAbstractValue>, PropertySetAnalysisContext, PropertySetAbstractValue>;
+    using InterproceduralPropertySetAnalysisData = InterproceduralAnalysisData<DictionaryAnalysisData<AbstractLocation, PropertySetAbstractValue>, PropertySetAnalysisContext, PropertySetAbstractValue>;
     using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
     using PropertySetAnalysisData = DictionaryAnalysisData<AbstractLocation, PropertySetAbstractValue>;
     using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
@@ -36,7 +36,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             ValueContentAnalysisResult valueContentAnalysisResultOpt,
             Func<PropertySetAnalysisContext, PropertySetAnalysisResult> getOrComputeAnalysisResult,
             ControlFlowGraph parentControlFlowGraphOpt,
-            InterproceduralBinaryFormatterAnalysisData interproceduralAnalysisDataOpt,
+            InterproceduralPropertySetAnalysisData interproceduralAnalysisDataOpt,
             string typeToTrackMetadataName,
             ConstructorMapper constructorMapper,
             PropertyMapperCollection propertyMappers,
@@ -96,7 +96,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             IOperation operation,
             PointsToAnalysisResult pointsToAnalysisResultOpt,
             CopyAnalysisResult copyAnalysisResultOpt,
-            InterproceduralBinaryFormatterAnalysisData interproceduralAnalysisData)
+            InterproceduralPropertySetAnalysisData interproceduralAnalysisData)
         {
             Debug.Assert(pointsToAnalysisResultOpt != null);
             Debug.Assert(copyAnalysisResultOpt == null);

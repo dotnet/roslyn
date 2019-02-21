@@ -74,7 +74,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             }
 
             protected override PropertySetAnalysisData MergeAnalysisData(PropertySetAnalysisData value1, PropertySetAnalysisData value2)
-                => BinaryFormatterAnalysisDomainInstance.Merge(value1, value2);
+                => PropertySetAnalysisDomainInstance.Merge(value1, value2);
             protected override PropertySetAnalysisData GetClonedAnalysisData(PropertySetAnalysisData analysisData)
                 => GetClonedAnalysisDataHelper(analysisData);
             public override PropertySetAnalysisData GetEmptyAnalysisData()

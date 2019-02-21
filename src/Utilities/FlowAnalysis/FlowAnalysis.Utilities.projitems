@@ -4,8 +4,7 @@
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
     <HasSharedItems>true</HasSharedItems>
     <SharedGUID>ec946164-1e17-410b-b7d9-7de7e6268d63</SharedGUID>
-	
-	<!-- CA1724: Type name conflicts in whole or in part with namepsace name -->
+    <!-- CA1724: Type name conflicts in whole or in part with namepsace name -->
     <NoWarn>$(NoWarn);CA1724</NoWarn>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
@@ -107,7 +106,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)SingleThreadedConcurrentDictionary.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(ExcludeInternalFlowAnalyses)' != 'true'">
-	  <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\FilePathInjectionSinks.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\FilePathInjectionSinks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\PooledHashSetExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\XssSanitizers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\RegexSinks.cs" />
@@ -147,6 +146,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertyMapperCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAbstractValueKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAbstractValue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAbstractValue.ValuePool.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAnalysis.PropertySetAbstractValueDomain.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAnalysis.PropertySetDataFlowOperationVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PropertySetAnalysis\PropertySetAnalysis.cs" />
