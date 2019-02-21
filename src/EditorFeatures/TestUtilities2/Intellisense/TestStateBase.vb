@@ -19,9 +19,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Friend MustInherit Class TestStateBase
         Inherits AbstractCommandHandlerTestState
 
-        Protected ReadOnly IntelliSenseCommandHandler As IntelliSenseCommandHandler
         Protected ReadOnly SessionTestState As IIntelliSenseTestState
-        Private ReadOnly SignatureHelpCommandHandler As SignatureHelpCommandHandler
+        Private ReadOnly SignatureHelpBeforeCompletionCommandHandler As SignatureHelpBeforeCompletionCommandHandler
+        Protected ReadOnly SignatureHelpAfterCompletionCommandHandler As SignatureHelpAfterCompletionCommandHandler
         Private ReadOnly FormatCommandHandler As FormatCommandHandler
 
         Friend ReadOnly Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession
@@ -51,9 +51,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Me.SessionTestState = GetExportedValue(Of IIntelliSenseTestState)()
 
-            Me.SignatureHelpCommandHandler = GetExportedValue(Of SignatureHelpCommandHandler)()
+            Me.SignatureHelpBeforeCompletionCommandHandler = GetExportedValue(Of SignatureHelpBeforeCompletionCommandHandler)()
 
-            Me.IntelliSenseCommandHandler = GetExportedValue(Of IntelliSenseCommandHandler)()
+            Me.SignatureHelpAfterCompletionCommandHandler = GetExportedValue(Of SignatureHelpAfterCompletionCommandHandler)()
 
             Me.FormatCommandHandler = If(includeFormatCommandHandler, GetExportedValue(Of FormatCommandHandler)(), Nothing)
         End Sub
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 #Region "Editor Related Operations"
 
         Protected Overloads Sub ExecuteTypeCharCommand(args As TypeCharCommandArgs, finalHandler As Action, context As CommandExecutionContext, completionCommandHandler As VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
-            Dim sigHelpHandler = DirectCast(SignatureHelpCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
+            Dim sigHelpHandler = DirectCast(SignatureHelpBeforeCompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
             Dim formatHandler = DirectCast(FormatCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
 
             If formatHandler Is Nothing Then
@@ -206,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 #Region "Signature Help Operations"
 
         Public Overloads Sub SendInvokeSignatureHelp()
-            Dim handler = DirectCast(SignatureHelpCommandHandler, VSCommanding.IChainedCommandHandler(Of InvokeSignatureHelpCommandArgs))
+            Dim handler = DirectCast(SignatureHelpBeforeCompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of InvokeSignatureHelpCommandArgs))
             MyBase.SendInvokeSignatureHelp(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
