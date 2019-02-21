@@ -33,11 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(Exists);
 
                 int currentKey = ContainingSlot;
-                // MemberIndexOpt, if available, is a cheap approach to comparing relative members.
+                // MemberIndexOpt, if available, is a fast approach to comparing relative members,
+                // and is necessary in cases such as anonymous types where OriginalDefinition will be distinct.
                 int? thisIndex = Symbol.MemberIndexOpt;
                 return thisIndex.HasValue ?
-                    Hash.Combine(Symbol.OriginalDefinition, currentKey) :
-                    Hash.Combine(thisIndex.GetValueOrDefault(), currentKey);
+                    Hash.Combine(thisIndex.GetValueOrDefault(), currentKey) :
+                    Hash.Combine(Symbol.OriginalDefinition, currentKey);
             }
 
             public bool Equals(VariableIdentifier other)
@@ -50,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                // MemberIndexOpt, if available, is a cheap approach to comparing relative members.
+                // MemberIndexOpt, if available, is a fast approach to comparing relative members,
+                // and is necessary in cases such as anonymous types where OriginalDefinition will be distinct.
                 int? thisIndex = Symbol.MemberIndexOpt;
                 int? otherIndex = other.Symbol.MemberIndexOpt;
                 if (thisIndex != otherIndex)
