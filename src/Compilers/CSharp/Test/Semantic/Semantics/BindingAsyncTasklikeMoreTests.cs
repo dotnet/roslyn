@@ -1331,26 +1331,19 @@ using System.Threading.Tasks;
 
 class A : Attribute
 {
-    public A(Func<MyTask<int>> f) { }
-    public A(Func<Task<short>> f) { }
+    public A(int i) { }
 }
-[A(async () => 1)]
+class B
+{
+    public static int F(Func<MyTask<C>> t) => 1;
+    public static int F(Func<Task<object>> t) => 2;
+}
+[A(B.F(async () => null))]
 class C
 {
 }
 
 
-[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
-class MyTask
-{
-    internal Awaiter GetAwaiter() => null;
-    internal class Awaiter : INotifyCompletion
-    {
-        public void OnCompleted(Action a) { }
-        internal bool IsCompleted => true;
-        internal void GetResult() { }
-    }
-}
 [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
 class MyTask<T>
 {
@@ -1361,17 +1354,6 @@ class MyTask<T>
         internal bool IsCompleted => true;
         internal T GetResult() => default(T);
     }
-}
-class MyTaskMethodBuilder
-{
-    public static MyTaskMethodBuilder Create() => null;
-    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
-    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
-    public void SetException(Exception e) { }
-    public void SetResult() { }
-    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
-    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
-    public MyTask Task => default(MyTask);
 }
 class MyTaskMethodBuilder<T>
 {
@@ -1390,9 +1372,9 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
 
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (11,2): error CS0181: Attribute constructor parameter 'f' has type 'Func<MyTask<int>>', which is not a valid attribute parameter type
-                // [A(async () => 1)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("f", "System.Func<MyTask<int>>").WithLocation(11, 2));
+                // (15,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(B.F(async () => null))]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "B.F(async () => null)").WithLocation(15, 4));
         }
     }
 }
