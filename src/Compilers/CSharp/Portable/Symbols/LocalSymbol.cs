@@ -54,8 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
-        public Nullability Nullability => Nullability.NotComputed;
-
         /// <summary>
         /// WARN WARN WARN: If you access this via the semantic model, things will break (since the initializer may not have been bound).
         /// 
@@ -368,6 +366,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.Type.TypeSymbol;
             }
         }
+
+        Nullability ILocalSymbol.Nullability => Nullability.NotComputed;
 
         bool ILocalSymbol.IsFunctionValue
         {

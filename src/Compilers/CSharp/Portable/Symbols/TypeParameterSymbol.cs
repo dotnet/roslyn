@@ -722,7 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        ImmutableArray<Nullability> ITypeParameterSymbol.ConstraintsNullabilities
+        ImmutableArray<Nullability> ITypeParameterSymbol.ConstraintNullabilities
         {
             get => this.ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(c => Nullability.NotComputed);
         }

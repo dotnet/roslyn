@@ -10,7 +10,7 @@ Microsoft.CodeAnalysis.IMethodSymbol.ReturnNullability.get -> Microsoft.CodeAnal
 Microsoft.CodeAnalysis.IMethodSymbol.TypeArgumentsNullabilities.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
 Microsoft.CodeAnalysis.INamedTypeSymbol.TypeArgumentsNullabilities.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
 Microsoft.CodeAnalysis.IParameterSymbol.Nullability.get -> Microsoft.CodeAnalysis.Nullability
-Microsoft.CodeAnalysis.ITypeParameterSymbol.ConstraintsNullabilities.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
+Microsoft.CodeAnalysis.ITypeParameterSymbol.ConstraintNullabilities.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
 Microsoft.CodeAnalysis.ITypeParameterSymbol.ReferenceTypeConstraintNullability.get -> Microsoft.CodeAnalysis.Nullability
 Microsoft.CodeAnalysis.ITypeSymbol.IsRefLikeType.get -> bool
 Microsoft.CodeAnalysis.ITypeSymbol.ToDisplayParts(Microsoft.CodeAnalysis.Nullability topLevelNullability, Microsoft.CodeAnalysis.SymbolDisplayFormat format = null) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SymbolDisplayPart>

@@ -49,8 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract TypeSymbolWithAnnotations Type { get; }
 
-        public Nullability Nullability => Nullability.NotComputed;
-
         /// <summary>
         /// Determines if the parameter ref, out or neither.
         /// </summary>
@@ -425,6 +423,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return this.Type.TypeSymbol; }
         }
+
+        Nullability IParameterSymbol.Nullability => Nullability.NotComputed;
 
         ImmutableArray<CustomModifier> IParameterSymbol.CustomModifiers
         {

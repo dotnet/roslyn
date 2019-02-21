@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         ITypeSymbol IDiscardSymbol.Type => Type;
+        Nullability IDiscardSymbol.Nullability => Nullability.NotComputed;
         public TypeSymbol Type { get; }
-        public Nullability Nullability => Nullability.NotComputed;
 
         /// <summary>
         /// Produce a fresh discard symbol for testing.

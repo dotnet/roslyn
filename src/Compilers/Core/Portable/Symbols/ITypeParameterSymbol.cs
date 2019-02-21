@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<ITypeSymbol> ConstraintTypes { get; }
 
         // PROTOTYPE(nullable-api): Document
-        ImmutableArray<Nullability> ConstraintsNullabilities { get; }
+        ImmutableArray<Nullability> ConstraintNullabilities { get; }
 
         /// <summary>
         /// Get the original definition of this type symbol. If this symbol is derived from another

@@ -385,7 +385,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property ITypeParameterSymbol_ConstraintsNullabilities As ImmutableArray(Of Nullability) Implements ITypeParameterSymbol.ConstraintsNullabilities
+        Private ReadOnly Property ITypeParameterSymbol_ConstraintsNullabilities As ImmutableArray(Of Nullability) Implements ITypeParameterSymbol.ConstraintNullabilities
             Get
                 Return Me.ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(Function(t) Nullability.NotComputed)
             End Get

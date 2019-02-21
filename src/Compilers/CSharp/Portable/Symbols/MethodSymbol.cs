@@ -204,16 +204,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract TypeSymbolWithAnnotations ReturnType { get; }
 
-        public Nullability ReturnNullability => Nullability.NotComputed;
-
         /// <summary>
         /// Returns the type arguments that have been substituted for the type parameters.
         /// If nothing has been substituted for a given type parameter,
         /// then the type parameter itself is consider the type argument.
         /// </summary>
         public abstract ImmutableArray<TypeSymbolWithAnnotations> TypeArguments { get; }
-
-        public ImmutableArray<Nullability> TypeArgumentsNullabilities => TypeArguments.SelectAsArray(_ => Nullability.NotComputed);
 
         /// <summary>
         /// Get the type parameters on this method. If the method has not generic,
@@ -723,8 +719,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public Nullability ReceiverNullability => Nullability.NotComputed;
-
         /// <summary>
         /// If this method is a reduced extension method, returns a type inferred during reduction process for the type parameter.
         /// </summary>
@@ -1014,6 +1008,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        Nullability IMethodSymbol.ReturnNullability => Nullability.NotComputed;
+
         ImmutableArray<ITypeSymbol> IMethodSymbol.TypeArguments
         {
             get
@@ -1021,6 +1017,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.TypeArguments.SelectAsArray(a => (ITypeSymbol)a.TypeSymbol);
             }
         }
+
+        ImmutableArray<Nullability> IMethodSymbol.TypeArgumentsNullabilities => TypeArguments.SelectAsArray(_ => Nullability.NotComputed);
 
         ImmutableArray<ITypeParameterSymbol> IMethodSymbol.TypeParameters
         {
@@ -1069,6 +1067,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.ReceiverType;
             }
         }
+
+        Nullability IMethodSymbol.ReceiverNullability => Nullability.NotComputed;
 
         IMethodSymbol IMethodSymbol.ReducedFrom
         {

@@ -49,8 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract TypeSymbolWithAnnotations Type { get; }
 
-        public Nullability Nullability => Nullability.NotComputed;
-
         /// <summary>
         /// The 'add' accessor of the event.  Null only in error scenarios.
         /// </summary>
@@ -342,6 +340,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.Type.TypeSymbol;
             }
         }
+
+        Nullability IEventSymbol.Nullability => Nullability.NotComputed;
 
         IMethodSymbol IEventSymbol.AddMethod
         {
