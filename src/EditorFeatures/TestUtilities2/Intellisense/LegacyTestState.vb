@@ -37,15 +37,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 #Region "Editor Related Operations"
 
         Public Overrides Sub SendEscape()
-            MyBase.SendEscape(Sub(a, n, c) IntelliSenseCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
+            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of EscapeKeyCommandArgs))
+            MyBase.SendEscape(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub() Return)
         End Sub
 
         Public Overrides Sub SendDownKey()
-            MyBase.SendDownKey(Sub(a, n, c) IntelliSenseCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
+            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of DownKeyCommandArgs))
+            MyBase.SendDownKey(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub() Return)
         End Sub
 
         Public Overrides Sub SendUpKey()
-            MyBase.SendUpKey(Sub(a, n, c) IntelliSenseCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
+            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of UpKeyCommandArgs))
+            MyBase.SendUpKey(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub() Return)
         End Sub
 
         Public Overrides Sub SendPageUp()
