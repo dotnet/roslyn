@@ -9,8 +9,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
     internal partial class PropertySetAbstractValue
     {
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-                               // The arrays will be completely filled.
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional - the arrays will be completely filled.
         private class ValuePool
         {
             /// <summary>
@@ -53,8 +52,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     {
                         if (j == (int)PropertySetAbstractValueKind.Unknown)
                         {
-                            // Because extra PropertySetAbstractValueKinds are implicitly Unknown, and the second kind (j) is 
-                            // Unknown, we can just reuse the one-dimensional pool's instances.
+                            // Because PropertySetAbstractValueKinds beyond the KnownPropertyAbstractValues array are
+                            // implicitly Unknown, and the second kind (j) is Unknown, we can just reuse the one-dimensional
+                            // pool's instances.
                             this.TwoDimensionalPool[i, j] = OneDimensionalPool[i];
                         }
                         else
