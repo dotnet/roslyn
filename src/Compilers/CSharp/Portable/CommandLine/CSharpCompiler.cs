@@ -56,17 +56,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Parallel.For(0, sourceFiles.Length, UICultureUtilities.WithCurrentUICulture<int>(i =>
                 {
-                    //NOTE: order of trees is important!!
-                    trees[i] = ParseFile(
-                        parseOptions,
-                        scriptParseOptions,
-                        syntaxDiagOptionsOpt.IsDefault
-                            ? null
-                            : syntaxDiagOptionsOpt[i],
-                        ref hadErrors,
-                        sourceFiles[i],
-                        diagnosticBag,
-                        out normalizedFilePaths[i]);
+                    try
+                    {
+                        //NOTE: order of trees is important!!
+                        trees[i] = ParseFile(
+                            parseOptions,
+                            scriptParseOptions,
+                            syntaxDiagOptionsOpt.IsDefault
+                                ? null
+                                : syntaxDiagOptionsOpt[i],
+                            ref hadErrors,
+                            sourceFiles[i],
+                            diagnosticBag,
+                            out normalizedFilePaths[i]);
+                    }
+                    catch (Exception e) when (FatalError.Report(e))
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
                 }));
             }
             else

@@ -115,13 +115,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 return SpecializedCollections.EmptyList<TextChange>();
             }
 
-            var rules = new List<IFormattingRule>() { new PasteFormattingRule() };
+            var rules = new List<AbstractFormattingRule>() { new PasteFormattingRule() };
             rules.AddRange(service.GetDefaultFormattingRules());
 
             return Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), document.Project.Solution.Workspace, options, rules, cancellationToken);
         }
 
-        private IEnumerable<IFormattingRule> GetFormattingRules(Document document, int position, SyntaxToken tokenBeforeCaret)
+        private IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, int position, SyntaxToken tokenBeforeCaret)
         {
             var workspace = document.Project.Solution.Workspace;
             var formattingRuleFactory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return token;
         }
 
-        private async Task<IList<TextChange>> FormatTokenAsync(Document document, SyntaxToken token, IEnumerable<IFormattingRule> formattingRules, CancellationToken cancellationToken)
+        private async Task<IList<TextChange>> FormatTokenAsync(Document document, SyntaxToken token, IEnumerable<AbstractFormattingRule> formattingRules, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -320,13 +320,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return changes;
         }
 
-        private ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<IFormattingRule> formattingRules, SyntaxNode root)
+        private ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root)
         {
             return new SmartTokenFormatter(optionSet, formattingRules, (CompilationUnitSyntax)root);
         }
 
         private async Task<IList<TextChange>> FormatRangeAsync(
-            Document document, SyntaxToken endToken, IEnumerable<IFormattingRule> formattingRules,
+            Document document, SyntaxToken endToken, IEnumerable<AbstractFormattingRule> formattingRules,
             CancellationToken cancellationToken)
         {
             if (!IsEndToken(endToken))
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return changes;
         }
 
-        private IEnumerable<IFormattingRule> GetTypingRules(Document document, SyntaxToken tokenBeforeCaret)
+        private IEnumerable<AbstractFormattingRule> GetTypingRules(Document document, SyntaxToken tokenBeforeCaret)
         {
             // Typing introduces several challenges around formatting.  
             // Historically we've shipped several triggers that cause formatting to happen directly while typing.
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             if (tokenBeforeCaret.Kind() == SyntaxKind.CloseBraceToken ||
                 tokenBeforeCaret.Kind() == SyntaxKind.EndOfFileToken)
             {
-                return SpecializedCollections.EmptyEnumerable<IFormattingRule>();
+                return SpecializedCollections.EmptyEnumerable<AbstractFormattingRule>();
             }
 
             return SpecializedCollections.SingletonEnumerable(TypingFormattingRule.Instance);

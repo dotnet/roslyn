@@ -336,7 +336,16 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 Log("Attempt to connect named pipe '{0}'", pipeName);
                 try
                 {
-                    await pipeStream.ConnectAsync(timeoutMs, cancellationToken).ConfigureAwait(false);
+                    // NamedPipeClientStream.ConnectAsync on the "full" framework has a bug where it
+                    // tries to move potentially expensive work (actually connecting to the pipe) to
+                    // a background thread with Task.Factory.StartNew. However, that call will merely
+                    // queue the work onto the TaskScheduler associated with the "current" Task which
+                    // does not guarantee it will be processed on a background thread and this could
+                    // lead to a hang.
+                    // To avoid this, we first force ourselves to a background thread using Task.Run.
+                    // This ensures that the Task created by ConnectAsync will run on the default
+                    // TaskScheduler (i.e., on a threadpool thread) which was the intent all along.
+                    await Task.Run(() => pipeStream.ConnectAsync(timeoutMs, cancellationToken)).ConfigureAwait(false);
                 }
                 catch (Exception e) when (e is IOException || e is TimeoutException)
                 {
@@ -369,10 +378,16 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-        internal static bool TryCreateServerCore(string clientDir, string pipeName)
+        internal static (string processFilePath, string commandLineArguments, string toolFilePath) GetServerProcessInfo(string clientDir, string pipeName)
         {
             var serverPathWithoutExtension = Path.Combine(clientDir, "VBCSCompiler");
-            var serverInfo = RuntimeHostInfo.GetProcessInfo(serverPathWithoutExtension, $"-pipename:{pipeName}");
+            var commandLineArgs = $@"""-pipename:{pipeName}""";
+            return RuntimeHostInfo.GetProcessInfo(serverPathWithoutExtension, commandLineArgs);
+        }
+
+        internal static bool TryCreateServerCore(string clientDir, string pipeName)
+        {
+            var serverInfo = GetServerProcessInfo(clientDir, pipeName);
 
             if (!File.Exists(serverInfo.toolFilePath))
             {
@@ -471,7 +486,24 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return null;
             }
 
-            return $"{userName}.{(isAdmin ? 'T' : 'F')}.{basePipeName}";
+            return GetPipeNameCore(userName, isAdmin, basePipeName);
+        }
+
+        internal static string GetPipeNameCore(string userName, bool isAdmin, string basePipeName)
+        {
+            var pipeName = $"{userName}.{(isAdmin ? 'T' : 'F')}.{basePipeName}";
+
+            // The pipe name is passed between processes as a command line argument as a 
+            // quoted value. Unfortunately we can't use ProcessStartInfo.ArgumentList as 
+            // we still target net472 (API only available on CoreClr + netstandard). To 
+            // make the problem approachable we remove the troublesome characters.
+            //
+            // This does mean if two users on the same machine are building simultaneously
+            // and the user names differ only be a " or / and a _ then there will be a 
+            // conflict. That seems rather obscure though.
+            return pipeName
+                .Replace('"', '_')
+                .Replace('\\', '_');
         }
 
         /// <summary>

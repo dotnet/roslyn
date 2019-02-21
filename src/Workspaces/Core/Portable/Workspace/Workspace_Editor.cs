@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -371,11 +372,11 @@ namespace Microsoft.CodeAnalysis
             DocumentId documentId, SourceTextContainer textContainer,
             bool isCurrentContext = true)
         {
-            CheckDocumentIsInCurrentSolution(documentId);
-            CheckDocumentIsClosed(documentId);
-
             using (_serializationLock.DisposableWait())
             {
+                CheckDocumentIsInCurrentSolution(documentId);
+                CheckDocumentIsClosed(documentId);
+
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetDocument(documentId);
                 var oldDocumentState = oldDocument.State;
@@ -486,14 +487,16 @@ namespace Microsoft.CodeAnalysis
 
         protected internal void OnAdditionalDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
         {
-            CheckAdditionalDocumentIsInCurrentSolution(documentId);
-            CheckDocumentIsClosed(documentId);
-
             using (_serializationLock.DisposableWait())
             {
+                CheckAdditionalDocumentIsInCurrentSolution(documentId);
+                CheckDocumentIsClosed(documentId);
+
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetAdditionalDocument(documentId);
                 var oldText = oldDocument.GetTextSynchronously(CancellationToken.None);
+
+                AddToOpenDocumentMap(documentId);
 
                 // keep open document text alive by using PreserveIdentity
                 var newText = textContainer.CurrentText;
@@ -524,11 +527,11 @@ namespace Microsoft.CodeAnalysis
 
         protected internal void OnDocumentClosed(DocumentId documentId, TextLoader reloader, bool updateActiveContext = false)
         {
-            this.CheckDocumentIsInCurrentSolution(documentId);
-            this.CheckDocumentIsOpen(documentId);
-
             using (_serializationLock.DisposableWait())
             {
+                this.CheckDocumentIsInCurrentSolution(documentId);
+                this.CheckDocumentIsOpen(documentId);
+
                 // forget any open document info
                 ClearOpenDocument(documentId);
 
@@ -550,10 +553,11 @@ namespace Microsoft.CodeAnalysis
 
         protected internal void OnAdditionalDocumentClosed(DocumentId documentId, TextLoader reloader)
         {
-            this.CheckAdditionalDocumentIsInCurrentSolution(documentId);
-
             using (_serializationLock.DisposableWait())
             {
+                this.CheckAdditionalDocumentIsInCurrentSolution(documentId);
+                this.CheckDocumentIsOpen(documentId);
+
                 // forget any open document info
                 ClearOpenDocument(documentId);
 
@@ -625,7 +629,18 @@ namespace Microsoft.CodeAnalysis
             CheckDocumentIsOpen(documentId);
             var doc = solution.GetDocument(documentId);
             // text should always be preserved, so TryGetText will succeed.
-            doc.TryGetText(out var text);
+            var success = doc.TryGetText(out var text);
+            Debug.Assert(success);
+            return text;
+        }
+
+        private SourceText GetOpenAdditionalDocumentText(Solution solution, DocumentId documentId)
+        {
+            CheckDocumentIsOpen(documentId);
+            var doc = solution.GetAdditionalDocument(documentId);
+            // text should always be preserved, so TryGetText will succeed.
+            var success = doc.TryGetText(out var text);
+            Debug.Assert(success);
             return text;
         }
 
@@ -644,6 +659,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     newSolution = newSolution.WithDocumentText(docId, this.GetOpenDocumentText(oldSolution, docId), PreservationMode.PreserveIdentity);
                 }
+                else if (newSolution.ContainsAdditionalDocument(docId))
+                {
+                    newSolution = newSolution.WithAdditionalDocumentText(docId, this.GetOpenAdditionalDocumentText(oldSolution, docId), PreservationMode.PreserveIdentity);
+                }
             }
 
             return newSolution;
@@ -660,6 +679,10 @@ namespace Microsoft.CodeAnalysis
                 if (newSolution.ContainsDocument(docId))
                 {
                     newSolution = newSolution.WithDocumentText(docId, this.GetOpenDocumentText(oldSolution, docId), PreservationMode.PreserveIdentity);
+                }
+                else if (newSolution.ContainsAdditionalDocument(docId))
+                {
+                    newSolution = newSolution.WithAdditionalDocumentText(docId, this.GetOpenAdditionalDocumentText(oldSolution, docId), PreservationMode.PreserveIdentity);
                 }
             }
 

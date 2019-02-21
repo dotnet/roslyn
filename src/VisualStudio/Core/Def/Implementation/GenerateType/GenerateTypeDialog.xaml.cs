@@ -1,19 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
@@ -24,12 +13,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
     internal partial class GenerateTypeDialog : DialogWindow
     {
         private readonly GenerateTypeDialogViewModel _viewModel;
-
-        /// <summary>
-        /// For test purposes only. The integration tests need to know when the dialog is up and
-        /// ready for automation.
-        /// </summary>
-        internal static event Action TEST_DialogLoaded;
 
         // Expose localized strings for binding
         public string GenerateTypeDialogTitle { get { return ServicesVSResources.Generate_Type; } }
@@ -53,17 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
 
             InitializeComponent();
             DataContext = viewModel;
-
-            IsVisibleChanged += GenerateTypeDialog_IsVisibleChanged;
-        }
-
-        private void GenerateTypeDialog_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if ((bool)e.NewValue)
-            {
-                IsVisibleChanged -= GenerateTypeDialog_IsVisibleChanged;
-                TEST_DialogLoaded?.Invoke();
-            }
         }
 
         private void SetCommandBindings()

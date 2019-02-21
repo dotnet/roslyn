@@ -57,7 +57,7 @@ my_prop = my_val
         {
             const string path = "Z:\\bogus\\.editorconfig";
             var config = Parse("", path);
-            
+
             Assert.Equal("Z:/bogus", config.NormalizedDirectory);
             Assert.Equal(path, config.PathToFile);
         }
@@ -613,7 +613,7 @@ RoOt = TruE");
         [Fact]
         public void MultipleNumberRanges()
         {
-            foreach (var matchString in new[] { "a{-10..0}b{0..10}", "a{0..-10}b{10..0}"})
+            foreach (var matchString in new[] { "a{-10..0}b{0..10}", "a{0..-10}b{10..0}" })
             {
                 var matcher = TryCreateSectionNameMatcher(matchString).Value;
 
