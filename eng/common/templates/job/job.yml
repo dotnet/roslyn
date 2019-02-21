@@ -108,6 +108,10 @@ jobs:
         - name: ${{ pair.key }}
           value: ${{ pair.value }}
 
+  # DotNet-HelixApi-Access provides 'HelixApiAccessToken' for internal builds
+  - ${{ if and(eq(parameters.enableTelemetry, 'true'), eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+    - group: DotNet-HelixApi-Access
+
   ${{ if ne(parameters.workspace, '') }}:
     workspace: ${{ parameters.workspace }}
 
