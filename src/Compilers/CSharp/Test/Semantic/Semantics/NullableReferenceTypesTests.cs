@@ -25489,6 +25489,7 @@ class CL1<T>
 
         [Fact]
         [WorkItem(29889, "https://github.com/dotnet/roslyn/issues/29889")]
+        [WorkItem(33577, "https://github.com/dotnet/roslyn/issues/33577")]
         public void AnonymousTypes_05()
         {
             var source =
@@ -25527,7 +25528,7 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29889: Should not report a warning for `a2 = b2` or `b3 = a3`.
+            // https://github.com/dotnet/roslyn/issues/33577: Should not report a warning for `a2 = b2` or `b3 = a3`.
             comp.VerifyDiagnostics(
                 // (10,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: string F>' doesn't match target type '<anonymous type: string F>'.
                 //         a0 = b0; // 1
@@ -25701,6 +25702,7 @@ class C
 
         [Fact]
         [WorkItem(24018, "https://github.com/dotnet/roslyn/issues/24018")]
+        [WorkItem(33577, "https://github.com/dotnet/roslyn/issues/33577")]
         public void AnonymousTypes_11()
         {
             var source =
@@ -25721,10 +25723,14 @@ class C
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/33577: Should not report a warning re-assigning `a`.
             comp.VerifyDiagnostics(
                 // (9,13): warning CS8629: Nullable value type may be null.
                 //         _ = a.y.Value; // 1
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "a.y.Value").WithLocation(9, 13),
+                // (12,13): warning CS8619: Nullability of reference types in value of type '<anonymous type: T? x, T? y>' doesn't match target type '<anonymous type: T? x, T? y>'.
+                //         a = new { x, y };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new { x, y }").WithArguments("<anonymous type: T? x, T? y>", "<anonymous type: T? x, T? y>").WithLocation(12, 13),
                 // (13,13): warning CS8629: Nullable value type may be null.
                 //         _ = a.x.Value; // 2
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "a.x.Value").WithLocation(13, 13));
@@ -74046,7 +74052,7 @@ class Program
         var a2 = new { F = x2 };
         a2.F/*T:C<object!>?*/.ToString(); // 2
         a2 = new { F = y2 };
-        a2.F/*T:C<object!>?*/.ToString();
+        a2.F/*T:C<object!>!*/.ToString();
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
