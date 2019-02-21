@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="ERR_AsNullableType">
         <source>It is not legal to use nullable reference type '{0}?' in an as expression; use the underlying type '{0}' instead.</source>
-        <target state="new">It is not legal to use nullable reference type '{0}?' in an as expression; use the underlying type '{0}' instead.</target>
+        <target state="translated">Es ist unzulässig, den Nullable-Verweistyp "{0}?" in einem as-Ausdruck zu verwenden. Verwenden Sie stattdessen den zugrunde liegenden Typ "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
-        <target state="translated">In einer asynchronen foreach-Schleife kann keine Sammlung vom Typ "Dynamisch" verwendet werden.</target>
+        <target state="translated">Eine Sammlung des dynamic-Typs kann in einem asynchronen foreach nicht verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateExplicitImpl">
         <source>'{0}' is explicitly implemented more than once.</source>
-        <target state="translated">"{0}" ist explizit mehrfach implementiert.</target>
+        <target state="translated">"{0}" ist mehrfach explizit implementiert.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
         <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
-        <target state="new">The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</target>
+        <target state="translated">Das Feature "{0}" befindet sich zurzeit in der Vorschau und wird *nicht unterstützt*. Um Previewfunktionen zu nutzen, verwenden Sie die Sprachversion "Preview".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureIsExperimental">
@@ -159,7 +159,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
-        <target state="new">The suppression operator is not allowed in this context</target>
+        <target state="translated">Ein Unterdrückungsoperator ist in diesem Kontext unzulässig.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="ERR_IsNullableType">
         <source>It is not legal to use nullable reference type '{0}?' in an is-type expression; use the underlying type '{0}' instead.</source>
-        <target state="new">It is not legal to use nullable reference type '{0}?' in an is-type expression; use the underlying type '{0}' instead.</target>
+        <target state="translated">Es ist unzulässig, den Nullable-Verweistyp "{0}?" in einem is-Ausdruck zu verwenden. Verwenden Sie stattdessen den zugrunde liegenden Typ "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IsPatternImpossible">
@@ -199,7 +199,7 @@
       </trans-unit>
       <trans-unit id="ERR_IteratorMustBeAsync">
         <source>Method '{0}' with an iterator block must be 'async' to return '{1}'</source>
-        <target state="new">Method '{0}' with an iterator block must be 'async' to return '{1}'</target>
+        <target state="translated">Die Methode "{0}" mit einem Iteratorblock muss "async" lauten, um "{1}" zurückzugeben.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPattern">
@@ -214,12 +214,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="needs-review-translation">"{0}": Der in einer asynchronen using-Anweisung verwendete Typ muss implizit in "System.IAsyncDisposable" konvertiert werden können. Meinten Sie "using" anstelle von "await using"?</target>
+        <target state="translated">"{0}": Der in einer asynchronen using-Anweisung verwendete Typ muss implizit in "System.IAsyncDisposable" konvertiert werden können oder eine geeignete DisposeAsync-Methode implementieren. Meinten Sie "using" anstelle von "await using"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
         <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</source>
-        <target state="needs-review-translation">"{0}": Der in einer using-Anweisung verwendete Typ muss implizit in "System.IDisposable" konvertiert werden können. Meinten Sie "await using" anstelle von "using"?</target>
+        <target state="translated">"{0}": Der in einer using-Anweisung verwendete Typ muss implizit in "System.IDisposable" konvertiert werden können oder eine geeignete Dispose-Methode implementieren. Meinten Sie "await using" anstelle von "using"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
@@ -534,151 +534,151 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="new">
-                             Visual C# Compiler Options
+        <target state="translated">
+                              Visual C#-Compileroptionen
 
-                       - OUTPUT FILES -
--out:&lt;file&gt;                   Specify output file name (default: base name of
-                              file with main class or first file)
--target:exe                   Build a console executable (default) (Short
-                              form: -t:exe)
--target:winexe                Build a Windows executable (Short form:
-                              -t:winexe)
--target:library               Build a library (Short form: -t:library)
--target:module                Build a module that can be added to another
-                              assembly (Short form: -t:module)
--target:appcontainerexe       Build an Appcontainer executable (Short form:
-                              -t:appcontainerexe)
--target:winmdobj              Build a Windows Runtime intermediate file that
-                              is consumed by WinMDExp (Short form: -t:winmdobj)
--doc:&lt;file&gt;                   XML Documentation file to generate
--refout:&lt;file&gt;                Reference assembly output to generate
--platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
-                              anycpu. The default is anycpu.
+                        - AUSGABEDATEIEN -
+-out:&lt; Datei &gt;                   Gibt den Namen der Ausgabedatei an (Standardeinstellung: Basisname der
+                               Datei mit der Hauptklasse oder der ersten Datei)
+-target:exe                   Erstellt eine ausführbare Konsolendatei (Standardeinstellung) (Kurzform:
+                               -t:exe)
+-target:winexe                winexe                Erstellt eine ausführbare Windows-Datei (Kurzform:
+                               -t:winexe)
+-target:library               Erstellt eine Bibliothek (Kurzform: -t:library)
+-target:module                Erstellt ein Modul, das einer anderen Assembly
+                               hinzugefügt werden kann (Kurzform: -t:module)
+-target:appcontainerexe       Erstellt eine ausführbare App-Containerdatei (Kurzform:
+                               -t:appcontainerexe)
+-target:winmdobj              Erstellt eine temporäre Windows-Runtime-Zwischendatei, die
+                               von WinMDExp verwendet wird (Kurzform: -t:winmdobj)
+-doc:&lt; Datei &gt;                   Die zu generierende XML-Dokumentationsdatei
+-refout:&lt;Datei&gt;                Die zu generierende Referenzverweisausgabe
+-platform:&lt; Zeichenfolge &gt;            Schränkt ein, auf welchen Plattformen dieser Code ausgeführt werden kann: x86,
+                               Itanium, x64, arm, arm64, anycpu32bitpreferred oder
+                               anycpu. Die Standardeinstellung ist "anycpu".
 
-                       - INPUT FILES -
--recurse:&lt;wildcard&gt;           Include all files in the current directory and
-                              subdirectories according to the wildcard
-                              specifications
--reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
-                              file using the given alias (Short form: -r)
--reference:&lt;file list&gt;        Reference metadata from the specified assembly
-                              files (Short form: -r)
--addmodule:&lt;file list&gt;        Link the specified modules into this assembly
--link:&lt;file list&gt;             Embed metadata from the specified interop
-                              assembly files (Short form: -l)
--analyzer:&lt;file list&gt;         Run the analyzers from this assembly
-                              (Short form: -a)
--additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
-                              generation but may be used by analyzers for producing
-                              errors or warnings.
--embed                        Embed all source files in the PDB.
--embed:&lt;file list&gt;            Embed specific files in the PDB
+                        - EINGABEDATEIEN -
+-recurse:&lt; Platzhalter &gt;           Schließt alle Dateien im aktuellen Verzeichnis und
+                               in Unterverzeichnissen gemäß Platzhalter-
+                               spezifikationen ein
+-reference:&lt;Alias&gt;=&lt;Datei&gt;     Verweist auf Metadaten aus der angegebenen Assembly-
+                               datei mithilfe eines angegebenen Alias (Kurzform: -r)
+-reference:&lt;Dateiliste&gt;        Verweist aus Metadaten der angegebenen Assembly-
+                               dateien (Kurzform: -r)
+-addmodule:&lt;Dateiliste&gt;        Verknüpft die angegebenen Module in dieser Assembly.
+-link:&lt;Dateiliste&gt;             Bettet Metadaten der angegebenen Interop-
+                               assemblydateien ein (Kurzform: -l)
+-analyzer:&lt; Dateiliste &gt;         Führt die Analyse aus dieser Assembly aus.
+                               (Kurzform: -a)
+-additionalfile:&lt; Dateiliste &gt;   Zusätzliche Dateien, die sich nicht direkt auf die Code-
+                               generierung auswirken, aber von der Analyse zum Erzeugen von
+                               Fehlern oder Warnungen verwendet werden können.
+-embed                        Bettet alle Quelldateien in die PDB-Datei ein.
+-embed:&lt;Dateiliste&gt;            Bettet bestimmte Dateien in die PDB-Datei ein.
 
-                       - RESOURCES -
--win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
--win32icon:&lt;file&gt;             Use this icon for the output
--win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
--nowin32manifest              Do not include the default Win32 manifest
--resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
--linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
-                              (Short form: -linkres) Where the resinfo format
-                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+                        - RESSOURCEN -
+-win32res:&lt;Datei&gt;              Gibt eine Win32-Ressourcendatei (RES-Datei) an.
+-win32icon:&lt;Datei&gt;             Verwendet dieses Symbol für die Ausgabe.
+-win32manifest:&lt;Datei&gt;         Gibt eine Win32-Manifestdatei (XML-Datei) an.
+-nowin32manifest              Schließt das Win32-Standardmanifest nicht ein.
+-resource:&lt;resinfo&gt;           Bettet die angegebene Ressource ein (Kurzform: -res)
+-linkresource:&lt;resinfo&gt;       Verknüpft die angegebene Ressource mit dieser Assembly
+                               (Kurzform: -linkres). Dabei ist das ResInfo-Format
+                               &lt;Datei&gt;[,&lt;Zeichenfolgenname&gt;[,public|private]]
 
-                       - CODE GENERATION -
--debug[+|-]                   Emit debugging information
+                        - CODEGENERIERUNG -
+-debug[+|-]                   Gibt Debuginformationen aus
 -debug:{full|pdbonly|portable|embedded}
-                              Specify debugging type ('full' is default,
-                              'portable' is a cross-platform format,
-                              'embedded' is a cross-platform format embedded into
-                              the target .dll or .exe)
--optimize[+|-]                Enable optimizations (Short form: -o)
--deterministic                Produce a deterministic assembly
-                              (including module version GUID and timestamp)
--refonly                      Produce a reference assembly in place of the main output
--instrument:TestCoverage      Produce an assembly instrumented to collect
-                              coverage information
--sourcelink:&lt;file&gt;            Source link info to embed into PDB.
+                               Gibt den Debugtyp an ("full" ist der Standardwert,
+                               "portable" ist ein plattformübergreifendes Format,
+                               "embedded" ist ein plattformübergreifendes Format, das in die
+                               Ziel-DLL oder -EXE eingebettet ist).
+-optimize[+|-]                Aktiviert Optimierungen (Kurzform: -o)
+-deterministic                Generiert eine deterministische Assembly
+                               (einschließlich Modulversion-GUID und Zeitstempel)
+-refonly                      Erstellt eine Referenzassembly anstelle der Hauptausgabe.
+-instrument:TestCoverage      Generiert eine Assembly, die für die
+                               Erfassung von Code Coverage-Informationen instrumentiert ist.
+-sourcelink:&lt;Datei&gt;            Quelllinkinformationen zum Einbetten in portable PDB-Dateien.
 
-                       - ERRORS AND WARNINGS -
--warnaserror[+|-]             Report all warnings as errors
--warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
--warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
--nowarn:&lt;warn list&gt;           Disable specific warning messages
--ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
-                              diagnostics.
--errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
-                              diagnostics.
--reportanalyzer               Report additional analyzer information, such as
-                              execution time.
+                        - FEHLER UND WARNUNGEN -
+-warnaserror[+|-]             Meldet alle Warnungen als Fehler.
+-warnaserror[+|-]:&lt;Warnungsliste&gt; Meldet bestimmte Warnungen als Fehler.
+-warn:&lt;n&gt;                     Legt die Warnstufe fest (0–4) (Kurzform: -w)
+-nowarn:&lt; Warnungsliste &gt;           Deaktiviert bestimmte Warnmeldungen.
+-ruleset:&lt;Datei&gt;               Gibt eine Rulesetdatei an, die bestimmte Diagnosevorgänge
+                               deaktiviert.
+-errorlog:&lt;Datei&gt;              Gibt eine Datei zur Protokollierung aller Diagnosevorgänge von Compiler und
+                               Analyzer an.
+-reportanalyzer               Berichtet zusätzliche Analyseinformationen wie etwa die
+                               Ausführungszeit.
 
-                       - LANGUAGE -
--checked[+|-]                 Generate overflow checks
--unsafe[+|-]                  Allow 'unsafe' code
--define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
-                              form: -d)
--langversion:?                Display the allowed values for language version
--langversion:&lt;string&gt;         Specify language version such as
-                              `default` (latest major version), or
-                              `latest` (latest version, including minor versions),
-                              or specific versions like `6` or `7.1`
--nullable[+|-]                Specify nullable context option enable|disable.
+                        - SPRACHE -
+-checked[+|-]                 Generiert Überlaufüberprüfungen
+-unsafe[+|-]                  Lässt "unsicheren" Code zu.
+-define:&lt;Symbolliste&gt;         Definiert bedingte Kompilationssymbole (Kurz-
+                               form: -d)
+-langversion:?                    Zeigt die zulässigen Werte für die Sprachversion an.
+-langversion:&lt;Zeichenfolge&gt;             Gibt die Sprachversion an:
+                                  "default" (neueste Hauptversion) oder
+                                  "latest" (neueste Version, einschließlich Nebenversionen)
+                                  oder bestimmte Versionen wie "6" oder "7.1".
+-nullable[+|-]                Geben Sie die Kontextoption für die NULL-Zulässigkeit an: enable|disable.
 -nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
-                              Specify nullable context option enable|disable|safeonly|warnings|safeonlywarnings.
+                              Geben Sie die Kontextoption für die NULL-Zulässigkeit an: enable|disable|safeonly|warnings|safeonlywarnings.
 
-                       - SECURITY -
--delaysign[+|-]               Delay-sign the assembly using only the public
-                              portion of the strong name key
--publicsign[+|-]              Public-sign the assembly using only the public
-                              portion of the strong name key
--keyfile:&lt;file&gt;               Specify a strong name key file
--keycontainer:&lt;string&gt;        Specify a strong name key container
--highentropyva[+|-]           Enable high-entropy ASLR
+                        - SICHERHEIT -
+-delaysign[+|-]               Signiert die Assembly verzögert nur mit dem öffentlichen
+                               Teil des starken Namensschlüssels.
+-publicsign[+|-]              Signiert die Assembly öffentlich nur mit dem öffentlichen
+                               Teil des starken Namensschlüssels.
+-keyfile:&lt;Datei&gt;               Gibt eine Datei für den starken Namensschlüssel an.
+-keycontainer:&lt;Zeichenfolge&gt;        Gibt einen Container für den starken Namensschlüssel an.
+-highentropyva[+|-]           Aktiviert ASLR mit hoher Entropie.
 
-                       - MISCELLANEOUS -
-@&lt;file&gt;                       Read response file for more options
--help                         Display this usage message (Short form: -?)
--nologo                       Suppress compiler copyright message
--noconfig                     Do not auto include CSC.RSP file
--parallel[+|-]                Concurrent build.
--version                      Display the compiler version number and exit.
+                        - VERSCHIEDENES -
+@&lt;Datei&gt;                       Weitere Optionen finden Sie in der Antwortdatei.
+-help                         Zeigt diese Syntaxmeldung an (Kurzform: -?)
+-nologo                       Unterdrückt die Copyrightmeldung des Compilers.
+-noconfig                     Schließt die CSC.RSP-Datei nicht automatisch ein.
+-parallel[+|-]                Gleichzeitige Erstellung.
+-version                      Zeigt die Compilerversionsnummer und die Beendigung an.
 
-                       - ADVANCED -
--baseaddress:&lt;address&gt;        Base address for the library to be built
--checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
-                              checksum stored in PDB. Supported values are:
-                              SHA1 or SHA256 (default).
--codepage:&lt;n&gt;                 Specify the codepage to use when opening source
-                              files
--utf8output                   Output compiler messages in UTF-8 encoding
--main:&lt;type&gt;                  Specify the type that contains the entry point
-                              (ignore all other possible entry points) (Short
-                              form: -m)
--fullpaths                    Compiler generates fully qualified paths
--filealign:&lt;n&gt;                Specify the alignment used for output file
-                              sections
+                        - ERWEITERT -
+-baseaddress:&lt;Adresse&gt;        Die Basisadresse für die zu erstellende Bibliothek.
+-checksumalgorithm:&lt;alg&gt;      Gibt einen Algorithmus für das Berechnen der Quelldatei-
+                               prüfsumme an, die in der PDB-Datei gespeichert ist. Unterstützte Werte sind:
+                               SHA1 oder SHA256 (Standard).
+-codepage:&lt;n&gt;                 Gibt die beim Öffnen von Quelldateien zu verwendende
+                               Codepage an.
+-utf8output                   Ausgabecompilermeldungen in UTF-8-Codierung
+-main:&lt;Typ&gt;                  Gibt den Typ an, der den Einstiegspunkt enthält
+                               (alle anderen möglichen Einstiegspunkte werden ignoriert) (Kurz-
+                               form: -m)
+-fullpaths                    Der Compiler generiert vollqualifizierte Pfade.
+-filealign:&lt;n&gt;                Gibt die Ausrichtung an, die für Ausgabedateiabschnitte
+                               verwendet werden soll.
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              Specify a mapping for source path names output by
-                              the compiler.
--pdb:&lt;file&gt;                   Specify debug information file name (default:
-                              output file name with .pdb extension)
--errorendlocation             Output line and column of the end location of
-                              each error
--preferreduilang              Specify the preferred output language name.
--nosdkpath                    Disable searching the default SDK path for standard library assemblies.
--nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
--subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
--lib:&lt;file list&gt;              Specify additional directories to search in for
-                              references
--errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
-                              prompt, send, queue, or none. The default is
-                              queue.
--appconfig:&lt;file&gt;             Specify an application configuration file
-                              containing assembly binding settings
--moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
-                              a part of
--modulename:&lt;string&gt;          Specify the name of the source module
+                               Gibt eine Zuordnung für die Quellpfadnamen an, die vom
+                               Compiler ausgegeben werden.
+-pdb:&lt;Datei&gt;                   Gibt den Namen der Debuginformationsdatei an (Standard:
+                               Ausgabedateiname mit der Erweiterung .pdb)
+-errorendlocation             Die Ausgabezeile und -spalte des Endpunkts
+                               jedes Fehlers
+-preferreduilang              Gibt den bevorzugten Namen der Ausgabesprache an.
+-nosdkpath                    Deaktivieren Sie das Durchsuchen des Standard-SDK-Pfads für Standardbibliotheksassemblys.
+-nostdlib[+|-]                Nicht auf Standardbibliothek (mscorlib.dll) verweisen
+-subsystemversion:&lt;Zeichenfolge&gt;    Verweist nicht auf die Standardbibliothek
+-lib:&lt;Dateiliste&gt;              Gibt zusätzliche Verzeichnisse an, in denen nach Verweisen
+                               gesucht werden soll.
+-errorreport:&lt;Zeichenfolge&gt;         Gibt die Verarbeitung interner Compilerfehler an:
+                               "prompt", "send", "queue" oder "none". Der Standardwert ist
+                               "queue".
+-appconfig:&lt;Datei&gt;             Gibt eine Anwendungskonfigurationsdatei
+                               mit Assemblybindungseinstellungen an.
+-moduleassemblyname:&lt;Zeichenfolge&gt;  Der Name der Assembly, zu der dieses Modul
+                               gehören wird .
+-modulename:&lt;Zeichenfolge&gt;          Gibt den Quellmodulnamen an.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -729,7 +729,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
         <source>name shadowing in nested functions</source>
-        <target state="new">name shadowing in nested functions</target>
+        <target state="translated">Namensshadowing in geschachtelten Funktionen</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
@@ -744,7 +744,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnableOrSafeOnly">
         <source>warning action enable or safeonly</source>
-        <target state="new">warning action enable or safeonly</target>
+        <target state="translated">Warnaktion: "enable" oder "safeonly"</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRangeOperator">
@@ -849,12 +849,12 @@
       </trans-unit>
       <trans-unit id="IDS_XMLBADINCLUDE">
         <source> Include tag is invalid </source>
-        <target state="translated"> Ungültige Include-Kennung </target>
+        <target state="translated"> Ungültiges Include-Tag </target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_XMLNOINCLUDE">
         <source> No matching elements were found for the following include tag </source>
-        <target state="translated"> Für folgende Include-Kennung wurden keine übereinstimmenden Elemente gefunden. </target>
+        <target state="translated"> Für folgendes Include-Tag wurden keine übereinstimmenden Elemente gefunden. </target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_XMLMISSINGINCLUDEFILE">
@@ -1254,12 +1254,12 @@
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarningSafeOnly">
         <source>Expected nullable</source>
-        <target state="new">Expected nullable</target>
+        <target state="translated">Nullable erwartet</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarningSafeOnly_Title">
         <source>Expected nullable after #pragma warning safeonly</source>
-        <target state="new">Expected nullable after #pragma warning safeonly</target>
+        <target state="translated">Nach "#pragma warning safeonly" Nullable erwartet</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IsTypeNamedUnderscore">
@@ -1599,7 +1599,7 @@
       </trans-unit>
       <trans-unit id="XML_ExpectedEndOfTag">
         <source>Expected '&gt;' or '/&gt;' to close tag '{0}'.</source>
-        <target state="translated">"&gt;" oder "/&gt;" zum Schließen der Kennung "{0}" wurde erwartet.</target>
+        <target state="translated">"&gt;" oder "/&gt;" zum Schließen des Tags "{0}" wurde erwartet.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_ExpectedIdentifier">
@@ -1649,17 +1649,17 @@
       </trans-unit>
       <trans-unit id="XML_EndTagNotExpected">
         <source>End tag was not expected at this location.</source>
-        <target state="translated">An dieser Stelle wurde keine Endkennung erwartet.</target>
+        <target state="translated">An dieser Stelle wurde kein Endtag erwartet.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_ElementTypeMatch">
         <source>End tag '{0}' does not match the start tag '{1}'.</source>
-        <target state="translated">Die Endkennung "{0}" stimmt nicht mit der Startkennung "{1}" überein.</target>
+        <target state="translated">Das Endtag "{0}" stimmt nicht mit dem Starttag "{1}" überein.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_EndTagExpected">
         <source>Expected an end tag for element '{0}'.</source>
-        <target state="translated">Eine Endkennung für Element "{0}" wurde erwartet.</target>
+        <target state="translated">Ein Endtag für Element "{0}" wurde erwartet.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_WhitespaceMissing">
@@ -2509,7 +2509,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
         <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
-        <target state="translated">Nur assignment-, call-, increment-, decrement- und new object-Ausdrücke können als Anweisung verwendet werden.</target>
+        <target state="translated">Nur assignment-, call-, increment-, decrement-, await- und new-Objektausdrücke können als Anweisung verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -5277,42 +5277,42 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
       </trans-unit>
       <trans-unit id="WRN_DuplicateParamTag">
         <source>XML comment has a duplicate param tag for '{0}'</source>
-        <target state="translated">Der XML-Kommentar enthält eine doppelte param-Kennung für "{0}".</target>
+        <target state="translated">Der XML-Kommentar enthält ein doppeltes param-Tag für "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateParamTag_Title">
         <source>XML comment has a duplicate param tag</source>
-        <target state="translated">XML-Kommentar enthält eine doppelte param-Kennung</target>
+        <target state="translated">XML-Kommentar enthält ein doppeltes param-Tag</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnmatchedParamTag">
         <source>XML comment has a param tag for '{0}', but there is no parameter by that name</source>
-        <target state="translated">Der XML-Kommentar weist eine param-Kennung für "{0}" auf, es gibt aber keinen Parameter mit dem Namen.</target>
+        <target state="translated">Der XML-Kommentar weist ein param-Tag für "{0}" auf, es gibt aber keinen Parameter mit dem Namen.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnmatchedParamTag_Title">
         <source>XML comment has a param tag, but there is no parameter by that name</source>
-        <target state="translated">XML-Kommentar besitzt eine param-Kennung, es gibt jedoch keinen Parameter mit diesem Namen</target>
+        <target state="translated">XML-Kommentar besitzt ein param-Tag, es gibt jedoch keinen Parameter mit diesem Namen</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnmatchedParamRefTag">
         <source>XML comment on '{1}' has a paramref tag for '{0}', but there is no parameter by that name</source>
-        <target state="translated">Der XML-Kommentar für "{1}" weist eine paramref-Kennung für "{0}" auf, es gibt aber keinen Parameter mit dem Namen.</target>
+        <target state="translated">Der XML-Kommentar für "{1}" weist ein paramref-Tag für "{0}" auf, es gibt aber keinen Parameter mit dem Namen.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnmatchedParamRefTag_Title">
         <source>XML comment has a paramref tag, but there is no parameter by that name</source>
-        <target state="translated">XML-Kommentar besitzt eine paramref-Kennung, es gibt jedoch keinen Parameter mit diesem Namen</target>
+        <target state="translated">XML-Kommentar besitzt ein paramref-Tag, es gibt jedoch keinen Parameter mit diesem Namen</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingParamTag">
         <source>Parameter '{0}' has no matching param tag in the XML comment for '{1}' (but other parameters do)</source>
-        <target state="translated">Der {0}-Parameter hat (im Gegensatz zu anderen Parametern) keine entsprechende param-Kennung im XML-Kommentar für "{1}".</target>
+        <target state="translated">Der {0}-Parameter hat (im Gegensatz zu anderen Parametern) kein entsprechendes param-Tag im XML-Kommentar für "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingParamTag_Title">
         <source>Parameter has no matching param tag in the XML comment (but other parameters do)</source>
-        <target state="translated">Parameter besitzt keine übereinstimmende param-Kennung im XML-Kommentar (andere Parameter jedoch schon)</target>
+        <target state="translated">Parameter besitzt kein übereinstimmendes param-Tag im XML-Kommentar (andere Parameter jedoch schon)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRef">
@@ -5627,12 +5627,12 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
         <source>Expected disable, restore, enable or safeonly</source>
-        <target state="needs-review-translation">"disable" oder "restore" erwartet.</target>
+        <target state="translated">"disable", "restore", "enable" oder "safeonly" erwartet</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
         <source>Expected disable, restore, enable or safeonly after #pragma warning</source>
-        <target state="needs-review-translation">"disable" oder " restore" erwartet nach der #pragma-Warnung </target>
+        <target state="translated">Nach "#pragma warning" wurde "disable", "restore", "enable" oder "safeonly" erwartet</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">
@@ -5877,7 +5877,7 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
         <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.</source>
-        <target state="needs-review-translation">"{0}": Der in einer using-Anweisung verwendete Typ muss implizit in "System.IDisposable" konvertierbar sein.</target>
+        <target state="translated">"{0}": Der in einer using-Anweisung verwendete Typ muss implizit in "System.IDisposable" konvertiert werden können oder eine geeignete Dispose-Methode implementieren.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -6107,42 +6107,42 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
       </trans-unit>
       <trans-unit id="WRN_DuplicateTypeParamTag">
         <source>XML comment has a duplicate typeparam tag for '{0}'</source>
-        <target state="translated">Der XML-Kommentar enthält eine doppelte typeparam-Kennung für "{0}".</target>
+        <target state="translated">Der XML-Kommentar enthält ein doppeltes typeparam-Tag für "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateTypeParamTag_Title">
         <source>XML comment has a duplicate typeparam tag</source>
-        <target state="translated">XML-Kommentar enthält eine doppelte typeparam-Kennung</target>
+        <target state="translated">XML-Kommentar enthält ein doppeltes typeparam-Tag</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnmatchedTypeParamTag">
         <source>XML comment has a typeparam tag for '{0}', but there is no type parameter by that name</source>
-        <target state="translated">Der XML-Kommentar weist eine typeparam-Kennung für "{0}" auf, es gibt aber keinen Typparameter mit dem Namen.</target>
+        <target state="translated">Der XML-Kommentar weist ein typeparam-Tag für "{0}" auf, es gibt aber keinen Typparameter mit dem Namen.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnmatchedTypeParamTag_Title">
         <source>XML comment has a typeparam tag, but there is no type parameter by that name</source>
-        <target state="translated">XML-Kommentar besitzt eine typeparam-Kennung, es gibt jedoch keinen Typparameter mit diesem Namen</target>
+        <target state="translated">XML-Kommentar besitzt ein typeparam-Tag, es gibt jedoch keinen Typparameter mit diesem Namen</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnmatchedTypeParamRefTag">
         <source>XML comment on '{1}' has a typeparamref tag for '{0}', but there is no type parameter by that name</source>
-        <target state="translated">Der XML-Kommentar für "{1}" weist eine typeparamref-Kennung für "{0}" auf, es gibt aber keinen Typparameter mit dem Namen.</target>
+        <target state="translated">Der XML-Kommentar für "{1}" weist ein typeparamref-Tag für "{0}" auf, es gibt aber keinen Typparameter mit dem Namen.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnmatchedTypeParamRefTag_Title">
         <source>XML comment has a typeparamref tag, but there is no type parameter by that name</source>
-        <target state="translated">XML-Kommentar besitzt eine typeparamref-Kennung, es gibt jedoch keinen Typparameter mit diesem Namen</target>
+        <target state="translated">XML-Kommentar besitzt ein typeparamref-Tag, es gibt jedoch keinen Typparameter mit diesem Namen</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingTypeParamTag">
         <source>Type parameter '{0}' has no matching typeparam tag in the XML comment on '{1}' (but other type parameters do)</source>
-        <target state="translated">Der {0}-Typparameter hat (im Gegensatz zu anderen Typparametern) keine entsprechende typeparam-Kennung im XML-Kommentar für "{1}".</target>
+        <target state="translated">Der {0}-Typparameter hat (im Gegensatz zu anderen Typparametern) kein entsprechendes typeparam-Tag im XML-Kommentar für "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingTypeParamTag_Title">
         <source>Type parameter has no matching typeparam tag in the XML comment (but other type parameters do)</source>
-        <target state="translated">Typparameter besitzt keine übereinstimmende typeparam-Kennung im XML-Kommentar (andere type-Parameter jedoch schon)</target>
+        <target state="translated">Typparameter besitzt kein übereinstimmendes typeparam-Tag im XML-Kommentar (andere type-Parameter jedoch schon)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantChangeTypeOnOverride">
@@ -6975,7 +6975,7 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
       </trans-unit>
       <trans-unit id="ERR_BadAsyncReturn">
         <source>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, IAsyncEnumerable&lt;T&gt;, or IAsyncEnumerator&lt;T&gt;</source>
-        <target state="translated">Der Rückgabetyp einer asynchronen Methode muss "void", "Task", "Task&lt;T&gt;", ein Task-ähnlicher Typ, "IAsyncEnumerable&lt;T&gt;" oder "IAsyncEnumerator&lt;T&gt;" sein.</target>
+        <target state="translated">Eine asynchrone Methode kann einen der folgenden Rückgabetypen haben: void, Task, Task&lt;T&gt;, einen taskähnlichen Typ, IAsyncEnumerable&lt;T&gt; oder IAsyncEnumerator&lt;T&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantReturnVoid">
@@ -9485,7 +9485,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
         <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="needs-review-translation">"{0}": Der in einer asynchronen using-Anweisung verwendete Typ muss implizit in "System.IAsyncDisposable" konvertiert werden können.</target>
+        <target state="translated">"{0}": Der in einer asynchronen using-Anweisung verwendete Typ muss implizit in "System.IAsyncDisposable" konvertiert werden können oder eine geeignete DisposeAsync-Methode implementieren.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

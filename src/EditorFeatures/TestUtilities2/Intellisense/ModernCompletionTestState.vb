@@ -42,18 +42,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 #Region "Editor Related Operations"
 
         Public Overrides Sub SendEscape()
+            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of EscapeKeyCommandArgs)
             Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of EscapeKeyCommandArgs))
-            MyBase.SendEscape(Sub(a, n, c) handler.ExecuteCommand(a, Sub() IntelliSenseCommandHandler.ExecuteCommand(a, n, c), c), Sub() Return)
+            MyBase.SendEscape(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub() Return)
         End Sub
 
         Public Overrides Sub SendDownKey()
+            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of DownKeyCommandArgs)
             Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of DownKeyCommandArgs))
-            MyBase.SendDownKey(Sub(a, n, c) IntelliSenseCommandHandler.ExecuteCommand(a, Sub() handler.ExecuteCommand(a, n, c), c), Sub() Return)
+            MyBase.SendDownKey(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub() Return)
         End Sub
 
         Public Overrides Sub SendUpKey()
+            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of UpKeyCommandArgs)
             Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of UpKeyCommandArgs))
-            MyBase.SendUpKey(Sub(a, n, c) IntelliSenseCommandHandler.ExecuteCommand(a, Sub() handler.ExecuteCommand(a, n, c), c), Sub() Return)
+            MyBase.SendUpKey(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub() Return)
         End Sub
 
         Public Overrides Sub SendPageUp()

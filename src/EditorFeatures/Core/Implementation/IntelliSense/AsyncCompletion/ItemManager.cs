@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly RecentItemsManager _recentItemsManager;
 
         internal ItemManager(RecentItemsManager recentItemsManager)
-        { 
+        {
             // Let us make the completion Helper used for non-Roslyn items case-sensitive.
             // We can change this if get requests from partner teams.
             _defaultCompletionHelper = new CompletionHelper(isCaseSensitive: true);
