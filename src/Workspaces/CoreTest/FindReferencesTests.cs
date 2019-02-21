@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -266,6 +267,47 @@ class B : C, A
             result.ForEach((reference) => Verify(reference, expectedMatchedLines));
 
             Assert.Empty(expectedMatchedLines);
+        }
+
+        [Fact, WorkItem(28827, "https://github.com/dotnet/roslyn/issues/28827")]
+        public async Task FindReferences_DifferingAssemblies()
+        {
+            var solution = new AdhocWorkspace().CurrentSolution;
+
+            solution = AddProjectWithMetadataReferences(solution, "NetStandardProject", LanguageNames.CSharp, @"
+namespace N
+{
+    public interface I
+    {
+        System.Uri Get();
+    }
+}", NetStandard20Ref);
+
+            solution = AddProjectWithMetadataReferences(solution, "DesktopProject", LanguageNames.CSharp, @"
+using N;
+
+namespace N2 
+{
+    public class Impl : I
+    {
+        public System.Uri Get()
+        {
+            return null;
+        }
+    }
+}", SystemRef_v46, solution.Projects.Single(pid => pid.Name == "NetStandardProject").Id);
+
+            var desktopProject = solution.Projects.First(p => p.Name == "DesktopProject");
+            solution = solution.AddMetadataReferences(desktopProject.Id, new[] { MscorlibRef_v46, Net46StandardFacade });
+
+            desktopProject = solution.GetProject(desktopProject.Id);
+            var netStandardProject = solution.Projects.First(p => p.Name == "NetStandardProject");
+
+            var interfaceMethod = (IMethodSymbol)(await netStandardProject.GetCompilationAsync()).GetTypeByMetadataName("N.I").GetMembers("Get").First();
+
+            var references = (await SymbolFinder.FindReferencesAsync(interfaceMethod, solution)).ToList();
+            Assert.Equal(2, references.Count);
+            Assert.True(references.Any(r => r.DefinitionAndProjectId.ProjectId == desktopProject.Id));
         }
 
         [WorkItem(4936, "https://github.com/dotnet/roslyn/issues/4936")]
