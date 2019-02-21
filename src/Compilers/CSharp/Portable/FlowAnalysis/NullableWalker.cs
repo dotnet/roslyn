@@ -1414,9 +1414,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(anonymousType.IsAnonymousType);
 
             var arguments = node.Arguments;
-            var argumentTypes = arguments.SelectAsArray((arg, visitor) => VisitRvalueWithResult(arg), this);
+            var argumentTypes = arguments.SelectAsArray((arg, visitor) => visitor.VisitRvalueWithResult(arg), this);
 
-            if (argumentTypes.All(t => !t.IsNull))
+            if (argumentTypes.All(argType => !argType.IsNull))
             {
                 anonymousType = AnonymousTypeManager.ConstructAnonymousTypeSymbol(anonymousType, argumentTypes);
                 int n = arguments.Length;
