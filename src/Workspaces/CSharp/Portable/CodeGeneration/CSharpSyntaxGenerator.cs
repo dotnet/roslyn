@@ -4292,7 +4292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         index = i + 1;
                     }
                 }
-                
+
                 if (index < triviaList.Count)
                 {
                     yield return triviaList.TakeRange(index, triviaList.Count - 1);
