@@ -62,11 +62,6 @@
         <target state="translated">Palavra-chave – Controle</target>
         <note />
       </trans-unit>
-      <trans-unit id="Lower_Signature_Help">
-        <source>Lower Signature Help</source>
-        <target state="new">Lower Signature Help</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Operator_Overloaded">
         <source>Operator - Overloaded</source>
         <target state="translated">Operador – Sobrecarregado</target>
@@ -95,11 +90,6 @@
       <trans-unit id="Symbol_Static">
         <source>Symbol - Static</source>
         <target state="translated">Símbolo – Estático</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upper_Signature_Help">
-        <source>Upper Signature Help</source>
-        <target state="new">Upper Signature Help</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">

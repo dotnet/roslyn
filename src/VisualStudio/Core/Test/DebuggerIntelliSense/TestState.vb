@@ -37,7 +37,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Inherits AbstractCommandHandlerTestState
 
         Friend ReadOnly AsyncCompletionService As IAsyncCompletionService
-        Friend ReadOnly SignatureHelpCommandHandler As UpperSignatureHelpCommandHandler
+        Friend ReadOnly SignatureHelpCommandHandler As SignatureHelpBeforeCompletionCommandHandler
         Friend ReadOnly CompletionCommandHandler As CompletionCommandHandler
 
         Private _context As AbstractDebuggerIntelliSenseContext
@@ -79,7 +79,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
             Me.CompletionCommandHandler = Workspace.GetService(Of CompletionCommandHandler)
 
-            Me.SignatureHelpCommandHandler = Workspace.GetService(Of UpperSignatureHelpCommandHandler)
+            Me.SignatureHelpCommandHandler = Workspace.GetService(Of SignatureHelpBeforeCompletionCommandHandler)
 
             Dim spanDocument = Workspace.Documents.First(Function(x) x.SelectedSpans.Any())
             Dim statementSpan = spanDocument.SelectedSpans.First()

@@ -20,19 +20,19 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     [Export]
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    [Name(PredefinedCommandHandlerNames.UpperSignatureHelp)]
+    [Name(PredefinedCommandHandlerNames.SignatureHelpBeforeCompletion)]
     [Order(Before = PredefinedCommandHandlerNames.Completion)]
     [Order(Before = PredefinedCompletionNames.CompletionCommandHandler)]
-    internal class UpperSignatureHelpCommandHandler :
+    internal class SignatureHelpBeforeCompletionCommandHandler :
         AbstractSignatureHelpCommandHandler,
         IChainedCommandHandler<TypeCharCommandArgs>,
         IChainedCommandHandler<InvokeSignatureHelpCommandArgs>
     {
-        public string DisplayName => EditorFeaturesResources.Upper_Signature_Help;
+        public string DisplayName => EditorFeaturesResources.Signature_Help;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public UpperSignatureHelpCommandHandler(
+        public SignatureHelpBeforeCompletionCommandHandler(
             IThreadingContext threadingContext,
             [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
             [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, OrderableMetadata>> signatureHelpPresenters,

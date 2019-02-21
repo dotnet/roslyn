@@ -134,12 +134,12 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <summary>
         /// Command handler name for a Signature Help command handler executing before <see cref="Completion"/>.
         /// </summary>
-        public const string UpperSignatureHelp = "Upper Signature Help Command Handler";
+        public const string SignatureHelpBeforeCompletion = "Signature Help Before Completion Command Handler";
 
         /// <summary>
         /// Command handler name for a Signature Help command handler executing after <see cref="Completion"/>.
         /// </summary>
-        public const string LowerSignatureHelp = "Lower Signature Help Command Handler";
+        public const string SignatureHelpAfterCompletion = "Signature Help After Completion Command Handler";
 
         /// <summary>
         /// Command handler name for Paste Content in Interactive Format. 
