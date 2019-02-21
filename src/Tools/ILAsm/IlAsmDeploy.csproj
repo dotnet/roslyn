@@ -13,7 +13,12 @@
     <SelfContained>true</SelfContained>
 
     <!-- Do not build again when publishing -->
+    <!--
+      PROTOTYPE(DefaultInterfaceImplementation): commented out NoBuild property to work around a build error:
+      roslyn\.dotnet\sdk\3.0.100-preview4-010391\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.targets(112,5): error NETSDK1085: The 'NoBuild' property was set to true but the 'Build' target was invoked. [roslyn\src\Tools\ILAsm\IlAsmDeploy.csproj]
+      
     <NoBuild>true</NoBuild>
+    -->
 
     <PublishDir>$(ArtifactsDir)tools\ILAsm\$(Configuration)\</PublishDir>
   </PropertyGroup>

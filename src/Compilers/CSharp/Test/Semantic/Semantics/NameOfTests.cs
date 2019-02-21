@@ -547,7 +547,9 @@ class Program
                 );
         }
 
-        [ClrOnlyFact(ClrOnlyReason.MemberOrder)]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/33564")] // PROTOTYPE(DefaultInterfaceImplementation): https://github.com/dotnet/roslyn/issues/33564
+        // PROTOTYPE(DefaultInterfaceImplementation): Was [ClrOnlyFact(ClrOnlyReason.MemberOrder)]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         public void TestNameofIndexerName()
         {
             var source = @"

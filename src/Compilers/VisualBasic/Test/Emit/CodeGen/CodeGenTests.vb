@@ -5262,8 +5262,9 @@ End Class
 ]]>)
         End Sub
 
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/33564")> ' PROTOTYPE(DefaultInterfaceImplementation) https://github.com/dotnet/roslyn/issues/33564
+        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(529849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529849")>
-        <Fact>
         Public Sub ArrayWithTypeCharsWithStaticLocals()
             CompileAndVerify(
 <compilation>
@@ -13820,7 +13821,9 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/33564")> ' PROTOTYPE(DefaultInterfaceImplementation) https://github.com/dotnet/roslyn/issues/33564
+        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_1()
             Dim c = CompileAndVerify(
 <compilation>
@@ -13864,7 +13867,9 @@ End Class
 ]]>)
         End Sub
 
-        <Fact, WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/33564")> ' PROTOTYPE(DefaultInterfaceImplementation) https://github.com/dotnet/roslyn/issues/33564
+        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_2()
             Dim c = CompileAndVerify(
 <compilation>

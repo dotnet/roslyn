@@ -52,11 +52,7 @@ public interface I1
 
         private void ValidateMethodImplementation_011(string source)
         {
-            foreach (string access in new[] { "x.M1();"
-#if Issue33083_Is_Fixed // https://github.com/dotnet/roslyn/issues/33083
-                                            , "new System.Action(x.M1)();"
-#endif
-                                            })
+            foreach (string access in new[] { "x.M1();", "new System.Action(x.M1)();" })
             {
                 foreach (string typeKind in new[] { "class", "struct" })
                 {
@@ -24454,12 +24450,10 @@ I4.M1
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-#if Issue32540_Is_Fixed // https://github.com/dotnet/roslyn/issues/32540
                 expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-#endif
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
@@ -24471,12 +24465,10 @@ I4.M1
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-#if Issue32540_Is_Fixed // https://github.com/dotnet/roslyn/issues/32540
                 expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-#endif
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidateMethodImplementationInDerived_01);
         }
@@ -25271,12 +25263,10 @@ I4.M1
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-#if Issue32540_Is_Fixed // https://github.com/dotnet/roslyn/issues/32540
                 expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-#endif
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
@@ -25288,12 +25278,10 @@ I4.M1
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-#if Issue32540_Is_Fixed // https://github.com/dotnet/roslyn/issues/32540
                 expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-#endif
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
@@ -26039,13 +26027,11 @@ I4.M1
 
                 compilation2.VerifyDiagnostics();
                 CompileAndVerify(compilation2,
-#if Issue32540_Is_Fixed // https://github.com/dotnet/roslyn/issues/32540
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-#endif
-                verify: VerifyOnCoreClr,
+                    verify: VerifyOnCoreClr,
                     symbolValidator: ValidatePropertyImplementationInDerived_01);
 
                 var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: options,
@@ -26056,13 +26042,11 @@ I4.M1
 
                 compilation3.VerifyDiagnostics();
                 CompileAndVerify(compilation3,
-#if Issue32540_Is_Fixed // https://github.com/dotnet/roslyn/issues/32540
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-#endif
-                verify: VerifyOnCoreClr,
+                    verify: VerifyOnCoreClr,
                     symbolValidator: ValidatePropertyImplementationInDerived_01);
             }
         }
@@ -26977,13 +26961,11 @@ I4.M1.set
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-#if Issue32540_Is_Fixed // https://github.com/dotnet/roslyn/issues/32540
                 expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"I2.M1
 I4.M1
 I4.M1.set
 ",
-#endif
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidatePropertyImplementationInDerived_01);
 
@@ -26995,13 +26977,11 @@ I4.M1.set
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-#if Issue32540_Is_Fixed // https://github.com/dotnet/roslyn/issues/32540
                 expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"I2.M1
 I4.M1
 I4.M1.set
 ",
-#endif
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidatePropertyImplementationInDerived_01);
 
@@ -27829,14 +27809,12 @@ I4.M1.remove
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-#if Issue32540_Is_Fixed // https://github.com/dotnet/roslyn/issues/32540
                 expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-#endif
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidateEventImplementationInDerived_01);
 
@@ -27848,14 +27826,12 @@ I4.M1.remove
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-#if Issue32540_Is_Fixed // https://github.com/dotnet/roslyn/issues/32540
                 expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-#endif
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidateEventImplementationInDerived_01);
         }
@@ -28571,14 +28547,12 @@ I4.M1.remove
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-#if Issue32540_Is_Fixed // https://github.com/dotnet/roslyn/issues/32540
                 expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-#endif
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidateEventImplementationInDerived_01);
 
@@ -28590,14 +28564,12 @@ I4.M1.remove
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-#if Issue32540_Is_Fixed // https://github.com/dotnet/roslyn/issues/32540
                 expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-#endif
                 verify: VerifyOnCoreClr,
                 symbolValidator: ValidateEventImplementationInDerived_01);
 
@@ -36789,9 +36761,7 @@ interface C
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(compilation1
-#if Issue33083_Is_Fixed // https://github.com/dotnet/roslyn/issues/33083
-                , expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            var verifier = CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"
 A
 B
@@ -36803,7 +36773,6 @@ E
 B
 C
 "
-#endif
 , verify: VerifyOnCoreClr);
             verifier.VerifyIL("D.Test",
 @"
@@ -40858,6 +40827,7 @@ D
 
         [Fact]
         [WorkItem(33083, "https://github.com/dotnet/roslyn/issues/33083")]
+        [WorkItem(33535, "https://github.com/dotnet/roslyn/issues/33535")]
         public void ExplicitBase_107_Delegate()
         {
             var source = @"
@@ -40929,7 +40899,7 @@ interface D
             compilation1.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(compilation1
-#if Issue33083_Is_Fixed // https://github.com/dotnet/roslyn/issues/33083
+#if Issue33535_Is_Fixed // https://github.com/dotnet/roslyn/issues/33535
                 , expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"
 B
@@ -42040,9 +42010,7 @@ class G : E
                 var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
                 compilation1.VerifyDiagnostics();
 
-                var verifier = CompileAndVerify(compilation1
-#if Issue33083_Is_Fixed // https://github.com/dotnet/roslyn/issues/33083
-                    , expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                var verifier = CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"
 B
 B
@@ -42051,7 +42019,6 @@ B
 B
 B
 "
-#endif 
 , verify: VerifyOnCoreClr);
 
                 verifier.VerifyIL("F.Test",
@@ -46921,6 +46888,7 @@ D
 
         [Fact]
         [WorkItem(33083, "https://github.com/dotnet/roslyn/issues/33083")]
+        [WorkItem(33535, "https://github.com/dotnet/roslyn/issues/33535")]
         public void ExplicitBase_150_Delegate()
         {
             var source = @"
@@ -46989,7 +46957,7 @@ interface D
             compilation1.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(compilation1
-#if Issue33083_Is_Fixed // https://github.com/dotnet/roslyn/issues/33083
+#if Issue33535_Is_Fixed // https://github.com/dotnet/roslyn/issues/33535
                 , expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"
 B
