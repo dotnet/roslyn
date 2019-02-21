@@ -1419,9 +1419,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (argumentTypes.All(argType => !argType.IsNull))
             {
                 anonymousType = AnonymousTypeManager.ConstructAnonymousTypeSymbol(anonymousType, argumentTypes);
-                int n = arguments.Length;
                 int receiverSlot = GetOrCreateObjectCreationPlaceholderSlot(node);
-                for (int i = 0; i < n; i++)
+                for (int i = 0; i < arguments.Length; i++)
                 {
                     var argument = arguments[i];
                     var argumentType = argumentTypes[i];
@@ -3333,10 +3332,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     if (symbolDefContainer.IsAnonymousType)
                     {
-                        int? memberIndex = symbol.MemberIndexOpt;
+                        int? memberIndex = symbol.Kind == SymbolKind.Property ? symbol.MemberIndexOpt : null;
                         if (!memberIndex.HasValue)
                         {
-                            Debug.Assert(false); // If the assert fails, handle additional cases.
                             break;
                         }
                         return AnonymousTypeManager.GetAnonymousTypeProperty(containingType, memberIndex.GetValueOrDefault());
