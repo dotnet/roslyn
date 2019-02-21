@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static string ToDisplayString(
-#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
             ITypeSymbol symbol,
             Nullability topLevelNullability,
             SymbolDisplayFormat format = null)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
             return ToDisplayParts(symbol, topLevelNullability, format).ToDisplayString();
         }
@@ -66,12 +66,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static string ToMinimalDisplayString(
-#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
             ITypeSymbol symbol,
             Nullability topLevelNullability,
             SemanticModel semanticModel,
             int position,
             SymbolDisplayFormat format = null)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
             return ToMinimalDisplayParts(symbol, topLevelNullability, semanticModel, position, format).ToDisplayString();
         }
@@ -98,10 +98,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static ImmutableArray<SymbolDisplayPart> ToDisplayParts(
-#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
             ITypeSymbol symbol,
             Nullability topLevelNullability,
             SymbolDisplayFormat format = null)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
             // null indicates the default format
             format = format ?? SymbolDisplayFormat.CSharpErrorMessageFormat;
@@ -133,12 +133,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
-#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
             ITypeSymbol symbol,
             Nullability topLevelNullability,
             SemanticModel semanticModel,
             int position,
             SymbolDisplayFormat format = null)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
             format = format ?? SymbolDisplayFormat.MinimallyQualifiedFormat;
             return ToDisplayParts(symbol, topLevelNullability, semanticModel, position, format, minimal: true);

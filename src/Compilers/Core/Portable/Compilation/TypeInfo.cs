@@ -6,7 +6,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    public struct TypeInfo : IEquatable<TypeInfo>
+    public readonly struct TypeInfo : IEquatable<TypeInfo>
     {
         internal static readonly TypeInfo None = new TypeInfo(null, null, Nullability.NotComputed, Nullability.NotComputed);
 
@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ITypeSymbol Type { get; }
 
+        // PROTOTYPE(nullable-api): Doc Comment
         public Nullability Nullability { get; }
 
         /// <summary>
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ITypeSymbol ConvertedType { get; }
 
+        // PROTOTYPE(nullable-api): Doc Comment
         public Nullability ConvertedNullability { get; }
 
         internal TypeInfo(ITypeSymbol type, ITypeSymbol convertedType, Nullability nullability, Nullability convertedNullability)
