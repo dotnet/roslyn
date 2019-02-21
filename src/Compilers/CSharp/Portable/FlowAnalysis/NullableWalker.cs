@@ -1415,7 +1415,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var arguments = node.Arguments;
             var argumentTypes = arguments.SelectAsArray(arg => VisitRvalueWithResult(arg));
-            anonymousType = AnonymousTypeManager.ConstructAnonymousTypeSymbol(anonymousType, argumentTypes);
+            if (argumentTypes.All(t => !t.IsNull))
+            {
+                anonymousType = AnonymousTypeManager.ConstructAnonymousTypeSymbol(anonymousType, argumentTypes);
+            }
 
             int n = arguments.Length;
             int receiverSlot = GetOrCreateObjectCreationPlaceholderSlot(node);
