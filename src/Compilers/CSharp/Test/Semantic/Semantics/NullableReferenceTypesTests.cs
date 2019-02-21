@@ -17,6 +17,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     [CompilerTrait(CompilerFeature.NullableReferenceTypes)]
     public class NullableReferenceTypesTests : CSharpTestBase
     {
+        [Fact]
+        [WorkItem(788968, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/788968")]
+        public void MissingMethodOnTupleLiteral()
+        {
+            var source = @"
+#nullable enable
+class C
+{
+    void M()
+    {
+        (0, (string?)null).Missing();
+        _ = (0, (string?)null).Missing;
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,28): error CS1061: '(int, string)' does not contain a definition for 'Missing' and no accessible extension method 'Missing' accepting a first argument of type '(int, string)' could be found (are you missing a using directive or an assembly reference?)
+                //         (0, (string?)null).Missing();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Missing").WithArguments("(int, string)", "Missing").WithLocation(7, 28),
+                // (8,32): error CS1061: '(int, string)' does not contain a definition for 'Missing' and no accessible extension method 'Missing' accepting a first argument of type '(int, string)' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = (0, (string?)null).Missing;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Missing").WithArguments("(int, string)", "Missing").WithLocation(8, 32)
+                );
+        }
+
         [Fact, WorkItem(31297, "https://github.com/dotnet/roslyn/issues/31297")]
         public void SuppressNullableWarning_RefSpanReturn()
         {
