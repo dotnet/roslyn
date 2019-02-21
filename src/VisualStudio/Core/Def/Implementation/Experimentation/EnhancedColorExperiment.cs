@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
             }
 
             // We do not want to make any changes while in high contrast mode.
-            if (IsHighContrast)
+            if (SystemParameters.HighContrast)
             {
                 return;
             }
@@ -137,48 +137,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                 ?? _settingsManager.GetValueOrDefault<string>(CurrentThemeValueName, null);
 
             return Guid.TryParse(themeIdString, out var themeId) ? themeId : Guid.Empty;
-        }
-
-        /// <summary>
-        /// Determines whether-or-not Windows is in high-contrast mode.
-        /// </summary>
-        private static bool IsHighContrast
-        {
-            get
-            {
-                // If WPF tells us that we're in high-contrast, Go ahead and believe it.
-                if (SystemParameters.HighContrast)
-                    return true;
-
-                // If WPF doesn't tell us that we're in high-contrast, we still could be.  We'll have to check some colors for
-                // ourselves.
-                var controlColor = SystemColors.ControlColor;
-                var controlTextColor = SystemColors.ControlTextColor;
-
-                var white = Color.FromRgb(0xFF, 0xFF, 0xFF);
-                var black = Color.FromRgb(0x00, 0x00, 0x00);
-                var green = Color.FromRgb(0x00, 0xFF, 0x00);
-
-                // Are we running under High Contrast #1 or High Contrast Black?
-                if ((controlColor == black) && (controlTextColor == white))
-                {
-                    return true;
-                }
-
-                // Are we running under High Contrast White?
-                if ((controlColor == white) && (controlTextColor == black))
-                {
-                    return true;
-                }
-
-                // Are we running under High Contrast #2?
-                if ((controlColor == black) && (controlTextColor == green))
-                {
-                    return true;
-                }
-
-                return false;
-            }
         }
 
         // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
