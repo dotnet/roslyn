@@ -4214,7 +4214,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbolWithAnnotations rightType = VisitOptionalImplicitConversion(right, leftLValueType, UseLegacyWarnings(left), AssignmentKind.Assignment);
                 TrackNullableStateForAssignment(right, leftLValueType, MakeSlot(left), rightType, MakeSlot(right));
                 // https://github.com/dotnet/roslyn/issues/30066 Check node.Type.IsErrorType() instead?
-                ResultType = node.HasErrors ? TypeSymbolWithAnnotations.Create(node.Type) : rightType;
+                var result = node.HasErrors ? TypeSymbolWithAnnotations.Create(node.Type) : rightType;
+                SetResult(result, result);
             }
 
             return null;
@@ -4934,14 +4935,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
         {
             var result = base.VisitPointerIndirectionOperator(node);
-            SetResult(node);
+            var type = TypeSymbolWithAnnotations.Create( node.Type);
+            SetResult(type, type);
             return result;
         }
 
         public override BoundNode VisitPointerElementAccess(BoundPointerElementAccess node)
         {
             var result = base.VisitPointerElementAccess(node);
-            SetResult(node);
+            var type = TypeSymbolWithAnnotations.Create( node.Type);
+            SetResult(type, type);
             return result;
         }
 
@@ -4962,7 +4965,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitRefValueOperator(BoundRefValueOperator node)
         {
             var result = base.VisitRefValueOperator(node);
-            SetResult(node);
+            var type = TypeSymbolWithAnnotations.Create(node.Type);
+            SetResult(type, type);
             return result;
         }
 
