@@ -748,6 +748,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         bool ITypeSymbol.IsTupleType => this.IsTupleType;
 
+        public string ToDisplayString(Nullability topLevelNullability, SymbolDisplayFormat format = null)
+        {
+            return SymbolDisplay.ToDisplayString(this, topLevelNullability, format);
+        }
+
+        public ImmutableArray<SymbolDisplayPart> ToDisplayParts(Nullability topLevelNullability, SymbolDisplayFormat format = null)
+        {
+            return SymbolDisplay.ToDisplayParts(this, topLevelNullability, format);
+        }
+
+        public string ToMinimalDisplayString(
+            SemanticModel semanticModel,
+            Nullability topLevelNullability,
+            int position,
+            SymbolDisplayFormat format = null)
+        {
+            return SymbolDisplay.ToMinimalDisplayString(this, topLevelNullability, semanticModel, position, format);
+        }
+
+        public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
+            SemanticModel semanticModel,
+            Nullability topLevelNullability,
+            int position,
+            SymbolDisplayFormat format = null)
+        {
+            return SymbolDisplay.ToMinimalDisplayParts(this, topLevelNullability, semanticModel, position, format);
+        }
+
         #endregion
 
         #region Interface member checks

@@ -367,6 +367,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        Nullability ILocalSymbol.Nullability => Nullability.NotComputed;
+
         bool ILocalSymbol.IsFunctionValue
         {
             get

@@ -72,6 +72,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ImmutableArray<ITypeSymbol> TypeArguments { get; }
 
+        // PROTOTYPE(nullable-api): Document
+        ImmutableArray<Nullability> TypeArgumentsNullabilities { get; }
+
         /// <summary>
         /// Returns custom modifiers for the type argument that has been substituted for the type parameter. 
         /// The modifiers correspond to the type argument at the same ordinal within the <see cref="TypeArguments"/>

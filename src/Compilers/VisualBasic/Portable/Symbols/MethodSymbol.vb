@@ -883,6 +883,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IMethodSymbol_ReceiverNullability As Nullability Implements IMethodSymbol.ReceiverNullability
+            Get
+                Return Nullability.NotComputed
+            End Get
+        End Property
+
         Private Function IMethodSymbol_GetTypeInferredDuringReduction(reducedFromTypeParameter As ITypeParameterSymbol) As ITypeSymbol Implements IMethodSymbol.GetTypeInferredDuringReduction
             Return Me.GetTypeInferredDuringReduction(reducedFromTypeParameter.EnsureVbSymbolOrNothing(Of TypeParameterSymbol)(NameOf(reducedFromTypeParameter)))
         End Function
@@ -980,9 +986,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IMethodSymbol_ReturnNullability As Nullability Implements IMethodSymbol.ReturnNullability
+            Get
+                Return Nullability.NotComputed
+            End Get
+        End Property
+
         Private ReadOnly Property IMethodSymbol_TypeArguments As ImmutableArray(Of ITypeSymbol) Implements IMethodSymbol.TypeArguments
             Get
                 Return StaticCast(Of ITypeSymbol).From(Me.TypeArguments)
+            End Get
+        End Property
+
+        Private ReadOnly Property IMethodSymbol_TypeArgumentsNullabilities As ImmutableArray(Of Nullability) Implements IMethodSymbol.TypeArgumentsNullabilities
+            Get
+                Return Me.TypeArguments.SelectAsArray(Function(t) Nullability.NotComputed)
             End Get
         End Property
 

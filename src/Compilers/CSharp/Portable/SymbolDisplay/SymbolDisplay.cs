@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -31,6 +32,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ToDisplayParts(symbol, format).ToDisplayString();
         }
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public static string ToDisplayString(
+            ITypeSymbol symbol,
+            Nullability topLevelNullability,
+            SymbolDisplayFormat format = null)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+        {
+            return ToDisplayParts(symbol, topLevelNullability, format).ToDisplayString();
+        }
+
         /// <summary>
         /// Displays a symbol in the C# style, based on a <see cref="SymbolDisplayFormat"/>.
         /// Based on the context, qualify type and member names as little as possible without
@@ -53,6 +64,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ToMinimalDisplayParts(symbol, semanticModel, position, format).ToDisplayString();
         }
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public static string ToMinimalDisplayString(
+            ITypeSymbol symbol,
+            Nullability topLevelNullability,
+            SemanticModel semanticModel,
+            int position,
+            SymbolDisplayFormat format = null)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+        {
+            return ToMinimalDisplayParts(symbol, topLevelNullability, semanticModel, position, format).ToDisplayString();
+        }
+
         /// <summary>
         /// Convert a symbol to an array of string parts, each of which has a kind. Useful for
         /// colorizing the display string.
@@ -70,7 +93,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             // null indicates the default format
             format = format ?? SymbolDisplayFormat.CSharpErrorMessageFormat;
             return ToDisplayParts(
-                symbol, semanticModelOpt: null, positionOpt: -1, format: format, minimal: false);
+                symbol, topLevelNullabilityOpt: null, semanticModelOpt: null, positionOpt: -1, format: format, minimal: false);
+        }
+
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public static ImmutableArray<SymbolDisplayPart> ToDisplayParts(
+            ITypeSymbol symbol,
+            Nullability topLevelNullability,
+            SymbolDisplayFormat format = null)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+        {
+            // null indicates the default format
+            format = format ?? SymbolDisplayFormat.CSharpErrorMessageFormat;
+            return ToDisplayParts(
+                symbol, topLevelNullability, semanticModelOpt: null, positionOpt: -1, format: format, minimal: false);
         }
 
         /// <summary>
@@ -92,11 +128,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             SymbolDisplayFormat format = null)
         {
             format = format ?? SymbolDisplayFormat.MinimallyQualifiedFormat;
-            return ToDisplayParts(symbol, semanticModel, position, format, minimal: true);
+            return ToDisplayParts(symbol, topLevelNullabilityOpt: null, semanticModel, position, format, minimal: true);
+        }
+
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public static ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
+            ITypeSymbol symbol,
+            Nullability topLevelNullability,
+            SemanticModel semanticModel,
+            int position,
+            SymbolDisplayFormat format = null)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+        {
+            format = format ?? SymbolDisplayFormat.MinimallyQualifiedFormat;
+            return ToDisplayParts(symbol, topLevelNullability, semanticModel, position, format, minimal: true);
         }
 
         private static ImmutableArray<SymbolDisplayPart> ToDisplayParts(
             ISymbol symbol,
+            Nullability? topLevelNullabilityOpt,
             SemanticModel semanticModelOpt,
             int positionOpt,
             SymbolDisplayFormat format,
@@ -106,6 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 throw new ArgumentNullException(nameof(symbol));
             }
+
+            Debug.Assert(!topLevelNullabilityOpt.HasValue || symbol is ITypeSymbol);
 
             if (minimal)
             {
@@ -126,7 +178,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var builder = ArrayBuilder<SymbolDisplayPart>.GetInstance();
             var visitor = new SymbolDisplayVisitor(builder, format, semanticModelOpt, positionOpt);
-            symbol.Accept(visitor);
+            if (topLevelNullabilityOpt.HasValue)
+            {
+                visitor.VisitWithNullability((TypeSymbol)symbol, topLevelNullabilityOpt.GetValueOrDefault());
+            }
+            else
+            {
+                symbol.Accept(visitor);
+            }
 
             return builder.ToImmutableAndFree();
         }

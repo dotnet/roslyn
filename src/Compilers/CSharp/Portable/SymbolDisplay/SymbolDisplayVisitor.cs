@@ -92,6 +92,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : $"@{identifier}";
         }
 
+        public void VisitWithNullability(TypeSymbol symbol, Nullability topLevelNullability)
+        {
+            Debug.Assert(topLevelNullability != Nullability.NotApplicable && !(symbol is null));
+            Visit(symbol);
+            NullableAnnotation annotation;
+            switch (topLevelNullability)
+            {
+                case Nullability.MayBeNull:
+                    annotation = NullableAnnotation.Nullable;
+                    break;
+                case Nullability.NotNull:
+                    annotation = NullableAnnotation.NotNullable;
+                    break;
+                case Nullability.Unknown:
+                case Nullability.NotComputed:
+                    annotation = NullableAnnotation.Unknown;
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(topLevelNullability);
+            }
+            AddNullableAnnotations(TypeSymbolWithAnnotations.Create(symbol, annotation));
+        }
+
         public override void VisitAssembly(IAssemblySymbol symbol)
         {
             var text = format.TypeQualificationStyle == SymbolDisplayTypeQualificationStyle.NameOnly

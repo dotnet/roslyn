@@ -38,6 +38,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public bool IsFixedSizeBuffer => _symbol.IsFixedSizeBuffer;
 
             public ITypeSymbol Type => _symbol.Type;
+
+            public Nullability Nullability => _symbol.Nullability;
         }
     }
 }

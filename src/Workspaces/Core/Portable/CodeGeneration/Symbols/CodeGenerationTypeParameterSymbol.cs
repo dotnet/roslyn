@@ -89,5 +89,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 return this.ContainingSymbol as INamedTypeSymbol;
             }
         }
+
+        public Nullability ReferenceTypeConstraintNullability => throw new System.NotImplementedException();
+
+        public ImmutableArray<Nullability> ConstraintNullabilities => throw new System.NotImplementedException();
     }
 }

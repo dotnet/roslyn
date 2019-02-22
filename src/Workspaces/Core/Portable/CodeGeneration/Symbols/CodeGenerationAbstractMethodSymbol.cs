@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
@@ -46,6 +47,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations { get; }
         public abstract IMethodSymbol PartialDefinitionPart { get; }
         public abstract IMethodSymbol PartialImplementationPart { get; }
+
+        public Nullability ReceiverNullability => throw new NotImplementedException();
+        public Nullability ReturnNullability => throw new NotImplementedException();
+        public ImmutableArray<Nullability> TypeArgumentsNullabilities => throw new NotImplementedException();
 
         public virtual ITypeSymbol ReceiverType
         {

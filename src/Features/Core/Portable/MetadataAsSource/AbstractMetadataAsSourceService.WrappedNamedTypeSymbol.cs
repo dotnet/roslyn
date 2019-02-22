@@ -86,6 +86,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public ImmutableArray<ITypeParameterSymbol> TypeParameters => _symbol.TypeParameters;
             public ImmutableArray<ITypeSymbol> TypeArguments => _symbol.TypeArguments;
+            public ImmutableArray<Nullability> TypeArgumentsNullabilities => _symbol.TypeArgumentsNullabilities;
             public ImmutableArray<IMethodSymbol> InstanceConstructors => _symbol.InstanceConstructors;
             public ImmutableArray<IMethodSymbol> StaticConstructors => _symbol.StaticConstructors;
             public ImmutableArray<IMethodSymbol> Constructors => _symbol.Constructors;
@@ -136,6 +137,26 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             }
 
             public override ImmutableArray<INamedTypeSymbol> GetTypeMembers(string name, int arity)
+            {
+                throw new NotImplementedException();
+            }
+
+            public string ToDisplayString(Nullability topLevelNullability, SymbolDisplayFormat format = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public ImmutableArray<SymbolDisplayPart> ToDisplayParts(Nullability topLevelNullability, SymbolDisplayFormat format = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public string ToMinimalDisplayString(SemanticModel semanticModel, Nullability topLevelNullability, int position, SymbolDisplayFormat format = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, Nullability topLevelNullability, int position, SymbolDisplayFormat format = null)
             {
                 throw new NotImplementedException();
             }

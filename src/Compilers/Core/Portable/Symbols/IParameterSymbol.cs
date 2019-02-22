@@ -40,6 +40,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ITypeSymbol Type { get; }
 
+        // PROTOTYPE(nullable-api): Document
+        Nullability Nullability { get; }
+
         /// <summary>
         /// Custom modifiers associated with the parameter type, or an empty array if there are none.
         /// </summary>

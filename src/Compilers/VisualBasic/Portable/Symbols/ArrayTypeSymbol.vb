@@ -399,6 +399,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IArrayTypeSymbol_ElementNullability As Nullability Implements IArrayTypeSymbol.ElementNullability
+            Get
+                Return Nullability.NotComputed
+            End Get
+        End Property
+
         Private ReadOnly Property IArrayTypeSymbol_Rank As Integer Implements IArrayTypeSymbol.Rank
             Get
                 Return Me.Rank

@@ -102,5 +102,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public bool IsUnmanagedType => throw new NotImplementedException();
 
         public bool IsRefLikeType => throw new NotImplementedException();
+
+        public ImmutableArray<Nullability> TypeArgumentsNullabilities => throw new NotImplementedException();
     }
 }

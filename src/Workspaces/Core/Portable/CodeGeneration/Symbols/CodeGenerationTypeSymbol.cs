@@ -49,6 +49,26 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember) => null;
 
+        public string ToDisplayString(Nullability topLevelNullability, SymbolDisplayFormat format = null)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public ImmutableArray<SymbolDisplayPart> ToDisplayParts(Nullability topLevelNullability, SymbolDisplayFormat format = null)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public string ToMinimalDisplayString(SemanticModel semanticModel, Nullability topLevelNullability, int position, SymbolDisplayFormat format = null)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, Nullability topLevelNullability, int position, SymbolDisplayFormat format = null)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public override bool IsNamespace => false;
 
         public override bool IsType => true;
