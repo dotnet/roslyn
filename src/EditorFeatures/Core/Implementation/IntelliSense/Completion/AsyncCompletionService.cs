@@ -65,22 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         public bool TryGetController(ITextView textView, ITextBuffer subjectBuffer, out Controller controller)
         {
             AssertIsForeground();
-
-            if (!UseLegacyCompletion(textView, subjectBuffer))
-            {
-                controller = null;
-                return false;
-            }
-
-            var autobraceCompletionCharSet = GetAllAutoBraceCompletionChars(subjectBuffer.ContentType);
-            controller = Controller.GetInstance(
-                ThreadingContext,
-                textView, subjectBuffer,
-                _editorOperationsFactoryService, _undoHistoryRegistry, _completionPresenter,
-                _listener,
-                autobraceCompletionCharSet);
-
-            return true;
+            controller = null;
+            return false;
         }
 
         private bool UseLegacyCompletion(ITextView textView, ITextBuffer subjectBuffer)
