@@ -72,6 +72,11 @@
         <target state="translated">Nullable로 선언</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_return_type">
+        <source>Fix return type</source>
+        <target state="new">Fix return type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inline_temporary_variable">
         <source>Inline temporary variable</source>
         <target state="translated">인라인 임시 변수</target>

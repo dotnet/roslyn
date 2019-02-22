@@ -372,11 +372,11 @@ namespace Microsoft.CodeAnalysis
             DocumentId documentId, SourceTextContainer textContainer,
             bool isCurrentContext = true)
         {
-            CheckDocumentIsInCurrentSolution(documentId);
-            CheckDocumentIsClosed(documentId);
-
             using (_serializationLock.DisposableWait())
             {
+                CheckDocumentIsInCurrentSolution(documentId);
+                CheckDocumentIsClosed(documentId);
+
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetDocument(documentId);
                 var oldDocumentState = oldDocument.State;
@@ -487,11 +487,11 @@ namespace Microsoft.CodeAnalysis
 
         protected internal void OnAdditionalDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
         {
-            CheckAdditionalDocumentIsInCurrentSolution(documentId);
-            CheckDocumentIsClosed(documentId);
-
             using (_serializationLock.DisposableWait())
             {
+                CheckAdditionalDocumentIsInCurrentSolution(documentId);
+                CheckDocumentIsClosed(documentId);
+
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetAdditionalDocument(documentId);
                 var oldText = oldDocument.GetTextSynchronously(CancellationToken.None);
@@ -527,11 +527,11 @@ namespace Microsoft.CodeAnalysis
 
         protected internal void OnDocumentClosed(DocumentId documentId, TextLoader reloader, bool updateActiveContext = false)
         {
-            this.CheckDocumentIsInCurrentSolution(documentId);
-            this.CheckDocumentIsOpen(documentId);
-
             using (_serializationLock.DisposableWait())
             {
+                this.CheckDocumentIsInCurrentSolution(documentId);
+                this.CheckDocumentIsOpen(documentId);
+
                 // forget any open document info
                 ClearOpenDocument(documentId);
 
@@ -553,10 +553,11 @@ namespace Microsoft.CodeAnalysis
 
         protected internal void OnAdditionalDocumentClosed(DocumentId documentId, TextLoader reloader)
         {
-            this.CheckAdditionalDocumentIsInCurrentSolution(documentId);
-
             using (_serializationLock.DisposableWait())
             {
+                this.CheckAdditionalDocumentIsInCurrentSolution(documentId);
+                this.CheckDocumentIsOpen(documentId);
+
                 // forget any open document info
                 ClearOpenDocument(documentId);
 

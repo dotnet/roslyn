@@ -108,22 +108,42 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
 
         private static void AddInputs(List<NativeMethods.INPUT> inputs, VirtualKey virtualKey, uint dwFlags)
         {
-            var input = new NativeMethods.INPUT
+            NativeMethods.INPUT input;
+            var scanCode = NativeMethods.MapVirtualKey((uint)virtualKey, NativeMethods.MAPVK_VK_TO_VSC);
+            if (scanCode != 0)
             {
-                Type = NativeMethods.INPUT_KEYBOARD,
-                ki = new NativeMethods.KEYBDINPUT
+                input = new NativeMethods.INPUT
                 {
-                    wVk = (ushort)virtualKey,
-                    wScan = 0,
-                    dwFlags = dwFlags,
-                    time = 0,
-                    dwExtraInfo = IntPtr.Zero
-                }
-            };
-
-            if (IsExtendedKey(virtualKey))
+                    Type = NativeMethods.INPUT_KEYBOARD,
+                    ki = new NativeMethods.KEYBDINPUT
+                    {
+                        wVk = 0,
+                        wScan = (ushort)scanCode,
+                        dwFlags = dwFlags | NativeMethods.KEYEVENTF_SCANCODE,
+                        time = 0,
+                        dwExtraInfo = IntPtr.Zero
+                    }
+                };
+            }
+            else
             {
-                input.ki.dwFlags |= NativeMethods.KEYEVENTF_EXTENDEDKEY;
+                input = new NativeMethods.INPUT
+                {
+                    Type = NativeMethods.INPUT_KEYBOARD,
+                    ki = new NativeMethods.KEYBDINPUT
+                    {
+                        wVk = (ushort)virtualKey,
+                        wScan = 0,
+                        dwFlags = dwFlags,
+                        time = 0,
+                        dwExtraInfo = IntPtr.Zero
+                    }
+                };
+
+                if (IsExtendedKey(virtualKey))
+                {
+                    input.ki.dwFlags |= NativeMethods.KEYEVENTF_EXTENDEDKEY;
+                }
             }
 
             inputs.Add(input);
@@ -175,30 +195,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
 
         private void SendInputs(NativeMethods.INPUT[] inputs)
         {
-            var foregroundWindow = IntPtr.Zero;
-            var inputBlocked = false;
+            _visualStudioInstance.ActivateMainWindow();
 
-            try
-            {
-                inputBlocked = IntegrationHelper.BlockInput();
-                foregroundWindow = IntegrationHelper.GetForegroundWindow();
-
-                _visualStudioInstance.ActivateMainWindow();
-
-                IntegrationHelper.SendInput(inputs);
-            }
-            finally
-            {
-                if (foregroundWindow != IntPtr.Zero)
-                {
-                    IntegrationHelper.SetForegroundWindow(foregroundWindow);
-                }
-
-                if (inputBlocked)
-                {
-                    IntegrationHelper.UnblockInput();
-                }
-            }
+            IntegrationHelper.SendInput(inputs);
 
             _visualStudioInstance.WaitForApplicationIdle(CancellationToken.None);
         }

@@ -673,7 +673,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 solutionEvents.OnUpdateSolutionDone += @event;
                 try
                 {
-                    semaphore.Wait();
+                    semaphore.Wait(Helper.HangMitigatingTimeout);
                 }
                 finally
                 {

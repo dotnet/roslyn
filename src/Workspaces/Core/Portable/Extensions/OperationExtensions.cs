@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis
                      operation.Parent is ITypeOfOperation ||
                      operation.Parent is ISizeOfOperation)
             {
-                return ValueUsageInfo.NameOnly;
+                return ValueUsageInfo.Name;
             }
             else if (operation.Parent is IArgumentOperation argumentOperation)
             {

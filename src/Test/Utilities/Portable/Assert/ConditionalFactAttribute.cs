@@ -225,6 +225,12 @@ namespace Roslyn.Test.Utilities
         public override string SkipReason => "Test not supported on Mono";
     }
 
+    public class CoreClrOnly : ExecutionCondition
+    {
+        public override bool ShouldSkip => !ExecutionConditionUtil.IsCoreClr;
+        public override string SkipReason => "Test only supported on CoreClr";
+    }
+
     public class DesktopOnly : ExecutionCondition
     {
         public override bool ShouldSkip => !ExecutionConditionUtil.IsDesktop;
@@ -235,12 +241,6 @@ namespace Roslyn.Test.Utilities
     {
         public override bool ShouldSkip => MonoHelpers.IsRunningOnMono() || !ExecutionConditionUtil.IsDesktop;
         public override string SkipReason => "Test not supported on Mono or CoreCLR";
-    }
-
-    public class CoreClrOnly : ExecutionCondition
-    {
-        public override bool ShouldSkip => !ExecutionConditionUtil.IsCoreClr;
-        public override string SkipReason => "Test supported only on CoreCLR";
     }
 
     public class NoIOperationValidation : ExecutionCondition
