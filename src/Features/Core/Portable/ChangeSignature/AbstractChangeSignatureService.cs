@@ -533,5 +533,40 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             return parametersToPermute;
         }
+
+        /// <summary>
+        /// Given the cursor position, find which parameter is selected.
+        /// Returns 0 as the default value. Note that the ChangeSignature dialog adjusts the selection for
+        /// the `this` parameter in extension methods (the selected index won't remain 0).
+        /// </summary>
+        protected static int GetParameterIndex<TNode>(SeparatedSyntaxList<TNode> parameters, int position) where TNode : SyntaxNode
+        {
+            if (parameters.Count == 0)
+            {
+                return 0;
+            }
+
+            if (position < parameters.Span.Start)
+            {
+                return 0;
+            }
+
+            if (position > parameters.Span.End)
+            {
+                return 0;
+            }
+
+            for (int i = 0; i < parameters.Count - 1; i++)
+            {
+                // `$$,` points to the argument before the separator
+                // but `,$$` points to the argument following the separator
+                if (position <= parameters.GetSeparator(i).Span.Start)
+                {
+                    return i;
+                }
+            }
+
+            return parameters.Count - 1;
+        }
     }
 }

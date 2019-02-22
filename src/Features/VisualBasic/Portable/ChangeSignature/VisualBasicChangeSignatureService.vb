@@ -104,7 +104,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Dim symbol = TryGetDeclaredSymbol(semanticModel, matchingNode, token, cancellationToken)
             If symbol IsNot Nothing Then
-                Return (symbol, 0)
+                Dim selectedIndex = TryGetSelectedIndexFromDeclaration(position, matchingNode)
+                Return (symbol, selectedIndex)
             End If
 
             If matchingNode.Kind() = SyntaxKind.ObjectCreationExpression Then
@@ -119,6 +120,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
             Dim symbolInfo = semanticModel.GetSymbolInfo(matchingNode, cancellationToken)
             Return (If(symbolInfo.Symbol, symbolInfo.CandidateSymbols.FirstOrDefault()), 0)
+        End Function
+
+        Private Function TryGetSelectedIndexFromDeclaration(position As Integer, matchingNode As SyntaxNode) As Integer
+            Dim parameters = matchingNode.ChildNodes().OfType(Of ParameterListSyntax)().SingleOrDefault()
+            Return If(parameters Is Nothing, 0, GetParameterIndex(parameters.Parameters, position))
         End Function
 
         Private Function GetMatchingNode(node As SyntaxNode, restrictToDeclarations As Boolean) As SyntaxNode

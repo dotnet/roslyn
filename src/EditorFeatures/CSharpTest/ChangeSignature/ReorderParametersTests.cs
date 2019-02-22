@@ -265,6 +265,8 @@ public static class CExt
     { }
 }";
 
+            // Although the `ParameterConfig` has 0 for the `SelectedIndex`, the UI dialog will make an adjustment
+            // and select parameter `y` instead because the `this` parameter cannot be moved or removed.
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation,
                 expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 0);
         }
