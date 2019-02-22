@@ -1772,8 +1772,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Public Function GetSelectedMembers(root As SyntaxNode, textSpan As TextSpan) As ImmutableArray(Of SyntaxNode) Implements ISyntaxFactsService.GetSelectedMembers
-            Return ImmutableArray(Of SyntaxNode).CastUp(root.GetMembersInSpan(textSpan))
+        Public Function GetSelectedMembers(root As SyntaxNode, textSpan As TextSpan, Optional canOverlap As Boolean = False) As ImmutableArray(Of SyntaxNode) Implements ISyntaxFactsService.GetSelectedMembers
+            Return ImmutableArray(Of SyntaxNode).CastUp(root.GetMembersInSpan(textSpan, canOverlap))
         End Function
 
         Private Function ISyntaxFactsService_GetFileBanner(root As SyntaxNode) As ImmutableArray(Of SyntaxTrivia) Implements ISyntaxFactsService.GetFileBanner

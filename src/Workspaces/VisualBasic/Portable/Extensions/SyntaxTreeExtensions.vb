@@ -244,7 +244,7 @@ recurse:
 
         <Extension()>
         Public Function GetMembersInSpan(root As SyntaxNode,
-                                         textSpan As TextSpan) As ImmutableArray(Of StatementSyntax)
+                                         textSpan As TextSpan, Optional canOverlap As Boolean = False) As ImmutableArray(Of StatementSyntax)
 
             Dim token = root.FindTokenOnRightOfPosition(textSpan.Start)
             Dim firstMember = token.GetAncestors(Of StatementSyntax).
@@ -255,7 +255,7 @@ recurse:
                 If containingType IsNot Nothing AndAlso
                    firstMember IsNot containingType.BlockStatement AndAlso
                    firstMember IsNot containingType.EndBlockStatement Then
-                    Return GetMembersInSpan(textSpan, containingType, firstMember)
+                    Return GetMembersInSpan(textSpan, containingType, firstMember, canOverlap)
                 End If
             End If
 
@@ -265,7 +265,8 @@ recurse:
         Private Function GetMembersInSpan(
             textSpan As TextSpan,
             containingType As TypeBlockSyntax,
-            firstMember As StatementSyntax) As ImmutableArray(Of StatementSyntax)
+            firstMember As StatementSyntax,
+            Optional canOverlap As Boolean = False) As ImmutableArray(Of StatementSyntax)
             Dim selectedMembers = ArrayBuilder(Of StatementSyntax).GetInstance()
 
             Try
@@ -277,10 +278,8 @@ recurse:
 
                 For i = fieldIndex To members.Count - 1
                     Dim member = members(i)
-                    If textSpan.Contains(member.Span) Then
+                    If textSpan.Contains(member.Span) Or textSpan.OverlapsWith(member.Span) Then
                         selectedMembers.Add(member)
-                    ElseIf (textSpan.OverlapsWith(member.Span)) Then
-                        Return ImmutableArray(Of StatementSyntax).Empty
                     Else
                         Exit For
                     End If

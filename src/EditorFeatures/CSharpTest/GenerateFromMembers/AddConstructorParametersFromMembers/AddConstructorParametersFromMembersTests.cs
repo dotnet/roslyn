@@ -642,5 +642,62 @@ class C
 }"
             );
         }
+
+        [WorkItem(8925, "https://github.com/dotnet/roslyn/issues/8925")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestPartialSelected()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int i;
+    int [|j|];
+    public C(int i)
+    {
+    }
+}",
+@"
+class C
+{
+    int i;
+    int j;
+    public C(int i, int j)
+    {
+        this.j = j;
+    }
+}"
+            );
+        }
+
+        [WorkItem(8925, "https://github.com/dotnet/roslyn/issues/8925")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestPartialMultipleSelected()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int i;
+    int [|j;
+    int|] k;
+    public C(int i)
+    {
+    }
+}",
+@"
+class C
+{
+    int i;
+    int j;
+    int k;
+    public C(int i, int j, int k)
+    {
+        this.j = j;
+        this.k = k;
+    }
+}"
+            );
+        }
     }
 }

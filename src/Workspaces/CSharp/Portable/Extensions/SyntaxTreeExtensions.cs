@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static ImmutableArray<MemberDeclarationSyntax> GetMembersInSpan(
-            this SyntaxNode root, TextSpan textSpan)
+            this SyntaxNode root, TextSpan textSpan, bool canOverlap = false)
         {
             var token = root.FindTokenOnRightOfPosition(textSpan.Start);
             var firstMember = token.GetAncestors<MemberDeclarationSyntax>().FirstOrDefault();
@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 if (firstMember.Parent is TypeDeclarationSyntax containingType)
                 {
-                    return GetMembersInSpan(textSpan, containingType, firstMember);
+                    return GetMembersInSpan(textSpan, containingType, firstMember, canOverlap);
                 }
             }
 
@@ -536,7 +536,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static ImmutableArray<MemberDeclarationSyntax> GetMembersInSpan(
             TextSpan textSpan,
             TypeDeclarationSyntax containingType,
-            MemberDeclarationSyntax firstMember)
+            MemberDeclarationSyntax firstMember,
+            bool canOverlap = false)
         {
             var selectedMembers = ArrayBuilder<MemberDeclarationSyntax>.GetInstance();
             try
@@ -552,13 +553,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 for (var i = fieldIndex; i < members.Count; i++)
                 {
                     var member = members[i];
-                    if (textSpan.Contains(member.Span))
+                    if (textSpan.Contains(member.Span) ||
+                        (textSpan.OverlapsWith(member.Span) && canOverlap))
                     {
                         selectedMembers.Add(member);
-                    }
-                    else if (textSpan.OverlapsWith(member.Span))
-                    {
-                        return ImmutableArray<MemberDeclarationSyntax>.Empty;
                     }
                     else
                     {
