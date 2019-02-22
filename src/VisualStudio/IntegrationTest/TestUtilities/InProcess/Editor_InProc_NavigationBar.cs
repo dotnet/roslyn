@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess.ReflectionExtensions;
@@ -53,7 +54,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             ExecuteOnActiveView(v =>
             {
                 var combobox = GetNavigationBarComboBoxes(v)[index];
-                combobox.Focus();
+                FocusManager.SetFocusedElement(FocusManager.GetFocusScope(combobox), combobox);
                 combobox.IsDropDownOpen = true;
             });
         }
