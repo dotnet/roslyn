@@ -244,6 +244,18 @@ var y = new [] { enumerableOfNotNull, enumerableOfMaybeNull, enumerableOfOblivio
 var z = new [] { listOfNotNull, listOfMaybeNull, listOfOblivious }; // List<~>!
 ```
 
+### Anonymous types
+Fields of anonymous types have nullability of the arguments. Field types may be _unspeakable_ types.
+```c#
+static void F<T>(T x, T y)
+{
+    if (x == null) return;
+    var a = new { x, y };
+    a.x.ToString(); // ok
+    a.y.ToString(); // warning
+}
+```
+
 ### Null-coalescing operator
 The top-level nullability of `x ?? y` is `!` if `x` is `!` and otherwise the top-level nullability of `y`.
 A warning is reported if there is a nested nullability mismatch between `x` and `y`.
