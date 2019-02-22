@@ -4248,7 +4248,7 @@ partial class C
                 );
         }
 
-        [Fact(Skip = "Hits assertion in CheckValueKind")]
+        [Fact]
         public void SuppressionAsLValue()
         {
             var source = @"
@@ -4262,9 +4262,17 @@ class C
     }
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/29710 should we produce an error for misuse of suppression on an L-value?
             var c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            c.VerifyDiagnostics();
+            c.VerifyDiagnostics(
+                // (6,28): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         ref string y = ref x;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(6, 28),
+                // (7,29): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         ref string y2 = ref x;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(7, 29),
+                // (8,10): error CS8598: The suppression operator is not allowed in this context
+                //         (y2! = ref y) = ref y;
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "y2").WithLocation(8, 10));
         }
 
         [Fact]
