@@ -3331,7 +3331,7 @@ class Program
         }
 
         [WorkItem(17395, "https://github.com/dotnet/roslyn/issues/17453")]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void Regression17395()
         {
             var source = @"

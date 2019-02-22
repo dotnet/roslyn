@@ -11233,7 +11233,7 @@ namespace a
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void CS0622ERR_ArrayInitToNonArrayType()
         {
             var text = @"
@@ -11248,7 +11248,7 @@ public class Test
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_ArrayInitToNonArrayType, Line = 6, Column = 18 } });
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void CS0623ERR_ArrayInitInBadPlace()
         {
             var text = @"
@@ -11813,7 +11813,7 @@ var goo = 4, bar = 4.5;
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, "var"));
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void CS0820ERR_ImplicitlyTypedVariableAssignedArrayInitializer()
         {
             var text = @"

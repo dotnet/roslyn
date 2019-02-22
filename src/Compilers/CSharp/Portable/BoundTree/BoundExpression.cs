@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public new Nullability TopLevelNullability
+        public virtual new Nullability TopLevelNullability
         {
             get => base.TopLevelNullability;
             set => base.TopLevelNullability = value;
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this call's method was chosen. 
+        /// The set of method symbols from which this call's method was chosen.
         /// Only kept in the tree if the call was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of indexer symbols from which this call's indexer was chosen. 
+        /// The set of indexer symbols from which this call's indexer was chosen.
         /// Only kept in the tree if the call was an error and overload resolution
         /// was unable to choose a best indexer.
         /// </summary>
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this operator's method was chosen. 
+        /// The set of method symbols from which this operator's method was chosen.
         /// Only kept in the tree if the operator was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this operator's method was chosen. 
+        /// The set of method symbols from which this operator's method was chosen.
         /// Only kept in the tree if the operator was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this operator's method was chosen. 
+        /// The set of method symbols from which this operator's method was chosen.
         /// Only kept in the tree if the operator was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this operator's method was chosen. 
+        /// The set of method symbols from which this operator's method was chosen.
         /// Only kept in the tree if the operator was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this operator's method was chosen. 
+        /// The set of method symbols from which this operator's method was chosen.
         /// Only kept in the tree if the operator was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -375,6 +375,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override ConstantValue ConstantValue
         {
             get { return this.ConstantValueOpt; }
+        }
+
+        public override Nullability TopLevelNullability
+        {
+            // PROTOTYPE(nullable-api): handle null! and lower-language versions
+            get => ConstantValue.IsNull ? Nullability.MayBeNull : base.TopLevelNullability;
+            set => base.TopLevelNullability = value;
         }
     }
 
@@ -406,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this conversion's method was chosen. 
+        /// The set of method symbols from which this conversion's method was chosen.
         /// Only kept in the tree if the conversion was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -428,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         internal bool ConversionHasSideEffects()
         {
-            // only some intrinsic conversions are side effect free 
+            // only some intrinsic conversions are side effect free
             // the only side effect of an intrinsic conversion is a throw when we fail to convert.
             // and some intrinsic conversion always succeed
             switch (this.ConversionKind)
@@ -443,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.Boxing:
                     return false;
 
-                // unchecked numeric conversion does not throw 
+                // unchecked numeric conversion does not throw
                 case ConversionKind.ExplicitNumeric:
                     return this.Checked;
             }
@@ -524,6 +531,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override ConstantValue ConstantValue
         {
             get { return this.ConstantValueOpt; }
+        }
+
+        public override Nullability TopLevelNullability
+        {
+            // PROTOTYPE(nullable-api): handle default! and lower-language versions
+            get => Nullability.MayBeNull;
+            set { }
         }
     }
 

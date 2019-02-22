@@ -76,7 +76,7 @@ public class E
 0");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(24647, "https://github.com/dotnet/roslyn/issues/24647")]
         public void Repro24647()

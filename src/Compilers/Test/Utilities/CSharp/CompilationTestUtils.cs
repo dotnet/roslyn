@@ -306,15 +306,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             foreach (var annotations in annotationsByMethod)
             {
                 var method = (MethodSymbol)model.GetDeclaredSymbol(annotations.Key);
+                var dictionary = new Dictionary<SyntaxNode, TypeSymbolWithAnnotations>();
+
                 var diagnostics = DiagnosticBag.GetInstance();
                 var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
-                var dictionary = new Dictionary<SyntaxNode, TypeSymbolWithAnnotations>();
-                NullableWalker.Analyze(
+                var rewritten = NullableWalker.AnalyzeAndRewrite(
                     compilation,
                     method,
                     block,
-                    diagnostics,
-                    callbackOpt: (BoundExpression expr, TypeSymbolWithAnnotations exprType) => dictionary[expr.Syntax] = exprType);
+                    diagnostics);
+                new TopLevelNullabilityRetreiver() { Map = dictionary }.Visit(rewritten);
                 diagnostics.Free();
                 var expectedTypes = annotations.SelectAsArray(annotation => annotation.Text);
                 var actualTypes = annotations.SelectAsArray(annotation => toDisplayString(annotation.Expression));
@@ -401,6 +402,58 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         break;
                 }
                 return expr;
+            }
+        }
+
+        private sealed class TopLevelNullabilityRetreiver : BoundTreeWalker
+        {
+            public Dictionary<SyntaxNode, TypeSymbolWithAnnotations> Map { get; set; }
+
+            protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override BoundNode Visit(BoundNode node)
+            {
+                // For the purposes of verifying types, implicit conversions should not win over lower nodes
+                // with the same syntax, as when testing we're usually testing the kind before the conversion,
+                // and we have no way from syntax of getting the correct node.
+                if (node is BoundConversion conv && conv.Syntax == conv.Operand.Syntax && conv.Operand.Kind != BoundKind.Lambda)
+                {
+                    if (node is BoundExpression expr)
+                    {
+                        Map[expr.Syntax] = TypeSymbolWithAnnotations.Create(expr.Type, convertToAnnotation(expr.TopLevelNullability));
+                    }
+                    base.Visit(node);
+                }
+                else
+                {
+                    base.Visit(node);
+                    if (node is BoundExpression expr)
+                    {
+                        Map[expr.Syntax] = TypeSymbolWithAnnotations.Create(expr.Type, convertToAnnotation(expr.TopLevelNullability));
+                    }
+                }
+
+                return null;
+
+                NullableAnnotation convertToAnnotation(Nullability nullability)
+                {
+                    switch (nullability)
+                    {
+                        case Nullability.MayBeNull:
+                            return NullableAnnotation.Nullable;
+                        case Nullability.NotNull:
+                            return NullableAnnotation.NotNullable;
+                        case Nullability.Unknown:
+                        case Nullability.NotComputed:
+                            return NullableAnnotation.Unknown;
+                        case Nullability.NotApplicable:
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(nullability);
+                    }
+                }
             }
         }
     }
