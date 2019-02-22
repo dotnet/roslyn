@@ -1895,5 +1895,29 @@ Class A
     Shared Property _p As Integer
 End Class", options:=options.FieldNamesAreCamelCaseWithUnderscore)
         End Function
+
+        <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestFieldAndPropertyNamingStyles() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Sub Test()
+        Dim x As Integer = 1
+        Dim obj As New C([|x|])
+    End Sub
+End Class",
+"Class C
+    Private _x As Integer
+
+    Public Sub New(p_x As Integer)
+        _x = p_x
+    End Sub
+
+    Sub Test()
+        Dim x As Integer = 1
+        Dim obj As New C(x)
+    End Sub
+End Class", options:=options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscore, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.VisualBasic))
+        End Function
     End Class
 End Namespace

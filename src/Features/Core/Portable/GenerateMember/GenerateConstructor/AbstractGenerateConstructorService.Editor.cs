@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             {
                 // We don't have to deal with the zero length case, since there's nothing to
                 // delegate.  It will fall out of the GenerateFieldDelegatingConstructor above.
-                for (int i = _state.Arguments.Length; i >= 1; i--)
+                for (var i = _state.Arguments.Length; i >= 1; i--)
                 {
                     var edit = await GenerateThisOrBaseDelegatingConstructorAsync(i, fieldNamingRule, parameterNamingRule).ConfigureAwait(false);
                     if (edit.document != null)
@@ -183,6 +183,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var remainingParameterNames = _service.GenerateParameterNames(
                     _document.SemanticModel, remainingArguments,
                     delegatedConstructor.Parameters.Select(p => p.Name).ToList(),
+                    parameterNamingRule,
                     _cancellationToken);
 
                 // Can't generate the constructor if the parameter names we're copying over forcibly
@@ -241,7 +242,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var parameterTypes = _state.ParameterTypes;
 
                 var typeParametersNames = _state.TypeToGenerateIn.GetAllTypeParameters().Select(t => t.Name).ToImmutableArray();
-                var parameterNames = GetParameterNames(arguments, typeParametersNames);
+                var parameterNames = GetParameterNames(arguments, typeParametersNames, parameterNamingRule);
 
                 GetParameters(arguments, _state.AttributeArguments, parameterTypes, parameterNames, fieldNamingRule, parameterNamingRule,
                     out var parameterToExistingFieldMap, out var parameterToNewFieldMap, out var parameters);
@@ -271,11 +272,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             }
 
             private ImmutableArray<ParameterName> GetParameterNames(
-                ImmutableArray<TArgumentSyntax> arguments, ImmutableArray<string> typeParametersNames)
+                ImmutableArray<TArgumentSyntax> arguments, ImmutableArray<string> typeParametersNames, NamingRule parameterNamingRule)
             {
                 return _state.AttributeArguments != null
-                    ? _service.GenerateParameterNames(_document.SemanticModel, _state.AttributeArguments, typeParametersNames, _cancellationToken)
-                    : _service.GenerateParameterNames(_document.SemanticModel, arguments, typeParametersNames, _cancellationToken);
+                    ? _service.GenerateParameterNames(_document.SemanticModel, _state.AttributeArguments, typeParametersNames, parameterNamingRule, _cancellationToken)
+                    : _service.GenerateParameterNames(_document.SemanticModel, arguments, typeParametersNames, parameterNamingRule, _cancellationToken);
             }
 
             private void GetParameters(
@@ -390,8 +391,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                                     // Can change the parameter name, so do so.  
                                     // But first remove any prefix added due to field naming styles
                                     var fieldNameMinusPrefix = newFieldName.Substring(fieldNamingRule.NamingStyle.Prefix.Length);
-                                    var proposedParameterName = parameterNamingRule.NamingStyle.MakeCompliant(fieldNameMinusPrefix).First();
-                                    var newParameterName = new ParameterName(proposedParameterName, isFixed: false);
+                                    var newParameterName = new ParameterName(fieldNameMinusPrefix, isFixed: false, parameterNamingRule);
                                     newParameterNamesList[index] = newParameterName;
                                     parameterToNewFieldMap[newParameterName.BestNameForParameter] = newFieldName;
                                 }

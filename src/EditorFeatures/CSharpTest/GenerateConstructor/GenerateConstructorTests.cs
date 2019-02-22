@@ -3514,6 +3514,38 @@ class Program
 
         [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateFieldDefaultNamingStyle()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        string S = "";
+        new Prog[||]ram(S);
+    }
+}",
+@"
+class Program
+{
+    private string s;
+
+    public Program(string s)
+    {
+        this.s = s;
+    }
+
+    static void Main(string[] args)
+    {
+        string S = "";
+        new Program(S);
+    }
+}");
+        }
+
+        [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateFieldWithNamingStyle()
         {
             await TestInRegularAndScriptAsync(
@@ -3546,7 +3578,7 @@ class Program
 
         [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public async Task TestFieldWithNamingStyleExists()
+        public async Task TestFieldWithNamingStyleAlreadyExists()
         {
             await TestInRegularAndScriptAsync(
 @"
@@ -3556,7 +3588,7 @@ class Program
 
     static void Main(string[] args)
     {
-        string s = "";
+        string s = """";
         new Prog[||]ram(s);
     }
 }",
@@ -3572,11 +3604,77 @@ class Program
 
     static void Main(string[] args)
     {
-        string s = "";
+        string s = """";
         new Program(s);
     }
 }", options: options.FieldNamesAreCamelCaseWithUnderscore);
         }
 
+        [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestFieldAndParameterNamingStyles()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        string s = """";
+        new Prog[||]ram(s);
+    }
+}",
+@"
+class Program
+{
+    private string _s;
+
+    public Program(string p_s)
+    {
+        _s = p_s;
+    }
+
+    static void Main(string[] args)
+    {
+        string s = """";
+        new Program(s);
+    }
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscore, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+        }
+
+        [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestAttributeArgumentWithNamingRules()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+[AttributeUsage(AttributeTargets.Class)]
+class MyAttribute : Attribute
+{
+}
+ 
+[[|MyAttribute(123)|]]
+class D
+{
+}",
+@"using System;
+
+[AttributeUsage(AttributeTargets.Class)]
+class MyAttribute : Attribute
+{
+    private int _v;
+
+    public MyAttribute(int p_v)
+    {
+        _v = p_v;
+    }
+}
+
+[MyAttribute(123)]
+class D
+{
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscore, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+        }
     }
 }
