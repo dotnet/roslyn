@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
+
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <!--
+    The CompilerArtifact list is used to generate Microsoft.Net.Compilers package, VS.Toolset.Roslyn CoreXT package and Microsoft.CodeAnalysis.Compilers Willow VSIX.
+    Keeping the list in central location allows us to make sure that these packages include the same files.
+
+    Ngen* attributes indicate how VS should NGEN the assemblies that are distributed by VS Setup.
+    NgenApplication is relative to the Roslyn install directory within MSBuild (i.e. MSBuild\15.0\Bin\Roslyn).
+
+    Set OverwriteOptimizationData to true to replace optimization data already embedded in the assembly with data retrieved from VS training scenarios.
+    We only need to specify this for assemblies built outside or Roslyn repo since the projects in Roslyn repo are responsible for embedding 
+    VS training data to the assemblies they produce.
+  -->
+
+  <Target Name="InitializeCoreClrCompilerArtifacts">
+    <ItemGroup>
+      <CoreClrCompilerArtifact Include="$(MSBuildProjectDirectory)\build\**" />
+      <CoreClrCompilerArtifact Include="$(MSBuildProjectDirectory)\tools\bincore\*.cmd" />
+
+      <CoreClrCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\netcoreapp2.1\publish\*.targets" />
+      <CoreClrCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\netcoreapp2.1\publish\Microsoft.Build.Tasks.CodeAnalysis.dll" />
+      <CoreClrCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\netcoreapp2.1\publish\**\Microsoft.Build.Tasks.CodeAnalysis.resources.dll" />
+      <CoreClrCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\netcoreapp2.1\publish\runtimes\**\*.*" />
+
+      <CoreClrCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.dll" />
+      <CoreClrCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\**\Microsoft.CodeAnalysis.resources.dll" />
+
+      <CoreClrCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.dll" />
+      <CoreClrCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netstandard2.0\**\Microsoft.CodeAnalysis.CSharp.resources.dll" />
+
+      <CoreClrCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.VisualBasic.dll" />
+      <CoreClrCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\**\Microsoft.CodeAnalysis.VisualBasic.resources.dll" />
+
+      <CoreClrCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp2.1\publish\csc.dll" />
+      <CoreClrCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp2.1\publish\csc.deps.json" />
+      <CoreClrCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp2.1\publish\csc.runtimeconfig.json" />
+
+      <CoreClrCompilerArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\netcoreapp2.1\publish\vbc.dll" />
+      <CoreClrCompilerArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\netcoreapp2.1\publish\vbc.deps.json" />
+      <CoreClrCompilerArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\netcoreapp2.1\publish\vbc.runtimeconfig.json" />
+
+      <CoreClrCompilerArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\netcoreapp2.1\publish\VBCSCompiler.dll" />
+      <CoreClrCompilerArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\netcoreapp2.1\publish\VBCSCompiler.deps.json" />
+      <CoreClrCompilerArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\netcoreapp2.1\publish\VBCSCompiler.runtimeconfig.json" />
+
+      <!-- References that are either not in the target framework or are a higher version -->
+      <!-- N.B.: The backslashes below cannot be replaced with forward slashes.
+         https://github.com/NuGet/Home/issues/3584 -->
+      <CoreClrCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp2.1\publish\System.*.dll"/>
+      <CoreClrCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp2.1\publish\runtimes\**" />
+
+      <!-- If PackagePath doesn't have an extension NuGet considers it a directory name, so we need to handle these file explicitly -->
+      <!--
+      <TfmSpecificPackageFile Include="$(MSBuildProjectDirectory)\tools\bincore\RunCsc" PackagePath="tools\bincore\" />
+      <TfmSpecificPackageFile Include="$(MSBuildProjectDirectory)\tools\bincore\RunVbc" PackagePath="tools\bincore\"
+      -->
+    </ItemGroup>
+  </Target>
+</Project>
