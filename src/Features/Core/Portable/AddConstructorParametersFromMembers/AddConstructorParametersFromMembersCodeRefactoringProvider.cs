@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_AddConstructorParametersFromMembers, cancellationToken))
             {
-                var info = await this.GetSelectedMemberInfoAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+                var info = await this.GetSelectedMemberInfoAsync(document, textSpan, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
                 if (info != null)
                 {
                     var state = State.Generate(this, info.SelectedMembers);

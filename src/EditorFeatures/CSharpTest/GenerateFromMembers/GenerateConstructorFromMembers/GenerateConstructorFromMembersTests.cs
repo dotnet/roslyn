@@ -1141,5 +1141,49 @@ class Program
 }",
 chosenSymbols: null);
         }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestPartialFieldSelection()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Z
+{
+    int [|a|];
+}",
+@"class Z
+{
+    int a;
+
+    public Z(int a{|Navigation:)|}
+    {
+        this.a = a;
+    }
+}");
+        }
+
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultiplePartialFieldSelection()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Z
+{
+    int [|a;
+    int|] b;
+}",
+@"class Z
+{
+    int a;
+    int b;
+
+    public Z(int a, int b{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b;
+    }
+}");
+        }
     }
 }

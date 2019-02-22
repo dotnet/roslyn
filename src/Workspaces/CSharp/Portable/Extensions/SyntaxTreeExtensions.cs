@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static ImmutableArray<MemberDeclarationSyntax> GetMembersInSpan(
-            this SyntaxNode root, TextSpan textSpan, bool canOverlap = false)
+            this SyntaxNode root, TextSpan textSpan, bool allowPartialSelection)
         {
             var token = root.FindTokenOnRightOfPosition(textSpan.Start);
             var firstMember = token.GetAncestors<MemberDeclarationSyntax>().FirstOrDefault();
@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 if (firstMember.Parent is TypeDeclarationSyntax containingType)
                 {
-                    return GetMembersInSpan(textSpan, containingType, firstMember, canOverlap);
+                    return GetMembersInSpan(textSpan, containingType, firstMember, allowPartialSelection);
                 }
             }
 
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             TextSpan textSpan,
             TypeDeclarationSyntax containingType,
             MemberDeclarationSyntax firstMember,
-            bool canOverlap = false)
+            bool allowPartialSelection)
         {
             var selectedMembers = ArrayBuilder<MemberDeclarationSyntax>.GetInstance();
             try
@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     var member = members[i];
                     if (textSpan.Contains(member.Span) ||
-                        (textSpan.OverlapsWith(member.Span) && canOverlap))
+                        (allowPartialSelection && textSpan.OverlapsWith(member.Span)))
                     {
                         selectedMembers.Add(member);
                     }

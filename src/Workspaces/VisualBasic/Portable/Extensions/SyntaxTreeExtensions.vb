@@ -244,7 +244,7 @@ recurse:
 
         <Extension()>
         Public Function GetMembersInSpan(root As SyntaxNode,
-                                         textSpan As TextSpan, Optional canOverlap As Boolean = False) As ImmutableArray(Of StatementSyntax)
+                                         textSpan As TextSpan, allowPartialSelection As Boolean) As ImmutableArray(Of StatementSyntax)
 
             Dim token = root.FindTokenOnRightOfPosition(textSpan.Start)
             Dim firstMember = token.GetAncestors(Of StatementSyntax).
@@ -255,7 +255,7 @@ recurse:
                 If containingType IsNot Nothing AndAlso
                    firstMember IsNot containingType.BlockStatement AndAlso
                    firstMember IsNot containingType.EndBlockStatement Then
-                    Return GetMembersInSpan(textSpan, containingType, firstMember, canOverlap)
+                    Return GetMembersInSpan(textSpan, containingType, firstMember, allowPartialSelection)
                 End If
             End If
 
@@ -266,7 +266,7 @@ recurse:
             textSpan As TextSpan,
             containingType As TypeBlockSyntax,
             firstMember As StatementSyntax,
-            Optional canOverlap As Boolean = False) As ImmutableArray(Of StatementSyntax)
+            allowPartialSelection As Boolean) As ImmutableArray(Of StatementSyntax)
             Dim selectedMembers = ArrayBuilder(Of StatementSyntax).GetInstance()
 
             Try
@@ -278,7 +278,7 @@ recurse:
 
                 For i = fieldIndex To members.Count - 1
                     Dim member = members(i)
-                    If textSpan.Contains(member.Span) Or textSpan.OverlapsWith(member.Span) Then
+                    If textSpan.Contains(member.Span) Or (allowPartialSelection And textSpan.OverlapsWith(member.Span)) Then
                         selectedMembers.Add(member)
                     Else
                         Exit For

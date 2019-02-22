@@ -591,5 +591,40 @@ Class Program
 End Class",
 chosenSymbols:=Nothing)
         End Function
+
+        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestPartialFieldSelection() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    Private [|i|] As Integer
+End Class",
+"Class Program
+    Private i As Integer
+
+    Public Sub New(i As Integer{|Navigation:)|}
+        Me.i = i
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestMultiplePartialFieldSelection() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    Private [|i As Integer
+    Private j|] As Integer
+End Class",
+"Class Program
+    Private i As Integer
+    Private j As Integer
+
+    Public Sub New(i As Integer, j As Integer{|Navigation:)|}
+        Me.i = i
+        Me.j = j
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

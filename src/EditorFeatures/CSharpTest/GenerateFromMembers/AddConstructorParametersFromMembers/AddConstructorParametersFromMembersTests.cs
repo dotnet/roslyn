@@ -643,7 +643,7 @@ class C
             );
         }
 
-        [WorkItem(8925, "https://github.com/dotnet/roslyn/issues/8925")]
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestPartialSelected()
         {
@@ -670,7 +670,7 @@ class C
             );
         }
 
-        [WorkItem(8925, "https://github.com/dotnet/roslyn/issues/8925")]
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestPartialMultipleSelected()
         {
