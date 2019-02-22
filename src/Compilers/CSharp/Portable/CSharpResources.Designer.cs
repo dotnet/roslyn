@@ -8134,7 +8134,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A partial method must be declared within a partial class or partial struct.
+        ///   Looks up a localized string similar to A partial method must be declared within a partial class, partial struct, or partial interface.
         /// </summary>
         internal static string ERR_PartialMethodOnlyInPartialClass {
             get {

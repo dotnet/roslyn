@@ -4457,8 +4457,8 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial class or partial struct</source>
-        <target state="translated">Částečná metoda musí být deklarovaná uvnitř částečné třídy nebo částečné struktury.</target>
+        <source>A partial method must be declared within a partial class, partial struct, or partial interface</source>
+        <target state="needs-review-translation">Částečná metoda musí být deklarovaná uvnitř částečné třídy nebo částečné struktury.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodCannotHaveOutParameters">

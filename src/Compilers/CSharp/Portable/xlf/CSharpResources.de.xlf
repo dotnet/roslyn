@@ -4457,8 +4457,8 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial class or partial struct</source>
-        <target state="translated">Eine partielle Methode muss innerhalb einer partiellen Klasse oder einer partiellen Struktur deklariert sein.</target>
+        <source>A partial method must be declared within a partial class, partial struct, or partial interface</source>
+        <target state="needs-review-translation">Eine partielle Methode muss innerhalb einer partiellen Klasse oder einer partiellen Struktur deklariert sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodCannotHaveOutParameters">

@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_PartialMethodNotExplicit, location);
                 }
 
-                if (!ContainingType.IsPartial() || ContainingType.IsInterface)
+                if (!ContainingType.IsPartial())
                 {
                     diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyInPartialClass, location);
                 }
@@ -810,6 +810,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                DeclarationModifiers.Virtual |
                                                                DeclarationModifiers.Extern |
                                                                DeclarationModifiers.Async |
+                                                               DeclarationModifiers.Partial |
                                                                allowedAccess;
                 }
             }
@@ -927,7 +928,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodMustReturnVoid, location);
             }
-            else if (IsPartial && !ContainingType.IsInterface && (DeclarationModifiers & partialMethodInvalidModifierMask) != 0)
+            else if (IsPartial && (DeclarationModifiers & partialMethodInvalidModifierMask) != 0)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, location);
             }

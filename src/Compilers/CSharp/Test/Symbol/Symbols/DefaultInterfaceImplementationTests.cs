@@ -8584,6 +8584,554 @@ class Test2
         }
 
         [Fact]
+        public void MethodModifiers_22()
+        {
+            var source1 =
+@"
+public partial interface I1
+{
+    static partial void M1();
+
+    [Test2(1)]
+    static partial void M2();
+
+    static partial void Main() 
+    {
+        M1();
+        M2();
+        new System.Action(M2).Invoke();
+    }
+}
+
+public partial interface I1
+{
+    [Test2(2)]
+    static partial void M2() 
+    {
+        System.Console.WriteLine(""M2"");
+    }
+
+    static partial void Main();
+}
+
+class Test1 : I1
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true)]
+class Test2 : System.Attribute
+{
+    public Test2(int x) {}
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, expectedOutput:
+@"M2
+M2");
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+
+            var m1 = i1.GetMember<MethodSymbol>("M1");
+
+            Assert.False(m1.IsAbstract);
+            Assert.False(m1.IsVirtual);
+            Assert.False(m1.IsMetadataVirtual());
+            Assert.False(m1.IsSealed);
+            Assert.True(m1.IsStatic);
+            Assert.False(m1.IsExtern);
+            Assert.False(m1.IsAsync);
+            Assert.False(m1.IsOverride);
+            Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
+            Assert.True(m1.IsPartialMethod());
+            Assert.Null(m1.PartialImplementationPart);
+
+            var m2 = i1.GetMember<MethodSymbol>("M2");
+
+            Assert.False(m2.IsAbstract);
+            Assert.False(m2.IsVirtual);
+            Assert.False(m2.IsMetadataVirtual());
+            Assert.False(m2.IsSealed);
+            Assert.True(m2.IsStatic);
+            Assert.False(m2.IsExtern);
+            Assert.False(m2.IsAsync);
+            Assert.False(m2.IsOverride);
+            Assert.Equal(Accessibility.Private, m2.DeclaredAccessibility);
+            Assert.True(m2.IsPartialMethod());
+
+            Assert.Equal(2, m2.GetAttributes().Length);
+            Assert.Equal("Test2(1)", m2.GetAttributes()[0].ToString());
+            Assert.Equal("Test2(2)", m2.GetAttributes()[1].ToString());
+
+            var m2Impl = m2.PartialImplementationPart;
+
+            Assert.False(m2Impl.IsAbstract);
+            Assert.False(m2Impl.IsVirtual);
+            Assert.False(m2Impl.IsMetadataVirtual());
+            Assert.False(m2Impl.IsSealed);
+            Assert.True(m2Impl.IsStatic);
+            Assert.False(m2Impl.IsExtern);
+            Assert.False(m2Impl.IsAsync);
+            Assert.False(m2Impl.IsOverride);
+            Assert.Equal(Accessibility.Private, m2Impl.DeclaredAccessibility);
+            Assert.True(m2Impl.IsPartialMethod());
+            Assert.Same(m2, m2Impl.PartialDefinitionPart);
+
+            Assert.Equal(2, m2Impl.GetAttributes().Length);
+            Assert.Equal("Test2(1)", m2Impl.GetAttributes()[0].ToString());
+            Assert.Equal("Test2(2)", m2Impl.GetAttributes()[1].ToString());
+        }
+
+        [Fact]
+        public void MethodModifiers_23()
+        {
+            var source1 =
+@"
+public partial interface I1
+{
+    partial void M1();
+
+    [Test2(1)]
+    partial void M2();
+
+    void M3() 
+    {
+        M1();
+        M2();
+        new System.Action(M2).Invoke();
+    }
+}
+
+public partial interface I1
+{
+    [Test2(2)]
+    partial void M2() 
+    {
+        System.Console.WriteLine(""M2"");
+    }
+}
+
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M3();
+    }
+}
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true)]
+class Test2 : System.Attribute
+{
+    public Test2(int x) {}
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"M2
+M2",
+                verify: VerifyOnCoreClr);
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+
+            var m1 = i1.GetMember<MethodSymbol>("M1");
+
+            Assert.False(m1.IsAbstract);
+            Assert.False(m1.IsVirtual);
+            Assert.False(m1.IsMetadataVirtual());
+            Assert.False(m1.IsSealed);
+            Assert.False(m1.IsStatic);
+            Assert.False(m1.IsExtern);
+            Assert.False(m1.IsAsync);
+            Assert.False(m1.IsOverride);
+            Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
+            Assert.True(m1.IsPartialMethod());
+            Assert.Null(m1.PartialImplementationPart);
+
+            var m2 = i1.GetMember<MethodSymbol>("M2");
+
+            Assert.False(m2.IsAbstract);
+            Assert.False(m2.IsVirtual);
+            Assert.False(m2.IsMetadataVirtual());
+            Assert.False(m2.IsSealed);
+            Assert.False(m2.IsStatic);
+            Assert.False(m2.IsExtern);
+            Assert.False(m2.IsAsync);
+            Assert.False(m2.IsOverride);
+            Assert.Equal(Accessibility.Private, m2.DeclaredAccessibility);
+            Assert.True(m2.IsPartialMethod());
+
+            Assert.Equal(2, m2.GetAttributes().Length);
+            Assert.Equal("Test2(1)", m2.GetAttributes()[0].ToString());
+            Assert.Equal("Test2(2)", m2.GetAttributes()[1].ToString());
+
+            var m2Impl = m2.PartialImplementationPart;
+
+            Assert.False(m2Impl.IsAbstract);
+            Assert.False(m2Impl.IsVirtual);
+            Assert.False(m2Impl.IsMetadataVirtual());
+            Assert.False(m2Impl.IsSealed);
+            Assert.False(m2Impl.IsStatic);
+            Assert.False(m2Impl.IsExtern);
+            Assert.False(m2Impl.IsAsync);
+            Assert.False(m2Impl.IsOverride);
+            Assert.Equal(Accessibility.Private, m2Impl.DeclaredAccessibility);
+            Assert.True(m2Impl.IsPartialMethod());
+            Assert.Same(m2, m2Impl.PartialDefinitionPart);
+
+            Assert.Equal(2, m2Impl.GetAttributes().Length);
+            Assert.Equal("Test2(1)", m2Impl.GetAttributes()[0].ToString());
+            Assert.Equal("Test2(2)", m2Impl.GetAttributes()[1].ToString());
+        }
+
+        [Fact]
+        public void MethodModifiers_24()
+        {
+            var source1 =
+@"
+public partial interface I1
+{
+    static partial void M1();
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular7_3);
+
+            compilation1.VerifyDiagnostics(
+                // (4,25): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                //     static partial void M1();
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M1").WithArguments("static", "7.3", "8.0").WithLocation(4, 25),
+                // (4,25): error CS8703: The modifier 'partial' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                //     static partial void M1();
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M1").WithArguments("partial", "7.3", "8.0").WithLocation(4, 25)
+                );
+        }
+
+        [Fact]
+        public void MethodModifiers_25()
+        {
+            var source1 =
+@"
+public partial interface I1
+{
+    partial void M1();
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular7_3,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,18): error CS8703: The modifier 'partial' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                //     partial void M1();
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M1").WithArguments("partial", "7.3", "8.0").WithLocation(4, 18)
+                );
+        }
+
+        [Fact]
+        public void MethodModifiers_26()
+        {
+            var source1 =
+@"
+public partial interface I1
+{
+    static partial int M1();
+    public static partial void M2();
+    internal static partial void M3();
+    private static partial void M4();
+    static partial void M5(out int x);
+    static partial void M6(); 
+    static void M7() {}
+    static partial void M8() {} 
+    static partial void M9(); 
+    static partial void M10(); 
+}
+
+public partial interface I1
+{
+    static void M6() {}
+    static partial void M7();
+    static partial void M8() {} 
+    static partial void M9(); 
+    static extern partial void M10(); 
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics(
+                // (4,24): error CS0766: Partial methods must have a void return type
+                //     static partial int M1();
+                Diagnostic(ErrorCode.ERR_PartialMethodMustReturnVoid, "M1").WithLocation(4, 24),
+                // (5,32): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                //     public static partial void M2();
+                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M2").WithLocation(5, 32),
+                // (6,34): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                //     internal static partial void M3();
+                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M3").WithLocation(6, 34),
+                // (7,33): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                //     private static partial void M4();
+                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M4").WithLocation(7, 33),
+                // (8,25): error CS0752: A partial method cannot have out parameters
+                //     static partial void M5(out int x);
+                Diagnostic(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, "M5").WithLocation(8, 25),
+                // (11,25): error CS0759: No defining declaration found for implementing declaration of partial method 'I1.M8()'
+                //     static partial void M8() {} 
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M8").WithArguments("I1.M8()").WithLocation(11, 25),
+                // (18,17): error CS0111: Type 'I1' already defines a member called 'M6' with the same parameter types
+                //     static void M6() {}
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M6").WithArguments("M6", "I1").WithLocation(18, 17),
+                // (19,25): error CS0111: Type 'I1' already defines a member called 'M7' with the same parameter types
+                //     static partial void M7();
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M7").WithArguments("M7", "I1").WithLocation(19, 25),
+                // (20,25): error CS0757: A partial method may not have multiple implementing declarations
+                //     static partial void M8() {} 
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneActual, "M8").WithLocation(20, 25),
+                // (21,25): error CS0756: A partial method may not have multiple defining declarations
+                //     static partial void M9(); 
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M9").WithLocation(21, 25),
+                // (22,32): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                //     static extern partial void M10(); 
+                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M10").WithLocation(22, 32),
+                // (22,32): error CS0756: A partial method may not have multiple defining declarations
+                //     static extern partial void M10(); 
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M10").WithLocation(22, 32)
+                );
+        }
+
+        [Fact]
+        public void MethodModifiers_27()
+        {
+            var source1 =
+@"
+partial interface I1 : I2
+{
+    sealed partial void M1();
+    abstract partial void M2();
+    virtual partial void M3();
+    partial void M4();
+    partial void M5();
+    partial void M6();
+    partial void I2.M7();
+}
+
+partial interface I1 : I2
+{
+    sealed partial void M4() {}
+    abstract partial void M5(); 
+    virtual partial void M6() {}
+
+    partial void I2.M7() {}
+}
+
+interface I2
+{
+    void M7();
+    partial void M8();
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                //     sealed partial void M1();
+                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M1").WithLocation(4, 25),
+                // (5,27): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                //     abstract partial void M2();
+                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M2").WithLocation(5, 27),
+                // (6,26): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                //     virtual partial void M3();
+                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M3").WithLocation(6, 26),
+                // (10,21): error CS0754: A partial method may not explicitly implement an interface method
+                //     partial void I2.M7();
+                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M7").WithLocation(10, 21),
+                // (15,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                //     sealed partial void M4() {}
+                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M4").WithLocation(15, 25),
+                // (16,27): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                //     abstract partial void M5(); 
+                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M5").WithLocation(16, 27),
+                // (16,27): error CS0756: A partial method may not have multiple defining declarations
+                //     abstract partial void M5(); 
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M5").WithLocation(16, 27),
+                // (17,26): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                //     virtual partial void M6() {}
+                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M6").WithLocation(17, 26),
+                // (19,21): error CS0754: A partial method may not explicitly implement an interface method
+                //     partial void I2.M7() {}
+                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M7").WithLocation(19, 21),
+                // (25,18): error CS0751: A partial method must be declared within a partial class, partial struct, or partial interface
+                //     partial void M8();
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M8").WithLocation(25, 18)
+                );
+        }
+
+        [Fact]
+        public void MethodModifiers_28()
+        {
+            var source1 =
+@"
+partial interface I1
+{
+    partial void M1();
+
+    class C : I1
+    {
+        void I1.M1() {}
+    }
+}
+
+public partial interface I1
+{
+    partial void M1() {}
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (8,17): error CS0539: 'I1.C.M1()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //         void I1.M1() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("I1.C.M1()").WithLocation(8, 17)
+                );
+        }
+
+        [Fact]
+        public void MethodModifiers_29()
+        {
+            var source1 =
+@"
+public partial interface I1
+{
+    partial void M1();
+    static partial void M2();
+
+    void M3() 
+    {
+        new System.Action(M1).Invoke();
+        new System.Action(M2).Invoke();
+    }
+
+    partial static void M4();
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (9,27): error CS0762: Cannot create delegate from method 'I1.M1()' because it is a partial method without an implementing declaration
+                //         new System.Action(M1).Invoke();
+                Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M1").WithArguments("I1.M1()").WithLocation(9, 27),
+                // (10,27): error CS0762: Cannot create delegate from method 'I1.M2()' because it is a partial method without an implementing declaration
+                //         new System.Action(M2).Invoke();
+                Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M2").WithArguments("I1.M2()").WithLocation(10, 27),
+                // (13,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                //     partial static void M4();
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(13, 5)
+                );
+        }
+
+        [Fact]
+        public void MethodModifiers_30()
+        {
+            var source1 =
+@"
+public partial interface I1
+{
+    static partial void Main();
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void MethodModifiers_31()
+        {
+            var source1 =
+@"
+public partial interface I1
+{
+    static partial void M1<T>() where T : struct;
+    static partial void M1<T>() {}
+
+    static partial void M2(params int[] x);
+    static partial void M2(int[] x) {}
+
+    static partial void M3();
+    partial void M3() {}
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (5,25): error CS0761: Partial method declarations of 'I1.M1<T>()' have inconsistent type parameter constraints
+                //     static partial void M1<T>() {}
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("I1.M1<T>()").WithLocation(5, 25),
+                // (8,25): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                //     static partial void M2(int[] x) {}
+                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "M2").WithLocation(8, 25),
+                // (11,18): error CS0763: Both partial method declarations must be static or neither may be static
+                //     partial void M3() {}
+                Diagnostic(ErrorCode.ERR_PartialMethodStaticDifference, "M3").WithLocation(11, 18)
+                );
+        }
+
+        [Fact]
+        public void MethodModifiers_32()
+        {
+            var source1 =
+@"
+partial interface I1
+{
+    partial void M1();
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+partial interface I1
+{
+    partial void M1() {}
+}
+";
+            var compilation2 = CreateCompilation(source1 + source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation2.VerifyDiagnostics(
+                // (9,18): error CS8701: Target runtime doesn't support default interface implementation.
+                //     partial void M1() {}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M1").WithLocation(9, 18)
+                );
+        }
+
+        [Fact]
         public void ImplicitThisIsAllowed_03()
         {
             var source1 =
