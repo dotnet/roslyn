@@ -30,5 +30,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public FileChangeWatcher Watcher { get; }
+
+        // HACK HACK: this is to work around the SwitchToMainThread in the constructor above not
+        // being practical to run in unit tests. That SwitchToMainThread is working around a now-fixed
+        // bug in the shell where GetServiceAsync() might deadlock in the VS service manager
+        // if the UI thread was also dealing with the service at the same time. I'd remove the
+        // SwitchToMainThreadAsync right now instead of this doing this hack, but we're targeting this
+        // fix for a preview release that's too risky to do it in. Other options involve more extensive
+        // mocking or extracting of interfaces which is also just churn that will be immediately undone
+        // once we clean up the constructor either.
+        internal void TrySetFileChangeService_TestOnly(IVsAsyncFileChangeEx fileChange)
+        {
+            _fileChangeService.TrySetResult(fileChange);
+        }
     }
 }
