@@ -25289,7 +25289,6 @@ struct S1
     public CL1? p2;
 }" }, options: WithNonNullTypesTrue());
 
-            // https://github.com/dotnet/roslyn/issues/29889: Why isn't u2 = v2 causing a warning?
             c.VerifyDiagnostics(
                 // (10,14): hidden CS8607: Expression is probably never null.
                 //         x1 = y1.p1 ?? x1;
@@ -25297,6 +25296,9 @@ struct S1
                 // (11,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x1 = y1.p2;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y1.p2").WithLocation(11, 14),
+                // (18,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: CL1 p1, CL1 p2>' doesn't match target type '<anonymous type: CL1 p1, CL1 p2>'.
+                //         u2 = v2;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "v2").WithArguments("<anonymous type: CL1 p1, CL1 p2>", "<anonymous type: CL1 p1, CL1 p2>").WithLocation(18, 14),
                 // (19,14): hidden CS8607: Expression is probably never null.
                 //         x2 = u2.p2 ?? x2;
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u2.p2").WithLocation(19, 14),
@@ -25315,6 +25317,9 @@ struct S1
                 // (30,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x3 = v3.p2;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "v3.p2").WithLocation(30, 14),
+                // (37,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: <anonymous type: CL1 p1, CL1 p2> p0>' doesn't match target type '<anonymous type: <anonymous type: CL1 p1, CL1 p2> p0>'.
+                //         u4 = v4;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "v4").WithArguments("<anonymous type: <anonymous type: CL1 p1, CL1 p2> p0>", "<anonymous type: <anonymous type: CL1 p1, CL1 p2> p0>").WithLocation(37, 14),
                 // (38,14): hidden CS8607: Expression is probably never null.
                 //         x4 = u4.p0.p2 ?? x4;
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u4.p0.p2").WithLocation(38, 14),
@@ -25363,17 +25368,8 @@ struct S1
                 // (84,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x9 = v9.p2;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "v9.p2").WithLocation(84, 14),
-                // (98,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         x10 = u10.a0; // 4
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "u10.a0").WithLocation(98, 15),
-                // (99,15): warning CS8602: Possible dereference of a null reference.
-                //         x10 = u10.a1.p1; // 5
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u10.a1").WithLocation(99, 15),
-                // (99,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         x10 = u10.a1.p1; // 5
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "u10.a1.p1").WithLocation(99, 15),
                 // (100,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         x10 = u10.a2.p2; // 6
+                //         x10 = u10.a2.p2; // 6 
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "u10.a2.p2").WithLocation(100, 15)
                 );
         }
@@ -25493,6 +25489,7 @@ class CL1<T>
 
         [Fact]
         [WorkItem(29889, "https://github.com/dotnet/roslyn/issues/29889")]
+        [WorkItem(33577, "https://github.com/dotnet/roslyn/issues/33577")]
         public void AnonymousTypes_05()
         {
             var source =
@@ -25505,49 +25502,54 @@ class C
     {
         var a0 = new { F = x0 };
         var b0 = new { F = y0 };
-        a0 = b0;
-        b0 = a0;
+        a0 = b0; // 1
+        b0 = a0; // 2
     }
     static void F1(I<string> x1, I<string?> y1)
     {
         var a1 = new { F = x1 };
         var b1 = new { F = y1 };
-        a1 = b1;
-        b1 = a1;
+        a1 = b1; // 3
+        b1 = a1; // 4
     }
     static void F2(IIn<string> x2, IIn<string?> y2)
     {
         var a2 = new { F = x2 };
         var b2 = new { F = y2 };
         a2 = b2;
-        b2 = a2;
+        b2 = a2; // 5
     }
     static void F3(IOut<string> x3, IOut<string?> y3)
     {
         var a3 = new { F = x3 };
         var b3 = new { F = y3 };
-        a3 = b3;
+        a3 = b3; // 6
         b3 = a3;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29889: Should report a warning for `a0 = b0`.
-            // https://github.com/dotnet/roslyn/issues/29889: Should not report a warning for `b3 = a3`.
+            // https://github.com/dotnet/roslyn/issues/33577: Should not report a warning for `a2 = b2` or `b3 = a3`.
             comp.VerifyDiagnostics(
+                // (10,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: string F>' doesn't match target type '<anonymous type: string F>'.
+                //         a0 = b0; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b0").WithArguments("<anonymous type: string F>", "<anonymous type: string F>").WithLocation(10, 14),
+                // (11,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: string F>' doesn't match target type '<anonymous type: string F>'.
+                //         b0 = a0; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a0").WithArguments("<anonymous type: string F>", "<anonymous type: string F>").WithLocation(11, 14),
                 // (17,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: I<string?> F>' doesn't match target type '<anonymous type: I<string> F>'.
-                //         a1 = b1;
+                //         a1 = b1; // 3
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b1").WithArguments("<anonymous type: I<string?> F>", "<anonymous type: I<string> F>").WithLocation(17, 14),
                 // (18,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: I<string> F>' doesn't match target type '<anonymous type: I<string?> F>'.
-                //         b1 = a1;
+                //         b1 = a1; // 4
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a1").WithArguments("<anonymous type: I<string> F>", "<anonymous type: I<string?> F>").WithLocation(18, 14),
                 // (24,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: IIn<string?> F>' doesn't match target type '<anonymous type: IIn<string> F>'.
                 //         a2 = b2;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b2").WithArguments("<anonymous type: IIn<string?> F>", "<anonymous type: IIn<string> F>").WithLocation(24, 14),
                 // (25,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: IIn<string> F>' doesn't match target type '<anonymous type: IIn<string?> F>'.
-                //         b2 = a2;
+                //         b2 = a2; // 5
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a2").WithArguments("<anonymous type: IIn<string> F>", "<anonymous type: IIn<string?> F>").WithLocation(25, 14),
                 // (31,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: IOut<string?> F>' doesn't match target type '<anonymous type: IOut<string> F>'.
-                //         a3 = b3;
+                //         a3 = b3; // 6
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b3").WithArguments("<anonymous type: IOut<string?> F>", "<anonymous type: IOut<string> F>").WithLocation(31, 14),
                 // (32,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: IOut<string> F>' doesn't match target type '<anonymous type: IOut<string?> F>'.
                 //         b3 = a3;
@@ -25568,9 +25570,318 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29890: Should report ErrorCode.HDN_ExpressionIsProbablyNeverNull.
-            // See comment in DefiniteAssignment.VisitAnonymousObjectCreationExpression.
+            comp.VerifyDiagnostics(
+                // (5,13): hidden CS8607: Expression is probably never null.
+                //         x = new { x, y }.x ?? x;
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "new { x, y }.x").WithLocation(5, 13),
+                // (6,13): hidden CS8607: Expression is probably never null.
+                //         y = new { x, y = y }.y ?? y;
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "new { x, y = y }.y").WithLocation(6, 13));
+        }
+
+        [Fact]
+        public void AnonymousTypes_07()
+        {
+            var source =
+@"class Program
+{
+    static T F<T>(T t) => t;
+    static void G()
+    {
+        var a = new { };
+        a = new { };
+        a = F(a);
+        a = F(new { });
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(24018, "https://github.com/dotnet/roslyn/issues/24018")]
+        public void AnonymousTypes_08()
+        {
+            var source =
+@"class Program
+{
+    static void F<T>(T x, T? y) where T : class
+    {
+        new { x, y }.x.ToString();
+        new { x, y }.y.ToString(); // 1
+        new { y, x }.x.ToString();
+        new { y, x }.y.ToString(); // 2
+        new { x = x, y = y }.x.ToString();
+        new { x = x, y = y }.y.ToString(); // 3
+        new { x = y, y = x }.x.ToString(); // 4
+        new { x = y, y = x }.y.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         new { x, y }.y.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "new { x, y }.y").WithLocation(6, 9),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         new { y, x }.y.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "new { y, x }.y").WithLocation(8, 9),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         new { x = x, y = y }.y.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "new { x = x, y = y }.y").WithLocation(10, 9),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         new { x = y, y = x }.x.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "new { x = y, y = x }.x").WithLocation(11, 9));
+        }
+
+        [Fact]
+        [WorkItem(24018, "https://github.com/dotnet/roslyn/issues/24018")]
+        public void AnonymousTypes_09()
+        {
+            var source =
+@"class Program
+{
+    static void F<T>(T? x, T? y) where T : struct
+    {
+        if (y == null) return;
+        _ = new { x = x, y = y }.x.Value; // 1
+        _ = new { x = x, y = y }.y.Value;
+        _ = new { x = y, y = x }.x.Value;
+        _ = new { x = y, y = x }.y.Value; // 2
+        _ = new { x, y }.x.Value; // 3
+        _ = new { x, y }.y.Value;
+        _ = new { y, x }.x.Value; // 4
+        _ = new { y, x }.y.Value;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,13): warning CS8629: Nullable value type may be null.
+                //         _ = new { x = x, y = y }.x.Value; // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "new { x = x, y = y }.x.Value").WithLocation(6, 13),
+                // (9,13): warning CS8629: Nullable value type may be null.
+                //         _ = new { x = y, y = x }.y.Value; // 2
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "new { x = y, y = x }.y.Value").WithLocation(9, 13),
+                // (10,13): warning CS8629: Nullable value type may be null.
+                //         _ = new { x, y }.x.Value; // 3
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "new { x, y }.x.Value").WithLocation(10, 13),
+                // (12,13): warning CS8629: Nullable value type may be null.
+                //         _ = new { y, x }.x.Value; // 4
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "new { y, x }.x.Value").WithLocation(12, 13));
+        }
+
+        [Fact]
+        [WorkItem(24018, "https://github.com/dotnet/roslyn/issues/24018")]
+        public void AnonymousTypes_10()
+        {
+            var source =
+@"class Program
+{
+    static void F<T>(T x, T? y) where T : class
+    {
+        var a = new { x, y };
+        a.x/*T:T!*/.ToString();
+        a.y/*T:T?*/.ToString(); // 1
+        a = new { x = y, y = x }; // 2
+        a.x/*T:T?*/.ToString(); // 3
+        a.y/*T:T!*/.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         a.y/*T:T?*/.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.y").WithLocation(7, 9),
+                // (8,13): warning CS8619: Nullability of reference types in value of type '<anonymous type: T x, T y>' doesn't match target type '<anonymous type: T x, T y>'.
+                //         a = new { x = y, y = x }; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new { x = y, y = x }").WithArguments("<anonymous type: T x, T y>", "<anonymous type: T x, T y>").WithLocation(8, 13),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         a.x/*T:T?*/.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.x").WithLocation(9, 9));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        [WorkItem(24018, "https://github.com/dotnet/roslyn/issues/24018")]
+        [WorkItem(33577, "https://github.com/dotnet/roslyn/issues/33577")]
+        public void AnonymousTypes_11()
+        {
+            var source =
+@"class Program
+{
+    static void F<T>() where T : struct
+    {
+        T? x = new T();
+        T? y = null;
+        var a = new { x, y };
+        _ = a.x.Value;
+        _ = a.y.Value; // 1
+        x = null;
+        y = new T();
+        a = new { x, y };
+        _ = a.x.Value; // 2
+        _ = a.y.Value;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/33577: Should not report a warning re-assigning `a`.
+            comp.VerifyDiagnostics(
+                // (9,13): warning CS8629: Nullable value type may be null.
+                //         _ = a.y.Value; // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "a.y.Value").WithLocation(9, 13),
+                // (12,13): warning CS8619: Nullability of reference types in value of type '<anonymous type: T? x, T? y>' doesn't match target type '<anonymous type: T? x, T? y>'.
+                //         a = new { x, y };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new { x, y }").WithArguments("<anonymous type: T? x, T? y>", "<anonymous type: T? x, T? y>").WithLocation(12, 13),
+                // (13,13): warning CS8629: Nullable value type may be null.
+                //         _ = a.x.Value; // 2
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "a.x.Value").WithLocation(13, 13));
+        }
+
+        [Fact]
+        [WorkItem(24018, "https://github.com/dotnet/roslyn/issues/24018")]
+        public void AnonymousTypes_12()
+        {
+            var source =
+@"class Program
+{
+    static void F<T>() where T : class, new()
+    {
+        T x = null; // 1
+        T? y = new T();
+        var a = new { x, y };
+        a.x/*T:T?*/.ToString(); // 2
+        a.y/*T:T!*/.ToString();
+        x = new T();
+        y = null;
+        a = new { x, y }; // 3
+        a.x/*T:T!*/.ToString();
+        a.y/*T:T?*/.ToString(); // 4
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T x = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(5, 15),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         a.x/*T:T?*/.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.x").WithLocation(8, 9),
+                // (12,13): warning CS8619: Nullability of reference types in value of type '<anonymous type: T x, T y>' doesn't match target type '<anonymous type: T x, T y>'.
+                //         a = new { x, y }; // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new { x, y }").WithArguments("<anonymous type: T x, T y>", "<anonymous type: T x, T y>").WithLocation(12, 13),
+                // (14,9): warning CS8602: Possible dereference of a null reference.
+                //         a.y/*T:T?*/.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.y").WithLocation(14, 9));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        [WorkItem(24018, "https://github.com/dotnet/roslyn/issues/24018")]
+        public void AnonymousTypes_13()
+        {
+            var source =
+@"class Program
+{
+    static void F<T>(T x, T y)
+    {
+    }
+    static void G<T>(T x, T? y) where T : class
+    {
+        F(new { x, y }, new { x = x, y = y });
+        F(new { x, y }, new { x = y, y = x }); // 1
+        F(new { x = x, y = y }, new { x = x, y = y });
+        F(new { x = x, y = y }, new { x = y, y = x }); // 2
+        F(new { x = x, y = y }, new { x, y });
+        F(new { x = y, y = x }, new { x, y }); // 3
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,25): warning CS8620: Nullability of reference types in argument of type '<anonymous type: T x, T y>' doesn't match target type '<anonymous type: T x, T y>' for parameter 'y' in 'void Program.F<<anonymous type: T x, T y>>(<anonymous type: T x, T y> x, <anonymous type: T x, T y> y)'.
+                //         F(new { x, y }, new { x = y, y = x }); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new { x = y, y = x }").WithArguments("<anonymous type: T x, T y>", "<anonymous type: T x, T y>", "y", "void Program.F<<anonymous type: T x, T y>>(<anonymous type: T x, T y> x, <anonymous type: T x, T y> y)").WithLocation(9, 25),
+                // (11,33): warning CS8620: Nullability of reference types in argument of type '<anonymous type: T x, T y>' doesn't match target type '<anonymous type: T x, T y>' for parameter 'y' in 'void Program.F<<anonymous type: T x, T y>>(<anonymous type: T x, T y> x, <anonymous type: T x, T y> y)'.
+                //         F(new { x = x, y = y }, new { x = y, y = x }); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new { x = y, y = x }").WithArguments("<anonymous type: T x, T y>", "<anonymous type: T x, T y>", "y", "void Program.F<<anonymous type: T x, T y>>(<anonymous type: T x, T y> x, <anonymous type: T x, T y> y)").WithLocation(11, 33),
+                // (13,33): warning CS8620: Nullability of reference types in argument of type '<anonymous type: T x, T y>' doesn't match target type '<anonymous type: T x, T y>' for parameter 'y' in 'void Program.F<<anonymous type: T x, T y>>(<anonymous type: T x, T y> x, <anonymous type: T x, T y> y)'.
+                //         F(new { x = y, y = x }, new { x, y }); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new { x, y }").WithArguments("<anonymous type: T x, T y>", "<anonymous type: T x, T y>", "y", "void Program.F<<anonymous type: T x, T y>>(<anonymous type: T x, T y> x, <anonymous type: T x, T y> y)").WithLocation(13, 33));
+        }
+
+        [Fact]
+        [WorkItem(33007, "https://github.com/dotnet/roslyn/issues/33007")]
+        public void AnonymousTypes_14()
+        {
+            var source =
+@"class Program
+{
+    static T F<T>(T t) => t;
+    static void F1<T>(T t1) where T : class
+    {
+        var a1 = F(new { t = t1 });
+        a1.t.ToString();
+    }
+    static void F2<T>(T? t2) where T : class
+    {
+        var a2 = F(new { t = t2 });
+        a2.t.ToString(); // 1
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         a2.t.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a2.t").WithLocation(12, 9));
+        }
+
+        [Fact]
+        [WorkItem(33007, "https://github.com/dotnet/roslyn/issues/33007")]
+        public void AnonymousTypes_15()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static U F<T, U>(Func<T, U> f, T t) => f(t);
+    static void F1<T>(T t1) where T : class
+    {
+        var a1 = F(t => new { t }, t1);
+        a1.t.ToString();
+    }
+    static void F2<T>(T? t2) where T : class
+    {
+        var a2 = F(t => new { t }, t2);
+        a2.t.ToString(); // 1
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,9): warning CS8602: Possible dereference of a null reference.
+                //         a2.t.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a2.t").WithLocation(13, 9));
+        }
+
+        [Fact]
+        [WorkItem(24018, "https://github.com/dotnet/roslyn/issues/24018")]
+        public void AnonymousTypes_16()
+        {
+            var source =
+@"class Program
+{
+    static void F<T>(T? t) where T : class
+    {
+        new { }.Missing();
+        if (t == null) return;
+        new { t }.Missing();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,17): error CS1061: '<empty anonymous type>' does not contain a definition for 'Missing' and no accessible extension method 'Missing' accepting a first argument of type '<empty anonymous type>' could be found (are you missing a using directive or an assembly reference?)
+                //         new { }.Missing();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Missing").WithArguments("<empty anonymous type>", "Missing").WithLocation(5, 17),
+                // (7,19): error CS1061: '<anonymous type: T t>' does not contain a definition for 'Missing' and no accessible extension method 'Missing' accepting a first argument of type '<anonymous type: T t>' could be found (are you missing a using directive or an assembly reference?)
+                //         new { t }.Missing();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Missing").WithArguments("<anonymous type: T t>", "Missing").WithLocation(7, 19));
         }
 
         [Fact]
@@ -25593,9 +25904,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new { P = o }).P").WithLocation(5, 9));
         }
 
-        // https://github.com/dotnet/roslyn/issues/29891: NullableWalker.VisitAnonymousObjectCreationExpression
-        // should support initializers with inferred nullability.
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29891")]
+        [Fact]
         [WorkItem(29891, "https://github.com/dotnet/roslyn/issues/29891")]
         public void AnonymousObjectCreation_02()
         {
@@ -73743,11 +74052,10 @@ class Program
         var a2 = new { F = x2 };
         a2.F/*T:C<object!>?*/.ToString(); // 2
         a2 = new { F = y2 };
-        a2.F/*T:C<object!>?*/.ToString();
+        a2.F/*T:C<object!>!*/.ToString();
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/31394: a2.F should be C<object!>! and should not result in a warning.
             comp.VerifyDiagnostics(
                 // (8,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: C<object?> F>' doesn't match target type '<anonymous type: C<object> F>'.
                 //         a1 = new { F = y1 };
@@ -73760,10 +74068,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a2.F").WithLocation(14, 9),
                 // (15,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: C<object?> F>' doesn't match target type '<anonymous type: C<object> F>'.
                 //         a2 = new { F = y2 };
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new { F = y2 }").WithArguments("<anonymous type: C<object?> F>", "<anonymous type: C<object> F>").WithLocation(15, 14),
-                // (16,9): warning CS8602: Possible dereference of a null reference.
-                //         a2.F/*T:C<object!>?*/.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a2.F").WithLocation(16, 9));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new { F = y2 }").WithArguments("<anonymous type: C<object?> F>", "<anonymous type: C<object> F>").WithLocation(15, 14));
             comp.VerifyTypes();
         }
 

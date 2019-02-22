@@ -1230,10 +1230,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
-            bool canIgnoreType(TypeSymbol type) => (object)type.VisitType((t, unused1, unused2) => t.IsErrorType() || t.IsDynamic() || t.HasUseSiteError, (object)null) != null;
-            return canIgnoreType(typeA) ||
-                canIgnoreType(typeB) ||
+            return canIgnoreAnyType(typeA) ||
+                canIgnoreAnyType(typeB) ||
                 typeA.Equals(typeB, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamicAndTupleNames); // Ignore TupleElementNames (see https://github.com/dotnet/roslyn/issues/23651).
+
+            bool canIgnoreAnyType(TypeSymbol type)
+            {
+                return (object)type.VisitType((t, unused1, unused2) => canIgnoreType(t), (object)null) != null;
+            }
+            bool canIgnoreType(TypeSymbol type)
+            {
+                return type.IsErrorType() || type.IsDynamic() || type.HasUseSiteError || (type.IsAnonymousType && canIgnoreAnonymousType((NamedTypeSymbol)type));
+            }
+            bool canIgnoreAnonymousType(NamedTypeSymbol type)
+            {
+                return AnonymousTypeManager.GetAnonymousTypePropertyTypes(type).Any(t => canIgnoreAnyType(t.TypeSymbol));
+            }
         }
 #endif
 
@@ -1410,39 +1422,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
 
-            int receiverSlot = -1;
+            var anonymousType = (NamedTypeSymbol)node.Type;
+            Debug.Assert(anonymousType.IsAnonymousType);
+
             var arguments = node.Arguments;
-            var constructor = node.Constructor;
-            for (int i = 0; i < arguments.Length; i++)
+            var argumentTypes = arguments.SelectAsArray((arg, visitor) => visitor.VisitRvalueWithResult(arg), this);
+
+            if (argumentTypes.All(argType => !argType.IsNull))
             {
-                var argument = arguments[i];
-                TypeSymbolWithAnnotations argumentType = VisitRvalueWithResult(argument);
-                var parameter = constructor.Parameters[i];
-                ReportArgumentWarnings(argument, argumentType, parameter);
-
-                // https://github.com/dotnet/roslyn/issues/24018 node.Declarations includes
-                // explicitly-named properties only. For now, skip expressions
-                // with implicit names. See NullableReferenceTypesTests.AnonymousTypes_05.
-                if (node.Declarations.Length < arguments.Length)
+                anonymousType = AnonymousTypeManager.ConstructAnonymousTypeSymbol(anonymousType, argumentTypes);
+                int receiverSlot = GetOrCreateObjectCreationPlaceholderSlot(node);
+                for (int i = 0; i < arguments.Length; i++)
                 {
-                    continue;
+                    var argument = arguments[i];
+                    var argumentType = argumentTypes[i];
+                    var property = AnonymousTypeManager.GetAnonymousTypeProperty(anonymousType, i);
+                    TrackNullableStateForAssignment(argument, property.Type, GetOrCreateSlot(property, receiverSlot), argumentType, MakeSlot(argument));
                 }
-
-                PropertySymbol property = node.Declarations[i].Property;
-                if (receiverSlot <= 0)
-                {
-                    receiverSlot = GetOrCreateObjectCreationPlaceholderSlot(node);
-                }
-
-                TypeSymbolWithAnnotations propertyType = property.Type;
-                ReportAssignmentWarnings(argument, propertyType, argumentType, useLegacyWarnings: false);
-                TrackNullableStateForAssignment(argument, propertyType, GetOrCreateSlot(property, receiverSlot), argumentType, MakeSlot(argument));
             }
 
-            // https://github.com/dotnet/roslyn/issues/24018 _result may need to be a new anonymous
-            // type since the properties may have distinct nullability from original.
-            // (See NullableReferenceTypesTests.AnonymousObjectCreation_02.)
-            ResultType = TypeSymbolWithAnnotations.Create(node.Type, NullableAnnotation.NotNullable);
+            ResultType = TypeSymbolWithAnnotations.Create(anonymousType, NullableAnnotation.NotNullable);
             return null;
         }
 
@@ -3342,6 +3341,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (symbolDefContainer.IsTupleType)
                     {
                         return AsMemberOfTupleType((TupleTypeSymbol)containingType, symbol);
+                    }
+                    if (symbolDefContainer.IsAnonymousType)
+                    {
+                        int? memberIndex = symbol.Kind == SymbolKind.Property ? symbol.MemberIndexOpt : null;
+                        if (!memberIndex.HasValue)
+                        {
+                            break;
+                        }
+                        return AnonymousTypeManager.GetAnonymousTypeProperty(containingType, memberIndex.GetValueOrDefault());
                     }
                     var result = symbolDef.SymbolAsMember(containingType);
                     if (result is MethodSymbol resultMethod && resultMethod.IsGenericMethod)
