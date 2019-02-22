@@ -689,36 +689,34 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 return value;
             }
 
-            private PointsToAbstractValue VisitTypeCreationWithArgumentsAndInitializer(IEnumerable<IOperation> arguments, IObjectOrCollectionInitializerOperation initializer, IOperation operation, object argument)
+            private PointsToAbstractValue VisitTypeCreationWithArgumentsAndInitializer<TOperation>(
+                TOperation operation,
+                object argument,
+                Func<TOperation, object, PointsToAbstractValue> baseVisit)
+                where TOperation : IOperation
             {
                 AbstractLocation location = AbstractLocation.CreateAllocationLocation(operation, operation.Type, DataFlowAnalysisContext);
                 var pointsToAbstractValue = PointsToAbstractValue.Create(location, mayBeNull: false);
                 CacheAbstractValue(operation, pointsToAbstractValue);
 
-                _ = VisitArray(arguments, argument);
-                var initializerValue = Visit(initializer, argument);
-                Debug.Assert(initializer == null || initializerValue == pointsToAbstractValue);
+                _ = baseVisit(operation, argument);
+
                 return pointsToAbstractValue;
             }
 
             public override PointsToAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object argument)
             {
-                return VisitTypeCreationWithArgumentsAndInitializer(operation.Arguments, operation.Initializer, operation, argument);
+                return VisitTypeCreationWithArgumentsAndInitializer(operation, argument, base.VisitObjectCreation);
             }
 
             public override PointsToAbstractValue VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation, object argument)
             {
-                return VisitTypeCreationWithArgumentsAndInitializer(operation.Arguments, operation.Initializer, operation, argument);
+                return VisitTypeCreationWithArgumentsAndInitializer(operation, argument, base.VisitDynamicObjectCreation);
             }
 
             public override PointsToAbstractValue VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, object argument)
             {
-                AbstractLocation location = AbstractLocation.CreateAllocationLocation(operation, operation.Type, DataFlowAnalysisContext);
-                var pointsToAbstractValue = PointsToAbstractValue.Create(location, mayBeNull: false);
-                CacheAbstractValue(operation, pointsToAbstractValue);
-
-                _ = base.VisitAnonymousObjectCreation(operation, argument);
-                return pointsToAbstractValue;
+                return VisitTypeCreationWithArgumentsAndInitializer(operation, argument, base.VisitAnonymousObjectCreation);
             }
 
             public override PointsToAbstractValue VisitTuple(ITupleOperation operation, object argument)
@@ -741,8 +739,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             public override PointsToAbstractValue VisitTypeParameterObjectCreation(ITypeParameterObjectCreationOperation operation, object argument)
             {
-                var arguments = ImmutableArray<IOperation>.Empty;
-                return VisitTypeCreationWithArgumentsAndInitializer(arguments, operation.Initializer, operation, argument);
+                return VisitTypeCreationWithArgumentsAndInitializer(operation, argument, base.VisitTypeParameterObjectCreation);
             }
 
             public override PointsToAbstractValue VisitArrayInitializer(IArrayInitializerOperation operation, object argument)

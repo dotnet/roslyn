@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             => Create(creation, analysisContext.InterproceduralAnalysisDataOpt?.CallStack, analysisEntityOpt: null, symbolOpt: null, locationType: locationType);
         public static AbstractLocation CreateAnalysisEntityDefaultLocation(AnalysisEntity analysisEntity)
             => Create(creationOpt: null, creationCallStackOpt: null, analysisEntityOpt: analysisEntity, symbolOpt: null, locationType: analysisEntity.Type);
-        public static AbstractLocation CreateThisOrMeLocation(INamedTypeSymbol namedTypeSymbol)
-            => Create(creationOpt: null, creationCallStackOpt: null, analysisEntityOpt: null, symbolOpt: namedTypeSymbol, locationType: namedTypeSymbol);
+        public static AbstractLocation CreateThisOrMeLocation(INamedTypeSymbol namedTypeSymbol, ImmutableStack<IOperation> creationCallStackOpt)
+            => Create(creationOpt: null, creationCallStackOpt: creationCallStackOpt, analysisEntityOpt: null, symbolOpt: namedTypeSymbol, locationType: namedTypeSymbol);
         public static AbstractLocation CreateSymbolLocation(ISymbol symbol, ImmutableStack<IOperation> creationCallStackOpt)
             => Create(creationOpt: null, creationCallStackOpt: creationCallStackOpt, analysisEntityOpt: null, symbolOpt: symbol, locationType: symbol.GetMemerOrLocalOrParameterType());
 

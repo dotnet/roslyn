@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
             else
             {
-                ThisOrMePointsToAbstractValue = GetThisOrMeInstancePointsToValue(analysisContext.OwningSymbol);
+                ThisOrMePointsToAbstractValue = GetThisOrMeInstancePointsToValue(analysisContext);
                 interproceduralInvocationInstanceOpt = null;
             }
 
@@ -246,12 +246,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return (mergedValue, mergedPredicateValueKind ?? PredicateValueKind.Unknown);
         }
 
-        private static PointsToAbstractValue GetThisOrMeInstancePointsToValue(ISymbol owningSymbol)
+        private static PointsToAbstractValue GetThisOrMeInstancePointsToValue(TAnalysisContext analysisContext)
         {
+            var owningSymbol = analysisContext.OwningSymbol;
             if (!owningSymbol.IsStatic &&
                 !owningSymbol.ContainingType.HasValueCopySemantics())
             {
-                var thisOrMeLocation = AbstractLocation.CreateThisOrMeLocation(owningSymbol.ContainingType);
+                var thisOrMeLocation = AbstractLocation.CreateThisOrMeLocation(owningSymbol.ContainingType, analysisContext.InterproceduralAnalysisDataOpt?.CallStack);
                 return PointsToAbstractValue.Create(thisOrMeLocation, mayBeNull: false);
             }
             else
@@ -2187,6 +2188,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             // Conservative for error code and user defined operator.
             return operation.Conversion.Exists && !operation.Conversion.IsUserDefined ? operandValue : ValueDomain.UnknownOrMayBeValue;
+        }
+
+        public override TAbstractAnalysisValue VisitObjectCreation(IObjectCreationOperation operation, object argument)
+        {
+            Debug.Assert(operation.Initializer == null, "Object or collection initializer must have been lowered in the CFG");
+
+            var defaultValue = base.VisitObjectCreation(operation, argument);
+
+            var method = operation.Constructor;
+            ControlFlowGraph getCfg() => GetInterproceduralControlFlowGraph(method);
+
+            return PerformInterproceduralAnalysis(getCfg, method, instanceReceiver: null,
+                operation.Arguments, operation, defaultValue, isLambdaOrLocalFunction: false);
         }
 
         public sealed override TAbstractAnalysisValue VisitInvocation(IInvocationOperation operation, object argument)
