@@ -397,6 +397,7 @@ public struct S
         [Fact]
         public void ReadOnlyStructExpressionProperty()
         {
+            // TODO(rigibson): this syntax needs to change to `public int P readonly => i;`
             var csharp = @"
 public struct S
 {
@@ -434,6 +435,32 @@ public struct S
     public int P1 { readonly get; }
     public int P2 { readonly get; set; }
     public int P3 { readonly get; readonly set; } // PROTOTYPE: readonly set on an auto-property should give an error
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefReturningReadOnlyMethod()
+        {
+            // PROTOTYPE: would be good to add some more mutation here
+            // as well as expected diagnostics once that part of the feature is ready.
+            var csharp = @"
+public struct S
+{
+    private static int f1;
+    public readonly ref int M1() => ref f1;
+
+    private static readonly int f2;
+    public readonly ref readonly int M2() => ref f1;
+
+    private static readonly int f3;
+    public ref readonly int M3()
+    {
+        f1++;
+        return ref f3;
+    }
 }
 ";
             var comp = CreateCompilation(csharp);
