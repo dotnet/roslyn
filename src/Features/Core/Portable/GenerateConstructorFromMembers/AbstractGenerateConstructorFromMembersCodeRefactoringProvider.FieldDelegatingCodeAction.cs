@@ -15,17 +15,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
-    internal partial class GenerateConstructorFromMembersCodeRefactoringProvider
+    internal partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider
     {
         private class FieldDelegatingCodeAction : CodeAction
         {
-            private readonly GenerateConstructorFromMembersCodeRefactoringProvider _service;
+            private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
             private readonly State _state;
             private readonly bool _addNullChecks;
 
             public FieldDelegatingCodeAction(
-                GenerateConstructorFromMembersCodeRefactoringProvider service,
+                AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 State state,
                 bool addNullChecks)
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var preferThrowExpression = options.GetOption(CodeStyleOptions.PreferThrowExpression).Value;
+                var preferThrowExpression = _service.IsPreferThrowExpressionEnabled(options);
 
                 var compilation = await _document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var (fields, constructor) = factory.CreateFieldDelegatingConstructor(

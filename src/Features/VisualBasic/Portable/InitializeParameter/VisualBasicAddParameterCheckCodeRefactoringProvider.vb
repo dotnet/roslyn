@@ -4,6 +4,7 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.InitializeParameter
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
@@ -38,6 +39,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
 
         Protected Overrides Function GetBody(functionDeclaration As SyntaxNode) As SyntaxNode
             Return InitializeParameterHelpers.GetBody(functionDeclaration)
+        End Function
+
+        Protected Overrides Function IsPreferThrowExpressionEnabled(options As DocumentOptionSet) As Boolean
+            Return False
         End Function
     End Class
 End Namespace

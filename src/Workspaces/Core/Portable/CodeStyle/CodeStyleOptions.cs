@@ -91,13 +91,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_predefined_type_for_member_access"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferIntrinsicPredefinedTypeKeywordInMemberAccess.CodeStyle")});
 
-        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferThrowExpression = CreateOption(
-            CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferThrowExpression),
-            defaultValue: TrueWithSuggestionEnforcement,
-            storageLocations: new OptionStorageLocation[]{
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_throw_expression"),
-                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferThrowExpression")});
-
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferObjectInitializer = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferObjectInitializer),
             defaultValue: TrueWithSuggestionEnforcement,

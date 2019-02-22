@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
@@ -75,6 +76,11 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
             // return a code action to add optional parameters
             yield return new AddConstructorParametersCodeAction(this, document, state, missingParameters);
+        }
+
+        internal override bool IsPreferThrowExpressionEnabled(OptionSet optionSet)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

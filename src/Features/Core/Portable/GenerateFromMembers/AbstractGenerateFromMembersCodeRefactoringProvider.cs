@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -16,6 +17,14 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
 {
     internal abstract partial class AbstractGenerateFromMembersCodeRefactoringProvider : CodeRefactoringProvider
     {
+        internal async Task<bool> IsPreferThrowExpressionEnabledAsync(Document document, CancellationToken cancellationToken)
+        {
+            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return IsPreferThrowExpressionEnabled(optionSet);
+        }
+
+        internal abstract bool IsPreferThrowExpressionEnabled(OptionSet optionSet);
+
         protected AbstractGenerateFromMembersCodeRefactoringProvider()
         {
         }

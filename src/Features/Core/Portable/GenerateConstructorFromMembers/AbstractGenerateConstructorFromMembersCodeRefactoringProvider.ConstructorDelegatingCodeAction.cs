@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -10,23 +11,24 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
-    internal partial class GenerateConstructorFromMembersCodeRefactoringProvider
+    internal partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider
     {
         private class ConstructorDelegatingCodeAction : CodeAction
         {
-            private readonly GenerateConstructorFromMembersCodeRefactoringProvider _service;
+            private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
             private readonly State _state;
             private readonly bool _addNullChecks;
 
             public ConstructorDelegatingCodeAction(
-                GenerateConstructorFromMembersCodeRefactoringProvider service,
+                AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 State state,
                 bool addNullChecks)
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var assignStatements = ArrayBuilder<SyntaxNode>.GetInstance();
 
                 var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var useThrowExpressions = options.GetOption(CodeStyleOptions.PreferThrowExpression).Value;
+                var useThrowExpressions = _service.IsPreferThrowExpressionEnabled(options);
 
                 for (var i = _state.DelegatedConstructor.Parameters.Length; i < _state.Parameters.Length; i++)
                 {

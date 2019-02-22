@@ -245,6 +245,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 defaultValue: new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption.Suggestion),
                 s_allOptionsBuilder);
 
+        internal static readonly Option<CodeStyleOption<bool>> PreferThrowExpression = CreateOption(
+                CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferThrowExpression),
+                defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+                storageLocations: new OptionStorageLocation[]{
+                    EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_throw_expression"),
+                    new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferThrowExpression")});
+
         static CSharpCodeStyleOptions()
         {
             // Note that the static constructor executes after all the static field initializers for the options have executed,
@@ -264,6 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return PreferLocalOverAnonymousFunction;
             yield return PreferIndexOperator;
             yield return PreferRangeOperator;
+            yield return PreferThrowExpression;
         }
 
         public static IEnumerable<Option<CodeStyleOption<ExpressionBodyPreference>>> GetExpressionBodyOptions()

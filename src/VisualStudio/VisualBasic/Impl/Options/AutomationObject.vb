@@ -197,16 +197,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-
-        Public Property Style_PreferThrowExpression As String
-            Get
-                Return GetXmlOption(CodeStyleOptions.PreferThrowExpression)
-            End Get
-            Set(value As String)
-                SetXmlOption(CodeStyleOptions.PreferThrowExpression, value)
-            End Set
-        End Property
-
         Public Property Style_PreferObjectInitializer As String
             Get
                 Return GetXmlOption(CodeStyleOptions.PreferObjectInitializer)

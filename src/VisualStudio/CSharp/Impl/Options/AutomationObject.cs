@@ -582,8 +582,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public string Style_PreferThrowExpression
         {
-            get { return GetXmlOption(CodeStyleOptions.PreferThrowExpression); }
-            set { SetXmlOption(CodeStyleOptions.PreferThrowExpression, value); }
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferThrowExpression); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferThrowExpression, value); }
         }
 
         public string Style_PreferObjectInitializer

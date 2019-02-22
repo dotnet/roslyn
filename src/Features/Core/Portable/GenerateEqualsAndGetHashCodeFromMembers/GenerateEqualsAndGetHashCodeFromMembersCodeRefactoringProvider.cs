@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -256,6 +257,11 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     generateEquals, generateGetHashCode,
                     implementIEquatable: false, generateOperators: false);
             }
+        }
+
+        internal override bool IsPreferThrowExpressionEnabled(OptionSet optionSet)
+        {
+            throw new NotImplementedException();
         }
     }
 }

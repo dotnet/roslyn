@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
 {
@@ -95,6 +96,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         protected abstract bool CanOffer(SyntaxNode body);
+        protected abstract bool IsPreferThrowExpressionEnabled(DocumentOptionSet options);
 
         private bool ContainsNullCoalesceCheck(
             ISyntaxFactsService syntaxFacts, SemanticModel semanticModel,
@@ -384,7 +386,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            if (!options.GetOption(CodeStyleOptions.PreferThrowExpression).Value)
+            if (!IsPreferThrowExpressionEnabled(options))
             {
                 return null;
             }

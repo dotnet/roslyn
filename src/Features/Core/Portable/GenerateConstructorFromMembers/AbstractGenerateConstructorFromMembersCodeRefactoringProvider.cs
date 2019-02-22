@@ -30,23 +30,21 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
     /// something like "new MyType(x, y, z)", nor is it responsible for generating constructors
     /// in a derived type that delegate to a base type. Both of those are handled by other services.
     /// </summary>
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
-        Name = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers), Shared]
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers)]
-    internal partial class GenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
+    internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
     {
         private const string AddNullChecksId = nameof(AddNullChecksId);
 
         private readonly IPickMembersService _pickMembersService_forTesting;
 
-        public GenerateConstructorFromMembersCodeRefactoringProvider() : this(null)
+        public AbstractGenerateConstructorFromMembersCodeRefactoringProvider() : this(null)
         {
         }
 
         /// <summary>
         /// For testing purposes only.
         /// </summary>
-        internal GenerateConstructorFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService_forTesting)
+        internal AbstractGenerateConstructorFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService_forTesting)
         {
             _pickMembersService_forTesting = pickMembersService_forTesting;
         }
