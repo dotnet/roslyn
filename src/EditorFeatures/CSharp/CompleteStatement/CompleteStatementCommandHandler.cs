@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             // we will have bailed earlier due to not being inside supported delimiters
             => forStatementSyntax.Condition == null ?
                 false :
-                caretPosition > forStatementSyntax.Condition.SpanStart && 
+                caretPosition > forStatementSyntax.Condition.SpanStart &&
                 caretPosition < forStatementSyntax.Condition.Span.End;
 
         private static bool CaretIsInForStatementDeclaration(int caretPosition, ForStatementSyntax forStatementSyntax)

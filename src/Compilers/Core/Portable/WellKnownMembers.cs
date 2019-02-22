@@ -3077,7 +3077,7 @@ namespace Microsoft.CodeAnalysis
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
 
-                 // System_Index__FromEnd
+                 // System_Index__IsFromEnd
                  (byte)(MemberFlags.Property),                                                                                                                  // Flags
                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Index - WellKnownType.ExtSentinel),                                               // DeclaringTypeId
                  0,                                                                                                                                             // Arity
@@ -3105,37 +3105,14 @@ namespace Microsoft.CodeAnalysis
                      0,                                                                                                                                         // Method Signature
                      (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Index - WellKnownType.ExtSentinel), // Return Type: System.Index
 
-                 // System_Range__Create
-                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                               // Flags
+                 // System_Range__ctor
+                 (byte)(MemberFlags.Constructor),
                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Range - WellKnownType.ExtSentinel),                                               // DeclaringTypeId
                  0,                                                                                                                                             // Arity
                      2,                                                                                                                                         // Method Signature
-                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Range - WellKnownType.ExtSentinel),
+                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
                      (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Index - WellKnownType.ExtSentinel),
                      (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Index - WellKnownType.ExtSentinel),
-
-                 // System_Range__ToEnd
-                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                               // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Range - WellKnownType.ExtSentinel),                                               // DeclaringTypeId
-                 0,                                                                                                                                             // Arity
-                     1,                                                                                                                                         // Method Signature
-                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Range - WellKnownType.ExtSentinel),
-                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Index - WellKnownType.ExtSentinel),
-
-                 // System_Range__FromStart
-                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                               // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Range - WellKnownType.ExtSentinel),                                               // DeclaringTypeId
-                 0,                                                                                                                                             // Arity
-                     1,                                                                                                                                         // Method Signature
-                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Range - WellKnownType.ExtSentinel),
-                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Index - WellKnownType.ExtSentinel),
-
-                 // System_Range__All
-                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                               // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Range - WellKnownType.ExtSentinel),                                               // DeclaringTypeId
-                 0,                                                                                                                                             // Arity
-                     0,                                                                                                                                         // Method Signature
-                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Range - WellKnownType.ExtSentinel),
 
                 // System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
@@ -3791,14 +3768,11 @@ namespace Microsoft.CodeAnalysis
                 "Truncate",                                 // System_Math__TruncateDouble
 
                 ".ctor",                                    // System_Index__ctor
-                "FromEnd",                                  // System_Index__FromEnd
+                "IsFromEnd",                                // System_Index__IsFromEnd
                 "Value",                                    // System_Index__Value
                 "Start",                                    // System_Range__Start
                 "End",                                      // System_Range__End
-                "Create",                                   // System_Range__Create
-                "ToEnd",                                    // System_Range__ToEnd
-                "FromStart",                                // System_Range__FromStart
-                "All",                                      // System_Range__All
+                ".ctor",                                    // System_Range__ctor
 
                 ".ctor",                                    // System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor
 

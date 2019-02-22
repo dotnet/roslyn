@@ -168,6 +168,9 @@
   <data name="Declare_as_nullable" xml:space="preserve">
     <value>Declare as nullable</value>
   </data>
+  <data name="Fix_return_type" xml:space="preserve">
+    <value>Fix return type</value>
+  </data>
   <data name="Simplify_name_0" xml:space="preserve">
     <value>Simplify name '{0}'</value>
   </data>

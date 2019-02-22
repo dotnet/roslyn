@@ -83,6 +83,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsExtractInterface = "CodeActions.ExtractInterface";
             public const string CodeActionsExtractMethod = "CodeActions.ExtractMethod";
             public const string CodeActionsFixAllOccurrences = "CodeActions.FixAllOccurrences";
+            public const string CodeActionsFixReturnType = "CodeActions.FixReturnType";
             public const string CodeActionsFullyQualify = "CodeActions.FullyQualify";
             public const string CodeActionsImplementAbstractClass = "CodeActions.ImplementAbstractClass";
             public const string CodeActionsImplementInterface = "CodeActions.ImplementInterface";
