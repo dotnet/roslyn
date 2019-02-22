@@ -2440,20 +2440,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitCall(BoundCall node)
         {
             // Note: we analyze even omitted calls
-            var method = node.Method;
-            var receiverOpt = node.ReceiverOpt;
-            TypeSymbolWithAnnotations receiverType = default;
+            TypeSymbolWithAnnotations receiverType = VisitCallReceiver(node);
+            ReinferMethodAndVisitArguments(node, receiverType);
+            return null;
+        }
 
-            if (receiverOpt != null && method.MethodKind != MethodKind.Constructor)
-            {
-                receiverType = VisitRvalueWithResult(receiverOpt);
-                // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
-                // after arguments have been visited, and only if the receiver has not changed.
-                CheckPossibleNullReceiver(receiverOpt);
-            }
-
+        private void ReinferMethodAndVisitArguments(BoundCall node, TypeSymbolWithAnnotations receiverType)
+        {
             // https://github.com/dotnet/roslyn/issues/29605 Can we handle some error cases?
             // (Compare with CSharpOperationFactory.CreateBoundCallOperation.)
+            var method = node.Method;
             ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
             (ImmutableArray<BoundExpression> arguments, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(node.Arguments, refKindsOpt);
             if (!receiverType.IsNull)
@@ -2476,8 +2472,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = method.ReturnType;
                 SetResult(type, type);
             }
+        }
 
-            return null;
+        private TypeSymbolWithAnnotations VisitCallReceiver(BoundCall node)
+        {
+            var receiverOpt = node.ReceiverOpt;
+            TypeSymbolWithAnnotations receiverType = default;
+
+            if (receiverOpt != null && node.Method.MethodKind != MethodKind.Constructor)
+            {
+                receiverType = VisitRvalueWithResult(receiverOpt);
+                // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
+                // after arguments have been visited, and only if the receiver has not changed.
+                CheckPossibleNullReceiver(receiverOpt);
+            }
+
+            return receiverType;
         }
 
         /// <summary>
