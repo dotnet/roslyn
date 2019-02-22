@@ -243,12 +243,6 @@ namespace Roslyn.Test.Utilities
         public override string SkipReason => "Test not supported on Mono or CoreCLR";
     }
 
-    public class CoreClrOnly : ExecutionCondition
-    {
-        public override bool ShouldSkip => !ExecutionConditionUtil.IsCoreClr;
-        public override string SkipReason => "Test supported only on CoreCLR";
-    }
-
     public class NoIOperationValidation : ExecutionCondition
     {
         public override bool ShouldSkip => CompilationExtensions.EnableVerifyIOperation;
