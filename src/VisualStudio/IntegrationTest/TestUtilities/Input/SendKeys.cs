@@ -139,11 +139,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
                         dwExtraInfo = IntPtr.Zero
                     }
                 };
+            }
 
-                if (IsExtendedKey(virtualKey))
-                {
-                    input.ki.dwFlags |= NativeMethods.KEYEVENTF_EXTENDEDKEY;
-                }
+            if (IsExtendedKey(virtualKey))
+            {
+                input.ki.dwFlags |= NativeMethods.KEYEVENTF_EXTENDEDKEY;
             }
 
             inputs.Add(input);
