@@ -10,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess.ReflectionExtensions;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -68,12 +69,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
 
             ExpandNavigationBar(comboboxIndex);
-            System.Windows.Forms.SendKeys.SendWait("{HOME}");
+            _sendKeys.Send(VirtualKey.Home);
             for (int i = 0; i < itemIndex; i++)
             {
-                System.Windows.Forms.SendKeys.SendWait("{DOWN}");
+                _sendKeys.Send(VirtualKey.Down);
             }
-            System.Windows.Forms.SendKeys.SendWait("{ENTER}");
+
+            _sendKeys.Send(VirtualKey.Enter);
         }
 
         public bool IsNavBarEnabled()
