@@ -16,6 +16,7 @@
       $(RoslynPackageDescriptionDetails)
     </PackageDescription>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
+    <NoWarn>$(NoWarn);NU5100</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,11 +29,16 @@
 
   <Target Name="_GetFilesToPackage" DependsOnTargets="InitializeDesktopCompilerArtifacts;InitializeCoreClrCompilerArtifacts">
     <ItemGroup>
-      <_File Include="@(DesktopCompilerArtifact)" TargetDir="tools/net472"/>
-      <_File Include="@(DesktopCompilerResourceArtifact)" TargetDir="tools/net472"/>
-      <_File Include="@(CoreClrCompilerArtifact)" TargetDir="tools/netcoreapp2.1"/>
+      <_File Include="@(DesktopCompilerArtifact)" TargetDir="tasks/net472"/>
+      <_File Include="@(DesktopCompilerResourceArtifact)" TargetDir="tasks/net472"/>
+      <_File Include="@(CoreClrCompilerBuildArtifact)" TargetDir="tasks/netcoreapp2.1"/>
+      <_File Include="@(CoreClrCompilerToolsArtifact)" TargetDir="tasks/netcoreapp2.1"/>
+      <_File Include="@(CoreClrCompilerBinArtifact)" TargetDir="tasks/netcoreapp2.1/bincore"/>
+      <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tasks/netcoreapp2.1/bincore/runtimes"/>
      
       <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" TargetDir="build" />
+      <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" TargetDir="buildMultiTargeting" />
+        <!-- build multitargeting directory -->
      
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
     </ItemGroup>

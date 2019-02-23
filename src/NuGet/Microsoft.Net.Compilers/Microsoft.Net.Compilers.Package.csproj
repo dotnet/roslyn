@@ -44,5 +44,5 @@
     </ItemGroup>
   </Target>
 
-  <Import Project="CompilerArtifacts.targets"/>
+  <Import Project="..\Microsoft.Net.Compilers.Toolset\CompilerArtifacts.targets"/>
 </Project>
