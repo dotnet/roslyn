@@ -3314,7 +3314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static Symbol AsMemberOfResultType(TypeSymbolWithAnnotations resultType, Symbol symbol)
         {
             var containingType = resultType.TypeSymbol as NamedTypeSymbol;
-            if ((object)containingType == null || containingType.IsErrorType())
+            if ((object)containingType == null || containingType.IsErrorType() || symbol is ErrorMethodSymbol)
             {
                 return symbol;
             }
