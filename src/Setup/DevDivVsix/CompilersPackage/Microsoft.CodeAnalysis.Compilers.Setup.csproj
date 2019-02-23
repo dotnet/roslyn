@@ -27,8 +27,8 @@
   <!-- 
     Calculates which external dependencies included in the target VSIX need to be updated with optimization data.
   -->
-  <Target Name="_CalculateCompilerArtifactsToOptimize"
-          DependsOnTargets="InitializeCompilerArtifacts">
+  <Target Name="_CalculateDesktopCompilerArtifactsToOptimize"
+          DependsOnTargets="InitializeDesktopCompilerArtifacts">
 
     <ItemGroup>
       <CompilerArtifact Condition="'%(CompilerArtifact.OverwriteNgenOptimizationData)' == 'true' and '$(ApplyPartialNgenOptimization)' == 'true'">
@@ -42,8 +42,8 @@
   <!-- 
     Copies the artifacts that need optimization data to an intermediate output dir.
   -->
-  <Target Name="_PrepareCompilerArtifactsForOptimization"
-          DependsOnTargets="_CalculateCompilerArtifactsToOptimize"
+  <Target Name="_PrepareDesktopCompilerArtifactsForOptimization"
+          DependsOnTargets="_CalculateDesktopCompilerArtifactsToOptimize"
           Inputs="@(CompilerArtifact)"
           Outputs="@(CompilerArtifact->'%(_OptimizeAssembly)')"
           Condition="'$(Configuration)' == 'Release' and '$(ContinuousIntegrationBuild)' == 'true' and '$(ApplyPartialNgenOptimization)' == 'true'">
@@ -56,7 +56,7 @@
   <Target Name="_GenerateSwrFile" 
           AfterTargets="Build"
           BeforeTargets="SwixBuild"
-          DependsOnTargets="_SetSwrFilePath;InitializeCompilerArtifacts;_PrepareCompilerArtifactsForOptimization;ApplyOptimizations"
+          DependsOnTargets="_SetSwrFilePath;InitializeDesktopCompilerArtifacts;_PrepareDesktopCompilerArtifactsForOptimization;ApplyOptimizations"
           Outputs="$(_SwrFilePath)">
 
     <ItemGroup>
@@ -200,5 +200,5 @@ folder InstallDir:\MSBuild\15.0\Bin\Roslyn\zh-Hant
     </ItemGroup>
   </Target>
 
-  <Import Project="..\..\..\NuGet\Microsoft.Net.Compilers\CompilerArtifacts.targets"/>
+  <Import Project="..\..\..\NuGet\Microsoft.Net.Compilers.Toolset\DesktopCompilerArtifacts.targets"/>
 </Project>
