@@ -2323,8 +2323,7 @@ class C
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             var typeInfo = model.GetSymbolInfo(expr);
-            // lowest bound node with associated syntax is being picked up here ... fine for now.
-            Assert.Equal("System.IO.StreamReader", typeInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("System.IO.StreamWriter", typeInfo.Symbol.ToTestDisplayString());
         }
 
         [WorkItem(543169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543169")]
