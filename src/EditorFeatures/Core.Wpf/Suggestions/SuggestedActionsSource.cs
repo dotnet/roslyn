@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 nestedAction, getFixAllSuggestedActionSet(nestedAction)));
 
                         var set = new SuggestedActionSet(categoryName: null,
-                            actions: nestedActions, priority: MapPriority(fix.Action.Priority),
+                            actions: nestedActions, priority: GetSuggestedActionSetPriority(fix.Action.Priority),
                             applicableToSpan: fix.PrimaryDiagnostic.Location.SourceSpan.ToSpan());
 
                         suggestedAction = new SuggestedActionWithNestedActions(
@@ -685,7 +685,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 _owner, workspace, _subjectBuffer, refactoring.Provider, na));
 
                         var set = new SuggestedActionSet(categoryName: null,
-                            actions: nestedActions, priority: MapPriority(action.Priority), applicableToSpan: applicableSpan);
+                            actions: nestedActions, priority: GetSuggestedActionSetPriority(action.Priority), applicableToSpan: applicableSpan);
 
                         refactoringSuggestedActions.Add(new SuggestedActionWithNestedActions(
                             ThreadingContext,
@@ -701,24 +701,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 var actions = refactoringSuggestedActions.ToImmutableAndFree();
+
+                // An action set gets the the same priority as the highest priority 
+                // action within in.
                 return new SuggestedActionSet(
                     PredefinedSuggestedActionCategoryNames.Refactoring,
                     actions: actions,
-                    priority: MapPriority(actions.Max(a => a.Priority)),
+                    priority: GetSuggestedActionSetPriority(actions.Max(a => a.Priority)),
                     applicableToSpan: applicableSpan);
-            }
-
-            private static SuggestedActionSetPriority MapPriority(CodeActionPriority priority)
-            {
-                switch (priority)
-                {
-                    case CodeActionPriority.None: return SuggestedActionSetPriority.None;
-                    case CodeActionPriority.Low: return SuggestedActionSetPriority.Low;
-                    case CodeActionPriority.Medium: return SuggestedActionSetPriority.Medium;
-                    case CodeActionPriority.High: return SuggestedActionSetPriority.High;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(priority);
-                }
             }
 
             public Task<bool> HasSuggestedActionsAsync(
