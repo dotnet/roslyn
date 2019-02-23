@@ -63,6 +63,33 @@ param (
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
 
+Add-Type -AssemblyName 'System.Drawing'
+Add-Type -AssemblyName 'System.Windows.Forms'
+function screenshot($path) {
+    $width = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Width
+    $height = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Height
+
+    $bitmap = New-Object System.Drawing.Bitmap $width, $height
+    try {
+        $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+        try {
+            $graphics.CopyFromScreen( `
+                [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.X, `
+                [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Y, `
+                0, `
+                0, `
+                $bitmap.Size, `
+                [System.Drawing.CopyPixelOperation]::SourceCopy)
+        } finally {
+            $graphics.Dispose()
+        }
+
+        $bitmap.Save($path, [System.Drawing.Imaging.ImageFormat]::Png)
+    } finally {
+        $bitmap.Dispose()
+    }
+}
+
 function Print-Usage() {
     Write-Host "Common settings:"
     Write-Host "  -configuration <value>    Build configuration: 'Debug' or 'Release' (short: -c)"
@@ -370,7 +397,7 @@ function TestUsingOptimizedRunner() {
     if ($ci) {
         $args += " -xml"
         if ($testVsi) {
-            $args += " -timeout:120"
+            $args += " -timeout:110"
         } else {
             $args += " -timeout:65"
         }
@@ -505,6 +532,57 @@ try {
     if ($ci) {
         List-Processes
         Prepare-TempDir
+    }
+
+    if ($ci) {
+        query user
+        query session
+        $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+        $isAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+        Write-Host "Current session is administrator: $isAdmin"
+
+        if ($testVsi) {
+            $screenshotPath = (Join-Path $LogDir "image.png")
+            try {
+                screenshot $screenshotPath
+            }
+            catch {
+                Write-Host "Screenshot failed; attempting to connect to the console"
+
+                # Keep the session open so we have a UI to interact with
+                $quserItems = ((quser $env:USERNAME | select -Skip 1) -split '\s+')
+                $sessionid = $quserItems[2]
+                if ($sessionid -eq 'Disc') {
+                    $sessionid = $quserItems[1]
+                }
+
+                if ($quserItems[1] -eq 'console') {
+                    Write-Host "Disconnecting from console before attempting reconnection"
+                    try {
+                        tsdiscon
+                    } catch {
+                        # ignore
+                    }
+
+                    $disconnected = $false
+                    for ($iter = 0; ($iter -lt 20) -and (-not $disconnected); $iter++) {
+                        Start-Sleep -Seconds 1
+                        query user
+                        $quserItems = ((quser $env:USERNAME | select -Skip 1) -split '\s+')
+                        $disconnected = $quserItems[3] -ne 'Active'
+                    }
+                }
+
+                Write-Host "tscon $sessionid /dest:console"
+                tscon $sessionid /dest:console
+
+                Start-Sleep 3
+                query user
+                query session
+
+                screenshot $screenshotPath
+            }
+        }
     }
 
     if ($bootstrap) {
