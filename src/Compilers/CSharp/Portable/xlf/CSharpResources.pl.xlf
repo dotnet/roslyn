@@ -3497,8 +3497,8 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConstructors">
-        <source>Interfaces cannot contain constructors</source>
-        <target state="translated">Interfejsy nie mogą zawierać konstruktorów</target>
+        <source>Interfaces cannot contain instance constructors</source>
+        <target state="needs-review-translation">Interfejsy nie mogą zawierać konstruktorów</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonInterfaceInInterfaceList">

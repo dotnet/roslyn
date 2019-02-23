@@ -5875,7 +5875,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Interfaces cannot contain constructors.
+        ///   Looks up a localized string similar to Interfaces cannot contain instance constructors.
         /// </summary>
         internal static string ERR_InterfacesCantContainConstructors {
             get {

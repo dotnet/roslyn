@@ -3497,8 +3497,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConstructors">
-        <source>Interfaces cannot contain constructors</source>
-        <target state="translated">インターフェイスにコンストラクターを含めることはできません。</target>
+        <source>Interfaces cannot contain instance constructors</source>
+        <target state="needs-review-translation">インターフェイスにコンストラクターを含めることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonInterfaceInInterfaceList">

@@ -3497,8 +3497,8 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConstructors">
-        <source>Interfaces cannot contain constructors</source>
-        <target state="translated">Rozhraní nemůžou obsahovat konstruktory.</target>
+        <source>Interfaces cannot contain instance constructors</source>
+        <target state="needs-review-translation">Rozhraní nemůžou obsahovat konstruktory.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonInterfaceInInterfaceList">

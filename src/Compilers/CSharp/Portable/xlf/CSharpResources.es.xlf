@@ -3497,8 +3497,8 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConstructors">
-        <source>Interfaces cannot contain constructors</source>
-        <target state="translated">Las interfaces no pueden incluir constructores</target>
+        <source>Interfaces cannot contain instance constructors</source>
+        <target state="needs-review-translation">Las interfaces no pueden incluir constructores</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonInterfaceInInterfaceList">

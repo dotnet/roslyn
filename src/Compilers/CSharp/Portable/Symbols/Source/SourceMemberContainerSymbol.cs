@@ -1191,6 +1191,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_MemberNameSameAsType, member.Locations[0], this.Name);
                     }
                     break;
+                case TypeKind.Interface:
+                    if (member.IsStatic)
+                    {
+                        goto case TypeKind.Class;
+                    }
+                    break;
             }
         }
 
@@ -2789,12 +2795,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         case MethodKind.Constructor:
                             diagnostics.Add(ErrorCode.ERR_InterfacesCantContainConstructors, member.Locations[0]);
                             break;
-                        case MethodKind.StaticConstructor:
-                            if (!meth.IsImplicitlyDeclared)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_InterfacesCantContainConstructors, member.Locations[0]);
-                            }
-                            break;
                         case MethodKind.Conversion:
                             diagnostics.Add(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, member.Locations[0]);
                             break;
@@ -2815,6 +2815,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         case MethodKind.PropertySet:
                         case MethodKind.EventAdd:
                         case MethodKind.EventRemove:
+                        case MethodKind.StaticConstructor:
                             break;
                         default:
                             throw ExceptionUtilities.UnexpectedValue(meth.MethodKind);

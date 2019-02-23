@@ -3497,8 +3497,8 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConstructors">
-        <source>Interfaces cannot contain constructors</source>
-        <target state="translated">Arabirimler oluşturucu içeremez</target>
+        <source>Interfaces cannot contain instance constructors</source>
+        <target state="needs-review-translation">Arabirimler oluşturucu içeremez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonInterfaceInInterfaceList">
