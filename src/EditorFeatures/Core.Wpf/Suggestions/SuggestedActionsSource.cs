@@ -197,7 +197,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     else
                     {
                         // No selection.  Treat all refactorings as low priority, and place
-                        // after fixes.  Even low pri fixes will be above a low pri refactoring.
+                        // after fixes.  Even a low pri fixes will be above what was *originally*
+                        // a medium pri refactoring.
                         refactorings = refactorings.SelectAsArray(r => new SuggestedActionSet(
                             r.CategoryName, r.Actions, r.Title, SuggestedActionSetPriority.Low, r.ApplicableToSpan));
                         result = fixes.Concat(refactorings);
