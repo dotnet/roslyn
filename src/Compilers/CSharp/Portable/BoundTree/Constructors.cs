@@ -425,22 +425,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class BoundTypeExpression
     {
         public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, TypeSymbol type, bool hasErrors = false)
-            : this(syntax, aliasOpt, false, null, ImmutableArray<BoundExpression>.Empty, type, hasErrors)
+            : this(syntax, aliasOpt, null, ImmutableArray<BoundExpression>.Empty, type, hasErrors)
         {
         }
 
         public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, TypeSymbol type)
-            : this(syntax, aliasOpt, false, null, ImmutableArray<BoundExpression>.Empty, type)
+            : this(syntax, aliasOpt, null, ImmutableArray<BoundExpression>.Empty, type)
         {
         }
 
-        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, bool inferredType, TypeSymbol type, bool hasErrors = false)
-            : this(syntax, aliasOpt, inferredType, null, ImmutableArray<BoundExpression>.Empty, type, hasErrors)
-        {
-        }
-
-        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, bool inferredType, ImmutableArray<BoundExpression> dimensionsOpt, TypeSymbol type, bool hasErrors = false)
-            : this(syntax, aliasOpt, inferredType, null, dimensionsOpt, type, hasErrors)
+        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, ImmutableArray<BoundExpression> dimensionsOpt, TypeSymbol type, bool hasErrors = false)
+            : this(syntax, aliasOpt, null, dimensionsOpt, type, hasErrors)
         {
         }
     }

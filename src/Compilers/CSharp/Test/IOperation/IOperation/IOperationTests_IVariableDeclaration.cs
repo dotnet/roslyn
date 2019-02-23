@@ -873,27 +873,6 @@ class C
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void IVariableDeclaration_InvalidIgnoredDimensions_VerifyInvalidDimensions()
-        {
-            string source = @"
-class C
-{
-    void M1()
-    {
-        int[/*<bind>*/10/*</bind>*/] x;
-    }
-}
-";
-
-            var compilation = CreateEmptyCompilation(source);
-            (var operation, _) = GetOperationAndSyntaxForTest<LiteralExpressionSyntax>(compilation);
-            var declaration = (ILiteralOperation)operation;
-            Assert.True(declaration.ConstantValue.HasValue);
-            Assert.Equal(10, declaration.ConstantValue.Value);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
         public void IVariableDeclaration_InvalidIgnoredDimensions_TestSemanticModel()
         {
             string source = @"
@@ -973,12 +952,162 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
                 // file.cs(6,22): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         /*<bind>*/int[M2(out var z)] x;/*</bind>*/
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[M2(out var z)]").WithLocation(6, 22),
-                // file.cs(6,34): warning CS0219: The variable 'z' is assigned but its value is never used
-                //         /*<bind>*/int[M2(out var z)] x;/*</bind>*/
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z").WithArguments("z").WithLocation(6, 34),
                 // file.cs(6,38): warning CS0168: The variable 'x' is declared but never used
                 //         /*<bind>*/int[M2(out var z)] x;/*</bind>*/
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 38)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredDimensions_OutVarDeclaration_InNullableArrayType()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        /*<bind>*/int[M2(out var z)]? x;/*</bind>*/
+        z = 34;
+    }
+    
+    public int M2(out int i) => i = 42;
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[M2(out var z)]? x')
+  Ignored Dimensions(1):
+      IInvocationOperation ( System.Int32 C.M2(out System.Int32 i)) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M2(out var z)')
+        Instance Receiver: 
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
+        Arguments(1):
+            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out var z')
+              IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var z')
+                ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'z')
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32[]? x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+        Initializer: 
+          null
+  Initializer: 
+    null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(6,22): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         /*<bind>*/int[M2(out var z)]? x;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[M2(out var z)]").WithLocation(6, 22),
+                // file.cs(6,37): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //         /*<bind>*/int[M2(out var z)]? x;/*</bind>*/
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(6, 37),
+                // file.cs(6,39): warning CS0168: The variable 'x' is declared but never used
+                //         /*<bind>*/int[M2(out var z)]? x;/*</bind>*/
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 39)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredDimensions_OutVarDeclaration_InRefType()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        /*<bind>*/ref int[M2(out var z)] y;/*</bind>*/
+        z = 34;
+    }
+    
+    public int M2(out int i) => i = 42;
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'ref int[M2(out var z)] y')
+  Ignored Dimensions(1):
+      IInvocationOperation ( System.Int32 C.M2(out System.Int32 i)) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M2(out var z)')
+        Instance Receiver: 
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
+        Arguments(1):
+            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out var z')
+              IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var z')
+                ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'z')
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32[] y) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'y')
+        Initializer: 
+          null
+  Initializer: 
+    null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(6,26): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         /*<bind>*/ref int[M2(out var z)] y;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[M2(out var z)]").WithLocation(6, 26),
+                // file.cs(6,42): error CS8174: A declaration of a by-reference variable must have an initializer
+                //         /*<bind>*/ref int[M2(out var z)] y;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "y").WithLocation(6, 42),
+                // file.cs(6,42): warning CS0168: The variable 'y' is declared but never used
+                //         /*<bind>*/ref int[M2(out var z)] y;/*</bind>*/
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "y").WithArguments("y").WithLocation(6, 42)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredDimensions_OutVarDeclaration_InDoublyNestedType()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        /*<bind>*/ref int[M2(out var z)]? y;/*</bind>*/
+        z = 34;
+    }
+    
+    public int M2(out int i) => i = 42;
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'ref int[M2( ...  var z)]? y')
+  Ignored Dimensions(1):
+      IInvocationOperation ( System.Int32 C.M2(out System.Int32 i)) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M2(out var z)')
+        Instance Receiver: 
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
+        Arguments(1):
+            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out var z')
+              IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var z')
+                ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'z')
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32[]? y) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'y')
+        Initializer: 
+          null
+  Initializer: 
+    null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(6,26): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         /*<bind>*/ref int[M2(out var z)]? y;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[M2(out var z)]").WithLocation(6, 26),
+                // file.cs(6,41): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //         /*<bind>*/ref int[M2(out var z)]? y;/*</bind>*/
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(6, 41),
+                // file.cs(6,43): error CS8174: A declaration of a by-reference variable must have an initializer
+                //         /*<bind>*/ref int[M2(out var z)]? y;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "y").WithLocation(6, 43),
+                // file.cs(6,43): warning CS0168: The variable 'y' is declared but never used
+                //         /*<bind>*/ref int[M2(out var z)]? y;/*</bind>*/
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "y").WithArguments("y").WithLocation(6, 43)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1018,9 +1147,9 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
     null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(6,13): warning CS0219: The variable 'y' is assigned but its value is never used
-                //         int y = 10;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(6, 13),
+                // file.cs(7,19): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //         /*<bind>*/int[y is int z] x;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[y is int z]").WithArguments("bool", "int").WithLocation(7, 19),
                 // file.cs(7,22): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         /*<bind>*/int[y is int z] x;/*</bind>*/
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[y is int z]").WithLocation(7, 22),

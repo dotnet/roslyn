@@ -387,5 +387,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return p.Designation.Kind() == SyntaxKind.SingleVariableDesignation && p.IsOutDeclaration();
         }
+
+        /// <summary>
+        /// Visits all the subTypeSyntaxes of a typeSyntax in depth first order, invoking an action on each one in turn, before finally invoking the action on the passed in TypeSyntax
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="action"></param>
+        internal static void VisitTypeSyntaxes(this TypeSyntax type, Action<TypeSyntax> action)
+        {
+            switch (type)
+            {
+                case ArrayTypeSyntax arrayTypeSyntax:
+                    arrayTypeSyntax.ElementType.VisitTypeSyntaxes(action);
+                    break;
+                case NullableTypeSyntax nullableTypeSyntax:
+                    nullableTypeSyntax.ElementType.VisitTypeSyntaxes(action);
+                    break;
+                case PointerTypeSyntax pointerTypeSyntax:
+                    pointerTypeSyntax.ElementType.VisitTypeSyntaxes(action);
+                    break;
+                case TupleTypeSyntax tupleTypeSyntax:
+                    foreach (var element in tupleTypeSyntax.Elements)
+                    {
+                        element.Type.VisitTypeSyntaxes(action);
+                    }
+                    break;
+                case RefTypeSyntax refTypeSyntax:
+                    refTypeSyntax.Type.VisitTypeSyntaxes(action);
+                    break;
+                case GenericNameSyntax genericNameSyntax:
+                    foreach (var typeArgument in genericNameSyntax.TypeArgumentList.Arguments)
+                    {
+                        typeArgument.VisitTypeSyntaxes(action);
+                    }
+                    break;
+            }
+
+            action(type);
+        }
     }
 }

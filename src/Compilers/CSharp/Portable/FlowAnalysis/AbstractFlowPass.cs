@@ -1062,6 +1062,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
         {
+            if (node.DeclaredTypeOpt != null)
+            {
+                foreach (var dimension in node.DeclaredTypeOpt.BoundDimensionsOpt)
+                {
+                    VisitRvalue(dimension);
+                }
+            }
             if (node.InitializerOpt != null)
             {
                 VisitRvalue(node.InitializerOpt); // analyze the expression

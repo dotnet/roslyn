@@ -687,6 +687,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
         {
+            var invalidDimensions = ArrayBuilder<ExpressionSyntax>.GetInstance();
+            node.Declaration.Type.VisitTypeSyntaxes(type =>
+            {
+                if (type is ArrayTypeSyntax arrayType)
+                {
+                    foreach (var rankSpecifier in arrayType.RankSpecifiers)
+                    foreach (var size in rankSpecifier.Sizes)
+                    {
+                        if (size.Kind() != SyntaxKind.OmittedArraySizeExpression)
+                        {
+                            invalidDimensions.AddRange(rankSpecifier.Sizes);
+                        }
+                    }
+                }
+            });
+            foreach (var dimension in invalidDimensions)
+            {
+                Visit(dimension);
+            }
             foreach (VariableDeclaratorSyntax decl in node.Declaration.Variables)
             {
                 Visit(decl);

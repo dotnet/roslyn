@@ -33077,6 +33077,62 @@ class Test : System.Attribute
             VerifyModelForOutVarInNotExecutableCode(model, x2Decl[1], x2Ref[0]);
         }
 
+
+        [Fact]
+        public void Scope_InvalidArrayDimensions()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        int x1 = 0;
+        int[Test1(out int x1), x1] _1;
+        int[Test1(out int x2), x2] x2;
+    }
+
+    static int Test1(out int x)
+    {
+        x = 1;
+        return 1;
+    }
+}";
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (7,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         int[Test1(out int x1), x1] _1;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[Test1(out int x1), x1]").WithLocation(7, 12),
+                // (7,27): error CS0128: A local variable or function named 'x1' is already defined in this scope
+                //         int[Test1(out int x1), x1] _1;
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(7, 27),
+                // (8,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         int[Test1(out int x2), x2] x2;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[Test1(out int x2), x2]").WithLocation(8, 12),
+                // (8,36): error CS0128: A local variable or function named 'x2' is already defined in this scope
+                //         int[Test1(out int x2), x2] x2;
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(8, 36),
+                // (7,36): warning CS0168: The variable '_1' is declared but never used
+                //         int[Test1(out int x1), x1] _1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_1").WithArguments("_1").WithLocation(7, 36),
+                // (8,36): warning CS0168: The variable 'x2' is declared but never used
+                //         int[Test1(out int x2), x2] x2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x2").WithArguments("x2").WithLocation(8, 36)
+            );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").Single();
+            VerifyNotAnOutLocal(model, x1Ref);
+            VerifyModelForOutVarDuplicateInSameScope(model, x1Decl);
+
+            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            var x2Ref = GetReferences(tree, "x2").Single();
+            VerifyModelForOutVar(model, x2Decl, x2Ref);
+        }
+
         [Fact]
         public void DeclarationInNameof_00()
         {
@@ -34634,7 +34690,6 @@ public class C : System.Collections.Generic.List<int>
 ";
             CompileAndVerify(source, expectedOutput: @"1");
         }
-
     }
 
     internal static class OutVarTestsExtensions

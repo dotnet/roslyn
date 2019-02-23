@@ -1619,7 +1619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             case SymbolKind.NamedType:
                             case SymbolKind.ErrorType:
-                                return new BoundTypeExpression(node, alias, false, (NamedTypeSymbol)symbol, hasErrors: isError);
+                                return new BoundTypeExpression(node, alias, (NamedTypeSymbol)symbol, hasErrors: isError);
                             case SymbolKind.Namespace:
                                 return new BoundNamespaceExpression(node, (NamespaceSymbol)symbol, alias, hasErrors: isError);
                             default:
@@ -1810,7 +1810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = symbol as TypeSymbol;
             if ((object)type != null)
             {
-                return new BoundTypeExpression(node, alias, false, type);
+                return new BoundTypeExpression(node, alias, type);
             }
 
             var namespaceSymbol = symbol as NamespaceSymbol;
@@ -6169,7 +6169,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result = new BoundTypeExpression(
                             syntax: node,
                             aliasOpt: null,
-                            inferredType: false,
                             boundContainingTypeOpt: left as BoundTypeExpression,
                             boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
                             type: type);

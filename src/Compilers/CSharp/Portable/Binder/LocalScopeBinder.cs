@@ -204,6 +204,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Binder localDeclarationBinder = enclosingBinder.GetBinder(innerStatement) ?? enclosingBinder;
                             var decl = (LocalDeclarationStatementSyntax)innerStatement;
+
+                            decl.Declaration.Type.VisitTypeSyntaxes(type =>
+                            {
+                                if (type is ArrayTypeSyntax arrayTypeSyntax)
+                                {
+                                    foreach (var rankSpecifier in arrayTypeSyntax.RankSpecifiers)
+                                    foreach (var expression in rankSpecifier.Sizes)
+                                    {
+                                        if (expression.Kind() != SyntaxKind.OmittedArraySizeExpression)
+                                        {
+                                            ExpressionVariableFinder.FindExpressionVariables(this, locals, expression, enclosingBinder.GetBinder(expression) ?? enclosingBinder);
+                                        }
+                                    }
+                                }
+                            });
+
                             LocalDeclarationKind kind;
                             if (decl.IsConst)
                             {
@@ -225,18 +241,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // also gather expression-declared variables from the bracketed argument lists and the initializers
                                 ExpressionVariableFinder.FindExpressionVariables(this, locals, vdecl, localDeclarationBinder);
                             }
-
-                            if (decl.Declaration.Type is ArrayTypeSyntax arrayTypeSyntax)
-                            {
-                                foreach (var rankSpecifier in arrayTypeSyntax.RankSpecifiers)
-                                {
-                                    foreach (var expression in rankSpecifier.Sizes)
-                                    {
-                                        ExpressionVariableFinder.FindExpressionVariables(this, locals, expression, enclosingBinder.GetBinder(expression) ?? enclosingBinder);
-                                    }
-                                }
-                            }
-
                         }
                         break;
 

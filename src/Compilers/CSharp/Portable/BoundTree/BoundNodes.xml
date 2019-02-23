@@ -167,9 +167,6 @@
 
     <Field Name="AliasOpt" Type="AliasSymbol" Null="allow"/>
 
-    <!-- Was the type inferred via "var"? -->  
-    <Field Name="InferredType" Type="bool"/>
-
     <!-- 
     We're going to stash some extra information in the Color Color case
     so that the binding API can return the correct information.
@@ -778,6 +775,9 @@
     <Field Name="DeclaredTypeOpt" Type="BoundTypeExpression" Null="allow"/>
     <Field Name="InitializerOpt" Type="BoundExpression" Null="allow"/>
     <Field Name="ArgumentsOpt" Type="ImmutableArray&lt;BoundExpression&gt;" Null="allow"/>
+
+    <!-- Was the type inferred via "var"? -->  
+    <Field Name="InferredType" Type="bool"/>
   </Node>
 
   <!--
