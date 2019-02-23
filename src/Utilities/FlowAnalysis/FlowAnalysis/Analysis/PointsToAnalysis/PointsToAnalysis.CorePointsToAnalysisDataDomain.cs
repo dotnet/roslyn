@@ -103,7 +103,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
                         void stopTrackingAnalysisDataForEntity(AnalysisEntity entity)
                         {
-                            resetAbstractValue(entity, forwardEdgeAnalysisData);
+                            if (entity.IsChildOrInstanceMember)
+                            {
+                                resetAbstractValue(entity, forwardEdgeAnalysisData);
+                            }
                         }
                     }
                 }
