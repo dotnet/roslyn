@@ -84,6 +84,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
         {
             if (_startMenuCmd.Enabled)
             {
+                IntegrationTestTraceListener.Install();
+
                 _service = new IntegrationService();
 
                 _serviceChannel = new IpcServerChannel(

@@ -122,6 +122,11 @@
         <target state="translated">İfade ağacı, demetin == veya != işlecini içeremez.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FeatureInPreview">
+        <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
+        <target state="new">The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureIsExperimental">
         <source>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</source>
         <target state="translated">'{0}' özelliği deneyseldir ve desteklenmez; etkinleştirmek için '/features:{1}' kullanın.</target>
@@ -792,6 +797,11 @@
         <target state="translated">null birleştirme işlecinde kısıtlanmamış tür parametreleri</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUnmanagedConstructedTypes">
+        <source>unmanaged constructed types</source>
+        <target state="new">unmanaged constructed types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">
         <source>unmanaged generic type constraints</source>
         <target state="translated">unmanaged genel tür kısıtlamaları</target>
@@ -1323,13 +1333,23 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument">
-        <source>Nullability of reference types in argument of type '{0}' doesn't match target type '{1}' for parameter '{2}' in '{3}'.</source>
-        <target state="translated">'{0}' türündeki bağımsız değişken için başvuru türlerinin boş değer atanabilirliği, '{3}' içindeki '{2}' parametresi için '{1}' hedef türüyle eşleşmiyor.</target>
+        <source>Argument of type '{0}' cannot be used as an input of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
+        <target state="needs-review-translation">'{0}' türündeki bağımsız değişken için başvuru türlerinin boş değer atanabilirliği, '{3}' içindeki '{2}' parametresi için '{1}' hedef türüyle eşleşmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput">
+        <source>Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
+        <target state="new">Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput_Title">
+        <source>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</source>
+        <target state="new">Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
-        <source>Nullability of reference types in argument doesn't match target type.</source>
-        <target state="translated">Bağımsız değişkendeki başvuru türlerinin boş değer atanabilirliği hedef tür ile eşleşmiyor.</target>
+        <source>Argument cannot be used as an input for parameter due to differences in the nullability of reference types.</source>
+        <target state="needs-review-translation">Bağımsız değişkendeki başvuru türlerinin boş değer atanabilirliği hedef tür ile eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInAssignment">
@@ -1520,6 +1540,16 @@
       <trans-unit id="WRN_NullableValueTypeMayBeNull_Title">
         <source>Nullable value type may be null.</source>
         <target state="translated">Boş değer atanabilir değer türü null olabilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PossibleNull">
+        <source>Possible null value.</source>
+        <target state="new">Possible null value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PossibleNull_Title">
+        <source>Possible null value.</source>
+        <target state="new">Possible null value.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
@@ -8884,8 +8914,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="ERR_MismatchedRefEscapeInTernary">
-        <source>Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes</source>
-        <target state="translated">Başvuru üçlü operatörünün dalları, bildirim kapsamı uyumsuz olan değişkenlere başvuruda bulunamaz</target>
+        <source>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</source>
+        <target state="needs-review-translation">Başvuru üçlü operatörünün dalları, bildirim kapsamı uyumsuz olan değişkenlere başvuruda bulunamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeStackAlloc">

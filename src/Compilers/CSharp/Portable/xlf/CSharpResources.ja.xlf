@@ -122,6 +122,11 @@
         <target state="translated">式ツリーにタプルの == または != 演算子を含めることはできません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FeatureInPreview">
+        <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
+        <target state="new">The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureIsExperimental">
         <source>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</source>
         <target state="translated">機能 '{0}' は試験段階であり、サポートされていません。有効にするには '/features:{1}' をご使用ください。</target>
@@ -792,6 +797,11 @@
         <target state="translated">Null 合体演算子の中の非制約型パラメーター</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUnmanagedConstructedTypes">
+        <source>unmanaged constructed types</source>
+        <target state="new">unmanaged constructed types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">
         <source>unmanaged generic type constraints</source>
         <target state="translated">unmanaged ジェネリック型の制約</target>
@@ -1323,13 +1333,23 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument">
-        <source>Nullability of reference types in argument of type '{0}' doesn't match target type '{1}' for parameter '{2}' in '{3}'.</source>
-        <target state="translated">'{0}' 型の引数における参照型の Null 許容性が、'{3}' 内のパラメーター '{2}' に関する対象の型 '{1}' と一致しません。</target>
+        <source>Argument of type '{0}' cannot be used as an input of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
+        <target state="needs-review-translation">'{0}' 型の引数における参照型の Null 許容性が、'{3}' 内のパラメーター '{2}' に関する対象の型 '{1}' と一致しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput">
+        <source>Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
+        <target state="new">Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput_Title">
+        <source>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</source>
+        <target state="new">Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
-        <source>Nullability of reference types in argument doesn't match target type.</source>
-        <target state="translated">引数における参照型の Null 許容性が、対象の型と一致しません。</target>
+        <source>Argument cannot be used as an input for parameter due to differences in the nullability of reference types.</source>
+        <target state="needs-review-translation">引数における参照型の Null 許容性が、対象の型と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInAssignment">
@@ -1520,6 +1540,16 @@
       <trans-unit id="WRN_NullableValueTypeMayBeNull_Title">
         <source>Nullable value type may be null.</source>
         <target state="translated">Null 許容値型は Null になる場合があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PossibleNull">
+        <source>Possible null value.</source>
+        <target state="new">Possible null value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PossibleNull_Title">
+        <source>Possible null value.</source>
+        <target state="new">Possible null value.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
@@ -8884,8 +8914,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_MismatchedRefEscapeInTernary">
-        <source>Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes</source>
-        <target state="translated">ref 三項演算子のブランチから、互換性のない宣言スコープを持つ変数を参照することはできません</target>
+        <source>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</source>
+        <target state="needs-review-translation">ref 三項演算子のブランチから、互換性のない宣言スコープを持つ変数を参照することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeStackAlloc">

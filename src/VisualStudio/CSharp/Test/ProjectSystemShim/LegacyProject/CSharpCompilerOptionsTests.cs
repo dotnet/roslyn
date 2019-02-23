@@ -104,5 +104,33 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
                 Assert.False(options.SpecificDiagnosticOptions.ContainsKey("CS1111"));
             }
         }
+
+        [WpfFact]
+        [WorkItem(33401, "https://github.com/dotnet/roslyn/pull/33401")]
+        public void ProjectOutputPathAndOutputExeNameChange()
+        {
+            using (var environment = new TestEnvironment())
+            {
+                var initialPath = @"C:\test.dll";
+                var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
+                project.SetOutputFileName(initialPath);
+                Assert.Equal(initialPath, project.GetOutputFileName());
+
+                // Change output folder from command line arguments - verify that objOutputPath changes.
+                var newPath = @"C:\NewFolder\test.dll";
+                project.SetOutputFileName(newPath);
+                Assert.Equal(newPath, project.GetOutputFileName());
+
+                // Change output file name - verify that outputPath changes.
+                newPath = @"C:\NewFolder\test2.dll";
+                project.SetOutputFileName(newPath);
+                Assert.Equal(newPath, project.GetOutputFileName());
+
+                // Change output file name and folder - verify that outputPath changes.
+                newPath = @"C:\NewFolder3\test3.dll";
+                project.SetOutputFileName(newPath);
+                Assert.Equal(newPath, project.GetOutputFileName());
+            }
+        }
     }
 }

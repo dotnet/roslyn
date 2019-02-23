@@ -21,13 +21,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
     internal class SmartTokenFormatter : ISmartTokenFormatter
     {
         private readonly OptionSet _optionSet;
-        private readonly IEnumerable<IFormattingRule> _formattingRules;
+        private readonly IEnumerable<AbstractFormattingRule> _formattingRules;
 
         private readonly CompilationUnitSyntax _root;
 
         public SmartTokenFormatter(
             OptionSet optionSet,
-            IEnumerable<IFormattingRule> formattingRules,
+            IEnumerable<AbstractFormattingRule> formattingRules,
             CompilationUnitSyntax root)
         {
             Contract.ThrowIfNull(optionSet);
@@ -118,10 +118,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
 
         private class NoLineChangeFormattingRule : AbstractFormattingRule
         {
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustNewLinesOperation> nextOperation)
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 // no line operation. no line changes what so ever
-                var lineOperation = base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, nextOperation);
+                var lineOperation = base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, in nextOperation);
                 if (lineOperation != null)
                 {
                     // ignore force if same line option
@@ -141,14 +141,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
 
         private class SmartTokenFormattingRule : NoLineChangeFormattingRule
         {
-            public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+            public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
             {
                 // don't suppress anything
             }
 
-            public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustSpacesOperation> nextOperation)
+            public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustSpacesOperation nextOperation)
             {
-                var spaceOperation = base.GetAdjustSpacesOperation(previousToken, currentToken, optionSet, nextOperation);
+                var spaceOperation = base.GetAdjustSpacesOperation(previousToken, currentToken, optionSet, in nextOperation);
 
                 // if there is force space operation, convert it to ForceSpaceIfSingleLine operation.
                 // (force space basically means remove all line breaks)

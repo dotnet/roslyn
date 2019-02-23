@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = (MethodSymbol)this.ContainingMemberOrLambda;
             if (method.IsAsync)
             {
-                MessageID.IDS_FeatureAsyncStreams.CheckFeatureAvailability(availableVersion: Compilation.LanguageVersion, diagnostics, method.Locations[0]);
+                MessageID.IDS_FeatureAsyncStreams.CheckFeatureAvailability(diagnostics, method.Locations[0]);
             }
         }
 
@@ -1245,9 +1245,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
             }
 
-            if (elementType.IsManagedType)
+            if (CheckManagedAddr(elementType, initializerSyntax, diagnostics))
             {
-                Error(diagnostics, ErrorCode.ERR_ManagedAddr, initializerSyntax, elementType);
                 hasErrors = true;
             }
 

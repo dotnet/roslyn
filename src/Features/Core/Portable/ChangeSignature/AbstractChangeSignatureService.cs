@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             SignatureChange signaturePermutation,
             CancellationToken cancellationToken);
 
-        protected abstract IEnumerable<IFormattingRule> GetFormattingRules(Document document);
+        protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
 
         public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {

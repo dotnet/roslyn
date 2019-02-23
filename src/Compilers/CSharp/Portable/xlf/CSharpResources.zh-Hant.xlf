@@ -122,6 +122,11 @@
         <target state="translated">運算式樹狀架構不得包含元組 == 或 != 運算子。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FeatureInPreview">
+        <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
+        <target state="new">The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureIsExperimental">
         <source>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</source>
         <target state="translated">功能 '{0}' 仍在實驗階段且不具支援；請使用 '/features:{1}' 來啟用。</target>
@@ -792,6 +797,11 @@
         <target state="translated">Null 聯合運算子中的非限制式型別參數</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUnmanagedConstructedTypes">
+        <source>unmanaged constructed types</source>
+        <target state="new">unmanaged constructed types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">
         <source>unmanaged generic type constraints</source>
         <target state="translated">Unmanaged 泛型類型條件約束</target>
@@ -1323,13 +1333,23 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument">
-        <source>Nullability of reference types in argument of type '{0}' doesn't match target type '{1}' for parameter '{2}' in '{3}'.</source>
-        <target state="translated">型別 '{0}' 的引數中參考型別可 Null 性與 '{3}' 中參數 '{2}' 的目標型別 '{1}' 不符合。</target>
+        <source>Argument of type '{0}' cannot be used as an input of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
+        <target state="needs-review-translation">型別 '{0}' 的引數中參考型別可 Null 性與 '{3}' 中參數 '{2}' 的目標型別 '{1}' 不符合。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput">
+        <source>Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
+        <target state="new">Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput_Title">
+        <source>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</source>
+        <target state="new">Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
-        <source>Nullability of reference types in argument doesn't match target type.</source>
-        <target state="translated">引數中參考型別的可 Null 性與目標型別不符合。</target>
+        <source>Argument cannot be used as an input for parameter due to differences in the nullability of reference types.</source>
+        <target state="needs-review-translation">引數中參考型別的可 Null 性與目標型別不符合。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInAssignment">
@@ -1520,6 +1540,16 @@
       <trans-unit id="WRN_NullableValueTypeMayBeNull_Title">
         <source>Nullable value type may be null.</source>
         <target state="translated">可為 Null 的實值型別可為 Null。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PossibleNull">
+        <source>Possible null value.</source>
+        <target state="new">Possible null value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PossibleNull_Title">
+        <source>Possible null value.</source>
+        <target state="new">Possible null value.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
@@ -8884,8 +8914,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_MismatchedRefEscapeInTernary">
-        <source>Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes</source>
-        <target state="translated">ref 三元運算子分支無法參考具有不相容宣告範圍的變數</target>
+        <source>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</source>
+        <target state="needs-review-translation">ref 三元運算子分支無法參考具有不相容宣告範圍的變數</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeStackAlloc">

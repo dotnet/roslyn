@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -16,29 +17,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private readonly NamedTypeSymbol _containingType;
             private readonly TypeSymbolWithAnnotations _type;
             private readonly string _name;
+            private readonly int _index;
             private readonly ImmutableArray<Location> _locations;
             private readonly AnonymousTypePropertyGetAccessorSymbol _getMethod;
             private readonly FieldSymbol _backingField;
 
-            internal AnonymousTypePropertySymbol(AnonymousTypeTemplateSymbol container, AnonymousTypeField field, TypeSymbolWithAnnotations fieldTypeSymbol)
+            internal AnonymousTypePropertySymbol(AnonymousTypeTemplateSymbol container, AnonymousTypeField field, TypeSymbolWithAnnotations fieldType, int index) :
+                this(container, field, fieldType, index, ImmutableArray<Location>.Empty, includeBackingField: true)
             {
-                _containingType = container;
-                _type = fieldTypeSymbol;
-                _name = field.Name;
-                _locations = ImmutableArray<Location>.Empty;
-                _getMethod = new AnonymousTypePropertyGetAccessorSymbol(this);
-                _backingField = new AnonymousTypeFieldSymbol(this);
             }
 
-            internal AnonymousTypePropertySymbol(AnonymousTypePublicSymbol container, AnonymousTypeField field)
+            internal AnonymousTypePropertySymbol(AnonymousTypePublicSymbol container, AnonymousTypeField field, int index) :
+                this(container, field, field.Type, index, ImmutableArray.Create<Location>(field.Location), includeBackingField: false)
             {
-                _containingType = container;
-                _type = field.Type;
-                _name = field.Name;
-                _locations = ImmutableArray.Create<Location>(field.Location);
-                _getMethod = new AnonymousTypePropertyGetAccessorSymbol(this);
-                _backingField = null;
             }
+
+            private AnonymousTypePropertySymbol(
+                NamedTypeSymbol container,
+                AnonymousTypeField field,
+                TypeSymbolWithAnnotations fieldType,
+                int index,
+                ImmutableArray<Location> locations,
+                bool includeBackingField)
+            {
+                Debug.Assert((object)container != null);
+                Debug.Assert((object)field != null);
+                Debug.Assert(!fieldType.IsNull);
+                Debug.Assert(index >= 0);
+                Debug.Assert(!locations.IsDefault);
+
+                _containingType = container;
+                _type = fieldType;
+                _name = field.Name;
+                _index = index;
+                _locations = locations;
+                _getMethod = new AnonymousTypePropertyGetAccessorSymbol(this);
+                _backingField = includeBackingField ? new AnonymousTypeFieldSymbol(this) : null;
+            }
+
+            internal override int? MemberIndexOpt => _index;
 
             public override RefKind RefKind
             {
