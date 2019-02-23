@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class TypeConversions : ConversionsBase
     {
-        public TypeConversions(AssemblySymbol corLibrary)
-            : this(corLibrary, currentRecursionDepth: 0, includeNullability: false, otherNullabilityOpt: null)
+        public TypeConversions(AssemblySymbol corLibrary, bool includeNullability = false)
+            : this(corLibrary, currentRecursionDepth: 0, includeNullability: includeNullability, otherNullabilityOpt: null)
         {
         }
 

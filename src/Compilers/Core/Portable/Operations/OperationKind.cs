@@ -222,12 +222,13 @@ namespace Microsoft.CodeAnalysis
         FlowAnonymousFunction = 0x60,
         /// <summary>Indicates an <see cref="ICoalesceAssignmentOperation"/>.</summary>
         CoalesceAssignment = 0x61,
-        /// <summary>Indicates an <see cref="ISuppressNullableWarningOperation"/>.</summary>
-        SuppressNullableWarning = 0x62,
+
+        // Available: 0x62
+
         /// <summary>Indicates an <see cref="IRangeOperation"/>.</summary>
         Range = 0x63,
-        /// <summary>Indicates an <see cref="IFromEndIndexOperation"/>.</summary>
-        FromEndIndex = 0x64,
+        // Unused, FromEndIndex will be a unary operator: https://github.com/dotnet/roslyn/pull/32918
+        //FromEndIndex = 0x64,
         /// <summary>Indicates an <see cref="IReDimOperation"/>.</summary>
         ReDim = 0x65,
         /// <summary>Indicates an <see cref="IReDimClauseOperation"/>.</summary>

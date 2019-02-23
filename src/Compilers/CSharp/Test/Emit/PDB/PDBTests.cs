@@ -526,6 +526,130 @@ public class C
                 Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
         }
 
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [WorkItem(768862, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/768862")]
+        public void TestLargeLineDelta()
+        {
+            var verbatim = string.Join("\r\n", Enumerable.Repeat("x", 1000));
+
+            var source = $@"
+class C {{ public static void Main() => System.Console.WriteLine(@""{verbatim}""); }}
+";
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb("C.Main", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""Main"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""2"" startColumn=""40"" endLine=""1001"" endColumn=""4"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>
+", format: DebugInformationFormat.PortablePdb);
+
+            // Native PDBs only support spans with line delta <= 127 (7 bit)
+            // https://github.com/Microsoft/microsoft-pdb/blob/master/include/cvinfo.h#L4621
+            c.VerifyPdb("C.Main", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""Main"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""2"" startColumn=""40"" endLine=""129"" endColumn=""4"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>
+", format: DebugInformationFormat.Pdb);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [WorkItem(20118, "https://github.com/dotnet/roslyn/issues/20118")]
+        public void TestLargeStartAndEndColumn_SameLine()
+        {
+            var spaces = new string(' ', 0x10000);
+
+            var source = $@"
+class C 
+{{ 
+    public static void Main() => 
+        {spaces}System.Console.WriteLine(""{spaces}""); 
+}}
+";
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb("C.Main", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""Main"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""65533"" endLine=""5"" endColumn=""65534"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [WorkItem(20118, "https://github.com/dotnet/roslyn/issues/20118")]
+        public void TestLargeStartAndEndColumn_DifferentLine()
+        {
+            var spaces = new string(' ', 0x10000);
+
+            var source = $@"
+class C 
+{{ 
+    public static void Main() => 
+        {spaces}System.Console.WriteLine(
+        ""{spaces}""); 
+}}
+";
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb("C.Main", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""Main"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""65534"" endLine=""6"" endColumn=""65534"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
         #endregion
 
         #region Method Bodies

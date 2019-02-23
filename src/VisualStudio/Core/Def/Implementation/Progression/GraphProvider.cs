@@ -348,7 +348,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         public T GetExtension<T>(GraphObject graphObject, T previous) where T : class
         {
-
             if (graphObject is GraphNode graphNode)
             {
                 // If this is not a Roslyn node, bail out.

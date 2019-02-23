@@ -60,14 +60,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                if (!syntaxTree.IsRightOfDotOrArrowOrColonColon(position, cancellationToken))
+                var targetToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
+                                            .GetPreviousTokenIfTouchingWord(position);
+
+                if (!syntaxTree.IsRightOfDotOrArrowOrColonColon(position, targetToken, cancellationToken))
                 {
                     return;
                 }
 
-                var node = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
-                                     .GetPreviousTokenIfTouchingWord(position)
-                                     .Parent;
+                var node = targetToken.Parent;
 
                 if (node.Kind() != SyntaxKind.ExplicitInterfaceSpecifier)
                 {

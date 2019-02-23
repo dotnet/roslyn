@@ -87,6 +87,18 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         /// </summary>
         protected abstract void InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(TSwitchCaseBlockSyntax switchCaseBlock, SyntaxEditor editor, TLocalDeclarationStatementSyntax declarationStatement);
 
+        /// <summary>
+        /// Gets the replacement node for a compound assignment expression whose
+        /// assigned value is redundant.
+        /// For example, "x += MethodCall()", where assignment to 'x' is redundant
+        /// is replaced with "_ = MethodCall()" or "var unused = MethodCall()"
+        /// </summary>
+        protected abstract SyntaxNode GetReplacementNodeForCompoundAssignment(
+            SyntaxNode originalCompoundAssignment,
+            SyntaxNode newAssignmentTarget,
+            SyntaxEditor editor,
+            ISyntaxFactsService syntaxFacts);
+
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics[0];
@@ -465,7 +477,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             // Compound assignment is changed to simple assignment.
                             // For example, "x += MethodCall();", where assignment to 'x' is redundant
                             // is replaced with "_ = MethodCall();" or "var unused = MethodCall();"
-                            nodeReplacementMap.Add(node.Parent, editor.Generator.AssignmentStatement(newNameNode, syntaxFacts.GetRightHandSideOfAssignment(node.Parent)));
+                            nodeReplacementMap.Add(node.Parent, GetReplacementNodeForCompoundAssignment(node.Parent, newNameNode, editor, syntaxFacts));
                         }
                         else
                         {

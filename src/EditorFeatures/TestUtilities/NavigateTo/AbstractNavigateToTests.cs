@@ -77,7 +77,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
                 content, TestExportProvider.ExportProviderWithCSharpAndVisualBasic, createTrackingService))
             {
                 workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)
-                                                     .WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess)
                                                      .WithChangedOption(RemoteFeatureOptions.NavigateToEnabled, outOfProcess);
 
                 await body(workspace);

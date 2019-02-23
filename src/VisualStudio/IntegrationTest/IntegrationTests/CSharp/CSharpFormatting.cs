@@ -269,7 +269,7 @@ class Program
 }");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/30015")]
+        [CriticalWpfFact]
         [Trait(Traits.Feature, Traits.Features.EditorConfig)]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(15003, "https://github.com/dotnet/roslyn/issues/15003")]

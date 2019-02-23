@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class WorkspacesResources {
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.WorkspacesResources", typeof(WorkspacesResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.WorkspacesResources", typeof(WorkspacesResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -590,6 +589,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Cycle_detected_in_extensions {
             get {
                 return ResourceManager.GetString("Cycle_detected_in_extensions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DateTimeKind must be Utc.
+        /// </summary>
+        internal static string DateTimeKind_must_be_Utc {
+            get {
+                return ResourceManager.GetString("DateTimeKind_must_be_Utc", resourceCulture);
             }
         }
         
@@ -1269,6 +1277,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefix &apos;{0}&apos; does not match expected prefix &apos;{1}&apos;.
+        /// </summary>
+        internal static string Prefix_0_does_not_match_expected_prefix_1 {
+            get {
+                return ResourceManager.GetString("Prefix_0_does_not_match_expected_prefix_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefix &apos;{0}&apos; is not expected.
+        /// </summary>
+        internal static string Prefix_0_is_not_expected {
+            get {
+                return ResourceManager.GetString("Prefix_0_is_not_expected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Private Method.
         /// </summary>
         internal static string Private_Method {
@@ -1784,6 +1810,69 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Base Type.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_BaseType {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_BaseType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Construct.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_Construct {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Construct", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Declare.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_Declare {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Declare", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Import.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_Import {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Import", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Qualify.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_Qualify {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Qualify", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type Argument.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_TypeArgument {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_TypeArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type Constraint.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_TypeConstraint {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_TypeConstraint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Types.
         /// </summary>
         internal static string Types {
@@ -1901,11 +1990,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to NameOnly.
+        ///   Looks up a localized string similar to Name.
         /// </summary>
-        internal static string ValueUsageInfo_NameOnly {
+        internal static string ValueUsageInfo_Name {
             get {
-                return ResourceManager.GetString("ValueUsageInfo_NameOnly", resourceCulture);
+                return ResourceManager.GetString("ValueUsageInfo_Name", resourceCulture);
             }
         }
         

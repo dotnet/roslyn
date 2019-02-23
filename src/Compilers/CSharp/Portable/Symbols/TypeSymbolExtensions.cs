@@ -91,6 +91,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsNullableTypeOrTypeParameter(this TypeSymbol type)
         {
+            if (type is null)
+            {
+                return false;
+            }
+
             if (type.TypeKind == TypeKind.TypeParameter)
             {
                 var constraintTypes = ((TypeParameterSymbol)type).ConstraintTypesNoUseSiteDiagnostics;
@@ -586,8 +591,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// completes without the predicate returning true for any type, this method returns null.
         /// </summary>
         public static TypeSymbol VisitType<T>(
-            // https://github.com/dotnet/roslyn/issues/30059: If TypeSymbolWithAnnotations
-            // is a struct, use a single type argument and a single predicate.
             this TypeSymbolWithAnnotations typeWithAnnotationsOpt,
             TypeSymbol typeOpt,
             Func<TypeSymbolWithAnnotations, T, bool, bool> typeWithAnnotationsPredicateOpt,
@@ -995,7 +998,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC:    1) If the type of the switch expression is sbyte, byte, short, ushort, int, uint,
             // SPEC:       long, ulong, bool, char, string, or an enum-type, or if it is the nullable type
             // SPEC:       corresponding to one of these types, then that is the governing type of the switch statement. 
-            // SPEC:    2) Otherwise, exactly one user-defined implicit conversion (Â§6.4) must exist from the
+            // SPEC:    2) Otherwise, exactly one user-defined implicit conversion must exist from the
             // SPEC:       type of the switch expression to one of the following possible governing types:
             // SPEC:       sbyte, byte, short, ushort, int, uint, long, ulong, char, string, or, a nullable type
             // SPEC:       corresponding to one of those types
@@ -1056,7 +1059,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return ignoreSpanLikeTypes ?
                         false :
-                        type.IsByRefLikeType;
+                        type.IsRefLikeType;
         }
 
         public static bool IsIntrinsicType(this TypeSymbol type)

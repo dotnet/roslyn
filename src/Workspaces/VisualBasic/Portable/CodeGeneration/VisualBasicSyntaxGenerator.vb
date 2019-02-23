@@ -670,6 +670,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 GetStatementList(statements))
         End Function
 
+        Friend Overrides Function ScopeBlock(statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Throw New NotSupportedException()
+        End Function
+
         Friend Overrides Function RefExpression(expression As SyntaxNode) As SyntaxNode
             Return expression
         End Function
@@ -4167,6 +4171,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return trivia.IsRegularOrDocComment()
         End Function
 
+        Friend Overrides Function RemoveAllComments(node As SyntaxNode) As SyntaxNode
+            Return RemoveLeadingAndTrailingComments(node)
+        End Function
+
+        Friend Overrides Function RemoveCommentLines(syntaxList As SyntaxTriviaList) As SyntaxTriviaList
+            Return syntaxList.Where(Function(s) Not IsRegularOrDocComment(s)).ToSyntaxTriviaList()
+        End Function
 #End Region
 
 #Region "Patterns"

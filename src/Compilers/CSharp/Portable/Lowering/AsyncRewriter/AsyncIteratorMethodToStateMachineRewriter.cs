@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Lower the body, adding an entry state (-3) at the start,
-        /// so that we can differentiate a async-iterator that was never moved forward with MoveNextAsync()
+        /// so that we can differentiate an async-iterator that was never moved forward with MoveNextAsync()
         /// from one that is running (-1).
         /// Then we can guard against some bad usages of DisposeAsync.
         /// </summary>
@@ -167,6 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     _state = <next_state>;
             //     goto _exprReturnLabelTrue;
             //     <next_state_label>: ;
+            //     <hidden sequence point>
             //     this.state = cachedState = NotStartedStateMachine;
             //     if (disposeMode) goto _enclosingFinallyOrExitLabel;
 
@@ -195,6 +196,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             blockBuilder.Add(
                 // <next_state_label>: ;
                 F.Label(resumeLabel));
+
+            blockBuilder.Add(F.HiddenSequencePoint());
 
             blockBuilder.Add(
                 // this.state = cachedState = NotStartedStateMachine

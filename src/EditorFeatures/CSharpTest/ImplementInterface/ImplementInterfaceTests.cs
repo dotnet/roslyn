@@ -6368,7 +6368,8 @@ partial class C
     }}
 
     // {CSharpFeaturesResources.TODO_colon_override_a_finalizer_only_if_Dispose_bool_disposing_above_has_code_to_free_unmanaged_resources}
-    // ~{className}() {{
+    // ~{className}()
+    // {{
     //   // {CSharpFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above}
     //   Dispose(false);
     // }}

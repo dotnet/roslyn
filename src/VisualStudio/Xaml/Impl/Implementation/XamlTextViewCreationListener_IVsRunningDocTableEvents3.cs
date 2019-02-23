@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         {
             if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_MkDocument) != 0)
             {
-                this.OnDocumentMonikerChanged(pHierOld, pszMkDocumentOld, pszMkDocumentNew);
+                this.OnDocumentMonikerChanged(docCookie, pHierOld, pszMkDocumentOld, pszMkDocumentNew);
             }
 
             return VSConstants.S_OK;

@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Do_not_show_this_message_again">
         <source>Do not show this message again</source>
-        <target state="translated">이 메시지를 다시 표시 안 함</target>
+        <target state="translated">이 메시지를 다시 표시하지 않음</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
-        <target state="translated">문서 서식에서 추가 정리를 수행함</target>
+        <target state="translated">추가 정리를 수행 하는 문서</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Paste_Tracking">
         <source>Paste Tracking</source>
-        <target state="new">Paste Tracking</target>
+        <target state="translated">붙여넣기 추적</target>
         <note />
       </trans-unit>
       <trans-unit id="Preprocessor_Text">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
-        <target state="new">String - Escape Character</target>
+        <target state="translated">String - Escape Character</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_Static">
@@ -369,7 +369,7 @@
       </trans-unit>
       <trans-unit id="Applying_Encapsulate_Field_refactoring">
         <source>Applying "Encapsulate Field" refactoring...</source>
-        <target state="translated">"필드 캡슐화" 리팩터링 적용 중...</target>
+        <target state="translated">"필드 캡슐화" 리팩토링 적용 중...</target>
         <note />
       </trans-unit>
       <trans-unit id="Please_select_the_definition_of_the_field_to_encapsulate">
@@ -689,7 +689,7 @@
       </trans-unit>
       <trans-unit id="Applying_Extract_Method_refactoring">
         <source>Applying "Extract Method" refactoring...</source>
-        <target state="translated">"메서드 추출" 리팩터링 적용 중...</target>
+        <target state="translated">"메서드 추출" 리팩토링 적용 중...</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_Document">
@@ -980,7 +980,7 @@
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
         <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="translated">구조체 "out/ref" 매개 변수를 만들지 않는 방법으로 오류를 수정할 수 있습니다.
+        <target state="translated">구조체 "out/ref" 매개 변수를 만들지 않는 방법으로 오류를 수정할 수 있습니다. 
 계속하시겠습니까?</target>
         <note />
       </trans-unit>
@@ -991,7 +991,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Rename_0_to_1_colon">
         <source>Rename '{0}' to '{1}':</source>
-        <target state="translated">{0}' 이름을 '{1}'(으)로 바꾸기:</target>
+        <target state="translated">'{0}'에서 '{1}'(으)로 이름 바꾸기:</target>
         <note />
       </trans-unit>
       <trans-unit id="Encapsulate_Field_colon">

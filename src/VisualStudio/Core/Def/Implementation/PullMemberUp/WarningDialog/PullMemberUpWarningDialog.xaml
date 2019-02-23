@@ -17,7 +17,6 @@
     MinHeight="390"
     MinWidth="533"
     HasDialogFrame="True"
-    HasHelpButton="True"
     ShowInTaskbar="False"
     ResizeMode="CanResizeWithGrip"
     Title="{Binding ElementName=dialog, Path=WarningDialogTitle}">

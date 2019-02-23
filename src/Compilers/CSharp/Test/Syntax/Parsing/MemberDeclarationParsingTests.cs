@@ -458,5 +458,287 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             EOF();
         }
+
+        [Fact]
+        [WorkItem(11959, "https://github.com/dotnet/roslyn/issues/11959")]
+        public void GenericAsyncTask_01()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingDeclaration("async Task<SomeNamespace.SomeType Method();", options: options,
+                    // (1,1): error CS1073: Unexpected token '('
+                    // async Task<SomeNamespace.SomeType Method();
+                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "async Task<SomeNamespace.SomeType Method").WithArguments("(").WithLocation(1, 1),
+                    // (1,35): error CS1003: Syntax error, ',' expected
+                    // async Task<SomeNamespace.SomeType Method();
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "Method").WithArguments(",", "").WithLocation(1, 35),
+                    // (1,41): error CS1003: Syntax error, '>' expected
+                    // async Task<SomeNamespace.SomeType Method();
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">", "(").WithLocation(1, 41)
+                    );
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.AsyncKeyword);
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Task");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "SomeNamespace");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "SomeType");
+                                }
+                            }
+                            M(SyntaxKind.CommaToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Method");
+                            }
+                            M(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(11959, "https://github.com/dotnet/roslyn/issues/11959")]
+        public void GenericPublicTask_01()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingDeclaration("public Task<SomeNamespace.SomeType Method();", options: options,
+                    // (1,1): error CS1073: Unexpected token '('
+                    // public Task<SomeNamespace.SomeType Method();
+                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "public Task<SomeNamespace.SomeType Method").WithArguments("(").WithLocation(1, 1),
+                    // (1,36): error CS1003: Syntax error, ',' expected
+                    // public Task<SomeNamespace.SomeType Method();
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "Method").WithArguments(",", "").WithLocation(1, 36),
+                    // (1,42): error CS1003: Syntax error, '>' expected
+                    // public Task<SomeNamespace.SomeType Method();
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">", "(").WithLocation(1, 42)
+                    );
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Task");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "SomeNamespace");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "SomeType");
+                                }
+                            }
+                            M(SyntaxKind.CommaToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Method");
+                            }
+                            M(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(11959, "https://github.com/dotnet/roslyn/issues/11959")]
+        public void GenericAsyncTask_02()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingDeclaration("async Task<SomeNamespace. Method();", options: options,
+                    // (1,1): error CS1073: Unexpected token '('
+                    // async Task<SomeNamespace. Method();
+                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "async Task<SomeNamespace. Method").WithArguments("(").WithLocation(1, 1),
+                    // (1,33): error CS1003: Syntax error, '>' expected
+                    // async Task<SomeNamespace. Method();
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">", "(").WithLocation(1, 33)
+                    );
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.AsyncKeyword);
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Task");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "SomeNamespace");
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Method");
+                                    }
+                                    M(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                        }
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(11959, "https://github.com/dotnet/roslyn/issues/11959")]
+        public void GenericPublicTask_02()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingDeclaration("public Task<SomeNamespace. Method();", options: options,
+                    // (1,1): error CS1073: Unexpected token '('
+                    // public Task<SomeNamespace. Method();
+                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "public Task<SomeNamespace. Method").WithArguments("(").WithLocation(1, 1),
+                    // (1,34): error CS1003: Syntax error, '>' expected
+                    // public Task<SomeNamespace. Method();
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">", "(").WithLocation(1, 34)
+                    );
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Task");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "SomeNamespace");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Method");
+                                }
+                            }
+                            M(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(11959, "https://github.com/dotnet/roslyn/issues/11959")]
+        public void GenericAsyncTask_03()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingDeclaration("async Task<SomeNamespace.> Method();", options: options,
+                    // (1,26): error CS1001: Identifier expected
+                    // async Task<SomeNamespace.> Method();
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(1, 26)
+                    );
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.AsyncKeyword);
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Task");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "SomeNamespace");
+                                }
+                                N(SyntaxKind.DotToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.IdentifierToken, "Method");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(11959, "https://github.com/dotnet/roslyn/issues/11959")]
+        public void GenericPublicTask_03()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingDeclaration("public Task<SomeNamespace.> Method();", options: options,
+                    // (1,27): error CS1001: Identifier expected
+                    // public Task<SomeNamespace.> Method();
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(1, 27)
+                    );
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Task");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "SomeNamespace");
+                                }
+                                N(SyntaxKind.DotToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.IdentifierToken, "Method");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
     }
 }
