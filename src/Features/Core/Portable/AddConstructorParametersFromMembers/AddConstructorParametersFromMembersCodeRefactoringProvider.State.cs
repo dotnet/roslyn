@@ -87,18 +87,22 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             {
                 var parameterNames = parameters.SelectAsArray(p => p.Name);
                 return containingType.InstanceConstructors
-                    .Where(constructor => AreParametersContainedInConstructor(constructor, parameterNames))
+                    .Where(constructor => IsApplicableConstructor(constructor, parameterNames))
                     .OrderByDescending(constructor => constructor.Parameters.Length)
                     .FirstOrDefault();
             }
 
-            private bool AreParametersContainedInConstructor(
+            private bool IsApplicableConstructor(
                 IMethodSymbol constructor,
                 ImmutableArray<string> parametersName)
             {
                 var constructorParams = constructor.Parameters;
-                return constructorParams.Length > 0
-                    && constructorParams.All(parameter => parameter.RefKind == RefKind.None)
+                if (constructorParams.Length <= 0)
+                {
+                    return !constructor.IsImplicitlyDeclared;
+                }
+
+                return constructorParams.All(parameter => parameter.RefKind == RefKind.None)
                     && !constructorParams.Any(p => p.IsParams)
                     && parametersName.Except(constructorParams.Select(p => p.Name)).Any();
             }

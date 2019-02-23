@@ -642,5 +642,46 @@ class C
 }"
             );
         }
+
+        [WorkItem(33602, "https://github.com/dotnet/roslyn/issues/33602")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestConstructorWithNoParameters()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    [|int i;
+    int Hello { get; set; }|]
+    public C()
+    {
+    }
+}",
+@"
+class C
+{
+    int i;
+    int Hello { get; set; }
+    public C(int i, int hello)
+    {
+        this.i = i;
+        Hello = hello;
+    }
+}"
+            );
+        }
+
+        [WorkItem(33602, "https://github.com/dotnet/roslyn/issues/33602")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestDefaultConstructor()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    [|int i;|]
+    int Hello { get; set; }
+}");
+        }
     }
 }
