@@ -33927,6 +33927,27 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
         }
 
         [Fact]
+        public void Await_03()
+        {
+            var source =
+@"using System.Threading.Tasks;
+class Program
+{
+    async void M(Task? x, Task? y)
+    {
+        if (y == null) return;
+        await x; // 1
+        await y;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,15): warning CS8602: Possible dereference of a null reference.
+                //         await x; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 15));
+        }
+
+        [Fact]
         public void Await_ProduceResultTypeFromTask()
         {
             var source = @"

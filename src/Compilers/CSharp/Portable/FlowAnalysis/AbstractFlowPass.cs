@@ -597,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// AssignedWhenFalse.
         /// </summary>
         /// <param name="node"></param>
-        protected BoundNode VisitRvalue(BoundExpression node)
+        protected virtual BoundNode VisitRvalue(BoundExpression node)
         {
             var result = Visit(node);
             Unsplit();
