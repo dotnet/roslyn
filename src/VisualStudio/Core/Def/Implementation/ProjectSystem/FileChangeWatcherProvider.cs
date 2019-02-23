@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         // fix for a preview release that's too risky to do it in. Other options involve more extensive
         // mocking or extracting of interfaces which is also just churn that will be immediately undone
         // once we clean up the constructor either.
-        internal void TrySetFileChangeService_TestOnly(IVsFileChangeEx fileChange)
+        internal void TrySetFileChangeService_TestOnly(IVsAsyncFileChangeEx fileChange)
         {
             _fileChangeService.TrySetResult(fileChange);
         }
