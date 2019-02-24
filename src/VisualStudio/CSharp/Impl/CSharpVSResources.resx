@@ -574,4 +574,7 @@
   <data name="When_on_multiple_lines" xml:space="preserve">
     <value>When on multiple lines</value>
   </data>
+  <data name="When_variable_type_is_explicit" xml:space="preserve">
+    <value>When variable type is explicit</value>
+  </data>
 </root>

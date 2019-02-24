@@ -16,22 +16,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             => type?.IsSpecialType() == true;
 
         public static bool IsImplicitStylePreferred(
-            OptionSet optionSet, bool isBuiltInTypeContext, bool isTypeApparentContext)
+            OptionSet optionSet, bool isBuiltInTypeContext, bool isTypeApparentContext, bool isTypeExplicitContext)
         {
             return IsImplicitStylePreferred(
                 GetCurrentTypeStylePreferences(optionSet),
                 isBuiltInTypeContext,
-                isTypeApparentContext);
+                isTypeApparentContext,
+                isTypeExplicitContext);
         }
 
         private static bool IsImplicitStylePreferred(
-            UseVarPreference stylePreferences, bool isBuiltInTypeContext, bool isTypeApparentContext)
+            UseVarPreference stylePreferences,
+            bool isBuiltInTypeContext,
+            bool isTypeApparentContext,
+            bool isTypeExplicitContext)
         {
             return isBuiltInTypeContext
                     ? stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes)
                     : isTypeApparentContext
                         ? stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent)
-                        : stylePreferences.HasFlag(UseVarPreference.Elsewhere);
+                        : isTypeExplicitContext
+                            ? stylePreferences.HasFlag(UseVarPreference.WhenTypeIsExplicit)
+                            : stylePreferences.HasFlag(UseVarPreference.Elsewhere);
         }
 
         /// <summary>
@@ -118,6 +124,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
                 return false;
             }
 
+            if (TypeFoundInGenericMethodCall(semanticModel, typeInDeclaration, memberName, cancellationToken))
+            {
+                return true;
+            }
+
             var methodSymbol = semanticModel.GetSymbolInfo(memberName, cancellationToken).Symbol as IMethodSymbol;
             if (methodSymbol == null)
             {
@@ -127,7 +138,177 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             if (memberName.IsRightSideOfDot())
             {
                 var containingTypeName = memberName.GetLeftSideOfDot();
-                return IsPossibleCreationOrConversionMethod(methodSymbol, typeInDeclaration, semanticModel, containingTypeName, cancellationToken);
+                return IsPossibleCreationOrConversionMethod(
+                    methodSymbol, typeInDeclaration, semanticModel,
+                    containingTypeName, cancellationToken);
+            }
+
+            return false;
+        }
+
+        public static bool IsTypeExplicitInAssignmentExpression(
+            UseVarPreference stylePreferences,
+            ExpressionSyntax initializerExpression,
+            SemanticModel semanticModel,
+            ITypeSymbol typeInDeclaration,
+            CancellationToken cancellationToken)
+        {
+            if (typeInDeclaration == null)
+            {
+                // if we don't have a type on the left of the assignment, there's no way
+                // for us to validate that it has been explicitly stated on the right.
+                return false;
+            }
+
+            // If we've got a tuple expr, then we consider the type explicit as long as all
+            // the exprs in the tuple are explicit.  i.e. if we have `((int)a, (int)b)`, then
+            // that is considered an explicit use of the `(int, int)` type.  
+
+            // tuple literals
+            if (initializerExpression.IsKind(SyntaxKind.TupleExpression))
+            {
+                var tuple = (TupleExpressionSyntax)initializerExpression;
+                if (typeInDeclaration == null || !typeInDeclaration.IsTupleType)
+                {
+                    return false;
+                }
+
+                var tupleType = (INamedTypeSymbol)typeInDeclaration;
+                if (tupleType.TupleElements.Length != tuple.Arguments.Count)
+                {
+                    return false;
+                }
+
+                for (int i = 0, n = tuple.Arguments.Count; i < n; i++)
+                {
+                    var argument = tuple.Arguments[i];
+                    var tupleElementType = tupleType.TupleElements[i].Type;
+
+                    if (!IsTypeExplicitInAssignmentExpression(
+                            stylePreferences, argument.Expression, semanticModel, tupleElementType, cancellationToken))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            // default(type)
+            if (initializerExpression is DefaultExpressionSyntax defaultExpression)
+            {
+                return typeInDeclaration.Equals(
+                    semanticModel.GetTypeInfo(defaultExpression.Type, cancellationToken).Type);
+            }
+
+            // we consider any usage of a literal to be a way of explicitly stating the type.
+            // i.e. if we have "true", then it's effectively explicit that the type is "boolean".
+            //
+            // Note: we do not do this if the user has said they do not want var for built-in
+            // types. This is effectively an override that we should always respect.
+            if (initializerExpression.IsAnyLiteralExpression())
+            {
+                return stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes);
+            }
+
+            // constructor invocations cases:
+            //      = new type();
+            if (initializerExpression is ObjectCreationExpressionSyntax objectCreation)
+            {
+                return typeInDeclaration.Equals(
+                    semanticModel.GetTypeInfo(objectCreation.Type, cancellationToken).Type);
+            }
+
+            // array creation, if it's not an implicit array:
+            if (initializerExpression is ArrayCreationExpressionSyntax arrayCreation)
+            {
+                return typeInDeclaration.Equals(
+                    semanticModel.GetTypeInfo(arrayCreation, cancellationToken).Type);
+            }
+
+            // explicit conversion cases: 
+            //      (type)expr, expr is type, expr as type
+            if (initializerExpression is CastExpressionSyntax castExpression)
+            {
+                return typeInDeclaration.Equals(
+                    semanticModel.GetTypeInfo(castExpression.Type, cancellationToken).Type);
+            }
+
+            if (initializerExpression.IsKind(SyntaxKind.AsExpression))
+            {
+                return typeInDeclaration.Equals(
+                    semanticModel.GetTypeInfo(((BinaryExpressionSyntax)initializerExpression).Right, cancellationToken).Type);
+            }
+
+            // See if we have a method call, like  `X(...)` or `Y.X(...)`.
+            //
+            // If we have the former, then we would consider the type explicit if it showed up
+            // like `X<TheType>(...)`.
+            //
+            // If we have the latter, we'll consider the type explicit if the left side 
+            // is the same as our declared type, and the right side is a static method
+            // that returns an instance of that type.  This is effectively a factory
+            // method like `int.Parse` and the type is considered explicit enough in that 
+            // case.
+
+            var memberName = GetRightmostInvocationExpression(initializerExpression).GetRightmostName();
+            if (memberName == null)
+            {
+                return false;
+            }
+
+            if (TypeFoundInGenericMethodCall(semanticModel, typeInDeclaration, memberName, cancellationToken))
+            {
+                return true;
+            }
+
+            if (!memberName.IsRightSideOfDot())
+            {
+                return false;
+            }
+
+            var methodSymbol = semanticModel.GetSymbolInfo(memberName, cancellationToken).Symbol as IMethodSymbol;
+            if (methodSymbol == null)
+            {
+                return false;
+            }
+
+            var containingTypeName = memberName.GetLeftSideOfDot();
+            if (!typeInDeclaration.Equals(semanticModel.GetTypeInfo(containingTypeName, cancellationToken).Type))
+            {
+                return false;
+            }
+
+            if (IsPossibleCreationMethod(methodSymbol, typeInDeclaration, typeInDeclaration))
+            {
+                // something of the form Type.FactoryMethod.  The type is considered explicit here.
+                return true;
+            }
+
+            // Everything else we consider not explicit.
+
+            // TODO:
+            // 1. is the type considered 'explicit' if you have an `x is T` expression?  
+            //    it could be said that it's fairly explicit that this is boolean.
+            //
+            // 2. If you have something like `.ToString` and the type is 'String' (without
+            //    generics), should this be considered 'explicit'?
+            return false;
+        }
+
+        private static bool TypeFoundInGenericMethodCall(SemanticModel semanticModel, ITypeSymbol typeInDeclaration, SimpleNameSyntax memberName, CancellationToken cancellationToken)
+        {
+            if (memberName is GenericNameSyntax genericName)
+            {
+                // if we have a call like `.GetService<SomeType>()`
+                // the type is considered explicit if 'SomeType' matches.
+                foreach (var typeArgument in genericName.TypeArgumentList.Arguments)
+                {
+                    if (typeInDeclaration.Equals(semanticModel.GetTypeInfo(typeArgument, cancellationToken).Type))
+                    {
+                        return true;
+                    }
+                }
             }
 
             return false;
@@ -147,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             var containingType = semanticModel.GetTypeInfo(containingTypeName, cancellationToken).Type;
 
             return IsPossibleCreationMethod(methodSymbol, typeInDeclaration, containingType)
-                || IsPossibleConversionMethod(methodSymbol, typeInDeclaration, containingType, semanticModel, cancellationToken);
+                || IsPossibleConversionMethod(methodSymbol);
         }
 
         /// <summary>
@@ -170,11 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
         /// If we have a method ToXXX and its return type is also XXX, then type name is apparent
         /// e.g: Convert.ToString.
         /// </summary>
-        private static bool IsPossibleConversionMethod(IMethodSymbol methodSymbol,
-            ITypeSymbol typeInDeclaration,
-            ITypeSymbol containingType,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
+        private static bool IsPossibleConversionMethod(IMethodSymbol methodSymbol)
         {
             var returnType = methodSymbol.ReturnType;
             var returnTypeName = returnType.IsNullable()
@@ -245,6 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             var styleForIntrinsicTypes = optionSet.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes);
             var styleForApparent = optionSet.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent);
             var styleForElsewhere = optionSet.GetOption(CSharpCodeStyleOptions.VarElsewhere);
+            var styleForExplicit = optionSet.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent);
 
             if (styleForIntrinsicTypes.Value)
             {
@@ -259,6 +437,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             if (styleForElsewhere.Value)
             {
                 stylePreferences |= UseVarPreference.Elsewhere;
+            }
+
+            if (styleForExplicit.Value)
+            {
+                stylePreferences |= UseVarPreference.WhenTypeIsExplicit;
             }
 
             return stylePreferences;

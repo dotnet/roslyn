@@ -17,6 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
         ForBuiltInTypes = 1 << 0,
         WhenTypeIsApparent = 1 << 1,
         Elsewhere = 1 << 2,
-        // ImplicitTypeWhereExplicit = 1 << 3,
+        WhenTypeIsExplicit = 1 << 3,
     }
 }

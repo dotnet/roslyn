@@ -1192,4 +1192,16 @@ I agree to all of the foregoing:</value>
   <data name="Prefer_simple_using_statement" xml:space="preserve">
     <value>Prefer simple 'using' statement</value>
   </data>
+  <data name="includes_cases_where_the_full_type_may_not_appear_in_the_assignment_expression" xml:space="preserve">
+    <value>includes cases where the type (including generics) may not appear in the assignment expression</value>
+  </data>
+  <data name="this_is_a_subset_of_the_cases_supported_by_when_variable_is_apparent" xml:space="preserve">
+    <value>this is a subset of the cases supported by 'when variable type is apparent'</value>
+  </data>
+  <data name="this_is_a_superset_of_the_cases_supported_by_when_variable_is_explicit" xml:space="preserve">
+    <value>this is a superset of the cases supported by 'when variable type is explicit'</value>
+  </data>
+  <data name="type_must_appear_explicitly_in_the_assignment_expression" xml:space="preserve">
+    <value>type (including generics) must appear explicitly in the assignment expression</value>
+  </data>
 </root>

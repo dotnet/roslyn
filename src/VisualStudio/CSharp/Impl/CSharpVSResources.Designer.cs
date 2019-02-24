@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpVSResources {
@@ -1425,6 +1425,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string When_variable_type_is_apparent {
             get {
                 return ResourceManager.GetString("When_variable_type_is_apparent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When variable type is explicit.
+        /// </summary>
+        internal static string When_variable_type_is_explicit {
+            get {
+                return ResourceManager.GetString("When_variable_type_is_explicit", resourceCulture);
             }
         }
     }

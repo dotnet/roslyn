@@ -187,7 +187,13 @@ class C{{
     void Method()
     {{
 //[
-        C cobj = new C(); // {ServicesVSResources.type_is_apparent_from_assignment_expression}
+        C cobj = new C();
+
+        // {ServicesVSResources.type_is_apparent_from_assignment_expression}
+        // {ServicesVSResources.includes_cases_where_the_full_type_may_not_appear_in_the_assignment_expression}
+        // {ServicesVSResources.this_is_a_superset_of_the_cases_supported_by_when_variable_is_explicit}
+        string strVal = cobj.ToString();
+        Tuple<int, int> tuple = Tuple.create(1, 2);
 //]
     }}
 }}";
@@ -198,7 +204,44 @@ class C{{
     void Method()
     {{
 //[
-        var cobj = new C(); // {ServicesVSResources.type_is_apparent_from_assignment_expression}
+        var cobj = new C();
+
+        // {ServicesVSResources.includes_cases_where_the_full_type_may_not_appear_in_the_assignment_expression}
+        // {ServicesVSResources.this_is_a_superset_of_the_cases_supported_by_when_variable_is_explicit}
+        var strVal = cobj.ToString();
+        var tuple = Tuple.create(1, 2);
+//]
+    }}
+}}";
+
+        private static readonly string s_varWhereExplicitPreviewFalse = $@"
+using System;
+class C{{
+    void Method()
+    {{
+//[
+        C cobj = new C();
+
+        // {ServicesVSResources.type_must_appear_explicitly_in_the_assignment_expression}
+        // {ServicesVSResources.this_is_a_subset_of_the_cases_supported_by_when_variable_is_apparent}
+        var i = int.Parse(v);
+        var logger = service.GetComponent<ILogger>();
+//]
+    }}
+}}";
+
+        private static readonly string s_varWhereExplicitPreviewTrue = $@"
+using System;
+class C{{
+    void Method()
+    {{
+//[
+        var cobj = new C();
+
+        // {ServicesVSResources.type_must_appear_explicitly_in_the_assignment_expression}
+        // {ServicesVSResources.this_is_a_subset_of_the_cases_supported_by_when_variable_is_apparent}
+        int i = int.Parse(v);
+        ILogger logger = service.GetComponent<ILogger>();
 //]
     }}
 }}";
@@ -1545,6 +1588,7 @@ class C2
             // Use var
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.VarForBuiltInTypes, CSharpVSResources.For_built_in_types, s_varForIntrinsicsPreviewTrue, s_varForIntrinsicsPreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CSharpVSResources.When_variable_type_is_apparent, s_varWhereApparentPreviewTrue, s_varWhereApparentPreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.VarWhenTypeIsExplicit, CSharpVSResources.When_variable_type_is_explicit, s_varWhereExplicitPreviewTrue, s_varWhereExplicitPreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.VarElsewhere, CSharpVSResources.Elsewhere, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
 
             // Code block

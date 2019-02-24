@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             public UseVarPreference TypeStylePreference { get; private set; }
             public bool IsInIntrinsicTypeContext { get; private set; }
             public bool IsTypeApparentInContext { get; private set; }
+            public bool IsTypeExplicitInContext { get; private set; }
             public bool IsInVariableDeclarationContext { get; }
 
             private State(bool isVariableDeclarationContext)
@@ -49,6 +50,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 {
                     return _styleToSeverityMap[UseVarPreference.WhenTypeIsApparent];
                 }
+                else if (IsTypeExplicitInContext)
+                {
+                    return _styleToSeverityMap[UseVarPreference.WhenTypeIsExplicit];
+                }
                 else
                 {
                     return _styleToSeverityMap[UseVarPreference.Elsewhere];
@@ -59,35 +64,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 this.TypeStylePreference = GetCurrentTypeStylePreferences(optionSet);
 
-                IsTypeApparentInContext =
-                        IsInVariableDeclarationContext
-                     && IsTypeApparentInDeclaration((VariableDeclarationSyntax)declaration, semanticModel, TypeStylePreference, cancellationToken);
+                IsTypeExplicitInContext =
+                    IsInVariableDeclarationContext &&
+                    IsTypeExplicitInDeclaration((VariableDeclarationSyntax)declaration, semanticModel, TypeStylePreference, cancellationToken);
+
+                // If a type was explicit, then it's definitely apparent.
+                IsTypeApparentInContext = IsTypeExplicitInContext;
+                if (!IsTypeApparentInContext)
+                {
+                    IsTypeApparentInContext =
+                        IsInVariableDeclarationContext &&
+                        IsTypeApparentInDeclaration((VariableDeclarationSyntax)declaration, semanticModel, TypeStylePreference, cancellationToken);
+                }
 
                 IsInIntrinsicTypeContext =
-                        IsPredefinedTypeInDeclaration(declaration, semanticModel)
-                     || IsInferredPredefinedType(declaration, semanticModel, cancellationToken);
+                    IsPredefinedTypeInDeclaration(declaration, semanticModel) ||
+                    IsInferredPredefinedType(declaration, semanticModel, cancellationToken);
             }
 
-            /// <summary>
-            /// Returns true if type information could be gleaned by simply looking at the given statement.
-            /// This typically means that the type name occurs in right hand side of an assignment.
-            /// </summary>
-            private bool IsTypeApparentInDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, UseVarPreference stylePreferences, CancellationToken cancellationToken)
+            private static ExpressionSyntax TryGetInitializerExpression(VariableDeclarationSyntax variableDeclaration)
             {
                 if (variableDeclaration.Variables.Count != 1)
                 {
-                    return false;
+                    return null;
                 }
 
                 var initializer = variableDeclaration.Variables[0].Initializer;
                 if (initializer == null)
                 {
-                    return false;
+                    return null;
                 }
 
-                var initializerExpression = CSharpUseImplicitTypeHelper.GetInitializerExpression(initializer.Value);
+                return CSharpUseImplicitTypeHelper.GetInitializerExpression(initializer.Value);
+            }
+
+            /// <summary>
+            /// Returns true if type information could be gleaned by simply looking at the given statement.
+            /// This typically means that the type name occurs in right hand side of an assignment.
+            /// 
+            /// However, this also allows for things like `.ToList` to indicate state the type
+            /// is apperant if the result type is `List&lt;SomeType&gt;`.  
+            /// 
+            /// This differents from <see cref="IsTypeExplicitInDeclaration"/> in that the latter only will
+            /// be true if the full type (including generics) actually shows up in the initializer.
+            /// </summary>
+            private bool IsTypeApparentInDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, UseVarPreference stylePreferences, CancellationToken cancellationToken)
+            {
+                var initializerExpression = TryGetInitializerExpression(variableDeclaration);
                 var declaredTypeSymbol = semanticModel.GetTypeInfo(variableDeclaration.Type.StripRefIfNeeded(), cancellationToken).Type;
                 return TypeStyleHelper.IsTypeApparentInAssignmentExpression(stylePreferences, initializerExpression, semanticModel, declaredTypeSymbol, cancellationToken);
+            }
+
+            private bool IsTypeExplicitInDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, UseVarPreference stylePreferences, CancellationToken cancellationToken)
+            {
+                var initializerExpression = TryGetInitializerExpression(variableDeclaration);
+                var declaredTypeSymbol = semanticModel.GetTypeInfo(variableDeclaration.Type.StripRefIfNeeded(), cancellationToken).Type;
+                return TypeStyleHelper.IsTypeExplicitInAssignmentExpression(stylePreferences, initializerExpression, semanticModel, declaredTypeSymbol, cancellationToken);
             }
 
             /// <summary>
@@ -169,10 +201,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var styleForIntrinsicTypes = optionSet.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes);
                 var styleForApparent = optionSet.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent);
                 var styleForElsewhere = optionSet.GetOption(CSharpCodeStyleOptions.VarElsewhere);
+                var styleForExplicit = optionSet.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsExplicit);
 
                 _styleToSeverityMap.Add(UseVarPreference.ForBuiltInTypes, styleForIntrinsicTypes.Notification.Severity);
                 _styleToSeverityMap.Add(UseVarPreference.WhenTypeIsApparent, styleForApparent.Notification.Severity);
                 _styleToSeverityMap.Add(UseVarPreference.Elsewhere, styleForElsewhere.Notification.Severity);
+                _styleToSeverityMap.Add(UseVarPreference.WhenTypeIsExplicit, styleForExplicit.Notification.Severity);
 
                 if (styleForIntrinsicTypes.Value)
                 {
@@ -187,6 +221,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 if (styleForElsewhere.Value)
                 {
                     stylePreferences |= UseVarPreference.Elsewhere;
+                }
+
+                if (styleForExplicit.Value)
+                {
+                    stylePreferences |= UseVarPreference.WhenTypeIsExplicit;
                 }
 
                 return stylePreferences;

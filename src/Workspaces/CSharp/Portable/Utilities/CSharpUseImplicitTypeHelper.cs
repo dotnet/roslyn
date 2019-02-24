@@ -85,6 +85,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 return stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent);
             }
+            else if (state.IsTypeExplicitInContext)
+            {
+                return stylePreferences.HasFlag(UseVarPreference.WhenTypeIsExplicit);
+            }
             else
             {
                 return stylePreferences.HasFlag(UseVarPreference.Elsewhere);

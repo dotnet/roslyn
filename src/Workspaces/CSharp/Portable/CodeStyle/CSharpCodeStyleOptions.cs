@@ -38,6 +38,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_var_elsewhere"),
                 new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.UseImplicitTypeWherePossible")});
 
+        public static readonly Option<CodeStyleOption<bool>> VarWhenTypeIsExplicit = CreateOption(
+            CSharpCodeStyleOptionGroups.VarPreferences, nameof(VarWhenTypeIsExplicit),
+            defaultValue: CodeStyleOption<bool>.Default,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_var_when_type_is_explicit"),
+                new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.VarWhenTypeIsExplicit")});
+
         public static readonly Option<CodeStyleOption<bool>> PreferConditionalDelegateCall = CreateOption(
             CSharpCodeStyleOptionGroups.NullCheckingPreferences, nameof(PreferConditionalDelegateCall),
             defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,

@@ -1288,6 +1288,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to includes cases where the type (including generics) may not appear in the assignment expression.
+        /// </summary>
+        internal static string includes_cases_where_the_full_type_may_not_appear_in_the_assignment_expression {
+            get {
+                return ResourceManager.GetString("includes_cases_where_the_full_type_may_not_appear_in_the_assignment_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Inherited By.
         /// </summary>
         internal static string Inherited_By {
@@ -2829,6 +2838,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to this is a subset of the cases supported by &apos;when variable type is apparent&apos;.
+        /// </summary>
+        internal static string this_is_a_subset_of_the_cases_supported_by_when_variable_is_apparent {
+            get {
+                return ResourceManager.GetString("this_is_a_subset_of_the_cases_supported_by_when_variable_is_apparent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to this is a superset of the cases supported by &apos;when variable type is explicit&apos;.
+        /// </summary>
+        internal static string this_is_a_superset_of_the_cases_supported_by_when_variable_is_explicit {
+            get {
+                return ResourceManager.GetString("this_is_a_superset_of_the_cases_supported_by_when_variable_is_explicit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This item cannot be deleted because it is used by an existing Naming Rule..
         /// </summary>
         internal static string This_item_cannot_be_deleted_because_it_is_used_by_an_existing_Naming_Rule {
@@ -2916,6 +2943,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string type_is_apparent_from_assignment_expression {
             get {
                 return ResourceManager.GetString("type_is_apparent_from_assignment_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to type (including generics) must appear explicitly in the assignment expression.
+        /// </summary>
+        internal static string type_must_appear_explicitly_in_the_assignment_expression {
+            get {
+                return ResourceManager.GetString("type_must_appear_explicitly_in_the_assignment_expression", resourceCulture);
             }
         }
         
