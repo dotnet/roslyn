@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 if (IsInIntrinsicTypeContext)
                 {
-                    return _styleToSeverityMap[UseVarPreference.ForBuildInTypes];
+                    return _styleToSeverityMap[UseVarPreference.ForBuiltInTypes];
                 }
                 else if (IsTypeApparentInContext)
                 {
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 }
                 else
                 {
-                    return _styleToSeverityMap[UseVarPreference.ImplicitTypeWherePossible];
+                    return _styleToSeverityMap[UseVarPreference.Elsewhere];
                 }
             }
 
@@ -170,13 +170,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var styleForApparent = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent);
                 var styleForElsewhere = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible);
 
-                _styleToSeverityMap.Add(UseVarPreference.ForBuildInTypes, styleForIntrinsicTypes.Notification.Severity);
+                _styleToSeverityMap.Add(UseVarPreference.ForBuiltInTypes, styleForIntrinsicTypes.Notification.Severity);
                 _styleToSeverityMap.Add(UseVarPreference.WhenTypeIsApparent, styleForApparent.Notification.Severity);
-                _styleToSeverityMap.Add(UseVarPreference.ImplicitTypeWherePossible, styleForElsewhere.Notification.Severity);
+                _styleToSeverityMap.Add(UseVarPreference.Elsewhere, styleForElsewhere.Notification.Severity);
 
                 if (styleForIntrinsicTypes.Value)
                 {
-                    stylePreferences |= UseVarPreference.ForBuildInTypes;
+                    stylePreferences |= UseVarPreference.ForBuiltInTypes;
                 }
 
                 if (styleForApparent.Value)
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                 if (styleForElsewhere.Value)
                 {
-                    stylePreferences |= UseVarPreference.ImplicitTypeWherePossible;
+                    stylePreferences |= UseVarPreference.Elsewhere;
                 }
 
                 return stylePreferences;

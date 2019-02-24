@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             if (state.IsInIntrinsicTypeContext)
             {
-                return !stylePreferences.HasFlag(UseVarPreference.ForBuildInTypes);
+                return !stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes);
             }
             else if (state.IsTypeApparentInContext)
             {
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
             else
             {
-                return !stylePreferences.HasFlag(UseVarPreference.ImplicitTypeWherePossible);
+                return !stylePreferences.HasFlag(UseVarPreference.Elsewhere);
             }
         }
 
