@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             UseVarPreference stylePreferences, bool isBuiltInTypeContext, bool isTypeApparentContext)
         {
             return isBuiltInTypeContext
-                    ? stylePreferences.HasFlag(UseVarPreference.ImplicitTypeForIntrinsicTypes)
+                    ? stylePreferences.HasFlag(UseVarPreference.ForBuildInTypes)
                     : isTypeApparentContext
                         ? stylePreferences.HasFlag(UseVarPreference.ImplicitTypeWhereApparent)
                         : stylePreferences.HasFlag(UseVarPreference.ImplicitTypeWherePossible);
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             // literals, use var if options allow usage here.
             if (initializerExpression.IsAnyLiteralExpression())
             {
-                return stylePreferences.HasFlag(UseVarPreference.ImplicitTypeForIntrinsicTypes);
+                return stylePreferences.HasFlag(UseVarPreference.ForBuildInTypes);
             }
 
             // constructor invocations cases:
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 
             if (styleForIntrinsicTypes.Value)
             {
-                stylePreferences |= UseVarPreference.ImplicitTypeForIntrinsicTypes;
+                stylePreferences |= UseVarPreference.ForBuildInTypes;
             }
 
             if (styleForApparent.Value)

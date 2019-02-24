@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 if (IsInIntrinsicTypeContext)
                 {
-                    return _styleToSeverityMap[UseVarPreference.ImplicitTypeForIntrinsicTypes];
+                    return _styleToSeverityMap[UseVarPreference.ForBuildInTypes];
                 }
                 else if (IsTypeApparentInContext)
                 {
@@ -170,13 +170,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var styleForApparent = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent);
                 var styleForElsewhere = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible);
 
-                _styleToSeverityMap.Add(UseVarPreference.ImplicitTypeForIntrinsicTypes, styleForIntrinsicTypes.Notification.Severity);
+                _styleToSeverityMap.Add(UseVarPreference.ForBuildInTypes, styleForIntrinsicTypes.Notification.Severity);
                 _styleToSeverityMap.Add(UseVarPreference.ImplicitTypeWhereApparent, styleForApparent.Notification.Severity);
                 _styleToSeverityMap.Add(UseVarPreference.ImplicitTypeWherePossible, styleForElsewhere.Notification.Severity);
 
                 if (styleForIntrinsicTypes.Value)
                 {
-                    stylePreferences |= UseVarPreference.ImplicitTypeForIntrinsicTypes;
+                    stylePreferences |= UseVarPreference.ForBuildInTypes;
                 }
 
                 if (styleForApparent.Value)
