@@ -728,7 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we want to treat the declaration as an explicitly typed declaration.
 
             TypeSymbolWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax.SkipRef(out _), diagnostics, out isVar, out alias);
-            Debug.Assert(!declType.IsNull || isVar);
+            Debug.Assert(!declType.IsDefault || isVar);
 
             if (isVar)
             {
@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode associatedSyntaxNode = null)
         {
             Debug.Assert(declarator != null);
-            Debug.Assert(!declTypeOpt.IsNull || isVar);
+            Debug.Assert(!declTypeOpt.IsDefault || isVar);
             Debug.Assert(typeSyntax != null);
 
             var localDiagnostics = DiagnosticBag.GetInstance();
@@ -999,7 +999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Debug.Assert(!declTypeOpt.IsNull);
+            Debug.Assert(!declTypeOpt.IsDefault);
 
             if (kind == LocalDeclarationKind.FixedVariable)
             {
@@ -2344,7 +2344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isVar;
             TypeSymbolWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out alias);
 
-            Debug.Assert(!declType.IsNull || isVar);
+            Debug.Assert(!declType.IsDefault || isVar);
 
             var variables = nodeOpt.Variables;
             int count = variables.Count;
@@ -2495,7 +2495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 TypeSymbolWithAnnotations returnType = symbol.ReturnType;
 
-                if (returnType.IsNull || (object)returnType.TypeSymbol == LambdaSymbol.ReturnTypeIsBeingInferred)
+                if (returnType.IsDefault || (object)returnType.TypeSymbol == LambdaSymbol.ReturnTypeIsBeingInferred)
                 {
                     return null;
                 }

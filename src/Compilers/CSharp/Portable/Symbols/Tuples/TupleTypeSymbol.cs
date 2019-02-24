@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TupleTypeSymbol WithElementTypes(ImmutableArray<TypeSymbolWithAnnotations> newElementTypes)
         {
             Debug.Assert(_elementTypes.Length == newElementTypes.Length);
-            Debug.Assert(newElementTypes.All(t => !t.IsNull));
+            Debug.Assert(newElementTypes.All(t => !t.IsDefault));
 
             NamedTypeSymbol firstTupleType;
             NamedTypeSymbol chainedTupleType;
@@ -1522,11 +1522,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (variance)
                 {
                     case VarianceKind.In:
-                        return a.MeetForFlowAnalysisFinally(b);
+                        return a.MeetForFixingUpperBounds(b);
                     case VarianceKind.Out:
-                        return a.JoinForFlowAnalysisBranches(b, type, _IsPossiblyNullableReferenceTypeTypeParameterDelegate);
+                        return a.JoinForFixingLowerBounds(b);
                     case VarianceKind.None:
-                        return a.EnsureCompatibleForTuples(b, type, _IsPossiblyNullableReferenceTypeTypeParameterDelegate);
+                        return a.EnsureCompatibleForTuples(b);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(variance);
                 }

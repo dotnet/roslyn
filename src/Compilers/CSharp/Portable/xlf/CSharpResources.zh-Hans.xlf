@@ -357,36 +357,6 @@
         <target state="translated">文件名“{0}”为空、包含无效字符、未使用绝对路径指定驱动器或太长</target>
         <note />
       </trans-unit>
-      <trans-unit id="HDN_ExpressionIsProbablyNeverNull">
-        <source>Expression is probably never null.</source>
-        <target state="translated">表达式可能不为 null。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_ExpressionIsProbablyNeverNull_Title">
-        <source>Expression is probably never null.</source>
-        <target state="translated">表达式可能不为 null。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysFalse">
-        <source>Result of the comparison is possibly always false.</source>
-        <target state="translated">比较结果可能始终为错误。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysFalse_Title">
-        <source>Result of the comparison is possibly always false.</source>
-        <target state="translated">比较结果可能始终为错误。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysTrue">
-        <source>Result of the comparison is possibly always true.</source>
-        <target state="translated">比较结果可能始终为正确。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysTrue_Title">
-        <source>Result of the comparison is possibly always true.</source>
-        <target state="translated">比较结果可能始终为正确。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_Disposable">
         <source>disposable</source>
         <target state="translated">可处置的</target>
@@ -897,6 +867,16 @@
         <target state="translated">编译中不包含 SyntaxTree，因此无法将其删除</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AsOperatorMayReturnNull">
+        <source>The 'as' operator may produce a null value of type '{0}'.</source>
+        <target state="new">The 'as' operator may produce a null value of type '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
+        <source>The 'as' operator may produce null.</source>
+        <target state="new">The 'as' operator may produce null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
         <source>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</source>
         <target state="translated">名称 "_" 引用常量，而不引用放弃模式。请使用 "var _" 放弃该值，或使用 "@_" 来引用该名称的常量。</target>
@@ -907,6 +887,16 @@
         <target state="translated">不要对大小写常量使用 "_"。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ConditionalAccessMayReturnNull">
+        <source>Conditional access may produce a null value of type '{0}'.</source>
+        <target state="new">Conditional access may produce a null value of type '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
+        <source>Conditional access may produce null.</source>
+        <target state="new">Conditional access may produce null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">将 null 文本或可能的 null 值转换为非 null 类型。</target>
@@ -915,6 +905,16 @@
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">将 null 文本或可能的 null 值转换为非 null 类型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
+        <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">A default expression introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
+        <source>A default expression introduces a null value for a type parameter.</source>
+        <target state="new">A default expression introduces a null value for a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended">
@@ -995,6 +995,16 @@
       <trans-unit id="WRN_NullAsNonNullable_Title">
         <source>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</source>
         <target state="translated">无法将 null 文本转换为非 null 引用或无约束类型参数。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
+        <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">A null literal introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
+        <source>A null literal introduces a null value for a type parameter.</source>
+        <target state="new">A null literal introduces a null value for a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument">

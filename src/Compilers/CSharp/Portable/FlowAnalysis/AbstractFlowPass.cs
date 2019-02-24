@@ -597,11 +597,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// AssignedWhenFalse.
         /// </summary>
         /// <param name="node"></param>
-        protected BoundNode VisitRvalue(BoundExpression node)
+        protected virtual void VisitRvalue(BoundExpression node)
         {
-            var result = Visit(node);
+            Visit(node);
             Unsplit();
-            return result;
         }
 
         /// <summary>
@@ -1590,7 +1589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual BoundNode VisitReturnStatementNoAdjust(BoundReturnStatement node)
         {
-            var result = VisitRvalue(node.ExpressionOpt);
+            VisitRvalue(node.ExpressionOpt);
 
             // byref return is also a potential write
             if (node.RefKind != RefKind.None)
@@ -1598,7 +1597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WriteArgument(node.ExpressionOpt, node.RefKind, method: null);
             }
 
-            return result;
+            return null;
         }
 
         private void AdjustStateAfterReturnStatement(BoundReturnStatement node)

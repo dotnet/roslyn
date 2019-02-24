@@ -36,14 +36,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint));
             builder.Add(getId(ErrorCode.WRN_PossibleNull));
+            builder.Add(getId(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT));
+            builder.Add(getId(ErrorCode.WRN_NullLiteralMayIntroduceNullT));
+            builder.Add(getId(ErrorCode.WRN_ConditionalAccessMayReturnNull));
+            builder.Add(getId(ErrorCode.WRN_AsOperatorMayReturnNull));
 
             NullableFlowAnalysisSafetyWarnings = builder.ToImmutable();
 
             builder.Clear();
             builder.Add(getId(ErrorCode.WRN_ConvertingNullableToNonNullable));
-            builder.Add(getId(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse));
-            builder.Add(getId(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue));
-            builder.Add(getId(ErrorCode.HDN_ExpressionIsProbablyNeverNull));
 
             NullableFlowAnalysisNonSafetyWarnings = builder.ToImmutable();
 
@@ -399,6 +400,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
                 case ErrorCode.WRN_CaseConstantNamedUnderscore:
                 case ErrorCode.WRN_PossibleNull:
+                case ErrorCode.WRN_DefaultExpressionMayIntroduceNullT:
+                case ErrorCode.WRN_NullLiteralMayIntroduceNullT:
+                case ErrorCode.WRN_ConditionalAccessMayReturnNull:
+                case ErrorCode.WRN_AsOperatorMayReturnNull:
                     return 1;
                 default:
                     return 0;

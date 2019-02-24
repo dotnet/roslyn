@@ -692,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression BindDeclarationVariables(TypeSymbolWithAnnotations declType, VariableDesignationSyntax node, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
-            declType = declType.IsNull ? TypeSymbolWithAnnotations.Create(CreateErrorType("var")) : declType;
+            declType = declType.IsDefault ? TypeSymbolWithAnnotations.Create(CreateErrorType("var")) : declType;
             switch (node.Kind())
             {
                 case SyntaxKind.SingleVariableDesignation:
@@ -799,7 +799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var elementType = TypeSymbolWithAnnotations.Create(boundArgument.Type);
                 elementTypes.Add(elementType);
 
-                if (elementType.IsNull)
+                if (elementType.IsDefault)
                 {
                     hasNaturalType = false;
                 }
@@ -2201,7 +2201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression BindExplicitNullableCastFromNonNullable(ExpressionSyntax node, BoundExpression operand, TypeSymbolWithAnnotations targetType, DiagnosticBag diagnostics)
         {
-            Debug.Assert(!targetType.IsNull && targetType.IsNullableType());
+            Debug.Assert(!targetType.IsDefault && targetType.IsNullableType());
             Debug.Assert((object)operand.Type != null && !operand.Type.IsNullableType());
 
             // Section 6.2.3 of the spec only applies when the non-null version of the types involved have a
@@ -2455,7 +2455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool isConst = false;
                         AliasSymbol alias;
                         var declType = BindVariableType(designation, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
-                        Debug.Assert(isVar == declType.IsNull);
+                        Debug.Assert(isVar == declType.IsDefault);
 
                         return new BoundDiscardExpression(declarationExpression, declType.TypeSymbol);
                     }
@@ -2708,7 +2708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (argument.Kind == BoundKind.DiscardExpression && !argument.HasExpressionType())
                 {
                     TypeSymbolWithAnnotations parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
-                    Debug.Assert(!parameterType.IsNull);
+                    Debug.Assert(!parameterType.IsDefault);
                     arguments[arg] = ((BoundDiscardExpression)argument).SetInferredType(parameterType);
                 }
             }

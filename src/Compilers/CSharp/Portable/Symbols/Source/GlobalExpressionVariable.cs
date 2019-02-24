@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type = default;
             }
 
-            Debug.Assert(!type.IsNull || isVar);
+            Debug.Assert(!type.IsDefault || isVar);
 
             if (isVar && !fieldsBeingBound.ContainsReference(this))
             {

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbolWithAnnotations elementType,
             NamedTypeSymbol array)
         {
-            Debug.Assert(!elementType.IsNull);
+            Debug.Assert(!elementType.IsDefault);
             Debug.Assert((object)array != null);
 
             _elementType = elementType;
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance)
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
-            TypeSymbolWithAnnotations elementType = ElementType.MergeNullability(((ArrayTypeSymbol)other).ElementType, VarianceKind.None);
+            TypeSymbolWithAnnotations elementType = ElementType.MergeNullability(((ArrayTypeSymbol)other).ElementType, variance);
             return WithElementType(elementType);
         }
 

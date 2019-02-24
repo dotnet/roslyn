@@ -357,36 +357,6 @@
         <target state="translated">El nombre de archivo '{0}' está vacío, contiene caracteres no válidos, tiene una especificación de unidad sin ruta de acceso absoluta o es demasiado largo</target>
         <note />
       </trans-unit>
-      <trans-unit id="HDN_ExpressionIsProbablyNeverNull">
-        <source>Expression is probably never null.</source>
-        <target state="translated">Probablemente, la expresión nunca es NULL.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_ExpressionIsProbablyNeverNull_Title">
-        <source>Expression is probably never null.</source>
-        <target state="translated">Probablemente, la expresión nunca es NULL</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysFalse">
-        <source>Result of the comparison is possibly always false.</source>
-        <target state="translated">Posiblemente, el resultado de la comparación es siempre false.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysFalse_Title">
-        <source>Result of the comparison is possibly always false.</source>
-        <target state="translated">Posiblemente, el resultado de la comparación es siempre false</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysTrue">
-        <source>Result of the comparison is possibly always true.</source>
-        <target state="translated">Posiblemente, el resultado de la comparación es siempre true.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysTrue_Title">
-        <source>Result of the comparison is possibly always true.</source>
-        <target state="translated">Posiblemente, el resultado de la comparación es siempre true</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_CSCHelp">
         <source>
                              Visual C# Compiler Options
@@ -1192,6 +1162,16 @@
         <target state="translated">SyntaxTree no forma parte de la compilación, así que no se puede quitar</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AsOperatorMayReturnNull">
+        <source>The 'as' operator may produce a null value of type '{0}'.</source>
+        <target state="new">The 'as' operator may produce a null value of type '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
+        <source>The 'as' operator may produce null.</source>
+        <target state="new">The 'as' operator may produce null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
         <source>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</source>
         <target state="translated">El nombre "_" hace referencia a la constante, no al patrón de descarte. Use "var _" para descartar el valor o "@_" para hacer referencia a una constante con ese nombre.</target>
@@ -1202,6 +1182,16 @@
         <target state="translated">No use "_" para una constante de caso.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ConditionalAccessMayReturnNull">
+        <source>Conditional access may produce a null value of type '{0}'.</source>
+        <target state="new">Conditional access may produce a null value of type '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
+        <source>Conditional access may produce null.</source>
+        <target state="new">Conditional access may produce null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">Se va a convertir un literal nulo o un posible valor nulo en un tipo que no acepta valores NULL</target>
@@ -1210,6 +1200,16 @@
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">Se va a convertir un literal nulo o un posible valor nulo en un tipo que no acepta valores NULL</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
+        <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">A default expression introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
+        <source>A default expression introduces a null value for a type parameter.</source>
+        <target state="new">A default expression introduces a null value for a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended">
@@ -1290,6 +1290,16 @@
       <trans-unit id="WRN_NullAsNonNullable_Title">
         <source>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</source>
         <target state="translated">No se puede convertir un literal nulo en un parámetro de tipo de referencia que no acepta valores NULL o un parámetro de tipo sin restricciones</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
+        <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">A null literal introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
+        <source>A null literal introduces a null value for a type parameter.</source>
+        <target state="new">A null literal introduces a null value for a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument">

@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private static bool CanUnifyHelper(TypeSymbolWithAnnotations t1, TypeSymbolWithAnnotations t2, ref MutableTypeMap substitution)
         {
-            if (t1.IsNull || t2.IsNull)
+            if (t1.IsDefault || t2.IsDefault)
             {
                 return t1.IsSameAs(t2);
             }

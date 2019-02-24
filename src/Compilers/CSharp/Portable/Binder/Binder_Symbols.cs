@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var location = questionToken.GetLocation();
 
                 // Inside a method body or other executable code, we can question IsValueType without causing cycles.
-                if (!typeArgument.IsNull && !ShouldCheckConstraints)
+                if (!typeArgument.IsDefault && !ShouldCheckConstraints)
                 {
                     LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(isNullableEnabled, typeArgument, location, diagnostics);
                 }

@@ -218,6 +218,10 @@
                 case ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface:
                 case ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase:
                 case ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList:
+                case ErrorCode.WRN_DefaultExpressionMayIntroduceNullT:
+                case ErrorCode.WRN_NullLiteralMayIntroduceNullT:
+                case ErrorCode.WRN_ConditionalAccessMayReturnNull:
+                case ErrorCode.WRN_AsOperatorMayReturnNull:
                     return true;
                 default:
                     return false;
@@ -258,9 +262,6 @@
             {
                 case ErrorCode.HDN_UnusedUsingDirective:
                 case ErrorCode.HDN_UnusedExternAlias:
-                case ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue:
-                case ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse:
-                case ErrorCode.HDN_ExpressionIsProbablyNeverNull:
                     return true;
                 default:
                     return false;

@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Debug.Assert((object)moduleSymbol != null);
             Debug.Assert((object)containingSymbol != null);
             Debug.Assert(ordinal >= 0);
-            Debug.Assert(!type.IsNull);
+            Debug.Assert(!type.IsDefault);
 
             isBad = false;
             _moduleSymbol = moduleSymbol;

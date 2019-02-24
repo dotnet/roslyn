@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             while (underlyingType.Kind == SymbolKind.ArrayType && !ShouldAddNullableAnnotation(underlyingTypeWithAnnotations));
 
-            if (!underlyingTypeWithAnnotations.IsNull)
+            if (!underlyingTypeWithAnnotations.IsDefault)
             {
                 VisitTypeSymbolWithAnnotations(underlyingTypeWithAnnotations);
             }
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool ShouldAddNullableAnnotation(TypeSymbolWithAnnotations typeOpt)
         {
-            if (typeOpt.IsNull)
+            if (typeOpt.IsDefault)
             {
                 return false;
             }

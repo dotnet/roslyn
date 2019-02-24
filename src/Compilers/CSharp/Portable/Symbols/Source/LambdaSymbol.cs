@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _messageID = unboundLambda.Data.MessageID;
             _syntax = unboundLambda.Syntax;
             _refKind = refKind;
-            _returnType = returnType.IsNull ? TypeSymbolWithAnnotations.Create(ReturnTypeIsBeingInferred) : returnType;
+            _returnType = returnType.IsDefault ? TypeSymbolWithAnnotations.Create(ReturnTypeIsBeingInferred) : returnType;
             _isSynthesized = unboundLambda.WasCompilerGenerated;
             _isAsync = unboundLambda.IsAsync;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool ReturnsVoid
         {
-            get { return !this.ReturnType.IsNull && this.ReturnType.SpecialType == SpecialType.System_Void; }
+            get { return !this.ReturnType.IsDefault && this.ReturnType.SpecialType == SpecialType.System_Void; }
         }
 
         public override RefKind RefKind
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // IDE might inspect the symbol and want to know the return type.
         internal void SetInferredReturnType(RefKind refKind, TypeSymbolWithAnnotations inferredReturnType)
         {
-            Debug.Assert(!inferredReturnType.IsNull);
+            Debug.Assert(!inferredReturnType.IsDefault);
             Debug.Assert((object)_returnType.TypeSymbol == ReturnTypeIsBeingInferred);
             _refKind = refKind;
             _returnType = inferredReturnType;

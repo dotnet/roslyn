@@ -15,12 +15,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableAnnotation result = NullableAnnotation.NotAnnotated;
             foreach (var type in types)
             {
-                Debug.Assert(!type.IsNull);
+                Debug.Assert(!type.IsDefault);
                 Debug.Assert(type.Equals(types[0], TypeCompareKind.AllIgnoreOptions));
                 // This uses the covariant merging rules.
                 result = result.JoinForFixingLowerBounds(type.AsSpeakable().NullableAnnotation);
             }
 
+            return result;
+        }
+
+        public static NullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeWithState> types)
+        {
+            ArrayBuilder<TypeSymbolWithAnnotations> builder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
+            foreach (var type in types)
+            {
+                builder.Add(type.ToTypeSymbolWithAnnotations());
+            }
+            var result = GetNullableAnnotation(builder);
+            builder.Free();
             return result;
         }
 

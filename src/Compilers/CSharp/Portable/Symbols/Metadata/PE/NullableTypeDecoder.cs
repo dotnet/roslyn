@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             EntityHandle targetSymbolToken,
             PEModuleSymbol containingModule)
         {
-            Debug.Assert(!metadataType.IsNull);
+            Debug.Assert(!metadataType.IsDefault);
 
             byte defaultTransformFlag;
             ImmutableArray<byte> nullableTransformFlags;

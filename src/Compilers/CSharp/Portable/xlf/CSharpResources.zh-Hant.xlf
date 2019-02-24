@@ -357,36 +357,6 @@
         <target state="translated">檔案名稱 '{0}' 是空的、包含了無效字元、指定了磁碟機但不是絕對路徑，或太長了。</target>
         <note />
       </trans-unit>
-      <trans-unit id="HDN_ExpressionIsProbablyNeverNull">
-        <source>Expression is probably never null.</source>
-        <target state="translated">運算式可能從未是 Null。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_ExpressionIsProbablyNeverNull_Title">
-        <source>Expression is probably never null.</source>
-        <target state="translated">運算式可能從未是 Null。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysFalse">
-        <source>Result of the comparison is possibly always false.</source>
-        <target state="translated">比較的結果可能一直都是 False。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysFalse_Title">
-        <source>Result of the comparison is possibly always false.</source>
-        <target state="translated">比較的結果可能一直都是 False。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysTrue">
-        <source>Result of the comparison is possibly always true.</source>
-        <target state="translated">比較的結果可能一直都是 True。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysTrue_Title">
-        <source>Result of the comparison is possibly always true.</source>
-        <target state="translated">比較的結果可能一直都是 True。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_CSCHelp">
         <source>
                              Visual C# Compiler Options
@@ -1192,6 +1162,16 @@
         <target state="translated">因為 SyntaxTree 不屬於編譯的一部份，所以無法將其移除</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AsOperatorMayReturnNull">
+        <source>The 'as' operator may produce a null value of type '{0}'.</source>
+        <target state="new">The 'as' operator may produce a null value of type '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
+        <source>The 'as' operator may produce null.</source>
+        <target state="new">The 'as' operator may produce null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
         <source>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</source>
         <target state="translated">名稱 '_' 參考常數而非捨棄模式。請使用 'var _' 來捨棄值，或使用 '@_' 來依該名稱參考常數。</target>
@@ -1202,6 +1182,16 @@
         <target state="translated">不可對 case 常數使用 '_'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ConditionalAccessMayReturnNull">
+        <source>Conditional access may produce a null value of type '{0}'.</source>
+        <target state="new">Conditional access may produce a null value of type '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
+        <source>Conditional access may produce null.</source>
+        <target state="new">Conditional access may produce null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">正在將 Null 常值或可能的 Null 值轉換為不可為 Null 的型別。</target>
@@ -1210,6 +1200,16 @@
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">正在將 Null 常值或可能的 Null 值轉換為不可為 Null 的型別。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
+        <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">A default expression introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
+        <source>A default expression introduces a null value for a type parameter.</source>
+        <target state="new">A default expression introduces a null value for a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended">
@@ -1290,6 +1290,16 @@
       <trans-unit id="WRN_NullAsNonNullable_Title">
         <source>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</source>
         <target state="translated">無法將 Null 常值轉換為不可為 Null 的參考型別或非限制式型別參數。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
+        <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">A null literal introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
+        <source>A null literal introduces a null value for a type parameter.</source>
+        <target state="new">A null literal introduces a null value for a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument">

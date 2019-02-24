@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    isReadOnly: false,
                    isStatic: false)
         {
-            Debug.Assert(!type.IsNull);
+            Debug.Assert(!type.IsDefault);
 
             // lifted fields do not need to have the CompilerGeneratedAttribute attached to it, the closure is already 
             // marked as being compiler generated.

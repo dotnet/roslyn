@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (members.Length == 1 && members[0].Kind == SymbolKind.Property)
             {
                 var property = (PropertySymbol)members[0];
-                if (!property.Type.IsNull && property.Type.SpecialType == SpecialType.System_String &&
+                if (!property.Type.IsDefault && property.Type.SpecialType == SpecialType.System_String &&
                     property.DeclaredAccessibility == Accessibility.Public && property.GetMemberArity() == 0 &&
                     (object)property.SetMethod != null && property.SetMethod.DeclaredAccessibility == Accessibility.Public)
                 {

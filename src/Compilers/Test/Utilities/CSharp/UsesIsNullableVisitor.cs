@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         private bool UsesIsNullable(TypeSymbolWithAnnotations type, ConsList<TypeParameterSymbol> inProgress)
         {
-            if (type.IsNull)
+            if (type.IsDefault)
             {
                 return false;
             }
