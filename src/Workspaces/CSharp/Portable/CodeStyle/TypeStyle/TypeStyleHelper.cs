@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             return isBuiltInTypeContext
                     ? stylePreferences.HasFlag(UseVarPreference.ForBuildInTypes)
                     : isTypeApparentContext
-                        ? stylePreferences.HasFlag(UseVarPreference.ImplicitTypeWhereApparent)
+                        ? stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent)
                         : stylePreferences.HasFlag(UseVarPreference.ImplicitTypeWherePossible);
         }
 
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 
             if (styleForApparent.Value)
             {
-                stylePreferences |= UseVarPreference.ImplicitTypeWhereApparent;
+                stylePreferences |= UseVarPreference.WhenTypeIsApparent;
             }
 
             if (styleForElsewhere.Value)

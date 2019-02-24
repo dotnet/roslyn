@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
             else if (state.IsTypeApparentInContext)
             {
-                return stylePreferences.HasFlag(UseVarPreference.ImplicitTypeWhereApparent);
+                return stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent);
             }
             else
             {

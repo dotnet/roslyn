@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 }
                 else if (IsTypeApparentInContext)
                 {
-                    return _styleToSeverityMap[UseVarPreference.ImplicitTypeWhereApparent];
+                    return _styleToSeverityMap[UseVarPreference.WhenTypeIsApparent];
                 }
                 else
                 {
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var styleForElsewhere = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible);
 
                 _styleToSeverityMap.Add(UseVarPreference.ForBuildInTypes, styleForIntrinsicTypes.Notification.Severity);
-                _styleToSeverityMap.Add(UseVarPreference.ImplicitTypeWhereApparent, styleForApparent.Notification.Severity);
+                _styleToSeverityMap.Add(UseVarPreference.WhenTypeIsApparent, styleForApparent.Notification.Severity);
                 _styleToSeverityMap.Add(UseVarPreference.ImplicitTypeWherePossible, styleForElsewhere.Notification.Severity);
 
                 if (styleForIntrinsicTypes.Value)
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                 if (styleForApparent.Value)
                 {
-                    stylePreferences |= UseVarPreference.ImplicitTypeWhereApparent;
+                    stylePreferences |= UseVarPreference.WhenTypeIsApparent;
                 }
 
                 if (styleForElsewhere.Value)
