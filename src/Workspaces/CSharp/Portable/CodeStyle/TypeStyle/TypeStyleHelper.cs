@@ -149,15 +149,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
                 return false;
             }
 
-            if (TypeFoundInGenericMethodCall(semanticModel, typeInDeclaration, memberName, cancellationToken))
-            {
-                return true;
-            }
-
             var methodSymbol = semanticModel.GetSymbolInfo(memberName, cancellationToken).Symbol as IMethodSymbol;
             if (methodSymbol == null)
             {
                 return false;
+            }
+
+            if (TypeFoundInGenericMethodCall(
+                    semanticModel, typeInDeclaration, memberName, methodSymbol, cancellationToken))
+            {
+                return true;
             }
 
             if (memberName.IsRightSideOfDot())
@@ -282,18 +283,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
                 return false;
             }
 
-            if (TypeFoundInGenericMethodCall(semanticModel, typeInDeclaration, memberName, cancellationToken))
+            var methodSymbol = semanticModel.GetSymbolInfo(memberName, cancellationToken).Symbol as IMethodSymbol;
+            if (methodSymbol == null)
+            {
+                return false;
+            }
+
+            if (TypeFoundInGenericMethodCall(
+                    semanticModel, typeInDeclaration, memberName, methodSymbol, cancellationToken))
             {
                 return true;
             }
 
             if (!memberName.IsRightSideOfDot())
-            {
-                return false;
-            }
-
-            var methodSymbol = semanticModel.GetSymbolInfo(memberName, cancellationToken).Symbol as IMethodSymbol;
-            if (methodSymbol == null)
             {
                 return false;
             }
@@ -321,8 +323,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             return false;
         }
 
-        private static bool TypeFoundInGenericMethodCall(SemanticModel semanticModel, ITypeSymbol typeInDeclaration, SimpleNameSyntax memberName, CancellationToken cancellationToken)
+        private static bool TypeFoundInGenericMethodCall(
+            SemanticModel semanticModel, ITypeSymbol typeInDeclaration, 
+            SimpleNameSyntax memberName, IMethodSymbol method, CancellationToken cancellationToken)
         {
+            if (!typeInDeclaration.Equals(method.ReturnType))
+            {
+                return false;
+            }
+
             if (memberName is GenericNameSyntax genericName)
             {
                 // if we have a call like `.GetService<SomeType>()`
