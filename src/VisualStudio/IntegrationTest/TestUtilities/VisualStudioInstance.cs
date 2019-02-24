@@ -56,6 +56,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public LocalsWindow_OutOfProc LocalsWindow { get; set; }
 
+        public PickMembersDialog_OutOfProc PickMembersDialog { get; set; }
+
         public PreviewChangesDialog_OutOfProc PreviewChangesDialog { get; }
 
         public SendKeys SendKeys { get; }
@@ -122,6 +124,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             InlineRenameDialog = new InlineRenameDialog_OutOfProc(this);
             ImmediateWindow = new ImmediateWindow_OutOfProc(this);
             LocalsWindow = new LocalsWindow_OutOfProc(this);
+            PickMembersDialog = new PickMembersDialog_OutOfProc(this);
             PreviewChangesDialog = new PreviewChangesDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
@@ -202,6 +205,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             ChangeSignatureDialog.CloseWindow();
             GenerateTypeDialog.CloseWindow();
             ExtractInterfaceDialog.CloseWindow();
+            PickMembersDialog.CloseWindow();
             StartPage.CloseWindow();
 
             // Prevent the start page from showing after each solution closes
