@@ -265,12 +265,12 @@ function GetIbcSourceBranchName() {
 
         $branchData = GetBranchPublishData $officialSourceBranchName
         if ($branchData -eq $null) {
-            Write-Host "Warning: Branch $officialSourceBranchName is not listed in PublishData.json. Using IBC data from '$fallback'.  " + `
-                       "Override by setting IbcSourceBranchName build variable." -ForegroundColor Yellow
+            Write-Host "Warning: Branch $officialSourceBranchName is not listed in PublishData.json. Using IBC data from '$fallback'." -ForegroundColor Yellow
+            Write-Host "Override by setting IbcSourceBranchName build variable." -ForegroundColor Yellow
             return $fallback
         }
 
-        if (Test-Member $branchData "ibcSourceBranch") {
+        if (Get-Member -InputObject $branchData -Name "ibcSourceBranch") {
             return $branchData.ibcSourceBranch 
         }
 
@@ -282,7 +282,15 @@ function GetIbcSourceBranchName() {
 
 # Set VSO variables used by MicroBuildBuildVSBootstrapper pipeline task
 function SetVisualStudioBootstrapperBuildArgs() {
-    $branchData = GetBranchPublishData (GetIbcSourceBranchName)
+    $fallbackBranch = "master-vs-deps"
+
+    $branchName = if ($officialSourceBranchName) { $officialSourceBranchName } else { $fallbackBranch }
+    $branchData = GetBranchPublishData $branchName
+
+    if ($branchData -eq $null) {
+        Write-Host "Warning: Branch $officialSourceBranchName is not listed in PublishData.json. Using VS bootstrapper for branch '$fallbackBranch'. " -ForegroundColor Yellow
+        $branchData = GetBranchPublishData $fallbackBranch
+    }
 
     # VS branch name is e.g. "lab/d16.0stg", "rel/d15.9", "lab/ml", etc.
     $vsBranchSimpleName = $branchData.vsBranch.Split('/')[-1]

@@ -1637,4 +1637,8 @@ This version used in: {2}</value>
   <data name="using_statement_can_be_simplified" xml:space="preserve">
     <value>'using' statement can be simplified</value>
   </data>
+  <data name="Make_readonly_fields_writable" xml:space="preserve">
+    <value>Make readonly fields writable</value>
+    <comment>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</comment>
+  </data>
 </root>

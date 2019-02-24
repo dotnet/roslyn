@@ -208,6 +208,7 @@
                 case ErrorCode.WRN_NullabilityMismatchInArgument:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
+                case ErrorCode.WRN_NullabilityMismatchInArgumentForOutput:
                 case ErrorCode.WRN_NullAsNonNullable:
                 case ErrorCode.WRN_NullableValueTypeMayBeNull:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
