@@ -22,24 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             SemanticModel semanticModel, OptionSet optionSet,
             State state, CancellationToken cancellationToken)
         {
-            var stylePreferences = state.TypeStylePreference;
-
-            if (state.IsInIntrinsicTypeContext)
-            {
-                return !stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes);
-            }
-            else if (state.IsTypeApparentInContext)
-            {
-                return !stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent);
-            }
-            else if (state.IsTypeExplicitInContext)
-            {
-                return !stylePreferences.HasFlag(UseVarPreference.WhenTypeIsExplicit);
-            }
-            else
-            {
-                return !stylePreferences.HasFlag(UseVarPreference.Elsewhere);
-            }
+            return TypeStyleHelper.IsExplicitStylePreferred(
+                state.TypeStylePreference, state.IsInIntrinsicTypeContext, state.IsTypeApparentInContext, state.IsTypeExplicitInContext);
         }
 
         protected override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)

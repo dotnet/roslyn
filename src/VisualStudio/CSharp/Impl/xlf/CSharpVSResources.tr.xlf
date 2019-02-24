@@ -587,6 +587,11 @@
         <target state="translated">'var' tercih et</target>
         <note />
       </trans-unit>
+      <trans-unit id="When_variable_type_is_explicit">
+        <source>When variable type is explicit</source>
+        <target state="new">When variable type is explicit</target>
+        <note />
+      </trans-unit>
       <trans-unit id="this_preferences_colon">
         <source>'this.' preferences:</source>
         <target state="translated">'This' tercihleri:</target>

@@ -25,19 +25,44 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
                 isTypeExplicitContext);
         }
 
-        private static bool IsImplicitStylePreferred(
+        public static bool IsImplicitStylePreferred(
             UseVarPreference stylePreferences,
             bool isBuiltInTypeContext,
             bool isTypeApparentContext,
             bool isTypeExplicitContext)
         {
-            return isBuiltInTypeContext
-                    ? stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes)
-                    : isTypeApparentContext
-                        ? stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent)
-                        : isTypeExplicitContext
-                            ? stylePreferences.HasFlag(UseVarPreference.WhenTypeIsExplicit)
-                            : stylePreferences.HasFlag(UseVarPreference.Elsewhere);
+            if (isBuiltInTypeContext)
+            {
+                return stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes);
+            }
+
+            if (isTypeApparentContext || isTypeExplicitContext)
+            {
+                return (isTypeApparentContext && stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent)) ||
+                       (isTypeExplicitContext && stylePreferences.HasFlag(UseVarPreference.WhenTypeIsExplicit));
+            }
+
+            return stylePreferences.HasFlag(UseVarPreference.Elsewhere);
+        }
+
+        public static bool IsExplicitStylePreferred(
+            UseVarPreference stylePreferences,
+            bool isBuiltInTypeContext,
+            bool isTypeApparentContext,
+            bool isTypeExplicitContext)
+        {
+            if (isBuiltInTypeContext)
+            {
+                return !stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes);
+            }
+
+            if (isTypeApparentContext || isTypeExplicitContext)
+            {
+                return (isTypeApparentContext && !stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent)) ||
+                       (isTypeExplicitContext && !stylePreferences.HasFlag(UseVarPreference.WhenTypeIsExplicit));
+            }
+
+            return !stylePreferences.HasFlag(UseVarPreference.Elsewhere);
         }
 
         /// <summary>
@@ -279,10 +304,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
                 return false;
             }
 
-            if (IsPossibleCreationMethod(methodSymbol, typeInDeclaration, typeInDeclaration))
+            if (methodSymbol.IsStatic)
             {
                 // something of the form Type.FactoryMethod.  The type is considered explicit here.
-                return true;
+                return typeInDeclaration.Equals(methodSymbol.ReturnType);
             }
 
             // Everything else we consider not explicit.
