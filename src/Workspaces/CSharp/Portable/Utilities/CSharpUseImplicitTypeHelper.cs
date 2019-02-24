@@ -79,15 +79,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             if (state.IsInIntrinsicTypeContext)
             {
-                return stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeForIntrinsicTypes);
+                return stylePreferences.HasFlag(UseVarPreference.ImplicitTypeForIntrinsicTypes);
             }
             else if (state.IsTypeApparentInContext)
             {
-                return stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeWhereApparent);
+                return stylePreferences.HasFlag(UseVarPreference.ImplicitTypeWhereApparent);
             }
             else
             {
-                return stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeWherePossible);
+                return stylePreferences.HasFlag(UseVarPreference.ImplicitTypeWherePossible);
             }
         }
 

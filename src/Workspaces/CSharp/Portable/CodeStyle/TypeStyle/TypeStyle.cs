@@ -11,11 +11,12 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 {
     [Flags]
-    internal enum TypeStylePreference
+    internal enum UseVarPreference
     {
         None = 0,
         ImplicitTypeForIntrinsicTypes = 1 << 0,
         ImplicitTypeWhereApparent = 1 << 1,
         ImplicitTypeWherePossible = 1 << 2,
+        // ImplicitTypeWhereExplicit = 1 << 3,
     }
 }

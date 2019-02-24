@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
         }
 
         private static bool IsImplicitStylePreferred(
-            TypeStylePreference stylePreferences, bool isBuiltInTypeContext, bool isTypeApparentContext)
+            UseVarPreference stylePreferences, bool isBuiltInTypeContext, bool isTypeApparentContext)
         {
             return isBuiltInTypeContext
-                    ? stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeForIntrinsicTypes)
+                    ? stylePreferences.HasFlag(UseVarPreference.ImplicitTypeForIntrinsicTypes)
                     : isTypeApparentContext
-                        ? stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeWhereApparent)
-                        : stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeWherePossible);
+                        ? stylePreferences.HasFlag(UseVarPreference.ImplicitTypeWhereApparent)
+                        : stylePreferences.HasFlag(UseVarPreference.ImplicitTypeWherePossible);
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
         /// Things (like analyzers) that do have a local declaration already, should pass this in.
         /// </remarks>
         public static bool IsTypeApparentInAssignmentExpression(
-            TypeStylePreference stylePreferences,
+            UseVarPreference stylePreferences,
             ExpressionSyntax initializerExpression,
             SemanticModel semanticModel,
             CancellationToken cancellationToken,
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             // literals, use var if options allow usage here.
             if (initializerExpression.IsAnyLiteralExpression())
             {
-                return stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeForIntrinsicTypes);
+                return stylePreferences.HasFlag(UseVarPreference.ImplicitTypeForIntrinsicTypes);
             }
 
             // constructor invocations cases:
@@ -255,9 +255,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             return node;
         }
 
-        private static TypeStylePreference GetCurrentTypeStylePreferences(OptionSet optionSet)
+        private static UseVarPreference GetCurrentTypeStylePreferences(OptionSet optionSet)
         {
-            var stylePreferences = TypeStylePreference.None;
+            var stylePreferences = UseVarPreference.None;
 
             var styleForIntrinsicTypes = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes);
             var styleForApparent = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent);
@@ -265,17 +265,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 
             if (styleForIntrinsicTypes.Value)
             {
-                stylePreferences |= TypeStylePreference.ImplicitTypeForIntrinsicTypes;
+                stylePreferences |= UseVarPreference.ImplicitTypeForIntrinsicTypes;
             }
 
             if (styleForApparent.Value)
             {
-                stylePreferences |= TypeStylePreference.ImplicitTypeWhereApparent;
+                stylePreferences |= UseVarPreference.ImplicitTypeWhereApparent;
             }
 
             if (styleForElsewhere.Value)
             {
-                stylePreferences |= TypeStylePreference.ImplicitTypeWherePossible;
+                stylePreferences |= UseVarPreference.ImplicitTypeWherePossible;
             }
 
             return stylePreferences;
