@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -13,37 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 {
     internal static class TypeStyleHelper
     {
-        /// <summary>
-        /// Given an expression or assignment, answers whether the declaration can use var keyword,
-        /// by looking at the user's style preferences obtained from options and the context
-        /// obtained from the expression.
-        /// </summary>
-        public static bool IsImplicitTypePreferred(
-            ExpressionSyntax initializerExpression,
-            SemanticModel semanticModel,
-            OptionSet optionSet,
-            CancellationToken cancellationToken)
-        {
-            var stylePreferences = GetCurrentTypeStylePreferences(optionSet);
-
-            var isBuiltInTypeContext = IsBuiltInType(initializerExpression, semanticModel, cancellationToken);
-
-            var isTypeApparentContext = IsTypeApparentInAssignmentExpression(
-                stylePreferences, initializerExpression, semanticModel, cancellationToken);
-
-            return IsImplicitStylePreferred(stylePreferences, isBuiltInTypeContext, isTypeApparentContext);
-        }
-
-        /// <summary>
-        /// Given an expression of assignment, answers if its type is
-        /// considered an intrinsic predefined type.
-        /// </summary>
-        private static bool IsBuiltInType(
-            ExpressionSyntax initializerExpression,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken) =>
-                IsBuiltInType(semanticModel.GetTypeInfo(initializerExpression, cancellationToken).Type);
-
         public static bool IsBuiltInType(ITypeSymbol type)
             => type?.IsSpecialType() == true;
 
@@ -78,16 +46,31 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             UseVarPreference stylePreferences,
             ExpressionSyntax initializerExpression,
             SemanticModel semanticModel,
-            CancellationToken cancellationToken,
-            ITypeSymbol typeInDeclaration = null)
+            ITypeSymbol typeInDeclaration,
+            CancellationToken cancellationToken)
         {
             // tuple literals
             if (initializerExpression.IsKind(SyntaxKind.TupleExpression))
             {
                 var tuple = (TupleExpressionSyntax)initializerExpression;
-                foreach (var argument in tuple.Arguments)
+                if (typeInDeclaration == null || !typeInDeclaration.IsTupleType)
                 {
-                    if (!IsTypeApparentInAssignmentExpression(stylePreferences, argument.Expression, semanticModel, cancellationToken, typeInDeclaration))
+                    return false;
+                }
+
+                var tupleType = (INamedTypeSymbol)typeInDeclaration;
+                if (tupleType.TupleElements.Length != tuple.Arguments.Count)
+                {
+                    return false;
+                }
+
+                for (int i = 0, n = tuple.Arguments.Count; i < n; i++)
+                {
+                    var argument = tuple.Arguments[i];
+                    var tupleElementType = tupleType.TupleElements[i].Type;
+
+                    if (!IsTypeApparentInAssignmentExpression(
+                            stylePreferences, argument.Expression, semanticModel, tupleElementType, cancellationToken))
                     {
                         return false;
                     }
