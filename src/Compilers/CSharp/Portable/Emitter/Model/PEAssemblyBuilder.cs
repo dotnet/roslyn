@@ -286,11 +286,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
 
-                CreateEmbeddedAttributeIfNeeded(
+                CreateEmbeddedNullableAttributeIfNeeded(
                     ref _lazyNullableAttribute,
-                    diagnostics,
-                    AttributeDescription.NullableAttribute,
-                    GetNullableAttributeConstructors);
+                    diagnostics);
             }
         }
 
@@ -305,42 +303,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private void CreateEmbeddedAttributeIfNeeded(
             ref SynthesizedEmbeddedAttributeSymbol symbol,
             DiagnosticBag diagnostics,
-            AttributeDescription description,
-            Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getConstructors = null)
+            AttributeDescription description)
         {
             if ((object)symbol == null)
             {
-                var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
-                var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
-                Debug.Assert((object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
-
-                if (!(userDefinedAttribute is MissingMetadataTypeSymbol))
-                {
-                    diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
-                }
-
-                symbol = new SynthesizedEmbeddedAttributeSymbol(description, _sourceAssembly.DeclaringCompilation, getConstructors, diagnostics);
+                AddDiagnosticsForExistingAttribute(description, diagnostics);
+                symbol = new SynthesizedEmbeddedAttributeSymbol(description, _sourceAssembly.DeclaringCompilation, diagnostics);
             }
         }
 
-        private static ImmutableArray<MethodSymbol> GetNullableAttributeConstructors(
-            CSharpCompilation compilation,
-            NamedTypeSymbol containingType,
+        private void CreateEmbeddedNullableAttributeIfNeeded(
+            ref SynthesizedEmbeddedAttributeSymbol symbol,
             DiagnosticBag diagnostics)
         {
-            var byteType = TypeSymbolWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Byte));
-            Binder.ReportUseSiteDiagnostics(byteType.TypeSymbol, diagnostics, Location.None);
-            var byteArray = TypeSymbolWithAnnotations.Create(
-                ArrayTypeSymbol.CreateSZArray(
-                    byteType.TypeSymbol.ContainingAssembly,
-                    byteType));
-            return ImmutableArray.Create<MethodSymbol>(
-                new SynthesizedEmbeddedAttributeConstructorSymbol(
-                    containingType,
-                    m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, byteType, 0, RefKind.None))),
-                new SynthesizedEmbeddedAttributeConstructorSymbol(
-                    containingType,
-                    m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, byteArray, 0, RefKind.None))));
+            if ((object)symbol == null)
+            {
+                AddDiagnosticsForExistingAttribute(AttributeDescription.NullableAttribute, diagnostics);
+                symbol = new SynthesizedEmbeddedNullableAttributeSymbol(_sourceAssembly.DeclaringCompilation, diagnostics);
+            }
+        }
+
+        private void AddDiagnosticsForExistingAttribute(AttributeDescription description, DiagnosticBag diagnostics)
+        {
+            var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
+            var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
+            Debug.Assert((object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
+
+            if (!(userDefinedAttribute is MissingMetadataTypeSymbol))
+            {
+                diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
+            }
         }
     }
 

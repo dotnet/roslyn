@@ -27,28 +27,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private readonly NamedTypeSymbol _baseType;
         private readonly NamespaceSymbol _namespace;
-        private readonly ImmutableArray<MethodSymbol> _constructors;
         private readonly ModuleSymbol _module;
+
+        protected ImmutableArray<MethodSymbol> _constructors;
 
         public SynthesizedEmbeddedAttributeSymbol(
             AttributeDescription description,
             CSharpCompilation compilation,
-            Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getConstructors,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool generateDefaultConstructors = true)
         {
             _name = description.Name;
             _baseType = MakeBaseType(compilation, diagnostics);
 
-            if (getConstructors != null)
-            {
-                _constructors = getConstructors(compilation, this, diagnostics);
-            }
-            else
+            if (generateDefaultConstructors)
             {
                 _constructors = ImmutableArray.Create<MethodSymbol>(new SynthesizedEmbeddedAttributeConstructorSymbol(this, m => ImmutableArray<ParameterSymbol>.Empty));
+                Debug.Assert(_constructors.Length == description.Signatures.Length);
             }
-
-            Debug.Assert(_constructors.Length == description.Signatures.Length);
 
             _module = compilation.SourceModule;
 
@@ -217,4 +213,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GenerateMethodBodyCore(compilationState, diagnostics);
         }
     }
+
 }
