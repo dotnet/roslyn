@@ -5,16 +5,17 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
-namespace Roslyn.VisualStudio.IntegrationTests.Basic
+namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicF1Help : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicF1Help(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicF1Help))
+        public BasicF1Help(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(BasicF1Help))
         {
         }
 

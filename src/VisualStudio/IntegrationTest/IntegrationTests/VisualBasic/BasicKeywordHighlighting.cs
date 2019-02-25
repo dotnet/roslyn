@@ -6,16 +6,17 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
-namespace Roslyn.VisualStudio.IntegrationTests.Basic
+namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicKeywordHighlighting : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicKeywordHighlighting(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicKeywordHighlighting))
+        public BasicKeywordHighlighting(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(BasicKeywordHighlighting))
         {
         }
 

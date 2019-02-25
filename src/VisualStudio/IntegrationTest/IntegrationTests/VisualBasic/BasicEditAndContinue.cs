@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -15,7 +16,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         private const string module1FileName = "Module1.vb";
 
-        public BasicEditAndContinue(VisualStudioInstanceFactory instanceFactory) : base(instanceFactory)
+        public BasicEditAndContinue(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
             VisualStudio.SolutionExplorer.CreateSolution(nameof(BasicBuild));
             var testProj = new ProjectUtils.Project("TestProj");

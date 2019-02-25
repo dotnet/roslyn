@@ -5,16 +5,17 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
-namespace Roslyn.VisualStudio.IntegrationTests.Basic
+namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicOrganizing : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicOrganizing(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicOrganizing))
+        public BasicOrganizing(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(BasicOrganizing))
         {
         }
 

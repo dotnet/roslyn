@@ -1,8 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
+using System.Linq;
 using System.Windows.Threading;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -12,11 +19,16 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
     public class TestingOnly_WaitingService
     {
         private readonly AsynchronousOperationListenerProvider _provider;
+        private readonly IForegroundNotificationService _foregroundNotificationService;
 
         [ImportingConstructor]
-        private TestingOnly_WaitingService(IAsynchronousOperationListenerProvider provider)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        internal TestingOnly_WaitingService(
+            IAsynchronousOperationListenerProvider provider,
+            [Import(AllowDefault = true)] IForegroundNotificationService foregroundNotificationService)
         {
             _provider = (AsynchronousOperationListenerProvider)provider;
+            _foregroundNotificationService = foregroundNotificationService;
         }
 
         public void WaitForAsyncOperations(string featureName, bool waitForWorkspaceFirst = true)
@@ -44,15 +56,43 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
             GC.KeepAlive(featureWaiter);
         }
 
-        public void WaitForAllAsyncOperations(params string[] featureNames)
+        public ImmutableArray<KeyValuePair<string, TimeSpan>> WaitForAllAsyncOperations(params string[] featureNames)
         {
+            var longRunningTokens = new Dictionary<string, TimeSpan>();
+            var stopwatch = Stopwatch.StartNew();
             var task = _provider.WaitAllAsync(
                 featureNames,
 #pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
-                eventProcessingAction: () => Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle));
+                eventProcessingAction: () => Dispatcher.CurrentDispatcher.Invoke(
+                    () =>
+                    {
+                        var foregroundNotificationService = _foregroundNotificationService as ForegroundNotificationService;
+                        foregroundNotificationService?.ReleaseCancelledItems();
+
+                        if (stopwatch.Elapsed > TimeSpan.FromMilliseconds(50))
+                        {
+                            IEnumerable<AsynchronousOperationListener.DiagnosticAsyncToken> tokens;
+                            if (featureNames == null || featureNames.Length == 0)
+                            {
+                                tokens = _provider.GetTokens();
+                            }
+                            else
+                            {
+                                tokens = featureNames.SelectMany(name => _provider.GetWaiter(name).ActiveDiagnosticTokens);
+                            }
+
+                            foreach (var token in tokens)
+                            {
+                                longRunningTokens[token.ToString()] = stopwatch.Elapsed;
+                            }
+                        }
+                    },
+                    DispatcherPriority.ApplicationIdle));
 #pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
 
             WaitForTask(task);
+
+            return longRunningTokens.ToImmutableArray();
         }
 
         public void EnableActiveTokenTracking(bool enable)
