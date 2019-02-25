@@ -133,6 +133,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void RenameFile(string projectName, string oldFileName, string newFileName)
         {
+            var project = GetProject(projectName);
+            var projectDirectory = Path.GetDirectoryName(project.FullName);
+
+            VsShellUtilities.RenameDocument(
+                ServiceProvider.GlobalProvider,
+                Path.Combine(projectDirectory, oldFileName),
+                Path.Combine(projectDirectory, newFileName));
+        }
+
+        public void RenameFileViaDTE(string projectName, string oldFileName, string newFileName)
+        {
             var projectItem = GetProjectItem(projectName, oldFileName);
 
             projectItem.Name = newFileName;
