@@ -1220,10 +1220,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool wasReachable = this.State.Reachable;
             ResultType = _invalidType;
             _ = base.VisitExpressionWithoutStackGuard(node);
+            TypeWithState resultType = ResultType;
 
 #if DEBUG
             // Verify Visit method set _result.
-            TypeWithState resultType = ResultType;
             Debug.Assert((object)resultType.Type != _invalidType.Type);
             Debug.Assert(AreCloseEnough(resultType.Type, node.Type));
 #endif
