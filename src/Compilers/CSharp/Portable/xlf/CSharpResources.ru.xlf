@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="ERR_AsNullableType">
         <source>It is not legal to use nullable reference type '{0}?' in an as expression; use the underlying type '{0}' instead.</source>
-        <target state="new">It is not legal to use nullable reference type '{0}?' in an as expression; use the underlying type '{0}' instead.</target>
+        <target state="translated">Недопустимо использовать ссылочный тип "{0}", допускающий значения NULL, в выражении "as". Используйте вместо него базовый тип "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
         <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
-        <target state="new">The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</target>
+        <target state="translated">Функция "{0}" сейчас находится на этапе предварительной версии и *является неподдерживаемой*. Для работы с предварительными версиями функций используйте версию языка "preview".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureIsExperimental">
@@ -159,7 +159,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
-        <target state="new">The suppression operator is not allowed in this context</target>
+        <target state="translated">Оператор подавления недопустим в данном контексте.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="ERR_IsNullableType">
         <source>It is not legal to use nullable reference type '{0}?' in an is-type expression; use the underlying type '{0}' instead.</source>
-        <target state="new">It is not legal to use nullable reference type '{0}?' in an is-type expression; use the underlying type '{0}' instead.</target>
+        <target state="translated">Недопустимо использовать ссылочный тип "{0}", допускающий значения NULL, в выражении "is-type". Используйте вместо него базовый тип "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IsPatternImpossible">
@@ -199,7 +199,7 @@
       </trans-unit>
       <trans-unit id="ERR_IteratorMustBeAsync">
         <source>Method '{0}' with an iterator block must be 'async' to return '{1}'</source>
-        <target state="new">Method '{0}' with an iterator block must be 'async' to return '{1}'</target>
+        <target state="translated">Чтобы возвращать "{1}", метод "{0}" с блоком итератора должен быть асинхронным ("async").</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPattern">
@@ -214,12 +214,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="needs-review-translation">"{0}": тип, используемый в асинхронном операторе using, должен допускать неявное преобразование к типу "System.IAsyncDisposable". Возможно, вы имели в виду "using", а не "await using"?</target>
+        <target state="translated">"{0}": тип, используемый в асинхронном операторе using, должен допускать неявное преобразование в тип "System.IAsyncDisposable" или реализовывать подходящий метод "DisposeAsync". Возможно, вы имели в виду "using", а не "await using"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
         <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</source>
-        <target state="needs-review-translation">"{0}": тип, используемый в операторе using, должен допускать неявное преобразование к типу "System.IDisposable". Возможно, вы имели в виду "await using", а не "using"?</target>
+        <target state="translated">"{0}": тип, используемый в операторе using, должен допускать неявное преобразование в тип "System.IDisposable" или реализовывать подходящий метод "Dispose". Возможно, вы имели в виду "await using", а не "using"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
@@ -534,151 +534,151 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="new">
-                             Visual C# Compiler Options
+        <target state="translated">
+                              Параметры компилятора Visual C#
 
-                       - OUTPUT FILES -
--out:&lt;file&gt;                   Specify output file name (default: base name of
-                              file with main class or first file)
--target:exe                   Build a console executable (default) (Short
-                              form: -t:exe)
--target:winexe                Build a Windows executable (Short form:
-                              -t:winexe)
--target:library               Build a library (Short form: -t:library)
--target:module                Build a module that can be added to another
-                              assembly (Short form: -t:module)
--target:appcontainerexe       Build an Appcontainer executable (Short form:
-                              -t:appcontainerexe)
--target:winmdobj              Build a Windows Runtime intermediate file that
-                              is consumed by WinMDExp (Short form: -t:winmdobj)
--doc:&lt;file&gt;                   XML Documentation file to generate
--refout:&lt;file&gt;                Reference assembly output to generate
--platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
-                              anycpu. The default is anycpu.
+                        - ВЫХОДНЫЕ ФАЙЛЫ -
+-out:&lt;файл&gt;                   Указывает имя выходного файла (по умолчанию: базовое имя
+                               файла с классом main или имя первого файла)
+-target:exe                   По умолчанию выполняет сборку консольного исполняемого файла (краткая
+                               форма: -t:exe)
+-target:winexe                Выполняет сборку исполняемого файла Windows (краткая форма:
+                               -t:winexe)
+-target:library               Выполняет сборку библиотеки (краткая форма: -t:library)
+-target:module                Выполняет сборку модуля, который может быть добавлен в другую
+                               сборку (краткая форма: -t:module)
+-target:appcontainerexe       Выполняет сборку исполняемого файла контейнера приложений (краткая форма:
+                               -t:appcontainerexe)
+-target:winmdobj              Выполняет сборку промежуточного файла среды выполнения Windows,
+                               используемого в WinMDExp (краткая форма: -t:winmdobj)
+-doc:&lt;файл&gt;                   Создаваемый XML-файл документации
+-refout:&lt;файл&gt;                Создаваемые выходные данные базовой сборки.
+-platform:&lt;строка&gt;            Ограничить платформы, на которых может выполняться этот код: x86,
+                               Itanium, x64, arm, arm64, anycpu32bitpreferred или
+                               anycpu. Значение по умолчанию — anycpu.
 
-                       - INPUT FILES -
--recurse:&lt;wildcard&gt;           Include all files in the current directory and
-                              subdirectories according to the wildcard
-                              specifications
--reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
-                              file using the given alias (Short form: -r)
--reference:&lt;file list&gt;        Reference metadata from the specified assembly
-                              files (Short form: -r)
--addmodule:&lt;file list&gt;        Link the specified modules into this assembly
--link:&lt;file list&gt;             Embed metadata from the specified interop
-                              assembly files (Short form: -l)
--analyzer:&lt;file list&gt;         Run the analyzers from this assembly
-                              (Short form: -a)
--additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
-                              generation but may be used by analyzers for producing
-                              errors or warnings.
--embed                        Embed all source files in the PDB.
--embed:&lt;file list&gt;            Embed specific files in the PDB
+                        - ВХОДНЫЕ ФАЙЛЫ -
+-recurse:&lt;подстановочный знак&gt;           Включить все файлы в текущем каталоге и
+                               подкаталогах в соответствии с заданным
+                               подстановочным знаком
+-reference:&lt;псевдоним&gt;=&lt;файл&gt;     Ссылаться на метаданные из заданного файла
+                               сборки с помощью определенного псевдонима (краткая форма: -r)
+-reference:&lt;список файлов&gt;        Ссылаться на метаданные из заданных файлов
+                               сборки (краткая форма: -r)
+-addmodule:&lt;список файлов&gt;        Скомпоновать указанные модули вместе с этой сборкой
+-link:&lt;список файлов&gt;             Внедрить метаданные из указанных файлов
+                               сборок взаимодействия (краткая форма: -l)
+-analyzer:&lt;список файлов&gt;         Запускать анализаторы из этой сборки
+                               (краткая форма: -a)
+-additionalfile:&lt;список файлов&gt;   Дополнительные файлы, которые не оказывают прямого влияния на создание
+                               кода, но могут использоваться анализаторами для вывода
+                               ошибок или предупреждений.
+-embed                        Внедрить все исходные файлы в PDB.
+-embed:&lt;список файлов&gt;            Внедрить указанные файлы в PDB.
 
-                       - RESOURCES -
--win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
--win32icon:&lt;file&gt;             Use this icon for the output
--win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
--nowin32manifest              Do not include the default Win32 manifest
--resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
--linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
-                              (Short form: -linkres) Where the resinfo format
-                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+                        - РЕСУРСЫ -
+-win32res:&lt;файл&gt;              Задает файл ресурсов Win32 (RES-файл)
+-win32icon:&lt;файл&gt;             Использовать этот значок для вывода.
+-win32manifest:&lt;файл&gt;         Задает файл манифеста Win32 (XML-файл).
+-nowin32manifest              Не включать манифест Win32 по умолчанию.
+-resource:&lt;ресурс&gt;           Внедрить указанный ресурс (краткая форма: -res)
+-linkresource:&lt;ресурс&gt;       Скомпоновать указанный ресурс вместе с этой сборкой
+                               (краткая форма: -linkres), где данные о ресурсах имеют формат
+                               &lt;файл&gt;[,&lt;имя строки&gt;[,public|private]]
 
-                       - CODE GENERATION -
--debug[+|-]                   Emit debugging information
+                        - СОЗДАНИЕ КОДА -
+-debug[+|-]                   Выдать отладочную информацию.
 -debug:{full|pdbonly|portable|embedded}
-                              Specify debugging type ('full' is default,
-                              'portable' is a cross-platform format,
-                              'embedded' is a cross-platform format embedded into
-                              the target .dll or .exe)
--optimize[+|-]                Enable optimizations (Short form: -o)
--deterministic                Produce a deterministic assembly
-                              (including module version GUID and timestamp)
--refonly                      Produce a reference assembly in place of the main output
--instrument:TestCoverage      Produce an assembly instrumented to collect
-                              coverage information
--sourcelink:&lt;file&gt;            Source link info to embed into PDB.
+                               Задать тип отладки (по умолчанию — "full",
+                               "portable" — кроссплатформенный формат,
+                               "embedded" — кроссплатформенный формат, внедряемый в
+                               целевой DLL- или EXE-файл)
+-optimize[+|-]                Включить оптимизацию (краткая форма: -o)
+-deterministic                Создать детерминированную сборку
+                               (включая GUID версии модуля и метку времени)
+-refonly                      Создать базовую сборку вместо основных выходных данных.
+-instrument:TestCoverage      Создать сборку, инструментированную для сбора
+                               сведений об объеме протестированного кода.
+-sourcelink:&lt;файл&gt;            Данные о ссылке на исходные файлы для внедрения в PDB.
 
-                       - ERRORS AND WARNINGS -
--warnaserror[+|-]             Report all warnings as errors
--warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
--warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
--nowarn:&lt;warn list&gt;           Disable specific warning messages
--ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
-                              diagnostics.
--errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
-                              diagnostics.
--reportanalyzer               Report additional analyzer information, such as
-                              execution time.
+                        - ОШИБКИ И ПРЕДУПРЕЖДЕНИЯ -
+-warnaserror[+|-]             Записывать все предупреждения как ошибки.
+-warnaserror[+|-]:&lt;предупреждения&gt; Записывать указанные предупреждения как ошибки.
+-warn:&lt;n&gt;                     Задать уровень генерации предупреждений (0–4) (краткая форма: -w)
+-nowarn:&lt;предупреждения&gt;           Отключить указанные предупреждения.
+-ruleset:&lt;файл&gt;               Указать файл набора правил, отключающий определенные
+                               диагностические операции.
+-errorlog:&lt;файл&gt;              Указать файл для записи всех диагностических данных
+                               компилятора и анализатора.
+-reportanalyzer               Сообщить дополнительные сведения об анализаторе, например
+                               время выполнения.
 
-                       - LANGUAGE -
--checked[+|-]                 Generate overflow checks
--unsafe[+|-]                  Allow 'unsafe' code
--define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
-                              form: -d)
--langversion:?                Display the allowed values for language version
--langversion:&lt;string&gt;         Specify language version such as
-                              `default` (latest major version), or
-                              `latest` (latest version, including minor versions),
-                              or specific versions like `6` or `7.1`
--nullable[+|-]                Specify nullable context option enable|disable.
+                        - ЯЗЫК -
+-checked[+|-]                 Создать проверки переполнений.
+-unsafe[+|-]                  Допускать "небезопасный" код.
+-define:&lt;список символов&gt;         Определить символы условной компиляции (краткая
+                               форма: -d)
+-langversion:?         Указать допустимые значения для версии языка
+-langversion:&lt;строка&gt;         Указать языковую версию, например
+                               "default" (последняя основная версия) или
+                               "latest" (последняя версия, включая дополнительные),
+                               или конкретные версии, например 6 или 7.1.
+-nullable[+|-]                Укажите параметр контекста, допускающий значение NULL enable|disable.
 -nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
-                              Specify nullable context option enable|disable|safeonly|warnings|safeonlywarnings.
+                              Укажите параметр контекста, допускающий значение NULL enable|disable|safeonly|warnings|safeonlywarnings.
 
-                       - SECURITY -
--delaysign[+|-]               Delay-sign the assembly using only the public
-                              portion of the strong name key
--publicsign[+|-]              Public-sign the assembly using only the public
-                              portion of the strong name key
--keyfile:&lt;file&gt;               Specify a strong name key file
--keycontainer:&lt;string&gt;        Specify a strong name key container
--highentropyva[+|-]           Enable high-entropy ASLR
+                        - БЕЗОПАСНОСТЬ -
+-delaysign[+|-]               Использовать отложенную подпись для сборки, применяя только открытую
+                               часть ключа строгого имени
+-publicsign[+|-]              Подписать сборку, используя только открытую
+                               часть ключа строгого имени
+-keyfile:&lt;файл&gt;               Указать файл ключей строгого имени.
+-keycontainer:&lt;строка&gt;        Указать контейнер ключей строгого имени.
+-highentropyva[+|-]           Включить ASLR с высокой энтропией.
 
-                       - MISCELLANEOUS -
-@&lt;file&gt;                       Read response file for more options
--help                         Display this usage message (Short form: -?)
--nologo                       Suppress compiler copyright message
--noconfig                     Do not auto include CSC.RSP file
--parallel[+|-]                Concurrent build.
--version                      Display the compiler version number and exit.
+                        - ПРОЧЕЕ -
+ @&lt;файл&gt;                       Считать файл ответов с дополнительными параметрами.
+-help                         Отображать это сообщение об использовании (краткая форма: -?)
+-nologo                       Запрещать отображение сообщения компилятора об авторских правах.
+-noconfig                     Не включать файл CSC.RSP автоматически.
+-parallel[+|-]                Параллельная сборка.
+-version                      Отобразить номер версии компилятора и выйти.
 
-                       - ADVANCED -
--baseaddress:&lt;address&gt;        Base address for the library to be built
--checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
-                              checksum stored in PDB. Supported values are:
-                              SHA1 or SHA256 (default).
--codepage:&lt;n&gt;                 Specify the codepage to use when opening source
-                              files
--utf8output                   Output compiler messages in UTF-8 encoding
--main:&lt;type&gt;                  Specify the type that contains the entry point
-                              (ignore all other possible entry points) (Short
-                              form: -m)
--fullpaths                    Compiler generates fully qualified paths
--filealign:&lt;n&gt;                Specify the alignment used for output file
-                              sections
+                        - ДОПОЛНИТЕЛЬНО -
+-baseaddress:&lt;адрес&gt;        Базовый адрес библиотеки, для которой выполняется сборка.
+-checksumalgorithm:&lt;алгоритм&gt;      Задать алгоритм для расчета контрольной суммы
+                               исходного файла, хранимой в формате PDB. Поддерживаемые значения:
+                               SHA1 или SHA256 (по умолчанию).
+-codepage:&lt;n&gt;                 Задать кодовую страницу, используемую при открытии исходных
+                               файлов.
+-utf8output                   Выводить сообщения компилятора в кодировке UTF-8.
+-main:&lt;тип&gt;                  Указать тип, содержащий точку входа
+                               (все другие возможные точки входа игнорируются) (краткая
+                               форма: -m)
+-fullpaths                    Компилятор создает полные пути.
+-filealign:&lt;n&gt;                Задать выравнивание для разделов выходных
+                               файлов.
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              Specify a mapping for source path names output by
-                              the compiler.
--pdb:&lt;file&gt;                   Specify debug information file name (default:
-                              output file name with .pdb extension)
--errorendlocation             Output line and column of the end location of
-                              each error
--preferreduilang              Specify the preferred output language name.
--nosdkpath                    Disable searching the default SDK path for standard library assemblies.
--nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
--subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
--lib:&lt;file list&gt;              Specify additional directories to search in for
-                              references
--errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
-                              prompt, send, queue, or none. The default is
-                              queue.
--appconfig:&lt;file&gt;             Specify an application configuration file
-                              containing assembly binding settings
--moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
-                              a part of
--modulename:&lt;string&gt;          Specify the name of the source module
+                               Задать сопоставление для выходных данных имен исходного пути по
+                               компилятору.
+-pdb:&lt;файл&gt;                   Задать имя файла для отладочной информации (по умолчанию
+                               используется имя выходного файла с расширением PDB)
+-errorendlocation             Выводить строку и столбец конечного расположения
+                               каждой ошибки.
+-preferreduilang              Указать имя предпочтительного языка вывода.
+-nosdkpath                    Отключение поиска пути пакета SDK по умолчанию для сборок стандартных библиотек.
+-nostdlib[+|-]                Не обращаться к стандартной библиотеке (mscorlib.dll).
+-subsystemversion:&lt;строка&gt;    Задать версию подсистемы этой сборки.
+-lib:&lt;список файлов&gt;              Задать дополнительные каталоги для поиска
+                               ссылок.
+-errorreport:&lt;строка&gt;         Указать способ обработки внутренних ошибок компилятора:
+                               prompt, send, queue или none. По умолчанию используется
+                               queue.
+-appconfig:&lt;файл&gt;             Указать файл конфигурации приложения,
+                               содержащий параметры привязки сборки.
+-moduleassemblyname:&lt;строка&gt;  Имя сборки, частью которой будет являться
+                               этот модуль.
+-modulename:&lt;строка&gt;          Задать имя исходного модуля.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -729,7 +729,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
         <source>name shadowing in nested functions</source>
-        <target state="new">name shadowing in nested functions</target>
+        <target state="translated">скрытие имен во вложенных функциях</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
@@ -744,7 +744,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnableOrSafeOnly">
         <source>warning action enable or safeonly</source>
-        <target state="new">warning action enable or safeonly</target>
+        <target state="translated">действие warning с enable или safeonly</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRangeOperator">
@@ -1254,12 +1254,12 @@
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarningSafeOnly">
         <source>Expected nullable</source>
-        <target state="new">Expected nullable</target>
+        <target state="translated">Ожидается тип, допускающий значения NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarningSafeOnly_Title">
         <source>Expected nullable after #pragma warning safeonly</source>
-        <target state="new">Expected nullable after #pragma warning safeonly</target>
+        <target state="translated">После #pragma warning safeonly ожидается тип, допускающий значения NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IsTypeNamedUnderscore">
@@ -5212,7 +5212,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_NoVoidHere">
         <source>Keyword 'void' cannot be used in this context</source>
-        <target state="translated">Использование ключевого слова "void" в этом контексте недопустимо. </target>
+        <target state="translated">Использование ключевого слова "void" в этом контексте недопустимо.
+</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IndexerNeedsParam">
@@ -5637,12 +5638,12 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
         <source>Expected disable, restore, enable or safeonly</source>
-        <target state="needs-review-translation">Требуется disable или restore</target>
+        <target state="translated">Ожидается disable, restore, enable или safeonly.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
         <source>Expected disable, restore, enable or safeonly after #pragma warning</source>
-        <target state="needs-review-translation">После предупреждения #pragma ожидается отключение или восстановление</target>
+        <target state="translated">После #pragma warning ожидается disable, restore, enable или safeonly.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">
@@ -5887,7 +5888,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
         <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.</source>
-        <target state="needs-review-translation">"{0}": тип, использованный в операторе using, должен иметь неявное преобразование в "System.IDisposable".</target>
+        <target state="translated">"{0}": тип, используемый в операторе using, должен допускать неявное преобразование в тип "System.IDisposable" или реализовывать подходящий метод "Dispose".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -7477,7 +7478,8 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsDynamicOperation">
         <source>An expression tree may not contain a dynamic operation</source>
-        <target state="translated">Дерево выражения не может содержать динамическую операцию. </target>
+        <target state="translated">Дерево выражения не может содержать динамическую операцию.
+</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncExpressionTree">
@@ -9495,7 +9497,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
         <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="needs-review-translation">'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'</target>
+        <target state="translated">"{0}": тип, используемый в асинхронном операторе using, должен допускать неявное преобразование в тип "System.IAsyncDisposable" или реализовывать подходящий метод "DisposeAsync".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

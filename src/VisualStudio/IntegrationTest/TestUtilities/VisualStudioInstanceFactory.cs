@@ -39,9 +39,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             var majorVsProductVersion = VsProductVersion.Split('.')[0];
 
-            if (int.Parse(majorVsProductVersion) < 15)
+            if (int.Parse(majorVsProductVersion) < 16)
             {
-                throw new PlatformNotSupportedException("The Visual Studio Integration Test Framework is only supported on Visual Studio 15.0 and later.");
+                throw new PlatformNotSupportedException("The Visual Studio Integration Test Framework is only supported on Visual Studio 16.0 and later.");
             }
         }
 

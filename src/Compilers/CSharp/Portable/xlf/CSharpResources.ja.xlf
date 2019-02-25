@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="ERR_AsNullableType">
         <source>It is not legal to use nullable reference type '{0}?' in an as expression; use the underlying type '{0}' instead.</source>
-        <target state="new">It is not legal to use nullable reference type '{0}?' in an as expression; use the underlying type '{0}' instead.</target>
+        <target state="translated">as 式で Null 許容参照型 '{0}?' を使用することはできません。代わりに基になる型 '{0}' をご使用ください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
         <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
-        <target state="new">The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</target>
+        <target state="translated">機能 '{0}' は現在、プレビュー段階であり、*サポートされていません*。プレビュー機能を使用するには、'preview' 言語バージョンを使用してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureIsExperimental">
@@ -159,7 +159,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
-        <target state="new">The suppression operator is not allowed in this context</target>
+        <target state="translated">このコンテキストでは抑制演算子が許可されていません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="ERR_IsNullableType">
         <source>It is not legal to use nullable reference type '{0}?' in an is-type expression; use the underlying type '{0}' instead.</source>
-        <target state="new">It is not legal to use nullable reference type '{0}?' in an is-type expression; use the underlying type '{0}' instead.</target>
+        <target state="translated">is-type 式で Null 許容参照型 '{0}?' を使用することはできません。代わりに基になる型 '{0}' をご使用ください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IsPatternImpossible">
@@ -199,7 +199,7 @@
       </trans-unit>
       <trans-unit id="ERR_IteratorMustBeAsync">
         <source>Method '{0}' with an iterator block must be 'async' to return '{1}'</source>
-        <target state="new">Method '{0}' with an iterator block must be 'async' to return '{1}'</target>
+        <target state="translated">反復子ブロックを伴うメソッド '{0}' が '{1}' を返すには 'async' でなければなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPattern">
@@ -214,12 +214,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="needs-review-translation">'{0}': 非同期 using ステートメントで使用される型は、暗黙的に 'System.IAsyncDisposable' への変換が可能でなければなりません。'await using' ではなく 'using' ですか?</target>
+        <target state="translated">'{0}': 非同期 using ステートメントで使用される型は、暗黙的に 'System.IAsyncDisposable' に変換可能であるか、適切な 'DisposeAsync' メソッドを実装する必要があります。'await using' ではなく 'using' ですか?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
         <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</source>
-        <target state="needs-review-translation">{0}': using ステートメントで使用される型は、暗黙的に 'System.IDisposable' への変換が可能でなければなりません。'using' ではなく 'await using' ですか?</target>
+        <target state="translated">'{0}': using ステートメントで使用される型は、暗黙的に 'System.IDisposable' に変換可能であるか、適切な 'Dispose' メソッドを実装する必要があります。'using' ではなく 'await using' ですか?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
@@ -534,151 +534,151 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="new">
-                             Visual C# Compiler Options
+        <target state="translated">
+                              Visual C# Compiler のオプション
 
-                       - OUTPUT FILES -
--out:&lt;file&gt;                   Specify output file name (default: base name of
-                              file with main class or first file)
--target:exe                   Build a console executable (default) (Short
-                              form: -t:exe)
--target:winexe                Build a Windows executable (Short form:
-                              -t:winexe)
--target:library               Build a library (Short form: -t:library)
--target:module                Build a module that can be added to another
-                              assembly (Short form: -t:module)
--target:appcontainerexe       Build an Appcontainer executable (Short form:
-                              -t:appcontainerexe)
--target:winmdobj              Build a Windows Runtime intermediate file that
-                              is consumed by WinMDExp (Short form: -t:winmdobj)
--doc:&lt;file&gt;                   XML Documentation file to generate
--refout:&lt;file&gt;                Reference assembly output to generate
--platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
-                              anycpu. The default is anycpu.
+                        - 出力ファイル -
+-out:&lt;file&gt;                   出力ファイル名を指定します (既定: メイン クラス
+                               のあるファイルまたは最初のファイルのベース名)
+-target:exe                   コンソール実行可能ファイルをビルドします (既定) (短い
+                               形式: -t:exe)
+-target:winexe                Windows 実行可能ファイルをビルドします (短い形式:
+                               -t:winexe)
+-target:library               ライブラリをビルドします (短い形式: -t:library)
+-target:module                別のアセンブリに追加できるモジュールをビルド
+                               します (短い形式: -t:module)
+-target:appcontainerexe       Appcontainer 実行可能ファイルをビルドします (短い形式:
+                               -t:appcontainerexe)
+-target:winmdobj              WinMDExp で使用される
+                               Windows ランタイムの中間ファイルをビルドします (短い形式: -t:winmdobj)
+-doc:&lt;file&gt;                   生成する XML ドキュメント ファイル
+-refout:&lt;file&gt;                生成する参照アセンブリ出力
+-platform:&lt;string&gt;            このコードを実行できるプラットフォームを x86、
+                               Itanium、x64、arm、arm64、anycpu32bitpreferred、
+                               anycpu に制限します。既定は anycpu です。
 
-                       - INPUT FILES -
--recurse:&lt;wildcard&gt;           Include all files in the current directory and
-                              subdirectories according to the wildcard
-                              specifications
--reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
-                              file using the given alias (Short form: -r)
--reference:&lt;file list&gt;        Reference metadata from the specified assembly
-                              files (Short form: -r)
--addmodule:&lt;file list&gt;        Link the specified modules into this assembly
--link:&lt;file list&gt;             Embed metadata from the specified interop
-                              assembly files (Short form: -l)
--analyzer:&lt;file list&gt;         Run the analyzers from this assembly
-                              (Short form: -a)
--additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
-                              generation but may be used by analyzers for producing
-                              errors or warnings.
--embed                        Embed all source files in the PDB.
--embed:&lt;file list&gt;            Embed specific files in the PDB
+                        - 入力ファイル -
+-recurse:&lt;wildcard&gt;           ワイルドカードの指定に従い、現行ディレクトリおよび
+                               サブディレクトリ内のすべてのファイルを
+                               インクルードします
+-reference:&lt;alias&gt;=&lt;file&gt;     指定されたエイリアスを使用して、指定された
+                               アセンブリ ファイルのメタデータを参照します (短い形式: -r)
+-reference:&lt;file list&gt;        指定されたアセンブリ ファイルのメタデータを参照
+                               します (短い形式: -r)
+-addmodule:&lt;file list&gt;        指定されたモジュールをこのアセンブリにリンクします
+-link:&lt;file list&gt;             指定された相互運用アセンブリ ファイルのメタデータを
+                               埋め込みます (短い形式: -l)
+-analyzer:&lt;file list&gt;         このアセンブリからアナライザーを実行します
+                               (短い形式: -a)
+-additionalfile:&lt;file list&gt;   コード生成には直接影響しないものの、
+                               アナライザーがエラーまたは警告を
+                               生成するときに使用する可能性のある追加ファイル。
+-embed                        すべてのソース ファイルを PDB に埋め込みます。
+-embed:&lt;file list&gt;            特定のファイルを PDB に埋め込みます
 
-                       - RESOURCES -
--win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
--win32icon:&lt;file&gt;             Use this icon for the output
--win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
--nowin32manifest              Do not include the default Win32 manifest
--resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
--linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
-                              (Short form: -linkres) Where the resinfo format
-                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+                        - リソース -
+-win32res:&lt;file&gt;              Win32 リソース ファイル (.res) を指定します
+-win32icon:&lt;file&gt;             出力にこのアイコンを使用します
+-win32manifest:&lt;file&gt;         Win32 マニフェスト ファイル (.xml) を指定します
+-nowin32manifest              既定の Win32 マニフェストはインクルードしません
+-resource:&lt;resinfo&gt;           指定されたリソースを埋め込みます (短い形式: -res)
+-linkresource:&lt;resinfo&gt;       指定されたリソースをこのアセンブリにリンクします
+                               (短い形式: -linkres) ここで resinfo の形式
+                               は &lt;file&gt;[,&lt;string name&gt;[,public|private]] です
 
-                       - CODE GENERATION -
--debug[+|-]                   Emit debugging information
+                        - コード生成 -
+-debug[+|-]                   デバッグ情報を生成します
 -debug:{full|pdbonly|portable|embedded}
-                              Specify debugging type ('full' is default,
-                              'portable' is a cross-platform format,
-                              'embedded' is a cross-platform format embedded into
-                              the target .dll or .exe)
--optimize[+|-]                Enable optimizations (Short form: -o)
--deterministic                Produce a deterministic assembly
-                              (including module version GUID and timestamp)
--refonly                      Produce a reference assembly in place of the main output
--instrument:TestCoverage      Produce an assembly instrumented to collect
-                              coverage information
--sourcelink:&lt;file&gt;            Source link info to embed into PDB.
+                               デバッグの種類を指定します ('full' が既定です。
+                               'portable' はクロスプラットフォーム形式です。
+                               'embedded' は、ターゲット .dll または .exe に
+                               埋め込まれるクロスプラットフォーム形式です)
+-optimize[+|-]                最適化を有効にします (短い形式: -o)
+-deterministic                決定論的アセンブリを作成します
+                               (モジュール バージョン GUID やタイムスタンプなど)
+-refonly                      メイン出力の代わりに参照アセンブリを生成します
+-instrument:TestCoverage      収集するためのインストルメント化されたアセンブリを作成します
+                               カバレッジ情報
+-sourcelink:&lt;file&gt;            PDB に埋め込むソース リンク情報。
 
-                       - ERRORS AND WARNINGS -
--warnaserror[+|-]             Report all warnings as errors
--warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
--warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
--nowarn:&lt;warn list&gt;           Disable specific warning messages
--ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
-                              diagnostics.
--errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
-                              diagnostics.
--reportanalyzer               Report additional analyzer information, such as
-                              execution time.
+                        - エラーと警告 -
+-warnaserror[+|-]             すべての警告をエラーとして報告します
+-warnaserror[+|-]:&lt;warn list&gt; 特定の警告をエラーとして報告します
+-warn:&lt;n&gt;                     警告レベル (0-4) を設定します (短い形式: -w)
+-nowarn:&lt;warn list&gt;           特定の警告メッセージを無効にします
+-ruleset:&lt;file&gt;               特定の診断を無効にするルールセット ファイルを
+                               指定します。
+-errorlog:&lt;file&gt;              すべてのコンパイラとアナライザーの診断をログに記録するための
+                               ファイルを指定します。
+-reportanalyzer               追加のアナライザー情報を報告します
+                               (実行時間など)。
 
-                       - LANGUAGE -
--checked[+|-]                 Generate overflow checks
--unsafe[+|-]                  Allow 'unsafe' code
--define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
-                              form: -d)
--langversion:?                Display the allowed values for language version
--langversion:&lt;string&gt;         Specify language version such as
-                              `default` (latest major version), or
-                              `latest` (latest version, including minor versions),
-                              or specific versions like `6` or `7.1`
--nullable[+|-]                Specify nullable context option enable|disable.
+                        - 言語 -
+-checked[+|-]                 オーバーフロー検査を生成します
+-unsafe[+|-]                  '安全でない' コードを許可します
+-define:&lt;symbol list&gt;         条件付きコンパイル シンボルを定義します (短い
+                               形式: -d)
+-langversion:?                言語バージョンに許容される値を表示します
+-langversion:&lt;string&gt;         `default` (最新のメジャー バージョン)や
+                               `latest` (マイナー バージョンを含む最新バージョン)
+                               または `6` や `7.1` の特定バージョンなどの
+                               言語バージョンを指定します。
+-nullable[+|-]                Null 許容コンテキスト オプション enable|disable を指定します。
 -nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
-                              Specify nullable context option enable|disable|safeonly|warnings|safeonlywarnings.
+                              Null 許容コンテキスト オプション enable|disable|safeonly|warnings|safeonlywarnings を指定します。
 
-                       - SECURITY -
--delaysign[+|-]               Delay-sign the assembly using only the public
-                              portion of the strong name key
--publicsign[+|-]              Public-sign the assembly using only the public
-                              portion of the strong name key
--keyfile:&lt;file&gt;               Specify a strong name key file
--keycontainer:&lt;string&gt;        Specify a strong name key container
--highentropyva[+|-]           Enable high-entropy ASLR
+                        - SECURITY -
+-delaysign[+|-]               厳密な名前キーのパブリックな部分のみを使って
+                               アセンブリを遅延署名します
+-publicsign[+|-]              厳密な名前キーのパブリックな部分のみを使って
+                               アセンブリを公開署名します
+-keyfile:&lt;file&gt;               厳密な名前キーのファイルを指定します
+-keycontainer:&lt;string&gt;        厳密な名前キーのコンテナーを指定します
+-highentropyva[+|-]           高エントロピ ASLR を有効化します
 
-                       - MISCELLANEOUS -
-@&lt;file&gt;                       Read response file for more options
--help                         Display this usage message (Short form: -?)
--nologo                       Suppress compiler copyright message
--noconfig                     Do not auto include CSC.RSP file
--parallel[+|-]                Concurrent build.
--version                      Display the compiler version number and exit.
+                        - その他 -
+ @&lt;file&gt;                       応答ファイルを読み取り、オプションを追加します
+-help                         使用法に関するメッセージを表示します (短い形式: -?)
+-nologo                       コンパイル時の著作権メッセージを表示しません
+-noconfig                     CSC.RSP ファイルを自動的に含めません
+-parallel[+|-]                ビルドを並列処理します。
+-version                      コンパイラのバージョン番号を出力して終了します。
 
-                       - ADVANCED -
--baseaddress:&lt;address&gt;        Base address for the library to be built
--checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
-                              checksum stored in PDB. Supported values are:
-                              SHA1 or SHA256 (default).
--codepage:&lt;n&gt;                 Specify the codepage to use when opening source
-                              files
--utf8output                   Output compiler messages in UTF-8 encoding
--main:&lt;type&gt;                  Specify the type that contains the entry point
-                              (ignore all other possible entry points) (Short
-                              form: -m)
--fullpaths                    Compiler generates fully qualified paths
--filealign:&lt;n&gt;                Specify the alignment used for output file
-                              sections
+                        - 詳細 -
+-baseaddress:&lt;address&gt;        ビルドするライブラリのベース アドレス
+-checksumalgorithm:&lt;alg&gt;      PDB に格納されているソース ファイルのチェックサム
+                               を計算するアルゴリズムを指定します。サポートされる値:
+                               SHA1 または SHA256 (既定)。
+-codepage:&lt;n&gt;                 ソース ファイルを開くときに使用するコード ページを
+                               指定します
+-utf8output                   コンパイラ メッセージを UTF-8 エンコードで出力します
+-main:&lt;type&gt;                  エントリ ポイントを含む型を指定します
+                               (他のエントリ ポイントはすべて無視します) (短い
+                               形式: -m)
+-fullpaths                    コンパイラは完全修飾パスを生成します
+-filealign:&lt;n&gt;                出力ファイル セクションで使用する配置を指定
+                               します
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              Specify a mapping for source path names output by
-                              the compiler.
--pdb:&lt;file&gt;                   Specify debug information file name (default:
-                              output file name with .pdb extension)
--errorendlocation             Output line and column of the end location of
-                              each error
--preferreduilang              Specify the preferred output language name.
--nosdkpath                    Disable searching the default SDK path for standard library assemblies.
--nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
--subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
--lib:&lt;file list&gt;              Specify additional directories to search in for
-                              references
--errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
-                              prompt, send, queue, or none. The default is
-                              queue.
--appconfig:&lt;file&gt;             Specify an application configuration file
-                              containing assembly binding settings
--moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
-                              a part of
--modulename:&lt;string&gt;          Specify the name of the source module
+                               コンパイラが出力するソース パス名のマッピングを
+                               指定します。
+-pdb:&lt;file&gt;                   デバッグ情報ファイル名を指定します (既定:
+                               .pdb 拡張子の付いた出力ファイル名)
+-errorendlocation             各エラーの終了位置の出力行と
+                               出力列
+-preferreduilang              出力用の言語名を指定します。
+-nosdkpath                    標準ライブラリ アセンブリの既定の SDK パスの検索を無効にします。
+-nostdlib[+|-]                標準ライブラリ (mscorlib.dll) は参照しません
+-subsystemversion:&lt;string&gt;    このアセンブリのサブシステム バージョンを指定します
+-lib:&lt;file list&gt;              参照を検索する追加ディレクトリを指定
+                               します
+-errorreport:&lt;string&gt;         内部コンパイラ エラーの処理方法を指定します:
+                               prompt、send、queue、none です。既定値は
+                               queue です。
+-appconfig:&lt;file&gt;             アセンブリ バインド設定を含む
+                               アプリケーション構成ファイルを指定します
+-moduleassemblyname:&lt;string&gt;  このモジュールが一部となるアセンブリ名
+                               です
+-modulename:&lt;string&gt;          ソース モジュールの名前を指定します
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -729,7 +729,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
         <source>name shadowing in nested functions</source>
-        <target state="new">name shadowing in nested functions</target>
+        <target state="translated">入れ子になった関数での名前シャドウイング</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
@@ -744,7 +744,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnableOrSafeOnly">
         <source>warning action enable or safeonly</source>
-        <target state="new">warning action enable or safeonly</target>
+        <target state="translated">警告アクション enable または safeonly</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRangeOperator">
@@ -1254,12 +1254,12 @@
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarningSafeOnly">
         <source>Expected nullable</source>
-        <target state="new">Expected nullable</target>
+        <target state="translated">Null 許容が必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarningSafeOnly_Title">
         <source>Expected nullable after #pragma warning safeonly</source>
-        <target state="new">Expected nullable after #pragma warning safeonly</target>
+        <target state="translated">#pragma warning safeonly の後に Null 許容が必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IsTypeNamedUnderscore">
@@ -5637,12 +5637,12 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
         <source>Expected disable, restore, enable or safeonly</source>
-        <target state="needs-review-translation">disable または restore を指定してください。</target>
+        <target state="translated">disable、restore、enable、または safeonly が必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
         <source>Expected disable, restore, enable or safeonly after #pragma warning</source>
-        <target state="needs-review-translation">#pragma 警告の後に、disable または restore が必要です</target>
+        <target state="translated">#pragma 警告の後に disable、restore、enable、または safeonly が必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">
@@ -5887,7 +5887,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
         <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.</source>
-        <target state="needs-review-translation">'{0}': using ステートメントで使用される型は、暗黙的に 'System.IDisposable' への変換が可能でなければなりません。</target>
+        <target state="translated">'{0}': using ステートメントで使用される型は、暗黙的に 'System.IDisposable' に変換可能であるか、適切な 'Dispose' メソッドを実装する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -9495,7 +9495,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
         <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="needs-review-translation">'{0}': 非同期 using ステートメントで使用される型は、'System.IAsyncDisposable' への暗黙的な変換が可能でなければなりません</target>
+        <target state="translated">'{0}': 非同期 using ステートメントで使用される型は、暗黙的に 'System.IAsyncDisposable' に変換可能であるか、適切な 'DisposeAsync' メソッドを実装する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">
