@@ -343,6 +343,38 @@ $@"class C
     }
 }");
         }
+
+        [WorkItem(33345, "https://github.com/dotnet/roslyn/issues/33345")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestRemoveNewLines2()
+        {
+            await TestInRegularAndScriptAsync(
+                @"class C
+{
+    void M()
+    {
+        int a = 0;
+        [|var|] x = o as string;
+
+        //suffix comment
+        if (x != null)
+        {
+        }
+    }
+}",
+                @"class C
+{
+    void M()
+    {
+        int a = 0;
+        //suffix comment
+        if (o is string x)
+        {
+        }
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task InlineTypeCheckComplexCondition1()
         {
