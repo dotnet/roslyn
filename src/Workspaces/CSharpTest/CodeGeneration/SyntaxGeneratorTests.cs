@@ -2162,7 +2162,7 @@ public class C
                 Generator.GetModifiers(Generator.WithModifiers(Generator.ClassDeclaration("c"), allModifiers)));
 
             Assert.Equal(
-                DeclarationModifiers.New | DeclarationModifiers.Partial | DeclarationModifiers.Unsafe,
+                DeclarationModifiers.New | DeclarationModifiers.Partial | DeclarationModifiers.Unsafe | DeclarationModifiers.ReadOnly,
                 Generator.GetModifiers(Generator.WithModifiers(Generator.StructDeclaration("s"), allModifiers)));
 
             Assert.Equal(
