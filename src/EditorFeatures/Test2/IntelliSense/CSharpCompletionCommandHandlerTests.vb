@@ -4545,6 +4545,29 @@ class C
             End Using
         End Function
 
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTabAfterOverride(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class C
+{
+    override $$
+    public static void M() { }
+}
+                              </Document>)
+
+                state.SendTypeChars("gethashcod")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                state.AssertMatchesTextStartingAtLine(3, "    public override int GetHashCode()")
+                state.AssertMatchesTextStartingAtLine(4, "    {")
+                state.AssertMatchesTextStartingAtLine(5, "        return base.GetHashCode();")
+                state.AssertMatchesTextStartingAtLine(6, "    }")
+                state.AssertMatchesTextStartingAtLine(7, "    public static void M() { }")
+            End Using
+        End Function
+
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
 
