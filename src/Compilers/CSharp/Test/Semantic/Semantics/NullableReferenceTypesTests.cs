@@ -20403,6 +20403,7 @@ class C
 
         // https://github.com/dotnet/roslyn/issues/29869: Review /*T:...*/ and diagnostics.
         [Fact]
+        [WorkItem(33664, "https://github.com/dotnet/roslyn/issues/33664")]
         public void ConditionalOperator_14()
         {
             var source =
@@ -20414,8 +20415,8 @@ class C
     static void F1(bool b, ref string? x1, ref string y1)
     {
         (b ? ref x1 : ref x1)/*T:string?*/.ToString();
-        (b ? ref x1 : ref y1)/*T:string?*/.ToString();
-        (b ? ref y1 : ref x1)/*T:string?*/.ToString();
+        (b ? ref x1 : ref y1)/*T:string!*/.ToString();
+        (b ? ref y1 : ref x1)/*T:string!*/.ToString();
         (b ? ref y1 : ref y1)/*T:string!*/.ToString();
     }
     static void F2(bool b, ref I<string?> x2, ref I<string> y2)
@@ -73697,14 +73698,13 @@ class Program
         }
 
         private readonly static NullableAnnotation[] s_AllNullableAnnotations = (NullableAnnotation[])Enum.GetValues(typeof(NullableAnnotation));
-        private readonly static NullableAnnotation[] s_AllSpeakableNullableAnnotations = new[] { NullableAnnotation.Unknown, NullableAnnotation.NotAnnotated, NullableAnnotation.Annotated };
         private readonly static NullableFlowState[] s_AllNullableFlowStates = (NullableFlowState[])Enum.GetValues(typeof(NullableFlowState));
 
         [Fact]
         public void TestJoinForFixingLowerBounds()
         {
             var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Unknown, NullableAnnotation.NotAnnotated };
-            Func<int, int, NullableAnnotation> getResult = (i, j) => NullableAnnotationExtensions.JoinForFixingLowerBounds(inputs[i], inputs[j]);
+            Func<int, int, NullableAnnotation> getResult = (i, j) => NullableAnnotationExtensions.Join(inputs[i], inputs[j]);
 
             var expected = new NullableAnnotation[3, 3]
             {
@@ -73721,7 +73721,7 @@ class Program
         {
             var inputs = new[] { NullableFlowState.NotNull, NullableFlowState.MaybeNull };
 
-            Func<int, int, NullableFlowState> getResult = (i, j) => inputs[i].JoinForFlowAnalysisBranches(inputs[j]);
+            Func<int, int, NullableFlowState> getResult = (i, j) => inputs[i].Join(inputs[j]);
 
             var expected = new NullableFlowState[2, 2]
             {
@@ -73736,7 +73736,7 @@ class Program
         public void TestMeetForFixingUpperBounds()
         {
             var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Unknown, NullableAnnotation.NotAnnotated };
-            Func<int, int, NullableAnnotation> getResult = (i, j) => NullableAnnotationExtensions.MeetForFixingUpperBounds(inputs[i], inputs[j]);
+            Func<int, int, NullableAnnotation> getResult = (i, j) => NullableAnnotationExtensions.Meet(inputs[i], inputs[j]);
 
             var expected = new NullableAnnotation[3, 3]
             {
@@ -73752,7 +73752,7 @@ class Program
         public void TestMeetForFlowAnalysisFinally()
         {
             var inputs = new[] { NullableFlowState.NotNull, NullableFlowState.MaybeNull };
-            Func<int, int, NullableFlowState> getResult = (i, j) => inputs[i].MeetForFlowAnalysisFinally(inputs[j]);
+            Func<int, int, NullableFlowState> getResult = (i, j) => inputs[i].Meet(inputs[j]);
 
             var expected = new NullableFlowState[2, 2]
             {
@@ -73782,17 +73782,17 @@ class Program
         [Fact]
         public void TestEnsureCompatibleForTuples_IsPossiblyNullableReferenceTypeTypeParameterFalse()
         {
-            var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Nullable, NullableAnnotation.Unknown, NullableAnnotation.NotNullable, NullableAnnotation.NotAnnotated };
+            var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Annotated, NullableAnnotation.Unknown, NullableAnnotation.NotAnnotated, NullableAnnotation.NotAnnotated };
 
             Func<int, int, NullableAnnotation> getResult = (i, j) => inputs[i].EnsureCompatibleForTuples(inputs[j]);
 
             var expected = new NullableAnnotation[5, 5]
             {
-                { NullableAnnotation.Annotated,    NullableAnnotation.Nullable,     NullableAnnotation.Annotated,    NullableAnnotation.NotNullable,  NullableAnnotation.NotAnnotated },
-                { NullableAnnotation.Nullable,     NullableAnnotation.Nullable,     NullableAnnotation.Nullable,     NullableAnnotation.NotNullable,  NullableAnnotation.NotAnnotated },
-                { NullableAnnotation.Annotated,    NullableAnnotation.Nullable,     NullableAnnotation.Unknown,      NullableAnnotation.NotNullable,  NullableAnnotation.NotAnnotated },
-                { NullableAnnotation.NotNullable,  NullableAnnotation.NotNullable,  NullableAnnotation.NotNullable,  NullableAnnotation.NotNullable,  NullableAnnotation.NotNullable  },
-                { NullableAnnotation.NotAnnotated, NullableAnnotation.NotAnnotated, NullableAnnotation.NotAnnotated, NullableAnnotation.NotNullable,  NullableAnnotation.NotAnnotated },
+                { NullableAnnotation.Annotated,    NullableAnnotation.Annotated,     NullableAnnotation.Annotated,    NullableAnnotation.NotAnnotated,  NullableAnnotation.NotAnnotated },
+                { NullableAnnotation.Annotated,     NullableAnnotation.Annotated,     NullableAnnotation.Annotated,     NullableAnnotation.NotAnnotated,  NullableAnnotation.NotAnnotated },
+                { NullableAnnotation.Annotated,    NullableAnnotation.Annotated,     NullableAnnotation.Unknown,      NullableAnnotation.NotAnnotated,  NullableAnnotation.NotAnnotated },
+                { NullableAnnotation.NotAnnotated,  NullableAnnotation.NotAnnotated,  NullableAnnotation.NotAnnotated,  NullableAnnotation.NotAnnotated,  NullableAnnotation.NotAnnotated  },
+                { NullableAnnotation.NotAnnotated, NullableAnnotation.NotAnnotated, NullableAnnotation.NotAnnotated, NullableAnnotation.NotAnnotated,  NullableAnnotation.NotAnnotated },
             };
 
             AssertEqual(expected, getResult, inputs.Length);
@@ -73809,16 +73809,42 @@ class Program
         }
 
         [Fact]
+        public void TestAbsorptionForAnnotations()
+        {
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    Assert.Equal(a, a.Meet(a.Join(b)));
+                    Assert.Equal(a, a.Join(a.Meet(b)));
+                }
+            }
+        }
+
+        [Fact]
+        public void TestAbsorptionForFlowtates()
+        {
+            foreach (var a in s_AllNullableFlowStates)
+            {
+                foreach (var b in s_AllNullableFlowStates)
+                {
+                    Assert.Equal(a, a.Meet(a.Join(b)));
+                    Assert.Equal(a, a.Join(a.Meet(b)));
+                }
+            }
+        }
+
+        [Fact]
         public void TestJoinForFixingLowerBoundsIsAssociative()
         {
-            foreach (var a in s_AllSpeakableNullableAnnotations)
+            foreach (var a in s_AllNullableAnnotations)
             {
-                foreach (var b in s_AllSpeakableNullableAnnotations)
+                foreach (var b in s_AllNullableAnnotations)
                 {
-                    foreach (var c in s_AllSpeakableNullableAnnotations)
+                    foreach (var c in s_AllNullableAnnotations)
                     {
-                        var leftFirst = a.JoinForFixingLowerBounds(b).JoinForFixingLowerBounds(c);
-                        var rightFirst = a.JoinForFixingLowerBounds(b.JoinForFixingLowerBounds(c));
+                        var leftFirst = a.Join(b).Join(c);
+                        var rightFirst = a.Join(b.Join(c));
                         Assert.Equal(leftFirst, rightFirst);
                     }
                 }
@@ -73834,8 +73860,8 @@ class Program
                 {
                     foreach (var c in s_AllNullableFlowStates)
                     {
-                        var leftFirst = a.JoinForFlowAnalysisBranches(b).JoinForFlowAnalysisBranches(c);
-                        var rightFirst = a.JoinForFlowAnalysisBranches(b.JoinForFlowAnalysisBranches(c));
+                        var leftFirst = a.Join(b).Join(c);
+                        var rightFirst = a.Join(b.Join(c));
                         Assert.Equal(leftFirst, rightFirst);
                     }
                 }
@@ -73845,14 +73871,14 @@ class Program
         [Fact]
         public void TestMeetForFixingUpperBoundsIsAssociative()
         {
-            foreach (var a in s_AllSpeakableNullableAnnotations)
+            foreach (var a in s_AllNullableAnnotations)
             {
-                foreach (var b in s_AllSpeakableNullableAnnotations)
+                foreach (var b in s_AllNullableAnnotations)
                 {
-                    foreach (var c in s_AllSpeakableNullableAnnotations)
+                    foreach (var c in s_AllNullableAnnotations)
                     {
-                        var leftFirst = a.MeetForFixingUpperBounds(b).MeetForFixingUpperBounds(c);
-                        var rightFirst = a.MeetForFixingUpperBounds(b.MeetForFixingUpperBounds(c));
+                        var leftFirst = a.Meet(b).Meet(c);
+                        var rightFirst = a.Meet(b.Meet(c));
                         Assert.Equal(leftFirst, rightFirst);
                     }
                 }
@@ -73868,8 +73894,8 @@ class Program
                 {
                     foreach (var c in s_AllNullableFlowStates)
                     {
-                        var leftFirst = a.MeetForFlowAnalysisFinally(b).MeetForFlowAnalysisFinally(c);
-                        var rightFirst = a.MeetForFlowAnalysisFinally(b.MeetForFlowAnalysisFinally(c));
+                        var leftFirst = a.Meet(b).Meet(c);
+                        var rightFirst = a.Meet(b.Meet(c));
                         Assert.Equal(leftFirst, rightFirst);
                     }
                 }
@@ -73880,11 +73906,11 @@ class Program
         public void TestEnsureCompatibleIsAssociative()
         {
             Func<bool, bool> identity = x => x;
-            foreach (var a in s_AllSpeakableNullableAnnotations)
+            foreach (var a in s_AllNullableAnnotations)
             {
-                foreach (var b in s_AllSpeakableNullableAnnotations)
+                foreach (var b in s_AllNullableAnnotations)
                 {
-                    foreach (var c in s_AllSpeakableNullableAnnotations)
+                    foreach (var c in s_AllNullableAnnotations)
                     {
                         foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
                         {
@@ -73900,12 +73926,12 @@ class Program
         [Fact]
         public void TestJoinForFixingLowerBoundsIsCommutative()
         {
-            foreach (var a in s_AllSpeakableNullableAnnotations)
+            foreach (var a in s_AllNullableAnnotations)
             {
-                foreach (var b in s_AllSpeakableNullableAnnotations)
+                foreach (var b in s_AllNullableAnnotations)
                 {
-                    var leftFirst = a.JoinForFixingLowerBounds(b);
-                    var rightFirst = b.JoinForFixingLowerBounds(a);
+                    var leftFirst = a.Join(b);
+                    var rightFirst = b.Join(a);
                     Assert.Equal(leftFirst, rightFirst);
                 }
             }
@@ -73921,8 +73947,8 @@ class Program
                 {
                     foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
                     {
-                        var leftFirst = a.JoinForFlowAnalysisBranches(b);
-                        var rightFirst = b.JoinForFlowAnalysisBranches(a);
+                        var leftFirst = a.Join(b);
+                        var rightFirst = b.Join(a);
                         Assert.Equal(leftFirst, rightFirst);
                     }
                 }
@@ -73932,12 +73958,12 @@ class Program
         [Fact]
         public void TestMeetForFixingUpperBoundsIsCommutative()
         {
-            foreach (var a in s_AllSpeakableNullableAnnotations)
+            foreach (var a in s_AllNullableAnnotations)
             {
-                foreach (var b in s_AllSpeakableNullableAnnotations)
+                foreach (var b in s_AllNullableAnnotations)
                 {
-                    var leftFirst = a.MeetForFixingUpperBounds(b);
-                    var rightFirst = b.MeetForFixingUpperBounds(a);
+                    var leftFirst = a.Meet(b);
+                    var rightFirst = b.Meet(a);
                     Assert.Equal(leftFirst, rightFirst);
                 }
             }
@@ -73950,8 +73976,8 @@ class Program
             {
                 foreach (var b in s_AllNullableFlowStates)
                 {
-                    var leftFirst = a.MeetForFlowAnalysisFinally(b);
-                    var rightFirst = b.MeetForFlowAnalysisFinally(a);
+                    var leftFirst = a.Meet(b);
+                    var rightFirst = b.Meet(a);
                     Assert.Equal(leftFirst, rightFirst);
                 }
             }
@@ -73960,9 +73986,9 @@ class Program
         [Fact]
         public void TestEnsureCompatibleIsCommutative()
         {
-            foreach (var a in s_AllSpeakableNullableAnnotations)
+            foreach (var a in s_AllNullableAnnotations)
             {
-                foreach (var b in s_AllSpeakableNullableAnnotations)
+                foreach (var b in s_AllNullableAnnotations)
                 {
                     var leftFirst = a.EnsureCompatible(b);
                     var rightFirst = b.EnsureCompatible(a);

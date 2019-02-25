@@ -1507,7 +1507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             allTypeArguments.Free();
             return haveChanges;
 
-            // We use special rules for merging tuples, allowing nested types to remain unspeakable
+            // We use special rules for merging tuples
             TypeSymbolWithAnnotations mergeNullability(TypeSymbolWithAnnotations one, TypeSymbolWithAnnotations other)
             {
                 TypeSymbol typeSymbol = other.TypeSymbol;
@@ -1522,9 +1522,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (variance)
                 {
                     case VarianceKind.In:
-                        return a.MeetForFixingUpperBounds(b);
+                        return a.Meet(b);
                     case VarianceKind.Out:
-                        return a.JoinForFixingLowerBounds(b);
+                        return a.Join(b);
                     case VarianceKind.None:
                         return a.EnsureCompatibleForTuples(b);
                     default:

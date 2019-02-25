@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.TypeOfOperator:
                 case BoundKind.NameOfOperator:
                 case BoundKind.TupleLiteral:
-                    return NullableAnnotation.NotNullable;
+                    return NullableAnnotation.NotAnnotated;
                 case BoundKind.DefaultExpression:
                 case BoundKind.Literal:
                 case BoundKind.UnboundLambda:
@@ -279,11 +279,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (constant.IsNull)
                 {
-                    return NullableAnnotation.Nullable;
+                    return NullableAnnotation.Annotated;
                 }
                 if (expr.Type?.IsReferenceType == true)
                 {
-                    return NullableAnnotation.NotNullable;
+                    return NullableAnnotation.NotAnnotated;
                 }
             }
 

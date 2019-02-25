@@ -180,10 +180,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case 1:
                     bestResultType = returns[0].resultType;
-                    if (conversions.IncludeNullability)
-                    {
-                        bestResultType = bestResultType.SetSpeakableNullabilityForReferenceTypes();
-                    }
                     break;
                 default:
                     // Need to handle ref returns. See https://github.com/dotnet/roslyn/issues/30432

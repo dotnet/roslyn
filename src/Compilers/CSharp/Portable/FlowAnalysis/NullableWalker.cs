@@ -1694,7 +1694,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)methodOpt != null && methodOpt.ParameterCount == 2)
                 {
                     return operatorKind.IsLifted() && !operatorKind.IsComparison()
-                        ? LiftedReturnType(methodOpt.ReturnType, leftType.State.JoinForFlowAnalysisBranches(rightType.State))
+                        ? LiftedReturnType(methodOpt.ReturnType, leftType.State.Join(rightType.State))
                         : methodOpt.ReturnType.ToTypeWithState();
                 }
             }
@@ -1703,7 +1703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (operatorKind.Operator() | operatorKind.OperandTypes())
                 {
                     case BinaryOperatorKind.DelegateCombination:
-                        resultState = leftType.State.MeetForFlowAnalysisFinally(rightType.State);
+                        resultState = leftType.State.Meet(rightType.State);
                         break;
                     case BinaryOperatorKind.DelegateRemoval:
                         resultState = NullableFlowState.MaybeNull; // Delegate removal can produce null.
@@ -1716,7 +1716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (operatorKind.IsLifted())
             {
-                resultState = leftType.State.JoinForFlowAnalysisBranches(rightType.State);
+                resultState = leftType.State.Join(rightType.State);
             }
 
             return new TypeWithState(resultType, resultState);
@@ -2059,14 +2059,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.DefaultExpression:
                 case BoundKind.Literal:
-                    {
-                        return (expr.ConstantValue?.IsNull != false) ? NullableAnnotation.NotNullable : NullableAnnotation.Nullable;
-                    }
+                    return (expr.ConstantValue?.IsNull != false) ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
                 case BoundKind.ExpressionWithNullability:
                     return ((BoundExpressionWithNullability)expr).NullableAnnotation;
                 case BoundKind.MethodGroup:
                 case BoundKind.UnboundLambda:
-                    return NullableAnnotation.NotNullable;
+                    return NullableAnnotation.NotAnnotated;
                 default:
                     Debug.Assert(false); // unexpected value
                     return NullableAnnotation.Unknown;
@@ -2251,7 +2249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     visitResult = TypeSymbolWithAnnotations.Create(resultType,
-                                                                   convertedConsequenceResult.NullableAnnotation.JoinForFixingLowerBounds(convertedAlternativeResult.NullableAnnotation));
+                                                                   convertedConsequenceResult.NullableAnnotation.Join(convertedAlternativeResult.NullableAnnotation));
                 }
             }
             else
@@ -2268,7 +2266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    resultNullableAnnotation = getNullableAnnotation(consequence, consequenceResult).JoinForFixingLowerBounds(getNullableAnnotation(alternative, alternativeResult));
+                    resultNullableAnnotation = getNullableAnnotation(consequence, consequenceResult).Join(getNullableAnnotation(alternative, alternativeResult));
                 }
 
                 visitResult = TypeSymbolWithAnnotations.Create(node.Type.SetUnknownNullabilityForReferenceTypes(), resultNullableAnnotation);
@@ -2285,7 +2283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 if (expr.IsLiteralNullOrDefault())
                 {
-                    return NullableAnnotation.Nullable;
+                    return NullableAnnotation.Annotated;
                 }
                 return NullableAnnotation.Unknown;
             }
@@ -3028,7 +3026,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterRefKinds,
                 arguments,
                 ref useSiteDiagnostics,
-                getTypeWithAnnotationOpt: s_getTypeWithSpeakableAnnotations);
+                getTypeWithAnnotationOpt: s_getTypeWithAnnotations);
 
             if (!result.Success)
             {
@@ -3038,9 +3036,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return definition.Construct(result.InferredTypeArguments);
         }
 
-        // Note: although only tuple types can have nested types that are unspeakable, we make all nested types speakable to be sure
-        private readonly static Func<BoundExpression, TypeSymbolWithAnnotations> s_getTypeWithSpeakableAnnotations =
-            (expr) => TypeSymbolWithAnnotations.Create(expr.Type, GetNullableAnnotation(expr)).SetSpeakableNullabilityForReferenceTypes();
+        private readonly static Func<BoundExpression, TypeSymbolWithAnnotations> s_getTypeWithAnnotations =
+            (expr) => TypeSymbolWithAnnotations.Create(expr.Type, GetNullableAnnotation(expr)).AsSpeakable();
 
         private ImmutableArray<BoundExpression> GetArgumentsForMethodTypeInference(ImmutableArray<BoundExpression> arguments, ImmutableArray<VisitResult> argumentResults)
         {
@@ -3941,7 +3938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type = typeNeedsLifting
                 ? compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(returnType))
                 : returnType.TypeSymbol;
-            NullableFlowState state = returnType.ToTypeWithState().State.JoinForFlowAnalysisBranches(operandState);
+            NullableFlowState state = returnType.ToTypeWithState().State.Join(operandState);
             return new TypeWithState(type, state);
         }
 
@@ -4063,7 +4060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitThisOrBaseReference(BoundExpression node)
         {
             var RvalueResult = new TypeWithState(node.Type, NullableFlowState.NotNull);
-            var LvalueResult = TypeSymbolWithAnnotations.Create(node.Type, NullableAnnotation.NotNullable);
+            var LvalueResult = TypeSymbolWithAnnotations.Create(node.Type, NullableAnnotation.NotAnnotated);
             SetResult(RvalueResult, LvalueResult);
         }
 
@@ -5368,7 +5365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return NullableAnnotation.Unknown;
             }
 
-            NullableAnnotation result = NullableAnnotation.NotNullable;
+            NullableAnnotation result = NullableAnnotation.NotAnnotated;
 
             foreach (Symbol member in applicableMembers)
             {
@@ -5380,7 +5377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (memberResult.IsAnyNullable())
                     {
                         // At least one candidate can produce null, assume dynamic access can produce null as well
-                        result = NullableAnnotation.Nullable;
+                        result = NullableAnnotation.Annotated;
                         break;
                     }
                     else if (memberResult == NullableAnnotation.Unknown)
@@ -5562,7 +5559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 NullableFlowState selfState = self[slot];
                 NullableFlowState otherState = other[slot];
-                NullableFlowState union = selfState.MeetForFlowAnalysisFinally(otherState);
+                NullableFlowState union = selfState.Meet(otherState);
 
                 if (selfState != union)
                 {
@@ -5593,7 +5590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int slot = 1; slot < self.Capacity; slot++)
             {
                 NullableFlowState selfAnnotation = self[slot];
-                NullableFlowState intersection = selfAnnotation.JoinForFlowAnalysisBranches(other[slot]);
+                NullableFlowState intersection = selfAnnotation.Join(other[slot]);
                 if (selfAnnotation != intersection)
                 {
                     self[slot] = intersection;
