@@ -79,7 +79,7 @@ struct S
 
             VerifyLeftSelected("S");
             VerifyRightSelected("Goo()");
-            VisualStudio.Editor.Verify.CurrentLineText("$$struct S", assertCaretPosition: true, trimWhitespace: true);
+            VisualStudio.Editor.Verify.CurrentLineText("struct $$S", assertCaretPosition: true, trimWhitespace: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]

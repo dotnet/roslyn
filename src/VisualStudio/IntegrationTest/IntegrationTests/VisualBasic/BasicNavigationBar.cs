@@ -61,7 +61,7 @@ End Structure";
             VisualStudio.Editor.SelectTypeNavBarItem("S");
 
             VisualStudio.Editor.Verify.CaretPosition(112);
-            VisualStudio.Editor.Verify.CurrentLineText("Structure S$$", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("Structure $$S", assertCaretPosition: true);
 
             VisualStudio.ExecuteCommand("Edit.LineDown");
             VerifyRightSelected("A");
