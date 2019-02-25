@@ -31,11 +31,11 @@
           DependsOnTargets="InitializeDesktopCompilerArtifacts">
 
     <ItemGroup>
-      <CompilerArtifact Condition="'%(CompilerArtifact.OverwriteNgenOptimizationData)' == 'true' and '$(ApplyPartialNgenOptimization)' == 'true'">
-        <_OptimizeAssembly>$(IntermediateOutputPath)optimized\$([System.IO.Path]::GetFileName(%(CompilerArtifact.Identity)))</_OptimizeAssembly>
-      </CompilerArtifact>
+      <DesktopCompilerArtifact Condition="'%(DesktopCompilerArtifact.OverwriteNgenOptimizationData)' == 'true' and '$(ApplyPartialNgenOptimization)' == 'true'">
+        <_OptimizeAssembly>$(IntermediateOutputPath)optimized\$([System.IO.Path]::GetFileName(%(DesktopCompilerArtifact.Identity)))</_OptimizeAssembly>
+      </DesktopCompilerArtifact>
 
-      <OptimizeAssembly Include="@(CompilerArtifact->'%(_OptimizeAssembly)')" Condition="'%(CompilerArtifact._OptimizeAssembly)' != ''" />
+      <OptimizeAssembly Include="@(DesktopCompilerArtifact->'%(_OptimizeAssembly)')" Condition="'%(DesktopCompilerArtifact._OptimizeAssembly)' != ''" />
     </ItemGroup>
   </Target>
 
@@ -44,11 +44,11 @@
   -->
   <Target Name="_PrepareDesktopCompilerArtifactsForOptimization"
           DependsOnTargets="_CalculateDesktopCompilerArtifactsToOptimize"
-          Inputs="@(CompilerArtifact)"
-          Outputs="@(CompilerArtifact->'%(_OptimizeAssembly)')"
+          Inputs="@(DesktopCompilerArtifact)"
+          Outputs="@(DesktopCompilerArtifact->'%(_OptimizeAssembly)')"
           Condition="'$(Configuration)' == 'Release' and '$(ContinuousIntegrationBuild)' == 'true' and '$(ApplyPartialNgenOptimization)' == 'true'">
 
-    <Copy SourceFiles="%(CompilerArtifact.Identity)" DestinationFiles="%(CompilerArtifact._OptimizeAssembly)" Condition="'%(CompilerArtifact._OptimizeAssembly)' != ''">
+    <Copy SourceFiles="%(DesktopCompilerArtifact.Identity)" DestinationFiles="%(DesktopCompilerArtifact._OptimizeAssembly)" Condition="'%(DesktopCompilerArtifact._OptimizeAssembly)' != ''">
       <Output TaskParameter="CopiedFiles" ItemName="FileWrites"/>
     </Copy>
   </Target>
@@ -60,12 +60,12 @@
           Outputs="$(_SwrFilePath)">
 
     <ItemGroup>
-      <_File Include="@(CompilerArtifact)">
-        <Path Condition="'%(CompilerArtifact._OptimizeAssembly)' == ''">%(CompilerArtifact.Identity)</Path>
-        <Path Condition="'%(CompilerArtifact._OptimizeAssembly)' != ''">%(CompilerArtifact._OptimizeAssembly)</Path>
-        <NGenArchitectureString Condition="'%(CompilerArtifact.NgenArchitecture)' != ''"> vs.file.ngenArchitecture=%(CompilerArtifact.NgenArchitecture)</NGenArchitectureString>
-        <NGenPriorityString Condition="'%(CompilerArtifact.NGenPriority)' != ''"> vs.file.ngenPriority=%(CompilerArtifact.NGenPriority)</NGenPriorityString>
-        <NGenApplicationString Condition="'%(CompilerArtifact.NGenApplication)' != ''"> vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\%(CompilerArtifact.NGenApplication)"</NGenApplicationString>
+      <_File Include="@(DesktopCompilerArtifact)">
+        <Path Condition="'%(DesktopCompilerArtifact._OptimizeAssembly)' == ''">%(DesktopCompilerArtifact.Identity)</Path>
+        <Path Condition="'%(DesktopCompilerArtifact._OptimizeAssembly)' != ''">%(DesktopCompilerArtifact._OptimizeAssembly)</Path>
+        <NGenArchitectureString Condition="'%(DesktopCompilerArtifact.NgenArchitecture)' != ''"> vs.file.ngenArchitecture=%(DesktopCompilerArtifact.NgenArchitecture)</NGenArchitectureString>
+        <NGenPriorityString Condition="'%(DesktopCompilerArtifact.NGenPriority)' != ''"> vs.file.ngenPriority=%(DesktopCompilerArtifact.NGenPriority)</NGenPriorityString>
+        <NGenApplicationString Condition="'%(DesktopCompilerArtifact.NGenApplication)' != ''"> vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\%(DesktopCompilerArtifact.NGenApplication)"</NGenApplicationString>
       </_File>
 
       <_FileEntries Include='file source="%(_File.Path)"%(_File.NGenArchitectureString)%(_File.NGenPriorityString)%(_File.NGenApplicationString)'/>

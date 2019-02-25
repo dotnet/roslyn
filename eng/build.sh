@@ -181,7 +181,7 @@ function MakeBootstrapBuild {
   rm -rf $dir
   mkdir -p $dir
 
-  local package_name="Microsoft.NETCore.Compilers"
+  local package_name="Microsoft.Net.Compilers.Toolset"
   local project_path=src/NuGet/$package_name/$package_name.Package.csproj
 
   dotnet pack -nologo "$project_path" /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath="$dir"
