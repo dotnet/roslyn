@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -382,6 +383,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private static void WaitForDesignMode()
         {
+            var stopwatch = Stopwatch.StartNew();
+
             // This delay was originally added to address test failures in BasicEditAndContinue. When running
             // multiple tests in sequence, situations were observed where the Edit and Continue state was not reset:
             //
@@ -397,6 +400,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var editAndContinueService = GetComponentModelService<IEditAndContinueService>();
             do
             {
+                if (stopwatch.Elapsed >= Helper.HangMitigatingTimeout)
+                {
+                    throw new TimeoutException("Failed to enter design mode in a timely manner.");
+                }
+
                 Thread.Yield();
             }
             while (editAndContinueService?.DebuggingSession != null);
