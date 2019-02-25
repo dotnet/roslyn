@@ -34,8 +34,7 @@ End Class");
 
             VisualStudio.SolutionExplorer.AddFile(project, "test2.vb", open: true, contents: @"
 ");
-            VisualStudio.Editor.InvokeNavigateTo("FirstMethod");
-            VisualStudio.Editor.NavigateToSendKeys(VirtualKey.Enter);
+            VisualStudio.Editor.InvokeNavigateTo("FirstMethod", VirtualKey.Enter);
             VisualStudio.Editor.WaitForActiveView("test1.vb");
             Assert.Equal("FirstMethod", VisualStudio.Editor.GetSelectedText());
 
@@ -43,8 +42,7 @@ End Class");
             VisualStudio.SolutionExplorer.AddProject(csProject, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
             VisualStudio.SolutionExplorer.AddFile(csProject, "csfile.cs", open: true);
 
-            VisualStudio.Editor.InvokeNavigateTo("FirstClass");
-            VisualStudio.Editor.NavigateToSendKeys(VirtualKey.Enter);
+            VisualStudio.Editor.InvokeNavigateTo("FirstClass", VirtualKey.Enter);
             VisualStudio.Editor.WaitForActiveView("test1.vb");
             Assert.Equal("FirstClass", VisualStudio.Editor.GetSelectedText());
         }

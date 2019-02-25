@@ -38,8 +38,7 @@ class FirstClass
                 VisualStudio.SolutionExplorer.AddFile(project, "test2.cs", open: true, contents: @"
 ");
 
-                VisualStudio.Editor.InvokeNavigateTo("FirstMethod");
-                VisualStudio.Editor.NavigateToSendKeys(VirtualKey.Enter);
+                VisualStudio.Editor.InvokeNavigateTo("FirstMethod", VirtualKey.Enter);
                 VisualStudio.Editor.WaitForActiveView("test1.cs");
                 Assert.Equal("FirstMethod", VisualStudio.Editor.GetSelectedText());
 
@@ -48,8 +47,7 @@ class FirstClass
                 VisualStudio.SolutionExplorer.AddProject(vbProject, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
                 VisualStudio.SolutionExplorer.AddFile(vbProject, "vbfile.vb", open: true);
 
-                VisualStudio.Editor.InvokeNavigateTo("FirstClass");
-                VisualStudio.Editor.NavigateToSendKeys(VirtualKey.Enter);
+                VisualStudio.Editor.InvokeNavigateTo("FirstClass", VirtualKey.Enter);
                 VisualStudio.Editor.WaitForActiveView("test1.cs");
                 Assert.Equal("FirstClass", VisualStudio.Editor.GetSelectedText());
                 telemetry.VerifyFired("vs/ide/vbcs/navigateto/search", "vs/platform/goto/launch");
