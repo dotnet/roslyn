@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -324,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
         }
 
         private static bool TypeFoundInGenericMethodCall(
-            SemanticModel semanticModel, ITypeSymbol typeInDeclaration, 
+            SemanticModel semanticModel, ITypeSymbol typeInDeclaration,
             SimpleNameSyntax memberName, IMethodSymbol method, CancellationToken cancellationToken)
         {
             if (!typeInDeclaration.Equals(method.ReturnType))
