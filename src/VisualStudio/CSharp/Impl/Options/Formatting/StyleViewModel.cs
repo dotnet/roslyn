@@ -224,8 +224,8 @@ class C{{
 
         // {ServicesVSResources.type_must_appear_explicitly_in_the_assignment_expression}
         // {ServicesVSResources.this_is_a_subset_of_the_cases_supported_by_when_variable_is_apparent}
-        var i = int.Parse(v);
-        var logger = service.GetComponent<ILogger>();
+        int i = int.Parse(v);
+        ILogger logger = service.GetComponent<ILogger>();
 //]
     }}
 }}";
@@ -240,8 +240,8 @@ class C{{
 
         // {ServicesVSResources.type_must_appear_explicitly_in_the_assignment_expression}
         // {ServicesVSResources.this_is_a_subset_of_the_cases_supported_by_when_variable_is_apparent}
-        int i = int.Parse(v);
-        ILogger logger = service.GetComponent<ILogger>();
+        var i = int.Parse(v);
+        var logger = service.GetComponent<ILogger>();
 //]
     }}
 }}";

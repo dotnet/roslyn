@@ -263,6 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         {
             yield return VarForBuiltInTypes;
             yield return VarWhenTypeIsApparent;
+            yield return VarWhenTypeIsExplicit;
             yield return VarElsewhere;
             yield return PreferConditionalDelegateCall;
             yield return PreferPatternMatchingOverAsWithNullCheck;

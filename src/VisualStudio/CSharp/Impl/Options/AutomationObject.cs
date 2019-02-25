@@ -653,6 +653,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, value); }
         }
 
+        public string Style_UseImplicitTypeWhereExplicit
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.VarWhenTypeIsExplicit); }
+            set { SetXmlOption(CSharpCodeStyleOptions.VarWhenTypeIsExplicit, value); }
+        }
+
         public string Style_UseImplicitTypeForIntrinsicTypes
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.VarForBuiltInTypes); }

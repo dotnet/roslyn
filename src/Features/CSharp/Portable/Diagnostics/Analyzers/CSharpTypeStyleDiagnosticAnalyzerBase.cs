@@ -26,10 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         {
             var forIntrinsicTypesOption = workspace.Options.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes).Notification;
             var whereApparentOption = workspace.Options.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent).Notification;
+            var whereExplicitOption = workspace.Options.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsExplicit).Notification;
             var wherePossibleOption = workspace.Options.GetOption(CSharpCodeStyleOptions.VarElsewhere).Notification;
 
             return !(forIntrinsicTypesOption == NotificationOption.Warning || forIntrinsicTypesOption == NotificationOption.Error ||
                      whereApparentOption == NotificationOption.Warning || whereApparentOption == NotificationOption.Error ||
+                     whereExplicitOption == NotificationOption.Warning || whereExplicitOption == NotificationOption.Error ||
                      wherePossibleOption == NotificationOption.Warning || wherePossibleOption == NotificationOption.Error);
         }
 
