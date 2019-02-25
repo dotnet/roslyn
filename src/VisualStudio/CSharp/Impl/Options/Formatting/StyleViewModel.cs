@@ -206,6 +206,7 @@ class C{{
 //[
         var cobj = new C();
 
+        // {ServicesVSResources.type_is_apparent_from_assignment_expression}
         // {ServicesVSResources.includes_cases_where_the_full_type_may_not_appear_in_the_assignment_expression}
         // {ServicesVSResources.this_is_a_superset_of_the_cases_supported_by_when_variable_is_explicit}
         var strVal = cobj.ToString();
