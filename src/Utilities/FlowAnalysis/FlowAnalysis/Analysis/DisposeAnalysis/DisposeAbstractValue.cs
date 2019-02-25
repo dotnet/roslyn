@@ -17,8 +17,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
     public class DisposeAbstractValue : CacheBasedEquatable<DisposeAbstractValue>
     {
         public static readonly DisposeAbstractValue NotDisposable = new DisposeAbstractValue(DisposeAbstractValueKind.NotDisposable);
+        public static readonly DisposeAbstractValue Invalid = new DisposeAbstractValue(DisposeAbstractValueKind.Invalid);
         public static readonly DisposeAbstractValue NotDisposed = new DisposeAbstractValue(DisposeAbstractValueKind.NotDisposed);
-        public static readonly DisposeAbstractValue Unknown = new DisposeAbstractValue(DisposeAbstractValueKind.MaybeDisposed);
+        public static readonly DisposeAbstractValue Unknown = new DisposeAbstractValue(DisposeAbstractValueKind.Unknown);
 
         private DisposeAbstractValue(DisposeAbstractValueKind kind)
             : this(ImmutableHashSet<IOperation>.Empty, kind)
@@ -43,8 +44,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         internal DisposeAbstractValue WithNewEscapingOperation(IOperation escapingOperation)
         {
             Debug.Assert(Kind != DisposeAbstractValueKind.NotDisposable);
+            Debug.Assert(Kind != DisposeAbstractValueKind.Unknown);
 
-            return new DisposeAbstractValue(DisposingOrEscapingOperations.Add(escapingOperation), DisposeAbstractValueKind.MaybeDisposed);
+            var kind = this.Kind > DisposeAbstractValueKind.Escaped ? this.Kind : DisposeAbstractValueKind.Escaped;
+            return new DisposeAbstractValue(DisposingOrEscapingOperations.Add(escapingOperation), kind);
         }
 
         [Conditional("DEBUG")]
@@ -56,10 +59,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             {
                 case DisposeAbstractValueKind.NotDisposable:
                 case DisposeAbstractValueKind.NotDisposed:
+                case DisposeAbstractValueKind.Invalid:
+                case DisposeAbstractValueKind.Unknown:
                     Debug.Assert(disposingOrEscapingOperations.Count == 0);
                     break;
 
+                case DisposeAbstractValueKind.Escaped:
                 case DisposeAbstractValueKind.Disposed:
+                case DisposeAbstractValueKind.MaybeDisposed:
                     Debug.Assert(disposingOrEscapingOperations.Count > 0);
                     break;
             }
