@@ -420,10 +420,7 @@ public struct S
 }
 ";
             var comp = CreateCompilation(csharp);
-            comp.VerifyDiagnostics(
-                // (5,25): error CS0106: The modifier 'readonly' is not valid for this item
-                //     public readonly int P { get { return i; } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("readonly").WithLocation(5, 25));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -433,8 +430,10 @@ public struct S
 public struct S
 {
     public int P1 { readonly get; }
-    public int P2 { readonly get; set; }
-    public int P3 { readonly get; readonly set; } // PROTOTYPE: readonly set on an auto-property should give an error
+    public readonly int P2 { get; }
+    public int P3 { readonly get; set; }
+    public int P4 { readonly get; readonly set; } // PROTOTYPE: readonly set on an auto-property should give an error
+    public readonly int P5 { get; set; } // PROTOTYPE: readonly set on an auto-property should give an error
 }
 ";
             var comp = CreateCompilation(csharp);
@@ -453,7 +452,7 @@ public struct S
     public readonly ref int M1() => ref f1;
 
     private static readonly int f2;
-    public readonly ref readonly int M2() => ref f1;
+    public readonly ref readonly int M2() => ref f2;
 
     private static readonly int f3;
     public ref readonly int M3()
@@ -465,6 +464,55 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyConstructor()
+        {
+            var csharp = @"
+public struct S
+{
+    public readonly S(int i) { }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (4,21): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public readonly S(int i) { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("readonly").WithLocation(4, 21));
+        }
+
+        [Fact]
+        public void ReadOnlyOperator()
+        {
+            var csharp = @"
+public struct S
+{
+    public static readonly S operator +(S lhs, S rhs) => lhs;
+    public static readonly explicit operator int(S s) => 42;
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (4,39): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public static readonly S operator +(S lhs, S rhs) => lhs;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("readonly").WithLocation(4, 39),
+                // (5,46): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public static readonly explicit operator int(S s) => 42;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("readonly").WithLocation(5, 46));
+        }
+
+        [Fact]
+        public void ReadOnlyDelegate()
+        {
+            var csharp = @"
+public readonly delegate int Del();
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (2,30): error CS0106: The modifier 'readonly' is not valid for this item
+                // public readonly delegate int Del();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Del").WithArguments("readonly").WithLocation(2, 30));
         }
     }
 }
