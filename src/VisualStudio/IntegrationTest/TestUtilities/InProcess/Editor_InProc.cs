@@ -15,6 +15,7 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -34,7 +35,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     {
         private static readonly Guid IWpfTextViewId = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
 
-        private Editor_InProc() { }
+        private readonly SendKeys_InProc _sendKeys;
+
+        private Editor_InProc()
+        {
+            _sendKeys = new SendKeys_InProc(VisualStudio_InProc.Create());
+        }
 
         public static Editor_InProc Create()
             => new Editor_InProc();
@@ -367,15 +373,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public void DialogSendKeys(string dialogAutomationName, string keys)
+        public void DialogSendKeys(string dialogAutomationName, object[] keys)
         {
             var dialogAutomationElement = DialogHelpers.GetOpenDialogById((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationName);
 
             dialogAutomationElement.SetFocus();
-            SendKeys.SendWait(keys);
+            _sendKeys.Send(keys);
         }
 
-        public void SendKeysToNavigateTo(string keys)
+        public void SendKeysToNavigateTo(object[] keys)
         {
             var dialogAutomationElement = FindNavigateTo();
             if (dialogAutomationElement == null)
@@ -384,7 +390,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
 
             dialogAutomationElement.SetFocus();
-            SendKeys.SendWait(keys);
+            _sendKeys.Send(keys);
         }
 
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)

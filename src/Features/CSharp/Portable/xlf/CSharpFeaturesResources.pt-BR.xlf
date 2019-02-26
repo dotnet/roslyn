@@ -127,6 +127,11 @@
         <target state="translated">Classificar modificadores de acessibilidade</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unseal_class_0">
+        <source>Unseal class '{0}'</source>
+        <target state="new">Unseal class '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
         <source>'if' statement can be simplified</source>
         <target state="translated">A instrução 'if' pode ser simplificada</target>
