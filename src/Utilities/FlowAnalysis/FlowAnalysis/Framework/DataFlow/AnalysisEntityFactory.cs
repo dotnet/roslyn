@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
             else
             {
-                var thisOrMeInstanceLocation = AbstractLocation.CreateThisOrMeLocation(containingTypeSymbol);
+                var thisOrMeInstanceLocation = AbstractLocation.CreateThisOrMeLocation(containingTypeSymbol, interproceduralCallStackOpt);
                 var instanceLocation = PointsToAbstractValue.Create(thisOrMeInstanceLocation, mayBeNull: false);
                 ThisOrMeInstance = AnalysisEntity.CreateThisOrMeInstance(containingTypeSymbol, instanceLocation);
             }
