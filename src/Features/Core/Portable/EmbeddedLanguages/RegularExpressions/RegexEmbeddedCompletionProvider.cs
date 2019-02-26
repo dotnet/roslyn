@@ -159,8 +159,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             var virtualChar = tree.Text.FirstOrNullable(vc => vc.Span.Contains(context.Position));
             var inCharacterClass = virtualChar != null && IsInCharacterClass(tree.Root, virtualChar.Value);
 
-            ProvideBackslashCompletions(context, inCharacterClass, parentOpt: null);
             ProvideTopLevelCompletions(context, inCharacterClass);
+            ProvideBackslashCompletions(context, inCharacterClass, parentOpt: null);
             ProvideOpenBracketCompletions(context, inCharacterClass, parentOpt: null);
             ProvideOpenParenCompletions(context, inCharacterClass, parentOpt: null);
         }
