@@ -291,6 +291,33 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             }
         }
 
+        private void ProvideEscapeCategoryCompletions(EmbeddedCompletionContext context)
+        {
+            foreach (var (name, (shortDesc, longDesc)) in RegexCharClass.EscapeCategories)
+            {
+                var displayText = name;
+
+                // There are some internal escape categories the regex engine has (like _xmlI).
+                // Just filter out here so we only show the main documented regex categories.
+                // Note: we still include those in RegexCharClass.EscapeCategories because we
+                // don't want to report an error on code that does use these since the .net
+                // regex engine will allow them.
+                if (displayText.StartsWith("_"))
+                {
+                    continue;
+                }
+
+                var description = longDesc.Length > 0
+                    ? longDesc
+                    : string.Format(Regex_unicode_general_category_0, name);
+
+                context.AddIfMissing(new RegexItem(
+                    displayText, shortDesc, description,
+                    change: CompletionChange.Create(
+                        new TextChange(new TextSpan(context.Position, 0), name), newPosition: null)));
+            }
+        }
+
         private void ProvideOpenParenCompletions(EmbeddedCompletionContext context, RegexNode parentOpt)
         {
             if (parentOpt != null && !(parentOpt is RegexGroupingNode))
@@ -323,33 +350,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             context.AddIfMissing($"[^  {Regex_character_group}  ]", Regex_negative_character_group_short, Regex_negative_character_group_long, parentOpt, positionOffset: "[^".Length, insertionText: "[^]");
             context.AddIfMissing($"[^  firstCharacter-lastCharacter  ]", Regex_negative_character_group_short, Regex_negative_character_range_long, parentOpt, positionOffset: "[^".Length, insertionText: "[^-]");
             context.AddIfMissing($"[  {Regex_base_group}  -[  {Regex_excluded_group}  ]", Regex_character_class_subtraction_short, Regex_character_class_subtraction_long, parentOpt, positionOffset: "[".Length, insertionText: "[-[]]");
-        }
-
-        private void ProvideEscapeCategoryCompletions(EmbeddedCompletionContext context)
-        {
-            foreach (var (name, (shortDesc, longDesc)) in RegexCharClass.EscapeCategories)
-            {
-                var displayText = name;
-
-                // There are some internal escape categories the regex engine has (like _xmlI).
-                // Just filter out here so we only show the main documented regex categories.
-                // Note: we still include those in RegexCharClass.EscapeCategories because we
-                // don't want to report an error on code that does use these since the .net
-                // regex engine will allow them.
-                if (displayText.StartsWith("_"))
-                {
-                    continue;
-                }
-
-                var description = longDesc.Length > 0
-                    ? longDesc
-                    : string.Format(Regex_unicode_general_category_0, name);
-
-                context.AddIfMissing(new RegexItem(
-                    displayText, shortDesc, description,
-                    change: CompletionChange.Create(
-                        new TextChange(new TextSpan(context.Position, 0), name), newPosition: null)));
-            }
         }
 
         private void ProvideBackslashCompletions(
