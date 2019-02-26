@@ -1236,7 +1236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.IsSuppressed || node.HasAnyErrors || !wasReachable)
             {
                 var result = resultType.WithNonNullState();
-                SetResult(result, _visitResult.LValueType);
+                SetResult(result, LvalueResultType);
             }
             return null;
         }
@@ -2630,7 +2630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Visit(argument);
                         // No Unsplit
-                        _visitResult = new VisitResult(_visitResult.RValueType, _visitResult.RValueType.ToTypeSymbolWithAnnotations());
+                        ResultType = ResultType; // force use of flow result
                     }
                     else
                     {
@@ -2643,7 +2643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Visit(argument);
 
                     // We'll want to use the l-value type, rather than the result type, for method re-inference
-                    LvalueResultType = _visitResult.LValueType;
+                    LvalueResultType = LvalueResultType;
                     break;
             }
 
@@ -4083,7 +4083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var left = node.Left;
             var right = node.Right;
             Visit(left);
-            TypeSymbolWithAnnotations leftLValueType = _visitResult.LValueType;
+            TypeSymbolWithAnnotations leftLValueType = LvalueResultType;
 
             if (left.Kind == BoundKind.EventAccess && ((BoundEventAccess)left).EventSymbol.IsWindowsRuntimeEvent)
             {
@@ -4300,7 +4300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return new DeconstructionVariable(GetDeconstructionAssignmentVariables((BoundTupleExpression)expr));
                     default:
                         Visit(expr);
-                        return new DeconstructionVariable(expr, _visitResult.LValueType);
+                        return new DeconstructionVariable(expr, LvalueResultType);
                 }
             }
         }
@@ -4347,7 +4347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
 
             var operandType = VisitRvalueWithState(node.Operand);
-            var operandLvalue = _visitResult.LValueType;
+            var operandLvalue = LvalueResultType;
             bool setResult = false;
 
             if (this.State.Reachable)
@@ -4443,8 +4443,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
             Visit(node.Left);
-            TypeSymbolWithAnnotations leftLValueType = _visitResult.LValueType;
-            TypeWithState leftResultType = _visitResult.RValueType;
+            TypeSymbolWithAnnotations leftLValueType = LvalueResultType;
+            TypeWithState leftResultType = ResultType;
 
             TypeWithState resultType;
             Debug.Assert(!IsConditionalState);
