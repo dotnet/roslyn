@@ -3,6 +3,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 {
@@ -61,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 return;
             }
 
-            EnsureInitialized();
+            ThreadingContext.JoinableTaskFactory.Run(() => EnsureInitializedAsync(CancellationToken.None));
 
             // Only show if the VSIX is not installed, the info bar hasn't been shown this session,
             // and the user is an A/B test candidate
@@ -73,12 +75,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             }
         }
 
-        private void EnsureInitialized()
+        private async Task EnsureInitializedAsync(CancellationToken cancellationToken)
         {
             // Initialize the experimentation service if it hasn't yet been fetched
             if (_experimentationService == null)
             {
-                _experimentationService = _workspace.Services.GetRequiredService<IExperimentationService>();
+                var experimentationServiceFactory = _workspace.Services.GetRequiredService<IExperimentationServiceFactory>();
+                _experimentationService = await experimentationServiceFactory.GetExperimentationServiceAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 

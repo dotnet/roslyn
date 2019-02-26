@@ -69,7 +69,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             property.SetValue(null, Delegate.CreateDelegate(property.PropertyType, method));
 
             _workspace = _componentModel.GetService<VisualStudioWorkspace>();
-            _workspace.Services.GetService<IExperimentationService>();
 
             // Ensure the options persisters are loaded since we have to fetch options from the shell
             _componentModel.GetExtensions<IOptionPersister>();

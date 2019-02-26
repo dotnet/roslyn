@@ -2,6 +2,8 @@
 
 using System.Collections.Generic;
 using System.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -9,8 +11,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     [Shared]
     [Export(typeof(TestExperimentationService))]
-    [ExportWorkspaceService(typeof(IExperimentationService), WorkspaceKind.Test), PartNotDiscoverable]
-    internal sealed class TestExperimentationService : IExperimentationService
+    [ExportWorkspaceService(typeof(IExperimentationServiceFactory), WorkspaceKind.Test)]
+    [PartNotDiscoverable]
+    internal sealed class TestExperimentationService : IExperimentationServiceFactory, IExperimentationService
     {
         private Dictionary<string, bool> _experimentsOptionValues = new Dictionary<string, bool>();
 
@@ -22,6 +25,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public void SetExperimentOption(string experimentName, bool enabled)
         {
             _experimentsOptionValues[experimentName] = enabled;
+        }
+
+        public ValueTask<IExperimentationService> GetExperimentationServiceAsync(CancellationToken cancellationToken)
+        {
+            return new ValueTask<IExperimentationService>(this);
         }
 
         public bool IsExperimentEnabled(string experimentName)

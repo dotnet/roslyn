@@ -2,8 +2,8 @@
 
 using System;
 using System.Composition;
-using System.Reflection;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
@@ -12,48 +12,44 @@ using Microsoft.VisualStudio.Shell;
 namespace Microsoft.VisualStudio.LanguageServices.Experimentation
 {
     [Export(typeof(VisualStudioExperimentationService))]
-    [ExportWorkspaceService(typeof(IExperimentationService), ServiceLayer.Host), Shared]
-    internal class VisualStudioExperimentationService : ForegroundThreadAffinitizedObject, IExperimentationService
+    [ExportWorkspaceService(typeof(IExperimentationServiceFactory), ServiceLayer.Host), Shared]
+    internal class VisualStudioExperimentationService : IExperimentationServiceFactory
     {
-        private readonly object _experimentationServiceOpt;
-        private readonly MethodInfo _isCachedFlightEnabledInfo;
-        private readonly IVsFeatureFlags _featureFlags;
+        private readonly IAsyncServiceProvider _serviceProvider;
+        private IExperimentationService _experimentationService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioExperimentationService(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
-            : base(threadingContext)
+        public VisualStudioExperimentationService(SVsServiceProvider serviceProvider)
         {
-            object experimentationServiceOpt = null;
-            MethodInfo isCachedFlightEnabledInfo = null;
-            IVsFeatureFlags featureFlags = null;
-
-            threadingContext.JoinableTaskFactory.Run(async () =>
-            {
-                try
-                {
-                    featureFlags = (IVsFeatureFlags)await ((IAsyncServiceProvider)serviceProvider).GetServiceAsync(typeof(SVsFeatureFlags)).ConfigureAwait(false);
-                    experimentationServiceOpt = await ((IAsyncServiceProvider)serviceProvider).GetServiceAsync(typeof(SVsExperimentationService)).ConfigureAwait(false);
-                    if (experimentationServiceOpt != null)
-                    {
-                        isCachedFlightEnabledInfo = experimentationServiceOpt.GetType().GetMethod(
-                            "IsCachedFlightEnabled", BindingFlags.Public | BindingFlags.Instance);
-                    }
-                }
-                catch
-                {
-                }
-            });
-
-            _featureFlags = featureFlags;
-            _experimentationServiceOpt = experimentationServiceOpt;
-            _isCachedFlightEnabledInfo = isCachedFlightEnabledInfo;
+            _serviceProvider = (IAsyncServiceProvider)serviceProvider;
         }
 
-        public bool IsExperimentEnabled(string experimentName)
+        public async ValueTask<IExperimentationService> GetExperimentationServiceAsync(CancellationToken cancellationToken)
         {
-            ThisCanBeCalledOnAnyThread();
-            if (_isCachedFlightEnabledInfo != null)
+            if (_experimentationService is null)
+            {
+                var featureFlags = (IVsFeatureFlags)await _serviceProvider.GetServiceAsync(typeof(SVsFeatureFlags)).ConfigureAwait(false);
+                var shellExperimentationService = (IVsExperimentationService)await _serviceProvider.GetServiceAsync(typeof(SVsExperimentationService)).ConfigureAwait(false);
+                var experimentationService = new ExperimentationService(featureFlags, shellExperimentationService);
+                Interlocked.CompareExchange(ref _experimentationService, experimentationService, null);
+            }
+
+            return _experimentationService;
+        }
+
+        private class ExperimentationService : IExperimentationService
+        {
+            private readonly IVsFeatureFlags _featureFlags;
+            private readonly IVsExperimentationService _experimentationService;
+
+            public ExperimentationService(IVsFeatureFlags featureFlags, IVsExperimentationService experimentationService)
+            {
+                _featureFlags = featureFlags;
+                _experimentationService = experimentationService;
+            }
+
+            public bool IsExperimentEnabled(string experimentName)
             {
                 try
                 {
@@ -75,17 +71,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     // since we use this for experimentation service as well
                 }
 
-                try
-                {
-                    return (bool)_isCachedFlightEnabledInfo.Invoke(_experimentationServiceOpt, new object[] { experimentName });
-                }
-                catch
-                {
-
-                }
+                return _experimentationService.IsCachedFlightEnabled(experimentName);
             }
-
-            return false;
         }
     }
 }

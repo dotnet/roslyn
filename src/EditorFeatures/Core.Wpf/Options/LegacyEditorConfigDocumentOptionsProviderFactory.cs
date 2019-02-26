@@ -4,9 +4,9 @@ using System;
 using System.Composition;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.EditorConfig;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.CodingConventions;
 using Roslyn.Utilities;
@@ -34,12 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
         public IDocumentOptionsProvider TryCreate(Workspace workspace)
         {
-            if (EditorConfigDocumentOptionsProviderFactory.ShouldUseNativeEditorConfigSupport(workspace))
-            {
-                // If the native support exists, then we'll simply disable this one
-                return null;
-            }
-
             ICodingConventionsManager codingConventionsManager;
 
             if (workspace.Kind == WorkspaceKind.RemoteWorkspace)
@@ -58,7 +52,11 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 codingConventionsManager = CodingConventionsManagerFactory.CreateCodingConventionsManager(deferredFileWatcher);
             }
 
-            return new LegacyEditorConfigDocumentOptionsProvider(workspace, codingConventionsManager, _asynchronousOperationListenerProvider);
+            return new LegacyEditorConfigDocumentOptionsProvider(
+                workspace,
+                workspace.Services.GetRequiredService<IExperimentationServiceFactory>(),
+                codingConventionsManager,
+                _asynchronousOperationListenerProvider);
         }
 
         /// <summary>

@@ -7,7 +7,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorLogger;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.EditorConfig;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.CodingConventions;
@@ -27,13 +29,17 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         private readonly Dictionary<DocumentId, Task<ICodingConventionContext>> _openDocumentContexts = new Dictionary<DocumentId, Task<ICodingConventionContext>>();
 
         private readonly Workspace _workspace;
+        private readonly IExperimentationServiceFactory _experimentationServiceFactory;
         private readonly IAsynchronousOperationListener _listener;
         private readonly ICodingConventionsManager _codingConventionsManager;
         private readonly IErrorLoggerService _errorLogger;
 
-        internal LegacyEditorConfigDocumentOptionsProvider(Workspace workspace, ICodingConventionsManager codingConventionsManager, IAsynchronousOperationListenerProvider listenerProvider)
+        private bool? _enabled;
+
+        internal LegacyEditorConfigDocumentOptionsProvider(Workspace workspace, IExperimentationServiceFactory experimentationServiceFactory, ICodingConventionsManager codingConventionsManager, IAsynchronousOperationListenerProvider listenerProvider)
         {
             _workspace = workspace;
+            _experimentationServiceFactory = experimentationServiceFactory;
             _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
             _codingConventionsManager = codingConventionsManager;
             _errorLogger = workspace.Services.GetService<IErrorLoggerService>();
@@ -45,6 +51,14 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             // https://github.com/dotnet/roslyn/issues/26377
             // otherwise, we will leak files in _openDocumentContexts
             workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
+        }
+
+        private void UnregisterListeners()
+        {
+            _workspace.DocumentOpened -= Workspace_DocumentOpened;
+            _workspace.DocumentClosed -= Workspace_DocumentClosed;
+            _workspace.WorkspaceChanged -= Workspace_WorkspaceChanged;
+            ClearOpenFileCache();
         }
 
         /// <summary>
@@ -135,6 +149,21 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
         public async Task<IDocumentOptions> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
         {
+            if (_enabled is null)
+            {
+                var experimentationService = await _experimentationServiceFactory.GetExperimentationServiceAsync(cancellationToken).ConfigureAwait(false);
+                _enabled = !EditorConfigDocumentOptionsProviderFactory.ShouldUseNativeEditorConfigSupport(experimentationService);
+                if (_enabled is false)
+                {
+                    UnregisterListeners();
+                }
+            }
+
+            if (_enabled != true)
+            {
+                return null;
+            }
+
             Task<ICodingConventionContext> contextTask;
 
             lock (_gate)

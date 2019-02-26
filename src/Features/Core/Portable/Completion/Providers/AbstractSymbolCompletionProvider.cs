@@ -44,11 +44,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected virtual CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols)
             => CompletionItemRules.Default;
 
-        private bool IsTargetTypeCompletionFilterExperimentEnabled(Workspace workspace)
+        private async Task<bool> IsTargetTypeCompletionFilterExperimentEnabledAsync(Workspace workspace, CancellationToken cancellationToken)
         {
             if (!_isTargetTypeCompletionFilterExperimentEnabled.HasValue)
             {
-                var experimentationService = workspace.Services.GetService<IExperimentationService>();
+                var experimentationServiceFactory = workspace.Services.GetRequiredService<IExperimentationServiceFactory>();
+                var experimentationService = await experimentationServiceFactory.GetExperimentationServiceAsync(cancellationToken).ConfigureAwait(false);
                 _isTargetTypeCompletionFilterExperimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TargetTypedCompletionFilter);
             }
 
@@ -101,13 +102,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// Given a list of symbols, and a mapping from each symbol to its original SemanticModel, 
         /// creates the list of completion items for them.
         /// </summary>
-        private ImmutableArray<CompletionItem> CreateItems(
+        private async ValueTask<ImmutableArray<CompletionItem>> CreateItemsAsync(
             IEnumerable<ISymbol> symbols,
             Func<ISymbol, SyntaxContext> contextLookup,
             Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
             List<ProjectId> totalProjects,
             bool preselect,
-            ImmutableArray<ITypeSymbol> inferredTypes)
+            ImmutableArray<ITypeSymbol> inferredTypes,
+            CancellationToken cancellationToken)
         {
             var symbolGroups = from symbol in symbols
                                let texts = GetDisplayAndSuffixAndInsertionText(symbol, contextLookup(symbol))
@@ -123,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText, symbolGroup.ToList(),
                         arbitraryFirstContext, invalidProjectMap, totalProjects, preselect);
 
-                if (IsTargetTypeCompletionFilterExperimentEnabled(arbitraryFirstContext.Workspace))
+                if (await IsTargetTypeCompletionFilterExperimentEnabledAsync(arbitraryFirstContext.Workspace, cancellationToken).ConfigureAwait(false))
                 {
                     foreach (var symbol in symbolGroup)
                     {
@@ -269,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (relatedDocumentIds.IsEmpty)
             {
                 var itemsForCurrentDocument = await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
-                return CreateItems(itemsForCurrentDocument, _ => context, invalidProjectMap: null, totalProjects: null, preselect, inferredTypes);
+                return await CreateItemsAsync(itemsForCurrentDocument, _ => context, invalidProjectMap: null, totalProjects: null, preselect, inferredTypes, cancellationToken).ConfigureAwait(false);
             }
 
             var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), preselect, cancellationToken).ConfigureAwait(false);
@@ -277,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(symbolToContextMap, contextAndSymbolLists);
             var totalProjects = contextAndSymbolLists.Select(t => t.documentId.ProjectId).ToList();
 
-            return CreateItems(symbolToContextMap.Keys, symbol => symbolToContextMap[symbol], missingSymbolsMap, totalProjects, preselect, inferredTypes);
+            return await CreateItemsAsync(symbolToContextMap.Keys, symbol => symbolToContextMap[symbol], missingSymbolsMap, totalProjects, preselect, inferredTypes, cancellationToken).ConfigureAwait(false);
         }
 
         private static ImmutableArray<DocumentId> GetRelatedDocumentIds(Document document, int position)
