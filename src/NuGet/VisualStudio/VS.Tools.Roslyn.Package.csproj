@@ -29,9 +29,9 @@
     <ProjectReference Include="..\..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" PrivateAssets="all"/>
   </ItemGroup>
 
-  <Target Name="_GetFilesToPackage" DependsOnTargets="InitializeDestkopCompilerArtifacts">
+  <Target Name="_GetFilesToPackage" DependsOnTargets="InitializeDesktopCompilerArtifacts">
     <ItemGroup>
-      <_File Include="@(DestkopCompilerArtifact)" TargetDir="" />
+      <_File Include="@(DesktopCompilerArtifact)" TargetDir="" />
       <_File Include="$(MSBuildProjectDirectory)\Init.cmd" TargetDir="" />
 
       <!-- Workaround for https://github.com/dotnet/roslyn/issues/17864 -->
