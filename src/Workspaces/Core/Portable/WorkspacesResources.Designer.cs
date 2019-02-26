@@ -584,7 +584,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-<<<<<<< HEAD
         ///   Looks up a localized string similar to Comments not allowed.
         /// </summary>
         internal static string Comments_not_allowed {
@@ -596,16 +595,19 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to Constructors not allowed.
         /// </summary>
-        internal static string Constructors_not_allowed {
-            get {
+        internal static string Constructors_not_allowed
+        {
+            get
+            {
                 return ResourceManager.GetString("Constructors_not_allowed", resourceCulture);
-=======
+            }
+        }
+
         ///   Looks up a localized string similar to Core EditorConfig Options.
         /// </summary>
         internal static string Core_EditorConfig_Options {
             get {
                 return ResourceManager.GetString("Core_EditorConfig_Options", resourceCulture);
->>>>>>> upstream/master
             }
         }
         
@@ -2083,7 +2085,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string TypeOrNamespaceUsageInfo_TypeConstraint {
             get {
                 return ResourceManager.GetString("TypeOrNamespaceUsageInfo_TypeConstraint", resourceCulture);
->>>>>>> upstream/master
             }
         }
         
