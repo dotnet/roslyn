@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         {
             private readonly RegexEmbeddedCompletionProvider _provider;
             private readonly CompletionContext _context;
+            private readonly HashSet<string> _names = new HashSet<string>();
 
             public readonly List<RegexItem> Items = new List<RegexItem>();
-            public readonly HashSet<string> Names = new HashSet<string>();
 
             public readonly RegexTree Tree;
             public readonly SyntaxToken StringToken;
@@ -35,10 +35,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             }
 
             public int Position => _context.Position;
-            public OptionSet Options => _context.Options;
-            public Document Document => _context.Document;
             public CompletionTrigger Trigger => _context.Trigger;
-            public CancellationToken CancellationToken => _context.CancellationToken;
 
             public void AddIfMissing(
                 string displayText, string suffix, string description,
@@ -49,16 +46,39 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                     : Position;
 
                 var replacementSpan = TextSpan.FromBounds(replacementStart, Position);
-                var item = _provider.CreateItem(
+                var item = CreateItem(
                     StringToken, displayText, suffix, description,
                     replacementSpan, positionOffset, insertionText);
 
                 AddIfMissing(item);
             }
 
+            private RegexItem CreateItem(
+                SyntaxToken stringToken, string displayText,
+                string suffix, string description,
+                TextSpan replacementSpan, int? positionOffset, string insertionText)
+            {
+                var replacementStart = replacementSpan.Start;
+                var newPosition = replacementStart + positionOffset;
+
+                insertionText = insertionText ?? displayText;
+                var escapedInsertionText = _provider._language.EscapeText(insertionText, stringToken);
+
+                if (escapedInsertionText != insertionText)
+                {
+                    newPosition += escapedInsertionText.Length - insertionText.Length;
+                }
+
+                return new RegexItem(
+                    displayText, suffix, description,
+                    CompletionChange.Create(
+                        new TextChange(replacementSpan, escapedInsertionText),
+                        newPosition));
+            }
+
             public void AddIfMissing(RegexItem item)
             {
-                if (this.Names.Add(item.DisplayText))
+                if (this._names.Add(item.DisplayText))
                 {
                     this.Items.Add(item);
                 }

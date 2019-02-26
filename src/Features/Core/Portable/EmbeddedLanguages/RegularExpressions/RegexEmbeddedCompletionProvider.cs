@@ -403,29 +403,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             context.AddIfMissing(@"\W", Regex_non_word_character_short, Regex_non_word_character_long, parentOpt);
         }
 
-        private RegexItem CreateItem(
-            SyntaxToken stringToken, string displayText,
-            string suffix, string description,
-            TextSpan replacementSpan, int? positionOffset, string insertionText)
-        {
-            var replacementStart = replacementSpan.Start;
-            var newPosition = replacementStart + positionOffset;
-
-            insertionText = insertionText ?? displayText;
-            var escapedInsertionText = _language.EscapeText(insertionText, stringToken);
-
-            if (escapedInsertionText != insertionText)
-            {
-                newPosition += escapedInsertionText.Length - insertionText.Length;
-            }
-
-            return new RegexItem(
-                displayText, suffix, description,
-                CompletionChange.Create(
-                    new TextChange(replacementSpan, escapedInsertionText),
-                    newPosition));
-        }
-
         private (RegexNode parent, RegexToken Token)? FindToken(
             RegexNode parent, VirtualChar ch)
         {
