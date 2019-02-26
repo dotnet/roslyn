@@ -1,28 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 {
     internal partial class RegexEmbeddedCompletionProvider
     {
-        private class EmbeddedCompletionContext
+        private struct EmbeddedCompletionContext
         {
             private readonly RegexEmbeddedCompletionProvider _provider;
             private readonly CompletionContext _context;
-            private readonly HashSet<string> _names = new HashSet<string>();
-
-            public readonly List<RegexItem> Items = new List<RegexItem>();
+            private readonly HashSet<string> _names;
 
             public readonly RegexTree Tree;
             public readonly SyntaxToken StringToken;
             public readonly int Position;
             public readonly CompletionTrigger Trigger;
+            public readonly List<RegexItem> Items;
 
             public EmbeddedCompletionContext(
                 RegexEmbeddedCompletionProvider provider,
@@ -32,10 +29,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             {
                 _provider = provider;
                 _context = context;
+                _names = new HashSet<string>();
                 Tree = tree;
                 StringToken = stringToken;
                 Position = _context.Position;
                 Trigger = _context.Trigger;
+                Items = new List<RegexItem>();
             }
 
             public void AddIfMissing(
