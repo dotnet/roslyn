@@ -123,8 +123,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void WaitForAsyncOperations(string featuresToWaitFor, bool waitForWorkspaceFirst = true)
             => GetWaitingService().WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);
 
-        public void WaitForAllAsyncOperations(params string[] featureNames)
-            => GetWaitingService().WaitForAllAsyncOperations(featureNames);
+        public void WaitForAllAsyncOperations(TimeSpan timeout, params string[] featureNames)
+            => GetWaitingService().WaitForAllAsyncOperations(timeout, featureNames);
 
         private static void LoadRoslynPackage()
         {
