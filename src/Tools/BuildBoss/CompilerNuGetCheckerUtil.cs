@@ -403,6 +403,7 @@ namespace BuildBoss
             }
 
             return
+                filePath.EndsWith(".exe") ||
                 filePath.EndsWith(".targets") ||
                 filePath.EndsWith(".props");
         }
