@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
-    using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
 
     /// <summary>
     /// Base type for analysis contexts for execution of <see cref="DataFlowAnalysis"/> on a control flow graph.

@@ -26,9 +26,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected abstract TAbstractAnalysisValue GetAbstractValue(AbstractLocation location);
         protected abstract void SetAbstractValue(AbstractLocation location, TAbstractAnalysisValue value);
-        protected virtual void SetAbstractValue(PointsToAbstractValue instanceLocation, TAbstractAnalysisValue value)
+        protected void SetAbstractValue(PointsToAbstractValue instanceLocation, TAbstractAnalysisValue value)
+            => SetAbstractValue(instanceLocation.Locations, value);
+        protected void SetAbstractValue(IEnumerable<AbstractLocation> locations, TAbstractAnalysisValue value)
         {
-            foreach (var location in instanceLocation.Locations)
+            foreach (var location in locations)
             {
                 SetAbstractValue(location, value);
             }
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         protected abstract void SetValueForParameterPointsToLocationOnEntry(IParameterSymbol parameter, PointsToAbstractValue pointsToAbstractValue);
-        protected abstract void EscapeValueForParameterPointsToLocationOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity, PointsToAbstractValue pointsToAbstractValue);
+        protected abstract void EscapeValueForParameterPointsToLocationOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity, ImmutableHashSet<AbstractLocation> escapedLocations);
 
         protected override void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<TAbstractAnalysisValue> assignedValueOpt)
         {
@@ -100,9 +102,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected override void EscapeValueForParameterOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity)
         {
             Debug.Assert(analysisEntity.SymbolOpt == parameter);
-            if (TryGetPointsToAbstractValueAtCurrentBlockEntry(analysisEntity, out PointsToAbstractValue pointsToAbstractValue))
+            var escapedLocationsForParameter = GetEscapedLocations(analysisEntity);
+            if (!escapedLocationsForParameter.IsEmpty)
             {
-                EscapeValueForParameterPointsToLocationOnExit(parameter, analysisEntity, pointsToAbstractValue);
+                EscapeValueForParameterPointsToLocationOnExit(parameter, analysisEntity, escapedLocationsForParameter);
             }
         }
 

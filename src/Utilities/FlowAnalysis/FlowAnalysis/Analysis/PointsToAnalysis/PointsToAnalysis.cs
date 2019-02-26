@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 {
-    using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
     using CopyAnalysisResult = DataFlowAnalysisResult<CopyAnalysis.CopyBlockAnalysisResult, CopyAnalysis.CopyAbstractValue>;
 
     /// <summary>
@@ -94,8 +93,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             data.AssertValidPointsToAnalysisData();
         }
 
-        protected override PointsToAnalysisResult ToResult(PointsToAnalysisContext analysisContext, PointsToAnalysisResult dataFlowAnalysisResult)
-            => dataFlowAnalysisResult;
+        protected override PointsToAnalysisResult ToResult(PointsToAnalysisContext analysisContext, DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> dataFlowAnalysisResult)
+        {
+            var operationVisitor = ((PointsToDataFlowOperationVisitor)OperationVisitor);
+            return new PointsToAnalysisResult(
+                dataFlowAnalysisResult,
+                operationVisitor.GetEscapedLocationsThroughOperationsMap(),
+                operationVisitor.GetEscapedLocationsThroughEntitiesMap());
+        }
         protected override PointsToBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, PointsToAnalysisData blockAnalysisData)
             => new PointsToBlockAnalysisResult(basicBlock, blockAnalysisData);
     }

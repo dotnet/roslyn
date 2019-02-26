@@ -687,12 +687,29 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        protected bool TryGetPointsToAbstractValueAtCurrentBlockEntry(AnalysisEntity analysisEntity, out PointsToAbstractValue pointsToAbstractValue)
+        protected ImmutableHashSet<AbstractLocation> GetEscapedLocations(IOperation operation)
         {
-            Debug.Assert(CurrentBasicBlock != null);
-            Debug.Assert(DataFlowAnalysisContext.PointsToAnalysisResultOpt != null);
-            var inputData = DataFlowAnalysisContext.PointsToAnalysisResultOpt[CurrentBasicBlock].Data;
-            return inputData.TryGetValue(analysisEntity, out pointsToAbstractValue);
+            if (operation == null || DataFlowAnalysisContext.PointsToAnalysisResultOpt == null)
+            {
+                return ImmutableHashSet<AbstractLocation>.Empty;
+            }
+            else
+            {
+                return DataFlowAnalysisContext.PointsToAnalysisResultOpt.GetEscapedAbstractLocations(operation);
+            }
+        }
+
+        protected ImmutableHashSet<AbstractLocation> GetEscapedLocations(AnalysisEntity parameterEntity)
+        {
+            Debug.Assert(parameterEntity.SymbolOpt?.Kind == SymbolKind.Parameter);
+            if (parameterEntity == null || DataFlowAnalysisContext.PointsToAnalysisResultOpt == null)
+            {
+                return ImmutableHashSet<AbstractLocation>.Empty;
+            }
+            else
+            {
+                return DataFlowAnalysisContext.PointsToAnalysisResultOpt.GetEscapedAbstractLocations(parameterEntity);
+            }
         }
 
         protected bool TryGetPointsToAbstractValueAtEntryBlockEnd(AnalysisEntity analysisEntity, out PointsToAbstractValue pointsToAbstractValue)
@@ -1320,6 +1337,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         #region Helper methods to handle initialization/assignment operations
         protected abstract void SetAbstractValueForArrayElementInitializer(IArrayCreationOperation arrayCreation, ImmutableArray<AbstractIndex> indices, ITypeSymbol elementType, IOperation initializer, TAbstractAnalysisValue value);
         protected abstract void SetAbstractValueForAssignment(IOperation target, IOperation assignedValueOperation, TAbstractAnalysisValue assignedValue, bool mayBeAssignment = false);
+        protected abstract void SetAbstractValueForTupleElementAssignment(AnalysisEntity tupleElementEntity, IOperation assignedValueOperation, TAbstractAnalysisValue assignedValue);
         private void HandleFlowCaptureReferenceAssignment(IFlowCaptureReferenceOperation flowCaptureReference, IOperation assignedValueOperation, TAbstractAnalysisValue assignedValue)
         {
             Debug.Assert(flowCaptureReference != null);
@@ -1548,7 +1566,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             // Compute the dependent interprocedural PointsTo and Copy analysis results, if any.
-            var pointsToAnalysisResultOpt = DataFlowAnalysisContext.PointsToAnalysisResultOpt?.TryGetInterproceduralResult(originalOperation);
+            var pointsToAnalysisResultOpt = (PointsToAnalysisResult)DataFlowAnalysisContext.PointsToAnalysisResultOpt?.TryGetInterproceduralResult(originalOperation);
             var copyAnalysisResultOpt = DataFlowAnalysisContext.CopyAnalysisResultOpt?.TryGetInterproceduralResult(originalOperation);
 
             // Compute the CFG for the invoked method.
@@ -2509,16 +2527,49 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public override TAbstractAnalysisValue VisitTuple(ITupleOperation operation, object argument)
         {
-            // TODO: Handle tuples.
-            // https://github.com/dotnet/roslyn-analyzers/issues/1571
-            // Until the above is implemented, we pessimistically reset the current state of tuple elements.
-            var value = base.VisitTuple(operation, argument);
-            CacheAbstractValue(operation, value);
-            foreach (var element in operation.Elements)
+            var elementValueBuilder = ArrayBuilder<TAbstractAnalysisValue>.GetInstance(operation.Elements.Length);
+
+            try
             {
-                SetAbstractValueForAssignment(element, operation, ValueDomain.UnknownOrMayBeValue);
+                foreach (var element in operation.Elements)
+                {
+                    elementValueBuilder.Add(Visit(element, argument));
+                }
+
+                // Set abstract value for tuple element/field assignment if the tuple is not target of a deconstruction assignment.
+                // For deconstruction assignment, the value would be assigned from the computed value for the right side of the assignment.
+                var deconstructionAncestorOpt = operation.GetAncestor<IDeconstructionAssignmentOperation>(OperationKind.DeconstructionAssignment);
+                if (deconstructionAncestorOpt == null ||
+                    !deconstructionAncestorOpt.Target.Descendants().Contains(operation))
+                {
+                    if (AnalysisEntityFactory.TryCreateForTupleElements(operation, out var elementEntities))
+                    {
+                        Debug.Assert(elementEntities.Length == elementValueBuilder.Count);
+                        Debug.Assert(elementEntities.Length == operation.Elements.Length);
+                        for (int i = 0; i < elementEntities.Length; i++)
+                        {
+                            var tupleElementEntity = elementEntities[i];
+                            var assignedValueOperation = operation.Elements[i];
+                            var assignedValue = elementValueBuilder[i];
+                            SetAbstractValueForTupleElementAssignment(tupleElementEntity, assignedValueOperation, assignedValue);
+                        }
+                    }
+                    else
+                    {
+                        // Reset data for elements.
+                        foreach (var element in operation.Elements)
+                        {
+                            SetAbstractValueForAssignment(element, operation, ValueDomain.UnknownOrMayBeValue);
+                        }
+                    }
+                }
+
+                return GetAbstractDefaultValue(operation.Type);
             }
-            return value;
+            finally
+            {
+                elementValueBuilder.Free();
+            }
         }
 
         public virtual TAbstractAnalysisValue VisitUnaryOperatorCore(IUnaryOperation operation, object argument)

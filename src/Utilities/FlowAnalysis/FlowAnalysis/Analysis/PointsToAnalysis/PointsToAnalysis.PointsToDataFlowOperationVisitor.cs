@@ -10,8 +10,6 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 {
-    using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
-
     public partial class PointsToAnalysis : ForwardDataFlowAnalysis<PointsToAnalysisData, PointsToAnalysisContext, PointsToAnalysisResult, PointsToBlockAnalysisResult, PointsToAbstractValue>
     {
         /// <summary>
@@ -23,6 +21,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             private readonly TrackedEntitiesBuilder _trackedEntitiesBuilder;
             private readonly DefaultPointsToValueGenerator _defaultPointsToValueGenerator;
             private readonly PointsToAnalysisDomain _pointsToAnalysisDomain;
+            private readonly PooledDictionary<IOperation, ImmutableHashSet<AbstractLocation>.Builder> _escapedOperationLocationsBuilder;
+            private readonly PooledDictionary<AnalysisEntity, ImmutableHashSet<AbstractLocation>.Builder> _escapedEntityLocationsBuilder;
 
             public PointsToDataFlowOperationVisitor(
                 TrackedEntitiesBuilder trackedEntitiesBuilder,
@@ -34,8 +34,41 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 _trackedEntitiesBuilder = trackedEntitiesBuilder;
                 _defaultPointsToValueGenerator = defaultPointsToValueGenerator;
                 _pointsToAnalysisDomain = pointsToAnalysisDomain;
+                _escapedOperationLocationsBuilder = PooledDictionary<IOperation, ImmutableHashSet<AbstractLocation>.Builder>.GetInstance();
+                _escapedEntityLocationsBuilder = PooledDictionary<AnalysisEntity, ImmutableHashSet<AbstractLocation>.Builder>.GetInstance();
 
                 analysisContext.InterproceduralAnalysisDataOpt?.InitialAnalysisData.AssertValidPointsToAnalysisData();
+            }
+
+            public ImmutableDictionary<IOperation, ImmutableHashSet<AbstractLocation>> GetEscapedLocationsThroughOperationsMap()
+                => GetEscapedAbstractLocationsMapAndFreeBuilder(_escapedOperationLocationsBuilder);
+
+            public ImmutableDictionary<AnalysisEntity, ImmutableHashSet<AbstractLocation>> GetEscapedLocationsThroughEntitiesMap()
+                => GetEscapedAbstractLocationsMapAndFreeBuilder(_escapedEntityLocationsBuilder);
+
+            private static ImmutableDictionary<T, ImmutableHashSet<AbstractLocation>> GetEscapedAbstractLocationsMapAndFreeBuilder<T>(
+                PooledDictionary<T, ImmutableHashSet<AbstractLocation>.Builder> escapedLocationsBuilder)
+                where T : class
+            {
+                try
+                {
+                    if (escapedLocationsBuilder.Count == 0)
+                    {
+                        return ImmutableDictionary<T, ImmutableHashSet<AbstractLocation>>.Empty;
+                    }
+
+                    var builder = ImmutableDictionary.CreateBuilder<T, ImmutableHashSet<AbstractLocation>>();
+                    foreach ((var key, var valueBuilder) in escapedLocationsBuilder)
+                    {
+                        builder.Add(key, valueBuilder.ToImmutable());
+                    }
+
+                    return builder.ToImmutable();
+                }
+                finally
+                {
+                    escapedLocationsBuilder.Free();
+                }
             }
 
             public override PointsToAnalysisData Flow(IOperation statement, BasicBlock block, PointsToAnalysisData input)
@@ -208,7 +241,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             protected override void EscapeValueForParameterOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity)
             {
-                // Do not escape the PointsTo value for parameter at exit.
+                // Mark PointsTo values for ref/out parameters in non-interprocedural context as escaped.
+                if (parameter.RefKind == RefKind.Ref || parameter.RefKind == RefKind.Out)
+                {
+                    Debug.Assert(DataFlowAnalysisContext.InterproceduralAnalysisDataOpt == null);
+                    var pointsToValue = GetAbstractValue(analysisEntity);
+                    HandleEscapingLocations(analysisEntity, _escapedEntityLocationsBuilder, analysisEntity, pointsToValue);
+                }
             }
 
             private static PointsToAbstractValue GetResetValue(AnalysisEntity analysisEntity, PointsToAbstractValue currentValue)
@@ -255,11 +294,30 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             {
                 base.PostProcessArgument(operation, isEscaped);
 
-                if (!isEscaped &&
-                    operation.Parameter.RefKind != RefKind.None &&
-                    AnalysisEntityFactory.TryCreate(operation, out var analysisEntity))
+                if (!isEscaped)
                 {
-                    CacheAbstractValue(operation, GetAbstractValue(analysisEntity));
+                    // Update abstract value for unescaped ref or out argument (interprocedural analysis case).
+                    if (operation.Parameter.RefKind != RefKind.None &&
+                        AnalysisEntityFactory.TryCreate(operation, out var analysisEntity))
+                    {
+                        CacheAbstractValue(operation, GetAbstractValue(analysisEntity));
+                    }
+                }
+                else if (operation.Parameter.RefKind == RefKind.Ref)
+                {
+                    // By-ref argument is considered escaped in non-interprocedural analysis case.
+                    HandleEscapingOperation(operation, operation.Value);
+                }
+            }
+
+            protected override void ProcessReturnValue(IOperation returnValue)
+            {
+                base.ProcessReturnValue(returnValue);
+
+                // Escape the return value, if not currently analyzing an invoked method.
+                if (returnValue != null && DataFlowAnalysisContext.InterproceduralAnalysisDataOpt == null)
+                {
+                    HandleEscapingOperation(escapingOperation: returnValue, escapedInstance: returnValue);
                 }
             }
 
@@ -476,6 +534,109 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 return initialAnalysisData;
             }
 
+            private void HandleEscapingOperation(IOperation escapingOperation, IOperation escapedInstance)
+            {
+                Debug.Assert(escapingOperation != null);
+                Debug.Assert(escapedInstance != null);
+
+                var escapedInstancePointsToValue = GetPointsToAbstractValue(escapedInstance);
+                AnalysisEntityFactory.TryCreate(escapedInstance, out var escapedEntityOpt);
+                HandleEscapingLocations(escapingOperation, _escapedOperationLocationsBuilder, escapedEntityOpt, escapedInstancePointsToValue);
+            }
+
+            private void HandleEscapingLocations<TKey>(
+                TKey key,
+                PooledDictionary<TKey, ImmutableHashSet<AbstractLocation>.Builder> escapedLocationsBuilder,
+                AnalysisEntity escapedEntityOpt,
+                PointsToAbstractValue escapedInstancePointsToValue)
+                where TKey : class
+            {
+                Debug.Assert(key != null);
+
+                // Start by clearing escaped locations from previous flow analysis iterations.
+                if (escapedLocationsBuilder.TryGetValue(key, out var builder))
+                {
+                    builder.Clear();
+                }
+
+                HandleEscapingLocations(key, escapedLocationsBuilder, escapedInstancePointsToValue);
+
+                // For value type entities, we also need to handle escaping the locations for child entities.
+                if (escapedEntityOpt?.Type.HasValueCopySemantics() == true)
+                {
+                    HandleEscapingLocations(key, escapedLocationsBuilder, escapedEntityOpt.InstanceLocation);
+                }
+            }
+
+            private void HandleEscapingLocations<TKey>(
+                TKey key,
+                PooledDictionary<TKey, ImmutableHashSet<AbstractLocation>.Builder> escapedLocationsBuilder,
+                PointsToAbstractValue pointsToValueOfEscapedInstance)
+                where TKey : class
+            {
+                if (pointsToValueOfEscapedInstance.Locations.Count == 0 ||
+                    pointsToValueOfEscapedInstance == PointsToAbstractValue.NoLocation ||
+                    pointsToValueOfEscapedInstance == PointsToAbstractValue.NullLocation)
+                {
+                    return;
+                }
+
+                if (!escapedLocationsBuilder.TryGetValue(key, out var builder))
+                {
+                    builder = ImmutableHashSet.CreateBuilder<AbstractLocation>();
+                    escapedLocationsBuilder.Add(key, builder);
+                }
+
+                HandleEscapingLocations(pointsToValueOfEscapedInstance, builder);
+                foreach (var childEntity in GetChildAnalysisEntities(pointsToValueOfEscapedInstance))
+                {
+                    var pointsToValueOfEscapedChild = GetAbstractValue(childEntity);
+                    HandleEscapingLocations(pointsToValueOfEscapedChild, builder);
+                }
+            }
+
+            private static void HandleEscapingLocations(PointsToAbstractValue pointsToValueOfEscapedInstance, ImmutableHashSet<AbstractLocation>.Builder builder)
+            {
+                foreach (var escapedLocation in pointsToValueOfEscapedInstance.Locations)
+                {
+                    // Only escape locations associated with creations.
+                    // We can expand this for more cases in future if need arises.
+                    if (escapedLocation.CreationOpt != null)
+                    {
+                        builder.Add(escapedLocation);
+                    }
+                }
+            }
+
+            private void HandlePossibleEscapingForAssignment(IOperation target, IOperation value, IOperation operation)
+            {
+                // FxCop compat: The object assigned to a field or a property or an array element is considered escaped.
+                // TODO: Perform better analysis for array element assignments as we already track element locations.
+                // https://github.com/dotnet/roslyn-analyzers/issues/1577
+                if (target is IMemberReferenceOperation ||
+                    target.Kind == OperationKind.ArrayElementReference)
+                {
+                    HandleEscapingOperation(operation, value);
+                }
+            }
+
+            protected override void SetAbstractValueForAssignment(IOperation target, IOperation assignedValueOperation, PointsToAbstractValue assignedValue, bool mayBeAssignment = false)
+            {
+                base.SetAbstractValueForAssignment(target, assignedValueOperation, assignedValue, mayBeAssignment);
+
+                if (assignedValueOperation != null)
+                {
+                    HandlePossibleEscapingForAssignment(target, assignedValueOperation, assignedValueOperation);
+                }
+            }
+
+            protected override void SetAbstractValueForArrayElementInitializer(IArrayCreationOperation arrayCreation, ImmutableArray<AbstractIndex> indices, ITypeSymbol elementType, IOperation initializer, PointsToAbstractValue value)
+            {
+                base.SetAbstractValueForArrayElementInitializer(arrayCreation, indices, elementType, initializer, value);
+
+                HandleEscapingOperation(arrayCreation, initializer);
+            }
+
             #region Visitor methods
 
             public override PointsToAbstractValue DefaultVisit(IOperation operation, object argument)
@@ -557,6 +718,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 CacheAbstractValue(operation, pointsToAbstractValue);
 
                 _ = base.VisitAnonymousObjectCreation(operation, argument);
+                return pointsToAbstractValue;
+            }
+
+            public override PointsToAbstractValue VisitTuple(ITupleOperation operation, object argument)
+            {
+                var type = operation.Type.GetUnderlyingValueTupleTypeOrThis();
+                AbstractLocation location = AbstractLocation.CreateAllocationLocation(operation, type, DataFlowAnalysisContext);
+                var pointsToAbstractValue = PointsToAbstractValue.Create(location, mayBeNull: false);
+                CacheAbstractValue(operation, pointsToAbstractValue);
+
+                _ = base.VisitTuple(operation, argument);
                 return pointsToAbstractValue;
             }
 
@@ -644,6 +816,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 PointsToAbstractValue defaultValue)
             {
                 _ = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
+
+                if (visitedArguments.Length > 0 &&
+                    method.IsCollectionAddMethod(WellKnownTypeProvider.CollectionTypes))
+                {
+                    // FxCop compat: The object added to a collection is considered escaped.
+                    var lastArgument = visitedArguments[visitedArguments.Length - 1];
+                    HandleEscapingOperation(originalOperation, lastArgument.Value);
+                }
+
                 return VisitInvocationCommon(originalOperation, visitedInstance);
             }
 
@@ -757,6 +938,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             {
                 var value = base.VisitConversion(operation, argument);
 
+                if (operation.OperatorMethod != null)
+                {
+                    // Conservatively handle user defined conversions as escaping operations.
+                    HandleEscapingOperation(operation, operation.Operand);
+                }
+
                 ConversionInference? inferenceOpt = null;
                 if (value.NullState == NullAbstractValue.NotNull)
                 {
@@ -867,6 +1054,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 }
 
                 return base.ComputeValueForCompoundAssignment(operation, targetValue, assignedValue, targetType, assignedValueType);
+            }
+
+            protected override PointsToAbstractValue VisitAssignmentOperation(IAssignmentOperation operation, object argument)
+            {
+                var value = base.VisitAssignmentOperation(operation, argument);
+                HandlePossibleEscapingForAssignment(operation.Target, operation.Value, operation);
+                return value;
+            }
+
+            public override PointsToAbstractValue VisitDeclarationExpression(IDeclarationExpressionOperation operation, object argument)
+            {
+                return Visit(operation.Expression, argument);
             }
 
             #endregion
