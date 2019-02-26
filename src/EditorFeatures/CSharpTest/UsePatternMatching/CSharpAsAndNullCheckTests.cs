@@ -367,6 +367,7 @@ $@"class C
     void M()
     {
         int a = 0;
+
         //suffix comment
         if (o is string x)
         {
