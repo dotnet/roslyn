@@ -1083,6 +1083,7 @@ If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v]
     Pc	Punctuation, Connector
 
 If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]</value>
+    <comment>Note: Ll, Lu, Lt, Lo, Lm, Mn, Nd, and Pc are all things that should not be localized.</comment>
   </data>
   <data name="Regex_word_character_short" xml:space="preserve">
     <value>word character</value>
