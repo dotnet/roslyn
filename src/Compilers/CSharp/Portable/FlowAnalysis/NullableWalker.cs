@@ -1276,6 +1276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int slot = -1;
             TypeSymbol type = node.Type;
+            NullableAnnotation resultAnnotation = NullableAnnotation.NotNullable;
             if ((object)type != null)
             {
                 bool isTrackableStructType = EmptyStructTypeCache.IsTrackableStructType(type);
@@ -1303,6 +1304,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+                else if (type.IsNullableType() && arguments.Length == 0)
+                {
+                    // a nullable value type created with zero arguments is by definition null
+                    resultAnnotation = NullableAnnotation.Nullable;
+                }
             }
 
             if (initializerOpt != null)
@@ -1310,7 +1316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitObjectCreationInitializer(null, slot, initializerOpt);
             }
 
-            ResultType = TypeSymbolWithAnnotations.Create(type, NullableAnnotation.NotNullable);
+            ResultType = TypeSymbolWithAnnotations.Create(type, resultAnnotation);
         }
 
         private void VisitObjectCreationInitializer(Symbol containingSymbol, int containingSlot, BoundExpression node)
