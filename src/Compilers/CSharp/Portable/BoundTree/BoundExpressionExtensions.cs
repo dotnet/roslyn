@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var op = (BoundNullCoalescingOperator)expr;
                         var left = op.LeftOperand.GetNullableAnnotation();
                         var right = op.RightOperand.GetNullableAnnotation();
-                        return left.IsAnyNullable() ? right : left;
+                        return left.IsAnnotated() ? right : left;
                     }
                 case BoundKind.ThisReference:
                 case BoundKind.BaseReference:

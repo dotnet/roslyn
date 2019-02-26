@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         type = NullableTypeDecoder.TransformType(type, constraintHandle, moduleSymbol);
 
                         // Drop 'System.Object?' constraint type.
-                        if (type.SpecialType == SpecialType.System_Object && type.NullableAnnotation.IsAnyNullable())
+                        if (type.SpecialType == SpecialType.System_Object && type.NullableAnnotation.IsAnnotated())
                         {
                             continue;
                         }

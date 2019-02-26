@@ -1526,7 +1526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case VarianceKind.Out:
                         return a.Join(b);
                     case VarianceKind.None:
-                        return a.EnsureCompatibleForTuples(b);
+                        return a.EnsureCompatible(b);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(variance);
                 }

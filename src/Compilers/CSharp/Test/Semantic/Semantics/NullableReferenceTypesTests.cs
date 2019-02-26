@@ -20415,8 +20415,8 @@ class C
     static void F1(bool b, ref string? x1, ref string y1)
     {
         (b ? ref x1 : ref x1)/*T:string?*/.ToString();
-        (b ? ref x1 : ref y1)/*T:string!*/.ToString();
-        (b ? ref y1 : ref x1)/*T:string!*/.ToString();
+        (b ? ref x1 : ref y1)/*T:string?*/.ToString();
+        (b ? ref y1 : ref x1)/*T:string?*/.ToString();
         (b ? ref y1 : ref y1)/*T:string!*/.ToString();
     }
     static void F2(bool b, ref I<string?> x2, ref I<string> y2)
@@ -29336,7 +29336,7 @@ class C
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("System.String?", symbol.Type.ToTestDisplayString(true));
-            Assert.True(symbol.Type.NullableAnnotation.IsAnyNullable());
+            Assert.True(symbol.Type.NullableAnnotation.IsAnnotated());
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString(true));
             Assert.Equal(NullableAnnotation.Unknown, symbol.Type.NullableAnnotation);
@@ -29371,7 +29371,7 @@ class C
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("System.String?", symbol.Type.ToTestDisplayString(true));
-            Assert.True(symbol.Type.NullableAnnotation.IsAnyNullable());
+            Assert.True(symbol.Type.NullableAnnotation.IsAnnotated());
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("System.Int32?", symbol.Type.ToTestDisplayString(true));
             Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
@@ -29456,10 +29456,10 @@ class C
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("T?", symbol.Type.ToTestDisplayString(true));
-            Assert.True(symbol.Type.NullableAnnotation.IsAnyNullable());
+            Assert.True(symbol.Type.NullableAnnotation.IsAnnotated());
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("T?", symbol.Type.ToTestDisplayString(true));
-            Assert.True(symbol.Type.NullableAnnotation.IsAnyNullable());
+            Assert.True(symbol.Type.NullableAnnotation.IsAnnotated());
         }
 
         [Fact]
@@ -31059,15 +31059,9 @@ class CL4 : CL3 {}
                 // (22,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         CL2 u3 = x3;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x3").WithLocation(22, 18),
-                // (33,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         CL3 u5 = x5;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x5").WithLocation(33, 18),
                 // (44,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         dynamic u7 = x7;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x7").WithLocation(44, 22),
-                // (55,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         object u9 = x9;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x9").WithLocation(55, 21),
                 // (60,23): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         dynamic u10 = x10;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x10").WithLocation(60, 23),
@@ -31085,8 +31079,7 @@ class CL4 : CL3 {}
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)x14").WithLocation(82, 23),
                 // (87,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         object u15 = x15;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x15").WithLocation(87, 22)
-                );
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x15").WithLocation(87, 22));
         }
 
         [Fact]
@@ -62342,14 +62335,14 @@ static class E
 public class G<T>
 {
     public T t = default(T)!;
-    public (T, U) M<U>(U u) => (t, u)!;
+    public (T, U) M<U>(U u) => (t, u);
 }
 public delegate (T, U) MyDelegate<T, U>(U u);
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
             // https://github.com/dotnet/roslyn/issues/33637
-            // comp.VerifyTypes();
+            //comp.VerifyTypes();
         }
 
         [WorkItem(33638, "https://github.com/dotnet/roslyn/issues/33638")]
@@ -62367,13 +62360,7 @@ public class C
 }
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics(
-                // (3,37): warning CS8619: Nullability of reference types in value of type '(T t, U u)' doesn't match target type '(T, U)'.
-                //     public (T, U) M<U>(T t, U u) => (t, u);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(t, u)").WithArguments("(T t, U u)", "(T, U)").WithLocation(3, 37),
-                // (7,40): warning CS8619: Nullability of reference types in value of type '(T t, U u)' doesn't match target type '(T, U)'.
-                //     public (T, U) M<T, U>(T t, U u) => (t, u);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(t, u)").WithArguments("(T t, U u)", "(T, U)").WithLocation(7, 40));
+            comp.VerifyDiagnostics();
         }
 
         [WorkItem(30562, "https://github.com/dotnet/roslyn/issues/30562")]
@@ -73779,25 +73766,6 @@ class Program
             AssertEqual(expected, getResult, inputs.Length);
         }
 
-        [Fact]
-        public void TestEnsureCompatibleForTuples_IsPossiblyNullableReferenceTypeTypeParameterFalse()
-        {
-            var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Annotated, NullableAnnotation.Unknown, NullableAnnotation.NotAnnotated, NullableAnnotation.NotAnnotated };
-
-            Func<int, int, NullableAnnotation> getResult = (i, j) => inputs[i].EnsureCompatibleForTuples(inputs[j]);
-
-            var expected = new NullableAnnotation[5, 5]
-            {
-                { NullableAnnotation.Annotated,    NullableAnnotation.Annotated,     NullableAnnotation.Annotated,    NullableAnnotation.NotAnnotated,  NullableAnnotation.NotAnnotated },
-                { NullableAnnotation.Annotated,     NullableAnnotation.Annotated,     NullableAnnotation.Annotated,     NullableAnnotation.NotAnnotated,  NullableAnnotation.NotAnnotated },
-                { NullableAnnotation.Annotated,    NullableAnnotation.Annotated,     NullableAnnotation.Unknown,      NullableAnnotation.NotAnnotated,  NullableAnnotation.NotAnnotated },
-                { NullableAnnotation.NotAnnotated,  NullableAnnotation.NotAnnotated,  NullableAnnotation.NotAnnotated,  NullableAnnotation.NotAnnotated,  NullableAnnotation.NotAnnotated  },
-                { NullableAnnotation.NotAnnotated, NullableAnnotation.NotAnnotated, NullableAnnotation.NotAnnotated, NullableAnnotation.NotAnnotated,  NullableAnnotation.NotAnnotated },
-            };
-
-            AssertEqual(expected, getResult, inputs.Length);
-        }
-
         private static void AssertEqual(NullableAnnotation[,] expected, Func<int, int, NullableAnnotation> getResult, int size)
         {
             AssertEx.Equal<NullableAnnotation>(expected, getResult, (na1, na2) => na1 == na2, na => $"NullableAnnotation.{na}", "{0,-32:G}", size);
@@ -73822,7 +73790,7 @@ class Program
         }
 
         [Fact]
-        public void TestAbsorptionForFlowtates()
+        public void TestAbsorptionForFlowStates()
         {
             foreach (var a in s_AllNullableFlowStates)
             {
@@ -73945,12 +73913,9 @@ class Program
             {
                 foreach (var b in s_AllNullableFlowStates)
                 {
-                    foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
-                    {
-                        var leftFirst = a.Join(b);
-                        var rightFirst = b.Join(a);
-                        Assert.Equal(leftFirst, rightFirst);
-                    }
+                    var leftFirst = a.Join(b);
+                    var rightFirst = b.Join(a);
+                    Assert.Equal(leftFirst, rightFirst);
                 }
             }
         }

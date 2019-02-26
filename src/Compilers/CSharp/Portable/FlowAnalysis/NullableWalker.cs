@@ -2018,7 +2018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (t.HasNullType)
                 {
-                    return GetNullableAnnotation(e).IsAnyNullable() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
+                    return GetNullableAnnotation(e).IsAnnotated() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
                 }
 
                 return t.State;
@@ -2089,7 +2089,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (t.HasNullType)
                 {
-                    return GetNullableAnnotation(e).IsAnyNullable() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
+                    return GetNullableAnnotation(e).IsAnnotated() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
                 }
 
                 return t.State;
@@ -3675,7 +3675,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var lambda = (BoundLambda)operandOpt;
                         var delegateType = targetType.GetDelegateType();
                         var unboundLambda = lambda.UnboundLambda;
-                        var methodSignatureOpt = unboundLambda.HasExplicitlyTypedParameterList ? null : delegateType?.DelegateInvokeMethod;
                         var variableState = GetVariableState();
                         Analyze(compilation, lambda, Diagnostics, delegateInvokeMethod: delegateType?.DelegateInvokeMethod, returnTypes: null, initialState: variableState);
                         if (reportRemainingWarnings)
@@ -3889,7 +3888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 resultState = NullableFlowState.NotNull;
             }
-            else if (fromExplicitCast && targetTypeWithNullability.NullableAnnotation == NullableAnnotation.Annotated && !targetType.IsNullableType())
+            else if (fromExplicitCast && targetTypeWithNullability.NullableAnnotation.IsAnnotated() && !targetType.IsNullableType())
             {
                 // An explicit cast to a nullable reference type introduces nullability
                 resultState = NullableFlowState.MaybeNull;
@@ -4734,7 +4733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AssignmentKind.Assignment,
                         reportTopLevelWarnings: false,
                         reportRemainingWarnings: false);
-                    if (destinationType.IsReferenceType && destinationType.NullableAnnotation.IsAnyNotNullable() && result.MaybeNull)
+                    if (destinationType.IsReferenceType && destinationType.NullableAnnotation.IsNotAnnotated() && result.MaybeNull)
                     {
                         ReportNonSafetyDiagnostic(node.IterationVariableType.Syntax);
                     }
@@ -5186,13 +5185,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitRvalue(node.Expression);
             VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt);
-
             Debug.Assert(node.Type.IsDynamic());
             Debug.Assert(node.Type.IsReferenceType);
-
-            // https://github.com/dotnet/roslyn/issues/29893 Update applicable members based on inferred argument types.
-            NullableAnnotation nullableAnnotation = InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableMethods));
-            var result = TypeSymbolWithAnnotations.Create(node.Type, nullableAnnotation);
+            var result = TypeSymbolWithAnnotations.Create(node.Type, NullableAnnotation.Unknown);
             LvalueResultType = result;
             return null;
         }
@@ -5302,14 +5297,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // after indices have been visited, and only if the receiver has not changed.
             CheckPossibleNullReceiver(receiver);
             VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt);
-
             Debug.Assert(node.Type.IsDynamic());
-
-            // https://github.com/dotnet/roslyn/issues/29893 Update applicable members based on inferred argument types.
-            NullableAnnotation nullableAnnotation = (object)node.Type != null && !node.Type.IsValueType ?
-                InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableIndexers)) :
-                NullableAnnotation.Unknown;
-            var result = TypeSymbolWithAnnotations.Create(node.Type, nullableAnnotation);
+            var result = TypeSymbolWithAnnotations.Create(node.Type, NullableAnnotation.Unknown);
             LvalueResultType = result;
             return null;
         }
@@ -5356,44 +5345,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // See TypeCompareKind.UnknownNullableModifierMatchesAny and TypeCompareKind.IgnoreInsignificantNullableModifiersDifference
             return type1.Equals(type2, TypeCompareKind.AllIgnoreOptions) &&
                 !type1.Equals(type2, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
-        }
-
-        private NullableAnnotation InferResultNullabilityFromApplicableCandidates(ImmutableArray<Symbol> applicableMembers)
-        {
-            if (applicableMembers.IsDefaultOrEmpty)
-            {
-                return NullableAnnotation.Unknown;
-            }
-
-            NullableAnnotation result = NullableAnnotation.NotAnnotated;
-
-            foreach (Symbol member in applicableMembers)
-            {
-                TypeSymbolWithAnnotations type = member.GetTypeOrReturnType();
-
-                if (type.IsReferenceType)
-                {
-                    NullableAnnotation memberResult = type.GetValueNullableAnnotation();
-                    if (memberResult.IsAnyNullable())
-                    {
-                        // At least one candidate can produce null, assume dynamic access can produce null as well
-                        result = NullableAnnotation.Annotated;
-                        break;
-                    }
-                    else if (memberResult == NullableAnnotation.Unknown)
-                    {
-                        // At least one candidate can produce result of an unknown nullability.
-                        // At best, dynamic access can produce result of an unknown nullability as well.
-                        result = NullableAnnotation.Unknown;
-                    }
-                }
-                else if (!type.IsValueType)
-                {
-                    result = NullableAnnotation.Unknown;
-                }
-            }
-
-            return result;
         }
 
         public override BoundNode VisitQueryClause(BoundQueryClause node)

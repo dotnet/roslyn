@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (ShouldAddNullableAnnotation(typeOpt))
             {
-                AddPunctuation(typeOpt.NullableAnnotation.IsAnyNullable() ? SyntaxKind.QuestionToken : SyntaxKind.ExclamationToken);
+                AddPunctuation(typeOpt.NullableAnnotation.IsAnnotated() ? SyntaxKind.QuestionToken : SyntaxKind.ExclamationToken);
             }
         }
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
                 !typeOpt.IsValueType &&
-                typeOpt.NullableAnnotation.IsAnyNotNullable() && !typeOpt.TypeSymbol.IsTypeParameterDisallowingAnnotation())
+                typeOpt.NullableAnnotation.IsNotAnnotated() && !typeOpt.TypeSymbol.IsTypeParameterDisallowingAnnotation())
             {
                 return true;
             }
