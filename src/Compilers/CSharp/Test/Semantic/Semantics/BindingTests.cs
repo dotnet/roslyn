@@ -2160,7 +2160,7 @@ class C<T> : System.Attribute { }";
                 // (3,20): error CS0754: A partial method may not explicitly implement an interface method
                 //     partial void I.M();
                 Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M").WithLocation(3, 20),
-                // (3,20): error CS0751: A partial method must be declared within a partial class or partial struct
+                // (3,20): error CS0751: A partial method must be declared within a partial class, partial struct, or partial interface
                 //     partial void I.M();
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M").WithLocation(3, 20),
                 // (3,20): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -2172,23 +2172,6 @@ class C<T> : System.Attribute { }";
                 // (3,20): error CS0539: 'I.M()' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     partial void I.M();
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M").WithArguments("I.M()").WithLocation(3, 20)
-                );
-        }
-
-        [WorkItem(545208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545208")]
-        [Fact]
-        public void PartialMethodInsidePartialInterface()
-        {
-            var source =
-@"public partial interface IF
-{
-    partial void Add();
-}
-";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (3,18): error CS0751: A partial method must be declared within a partial class or partial struct
-                //    partial void Add();
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "Add")
                 );
         }
 

@@ -2094,7 +2094,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers</value>
   </data>
   <data name="ERR_PartialMethodOnlyInPartialClass" xml:space="preserve">
-    <value>A partial method must be declared within a partial class or partial struct</value>
+    <value>A partial method must be declared within a partial class, partial struct, or partial interface</value>
   </data>
   <data name="ERR_PartialMethodCannotHaveOutParameters" xml:space="preserve">
     <value>A partial method cannot have out parameters</value>
