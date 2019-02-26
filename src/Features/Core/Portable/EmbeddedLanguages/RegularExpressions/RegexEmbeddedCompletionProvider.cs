@@ -139,10 +139,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             // anything, we're done and can just show the user those items.  If we have no items to
             // add *and* the user was explicitly invoking completion, then just add the entire set
             // of suggestions to help the user out.
-            var count = context.Items.Count;
             ProvideCompletionsBasedOffOfPrecedingCharacter(context);
 
-            if (count != context.Items.Count)
+            if (context.Items.Count > 0)
             {
                 // We added items.  Nothing else to do here.
                 return;
