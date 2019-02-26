@@ -4952,7 +4952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
         {
             var result = base.VisitPointerIndirectionOperator(node);
-            var type = TypeSymbolWithAnnotations.Create( node.Type);
+            var type = TypeSymbolWithAnnotations.Create(node.Type);
             SetResult(type, type);
             return result;
         }
@@ -4960,7 +4960,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitPointerElementAccess(BoundPointerElementAccess node)
         {
             var result = base.VisitPointerElementAccess(node);
-            var type = TypeSymbolWithAnnotations.Create( node.Type);
+            var type = TypeSymbolWithAnnotations.Create(node.Type);
             SetResult(type, type);
             return result;
         }

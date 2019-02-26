@@ -128,17 +128,7 @@
   <!-- 
     Bootstrapping compilers
   -->
-  <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
-    <_CompilerPackageName Condition="'$(MSBuildRuntimeType)' != 'Core'">Microsoft.Net.Compilers</_CompilerPackageName>
-    <_CompilerPackageName Condition="'$(MSBuildRuntimeType)' == 'Core'">Microsoft.NETCore.Compilers</_CompilerPackageName>
-    <_BootstrapBuildDir>$([MSBuild]::EnsureTrailingSlash($(BootstrapBuildPath)))</_BootstrapBuildDir>
-  </PropertyGroup>
-
-  <Import Project="$(_BootstrapBuildDir)build\$(_CompilerPackageName).props" Condition="'$(BootstrapBuildPath)' != ''" />
-
-  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.ValidateBootstrap"
-             AssemblyFile="$(_BootstrapBuildDir)tools\Microsoft.Build.Tasks.CodeAnalysis.dll"
-             Condition="'$(BootstrapBuildPath)' != ''" />
+  <Import Project="Bootstrap.props" Condition="'$(BootstrapBuildPath)' != ''" />
 
   <!--
     Analyzers
