@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             context.AddIfMissing("^", Regex_start_of_string_or_line_short, Regex_start_of_string_or_line_long, parentOpt: null);
             context.AddIfMissing("$", Regex_end_of_string_or_line_short, Regex_end_of_string_or_line_long, parentOpt: null);
             context.AddIfMissing(".", Regex_any_character_group_short, Regex_any_character_group_long, parentOpt: null);
-            
+
             context.AddIfMissing("*", Regex_match_zero_or_more_times_short, Regex_match_zero_or_more_times_long, parentOpt: null);
             context.AddIfMissing("*?", Regex_match_zero_or_more_times_lazy_short, Regex_match_zero_or_more_times_lazy_long, parentOpt: null);
 
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             {
                 return;
             }
-            
+
             context.AddIfMissing($"(  {Regex_subexpression}  )", Regex_matched_subexpression_short, Regex_matched_subexpression_long, parentOpt, positionOffset: "(".Length, insertionText: "()");
             context.AddIfMissing($"(?<  {Regex_name}  >  {Regex_subexpression}  )", Regex_named_matched_subexpression_short, Regex_named_matched_subexpression_long, parentOpt, positionOffset: "(?<".Length, insertionText: "(?<>)");
             context.AddIfMissing($"(?<  {Regex_name1}  -  {Regex_name2}  >  {Regex_subexpression}  )", Regex_balancing_group_short, Regex_balancing_group_long, parentOpt, positionOffset: "(?<".Length, insertionText: "(?<->)");
@@ -393,9 +393,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         }
 
         private RegexItem CreateItem(
-            SyntaxToken stringToken, string displayText, 
+            SyntaxToken stringToken, string displayText,
             string suffix, string description,
-            EmbeddedCompletionContext context, RegexNode parentOpt, 
+            EmbeddedCompletionContext context, RegexNode parentOpt,
             int? positionOffset, string insertionText)
         {
             var replacementStart = parentOpt != null
