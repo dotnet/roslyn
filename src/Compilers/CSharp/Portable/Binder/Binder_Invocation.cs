@@ -238,11 +238,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Either we have a dynamic method group invocation "dyn.M(...)" or 
                 // a dynamic delegate invocation "dyn(...)" -- either way, bind it as a dynamic
                 // invocation and let the lowering pass sort it out.
+                reportSuppressionIfPresent();
                 result = BindDynamicInvocation(node, boundExpression, analyzedArguments, ImmutableArray<MethodSymbol>.Empty, diagnostics, queryClause);
             }
             else if (boundExpression.Kind == BoundKind.MethodGroup)
             {
-                result = BindMethodGroupInvocation(node, expression, methodName, (BoundMethodGroup)boundExpression, analyzedArguments, diagnostics, queryClause, allowUnexpandedForm: allowUnexpandedForm);
+                reportSuppressionIfPresent();
+                result = BindMethodGroupInvocation(
+                    node, expression, methodName, (BoundMethodGroup)boundExpression, analyzedArguments,
+                    diagnostics, queryClause, allowUnexpandedForm: allowUnexpandedForm, anyApplicableCandidates: out _);
             }
             else if ((object)(delegateType = GetDelegateType(boundExpression)) != null)
             {
@@ -266,6 +270,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckRestrictedTypeReceiver(result, this.Compilation, diagnostics);
 
             return result;
+
+            void reportSuppressionIfPresent()
+            {
+                if (boundExpression.IsSuppressed)
+                {
+                    Error(diagnostics, ErrorCode.ERR_IllegalSuppression, boundExpression.Syntax);
+                }
+            }
         }
 
         private BoundExpression BindDynamicInvocation(
@@ -555,7 +567,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments,
             DiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause,
-            bool allowUnexpandedForm = true)
+            bool allowUnexpandedForm,
+            out bool anyApplicableCandidates)
         {
             BoundExpression result;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -563,6 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodGroup, expression, methodName, analyzedArguments, isMethodGroupConversion: false,
                 useSiteDiagnostics: ref useSiteDiagnostics, allowUnexpandedForm: allowUnexpandedForm);
             diagnostics.Add(expression, useSiteDiagnostics);
+            anyApplicableCandidates = resolution.ResultKind == LookupResultKind.Viable && resolution.OverloadResolutionResult.HasAnyApplicableMember;
 
             if (!methodGroup.HasAnyErrors) diagnostics.AddRange(resolution.Diagnostics); // Suppress cascading.
 
@@ -1105,13 +1119,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics);
             }
 
-            if ((object)delegateTypeOpt != null)
-            {
-                return new BoundCall(node, receiver, method, args, argNames, argRefKinds, isDelegateCall: true,
-                            expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
-                            argsToParamsOpt: argsToParams, resultKind: LookupResultKind.Viable, binderOpt: this, type: returnType, hasErrors: gotError);
-            }
-            else
+            bool isDelegateCall = (object)delegateTypeOpt != null;
+            if (!isDelegateCall)
             {
                 if ((object)receiver != null && receiver.Kind == BoundKind.BaseReference && method.IsAbstract)
                 {
@@ -1127,11 +1136,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                              receiver,
                                              diagnostics);
                 }
-
-                return new BoundCall(node, receiver, method, args, argNames, argRefKinds, isDelegateCall: false,
-                            expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
-                            argsToParamsOpt: argsToParams, resultKind: LookupResultKind.Viable, binderOpt: this, type: returnType, hasErrors: gotError);
             }
+
+            return new BoundCall(node, receiver, method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
+                        expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
+                        argsToParamsOpt: argsToParams, resultKind: LookupResultKind.Viable, binderOpt: this, type: returnType, hasErrors: gotError);
         }
 
         private bool IsBindingModuleLevelAttribute()

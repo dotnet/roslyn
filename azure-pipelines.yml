@@ -1,3 +1,25 @@
+# Branches that trigger a build on commit
+trigger:
+- master
+- master-vs-deps
+- features/*
+- demos/*
+- dev16.0-preview3
+- dev16.0-preview3-vs-deps
+- dev16.0
+- dev16.0-vs-deps
+
+# Branches that trigger builds on PR
+pr:
+- master
+- master-vs-deps
+- features/*
+- demos/*
+- dev16.0-preview3
+- dev16.0-preview3-vs-deps
+- dev16.0
+- dev16.0-vs-deps
+
 jobs:
 - job: Windows_Desktop_Unit_Tests
   pool: dotnet-external-temp
@@ -22,7 +44,8 @@ jobs:
     - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -testDesktop -$(_testKind) -procdump
       displayName: Build and Test
 
-    - task: PublishTestResults@1
+    - task: PublishTestResults@2
+      displayName: Publish xUnit Test Results
       inputs:
         testRunner: XUnit
         testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(_configuration)\*.xml'
@@ -47,21 +70,22 @@ jobs:
     - script: eng/cibuild.cmd -configuration Debug -prepareMachine -testDesktop
       displayName: Build and Test
 
-    - task: PublishTestResults@1
+    - task: PublishTestResults@2
+      displayName: Publish xUnit Test Results
       inputs:
         testRunner: XUnit
-        testResultsFiles: '**/xUnitResults/*.xml'
+        testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\Debug\*.xml'
         mergeTestResults: true
         testRunTitle: 'Windows Desktop Spanish'
-      condition: succeededOrFailed()
+      condition: always()
 
     - task: PublishBuildArtifacts@1
       inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(_configuration)'
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\Debug'
         ArtifactName: 'Windows Desktop Spanish' 
         publishLocation: Container
       continueOnError: true
-      condition: failed()
+      condition: not(succeeded())
 
 - job: Windows_CoreClr_Unit_Tests
   pool: dotnet-external-temp
@@ -78,7 +102,8 @@ jobs:
     - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -msbuildEngine:dotnet -testCoreClr
       displayName: Build and Test
 
-    - task: PublishTestResults@1
+    - task: PublishTestResults@2
+      displayName: Publish xUnit Test Results
       inputs:
         testRunner: XUnit
         testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(_configuration)\*.xml'
@@ -127,6 +152,22 @@ jobs:
       continueOnError: true
       condition: not(succeeded())
 
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Artifact Packages
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\packages\Release\PreRelease'
+        ArtifactName: 'Packages - PreRelease'
+        publishLocation: Container
+      condition: succeeded()
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish VSIX Packages
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\VSSetup\Release\Installer'
+        ArtifactName: 'VSIX - PreRelease'
+        publishLocation: Container
+      condition: succeeded()
+
 - job: Linux_Test
   pool: DotNetCore-Linux
   strategy:
@@ -144,7 +185,8 @@ jobs:
   steps:
     - script: ./eng/cibuild.sh --configuration $(_configuration) --prepareMachine $(_args)
       displayName: Build and Test
-    - task: PublishTestResults@1
+    - task: PublishTestResults@2
+      displayName: Publish xUnit Test Results
       inputs:
         testRunner: XUnit
         testResultsFiles: '$(Build.SourcesDirectory)/artifacts/TestResults/$(_configuration)/*.xml'

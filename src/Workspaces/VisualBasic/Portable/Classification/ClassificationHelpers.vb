@@ -104,7 +104,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 SyntaxKind.UntilKeyword,
                 SyntaxKind.EndIfKeyword,
                 SyntaxKind.GosubKeyword,
-                SyntaxKind.YieldKeyword
+                SyntaxKind.YieldKeyword,
+                SyntaxKind.ToKeyword
                     Return True
                 Case Else
                     Return False
@@ -131,7 +132,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 SyntaxKind.EndIfStatement,
                 SyntaxKind.EndSelectStatement,
                 SyntaxKind.EndTryStatement,
-                SyntaxKind.EndUsingStatement,
                 SyntaxKind.EndWhileStatement,
                 SyntaxKind.ExitDoStatement,
                 SyntaxKind.ExitForStatement,
@@ -158,7 +158,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 SyntaxKind.UntilClause,
                 SyntaxKind.WhileClause,
                 SyntaxKind.WhileStatement,
-                SyntaxKind.YieldStatement
+                SyntaxKind.YieldStatement,
+                SyntaxKind.TernaryConditionalExpression
                     Return True
                 Case Else
                     Return False

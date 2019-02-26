@@ -2,8 +2,6 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.Utilities</AssemblyName>
@@ -13,7 +11,7 @@
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine" Version="$(MicrosoftVisualStudioDebuggerEngineVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="$(MicrosoftVisualStudioDebuggerEngineimplementationVersion)" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
@@ -23,8 +21,6 @@
       <Aliases>PDB</Aliases>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.UnitTests" />

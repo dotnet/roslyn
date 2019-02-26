@@ -26,8 +26,8 @@ This document provides guidance for thinking about language interactions and tes
     - AnalyzeStatementsDataFlow 
     - AnalyzeStatementDataFlow 
     - ClassifyConversion
-    - GetOperation (IOperation)
-    - ControlFlowGraph
+    - GetOperation (`IOperation`)
+    - GetCFG (`ControlFlowGraph`)
 - VB/F# interop
 - Performance and stress testing
  
@@ -200,7 +200,7 @@ A variable is a storage location. These are all the different ways to refer to a
 
 ## Operators 
 
-```
+``` c#
 x.y 
 f( ) 
 a[e] 
@@ -261,11 +261,12 @@ sizeof( )
 & x 
 x->y 
 e is pattern
-await x 
+e switch { ... }
+await x
 __arglist( ) 
 __refvalue( x, X ) 
-__reftype( x ) 
-__makeref( x ) 
+__reftype( x )
+__makeref( x )
 ```
 
 ## Explicit conversions 
@@ -306,35 +307,42 @@ __makeref( x )
 - Tuple
 
 ## Types 
-  
-- Class 
+
+- Class
 - Interface 
 - Delegate 
 - Struct 
-- Enum 
+- Enum
 - Nullable 
-- Pointer 
-- Type parameter 
-  
+- Pointer
+- Type parameter
+
 ## Members
-  
-- Class 
-- Struct 
+
+- Class
+- Struct
 - Interface 
-- Enum 
-- Delegate 
+- Enum
+- Delegate
 - Namespace 
 - Property 
-- Event 
+- Event
 - Constructor 
 - Destructor 
-- Method 
+- Method
 - Interface method 
-- Field 
-- User-defined indexer 
-- User-defined operator 
-- User-defined conversion 
-  
+- Field
+- User-defined indexer
+- User-defined operator
+- User-defined conversion
+
+## Patterns
+- Discard Pattern
+- Var Pattern
+- Declaration Pattern
+- Constant Pattern
+- Recursive Pattern
+
 ## Metadata table numbers / token prefixes 
  
 If you look at a 32 bit integer token as a hex number, the first two digits identify the “table number” and the last six digits are an offset into that table. The table numbers are: 

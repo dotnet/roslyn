@@ -1909,7 +1909,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol exprType = rewrittenExpr.Type;
 
-            // Don't even call this method if the expression isn't nullable.
+            // Don't even call this method if the expression cannot be nullable.
             Debug.Assert(
                 (object)exprType == null ||
                 exprType.IsNullableType() ||

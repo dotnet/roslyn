@@ -327,11 +327,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Creates a new syntax tree from a syntax node with text that should correspond to the syntax node.
         /// </summary>
         /// <remarks>This is used by the ExpressionEvaluator.</remarks>
-        internal static SyntaxTree CreateForDebugger(CSharpSyntaxNode root, SourceText text)
+        internal static SyntaxTree CreateForDebugger(CSharpSyntaxNode root, SourceText text, CSharpParseOptions options)
         {
             Debug.Assert(root != null);
 
-            return new DebuggerSyntaxTree(root, text);
+            return new DebuggerSyntaxTree(root, text, options);
         }
 
         /// <summary>
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_lazyPragmaWarningStateMap == null)
             {
                 // Create the warning state map on demand.
-                Interlocked.CompareExchange(ref _lazyPragmaWarningStateMap, new CSharpPragmaWarningStateMap(this), null);
+                Interlocked.CompareExchange(ref _lazyPragmaWarningStateMap, new CSharpPragmaWarningStateMap(this, IsGeneratedCode()), null);
             }
 
             return _lazyPragmaWarningStateMap.GetWarningState(id, position);
@@ -603,15 +603,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_lazyNullableDirectiveMap == null)
             {
                 // Create the #nullable directive map on demand.
-                Interlocked.CompareExchange(ref _lazyNullableDirectiveMap, NullableDirectiveMap.Create(this), null);
+                Interlocked.CompareExchange(ref _lazyNullableDirectiveMap, NullableDirectiveMap.Create(this, IsGeneratedCode()), null);
             }
 
             return _lazyNullableDirectiveMap.GetDirectiveState(position);
         }
 
+        internal bool IsGeneratedCode()
+        {
+            if (_lazyIsGeneratedCode == -1)
+            {
+                // Create the generated code status on demand
+                bool isGenerated = GeneratedCodeUtilities.IsGeneratedCode(
+                           this,
+                           isComment: trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia,
+                           cancellationToken: default);
+
+                Interlocked.CompareExchange(ref _lazyIsGeneratedCode, isGenerated ? 1 : 0, -1);
+            }
+
+            return _lazyIsGeneratedCode == 1;
+        }
+
         private CSharpLineDirectiveMap _lazyLineDirectiveMap;
         private CSharpPragmaWarningStateMap _lazyPragmaWarningStateMap;
         private NullableDirectiveMap _lazyNullableDirectiveMap;
+        private int _lazyIsGeneratedCode = -1;
 
         private LinePosition GetLinePosition(int position)
         {

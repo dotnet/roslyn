@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var tupleType = TupleTypeSymbol.Create(locationOpt: null, elementTypes: builder.SelectAsArray(e => TypeSymbolWithAnnotations.Create(e.Type)),
                     elementLocations: default, elementNames: default,
-                    compilation: _compilation, shouldCheckConstraints: false, errorPositions: default);
+                    compilation: _compilation, shouldCheckConstraints: false, includeNullability: false, errorPositions: default);
 
                 return new BoundTupleLiteral(right.Syntax, argumentNamesOpt: default, inferredNamesOpt: default,
                     arguments: builder.ToImmutableAndFree(), type: tupleType);

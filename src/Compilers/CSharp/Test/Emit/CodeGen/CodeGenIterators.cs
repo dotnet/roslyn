@@ -2870,5 +2870,130 @@ class Program
   IL_0103:  ret
 }");
         }
+
+        [Fact, WorkItem(5062, "https://github.com/dotnet/roslyn/issues/5062")]
+        public void LocalLiftingVsSwitch()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        foreach (var s in Iter1(0)) Console.Write(s);
+        foreach (var s in Iter1(1)) Console.Write(s);
+        foreach (var s in Iter2(0)) Console.Write(s);
+        foreach (var s in Iter2(1)) Console.Write(s);
+    }
+
+    static IEnumerable<string> Iter1(int i)
+    {
+        bool result;
+        switch (i)
+        {
+            case 1: result = true; break;
+            default: result = false; break;
+        }
+        yield return result.ToString();
+    }
+
+    static IEnumerable<string> Iter2(int i)
+    {
+        bool result;
+        if (i == 1)
+            result = true;
+        else
+            result = false;
+        yield return result.ToString();
+    }
+}";
+            var compilation = CompileAndVerify(source, expectedOutput: "FalseTrueFalseTrue", options: TestOptions.ReleaseExe);
+            compilation.VerifyIL("Program.<Iter1>d__1.System.Collections.IEnumerator.MoveNext()", @"{
+  // Code size       69 (0x45)
+  .maxstack  2
+  .locals init (int V_0,
+                bool V_1) //result
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Iter1>d__1.<>1__state""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0010
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  beq.s      IL_003c
+  IL_000e:  ldc.i4.0
+  IL_000f:  ret
+  IL_0010:  ldarg.0
+  IL_0011:  ldc.i4.m1
+  IL_0012:  stfld      ""int Program.<Iter1>d__1.<>1__state""
+  IL_0017:  ldarg.0
+  IL_0018:  ldfld      ""int Program.<Iter1>d__1.i""
+  IL_001d:  ldc.i4.1
+  IL_001e:  bne.un.s   IL_0024
+  IL_0020:  ldc.i4.1
+  IL_0021:  stloc.1
+  IL_0022:  br.s       IL_0026
+  IL_0024:  ldc.i4.0
+  IL_0025:  stloc.1
+  IL_0026:  ldarg.0
+  IL_0027:  ldloca.s   V_1
+  IL_0029:  call       ""string bool.ToString()""
+  IL_002e:  stfld      ""string Program.<Iter1>d__1.<>2__current""
+  IL_0033:  ldarg.0
+  IL_0034:  ldc.i4.1
+  IL_0035:  stfld      ""int Program.<Iter1>d__1.<>1__state""
+  IL_003a:  ldc.i4.1
+  IL_003b:  ret
+  IL_003c:  ldarg.0
+  IL_003d:  ldc.i4.m1
+  IL_003e:  stfld      ""int Program.<Iter1>d__1.<>1__state""
+  IL_0043:  ldc.i4.0
+  IL_0044:  ret
+}");
+            compilation.VerifyIL("Program.<Iter2>d__2.System.Collections.IEnumerator.MoveNext()", @"{
+  // Code size       69 (0x45)
+  .maxstack  2
+  .locals init (int V_0,
+                bool V_1) //result
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Iter2>d__2.<>1__state""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0010
+  IL_000a:  ldloc.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  beq.s      IL_003c
+  IL_000e:  ldc.i4.0
+  IL_000f:  ret
+  IL_0010:  ldarg.0
+  IL_0011:  ldc.i4.m1
+  IL_0012:  stfld      ""int Program.<Iter2>d__2.<>1__state""
+  IL_0017:  ldarg.0
+  IL_0018:  ldfld      ""int Program.<Iter2>d__2.i""
+  IL_001d:  ldc.i4.1
+  IL_001e:  bne.un.s   IL_0024
+  IL_0020:  ldc.i4.1
+  IL_0021:  stloc.1
+  IL_0022:  br.s       IL_0026
+  IL_0024:  ldc.i4.0
+  IL_0025:  stloc.1
+  IL_0026:  ldarg.0
+  IL_0027:  ldloca.s   V_1
+  IL_0029:  call       ""string bool.ToString()""
+  IL_002e:  stfld      ""string Program.<Iter2>d__2.<>2__current""
+  IL_0033:  ldarg.0
+  IL_0034:  ldc.i4.1
+  IL_0035:  stfld      ""int Program.<Iter2>d__2.<>1__state""
+  IL_003a:  ldc.i4.1
+  IL_003b:  ret
+  IL_003c:  ldarg.0
+  IL_003d:  ldc.i4.m1
+  IL_003e:  stfld      ""int Program.<Iter2>d__2.<>1__state""
+  IL_0043:  ldc.i4.0
+  IL_0044:  ret
+}");
+        }
     }
 }

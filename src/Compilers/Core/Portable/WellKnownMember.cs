@@ -447,14 +447,11 @@ namespace Microsoft.CodeAnalysis
         System_Math__TruncateDouble,
 
         System_Index__ctor,
-        System_Index__FromEnd,
+        System_Index__IsFromEnd,
         System_Index__Value,
         System_Range__Start,
         System_Range__End,
-        System_Range__Create,
-        System_Range__ToEnd,
-        System_Range__FromStart,
-        System_Range__All,
+        System_Range__ctor,
 
         System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
 
@@ -485,6 +482,13 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitOnCompleted,
         System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitUnsafeOnCompleted,
         System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T,
+
+        System_Runtime_CompilerServices_ITuple__get_Item,
+        System_Runtime_CompilerServices_ITuple__get_Length,
+
+        System_InvalidOperationException__ctor,
+        System_Runtime_CompilerServices_SwitchExpressionException__ctor,
+        System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
 
         Count
 

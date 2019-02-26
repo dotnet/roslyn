@@ -266,6 +266,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Kind() == SyntaxKind.ReturnStatement;
 
         public bool IsStatement(SyntaxNode node)
+           => node is StatementSyntax;
+
+        public bool IsExecutableStatement(SyntaxNode node)
             => node is StatementSyntax;
 
         public bool IsParameter(SyntaxNode node)
@@ -669,6 +672,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFacts.IsInNamespaceOrTypeContext(node as ExpressionSyntax);
         }
 
+        public bool IsBaseTypeList(SyntaxNode node)
+        {
+            return node.IsKind(SyntaxKind.BaseList);
+        }
+
         public SyntaxNode GetExpressionOfArgument(SyntaxNode node)
         {
             return ((ArgumentSyntax)node).Expression;
@@ -688,6 +696,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                    argument.NameColon == null;
         }
 
+        public bool IsTypeArgumentList(SyntaxNode node)
+            => node.IsKind(SyntaxKind.TypeArgumentList);
+
+        public bool IsTypeConstraint(SyntaxNode node)
+            => node.IsKind(SyntaxKind.TypeConstraint);
 
         public bool IsInConstantContext(SyntaxNode node)
         {
@@ -717,11 +730,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node)
         {
             return ((ParenthesizedExpressionSyntax)node).Expression;
-        }
-
-        public bool IsIfStatement(SyntaxNode node)
-        {
-            return (node.Kind() == SyntaxKind.IfStatement);
         }
 
         public bool IsAttribute(SyntaxNode node)
@@ -771,14 +779,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsObjectCreationExpression(SyntaxNode node)
-        {
-            return node is ObjectCreationExpressionSyntax;
-        }
+            => node is ObjectCreationExpressionSyntax;
+
+        public bool IsNameOfSubpattern(SyntaxNode node)
+            => node.IsKind(SyntaxKind.IdentifierName) &&
+               node.IsParentKind(SyntaxKind.NameColon) &&
+               node.Parent.IsParentKind(SyntaxKind.Subpattern);
+
+        public bool IsPropertyPatternClause(SyntaxNode node)
+            => node.Kind() == SyntaxKind.PropertyPatternClause;
 
         public bool IsObjectInitializerNamedAssignmentIdentifier(SyntaxNode node)
-        {
-            return IsObjectInitializerNamedAssignmentIdentifier(node, out var unused);
-        }
+            => IsObjectInitializerNamedAssignmentIdentifier(node, out var unused);
 
         public bool IsObjectInitializerNamedAssignmentIdentifier(
             SyntaxNode node, out SyntaxNode initializedInstance)
@@ -1349,6 +1361,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (node as MemberAccessExpressionSyntax)?.Name;
         }
 
+        public bool IsLeftSideOfExplicitInterfaceSpecifier(SyntaxNode node)
+            => (node as NameSyntax).IsLeftSideOfExplicitInterfaceSpecifier();
+
         public bool IsLeftSideOfAssignment(SyntaxNode node)
         {
             return (node as ExpressionSyntax).IsLeftSideOfAssignExpression();
@@ -1698,6 +1713,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool IsMultiLineCommentTrivia(SyntaxTrivia trivia)
             => trivia.IsMultiLineComment();
 
+        public override bool IsSingleLineDocCommentTrivia(SyntaxTrivia trivia)
+            => trivia.IsSingleLineDocComment();
+
+        public override bool IsMultiLineDocCommentTrivia(SyntaxTrivia trivia)
+            => trivia.IsMultiLineDocComment();
+
         public override bool IsShebangDirectiveTrivia(SyntaxTrivia trivia)
             => trivia.IsShebangDirective();
 
@@ -1882,14 +1903,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetValueOfEqualsValueClause(SyntaxNode node)
             => ((EqualsValueClauseSyntax)node)?.Value;
 
-        public bool IsExecutableBlock(SyntaxNode node)
+        public bool IsScopeBlock(SyntaxNode node)
             => node.IsKind(SyntaxKind.Block);
 
+        public bool IsExecutableBlock(SyntaxNode node)
+            => node.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection);
+
         public SyntaxList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node)
-            => ((BlockSyntax)node).Statements;
+        {
+            switch (node)
+            {
+                case BlockSyntax block:
+                    return block.Statements;
+                case SwitchSectionSyntax switchSection:
+                    return switchSection.Statements;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node);
+            }
+        }
 
         public SyntaxNode FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes)
-            => nodes.FindInnermostCommonBlock();
+            => nodes.FindInnermostCommonNode(node => IsExecutableBlock(node));
+
+        public bool IsStatementContainer(SyntaxNode node)
+            => IsExecutableBlock(node) || node.IsEmbeddedStatementOwner();
+
+        public IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode node)
+            => IsExecutableBlock(node)
+               ? GetExecutableBlockStatements(node)
+               : (IReadOnlyList<SyntaxNode>)ImmutableArray.Create<SyntaxNode>(node.GetEmbeddedStatement());
 
         public bool IsCastExpression(SyntaxNode node)
             => node is CastExpressionSyntax;

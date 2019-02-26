@@ -507,6 +507,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             TypeSymbol targetTypeSymbol = GetMemberRefTypeSymbol(memberRef);
 
+            if (targetTypeSymbol is null)
+            {
+                return null;
+            }
+
+            Debug.Assert(!targetTypeSymbol.IsTupleType);
+
             if ((object)scope != null)
             {
                 Debug.Assert(scope.Kind == SymbolKind.NamedType || scope.Kind == SymbolKind.ErrorType);
@@ -515,11 +522,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 if (!TypeSymbol.Equals(scope, targetTypeSymbol, TypeCompareKind.ConsiderEverything2) &&
                     !(targetTypeSymbol.IsInterfaceType()
-                        ? scope.AllInterfacesNoUseSiteDiagnostics.IndexOf((NamedTypeSymbol)targetTypeSymbol, 0, TypeSymbol.EqualsIgnoringNullableComparer) != -1
-                        : scope.IsDerivedFrom(targetTypeSymbol, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes, useSiteDiagnostics: ref useSiteDiagnostics)))
+                        ? scope.AllInterfacesNoUseSiteDiagnostics.IndexOf((NamedTypeSymbol)targetTypeSymbol, 0, TypeSymbol.EqualsCLRSignatureComparer) != -1
+                        : scope.IsDerivedFrom(targetTypeSymbol, TypeCompareKind.CLRSignatureCompareOptions, useSiteDiagnostics: ref useSiteDiagnostics)))
                 {
                     return null;
                 }
+            }
+
+            if (!targetTypeSymbol.IsTupleCompatible())
+            {
+                targetTypeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(targetTypeSymbol, elementNames: default);
             }
 
             // We're going to use a special decoder that can generate usable symbols for type parameters without full context.

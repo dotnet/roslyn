@@ -9,72 +9,82 @@
       </trans-unit>
       <trans-unit id="CSharp_files">
         <source>C# files</source>
-        <target state="new">C# files</target>
+        <target state="translated">C# ファイル</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_document_0_is_not_supported">
         <source>Changing document '{0}' is not supported.</source>
-        <target state="new">Changing document '{0}' is not supported.</target>
+        <target state="translated">ドキュメント '{0}' の変更はサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Core_EditorConfig_Options">
         <source>Core EditorConfig Options</source>
-        <target state="new">Core EditorConfig Options</target>
+        <target state="translated">コア EditorConfig オプション</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DateTimeKind_must_be_Utc">
+        <source>DateTimeKind must be Utc</source>
+        <target state="new">DateTimeKind must be Utc</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_level_preferences">
         <source>Expression-level preferences</source>
-        <target state="new">Expression-level preferences</target>
+        <target state="translated">式レベルの設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Field_preferences">
         <source>Field preferences</source>
-        <target state="new">Field preferences</target>
+        <target state="translated">フィールド設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
-        <target state="new">Indentation and spacing</target>
+        <target state="translated">インデントと間隔</target>
         <note />
       </trans-unit>
       <trans-unit id="Language_keywords_vs_BCL_types_preferences">
         <source>Language keywords vs BCL types preferences</source>
-        <target state="new">Language keywords vs BCL types preferences</target>
+        <target state="translated">言語キーワードと BCL の種類の設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifier_preferences">
         <source>Modifier preferences</source>
-        <target state="new">Modifier preferences</target>
+        <target state="translated">修飾子設定</target>
         <note />
       </trans-unit>
       <trans-unit id="New_line_preferences">
         <source>New line preferences</source>
-        <target state="new">New line preferences</target>
+        <target state="translated">改行設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Organize_usings">
         <source>Organize usings</source>
-        <target state="new">Organize usings</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parameter_preferences">
-        <source>Parameter preferences</source>
-        <target state="new">Parameter preferences</target>
+        <target state="translated">using の整理</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_preferences">
         <source>Parentheses preferences</source>
-        <target state="new">Parentheses preferences</target>
+        <target state="translated">かっこの設定</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefix_0_does_not_match_expected_prefix_1">
+        <source>Prefix '{0}' does not match expected prefix '{1}'</source>
+        <target state="new">Prefix '{0}' does not match expected prefix '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefix_0_is_not_expected">
+        <source>Prefix '{0}' is not expected</source>
+        <target state="new">Prefix '{0}' is not expected</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
-        <target state="translated">リファクタリングのみ</target>
+        <target state="translated">Refactoring Only</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories">
         <source>Remove the line below if you want to inherit .editorconfig settings from higher directories</source>
-        <target state="new">Remove the line below if you want to inherit .editorconfig settings from higher directories</target>
+        <target state="translated">上位ディレクトリから .editorconfig 設定を継承する場合は、以下の行を削除します</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
@@ -129,7 +139,7 @@
       </trans-unit>
       <trans-unit id="Node_is_of_the_wrong_type">
         <source>Node is of the wrong type.</source>
-        <target state="translated">Node の種類が正しくありません。</target>
+        <target state="translated">ノードの種類が正しくありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Location_must_be_null_or_from_source">
@@ -152,30 +162,65 @@
         <target state="translated">プロジェクトの追加はサポートされていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_BaseType">
+        <source>Base Type</source>
+        <target state="new">Base Type</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_Construct">
+        <source>Construct</source>
+        <target state="new">Construct</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_Declare">
+        <source>Declare</source>
+        <target state="new">Declare</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_Qualify">
+        <source>Qualify</source>
+        <target state="new">Qualify</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_TypeConstraint">
+        <source>Type Constraint</source>
+        <target state="new">Type Constraint</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
       <trans-unit id="Visual_Basic_files">
         <source>Visual Basic files</source>
-        <target state="new">Visual Basic files</target>
+        <target state="translated">Visual Basic ファイル</target>
         <note />
       </trans-unit>
-      <trans-unit id="ValueUsageInfo_NameOnly">
-        <source>NameOnly</source>
-        <target state="new">NameOnly</target>
-        <note />
+      <trans-unit id="TypeOrNamespaceUsageInfo_Import">
+        <source>Import</source>
+        <target state="new">Import</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_TypeArgument">
+        <source>Type Argument</source>
+        <target state="new">Type Argument</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Name">
+        <source>Name</source>
+        <target state="new">Name</target>
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Read">
         <source>Read</source>
         <target state="new">Read</target>
-        <note />
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Reference">
         <source>Reference</source>
         <target state="new">Reference</target>
-        <note />
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Write">
         <source>Write</source>
         <target state="new">Write</target>
-        <note />
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
@@ -369,7 +414,7 @@
       </trans-unit>
       <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
         <source>Arrays with more than one dimension cannot be serialized.</source>
-        <target state="translated">複数のディメンションを持つ配列はシリアル化できません。</target>
+        <target state="translated">複数の次元を持つ配列はシリアル化できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
@@ -609,7 +654,7 @@
       </trans-unit>
       <trans-unit id="Node_0_must_be_contained_in_the_old_tree">
         <source>Node '{0}' must be contained in the old tree.</source>
-        <target state="translated">Node '{0}' が、古いツリーに含まれている必要があります。</target>
+        <target state="translated">ノード '{0}' が、古いツリーに含まれている必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="The_member_0_is_not_declared_within_the_declaration_of_the_symbol">
@@ -649,7 +694,7 @@
       </trans-unit>
       <trans-unit id="Usage_colon">
         <source>Usage:</source>
-        <target state="translated">使い方:</target>
+        <target state="translated">使用法:</target>
         <note />
       </trans-unit>
       <trans-unit id="Exceptions_colon">
@@ -664,7 +709,7 @@
       </trans-unit>
       <trans-unit id="Failure">
         <source>Failure</source>
-        <target state="translated">失敗</target>
+        <target state="translated">エラー</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning">
@@ -744,27 +789,27 @@
       </trans-unit>
       <trans-unit id="Class">
         <source>Class</source>
-        <target state="translated">クラス</target>
+        <target state="new">Class</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Delegate">
         <source>Delegate</source>
-        <target state="translated">デリゲート</target>
+        <target state="new">Delegate</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Enum">
         <source>Enum</source>
-        <target state="translated">列挙型</target>
+        <target state="new">Enum</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Event">
         <source>Event</source>
-        <target state="translated">イベント</target>
+        <target state="new">Event</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Interface">
         <source>Interface</source>
-        <target state="translated">インターフェイス</target>
+        <target state="new">Interface</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Non_Field_Members">
@@ -789,7 +834,7 @@
       </trans-unit>
       <trans-unit id="Property">
         <source>Property</source>
-        <target state="translated">プロパティ</target>
+        <target state="new">Property</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Public_or_Protected_Field">
@@ -809,7 +854,7 @@
       </trans-unit>
       <trans-unit id="Struct">
         <source>Struct</source>
-        <target state="translated">構造体</target>
+        <target state="new">Struct</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Types">
@@ -894,167 +939,167 @@
       </trans-unit>
       <trans-unit id="Alternation_conditions_cannot_be_comments">
         <source>Alternation conditions cannot be comments</source>
-        <target state="new">Alternation conditions cannot be comments</target>
+        <target state="translated">選択条件をコメントにできません</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a|(?#b)</note>
       </trans-unit>
       <trans-unit id="Alternation_conditions_do_not_capture_and_cannot_be_named">
         <source>Alternation conditions do not capture and cannot be named</source>
-        <target state="new">Alternation conditions do not capture and cannot be named</target>
+        <target state="translated">選択条件が捕捉されないため、名前を指定できません</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</note>
       </trans-unit>
       <trans-unit id="A_subtraction_must_be_the_last_element_in_a_character_class">
         <source>A subtraction must be the last element in a character class</source>
-        <target state="new">A subtraction must be the last element in a character class</target>
+        <target state="translated">減算は、文字クラスの最後の要素でなければなりません</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
       </trans-unit>
       <trans-unit id="Cannot_include_class_0_in_character_range">
         <source>Cannot include class \{0} in character range</source>
-        <target state="new">Cannot include class \{0} in character range</target>
+        <target state="translated">文字範囲にクラス \{0} を含めることはできません</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-\w]. {0} is the invalid class (\w here)</note>
       </trans-unit>
       <trans-unit id="Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue">
         <source>Capture group numbers must be less than or equal to Int32.MaxValue</source>
-        <target state="new">Capture group numbers must be less than or equal to Int32.MaxValue</target>
+        <target state="translated">キャプチャ グループ番号は Int32.MaxValue 以下でなければなりません</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{2147483648}</note>
       </trans-unit>
       <trans-unit id="Capture_number_cannot_be_zero">
         <source>Capture number cannot be zero</source>
-        <target state="new">Capture number cannot be zero</target>
+        <target state="translated">キャプチャ番号を 0 にすることはできません</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;0&gt;a)</note>
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
         <source>Illegal \ at end of pattern</source>
-        <target state="new">Illegal \ at end of pattern</target>
+        <target state="translated">無効\末尾のパターン</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \</note>
       </trans-unit>
       <trans-unit id="Illegal_x_y_with_x_less_than_y">
         <source>Illegal {x,y} with x &gt; y</source>
-        <target state="new">Illegal {x,y} with x &gt; y</target>
+        <target state="translated">{x,y} で x &gt; y は無効です</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{1,0}</note>
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">
         <source>Incomplete \p{X} character escape</source>
-        <target state="new">Incomplete \p{X} character escape</target>
+        <target state="translated">不完全な \p{X {x} 文字エスケープです</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p{ Cc }</note>
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
-        <target state="new">Insufficient hexadecimal digits</target>
+        <target state="translated">16 進数の数字が正しくありません</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \x</note>
       </trans-unit>
       <trans-unit id="Invalid_group_name_Group_names_must_begin_with_a_word_character">
         <source>Invalid group name: Group names must begin with a word character</source>
-        <target state="new">Invalid group name: Group names must begin with a word character</target>
+        <target state="translated">無効なグループ名: グループ名は単語文字で始める必要があります</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
       </trans-unit>
       <trans-unit id="Malformed">
         <source>malformed</source>
-        <target state="new">malformed</target>
+        <target state="translated">不正な形式</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</note>
       </trans-unit>
       <trans-unit id="Malformed_character_escape">
         <source>Malformed \p{X} character escape</source>
-        <target state="new">Malformed \p{X} character escape</target>
+        <target state="translated">間違った形式の \p{X} エスケープ文字です</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p {Cc}</note>
       </trans-unit>
       <trans-unit id="Malformed_named_back_reference">
         <source>Malformed \k&lt;...&gt; named back reference</source>
-        <target state="new">Malformed \k&lt;...&gt; named back reference</target>
+        <target state="translated">間違った形式の \k&lt;...&gt;名前付き逆参照です</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k'</note>
       </trans-unit>
       <trans-unit id="Missing_control_character">
         <source>Missing control character</source>
-        <target state="new">Missing control character</target>
+        <target state="translated">コントロール文字がありません</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier {0}</source>
-        <target state="new">Nested quantifier {0}</target>
+        <target state="translated">入れ子になった量指定子 {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
         <source>Not enough )'s</source>
-        <target state="new">Not enough )'s</target>
+        <target state="translated">) が足りません</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
         <source>Quantifier {x,y} following nothing</source>
-        <target state="new">Quantifier {x,y} following nothing</target>
+        <target state="translated">量指定子 {x,y} の前に何もありません</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group">
         <source>reference to undefined group</source>
-        <target state="new">reference to undefined group</target>
+        <target state="translated">未定義のグループへの参照</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1))</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_name_0">
         <source>Reference to undefined group name {0}</source>
-        <target state="new">Reference to undefined group name {0}</target>
+        <target state="translated">未定義のグループ名 {0} への参照</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k&lt;a&gt;. Here, {0} will be the name of the undefined group ('a')</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_number_0">
         <source>Reference to undefined group number {0}</source>
-        <target state="new">Reference to undefined group number {0}</target>
+        <target state="translated">未定義のグループ番号 {0} への参照</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;-1&gt;). Here, {0} will be the number of the undefined group ('1')</note>
       </trans-unit>
       <trans-unit id="Too_many_bars_in_conditional_grouping">
         <source>Too many | in (?()|)</source>
-        <target state="new">Too many | in (?()|)</target>
+        <target state="translated">(?()|) で | が多すぎます</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0)a|b|)</note>
       </trans-unit>
       <trans-unit id="Too_many_close_parens">
         <source>Too many )'s</source>
-        <target state="new">Too many )'s</target>
+        <target state="translated">) が多すぎます</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
       </trans-unit>
       <trans-unit id="Unknown_property">
         <source>Unknown property</source>
-        <target state="new">Unknown property</target>
+        <target state="translated">不明なプロパティ</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p{}</note>
       </trans-unit>
       <trans-unit id="Unknown_property_0">
         <source>Unknown property '{0}'</source>
-        <target state="new">Unknown property '{0}'</target>
+        <target state="translated">不明なプロパティ '{0}'</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p{xxx}. Here, {0} will be the name of the unknown property ('xxx')</note>
       </trans-unit>
       <trans-unit id="Unrecognized_control_character">
         <source>Unrecognized control character</source>
-        <target state="new">Unrecognized control character</target>
+        <target state="translated">認識されない制御文字</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [\c]</note>
       </trans-unit>
       <trans-unit id="Unrecognized_escape_sequence_0">
         <source>Unrecognized escape sequence \{0}</source>
-        <target state="new">Unrecognized escape sequence \{0}</target>
+        <target state="translated">認識できないエスケープ シーケンス \{0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \m. Here, {0} will be the unrecognized character ('m')</note>
       </trans-unit>
       <trans-unit id="Unrecognized_grouping_construct">
         <source>Unrecognized grouping construct</source>
-        <target state="new">Unrecognized grouping construct</target>
+        <target state="translated">認識されないグループ化構成体</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;</note>
       </trans-unit>
       <trans-unit id="Unterminated_character_class_set">
         <source>Unterminated [] set</source>
-        <target state="new">Unterminated [] set</target>
+        <target state="translated">未終了の [] セットです</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [</note>
       </trans-unit>
       <trans-unit id="Unterminated_regex_comment">
         <source>Unterminated (?#...) comment</source>
-        <target state="new">Unterminated (?#...) comment</target>
+        <target state="translated">未終了の (?#...) コメントです</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?#</note>
       </trans-unit>
       <trans-unit id="dot_NET_Coding_Conventions">
         <source>.NET Coding Conventions</source>
-        <target state="new">.NET Coding Conventions</target>
+        <target state="translated">.NET コーディング規則</target>
         <note />
       </trans-unit>
       <trans-unit id="this_dot_and_Me_dot_preferences">
         <source>this. and Me. preferences</source>
-        <target state="new">this. and Me. preferences</target>
+        <target state="translated">this. と Me. の設定</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
         <source>[x-y] range in reverse order</source>
-        <target state="new">[x-y] range in reverse order</target>
+        <target state="translated">[x-y] 範囲の順序が逆です</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [b-a]</note>
       </trans-unit>
       <trans-unit id="Variables_captured_colon">
@@ -1064,8 +1109,13 @@
       </trans-unit>
       <trans-unit id="Regex_issue_0">
         <source>Regex issue: {0}</source>
-        <target state="new">Regex issue: {0}</target>
+        <target state="translated">正規表現の問題: {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. {0} will be the actual text of one of the above Regular Expression errors.</note>
+      </trans-unit>
+      <trans-unit id="Parameter_preferences">
+        <source>Parameter preferences</source>
+        <target state="new">Parameter preferences</target>
+        <note />
       </trans-unit>
     </body>
   </file>

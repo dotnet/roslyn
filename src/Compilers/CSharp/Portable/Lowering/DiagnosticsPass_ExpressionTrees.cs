@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly DiagnosticBag _diagnostics;
         private readonly CSharpCompilation _compilation;
         private bool _inExpressionLambda;
+        private LocalFunctionSymbol _staticLocalFunction;
         private bool _reportedUnsafe;
         private readonly MethodSymbol _containingSymbol;
 
@@ -86,14 +87,91 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitSizeOfOperator(node);
         }
 
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        {
+            var outerLocalFunction = _staticLocalFunction;
+            if (node.Symbol.IsStaticLocalFunction)
+            {
+                _staticLocalFunction = node.Symbol;
+            }
+            var result = base.VisitLocalFunctionStatement(node);
+            _staticLocalFunction = outerLocalFunction;
+            return result;
+        }
+
+        public override BoundNode VisitThisReference(BoundThisReference node)
+        {
+            CheckReferenceToThisOrBase(node);
+            return base.VisitThisReference(node);
+        }
+
         public override BoundNode VisitBaseReference(BoundBaseReference node)
         {
             if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsBaseAccess, node);
             }
-
+            CheckReferenceToThisOrBase(node);
             return base.VisitBaseReference(node);
+        }
+
+        public override BoundNode VisitLocal(BoundLocal node)
+        {
+            CheckReferenceToVariable(node, node.LocalSymbol);
+            return base.VisitLocal(node);
+        }
+
+        public override BoundNode VisitParameter(BoundParameter node)
+        {
+            CheckReferenceToVariable(node, node.ParameterSymbol);
+            return base.VisitParameter(node);
+        }
+
+        private void CheckReferenceToThisOrBase(BoundExpression node)
+        {
+            if ((object)_staticLocalFunction != null)
+            {
+                Error(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, node);
+            }
+        }
+
+        private void CheckReferenceToVariable(BoundExpression node, Symbol symbol)
+        {
+            Debug.Assert(symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Parameter);
+
+            if ((object)_staticLocalFunction != null && !IsContainedIn(_staticLocalFunction, symbol))
+            {
+                Error(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, node, new FormattedSymbol(symbol, SymbolDisplayFormat.ShortFormat));
+            }
+        }
+
+        private static bool IsContainedIn(LocalFunctionSymbol container, Symbol symbol)
+        {
+            Debug.Assert((object)container != null);
+            Debug.Assert(container != symbol);
+            while (true)
+            {
+                var containingSymbol = symbol.ContainingSymbol;
+                if (containingSymbol is null)
+                {
+                    return false;
+                }
+                if (container == containingSymbol)
+                {
+                    return true;
+                }
+                symbol = containingSymbol;
+            }
+        }
+
+        public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsSwitchExpression, node);
+            }
+
+            return base.VisitSwitchExpression(node);
         }
 
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)

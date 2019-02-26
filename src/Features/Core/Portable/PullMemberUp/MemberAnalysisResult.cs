@@ -20,15 +20,37 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
         public readonly bool ChangeOriginalToNonStatic;
 
         /// <summary>
+        /// Indicate whether this member's declaration in destination needs to be made to abstract. It is only used by the dialog UI.
+        /// If this property is true, then pull a member up to a class will only generate a abstract declaration in the destination.
+        /// It will always be false if the refactoring is triggered from Quick Action.
+        /// </summary>
+        public readonly bool MakeMemberDeclarationAbstract;
+
+        /// <summary>
+        /// Indicate whether pulling this member up would change the destination to abstract. It will be true if:
+        /// 1. Pull an abstract member to a non-abstract class
+        /// 2. The 'Make abstract' check box of a member is checked, and the destination is a non-abstract class
+        /// </summary>
+        public readonly bool ChangeDestinationTypeToAbstract;
+
+
+        /// <summary>
         /// Indicate whether it would cause error if we directly pull Member into destination.
         /// </summary>
-        public bool PullMemberUpCausesError => ChangeOriginalToPublic || ChangeOriginalToNonStatic;
+        public bool PullMemberUpNeedsToDoExtraChanges => ChangeOriginalToPublic || ChangeOriginalToNonStatic || ChangeDestinationTypeToAbstract;
 
-        internal MemberAnalysisResult(ISymbol member, bool changeOriginalToPublic, bool changeOriginalToNonStatic)
+        public MemberAnalysisResult(
+            ISymbol member,
+            bool changeOriginalToPublic,
+            bool changeOriginalToNonStatic,
+            bool makeMemberDeclarationAbstract,
+            bool changeDestinationTypeToAbstract)
         {
             Member = member;
             ChangeOriginalToPublic = changeOriginalToPublic;
             ChangeOriginalToNonStatic = changeOriginalToNonStatic;
+            MakeMemberDeclarationAbstract = makeMemberDeclarationAbstract;
+            ChangeDestinationTypeToAbstract = changeDestinationTypeToAbstract;
         }
     }
 }

@@ -30,6 +30,7 @@ usage()
   echo "  --bootstrap                Build using a bootstrap compilers"
   echo "  --skipAnalyzers            Do not run analyzers during build operations"
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
+  echo "  --warnAsError              Treat all warnings as errors"
   echo ""
   echo "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -61,7 +62,9 @@ ci=false
 bootstrap=false
 skip_analyzers=false
 prepare_machine=false
+warn_as_error=false
 properties=""
+disable_parallel_restore=false
 
 docker=false
 args=""
@@ -124,6 +127,9 @@ while [[ $# > 0 ]]; do
       ;;
     --preparemachine)
       prepare_machine=true
+      ;;
+    --warnaserror)
+      warn_as_error=true
       ;;
     --docker)
       docker=true
@@ -217,7 +223,7 @@ function BuildSolution {
   # NuGet often exceeds the limit of open files on Mac and Linux
   # https://github.com/NuGet/Home/issues/2163
   if [[ "$UNAME" == "Darwin" || "$UNAME" == "Linux" ]]; then
-    ulimit -n 6500
+    disable_parallel_restore=true
   fi
 
   local quiet_restore=""
@@ -229,15 +235,17 @@ function BuildSolution {
   local test_runtime=""
   local mono_tool=""
   if [[ "$test_mono" == true ]]; then
+    
+    mono_path="$scriptroot/invoke-mono.sh"
     # Echo out the mono version to the comamnd line so it's visible in CI logs. It's not fixed
     # as we're using a feed vs. a hard coded package.
     if [[ "$ci" == true ]]; then
       mono --version
+      chmod +x "$mono_path"
     fi
 
     test=true
     test_runtime="/p:TestRuntime=Mono"
-    mono_path=`command -v mono`
     mono_tool="/p:MonoTool=\"$mono_path\""
   elif [[ "$test_core_clr" == true ]]; then
     test=true
@@ -245,6 +253,10 @@ function BuildSolution {
     mono_tool=""
   fi
 
+  # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
+  # We don't pass /warnaserror to msbuild (warn_as_error is set to false by default above), but set 
+  # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
+  # Warnings reported from other msbuild tasks are not treated as errors for now.
   MSBuild $toolset_build_proj \
     $bl \
     /p:Configuration=$configuration \
@@ -261,6 +273,8 @@ function BuildSolution {
     /p:ContinuousIntegrationBuild=$ci \
     /p:QuietRestore=$quiet_restore \
     /p:QuietRestoreBinaryLog="$binary_log" \
+    /p:TreatWarningsAsErrors=true \
+    /p:RestoreDisableParallel=$disable_parallel_restore \
     $test_runtime \
     $mono_tool \
     $properties

@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Dim propertyType = [property].Type
                 If propertyType.TypeKind = TypeKind.TypeParameter Then
                     Dim typeParameter = DirectCast(propertyType, TypeParameterSymbol)
-                    Debug.Assert(typeParameter.ContainingSymbol = type)
+                    Debug.Assert(TypeSymbol.Equals(DirectCast(typeParameter.ContainingSymbol, TypeSymbol), type, TypeCompareKind.ConsiderEverything))
                     Dim index = typeParameter.Ordinal
                     Debug.Assert(properties(index).Name Is Nothing)
                     ' ReadOnly anonymous type properties were 'Key' properties.

@@ -579,8 +579,13 @@ namespace System
                     case WellKnownType.System_Threading_Tasks_ValueTask:
                     case WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder:
                     case WellKnownType.System_Threading_CancellationToken:
-                    // Not yet in the platform.
+                    case WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException:
+                        // Not yet in the platform.
+                        continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
+                    case WellKnownType.System_Runtime_CompilerServices_ITuple:
+                    case WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute:
+                    case WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute:
                         // Not always available.
                         continue;
                     case WellKnownType.ExtSentinel:
@@ -886,14 +891,11 @@ namespace System
                     case WellKnownMember.System_ReadOnlySpan_T__get_Item:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:
                     case WellKnownMember.System_Index__ctor:
-                    case WellKnownMember.System_Index__FromEnd:
+                    case WellKnownMember.System_Index__IsFromEnd:
                     case WellKnownMember.System_Index__Value:
                     case WellKnownMember.System_Range__Start:
                     case WellKnownMember.System_Range__End:
-                    case WellKnownMember.System_Range__All:
-                    case WellKnownMember.System_Range__Create:
-                    case WellKnownMember.System_Range__FromStart:
-                    case WellKnownMember.System_Range__ToEnd:
+                    case WellKnownMember.System_Range__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor:
                     case WellKnownMember.System_IAsyncDisposable__DisposeAsync:
                     case WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator:
@@ -921,6 +923,8 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Create:
                     case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T:
                     case WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
@@ -928,6 +932,8 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item:
+                    case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length:
                         // Not always available.
                         continue;
                 }
@@ -2077,7 +2083,10 @@ public class X
                 Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "x is bool is bool").WithArguments("bool").WithLocation(16, 38),
                 // (12,19): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
                 //         {if (x is int y) Console.WriteLine("4. {0}", y);}
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int y").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(12, 19)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int y").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(12, 19),
+                // (15,19): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //         {if (x is int y) Console.WriteLine("6. {0}", y);}
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int y").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(15, 19)
                 );
         }
 
@@ -2128,64 +2137,12 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_String__op_Equality);
             compilation.VerifyEmitDiagnostics(
-                // (11,9): error CS0656: Missing compiler required member 'System.String.op_Equality'
-                //         switch (o)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (o)
-        {
-            case ""hmm"":
-                Console.WriteLine(""hmm""); break;
-            case null:
-                Console.WriteLine(""null""); break;
-            case 1:
-                Console.WriteLine(""int 1""); break;
-            case ((byte)1):
-                Console.WriteLine(""byte 1""); break;
-            case ((short)1):
-                Console.WriteLine(""short 1""); break;
-            case ""bar"":
-                Console.WriteLine(""bar""); break;
-            case object t when t != o:
-                Console.WriteLine(""impossible""); break;
-            case 2:
-                Console.WriteLine(""int 2""); break;
-            case ((byte)2):
-                Console.WriteLine(""byte 2""); break;
-            case ((short)2):
-                Console.WriteLine(""short 2""); break;
-            case ""baz"":
-                Console.WriteLine(""baz""); break;
-            default:
-                Console.WriteLine(""other "" + o); break;
-        }").WithArguments("System.String", "op_Equality").WithLocation(11, 9),
-                // (11,9): error CS0656: Missing compiler required member 'System.String.op_Equality'
-                //         switch (o)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (o)
-        {
-            case ""hmm"":
-                Console.WriteLine(""hmm""); break;
-            case null:
-                Console.WriteLine(""null""); break;
-            case 1:
-                Console.WriteLine(""int 1""); break;
-            case ((byte)1):
-                Console.WriteLine(""byte 1""); break;
-            case ((short)1):
-                Console.WriteLine(""short 1""); break;
-            case ""bar"":
-                Console.WriteLine(""bar""); break;
-            case object t when t != o:
-                Console.WriteLine(""impossible""); break;
-            case 2:
-                Console.WriteLine(""int 2""); break;
-            case ((byte)2):
-                Console.WriteLine(""byte 2""); break;
-            case ((short)2):
-                Console.WriteLine(""short 2""); break;
-            case ""baz"":
-                Console.WriteLine(""baz""); break;
-            default:
-                Console.WriteLine(""other "" + o); break;
-        }").WithArguments("System.String", "op_Equality").WithLocation(11, 9)
+                // (13,13): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                //             case "hmm":
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"case ""hmm"":").WithArguments("System.String", "op_Equality").WithLocation(13, 13),
+                // (33,13): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                //             case "baz":
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"case ""baz"":").WithArguments("System.String", "op_Equality").WithLocation(33, 13)
                 );
         }
 
@@ -2279,17 +2236,9 @@ struct X
                 // (9,13): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
                 //     switch (x)
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(9, 13),
-                // (9,5): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
-                //     switch (x)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (x)
-    {
-      case null:
-        Console.WriteLine(""null"");
-        break;
-      case 1:
-        Console.WriteLine(1);
-        break;
-    }").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(9, 5)
+                // (14,7): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //       case 1:
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "case 1:").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(14, 7)
                 );
         }
 

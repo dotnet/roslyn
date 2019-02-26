@@ -304,9 +304,14 @@ namespace Microsoft.CodeAnalysis.Execution
 
             if (metadata is AssemblyMetadata assemblyMetadata)
             {
+                if (!TryGetModules(assemblyMetadata, out var modules))
+                {
+                    // Gracefully bail out without writing anything to the writer.
+                    return;
+                }
+
                 writer.WriteInt32((int)assemblyMetadata.Kind);
 
-                var modules = assemblyMetadata.GetModules();
                 writer.WriteInt32(modules.Length);
 
                 foreach (var module in modules)
@@ -318,6 +323,23 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             WriteMvidTo((ModuleMetadata)metadata, writer, cancellationToken);
+        }
+
+        private static bool TryGetModules(AssemblyMetadata assemblyMetadata, out ImmutableArray<ModuleMetadata> modules)
+        {
+            // Gracefully handle documented exceptions from 'GetModules' invocation.
+            try
+            {
+                modules = assemblyMetadata.GetModules();
+                return true;
+            }
+            catch (Exception ex) when (ex is BadImageFormatException ||
+                                       ex is IOException ||
+                                       ex is ObjectDisposedException)
+            {
+                modules = default;
+                return false;
+            }
         }
 
         private void WriteMvidTo(ModuleMetadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
@@ -411,9 +433,15 @@ namespace Microsoft.CodeAnalysis.Execution
 
             if (metadata is AssemblyMetadata assemblyMetadata)
             {
+                if (!TryGetModules(assemblyMetadata, out var modules))
+                {
+                    // Gracefully handle error case where unable to get modules.
+                    writer.WriteInt32(MetadataFailed);
+                    return;
+                }
+
                 writer.WriteInt32((int)assemblyMetadata.Kind);
 
-                var modules = assemblyMetadata.GetModules();
                 writer.WriteInt32(modules.Length);
 
                 foreach (var module in modules)

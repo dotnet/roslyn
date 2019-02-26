@@ -3029,8 +3029,9 @@ class C
             });
         }
 
-        [Fact]
-        public void EvaluateCapturedLocalsOutsideLambda()
+        [Theory]
+        [MemberData(nameof(NonNullTypesTrueAndFalseDebugDll))]
+        public void EvaluateCapturedLocalsOutsideLambda(CSharpCompilationOptions options)
         {
             var source =
 @"class A
@@ -3067,7 +3068,7 @@ class B : A
         }
     }
 }";
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: options);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -3786,43 +3787,35 @@ class C
     }
 }";
             var assemblyName = ExpressionCompilerUtilities.GenerateUniqueName();
-            // https://github.com/dotnet/roslyn/issues/30031: error CS0101: The namespace 'System.Runtime.CompilerServices' already contains a definition for 'NullableAttribute'
-            var parseOptions = TestOptions.Regular7;
             var compilationN0 = CreateCompilation(
                 sourceN0,
-                parseOptions: parseOptions,
                 options: TestOptions.DebugModule,
                 assemblyName: assemblyName + "_N0");
             var referenceN0 = ModuleMetadata.CreateFromImage(compilationN0.EmitToArray()).GetReference(display: assemblyName + "_N0");
             var compilationN1 = CreateCompilation(
                 sourceN1,
-                parseOptions: parseOptions,
                 options: TestOptions.DebugModule,
                 assemblyName: assemblyName + "_N0"); // Note: "_N0" not "_N1"
             var referenceN1 = ModuleMetadata.CreateFromImage(compilationN1.EmitToArray()).GetReference(display: assemblyName + "_N0");
             var compilationN2 = CreateCompilation(
                 sourceN2,
-                parseOptions: parseOptions,
                 options: TestOptions.DebugModule,
                 assemblyName: assemblyName + "_N2");
             var referenceN2 = ModuleMetadata.CreateFromImage(compilationN2.EmitToArray()).GetReference(display: assemblyName + "_N2");
             var compilationD0 = CreateCompilation(
                 sourceD0,
-                parseOptions: parseOptions,
                 options: TestOptions.DebugDll,
                 assemblyName: assemblyName + "_D0",
                 references: new MetadataReference[] { referenceN0 });
             var referenceD0 = AssemblyMetadata.CreateFromImage(compilationD0.EmitToArray()).GetReference(display: assemblyName + "_D0");
             var compilationD1 = CreateCompilation(
                 sourceD1,
-                parseOptions: parseOptions,
                 options: TestOptions.DebugDll,
                 assemblyName: assemblyName + "_D1",
                 references: new MetadataReference[] { referenceN0 });
             var referenceD1 = AssemblyMetadata.CreateFromImage(compilationD1.EmitToArray()).GetReference(display: assemblyName + "_D1");
             var compilation = CreateCompilation(
                 source,
-                parseOptions: parseOptions,
                 options: TestOptions.DebugDll,
                 assemblyName: assemblyName,
                 references: new MetadataReference[] { referenceN1, referenceN2, referenceD0, referenceD1 });
@@ -5578,9 +5571,8 @@ public class C
         [Fact]
         public void UseSiteWarning()
         {
-            var signedDllOptions = TestOptions.ReleaseDll.
-                WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                WithStrongNameProvider(s_defaultDesktopProvider);
+            var signedDllOptions = TestOptions.SigningReleaseDll.
+                WithCryptoKeyFile(SigningTestHelpers.KeyPairFile);
 
             var libBTemplate = @"
 [assembly: System.Reflection.AssemblyVersion(""{0}.0.0.0"")]
@@ -6353,7 +6345,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void AssignDefaultToLocal()
         {
             var source = @"
@@ -6542,7 +6534,7 @@ public class Test
     {
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.Main");
@@ -6591,7 +6583,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.G");
@@ -6648,7 +6640,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void OutVarInExpression()
         {
             var source =
@@ -6686,8 +6678,7 @@ class C
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30436")]
-        [WorkItem(30436, "https://github.com/dotnet/roslyn/issues/30436")]
+        [Fact]
         public void IndexExpression()
         {
             var source = TestSources.Index + @"
@@ -6698,8 +6689,7 @@ class C
         var x = ^1;
     }
 }";
-            var langVersion = LanguageVersion.CSharp8;
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        2 (0x2)
   .maxstack  1
@@ -6708,7 +6698,7 @@ class C
   IL_0001:  ret
 }");
 
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Value", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Value").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        8 (0x8)
   .maxstack  1
@@ -6718,7 +6708,7 @@ class C
   IL_0007:  ret
 }");
 
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "^2", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "^2").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        8 (0x8)
   .maxstack  2
@@ -6730,8 +6720,7 @@ class C
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30436")]
-        [WorkItem(30436, "https://github.com/dotnet/roslyn/issues/30436")]
+        [Fact]
         public void RangeExpression_None()
         {
             var source = TestSources.Index + TestSources.Range + @"
@@ -6742,8 +6731,7 @@ class C
         var x = ..;
     }
 }";
-            var langVersion = LanguageVersion.CSharp8;
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        2 (0x2)
   .maxstack  1
@@ -6752,7 +6740,7 @@ class C
   IL_0001:  ret
 }");
 
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Start.Value", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Start.Value").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       16 (0x10)
   .maxstack  1
@@ -6766,18 +6754,23 @@ class C
   IL_000f:  ret
 }");
 
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "..", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "..").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
-  // Code size        6 (0x6)
-  .maxstack  1
+  // Code size       20 (0x14)
+  .maxstack  3
   .locals init (System.Range V_0) //x
-  IL_0000:  call       ""System.Range System.Range.All()""
-  IL_0005:  ret
+  IL_0000:  ldc.i4.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  newobj     ""System.Index..ctor(int, bool)""
+  IL_000e:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_0013:  ret
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30436")]
-        [WorkItem(30436, "https://github.com/dotnet/roslyn/issues/30436")]
+        [Fact]
         public void RangeExpression_Left()
         {
             var source = TestSources.Index + TestSources.Range + @"
@@ -6788,8 +6781,7 @@ class C
         var x = 1..;
     }
 }";
-            var langVersion = LanguageVersion.CSharp8;
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        2 (0x2)
   .maxstack  1
@@ -6798,7 +6790,7 @@ class C
   IL_0001:  ret
 }");
 
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Start.Value", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Start.Value").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       16 (0x10)
   .maxstack  1
@@ -6812,20 +6804,22 @@ class C
   IL_000f:  ret
 }");
 
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "2..", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "2..").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
-  // Code size       12 (0xc)
-  .maxstack  1
+  // Code size       19 (0x13)
+  .maxstack  3
   .locals init (System.Range V_0) //x
   IL_0000:  ldc.i4.2
   IL_0001:  call       ""System.Index System.Index.op_Implicit(int)""
-  IL_0006:  call       ""System.Range System.Range.FromStart(System.Index)""
-  IL_000b:  ret
+  IL_0006:  ldc.i4.0
+  IL_0007:  ldc.i4.1
+  IL_0008:  newobj     ""System.Index..ctor(int, bool)""
+  IL_000d:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_0012:  ret
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30436")]
-        [WorkItem(30436, "https://github.com/dotnet/roslyn/issues/30436")]
+        [Fact]
         public void RangeExpression_Right()
         {
             var source = TestSources.Index + TestSources.Range + @"
@@ -6836,8 +6830,7 @@ class C
         var x = ..1;
     }
 }";
-            var langVersion = LanguageVersion.CSharp8;
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        2 (0x2)
   .maxstack  1
@@ -6846,7 +6839,7 @@ class C
   IL_0001:  ret
 }");
 
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Start.Value", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Start.Value").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       16 (0x10)
   .maxstack  1
@@ -6860,20 +6853,22 @@ class C
   IL_000f:  ret
 }");
 
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "..2", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "..2").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
-  // Code size       12 (0xc)
-  .maxstack  1
+  // Code size       19 (0x13)
+  .maxstack  2
   .locals init (System.Range V_0) //x
-  IL_0000:  ldc.i4.2
-  IL_0001:  call       ""System.Index System.Index.op_Implicit(int)""
-  IL_0006:  call       ""System.Range System.Range.ToEnd(System.Index)""
-  IL_000b:  ret
+  IL_0000:  ldc.i4.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0007:  ldc.i4.2
+  IL_0008:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_000d:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_0012:  ret
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30436")]
-        [WorkItem(30436, "https://github.com/dotnet/roslyn/issues/30436")]
+        [Fact]
         public void RangeExpression_Both()
         {
             var source = TestSources.Index + TestSources.Range + @"
@@ -6884,8 +6879,7 @@ class C
         var x = 1..2;
     }
 }";
-            var langVersion = LanguageVersion.CSharp8;
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        2 (0x2)
   .maxstack  1
@@ -6894,7 +6888,7 @@ class C
   IL_0001:  ret
 }");
 
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Start.Value", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Start.Value").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       16 (0x10)
   .maxstack  1
@@ -6908,7 +6902,7 @@ class C
   IL_000f:  ret
 }");
 
-            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "3..4", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "3..4").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       18 (0x12)
   .maxstack  2
@@ -6917,7 +6911,7 @@ class C
   IL_0001:  call       ""System.Index System.Index.op_Implicit(int)""
   IL_0006:  ldc.i4.4
   IL_0007:  call       ""System.Index System.Index.op_Implicit(int)""
-  IL_000c:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_000c:  newobj     ""System.Range..ctor(System.Index, System.Index)""
   IL_0011:  ret
 }");
         }

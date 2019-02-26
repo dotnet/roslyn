@@ -806,7 +806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // with all the potential breaks.
                 // NOTE: It's not clear why dev11 is looking in interfaces at all. Maybe
                 // it was only supposed to happen for interface types?
-                foreach (NamedTypeSymbol @interface in type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics) // NOTE: would be hand-rolled in a standalone component.
+                foreach (NamedTypeSymbol @interface in type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys) // NOTE: would be hand-rolled in a standalone component.
                 {
                     if (!IsAccessibleOutsideAssembly(@interface)) continue;
 

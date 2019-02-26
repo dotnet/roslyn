@@ -99,15 +99,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsManagedType
-        {
-            get
-            {
-                return false;
-            }
-        }
+        internal sealed override ManagedKind ManagedKind => ManagedKind.Unmanaged;
 
-        internal sealed override bool IsByRefLikeType
+        public sealed override bool IsRefLikeType
         {
             get
             {
@@ -269,15 +263,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override TypeSymbol SetUnknownNullabilityForReferenceTypes()
+        internal override TypeSymbol SetNullabilityForReferenceTypes(Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> transform)
         {
-            return WithPointedAtType(PointedAtType.SetUnknownNullabilityForReferenceTypes());
+            return WithPointedAtType(transform(PointedAtType));
         }
 
-        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)
+        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance)
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
-            TypeSymbolWithAnnotations pointedAtType = PointedAtType.MergeNullability(((PointerTypeSymbol)other).PointedAtType, VarianceKind.None, out hadNullabilityMismatch);
+            TypeSymbolWithAnnotations pointedAtType = PointedAtType.MergeNullability(((PointerTypeSymbol)other).PointedAtType, VarianceKind.None);
             return WithPointedAtType(pointedAtType);
         }
 

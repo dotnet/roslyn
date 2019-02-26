@@ -593,8 +593,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                            SelectAsArray(Function(s) SymbolAndProjectId.Create(s, document.Project.Id))
         End Function
 
-        Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of IFormattingRule)
-            Return New IFormattingRule() {New ChangeSignatureFormattingRule()}.Concat(Formatter.GetDefaultFormattingRules(document))
+        Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of AbstractFormattingRule)
+            Return New AbstractFormattingRule() {New ChangeSignatureFormattingRule()}.Concat(Formatter.GetDefaultFormattingRules(document))
         End Function
     End Class
 End Namespace

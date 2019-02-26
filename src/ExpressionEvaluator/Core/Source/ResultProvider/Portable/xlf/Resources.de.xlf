@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="DynamicViewValueWarning">
         <source>Expanding the Dynamic View will get the dynamic members for the object</source>
-        <target state="translated">Durch Aufklappen der dynamischen Ansicht werden die dynamischen Member für das Objekt abgerufen.</target>
+        <target state="translated">Durch Aufklappen der dynamischen Ansicht werden die dynamischen Elemente für das Objekt abgerufen.</target>
         <note>Warning reported in Dynamic View value</note>
       </trans-unit>
       <trans-unit id="ErrorName">
@@ -24,12 +24,12 @@
       </trans-unit>
       <trans-unit id="ExceptionThrown">
         <source>'{0}' threw an exception of type '{1}'</source>
-        <target state="translated">"{0}" löste eine Ausnahme des Typs "{1}" aus</target>
+        <target state="translated">'{0}' löste eine Ausnahme des Typs '{1}' aus</target>
         <note>Threw an exception while evaluating a value.</note>
       </trans-unit>
       <trans-unit id="InvalidPointerDereference">
         <source>Cannot dereference '{0}'. The pointer is not valid.</source>
-        <target state="translated">Dereferenzieren von "{0}" ist nicht möglich. Der Zeiger ist ungültig.</target>
+        <target state="translated">Dereferenzieren von '{0}' ist nicht möglich. Der Pointer ist ungültig.</target>
         <note>Invalid pointer dereference</note>
       </trans-unit>
       <trans-unit id="NativeView">

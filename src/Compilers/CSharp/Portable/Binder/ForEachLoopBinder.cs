@@ -206,10 +206,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             hasErrors |= builder.IsIncomplete;
 
             AwaitableInfo awaitInfo = null;
+            MethodSymbol getEnumeratorMethod = builder.GetEnumeratorMethod;
             if (IsAsync)
             {
-                BoundExpression placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, builder.MoveNextMethod?.ReturnType.TypeSymbol ?? CreateErrorType());
+                var placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, builder.MoveNextMethod?.ReturnType.TypeSymbol ?? CreateErrorType());
                 awaitInfo = BindAwaitInfo(placeholder, _syntax.Expression, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+
+                if (!hasErrors && awaitInfo.GetResult?.ReturnType.SpecialType != SpecialType.System_Boolean)
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadGetAsyncEnumerator, _syntax.Expression.Location, getEnumeratorMethod.ReturnType, getEnumeratorMethod);
+                    hasErrors = true;
+                }
             }
 
             TypeSymbol iterationVariableType;
@@ -388,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             hasErrors |= hasNameConflicts;
 
             var foreachKeyword = _syntax.ForEachKeyword;
-            ReportDiagnosticsIfObsolete(diagnostics, builder.GetEnumeratorMethod, foreachKeyword, hasBaseReceiver: false);
+            ReportDiagnosticsIfObsolete(diagnostics, getEnumeratorMethod, foreachKeyword, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, builder.MoveNextMethod, foreachKeyword, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, builder.CurrentPropertyGetter, foreachKeyword, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, builder.CurrentPropertyGetter.AssociatedSymbol, foreachKeyword, hasBaseReceiver: false);
@@ -424,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.CollectionConversion = this.Conversions.ClassifyConversionFromExpression(collectionExpr, builder.CollectionType, ref useSiteDiagnostics);
             builder.CurrentConversion = this.Conversions.ClassifyConversionFromType(builder.CurrentPropertyGetter.ReturnType.TypeSymbol, builder.ElementType.TypeSymbol, ref useSiteDiagnostics);
 
-            TypeSymbol getEnumeratorType = builder.GetEnumeratorMethod.ReturnType.TypeSymbol;
+            TypeSymbol getEnumeratorType = getEnumeratorMethod.ReturnType.TypeSymbol;
             // we never convert struct enumerators to object - it is done only for null-checks.
             builder.EnumeratorConversion = getEnumeratorType.IsValueType ?
                 Conversion.Identity :
@@ -472,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ConstantValue.NotAvailable,
                 builder.CollectionType);
 
-            if (builder.NeedsDisposeMethod && IsAsync)
+            if (builder.NeedsDisposal && IsAsync)
             {
                 hasErrors |= GetAwaitDisposeAsyncInfo(ref builder, diagnostics);
             }
@@ -496,8 +503,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool GetAwaitDisposeAsyncInfo(ref ForEachEnumeratorInfo.Builder builder, DiagnosticBag diagnostics)
         {
-            BoundExpression placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression,
-                this.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask, diagnostics, this._syntax));
+            var awaitableType = builder.DisposeMethod is null
+                ? this.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask, diagnostics, this._syntax)
+                : builder.DisposeMethod.ReturnType.TypeSymbol;
+
+            var placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, awaitableType);
 
             bool hasErrors = false;
             builder.DisposeAwaitableInfo = BindAwaitInfo(placeholder, _syntax.Expression, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
@@ -617,6 +627,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (collectionExprType.IsErrorType())
+            {
+                return false;
+            }
+
             // Retry with a different assumption about whether the foreach is async
             var ignoredBuilder = new ForEachEnumeratorInfo.Builder();
             var ignoredDiagnostics = DiagnosticBag.GetInstance();
@@ -700,26 +715,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     builder.ElementType = ((PropertySymbol)builder.CurrentPropertyGetter.AssociatedSymbol).Type;
 
-                    // NOTE: if IDisposable is not available at all, no diagnostics will be reported - we will just assume that
-                    // the enumerator is not disposable.  If it has IDisposable in its interface list, there will be a diagnostic there.
-                    // If IDisposable is available but its Dispose method is not, then diagnostics will be reported only if the enumerator
-                    // is potentially disposable.
+                    GetDisposalInfoForEnumerator(ref builder, collectionExpr, isAsync, diagnostics);
 
-                    var useSiteDiagnosticBag = DiagnosticBag.GetInstance();
-                    TypeSymbol enumeratorType = builder.GetEnumeratorMethod.ReturnType.TypeSymbol;
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-
-                    if (!enumeratorType.IsSealed ||
-                        this.Conversions.ClassifyImplicitConversionFromType(enumeratorType,
-                            isAsync ? this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable) : this.Compilation.GetSpecialType(SpecialType.System_IDisposable),
-                            ref useSiteDiagnostics).IsImplicit)
-                    {
-                        builder.NeedsDisposeMethod = true;
-                        diagnostics.AddRange(useSiteDiagnosticBag);
-                    }
-                    useSiteDiagnosticBag.Free();
-
-                    diagnostics.Add(_syntax, useSiteDiagnostics);
                     return EnumeratorResult.Succeeded;
                 }
 
@@ -814,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // We don't know the runtime type, so we will have to insert a runtime check for IDisposable (with a conditional call to IDisposable.Dispose).
-                builder.NeedsDisposeMethod = true;
+                builder.NeedsDisposal = true;
                 return EnumeratorResult.Succeeded;
             }
 
@@ -830,6 +827,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return EnumeratorResult.FailedNotReported;
+        }
+
+        private void GetDisposalInfoForEnumerator(ref ForEachEnumeratorInfo.Builder builder, BoundExpression expr, bool isAsync, DiagnosticBag diagnostics)
+        {
+            // NOTE: if IDisposable is not available at all, no diagnostics will be reported - we will just assume that
+            // the enumerator is not disposable.  If it has IDisposable in its interface list, there will be a diagnostic there.
+            // If IDisposable is available but its Dispose method is not, then diagnostics will be reported only if the enumerator
+            // is potentially disposable.
+
+            TypeSymbol enumeratorType = builder.GetEnumeratorMethod.ReturnType.TypeSymbol;
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+            // For async foreach, we don't do the runtime check
+            if ((!enumeratorType.IsSealed && !isAsync) ||
+                this.Conversions.ClassifyImplicitConversionFromType(enumeratorType,
+                    isAsync ? this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable) : this.Compilation.GetSpecialType(SpecialType.System_IDisposable),
+                    ref useSiteDiagnostics).IsImplicit)
+            {
+                builder.NeedsDisposal = true;
+            }
+            else if (enumeratorType.IsRefLikeType || isAsync)
+            {
+                // if it wasn't directly convertable to IDisposable, see if it is pattern-disposable
+                // again, we throw away any binding diagnostics, and assume it's not disposable if we encounter errors
+                var patternDisposeDiags = new DiagnosticBag();
+                var receiver = new BoundDisposableValuePlaceholder(_syntax, enumeratorType);
+                MethodSymbol disposeMethod = TryFindDisposePatternMethod(receiver, _syntax, isAsync, patternDisposeDiags);
+                if (!(disposeMethod is null))
+                {
+                    builder.NeedsDisposal = true;
+                    builder.DisposeMethod = disposeMethod;
+                }
+                patternDisposeDiags.Free();
+            }
+
+            diagnostics.Add(_syntax, useSiteDiagnostics);
         }
 
         private MethodSymbol GetGetEnumeratorMethod(NamedTypeSymbol collectionType, DiagnosticBag diagnostics, bool isAsync, CSharpSyntaxNode errorLocationSyntax)
@@ -881,7 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol.Equals(builder.GetEnumeratorMethod.ReturnType.TypeSymbol, this.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerator), TypeCompareKind.ConsiderEverything2));
 
             // We don't know the runtime type, so we will have to insert a runtime check for IDisposable (with a conditional call to IDisposable.Dispose).
-            builder.NeedsDisposeMethod = true;
+            builder.NeedsDisposal = true;
             return builder;
         }
 
@@ -900,19 +933,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var lookupResult = LookupResult.GetInstance();
             string methodName = isAsync ? GetAsyncEnumeratorMethodName : GetEnumeratorMethodName;
-
-            ImmutableArray<BoundExpression> arguments;
-            if (isAsync)
-            {
-                var cancellationTokenType = Compilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
-                arguments = ImmutableArray.Create<BoundExpression>(new BoundAwaitableValuePlaceholder(_syntax, cancellationTokenType));
-            }
-            else
-            {
-                arguments = ImmutableArray<BoundExpression>.Empty;
-            }
-
-            MethodSymbol getEnumeratorMethod = FindForEachPatternMethod(collectionExprType, methodName, lookupResult, warningsOnly: true, diagnostics: diagnostics, isAsync: isAsync, arguments);
+            MethodSymbol getEnumeratorMethod = FindForEachPatternMethod(collectionExprType, methodName, lookupResult, warningsOnly: true, diagnostics: diagnostics, isAsync: isAsync);
             lookupResult.Free();
 
             builder.GetEnumeratorMethod = getEnumeratorMethod;
@@ -929,10 +950,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="warningsOnly">True if failures should result in warnings; false if they should result in errors.</param>
         /// <param name="diagnostics">Populated with binding diagnostics.</param>
         /// <returns>The desired method or null.</returns>
-        private MethodSymbol FindForEachPatternMethod(TypeSymbol patternType, string methodName, LookupResult lookupResult, bool warningsOnly, DiagnosticBag diagnostics, bool isAsync, ImmutableArray<BoundExpression> arguments)
+        private MethodSymbol FindForEachPatternMethod(TypeSymbol patternType, string methodName, LookupResult lookupResult, bool warningsOnly, DiagnosticBag diagnostics, bool isAsync)
         {
             Debug.Assert(lookupResult.IsClear);
-            Debug.Assert(!arguments.IsDefault);
 
             // Not using LookupOptions.MustBeInvocableMember because we don't want the corresponding lookup error.
             // We filter out non-methods below.
@@ -977,13 +997,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // some custom logic in ExpressionBinder.BindGrpToParams.  The biggest difference
                 // we've found (so far) is that it only considers methods with expected number of parameters
                 // (i.e. doesn't work with "params" or optional parameters).
-                if (method.ParameterCount == arguments.Length)
+
+                // Note: for pattern-based lookup for `await foreach` we accept `GetAsyncEnumerator` and
+                // `MoveNextAsync` methods with optional/params parameters.
+                if (method.ParameterCount == 0 || isAsync)
                 {
                     candidateMethods.Add((MethodSymbol)member);
                 }
             }
 
-            MethodSymbol patternMethod = PerformForEachPatternOverloadResolution(patternType, candidateMethods, warningsOnly, diagnostics, isAsync, arguments);
+            MethodSymbol patternMethod = PerformForEachPatternOverloadResolution(patternType, candidateMethods, warningsOnly, diagnostics, isAsync);
 
             candidateMethods.Free();
 
@@ -994,12 +1017,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The overload resolution portion of FindForEachPatternMethod.
         /// If no arguments are passed in, then an empty argument list will be used.
         /// </summary>
-        private MethodSymbol PerformForEachPatternOverloadResolution(TypeSymbol patternType, ArrayBuilder<MethodSymbol> candidateMethods, bool warningsOnly, DiagnosticBag diagnostics, bool isAsync, ImmutableArray<BoundExpression> arguments)
+        private MethodSymbol PerformForEachPatternOverloadResolution(TypeSymbol patternType, ArrayBuilder<MethodSymbol> candidateMethods, bool warningsOnly, DiagnosticBag diagnostics, bool isAsync)
         {
-            Debug.Assert(!arguments.IsDefault);
             var analyzedArguments = AnalyzedArguments.GetInstance();
-            analyzedArguments.Arguments.AddRange(arguments);
-
             var typeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
             var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
 
@@ -1152,7 +1172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 MethodSymbol moveNextMethodCandidate = FindForEachPatternMethod(enumeratorType,
                     isAsync ? MoveNextAsyncMethodName : MoveNextMethodName,
-                    lookupResult, warningsOnly: false, diagnostics: diagnostics, isAsync: isAsync, arguments: ImmutableArray<BoundExpression>.Empty);
+                    lookupResult, warningsOnly: false, diagnostics: diagnostics, isAsync: isAsync);
 
                 if ((object)moveNextMethodCandidate == null ||
                     moveNextMethodCandidate.IsStatic || moveNextMethodCandidate.DeclaredAccessibility != Accessibility.Public ||
@@ -1175,9 +1195,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (isAsync)
             {
-                TypeSymbol returnType = moveNextMethodCandidate.ReturnType.TypeSymbol;
-                return !returnType.IsGenericTaskType(Compilation) ||
-                    ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0].SpecialType != SpecialType.System_Boolean;
+                // We'll verify the return type from `MoveNextAsync` when we try to bind the `await` for it
+                return false;
             }
 
             // SPEC VIOLATION: Dev10 checks the return type of the original definition, rather than the return type of the actual method.
@@ -1280,11 +1299,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (IsIEnumerableT(@interface.OriginalDefinition, isAsync))
                 {
-                    if ((object)result == null)
+                    if ((object)result == null ||
+                        TypeSymbol.Equals(@interface, result, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                     {
                         result = @interface;
                     }
-                    else if (!TypeSymbol.Equals(@interface, result, TypeCompareKind.ConsiderEverything2))
+                    else
                     {
                         foundMultiple = true;
                         return;
