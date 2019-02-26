@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             public readonly RegexTree Tree;
             public readonly SyntaxToken StringToken;
+            public readonly int Position;
+            public readonly CompletionTrigger Trigger;
 
             public EmbeddedCompletionContext(
                 RegexEmbeddedCompletionProvider provider,
@@ -32,10 +34,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 _context = context;
                 Tree = tree;
                 StringToken = stringToken;
+                Position = _context.Position;
+                Trigger = _context.Trigger;
             }
-
-            public int Position => _context.Position;
-            public CompletionTrigger Trigger => _context.Trigger;
 
             public void AddIfMissing(
                 string displayText, string suffix, string description,
