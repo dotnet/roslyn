@@ -630,6 +630,76 @@ class Customer
 }}
 ";
 
+        private static readonly string s_doNotPreferBraces = $@"
+using System;
+
+class Customer
+{{
+    private int Age;
+
+    void M1()
+    {{
+//[
+        // {ServicesVSResources.Allow_colon}
+        if (test) Console.WriteLine(""Text"");
+
+        // {ServicesVSResources.Allow_colon}
+        if (test)
+            Console.WriteLine(""Text"");
+
+        // {ServicesVSResources.Allow_colon}
+        if (test)
+            Console.WriteLine(
+                ""Text"");
+
+        // {ServicesVSResources.Allow_colon}
+        if (test)
+        {{
+            Console.WriteLine(
+                ""Text"");
+        }}
+//]
+    }}
+}}
+";
+
+        private static readonly string s_preferBracesWhenMultiline = $@"
+using System;
+
+class Customer
+{{
+    private int Age;
+
+    void M1()
+    {{
+//[
+        // {ServicesVSResources.Allow_colon}
+        if (test) Console.WriteLine(""Text"");
+
+        // {ServicesVSResources.Allow_colon}
+        if (test)
+            Console.WriteLine(""Text"");
+
+        // {ServicesVSResources.Prefer_colon}
+        if (test)
+        {{
+            Console.WriteLine(
+                ""Text"");
+        }}
+//]
+    }}
+    void M2()
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        if (test)
+            Console.WriteLine(
+                ""Text"");
+//]
+    }}
+}}
+";
+
         private static readonly string s_preferBraces = $@"
 using System;
 
@@ -643,7 +713,7 @@ class Customer
         // {ServicesVSResources.Prefer_colon}
         if (test)
         {{
-            this.Display();
+            Console.WriteLine(""Text"");
         }}
 //]
     }}
@@ -652,7 +722,7 @@ class Customer
 //[
         // {ServicesVSResources.Over_colon}
         if (test)
-            this.Display();
+            Console.WriteLine(""Text"");
 //]
     }}
 }}
@@ -679,6 +749,35 @@ class Customer2
         get
         {{
             return age;
+        }}
+    }}
+//]
+}}
+";
+
+        private static readonly string s_preferSimpleUsingStatement = $@"
+using System;
+
+class Customer1
+{{
+//[
+    // {ServicesVSResources.Prefer_colon}
+    void Method()
+    {{
+        using var resource = GetResource();
+        ProcessResource(resource);
+    }}
+//]
+}}
+class Customer2
+{{
+//[
+    // {ServicesVSResources.Over_colon}
+    void Method()
+    {{
+        using (var resource = GetResource())
+        {{
+            ProcessResource(resource);
         }}
     }}
 //]
@@ -774,7 +873,6 @@ class Customer
 //[
         // {ServicesVSResources.Over_colon}
         var sub = value.Substring(1, value.Length - 2);
->>>>>>> UI options.  Also support arrays.
 //]
     }}
 }}
@@ -1008,6 +1106,45 @@ class Customer
 }
 ";
 
+        private const string s_preferExpressionBodyForLocalFunctions = @"
+using System;
+
+//[
+class Customer
+{
+    private int Age;
+
+    public int GetAge() 
+    {
+        return GetAgeLocal();
+        
+        int GetAgeLocal() => this.Age;
+    }
+}
+//]
+";
+
+        private const string s_preferBlockBodyForLocalFunctions = @"
+using System;
+
+//[
+class Customer
+{
+    private int Age;
+
+    public int GetAge()
+    {
+        return GetAgeLocal();
+        
+        int GetAgeLocal()
+        {
+            return this.Age;
+        }
+    }
+}
+//]
+";
+
         private static readonly string s_preferReadonly = $@"
 class Customer1
 {{
@@ -1023,6 +1160,35 @@ class Customer2
         // {ServicesVSResources.Over_colon}
         // '_value' can be assigned anywhere
         private int _value = 0;
+//]
+}}
+";
+
+        private static readonly string s_preferStaticLocalFunction = $@"
+class Customer1
+{{
+//[
+    void Method()
+    {{
+        // {ServicesVSResources.Prefer_colon}
+        static int fibonacci(int n)
+        {{
+            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+        }}
+    }}
+//]
+}}
+class Customer2
+{{
+//[
+    void Method()
+    {{
+        // {ServicesVSResources.Over_colon}
+        int fibonacci(int n)
+        {{
+            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+        }}
+    }}
 //]
 }}
 ";
@@ -1344,7 +1510,7 @@ class C2
             var predefinedTypesGroupTitle = CSharpVSResources.predefined_type_preferences_colon;
             var varGroupTitle = CSharpVSResources.var_preferences_colon;
             var nullCheckingGroupTitle = CSharpVSResources.null_checking_colon;
-            var fieldGroupTitle = ServicesVSResources.Field_preferences_colon;
+            var modifierGroupTitle = ServicesVSResources.Modifier_preferences_colon;
             var codeBlockPreferencesGroupTitle = ServicesVSResources.Code_block_preferences_colon;
             var expressionPreferencesGroupTitle = ServicesVSResources.Expression_preferences_colon;
             var variablePreferencesGroupTitle = ServicesVSResources.Variable_preferences_colon;
@@ -1382,8 +1548,9 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CSharpVSResources.Elsewhere, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
 
             // Code block
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferBraces, ServicesVSResources.Prefer_braces, s_preferBraces, s_preferBraces, this, optionSet, codeBlockPreferencesGroupTitle));
+            AddBracesOptions(optionSet, codeBlockPreferencesGroupTitle);
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferAutoProperties, ServicesVSResources.analyzer_Prefer_auto_properties, s_preferAutoProperties, s_preferAutoProperties, this, optionSet, codeBlockPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferSimpleUsingStatement, ServicesVSResources.Prefer_simple_using_statement, s_preferSimpleUsingStatement, s_preferSimpleUsingStatement, this, optionSet, codeBlockPreferencesGroupTitle));
 
             AddParenthesesOptions(Options);
 
@@ -1418,8 +1585,9 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, this, optionSet, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, CSharpVSResources.Prefer_is_null_for_reference_equality_checks, s_preferIsNullOverReferenceEquals, s_preferIsNullOverReferenceEquals, this, optionSet, nullCheckingGroupTitle));
 
-            // Field preferences.
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferReadonly, ServicesVSResources.Prefer_readonly, s_preferReadonly, s_preferReadonly, this, optionSet, fieldGroupTitle));
+            // Modifier preferences.
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferReadonly, ServicesVSResources.Prefer_readonly_fields, s_preferReadonly, s_preferReadonly, this, optionSet, modifierGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferStaticLocalFunction, ServicesVSResources.Prefer_static_local_functions, s_preferStaticLocalFunction, s_preferStaticLocalFunction, this, optionSet, modifierGroupTitle));
 
             // Parameter preferences
             AddParameterOptions(optionSet, parameterPreferencesGroupTitle);
@@ -1450,6 +1618,25 @@ class C2
                 ServicesVSResources.In_other_operators,
                 new[] { s_otherParenthesesAlwaysForClarity, s_otherParenthesesNeverIfUnnecessary },
                 defaultAddForClarity: false);
+        }
+
+        private void AddBracesOptions(OptionSet optionSet, string bracesPreferenceGroupTitle)
+        {
+            var bracesPreferences = new List<CodeStylePreference>
+            {
+                new CodeStylePreference(ServicesVSResources.Yes, isChecked: false),
+                new CodeStylePreference(ServicesVSResources.No, isChecked: false),
+                new CodeStylePreference(CSharpVSResources.When_on_multiple_lines, isChecked: false),
+            };
+
+            var enumValues = new[] { PreferBracesPreference.Always, PreferBracesPreference.None, PreferBracesPreference.WhenMultiline };
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<PreferBracesPreference>(
+                CSharpCodeStyleOptions.PreferBraces,
+                ServicesVSResources.Prefer_braces,
+                enumValues,
+                new[] { s_preferBraces, s_doNotPreferBraces, s_preferBracesWhenMultiline },
+                this, optionSet, bracesPreferenceGroupTitle, bracesPreferences));
         }
 
         private void AddExpressionBodyOptions(OptionSet optionSet, string expressionPreferencesGroupTitle)
@@ -1510,6 +1697,13 @@ class C2
                 ServicesVSResources.Use_expression_body_for_lambdas,
                 enumValues,
                 new[] { s_preferBlockBodyForLambdas, s_preferExpressionBodyForLambdas, s_preferExpressionBodyForLambdas },
+                this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ExpressionBodyPreference>(
+                CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions,
+                ServicesVSResources.Use_expression_body_for_local_functions,
+                enumValues,
+                new[] { s_preferBlockBodyForLocalFunctions, s_preferExpressionBodyForLocalFunctions, s_preferExpressionBodyForLocalFunctions },
                 this, optionSet, expressionPreferencesGroupTitle, expressionBodyPreferences));
         }
 

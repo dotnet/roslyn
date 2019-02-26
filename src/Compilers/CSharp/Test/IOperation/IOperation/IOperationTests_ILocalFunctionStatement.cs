@@ -570,6 +570,135 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> x+
             VerifyOperationTreeAndDiagnosticsForTest<ArrowExpressionClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestLocalFunction_StaticWithShadowedVariableReference()
+        {
+            string source =
+@"#pragma warning disable 8321
+class C
+{
+    static void M(int x)
+    {
+        /*<bind>*/
+        static int Local(int y)
+        {
+            if (y > 0)
+            {
+                int x = (int)y;
+                return x;
+            }
+            return x;
+        }
+        /*</bind>*/
+    }
+}";
+            string expectedOperationTree = @"
+ILocalFunctionOperation (Symbol: System.Int32 Local(System.Int32 y)) (OperationKind.LocalFunction, Type: null, IsInvalid) (Syntax: 'static int  ... }')
+  IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+    IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (y > 0) ... }')
+      Condition: 
+        IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'y > 0')
+          Left: 
+            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+      WhenTrue: 
+        IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+          Locals: Local_1: System.Int32 x
+          IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int x = (int)y;')
+            IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int x = (int)y')
+              Declarators:
+                  IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x = (int)y')
+                    Initializer: 
+                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (int)y')
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32) (Syntax: '(int)y')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          Operand: 
+                            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+              Initializer: 
+                null
+          IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return x;')
+            ReturnedValue: 
+              ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+      WhenFalse: 
+        null
+    IReturnOperation (OperationKind.Return, Type: null, IsInvalid) (Syntax: 'return x;')
+      ReturnedValue: 
+        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
+";
+            var expectedDiagnostics = new[]
+            {
+                // (14,20): error CS8421: A static local function cannot contain a reference to 'x'.
+                //             return x;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(14, 20)
+            };
+            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestLocalFunction_StaticWithThisReference()
+        {
+            string source =
+@"#pragma warning disable 8321
+class C
+{
+    void M()
+    {
+        /*<bind>*/
+        static object Local() => ToString() + this.GetHashCode() + base.GetHashCode();
+        /*</bind>*/
+    }
+}";
+            string expectedOperationTree = @"
+ILocalFunctionOperation (Symbol: System.Object Local()) (OperationKind.LocalFunction, Type: null, IsInvalid) (Syntax: 'static obje ... HashCode();')
+  IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> ToString ... tHashCode()')
+    IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'ToString()  ... tHashCode()')
+      ReturnedValue: 
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'ToString()  ... tHashCode()')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String, IsInvalid) (Syntax: 'ToString()  ... tHashCode()')
+              Left: 
+                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String, IsInvalid) (Syntax: 'ToString()  ... tHashCode()')
+                  Left: 
+                    IInvocationOperation (virtual System.String System.Object.ToString()) (OperationKind.Invocation, Type: System.String, IsInvalid) (Syntax: 'ToString()')
+                      Instance Receiver: 
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'ToString')
+                      Arguments(0)
+                  Right: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'this.GetHashCode()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Operand: 
+                        IInvocationOperation (virtual System.Int32 System.Object.GetHashCode()) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'this.GetHashCode()')
+                          Instance Receiver: 
+                            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid) (Syntax: 'this')
+                          Arguments(0)
+              Right: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'base.GetHashCode()')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand: 
+                    IInvocationOperation ( System.Int32 System.Object.GetHashCode()) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'base.GetHashCode()')
+                      Instance Receiver: 
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: System.Object, IsInvalid) (Syntax: 'base')
+                      Arguments(0)
+";
+            var expectedDiagnostics = new[]
+            {
+                // (7,34): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                //         static object Local() => ToString() + this.GetHashCode() + base.GetHashCode();
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "ToString").WithLocation(7, 34),
+                // (7,47): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                //         static object Local() => ToString() + this.GetHashCode() + base.GetHashCode();
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "this").WithLocation(7, 47),
+                // (7,68): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                //         static object Local() => ToString() + this.GetHashCode() + base.GetHashCode();
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "base").WithLocation(7, 68)
+            };
+            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void LocalFunctionFlow_01()
@@ -1740,6 +1869,165 @@ struct C
             {
                 return graph.LocalFunctions.Single(l => l.Name == name);
             }
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void LocalFunctionFlow_StaticWithShadowedVariableReference()
+        {
+            string source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+class C
+{
+    static void M()
+    /*<bind>*/
+    {
+        object x = null;
+        object y = null;
+        static object Local(string y, object z) => x ?? y ?? z;
+    }
+    /*</bind>*/
+}";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [System.Object x] [System.Object y]
+    Methods: [System.Object Local(System.String y, System.Object z)]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (2)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'x = null')
+              Left: 
+                ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'x = null')
+              Right: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    (ImplicitReference)
+                  Operand: 
+                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'y = null')
+              Left: 
+                ILocalReferenceOperation: y (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'y = null')
+              Right: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    (ImplicitReference)
+                  Operand: 
+                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+    
+    {   System.Object Local(System.String y, System.Object z)
+    
+        Block[B0#0R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#0R1]
+                Entering: {R1#0R1} {R2#0R1}
+
+        .locals {R1#0R1}
+        {
+            CaptureIds: [1]
+            .locals {R2#0R1}
+            {
+                CaptureIds: [0]
+                Block[B1#0R1] - Block
+                    Predecessors: [B0#0R1]
+                    Statements (1)
+                        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
+                          Value: 
+                            ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Object, IsInvalid) (Syntax: 'x')
+
+                    Jump if True (Regular) to Block[B3#0R1]
+                        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x')
+                          Operand: 
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'x')
+                        Leaving: {R2#0R1}
+                        Entering: {R3#0R1}
+
+                    Next (Regular) Block[B2#0R1]
+                Block[B2#0R1] - Block
+                    Predecessors: [B1#0R1]
+                    Statements (1)
+                        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
+                          Value: 
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'x')
+
+                    Next (Regular) Block[B6#0R1]
+                        Leaving: {R2#0R1}
+            }
+            .locals {R3#0R1}
+            {
+                CaptureIds: [2]
+                Block[B3#0R1] - Block
+                    Predecessors: [B1#0R1]
+                    Statements (1)
+                        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
+                          Value: 
+                            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String) (Syntax: 'y')
+
+                    Jump if True (Regular) to Block[B5#0R1]
+                        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'y')
+                          Operand: 
+                            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'y')
+                        Leaving: {R3#0R1}
+
+                    Next (Regular) Block[B4#0R1]
+                Block[B4#0R1] - Block
+                    Predecessors: [B3#0R1]
+                    Statements (1)
+                        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
+                          Value: 
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'y')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                (ImplicitReference)
+                              Operand: 
+                                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'y')
+
+                    Next (Regular) Block[B6#0R1]
+                        Leaving: {R3#0R1}
+            }
+
+            Block[B5#0R1] - Block
+                Predecessors: [B3#0R1]
+                Statements (1)
+                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'z')
+                      Value: 
+                        IParameterReferenceOperation: z (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'z')
+
+                Next (Regular) Block[B6#0R1]
+            Block[B6#0R1] - Block
+                Predecessors: [B2#0R1] [B4#0R1] [B5#0R1]
+                Statements (0)
+                Next (Return) Block[B7#0R1]
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'x ?? y ?? z')
+                    Leaving: {R1#0R1}
+        }
+
+        Block[B7#0R1] - Exit
+            Predecessors: [B6#0R1]
+            Statements (0)
+    }
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = new[]
+            {
+                // (10,52): error CS8421: A static local function cannot contain a reference to 'x'.
+                //         static object Local(string y, object z) => x ?? y ?? z;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(10, 52)
+            };
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
         }
     }
 }

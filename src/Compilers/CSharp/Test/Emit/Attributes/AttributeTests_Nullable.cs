@@ -453,10 +453,10 @@ public class B2 : A<object?>
 }";
             var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
-                // (8,14): warning CS8620: Nullability of reference types in argument of type 'B1' doesn't match target type 'A<object?>' for parameter 'y' in 'void C.F(A<object> x, A<object?> y)'.
+                // (8,14): warning CS8620: Argument of type 'B1' cannot be used as an input of type 'A<object?>' for parameter 'y' in 'void C.F(A<object> x, A<object?> y)' due to differences in the nullability of reference types.
                 //         F(x, x);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("B1", "A<object?>", "y", "void C.F(A<object> x, A<object?> y)").WithLocation(8, 14),
-                // (9,11): warning CS8620: Nullability of reference types in argument of type 'B2' doesn't match target type 'A<object>' for parameter 'x' in 'void C.F(A<object> x, A<object?> y)'.
+                // (9,11): warning CS8620: Argument of type 'B2' cannot be used as an input of type 'A<object>' for parameter 'x' in 'void C.F(A<object> x, A<object?> y)' due to differences in the nullability of reference types.
                 //         F(y, y);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("B2", "A<object>", "x", "void C.F(A<object> x, A<object?> y)").WithLocation(9, 11));
         }
@@ -508,10 +508,10 @@ public class B : I<object?>
 }";
             var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
-                // (9,14): warning CS8620: Nullability of reference types in argument of type 'A' doesn't match target type 'I<object?>' for parameter 'y' in 'void C.F(I<object> x, I<object?> y)'.
+                // (9,14): warning CS8620: Argument of type 'A' cannot be used as an input of type 'I<object?>' for parameter 'y' in 'void C.F(I<object> x, I<object?> y)' due to differences in the nullability of reference types.
                 //         F(x, x);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("A", "I<object?>", "y", "void C.F(I<object> x, I<object?> y)").WithLocation(9, 14),
-                // (10,11): warning CS8620: Nullability of reference types in argument of type 'B' doesn't match target type 'I<object>' for parameter 'x' in 'void C.F(I<object> x, I<object?> y)'.
+                // (10,11): warning CS8620: Argument of type 'B' cannot be used as an input of type 'I<object>' for parameter 'x' in 'void C.F(I<object> x, I<object?> y)' due to differences in the nullability of reference types.
                 //         F(y, y);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("B", "I<object>", "x", "void C.F(I<object> x, I<object?> y)").WithLocation(10, 11));
         }
@@ -558,7 +558,7 @@ public class B : I<(object X, object? Y)>
 }";
             var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
-                // (9,11): warning CS8620: Nullability of reference types in argument of type 'B' doesn't match target type 'I<(object, object)>' for parameter 'a' in 'void C.F(I<(object, object)> a, I<(object, object?)> b)'.
+                // (9,11): warning CS8620: Argument of type 'B' cannot be used as an input of type 'I<(object, object)>' for parameter 'a' in 'void C.F(I<(object, object)> a, I<(object, object?)> b)' due to differences in the nullability of reference types.
                 //         F(b, b);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "b").WithArguments("B", "I<(object, object)>", "a", "void C.F(I<(object, object)> a, I<(object, object?)> b)").WithLocation(9, 11));
 
@@ -1114,7 +1114,7 @@ class C
                     AssertNoNullableAttribute(property.GetAttributes());
                     var method = property.GetMethod;
                     // https://github.com/dotnet/roslyn/issues/30010: No synthesized attributes for this
-                    // case which is inconsisten with IEnumerable<object?[]> in test below.
+                    // case which is inconsistent with IEnumerable<object?[]> in test below.
                     AssertNoNullableAttribute(method.GetReturnTypeAttributes());
                     AssertAttributes(method.GetAttributes(), "System.Diagnostics.DebuggerHiddenAttribute");
                 });

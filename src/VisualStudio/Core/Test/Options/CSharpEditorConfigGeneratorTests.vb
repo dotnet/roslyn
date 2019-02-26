@@ -88,6 +88,7 @@ csharp_style_expression_bodied_accessors = true:silent
 csharp_style_expression_bodied_constructors = false:silent
 csharp_style_expression_bodied_indexers = true:silent
 csharp_style_expression_bodied_lambdas = true:silent
+csharp_style_expression_bodied_local_functions = false:silent
 csharp_style_expression_bodied_methods = false:silent
 csharp_style_expression_bodied_operators = false:silent
 csharp_style_expression_bodied_properties = true:silent
@@ -100,10 +101,12 @@ csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
 csharp_style_conditional_delegate_call = true:suggestion
 
 # Modifier preferences
+csharp_prefer_static_local_function = true:suggestion
 csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async
 
 # Code-block preferences
 csharp_prefer_braces = true:silent
+csharp_prefer_simple_using_statement = true:suggestion
 
 # Expression-level preferences
 csharp_prefer_simple_default_expression = true:suggestion
@@ -245,6 +248,7 @@ csharp_style_expression_bodied_accessors = true:silent
 csharp_style_expression_bodied_constructors = false:silent
 csharp_style_expression_bodied_indexers = true:silent
 csharp_style_expression_bodied_lambdas = true:silent
+csharp_style_expression_bodied_local_functions = false:silent
 csharp_style_expression_bodied_methods = false:silent
 csharp_style_expression_bodied_operators = false:silent
 csharp_style_expression_bodied_properties = true:silent
@@ -257,10 +261,12 @@ csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
 csharp_style_conditional_delegate_call = true:suggestion
 
 # Modifier preferences
+csharp_prefer_static_local_function = true:suggestion
 csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async
 
 # Code-block preferences
 csharp_prefer_braces = true:silent
+csharp_prefer_simple_using_statement = true:suggestion
 
 # Expression-level preferences
 csharp_prefer_simple_default_expression = true:suggestion

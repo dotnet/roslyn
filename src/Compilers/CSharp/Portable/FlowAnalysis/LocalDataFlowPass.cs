@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Force a variable to have a slot.  Returns -1 if the variable has an empty struct type.
         /// </summary>
-        protected int GetOrCreateSlot(Symbol symbol, int containingSlot = 0)
+        protected virtual int GetOrCreateSlot(Symbol symbol, int containingSlot = 0)
         {
             if (symbol.Kind == SymbolKind.RangeVariable) return -1;
 
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // descend through Rest fields
                 // force corresponding slots if do not exist
-                while (containingType != symbol.ContainingType)
+                while (!TypeSymbol.Equals(containingType, symbol.ContainingType, TypeCompareKind.ConsiderEverything2))
                 {
                     var restField = containingType.GetMembers(TupleTypeSymbol.RestFieldName).FirstOrDefault() as FieldSymbol;
                     if ((object)restField == null)
@@ -217,14 +217,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     if (TryGetReceiverAndMember(node, out BoundExpression receiver, out Symbol member))
                     {
-                        int containingSlot = MakeSlot(receiver);
-                        return (containingSlot == -1) ? -1 : GetOrCreateSlot(member, containingSlot);
+                        Debug.Assert((receiver is null) == member.IsStatic);
+                        return MakeMemberSlot(receiver, member);
                     }
                     break;
                 case BoundKind.AssignmentOperator:
                     return MakeSlot(((BoundAssignmentOperator)node).Left);
             }
             return -1;
+        }
+
+        protected int MakeMemberSlot(BoundExpression receiverOpt, Symbol member)
+        {
+            int containingSlot = -1;
+            if (!member.IsStatic)
+            {
+                if (receiverOpt is null)
+                {
+                    return -1;
+                }
+                containingSlot = MakeSlot(receiverOpt);
+                if (containingSlot < 0)
+                {
+                    return -1;
+                }
+            }
+            return GetOrCreateSlot(member, containingSlot);
         }
 
         protected static TypeSymbolWithAnnotations VariableType(Symbol s)

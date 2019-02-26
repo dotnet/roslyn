@@ -438,14 +438,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddDynamicAnalysis(original, base.InstrumentSwitchStatement(original, rewritten));
         }
 
-        public override BoundStatement InstrumentPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
         {
-            return AddDynamicAnalysis(original, base.InstrumentPatternSwitchStatement(original, rewritten));
-        }
-
-        public override BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
-        {
-            ifConditionGotoBody = base.InstrumentPatternSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody);
+            ifConditionGotoBody = base.InstrumentSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody);
             WhenClauseSyntax whenClause = original.Syntax.FirstAncestorOrSelf<WhenClauseSyntax>();
             Debug.Assert(whenClause != null);
 
@@ -561,9 +556,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case BoundKind.SwitchStatement:
                     syntaxForSpan = ((BoundSwitchStatement)statement).Expression.Syntax;
-                    break;
-                case BoundKind.PatternSwitchStatement:
-                    syntaxForSpan = ((BoundPatternSwitchStatement)statement).Expression.Syntax;
                     break;
                 default:
                     syntaxForSpan = statement.Syntax;

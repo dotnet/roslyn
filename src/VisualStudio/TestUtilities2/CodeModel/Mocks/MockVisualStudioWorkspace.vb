@@ -81,6 +81,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
         Friend Function GetFileCodeModelComHandle(id As DocumentId) As ComHandle(Of EnvDTE80.FileCodeModel2, FileCodeModel)
             Return _fileCodeModels(id)
         End Function
+
+        Friend Overrides Function TryGetRuleSetPathForProject(projectId As ProjectId) As String
+            Throw New NotImplementedException()
+        End Function
     End Class
 
     Public Class MockInvisibleEditor

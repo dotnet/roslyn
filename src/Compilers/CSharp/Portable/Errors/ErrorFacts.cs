@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private const string s_descriptionSuffix = "_Description";
         private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> s_helpLinksMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateHelpLinks);
         private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> s_categoriesMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateCategoriesMap);
-        public static readonly ImmutableHashSet<string> NullableFlowAnalysisWarnings;
+        public static readonly ImmutableHashSet<string> NullableFlowAnalysisSafetyWarnings;
+        public static readonly ImmutableHashSet<string> NullableFlowAnalysisNonSafetyWarnings;
 
         static ErrorFacts()
         {
             ImmutableHashSet<string>.Builder builder = ImmutableHashSet.CreateBuilder<string>();
-            builder.Add(getId(ErrorCode.WRN_ConvertingNullableToNonNullable));
             builder.Add(getId(ErrorCode.WRN_NullReferenceAssignment));
             builder.Add(getId(ErrorCode.WRN_NullReferenceReceiver));
             builder.Add(getId(ErrorCode.WRN_NullReferenceReturn));
@@ -28,20 +28,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add(getId(ErrorCode.WRN_UninitializedNonNullableField));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInAssignment));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInArgument));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInArgumentForOutput));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate));
             builder.Add(getId(ErrorCode.WRN_NullAsNonNullable));
-            builder.Add(getId(ErrorCode.WRN_NoBestNullabilityConditionalExpression));
             builder.Add(getId(ErrorCode.WRN_NullableValueTypeMayBeNull));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint));
-            builder.Add(getId(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs));
-            builder.Add(getId(ErrorCode.WRN_NoBestNullabilityArrayElements));
+            builder.Add(getId(ErrorCode.WRN_PossibleNull));
+
+            NullableFlowAnalysisSafetyWarnings = builder.ToImmutable();
+
+            builder.Clear();
+            builder.Add(getId(ErrorCode.WRN_ConvertingNullableToNonNullable));
             builder.Add(getId(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse));
             builder.Add(getId(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue));
             builder.Add(getId(ErrorCode.HDN_ExpressionIsProbablyNeverNull));
 
-            NullableFlowAnalysisWarnings = builder.ToImmutable();
+            NullableFlowAnalysisNonSafetyWarnings = builder.ToImmutable();
 
             string getId(ErrorCode errorCode)
             {
@@ -357,6 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                 case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                 case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
+                case ErrorCode.WRN_IllegalPPWarningSafeOnly:
                 case ErrorCode.WRN_ConvertingNullableToNonNullable:
                 case ErrorCode.WRN_NullReferenceAssignment:
                 case ErrorCode.WRN_NullReferenceReceiver:
@@ -369,25 +374,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation:
+                case ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList:
+                case ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase:
+                case ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface:
                 case ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation:
                 case ErrorCode.WRN_UninitializedNonNullableField:
                 case ErrorCode.WRN_NullabilityMismatchInAssignment:
                 case ErrorCode.WRN_NullabilityMismatchInArgument:
+                case ErrorCode.WRN_NullabilityMismatchInArgumentForOutput:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
-                case ErrorCode.WRN_SuppressionOperatorNotReferenceType:
                 case ErrorCode.WRN_NullAsNonNullable:
-                case ErrorCode.WRN_NoBestNullabilityConditionalExpression:
                 case ErrorCode.WRN_NullableValueTypeMayBeNull:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
                 case ErrorCode.WRN_DefaultLiteralConvertedToNullIsNotIntended:
                 case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
                 case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
-                case ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs:
-                case ErrorCode.WRN_NoBestNullabilityArrayElements:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustive:
+                case ErrorCode.WRN_IsTypeNamedUnderscore:
+                case ErrorCode.WRN_GivenExpressionNeverMatchesPattern:
+                case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
+                case ErrorCode.WRN_CaseConstantNamedUnderscore:
+                case ErrorCode.WRN_PossibleNull:
                     return 1;
                 default:
                     return 0;

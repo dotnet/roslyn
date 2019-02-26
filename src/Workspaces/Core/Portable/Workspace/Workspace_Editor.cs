@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         public virtual bool CanOpenDocuments => false;
 
         /// <summary>
-        /// True if this workspace supports manually changing the active context document of a text buffer.
+        /// True if this workspace supports manually changing the active context document of a text buffer by calling <see cref="SetDocumentContext(DocumentId)" />.
         /// </summary>
         internal virtual bool CanChangeActiveContextDocument => false;
 
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var docId in docIds)
             {
-                this.ClearOpenDocument(docId, isSolutionClosing: true);
+                this.ClearOpenDocument(docId);
             }
         }
 
@@ -85,52 +86,37 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected void ClearOpenDocument(DocumentId documentId, bool isSolutionClosing = false)
+        protected void ClearOpenDocument(DocumentId documentId)
         {
-            DocumentId currentContextDocumentId;
             using (_stateLock.DisposableWait())
             {
-                currentContextDocumentId = this.ClearOpenDocument_NoLock(documentId);
-            }
+                if (_projectToOpenDocumentsMap.TryGetValue(documentId.ProjectId, out var openDocIds) && openDocIds != null)
+                {
+                    openDocIds.Remove(documentId);
+                }
 
-            // If the solution is closing, then setting the updated document context can fail
-            // if the host documents are already closed.
-            if (!isSolutionClosing && this.CanChangeActiveContextDocument && currentContextDocumentId != null)
-            {
-                SetDocumentContext(currentContextDocumentId);
+                RemoveIfEmpty(_projectToOpenDocumentsMap, documentId.ProjectId);
+
+                // Stop tracking the buffer or update the documentId associated with the buffer.
+                if (_textTrackers.TryGetValue(documentId, out var tracker))
+                {
+                    tracker.Disconnect();
+                    _textTrackers.Remove(documentId);
+
+                    var currentContextDocumentId = UpdateCurrentContextMapping_NoLock(tracker.TextContainer, documentId);
+                    if (currentContextDocumentId == null)
+                    {
+                        // No documentIds are attached to this buffer, so stop tracking it.
+                        this.UnregisterText(tracker.TextContainer);
+                    }
+                }
             }
         }
 
-        /// <returns>The DocumentId of the current context document for the buffer that was 
-        /// previously attached to the given documentId, if any</returns>
-        private DocumentId ClearOpenDocument_NoLock(DocumentId documentId)
+        [Obsolete("The isSolutionClosing parameter is now obsolete. Please call the overload without that parameter.")]
+        protected void ClearOpenDocument(DocumentId documentId, bool isSolutionClosing)
         {
-            _stateLock.AssertHasLock();
-            if (_projectToOpenDocumentsMap.TryGetValue(documentId.ProjectId, out var openDocIds) && openDocIds != null)
-            {
-                openDocIds.Remove(documentId);
-            }
-
-            RemoveIfEmpty(_projectToOpenDocumentsMap, documentId.ProjectId);
-            // Stop tracking the buffer or update the documentId associated with the buffer.
-            if (_textTrackers.TryGetValue(documentId, out var tracker))
-            {
-                tracker.Disconnect();
-                _textTrackers.Remove(documentId);
-
-                var currentContextDocumentId = UpdateCurrentContextMapping_NoLock(tracker.TextContainer, documentId);
-                if (currentContextDocumentId != null)
-                {
-                    return currentContextDocumentId;
-                }
-                else
-                {
-                    // No documentIds are attached to this buffer, so stop tracking it.
-                    this.UnregisterText(tracker.TextContainer);
-                }
-            }
-
-            return null;
+            ClearOpenDocument(documentId);
         }
 
         /// <summary>
@@ -277,10 +263,9 @@ namespace Microsoft.CodeAnalysis
         /// is in the current context. If the <see cref="DocumentId"/> is currently closed, then 
         /// it is returned directly. If it is open, then this returns the same result that 
         /// <see cref="GetDocumentIdInCurrentContext(SourceTextContainer)"/> would return for the
-        /// <see cref="SourceTextContainer"/>. Hosts can override this method to provide more 
-        /// customized behaviors (e.g. special handling of documents in Shared Projects).
+        /// <see cref="SourceTextContainer"/>.
         /// </summary>
-        internal virtual DocumentId GetDocumentIdInCurrentContext(DocumentId documentId)
+        internal DocumentId GetDocumentIdInCurrentContext(DocumentId documentId)
         {
             if (documentId == null)
             {
@@ -294,8 +279,11 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private SourceTextContainer GetOpenDocumentSourceTextContainer_NoLock(DocumentId documentId) =>
-            _bufferToAssociatedDocumentsMap.Where(kvp => kvp.Value.Contains(documentId)).Select(kvp => kvp.Key).FirstOrDefault();
+        private SourceTextContainer GetOpenDocumentSourceTextContainer_NoLock(DocumentId documentId)
+        {
+            // TODO: remove linear search
+            return _bufferToAssociatedDocumentsMap.Where(kvp => kvp.Value.Contains(documentId)).Select(kvp => kvp.Key).FirstOrDefault();
+        }
 
         private DocumentId GetDocumentIdInCurrentContext_NoLock(SourceTextContainer container)
         {
@@ -312,7 +300,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// 
+        /// Call this method to tell the host environment to change the current active context to this document. Only supported if
+        /// <see cref="CanChangeActiveContextDocument"/> returns true.
         /// </summary>
         internal virtual void SetDocumentContext(DocumentId documentId)
         {
@@ -320,61 +309,36 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// 
+        /// Call this method when a document has been made the active context in the host environment.
         /// </summary>
         protected internal void OnDocumentContextUpdated(DocumentId documentId)
         {
-            // TODO: remove linear search
+            using (_serializationLock.DisposableWait())
+            {
+                DocumentId oldActiveContextDocumentId;
+                SourceTextContainer container;
 
-            SourceTextContainer container = null;
-            using (_stateLock.DisposableWait())
-            {
-                container = GetOpenDocumentSourceTextContainer_NoLock(documentId);
-            }
-
-            if (container != null)
-            {
-                OnDocumentContextUpdated(documentId, container);
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void OnDocumentContextUpdated(DocumentId documentId, SourceTextContainer container)
-        {
-            if (_isProjectUnloading.Value)
-            {
-                // When the project is unloading, the serialization lock is already taken, so there
-                // is no need for us to take the lock since everything is already serialized.
-                OnDocumentContextUpdated_NoSerializationLock(documentId, container);
-            }
-            else
-            {
-                using (_serializationLock.DisposableWait())
+                using (_stateLock.DisposableWait())
                 {
-                    OnDocumentContextUpdated_NoSerializationLock(documentId, container);
-                }
-            }
-        }
+                    container = GetOpenDocumentSourceTextContainer_NoLock(documentId);
 
-        private void OnDocumentContextUpdated_NoSerializationLock(DocumentId documentId, SourceTextContainer container)
-        {
-            DocumentId oldActiveContextDocumentId;
+                    if (container == null)
+                    {
+                        return;
+                    }
 
-            using (_stateLock.DisposableWait())
-            {
-                oldActiveContextDocumentId = _bufferToDocumentInCurrentContextMap[container];
-                if (documentId == oldActiveContextDocumentId)
-                {
-                    return;
+                    oldActiveContextDocumentId = _bufferToDocumentInCurrentContextMap[container];
+                    if (documentId == oldActiveContextDocumentId)
+                    {
+                        return;
+                    }
+
+                    UpdateCurrentContextMapping_NoLock(container, documentId, isCurrentContext: true);
                 }
 
-                UpdateCurrentContextMapping_NoLock(container, documentId, isCurrentContext: true);
+                // fire and forget
+                this.RaiseDocumentActiveContextChangedEventAsync(container, oldActiveContextDocumentId: oldActiveContextDocumentId, newActiveContextDocumentId: documentId);
             }
-
-            // fire and forget
-            this.RaiseDocumentActiveContextChangedEventAsync(container, oldActiveContextDocumentId: oldActiveContextDocumentId, newActiveContextDocumentId: documentId);
         }
 
         protected void CheckDocumentIsClosed(DocumentId documentId)
@@ -408,11 +372,11 @@ namespace Microsoft.CodeAnalysis
             DocumentId documentId, SourceTextContainer textContainer,
             bool isCurrentContext = true)
         {
-            CheckDocumentIsInCurrentSolution(documentId);
-            CheckDocumentIsClosed(documentId);
-
             using (_serializationLock.DisposableWait())
             {
+                CheckDocumentIsInCurrentSolution(documentId);
+                CheckDocumentIsClosed(documentId);
+
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetDocument(documentId);
                 var oldDocumentState = oldDocument.State;
@@ -523,14 +487,16 @@ namespace Microsoft.CodeAnalysis
 
         protected internal void OnAdditionalDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
         {
-            CheckAdditionalDocumentIsInCurrentSolution(documentId);
-            CheckDocumentIsClosed(documentId);
-
             using (_serializationLock.DisposableWait())
             {
+                CheckAdditionalDocumentIsInCurrentSolution(documentId);
+                CheckDocumentIsClosed(documentId);
+
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetAdditionalDocument(documentId);
                 var oldText = oldDocument.GetTextSynchronously(CancellationToken.None);
+
+                AddToOpenDocumentMap(documentId);
 
                 // keep open document text alive by using PreserveIdentity
                 var newText = textContainer.CurrentText;
@@ -561,19 +527,13 @@ namespace Microsoft.CodeAnalysis
 
         protected internal void OnDocumentClosed(DocumentId documentId, TextLoader reloader, bool updateActiveContext = false)
         {
-            this.CheckDocumentIsInCurrentSolution(documentId);
-            this.CheckDocumentIsOpen(documentId);
-
-            // When one file from a set of linked or shared documents is closed, we first update
-            // our data structures and then call SetDocumentContext to tell the project system 
-            // what the new active context is. This can cause reentrancy, so we call 
-            // SetDocumentContext after releasing the serializationLock.
-            DocumentId currentContextDocumentId;
-
             using (_serializationLock.DisposableWait())
             {
+                this.CheckDocumentIsInCurrentSolution(documentId);
+                this.CheckDocumentIsOpen(documentId);
+
                 // forget any open document info
-                currentContextDocumentId = ForgetAnyOpenDocumentInfo(documentId);
+                ClearOpenDocument(documentId);
 
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetDocument(documentId);
@@ -589,33 +549,17 @@ namespace Microsoft.CodeAnalysis
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId); // don't wait for this
                 this.RaiseDocumentClosedEventAsync(newDoc); // don't wait for this
             }
-
-            if (updateActiveContext && currentContextDocumentId != null && this.CanChangeActiveContextDocument)
-            {
-                // Closing this document did not result in the buffer closing, so some 
-                // document is now the current context of that buffer. Fire the appropriate
-                // events to set that document as the current context of that buffer.
-
-                SetDocumentContext(currentContextDocumentId);
-            }
-        }
-
-        private DocumentId ForgetAnyOpenDocumentInfo(DocumentId documentId)
-        {
-            using (_stateLock.DisposableWait())
-            {
-                return this.ClearOpenDocument_NoLock(documentId);
-            }
         }
 
         protected internal void OnAdditionalDocumentClosed(DocumentId documentId, TextLoader reloader)
         {
-            this.CheckAdditionalDocumentIsInCurrentSolution(documentId);
-
             using (_serializationLock.DisposableWait())
             {
+                this.CheckAdditionalDocumentIsInCurrentSolution(documentId);
+                this.CheckDocumentIsOpen(documentId);
+
                 // forget any open document info
-                ForgetAnyOpenDocumentInfo(documentId);
+                ClearOpenDocument(documentId);
 
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetAdditionalDocument(documentId);
@@ -685,7 +629,18 @@ namespace Microsoft.CodeAnalysis
             CheckDocumentIsOpen(documentId);
             var doc = solution.GetDocument(documentId);
             // text should always be preserved, so TryGetText will succeed.
-            doc.TryGetText(out var text);
+            var success = doc.TryGetText(out var text);
+            Debug.Assert(success);
+            return text;
+        }
+
+        private SourceText GetOpenAdditionalDocumentText(Solution solution, DocumentId documentId)
+        {
+            CheckDocumentIsOpen(documentId);
+            var doc = solution.GetAdditionalDocument(documentId);
+            // text should always be preserved, so TryGetText will succeed.
+            var success = doc.TryGetText(out var text);
+            Debug.Assert(success);
             return text;
         }
 
@@ -704,6 +659,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     newSolution = newSolution.WithDocumentText(docId, this.GetOpenDocumentText(oldSolution, docId), PreservationMode.PreserveIdentity);
                 }
+                else if (newSolution.ContainsAdditionalDocument(docId))
+                {
+                    newSolution = newSolution.WithAdditionalDocumentText(docId, this.GetOpenAdditionalDocumentText(oldSolution, docId), PreservationMode.PreserveIdentity);
+                }
             }
 
             return newSolution;
@@ -720,6 +679,10 @@ namespace Microsoft.CodeAnalysis
                 if (newSolution.ContainsDocument(docId))
                 {
                     newSolution = newSolution.WithDocumentText(docId, this.GetOpenDocumentText(oldSolution, docId), PreservationMode.PreserveIdentity);
+                }
+                else if (newSolution.ContainsAdditionalDocument(docId))
+                {
+                    newSolution = newSolution.WithAdditionalDocumentText(docId, this.GetOpenAdditionalDocumentText(oldSolution, docId), PreservationMode.PreserveIdentity);
                 }
             }
 

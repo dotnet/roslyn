@@ -1,0 +1,50 @@
+<!--
+  This MSBuild file is intended to be used as the body of the default 
+  publishing release pipeline. The release pipeline will use this file
+  to invoke the PushToStaticFeed task that will read the build asset
+  manifest and publish the assets described in the manifest to
+  informed target feeds.
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)DefaultVersions.props" Condition="Exists('$(MSBuildThisFileDirectory)DefaultVersions.props')" />
+  <Import Project="$(MSBuildThisFileDirectory)Versions.props" Condition="Exists('$(MSBuildThisFileDirectory)Versions.props')" />
+  
+  <Import Project="$(NuGetPackageRoot)microsoft.dotnet.build.tasks.feed\$(MicrosoftDotNetBuildTasksFeedVersion)\build\Microsoft.DotNet.Build.Tasks.Feed.targets" />
+
+  <Target Name="PublishToFeed">
+    <Error Condition="'$(TargetStaticFeed)' == ''" Text="TargetStaticFeed: Target feed for publishing assets wasn't provided." />
+    <Error Condition="'$(AccountKeyToStaticFeed)' == ''" Text="AccountKeyToStaticFeed: Account key for target feed wasn't provided." />
+    <Error Condition="'$(ManifestsBasePath)' == ''" Text="Full path to asset manifests directory wasn't provided." />
+    <Error Condition="'$(BlobBasePath)' == '' AND '$(PackageBasePath)' == ''" Text="A valid full path to BlobBasePath of PackageBasePath is required." />
+
+    <ItemGroup>
+      <!-- Include all manifests found in the manifest folder. -->
+      <ManifestFiles Include="$(ManifestsBasePath)*.xml" />
+    </ItemGroup>
+
+    <Error Condition="'@(ManifestFiles)' == ''" Text="No manifest file was found in the provided path: $(ManifestsBasePath)" />
+	
+    <!-- Iterate publishing assets from each manifest file. -->
+    <PushArtifactsInManifestToFeed
+      ExpectedFeedUrl="$(TargetStaticFeed)"
+      AccountKey="$(AccountKeyToStaticFeed)"
+      BARBuildId="$(BARBuildId)"
+      MaestroApiEndpoint="$(MaestroApiEndpoint)"
+      BuildAssetRegistryToken="$(BuildAssetRegistryToken)"
+      Overwrite="$(OverrideAssetsWithSameName)"
+      PassIfExistingItemIdentical="$(PassIfExistingItemIdentical)"
+      MaxClients="$(MaxParallelUploads)"
+      UploadTimeoutInMinutes="$(MaxUploadTimeoutInMinutes)"
+      AssetManifestPath="%(ManifestFiles.Identity)"
+      BlobAssetsBasePath="$(BlobBasePath)"
+      PackageAssetsBasePath="$(PackageBasePath)" />
+  </Target>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.DotNet.Build.Tasks.Feed" Version="$(MicrosoftDotNetBuildTasksFeedVersion)" />
+  </ItemGroup>
+</Project>

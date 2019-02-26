@@ -5285,6 +5285,26 @@ class Outer<T>
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "e2 is Outer<long>.E").WithArguments("Outer<long>.E").WithLocation(32, 13));
         }
 
+        [Fact]
+        public void TestIsOperatorWithGenericClassAndValueType()
+        {
+            var source = @"
+class Program
+{
+    static bool Goo<T>(C<T> c)
+    {
+        return c is int;   // always false
+    }
+}
+class C<T> { }
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,16): warning CS0184: The given expression is never of the provided ('int') type
+                //         return c is int;   // always false
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "c is int").WithArguments("int").WithLocation(6, 16)
+                );
+        }
+
         [WorkItem(844635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844635")]
         [Fact()]
         public void TestIsOperatorWithTypesThatCannotUnify()
@@ -7640,7 +7660,7 @@ class Module1
                 }
                 else if ((op == BinaryOperatorKind.Equal || op == BinaryOperatorKind.NotEqual) &&
                     leftType.IsReferenceType && rightType.IsReferenceType &&
-                    (leftType == rightType || compilation.Conversions.ClassifyConversionFromType(leftType, rightType, ref useSiteDiagnostics).IsReference))
+                    (TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2) || compilation.Conversions.ClassifyConversionFromType(leftType, rightType, ref useSiteDiagnostics).IsReference))
                 {
                     if (leftType.IsDelegateType() && rightType.IsDelegateType())
                     {
@@ -7698,26 +7718,26 @@ class Module1
                     signature = new BinaryOperatorSignature(op | BinaryOperatorKind.String, leftType, symbol1.Parameters[1].Type.TypeSymbol, leftType);
                     Assert.True(symbol1.Parameters[1].Type.TypeSymbol.IsIntegralType());
                 }
-                else if (op == BinaryOperatorKind.Subtraction && leftType.IsPointerType() && leftType == rightType)
+                else if (op == BinaryOperatorKind.Subtraction && leftType.IsPointerType() && TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2))
                 {
                     signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, leftType, rightType, compilation.GetSpecialType(SpecialType.System_Int64));
                 }
                 else if ((op == BinaryOperatorKind.Addition || op == BinaryOperatorKind.Subtraction) &&
                     leftType.IsEnumType() && (rightType.IsIntegralType() || rightType.IsCharType()) &&
                     (result = OverloadResolution.BinopEasyOut.OpKind(op, leftType.EnumUnderlyingType(), rightType)) != BinaryOperatorKind.Error &&
-                    (signature = compilation.builtInOperators.GetSignature(result)).RightType == leftType.EnumUnderlyingType())
+                    TypeSymbol.Equals((signature = compilation.builtInOperators.GetSignature(result)).RightType, leftType.EnumUnderlyingType(), TypeCompareKind.ConsiderEverything2))
                 {
                     signature = new BinaryOperatorSignature(signature.Kind | BinaryOperatorKind.EnumAndUnderlying, leftType, signature.RightType, leftType);
                 }
                 else if ((op == BinaryOperatorKind.Addition || op == BinaryOperatorKind.Subtraction) &&
                     rightType.IsEnumType() && (leftType.IsIntegralType() || leftType.IsCharType()) &&
                     (result = OverloadResolution.BinopEasyOut.OpKind(op, leftType, rightType.EnumUnderlyingType())) != BinaryOperatorKind.Error &&
-                    (signature = compilation.builtInOperators.GetSignature(result)).LeftType == rightType.EnumUnderlyingType())
+                    TypeSymbol.Equals((signature = compilation.builtInOperators.GetSignature(result)).LeftType, rightType.EnumUnderlyingType(), TypeCompareKind.ConsiderEverything2))
                 {
                     signature = new BinaryOperatorSignature(signature.Kind | BinaryOperatorKind.EnumAndUnderlying, signature.LeftType, rightType, rightType);
                 }
                 else if (op == BinaryOperatorKind.Subtraction &&
-                    leftType.IsEnumType() && leftType == rightType)
+                    leftType.IsEnumType() && TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2))
                 {
                     signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Enum, leftType, rightType, leftType.EnumUnderlyingType());
                 }
@@ -7727,19 +7747,19 @@ class Module1
                           op == BinaryOperatorKind.LessThanOrEqual ||
                           op == BinaryOperatorKind.GreaterThan ||
                           op == BinaryOperatorKind.GreaterThanOrEqual) &&
-                    leftType.IsEnumType() && leftType == rightType)
+                    leftType.IsEnumType() && TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2))
                 {
                     signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Enum, leftType, rightType, compilation.GetSpecialType(SpecialType.System_Boolean));
                 }
                 else if ((op == BinaryOperatorKind.Xor ||
                           op == BinaryOperatorKind.And ||
                           op == BinaryOperatorKind.Or) &&
-                    leftType.IsEnumType() && leftType == rightType)
+                    leftType.IsEnumType() && TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2))
                 {
                     signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Enum, leftType, rightType, leftType);
                 }
                 else if ((op == BinaryOperatorKind.Addition || op == BinaryOperatorKind.Subtraction) &&
-                    leftType.IsDelegateType() && leftType == rightType)
+                    leftType.IsDelegateType() && TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2))
                 {
                     signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Delegate, leftType, leftType, leftType);
                 }
@@ -7812,7 +7832,7 @@ class Module1
                 }
             }
             else if ((op == BinaryOperatorKind.Equal || op == BinaryOperatorKind.NotEqual) &&
-                leftType != rightType &&
+                !TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2) &&
                 (!leftType.IsValueType || !rightType.IsValueType ||
                  leftType.SpecialType == SpecialType.System_Boolean || rightType.SpecialType == SpecialType.System_Boolean ||
                  (leftType.SpecialType == SpecialType.System_Decimal && (rightType.SpecialType == SpecialType.System_Double || rightType.SpecialType == SpecialType.System_Single)) ||
@@ -7902,20 +7922,21 @@ class Module1
             Assert.Null(symbol1.DeclaringCompilation);
             Assert.Equal(symbol1.Name, symbol1.MetadataName);
 
-            Assert.True(symbol1.ContainingSymbol == symbol1.Parameters[0].Type.TypeSymbol || symbol1.ContainingSymbol == symbol1.Parameters[1].Type.TypeSymbol);
+            Assert.True(TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[0].Type.TypeSymbol, TypeCompareKind.ConsiderEverything2) ||
+                TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[1].Type.TypeSymbol, TypeCompareKind.ConsiderEverything2));
 
             int match = 0;
-            if (symbol1.ContainingSymbol == symbol1.ReturnType.TypeSymbol)
+            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.ReturnType.TypeSymbol, TypeCompareKind.ConsiderEverything2))
             {
                 match++;
             }
 
-            if (symbol1.ContainingSymbol == symbol1.Parameters[0].Type.TypeSymbol)
+            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[0].Type.TypeSymbol, TypeCompareKind.ConsiderEverything2))
             {
                 match++;
             }
 
-            if (symbol1.ContainingSymbol == symbol1.Parameters[1].Type.TypeSymbol)
+            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[1].Type.TypeSymbol, TypeCompareKind.ConsiderEverything2))
             {
                 match++;
             }

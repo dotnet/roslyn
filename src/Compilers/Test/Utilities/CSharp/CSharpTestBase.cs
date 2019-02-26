@@ -115,7 +115,7 @@ namespace System.Collections.Generic
 {
     public interface IAsyncEnumerable<out T>
     {
-        IAsyncEnumerator<T> GetAsyncEnumerator();
+        IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken token = default);
     }
 
     public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
@@ -411,12 +411,22 @@ namespace System.Runtime.CompilerServices
 
         protected static CSharpCompilationOptions WithNonNullTypesTrue(CSharpCompilationOptions options = null)
         {
-            return (options ?? TestOptions.ReleaseDll).WithNullable(true);
+            return WithNonNullTypes(options, NullableContextOptions.Enable);
         }
 
         protected static CSharpCompilationOptions WithNonNullTypesFalse(CSharpCompilationOptions options = null)
         {
-            return (options ?? TestOptions.ReleaseDll).WithNullable(false);
+            return WithNonNullTypes(options, NullableContextOptions.Disable);
+        }
+
+        protected static CSharpCompilationOptions WithNonNullTypes(NullableContextOptions nullableContextOptions)
+        {
+            return WithNonNullTypes(null, nullableContextOptions);
+        }
+
+        protected static CSharpCompilationOptions WithNonNullTypes(CSharpCompilationOptions options, NullableContextOptions nullableContextOptions)
+        {
+            return (options ?? TestOptions.ReleaseDll).WithNullableContextOptions(nullableContextOptions);
         }
 
         protected static string NonNullTypesOff()
@@ -881,7 +891,7 @@ namespace System.Runtime.CompilerServices
                 string assemblyName = "",
                 string sourceFileName = "")
         {
-            IEnumerable<MetadataReference> allReferences = CoreClrShim.IsRunningOnCoreClr
+            IEnumerable<MetadataReference> allReferences = RuntimeUtilities.IsCoreClrRuntime
                 ? TargetFrameworkUtil.NetStandard20References
                 : TargetFrameworkUtil.Mscorlib461ExtendedReferences.Add(TestReferences.Net461.netstandardRef);
 
@@ -1736,6 +1746,22 @@ namespace System.Runtime.CompilerServices
 
         #region Span
 
+        protected static CSharpCompilation CreateCompilationWithSpan(SyntaxTree tree, CSharpCompilationOptions options = null)
+        {
+            var reference = CreateCompilation(
+                SpanSource,
+                options: TestOptions.UnsafeReleaseDll);
+
+            reference.VerifyDiagnostics();
+
+            var comp = CreateCompilation(
+                tree,
+                references: new[] { reference.EmitToImageReference() },
+                options: options);
+
+            return comp;
+        }
+
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
             var reference = CreateEmptyCompilation(
@@ -2006,12 +2032,39 @@ namespace System
         }
         #endregion
 
+        #region Theory Helpers
+
+        public static IEnumerable<object[]> NonNullTypesTrueAndFalseDebugDll
+        {
+            get
+            {
+                return new List<object[]>()
+                {
+                    new object[] { WithNonNullTypesTrue(TestOptions.DebugDll) },
+                    new object[] { WithNonNullTypesFalse(TestOptions.DebugDll) }
+                };
+            }
+        }
+
+        public static IEnumerable<object[]> NonNullTypesTrueAndFalseReleaseDll
+        {
+            get
+            {
+                return new List<object[]>()
+                {
+                    new object[] { WithNonNullTypesTrue(TestOptions.ReleaseDll) },
+                    new object[] { WithNonNullTypesFalse(TestOptions.ReleaseDll) }
+                };
+            }
+        }
+        #endregion
+
         protected static readonly string s_IAsyncEnumerable = @"
 namespace System.Collections.Generic
 {
     public interface IAsyncEnumerable<out T>
     {
-        IAsyncEnumerator<T> GetAsyncEnumerator();
+        IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken token = default);
     }
 
     public interface IAsyncEnumerator<out T> : System.IAsyncDisposable

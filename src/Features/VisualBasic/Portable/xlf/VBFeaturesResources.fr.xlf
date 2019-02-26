@@ -12,6 +12,11 @@
         <target state="new">Add Await and 'ConfigureAwait(false)'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_Obsolete">
+        <source>Add &lt;Obsolete&gt;</source>
+        <target state="new">Add &lt;Obsolete&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
         <target state="new">Add missing Imports</target>

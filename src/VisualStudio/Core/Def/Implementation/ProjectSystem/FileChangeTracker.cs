@@ -13,8 +13,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal sealed class FileChangeTracker : IVsFileChangeEvents, IDisposable
     {
-        private const uint FileChangeFlags = (uint)(_VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Add | _VSFILECHANGEFLAGS.VSFILECHG_Del | _VSFILECHANGEFLAGS.VSFILECHG_Size);
-
         private static readonly Lazy<uint?> s_none = new Lazy<uint?>(() => null, LazyThreadSafetyMode.ExecutionAndPublication);
 
         private readonly IVsFileChangeEx _fileChangeService;
@@ -105,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 try
                 {
                     Marshal.ThrowExceptionForHR(
-                        _fileChangeService.AdviseFileChange(_filePath, FileChangeFlags, this, out var newCookie));
+                        _fileChangeService.AdviseFileChange(_filePath, FileChangeWatcher.FileChangeFlags, this, out var newCookie));
                     return newCookie;
                 }
                 catch (Exception e) when (ReportException(e))

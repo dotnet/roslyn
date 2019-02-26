@@ -220,15 +220,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsManagedType
-        {
-            get
-            {
-                return true;
-            }
-        }
+        internal sealed override ManagedKind ManagedKind => ManagedKind.Managed;
 
-        internal sealed override bool IsByRefLikeType
+        public sealed override bool IsRefLikeType
         {
             get
             {
@@ -399,15 +393,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override TypeSymbol SetUnknownNullabilityForReferenceTypes()
+        internal override TypeSymbol SetNullabilityForReferenceTypes(Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> transform)
         {
-            return WithElementType(ElementType.SetUnknownNullabilityForReferenceTypes());
+            return WithElementType(transform(ElementType));
         }
 
-        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)
+        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance)
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
-            TypeSymbolWithAnnotations elementType = ElementType.MergeNullability(((ArrayTypeSymbol)other).ElementType, VarianceKind.None, out hadNullabilityMismatch);
+            TypeSymbolWithAnnotations elementType = ElementType.MergeNullability(((ArrayTypeSymbol)other).ElementType, VarianceKind.None);
             return WithElementType(elementType);
         }
 
@@ -545,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null)
+            internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved = null)
             {
                 return _interfaces;
             }
@@ -592,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null)
+            internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved = null)
             {
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }

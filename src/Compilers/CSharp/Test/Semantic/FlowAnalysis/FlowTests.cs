@@ -450,7 +450,7 @@ public class DATest : DATestBase {
         if (f) { int a; switch (f && G(out a)) { case false: No(); break; case true: F(a); break; } } // Error
 
         // Exhaust cases
-        if (f) { int a; switch (f) { case false: G(out a); break; case true: G(out a); break; } F(a); } // Error - BUG? The cases are exhaustive.
+        if (f) { int a; switch (f) { case false: G(out a); break; case true: G(out a); break; } F(a); }
         if (f) { int a; switch (val) { case 0: goto default; default: G(out a); break; } F(a); }
         if (f) { int a; switch (val) { case 0: G(out a); break; default: goto case 0; } F(a); }
         if (f) { int a; switch (val) { case 0: G(out a); break; default: goto LSkip; } F(a); LSkip: No(); }
@@ -479,7 +479,7 @@ public class DATest : DATestBase {
                 G(out a);
                 break;
             }
-            F(a); // Error - BUG? The cases are exhaustive.
+            F(a); // Error - we don't consider enumerating values for integral types to be exhaustive
         }
 
         if (f) { int a; switch (val) { default: goto case 0; case 0: goto default; } F(a); } // Unreachable
@@ -505,11 +505,8 @@ public class DATest : DATestBase {
                 // (86,88): error CS0165: Use of unassigned local variable 'a'
                 //         if (f) { int a; switch (f && G(out a)) { case false: No(); break; case true: F(a); break; } } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(86, 88),
-                // (89,99): error CS0165: Use of unassigned local variable 'a'
-                //         if (f) { int a; switch (f) { case false: G(out a); break; case true: G(out a); break; } F(a); } // Error - BUG? The cases are exhaustive.
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(89, 99),
                 // (118,15): error CS0165: Use of unassigned local variable 'a'
-                //             F(a); // Error - BUG? The cases are exhaustive.
+                //             F(a); // Error - we don't consider enumerating values for integral types to be exhaustive
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(118, 15)
                 );
         }
@@ -1557,6 +1554,29 @@ class C
                 // (62,18): error CS0165: Use of unassigned local variable 'a'
                 //             prgs[a].arr[0] = 5; // Error: a
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a")
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void WhidbeyBug467493_WithSuppression()
+        {
+            var source = prefix + @"
+    // Whidbey bug #467493
+    public static void M4() {
+        int x;
+        throw new Exception();
+        ((DI)(delegate { if (x == 1) return 1; Console.WriteLine(""Bug""); } !))();
+    }
+" + suffix;
+
+            // Covers GenerateExplicitConversionErrors
+            CreateCompilation(source).VerifyDiagnostics(
+                // (78,15): error CS1643: Not all code paths return a value in anonymous method of type 'DI'
+                //         ((DI)(delegate { if (x == 1) return 1; Console.WriteLine("Bug"); }))();
+                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate").WithArguments("anonymous method", "DI").WithLocation(78, 15),
+                // (78,9): warning CS0162: Unreachable code detected
+                //         ((DI)(delegate { if (x == 1) return 1; Console.WriteLine("Bug"); }))();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "(").WithLocation(78, 9)
                 );
         }
 

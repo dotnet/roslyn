@@ -84,7 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                                        IDEDiagnosticIds.UseExpressionBodyForOperatorsDiagnosticId,
                                        IDEDiagnosticIds.UseExpressionBodyForPropertiesDiagnosticId,
                                        IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId,
-                                       IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId)),
+                                       IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId,
+                                       IDEDiagnosticIds.UseExpressionBodyForLocalFunctionsDiagnosticId)),
 
                 (CSharpFeaturesResources.Apply_inline_out_variable_preferences,
                  CodeCleanupOptions.ApplyInlineOutVariablePreferences,

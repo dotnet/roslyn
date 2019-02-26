@@ -83,9 +83,15 @@ $$");
         }
 
         [Fact]
-        public async Task TestNotAfterPragmaWarning()
+        public async Task TestAfterPragmaWarning()
         {
-            await VerifyAbsenceAsync(@"#pragma warning $$");
+            await VerifyKeywordAsync(@"#pragma warning $$");
+        }
+
+        [Fact]
+        public async Task TestNotAfterPragmaWarningEnable()
+        {
+            await VerifyAbsenceAsync(@"#pragma warning enable $$");
         }
     }
 }

@@ -12,7 +12,6 @@ Option Strict On
 Option Explicit On
 
 Imports System
-Imports System.Reflection
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
     
@@ -40,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property ResourceManager() As Global.System.Resources.ResourceManager
             Get
                 If Object.ReferenceEquals(resourceMan, Nothing) Then
-                    Dim temp As Global.System.Resources.ResourceManager = New Global.System.Resources.ResourceManager("VBFeaturesResources", GetType(VBFeaturesResources).GetTypeInfo.Assembly)
+                    Dim temp As Global.System.Resources.ResourceManager = New Global.System.Resources.ResourceManager("VBFeaturesResources", GetType(VBFeaturesResources).Assembly)
                     resourceMan = temp
                 End If
                 Return resourceMan
@@ -126,6 +125,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property Add_missing_Imports() As String
             Get
                 Return ResourceManager.GetString("Add_missing_Imports", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Add &lt;Obsolete&gt;.
+        '''</summary>
+        Friend ReadOnly Property Add_Obsolete() As String
+            Get
+                Return ResourceManager.GetString("Add_Obsolete", resourceCulture)
             End Get
         End Property
         

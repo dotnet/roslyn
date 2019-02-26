@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 {
@@ -64,7 +65,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             private readonly object _gate;
             private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap;
             private readonly INamedTypeSymbol _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
-            private readonly INamedTypeSymbol _eventArgsType, _iSerializableType, _serializationInfoType, _streamingContextType;
+            private readonly INamedTypeSymbol _eventArgsType;
+            private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
             private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
             private readonly AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax> _analyzer;
 
@@ -83,9 +85,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 _debuggerDisplayAttributeType = compilation.DebuggerDisplayAttributeType();
                 _structLayoutAttributeType = compilation.StructLayoutAttributeType();
                 _eventArgsType = compilation.EventArgsType();
-                _iSerializableType = compilation.ISerializableType();
-                _serializationInfoType = compilation.SerializationInfoType();
-                _streamingContextType = compilation.StreamingContextType();
+                _deserializationConstructorCheck = new DeserializationConstructorCheck(compilation);
                 _attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange(GetAttributesForMethodsToIgnore(compilation));
             }
 
@@ -154,21 +154,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 Action<ISymbol, ValueUsageInfo> onSymbolUsageFound = OnSymbolUsage;
                 compilationStartContext.RegisterSymbolStartAction(symbolStartContext =>
                 {
-                    if (symbolStartContext.Symbol.GetAttributes().Any(a => a.AttributeClass == _structLayoutAttributeType))
-                    {
-                        // Bail out for types with 'StructLayoutAttribute' as the ordering of the members is critical,
-                        // and removal of unused members might break semantics.
-                        return;
-                    }
-
-                    var hasInvalidOperation = false;
+                    var hasInvalidOrDynamicOperation = false;
                     symbolStartContext.RegisterOperationAction(AnalyzeMemberReferenceOperation, OperationKind.FieldReference, OperationKind.MethodReference, OperationKind.PropertyReference, OperationKind.EventReference);
                     symbolStartContext.RegisterOperationAction(AnalyzeFieldInitializer, OperationKind.FieldInitializer);
                     symbolStartContext.RegisterOperationAction(AnalyzeInvocationOperation, OperationKind.Invocation);
                     symbolStartContext.RegisterOperationAction(AnalyzeNameOfOperation, OperationKind.NameOf);
                     symbolStartContext.RegisterOperationAction(AnalyzeObjectCreationOperation, OperationKind.ObjectCreation);
-                    symbolStartContext.RegisterOperationAction(_ => hasInvalidOperation = true, OperationKind.Invalid);
-                    symbolStartContext.RegisterSymbolEndAction(symbolEndContext => OnSymbolEnd(symbolEndContext, hasInvalidOperation));
+                    symbolStartContext.RegisterOperationAction(_ => hasInvalidOrDynamicOperation = true, OperationKind.Invalid,
+                        OperationKind.DynamicIndexerAccess, OperationKind.DynamicInvocation, OperationKind.DynamicMemberReference, OperationKind.DynamicObjectCreation);
+                    symbolStartContext.RegisterSymbolEndAction(symbolEndContext => OnSymbolEnd(symbolEndContext, hasInvalidOrDynamicOperation));
 
                     // Register custom language-specific actions, if any.
                     _analyzer.HandleNamedTypeSymbolStart(symbolStartContext, onSymbolUsageFound);
@@ -259,7 +253,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     {
                         Debug.Assert(memberReference.Parent is ICompoundAssignmentOperation compoundAssignment &&
                             compoundAssignment.Target == memberReference ||
-                            memberReference.Parent is IIncrementOrDecrementOperation);
+                            memberReference.Parent is ICoalesceAssignmentOperation coalesceAssignment &&
+                            coalesceAssignment.Target == memberReference ||
+                            memberReference.Parent is IIncrementOrDecrementOperation ||
+                            memberReference.Parent is IReDimClauseOperation reDimClause && reDimClause.Operand == memberReference);
 
                         // Compound assignment or increment whose value is being dropped (parent is an expression statement)
                         // is treated as a Write as the value was never actually 'read' in a way that is observable.
@@ -297,17 +294,22 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
             private void AnalyzeNameOfOperation(OperationAnalysisContext operationContext)
             {
-                // Workaround for https://github.com/dotnet/roslyn/issues/19965
-                // IOperation API does not expose potential references to methods/properties within
-                // a bound method group/property group.
+                // 'nameof(argument)' is very commonly used for reading/writing to 'argument' in following ways:
+                //   1. Reflection based usage: See https://github.com/dotnet/roslyn/issues/32488
+                //   2. Custom/Test frameworks: See https://github.com/dotnet/roslyn/issues/32008 and https://github.com/dotnet/roslyn/issues/31581
+                // We treat 'nameof(argument)' as ValueUsageInfo.ReadWrite instead of ValueUsageInfo.NameOnly to avoid such false positives.
+
                 var nameofArgument = ((INameOfOperation)operationContext.Operation).Argument;
 
-                if (nameofArgument is IMemberReferenceOperation)
+                if (nameofArgument is IMemberReferenceOperation memberReference)
                 {
-                    // Already analyzed in AnalyzeMemberReferenceOperation.
+                    OnSymbolUsage(memberReference.Member, ValueUsageInfo.ReadWrite);
                     return;
                 }
 
+                // Workaround for https://github.com/dotnet/roslyn/issues/19965
+                // IOperation API does not expose potential references to methods/properties within
+                // a bound method group/property group.
                 var symbolInfo = nameofArgument.SemanticModel.GetSymbolInfo(nameofArgument.Syntax, operationContext.CancellationToken);
                 foreach (var symbol in symbolInfo.GetAllSymbols())
                 {
@@ -317,7 +319,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         // for method group/property group.
                         case SymbolKind.Method:
                         case SymbolKind.Property:
-                            OnSymbolUsage(symbol, ValueUsageInfo.NameOnly);
+                            OnSymbolUsage(symbol, ValueUsageInfo.ReadWrite);
                             break;
                     }
                 }
@@ -332,13 +334,22 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 OnSymbolUsage(constructor, ValueUsageInfo.Read);
             }
 
-            private void OnSymbolEnd(SymbolAnalysisContext symbolEndContext, bool hasInvalidOperation)
+            private void OnSymbolEnd(SymbolAnalysisContext symbolEndContext, bool hasInvalidOrDynamicOperation)
             {
-                // We bail out reporting diagnostics for named types which have any invalid operations, i.e. erroneous code.
-                // We do so to ensure that we don't report false positives during editing scenarios in the IDE, where the user
-                // is still editing code and fixing unresolved references to symbols, such as overload resolution errors.
-                if (hasInvalidOperation)
+                // We bail out reporting diagnostics for named types if it contains following kind of operations:
+                //  1. Invalid operations, i.e. erroneous code:
+                //     We do so to ensure that we don't report false positives during editing scenarios in the IDE, where the user
+                //     is still editing code and fixing unresolved references to symbols, such as overload resolution errors.
+                //  2. Dynamic operations, where we do not know the exact member being referenced at compile time.
+                if (hasInvalidOrDynamicOperation)
                 {
+                    return;
+                }
+
+                if (symbolEndContext.Symbol.GetAttributes().Any(a => a.AttributeClass == _structLayoutAttributeType))
+                {
+                    // Bail out for types with 'StructLayoutAttribute' as the ordering of the members is critical,
+                    // and removal of unused members might break semantics.
                     return;
                 }
 
@@ -562,7 +573,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                     // ISerializable constructor is invoked by the runtime for deserialization
                                     // and it is a common pattern to have a private serialization constructor
                                     // that is not explicitly referenced in code.
-                                    if (IsISerializableConstructor(methodSymbol))
+                                    if (_deserializationConstructorCheck.IsDeserializationConstructor(methodSymbol))
                                     {
                                         return false;
                                     }
@@ -679,13 +690,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     return false;
                 }
             }
-
-            private bool IsISerializableConstructor(IMethodSymbol methodSymbol)
-                => _iSerializableType != null &&
-                   methodSymbol.Parameters.Length == 2 &&
-                   methodSymbol.Parameters[0].Type.Equals(_serializationInfoType) &&
-                   methodSymbol.Parameters[1].Type.Equals(_streamingContextType) &&
-                   methodSymbol.ContainingType.AllInterfaces.Contains(_iSerializableType);
         }
     }
 }

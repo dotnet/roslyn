@@ -2,22 +2,29 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <PropertyGroup>
-    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  <PropertyGroup Condition="'$(CopyrightMicrosoft)' != ''">
+    <Copyright>$(CopyrightMicrosoft)</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
   
   <PropertyGroup>
     <RepositoryUrl>https://github.com/dotnet/roslyn</RepositoryUrl>
-    <PackageLicenseUrl>$(RepositoryUrl)/blob/master/License.txt</PackageLicenseUrl>
     <RepositoryRawUrl>https://raw.githubusercontent.com/dotnet/roslyn</RepositoryRawUrl>
+    
+    <!-- Package Settings -->
+    <PackageLicenseUrl Condition="'$(PackageLicenseExpression)' == ''">$(RepositoryUrl)/blob/master/License.txt</PackageLicenseUrl>
+    <!-- The SPDX name for the source license. See https://spdx.org/licenses/. -->
+    <PackageLicenseType Condition="'$(PackageLicenseExpression)' == ''">Apache-2.0</PackageLicenseType>
+    <PackageIconUrl>https://go.microsoft.com/fwlink/?LinkID=288859</PackageIconUrl>
     <PackageProjectUrl>https://github.com/dotnet/roslyn</PackageProjectUrl>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics</PackageTags>
-    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
-    
     <!--
-      NU5125 should be removed. See https://github.com/dotnet/roslyn/issues/31589 for details
+      Suppress a warning about upcoming deprecation of PackageLicenseUrl. When embedding licenses are supported,
+      replace PackageLicenseUrl with PackageLicenseExpression. See https://github.com/dotnet/roslyn/issues/31589 for details
     -->
     <NoWarn>$(NoWarn);NU5125</NoWarn>
+    
+    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
 
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
@@ -37,8 +44,7 @@
     <!-- Set to non-existent file to prevent common targets from importing Microsoft.CodeAnalysis.targets -->
     <CodeAnalysisTargets>*none*</CodeAnalysisTargets>
 
-    <ThirdPartyNoticesFilePath>$(MSBuildThisFileDirectory)..\..\src\NuGet\ThirdPartyNotices.rtf</ThirdPartyNoticesFilePath>    
-    <IbcOptimizationDataDir>$(NuGetPackageRoot)roslyndependencies.optimizationdata\$(RoslynDependenciesOptimizationDataVersion)\content\OptimizationData\</IbcOptimizationDataDir>
+    <ThirdPartyNoticesFilePath>$(MSBuildThisFileDirectory)..\..\src\NuGet\ThirdPartyNotices.rtf</ThirdPartyNoticesFilePath>
     <DevDivPackagesDir>$(VisualStudioSetupOutputPath)DevDivPackages\</DevDivPackagesDir>
 
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
@@ -91,20 +97,6 @@
     <VisualStudioDebuggerKey>$(VisualStudioKey)</VisualStudioDebuggerKey>
   </PropertyGroup>
 
-  <!-- Determine compiler toolset props file to use for this build -->
-  <PropertyGroup>
-    <_PackageName Condition="'$(MSBuildRuntimeType)' != 'Core'">Microsoft.Net.Compilers</_PackageName>
-    <_PackageName Condition="'$(MSBuildRuntimeType)' == 'Core'">Microsoft.NETCore.Compilers</_PackageName>
-    <_PackageVersion Condition="'$(MSBuildRuntimeType)' != 'Core'">$(MicrosoftNetCompilersVersion)</_PackageVersion>
-    <_PackageVersion Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MicrosoftNETCoreCompilersVersion)</_PackageVersion>
-
-    <RoslynToolsetDirectory Condition="'$(BootstrapBuildPath)' == ''">$(NuGetPackageRoot)$(_PackageName.ToLower())\$(_PackageVersion)\</RoslynToolsetDirectory>
-    <RoslynToolsetDirectory Condition="'$(BootstrapBuildPath)' != ''">$(BootstrapBuildPath)</RoslynToolsetDirectory>
-    <RoslynToolsetDirectory Condition="!HasTrailingSlash('$(RoslynToolsetDirectory)')">$(RoslynToolsetDirectory)\</RoslynToolsetDirectory>
-
-    <RoslynToolsetPropsFilePath>$(RoslynToolsetDirectory)build\$(_PackageName).props</RoslynToolsetPropsFilePath>
-  </PropertyGroup>
-
   <!-- 
        Enable hard links for the build. This is not done by default due to fears about 
        inadvertently corrupting the NuGet cache (hard links in the output directory will
@@ -133,12 +125,24 @@
     <DevEnvDir>$([System.IO.Path]::GetFullPath('$(DevEnvDir)'))</DevEnvDir>
   </PropertyGroup>
 
-  <Import Project="$(RoslynToolsetPropsFilePath)" Condition="Exists('$(RoslynToolsetPropsFilePath)')" />
+  <!-- 
+    Bootstrapping compilers
+  -->
+  <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
+    <_CompilerPackageName Condition="'$(MSBuildRuntimeType)' != 'Core'">Microsoft.Net.Compilers</_CompilerPackageName>
+    <_CompilerPackageName Condition="'$(MSBuildRuntimeType)' == 'Core'">Microsoft.NETCore.Compilers</_CompilerPackageName>
+    <_BootstrapBuildDir>$([MSBuild]::EnsureTrailingSlash($(BootstrapBuildPath)))</_BootstrapBuildDir>
+  </PropertyGroup>
+
+  <Import Project="$(_BootstrapBuildDir)build\$(_CompilerPackageName).props" Condition="'$(BootstrapBuildPath)' != ''" />
 
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.ValidateBootstrap"
-             AssemblyFile="$(RoslynToolsetDirectory)tools\Microsoft.Build.Tasks.CodeAnalysis.dll"
+             AssemblyFile="$(_BootstrapBuildDir)tools\Microsoft.Build.Tasks.CodeAnalysis.dll"
              Condition="'$(BootstrapBuildPath)' != ''" />
 
+  <!--
+    Analyzers
+  -->
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeQuality.Analyzers" Version="$(MicrosoftCodeQualityAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NetCore.Analyzers" Version="$(MicrosoftNetCoreAnalyzersVersion)" PrivateAssets="all" />
@@ -167,7 +171,7 @@
   </PropertyGroup>
 
   <!--
-    Language specifc settings
+    Language specific settings
   -->
   <Choose>
     <!-- VB specific settings -->

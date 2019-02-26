@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (model == null) ? SymbolInfo.None : model.GetSymbolInfo(node, cancellationToken);
         }
 
-        private ConsList<Symbol> GetBasesBeingResolved(TypeSyntax expression)
+        private ConsList<TypeSymbol> GetBasesBeingResolved(TypeSyntax expression)
         {
             // if the expression is the child of a base-list node, then the expression should be
             // bound in the context of the containing symbols base being resolved.
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // we have a winner
                     var decl = (BaseTypeDeclarationSyntax)parent.Parent.Parent;
                     var symbol = this.GetDeclaredSymbol(decl);
-                    return ConsList<Symbol>.Empty.Prepend((Symbol)symbol.OriginalDefinition);
+                    return ConsList<TypeSymbol>.Empty.Prepend((TypeSymbol)symbol.OriginalDefinition);
                 }
             }
 

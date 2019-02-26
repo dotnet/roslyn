@@ -292,6 +292,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             vbc.DebugType = "full";
             vbc.EmbeddedFiles = MSBuildUtil.CreateTaskItems();
             Assert.Equal(@"/optionstrict:custom /debug:full /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("a;b.vb");
+            vbc.DebugType = "full";
+            vbc.EmbeddedFiles = MSBuildUtil.CreateTaskItems("a;b.vb");
+            Assert.Equal(@"/optionstrict:custom /debug:full /out:""a;b.exe"" /embed:""a;b.vb"" ""a;b.vb""", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("a, b.vb");
+            vbc.DebugType = "full";
+            vbc.EmbeddedFiles = MSBuildUtil.CreateTaskItems("a, b.vb");
+            Assert.Equal(@"/optionstrict:custom /debug:full /out:""a, b.exe"" /embed:""a, b.vb"" ""a, b.vb""", vbc.GenerateResponseFileContents());
         }
 
         [Fact]

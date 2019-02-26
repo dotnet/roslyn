@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Rewrite an async method into a state machine type.
         /// </summary>
         internal static BoundStatement Rewrite(
-            BoundStatement body,
+            BoundStatement bodyWithAwaitLifted,
             MethodSymbol method,
             int methodOrdinal,
             VariableSlotAllocator slotAllocatorOpt,
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!method.IsAsync)
             {
                 stateMachineType = null;
-                return body;
+                return bodyWithAwaitLifted;
             }
 
             CSharpCompilation compilation = method.DeclaringCompilation;
@@ -52,19 +52,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method.IsIAsyncEnumeratorReturningAsync(compilation);
             if (isAsyncEnumerableOrEnumerator && !method.IsIterator)
             {
-                bool containsAwait = AwaitDetector.ContainsAwait(body);
+                bool containsAwait = AwaitDetector.ContainsAwait(bodyWithAwaitLifted);
                 diagnostics.Add(containsAwait ? ErrorCode.ERR_PossibleAsyncIteratorWithoutYield : ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait,
                     method.Locations[0], method.ReturnType);
 
                 stateMachineType = null;
-                return body;
+                return bodyWithAwaitLifted;
             }
 
             // The CLR doesn't support adding fields to structs, so in order to enable EnC in an async method we need to generate a class.
             // For async-iterators, we also need to generate a class.
             var typeKind = (compilationState.Compilation.Options.EnableEditAndContinue || method.IsIterator) ? TypeKind.Class : TypeKind.Struct;
-
-            var bodyWithAwaitLifted = AwaitExpressionSpiller.Rewrite(body, method, compilationState, diagnostics);
 
             stateMachineType = new AsyncStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, typeKind);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
@@ -75,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!rewriter.VerifyPresenceOfRequiredAPIs())
             {
-                return body;
+                return bodyWithAwaitLifted;
             }
 
             try
@@ -85,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
             {
                 diagnostics.Add(ex.Diagnostic);
-                return new BoundBadStatement(body.Syntax, ImmutableArray.Create<BoundNode>(body), hasErrors: true);
+                return new BoundBadStatement(bodyWithAwaitLifted.Syntax, ImmutableArray.Create<BoundNode>(bodyWithAwaitLifted), hasErrors: true);
             }
         }
 

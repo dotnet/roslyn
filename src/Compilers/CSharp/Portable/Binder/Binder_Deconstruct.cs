@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ArrayBuilder<DeconstructionVariable> variables,
                         out Conversion conversion)
         {
-            Debug.Assert(type != null);
+            Debug.Assert((object)type != null);
             ImmutableArray<TypeSymbol> tupleOrDeconstructedTypes;
             conversion = Conversion.Deconstruction;
 
@@ -257,10 +257,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders;
+                if (variables.Count < 2)
+                {
+                    Error(diagnostics, ErrorCode.ERR_DeconstructTooFewElements, syntax);
+                    return false;
+                }
+
                 var inputPlaceholder = new BoundDeconstructValuePlaceholder(syntax, this.LocalScopeDepth, type);
-                var deconstructInvocation = MakeDeconstructInvocationExpression(variables.Count,
-                    inputPlaceholder, rightSyntax, diagnostics, out outPlaceholders);
+                BoundExpression deconstructInvocation = MakeDeconstructInvocationExpression(variables.Count,
+                    inputPlaceholder, rightSyntax, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, out _);
 
                 if (deconstructInvocation.HasAnyErrors)
                 {
@@ -403,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Holds the variables on the LHS of a deconstruction as a tree of bound expressions.
         /// </summary>
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-        internal class DeconstructionVariable
+        internal sealed class DeconstructionVariable
         {
             internal readonly BoundExpression Single;
             internal readonly ArrayBuilder<DeconstructionVariable> NestedVariables;
@@ -427,16 +432,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal static void FreeDeconstructionVariables(ArrayBuilder<DeconstructionVariable> variables)
             {
-                foreach (var v in variables)
-                {
-                    if (v.HasNestedVariables)
-                    {
-                        FreeDeconstructionVariables(v.NestedVariables);
-                    }
-                }
-
-                variables.Free();
+                variables.FreeAll(v => v.NestedVariables);
             }
+
             private string GetDebuggerDisplay()
             {
                 if (Single != null)
@@ -520,6 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilation: compilation,
                 diagnostics: diagnostics,
                 shouldCheckConstraints: true,
+                includeNullability: false,
                 errorPositions: default(ImmutableArray<bool>),
                 syntax: syntax);
         }
@@ -565,6 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 typesBuilder.ToImmutableAndFree(), locationsBuilder.ToImmutableAndFree(),
                 tupleNames, this.Compilation,
                 shouldCheckConstraints: !ignoreDiagnosticsFromTuple,
+                includeNullability: false,
                 errorPositions: disallowInferredNames ? inferredPositions : default,
                 syntax: syntax, diagnostics: ignoreDiagnosticsFromTuple ? null : diagnostics);
 
@@ -591,18 +591,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The overload resolution is similar to writing <c>receiver.Deconstruct(out var x1, out var x2, ...)</c>.
         /// </summary>
         private BoundExpression MakeDeconstructInvocationExpression(
-                                    int numCheckedVariables, BoundExpression receiver, SyntaxNode rightSyntax,
-                                    DiagnosticBag diagnostics, out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders)
+            int numCheckedVariables,
+            BoundExpression receiver,
+            SyntaxNode rightSyntax,
+            DiagnosticBag diagnostics,
+            out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders,
+            out bool anyApplicableCandidates)
         {
+            anyApplicableCandidates = false;
             var receiverSyntax = (CSharpSyntaxNode)receiver.Syntax;
-            if (numCheckedVariables < 2)
-            {
-                Error(diagnostics, ErrorCode.ERR_DeconstructTooFewElements, receiverSyntax);
-                outPlaceholders = default(ImmutableArray<BoundDeconstructValuePlaceholder>);
-
-                return BadExpression(receiverSyntax, receiver);
-            }
-
             if (receiver.Type.IsDynamic())
             {
                 Error(diagnostics, ErrorCode.ERR_CannotDeconstructDynamic, rightSyntax);
@@ -624,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     outVars.Add(variable);
                 }
 
-                const string methodName = "Deconstruct";
+                const string methodName = WellKnownMemberNames.DeconstructMethodName;
                 var memberAccess = BindInstanceMemberAccess(
                                         rightSyntax, receiverSyntax, receiver, methodName, rightArity: 0,
                                         typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>), typeArguments: default(ImmutableArray<TypeSymbolWithAnnotations>),
@@ -643,22 +640,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // So the generated invocation expression will contain placeholders instead of those outVar nodes.
                 // Those placeholders are also recorded in the outVar for easy access below, by the `SetInferredType` call on the outVar nodes.
                 BoundExpression result = BindMethodGroupInvocation(
-                                            rightSyntax, rightSyntax, methodName, (BoundMethodGroup)memberAccess, analyzedArguments, diagnostics, queryClause: null,
-                                            allowUnexpandedForm: true);
+                    rightSyntax, rightSyntax, methodName, (BoundMethodGroup)memberAccess, analyzedArguments, diagnostics, queryClause: null,
+                    allowUnexpandedForm: true, anyApplicableCandidates: out anyApplicableCandidates);
 
                 result.WasCompilerGenerated = true;
 
-                if (result.HasErrors && !receiver.HasAnyErrors)
+                if (!anyApplicableCandidates)
                 {
                     return MissingDeconstruct(receiver, rightSyntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
                 }
 
-                // Verify all the parameters (except "this" for extension methods) are out parameters
-                if (result.Kind != BoundKind.Call)
-                {
-                    return MissingDeconstruct(receiver, rightSyntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
-                }
-
+                // Verify all the parameters (except "this" for extension methods) are out parameters.
+                // This prevents, for example, an unused params parameter after the out parameters.
                 var deconstructMethod = ((BoundCall)result).Method;
                 var parameters = deconstructMethod.Parameters;
                 for (int i = (deconstructMethod.IsExtensionMethod ? 1 : 0); i < parameters.Length; i++)
@@ -693,9 +686,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundBadExpression MissingDeconstruct(BoundExpression receiver, SyntaxNode rightSyntax, int numParameters, DiagnosticBag diagnostics,
                                     out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, BoundExpression childNode)
         {
-            Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, rightSyntax, receiver.Type, numParameters);
-            outPlaceholders = default;
+            if (!receiver.Type.IsErrorType())
+            {
+                Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, rightSyntax, receiver.Type, numParameters);
+            }
 
+            outPlaceholders = default;
             return BadExpression(rightSyntax, childNode);
         }
 
@@ -846,7 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!declType.IsNull)
             {
                 var fieldType = field.GetFieldType(this.FieldsBeingBound);
-                Debug.Assert(declType.TypeSymbol == fieldType.TypeSymbol);
+                Debug.Assert(TypeSymbol.Equals(declType.TypeSymbol, fieldType.TypeSymbol, TypeCompareKind.ConsiderEverything2));
                 return new BoundFieldAccess(syntax,
                                             receiver,
                                             field,

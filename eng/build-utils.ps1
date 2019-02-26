@@ -8,6 +8,7 @@ $ErrorActionPreference="Stop"
 
 $VSSetupDir = Join-Path $ArtifactsDir "VSSetup\$configuration"
 $PackagesDir = Join-Path $ArtifactsDir "packages\$configuration"
+$PublishDataUrl = "https://raw.githubusercontent.com/dotnet/roslyn/master/eng/config/PublishData.json"
 
 $binaryLog = if (Test-Path variable:binaryLog) { $binaryLog } else { $false }
 $nodeReuse = if (Test-Path variable:nodeReuse) { $nodeReuse } else { $false }
@@ -20,6 +21,37 @@ function GetProjectOutputBinary([string]$fileName, [string]$projectName = "", [s
   $publishDir = if ($published) { "publish\" } else { "" }
   $ridDir = if ($rid -ne "") { "$rid\" } else { "" }
   return Join-Path $ArtifactsDir "bin\$projectName\$configuration\$tfm\$ridDir$publishDir$fileName"
+}
+
+function GetPublishData() {
+  if (Test-Path variable:global:_PublishData) {
+    return $global:_PublishData
+  }
+
+  Write-Host "Downloading $PublishDataUrl"
+  $content = (Invoke-WebRequest -Uri $PublishDataUrl -UseBasicParsing).Content
+
+  return $global:_PublishData = ConvertFrom-Json $content
+}
+
+function GetBranchPublishData([string]$branchName) {
+  $data = GetPublishData
+
+  if (Get-Member -InputObject $data.branches -Name $branchName) {
+    return $data.branches.$branchName
+  } else {
+    return $null
+  }
+}
+
+function GetReleasePublishData([string]$releaseName) {
+  $data = GetPublishData
+
+  if (Get-Member -InputObject $data.releases -Name $releaseName) {
+    return $data.releases.$releaseName
+  } else {
+    return $null
+  }
 }
 
 # Handy function for executing a command in powershell and throwing if it 
@@ -177,22 +209,6 @@ function Get-PackageDir([string]$name, [string]$version = "") {
     return $p
 }
 
-# Restore a single project
-function Restore-Project([string]$projectFileName, [string]$logFilePath = "") {
-    $projectFilePath = $projectFileName
-    if (-not (Test-Path $projectFilePath)) {
-        $projectFilePath = Join-Path $RepoRoot $projectFileName
-    }
-
-    $logArg = ""
-    if ($logFilePath -ne "") {
-        $logArg = " /bl:$logFilePath"
-    }
-
-    $buildTool = InitializeBuildTool
-    Exec-Console $buildTool.Path "$($buildTool.Command) `"$projectFilePath`" /t:Restore /m /nologo /clp:None /v:quiet /nr:false /warnaserror $logArg $args"
-}
-
 function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$summary = $true, [switch]$warnAsError = $true, [string]$configuration = $script:configuration) {
     # Because we override the C#/VB toolset to build against our LKG package, it is important
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
@@ -227,8 +243,8 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
         $args += " /bl:$logFilePath"
     }
 
-    if ($official) {
-        $args += " /p:OfficialBuildId=" + $env:BUILD_BUILDNUMBER
+    if ($officialBuildId) {
+        $args += " /p:OfficialBuildId=" + $officialBuildId
     }
 
     if ($ci) {

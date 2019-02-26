@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="compilation"></param>
         /// <param name="visited"></param>
         /// <returns></returns>
-        internal static TypeSymbol GetNextBaseTypeNoUseSiteDiagnostics(this TypeSymbol type, ConsList<Symbol> basesBeingResolved, CSharpCompilation compilation, ref PooledHashSet<NamedTypeSymbol> visited)
+        internal static TypeSymbol GetNextBaseTypeNoUseSiteDiagnostics(this TypeSymbol type, ConsList<TypeSymbol> basesBeingResolved, CSharpCompilation compilation, ref PooledHashSet<NamedTypeSymbol> visited)
         {
             switch (type.TypeKind)
             {
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static TypeSymbol GetNextDeclaredBase(NamedTypeSymbol type, ConsList<Symbol> basesBeingResolved, CSharpCompilation compilation, ref PooledHashSet<NamedTypeSymbol> visited)
+        private static TypeSymbol GetNextDeclaredBase(NamedTypeSymbol type, ConsList<TypeSymbol> basesBeingResolved, CSharpCompilation compilation, ref PooledHashSet<NamedTypeSymbol> visited)
         {
             // We shouldn't have visited this type earlier.
             Debug.Assert(visited == null || !visited.Contains(type.OriginalDefinition));

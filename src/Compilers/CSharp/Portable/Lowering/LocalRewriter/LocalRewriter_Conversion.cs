@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isBaseConversion: false,
                             @checked: false,
                             explicitCastInCode: explicitCastInCode,
-                            conversionGroupOpt: oldNode.ConversionGroupOpt,
+                            conversionGroupOpt: oldNode?.ConversionGroupOpt,
                             constantValueOpt: constantValueOpt,
                             type: rewrittenType);
                     }
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.Kind.IsUserDefinedConversion())
             {
-                if (rewrittenOperand.Type != conversion.BestUserDefinedConversionAnalysis.FromType)
+                if (!TypeSymbol.Equals(rewrittenOperand.Type, conversion.BestUserDefinedConversionAnalysis.FromType, TypeCompareKind.ConsiderEverything2))
                 {
                     rewrittenOperand = MakeConversionNode(
                         syntax,
@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         @checked);
                 }
 
-                if (rewrittenOperand.Type != conversion.Method.ParameterTypes[0].TypeSymbol)
+                if (!TypeSymbol.Equals(rewrittenOperand.Type, conversion.Method.ParameterTypes[0].TypeSymbol, TypeCompareKind.ConsiderEverything2))
                 {
                     rewrittenOperand = MakeConversionNode(
                         rewrittenOperand,
@@ -586,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion,
                     userDefinedConversionRewrittenType);
 
-                if (userDefined.Type != conversion.BestUserDefinedConversionAnalysis.ToType)
+                if (!TypeSymbol.Equals(userDefined.Type, conversion.BestUserDefinedConversionAnalysis.ToType, TypeCompareKind.ConsiderEverything2))
                 {
                     userDefined = MakeConversionNode(
                         userDefined,
@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         @checked);
                 }
 
-                if (userDefined.Type != rewrittenType)
+                if (!TypeSymbol.Equals(userDefined.Type, rewrittenType, TypeCompareKind.ConsiderEverything2))
                 {
                     userDefined = MakeConversionNode(
                         syntax,
@@ -786,7 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol typeFrom = rewrittenOperandType.StrippedType();
             TypeSymbol typeTo = rewrittenType.StrippedType();
-            if (typeFrom != typeTo && (typeFrom.SpecialType == SpecialType.System_Decimal || typeTo.SpecialType == SpecialType.System_Decimal))
+            if (!TypeSymbol.Equals(typeFrom, typeTo, TypeCompareKind.ConsiderEverything2) && (typeFrom.SpecialType == SpecialType.System_Decimal || typeTo.SpecialType == SpecialType.System_Decimal))
             {
                 // take special care if the underlying conversion is a decimal conversion
                 TypeSymbol typeFromUnderlying = typeFrom;
@@ -980,9 +980,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (seq.Value.Kind == BoundKind.ConditionalOperator)
                 {
                     BoundConditionalOperator conditional = (BoundConditionalOperator)seq.Value;
-                    Debug.Assert(seq.Type == conditional.Type);
-                    Debug.Assert(conditional.Type == conditional.Consequence.Type);
-                    Debug.Assert(conditional.Type == conditional.Alternative.Type);
+                    Debug.Assert(TypeSymbol.Equals(seq.Type, conditional.Type, TypeCompareKind.ConsiderEverything2));
+                    Debug.Assert(TypeSymbol.Equals(conditional.Type, conditional.Consequence.Type, TypeCompareKind.ConsiderEverything2));
+                    Debug.Assert(TypeSymbol.Equals(conditional.Type, conditional.Alternative.Type, TypeCompareKind.ConsiderEverything2));
 
                     if (NullableAlwaysHasValue(conditional.Consequence) != null && NullableNeverHasValue(conditional.Alternative))
                     {
@@ -1034,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 doNotLowerToCall
                 ? BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, false, explicitCastInCode: true, conversionGroupOpt: null, default(ConstantValue), rewrittenType)
                 : (BoundExpression)BoundCall.Synthesized(syntax, null, conversion.Method, rewrittenOperand);
-            Debug.Assert(result.Type == rewrittenType);
+            Debug.Assert(TypeSymbol.Equals(result.Type, rewrittenType, TypeCompareKind.ConsiderEverything2));
             return result;
         }
 
@@ -1042,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (call.Method.ReturnType.TypeSymbol.IsNonNullableValueType())
             {
-                Debug.Assert(resultType.IsNullableType() && resultType.GetNullableUnderlyingType() == call.Method.ReturnType.TypeSymbol);
+                Debug.Assert(resultType.IsNullableType() && TypeSymbol.Equals(resultType.GetNullableUnderlyingType(), call.Method.ReturnType.TypeSymbol, TypeCompareKind.ConsiderEverything2));
                 MethodSymbol ctor = UnsafeGetNullableMethod(call.Syntax, resultType, SpecialMember.System_Nullable_T__ctor);
                 return new BoundObjectCreationExpression(call.Syntax, ctor, null, call);
             }
@@ -1365,7 +1365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                Debug.Assert(method.ReturnType.TypeSymbol == toType);
+                Debug.Assert(TypeSymbol.Equals(method.ReturnType.TypeSymbol, toType, TypeCompareKind.ConsiderEverything2));
                 return BoundCall.Synthesized(syntax, null, method, operand);
             }
         }

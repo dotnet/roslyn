@@ -37,10 +37,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
     ///        i.e. "_ = Computation();" or "var unused = Computation();"
     ///        This diagnostic configuration is controlled by language specific code style option "UnusedValueAssignment".
     ///     3. Redundant parameters that fall into one of the following two categories:
-    ///         a. Have no references in the executable code block(s) for it's containing method symbol.
-    ///         b. Have one or more references but it's initial value at start of code block is never used.
+    ///         a. Have no references in the executable code block(s) for its containing method symbol.
+    ///         b. Have one or more references but its initial value at start of code block is never used.
     ///            For example, if 'x' in the example for case 2. above was a parameter symbol with RefKind.None
-    ///            and "x = Computation();" is the first statement in the method body, then it's initial value
+    ///            and "x = Computation();" is the first statement in the method body, then its initial value
     ///            is never used. Such a parameter should be removed and 'x' should be converted into a local.
     ///        We provide additional information in the diagnostic message to clarify the above two categories
     ///        and also detect and mention about potential breaking change if the containing method is a public API.
@@ -88,8 +88,19 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         protected abstract Location GetDefinitionLocationToFade(IOperation unusedDefinition);
         protected abstract bool SupportsDiscard(SyntaxTree tree);
+        protected abstract bool MethodHasHandlesClause(IMethodSymbol method);
+        protected abstract bool IsIfConditionalDirective(SyntaxNode node);
         protected abstract Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatementOption { get; }
         protected abstract Option<CodeStyleOption<UnusedValuePreference>> UnusedValueAssignmentOption { get; }
+
+        /// <summary>
+        /// Indicates if we should bail from removable assignment analysis for the given
+        /// symbol write operation.
+        /// Removable assignment analysis determines if the assigned value for the symbol write
+        /// has no side effects and can be removed without changing the semantics.
+        /// </summary>
+        protected virtual bool ShouldBailOutFromRemovableAssignmentAnalysis(IOperation unusedSymbolWriteOperation)
+            => false;
 
         /// <summary>
         /// Indicates if the given expression statement operation has an explicit "Call" statement syntax indicating explicit discard.
@@ -97,6 +108,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         /// </summary>
         /// <returns></returns>
         protected abstract bool IsCallStatement(IExpressionStatementOperation expressionStatement);
+
+        /// <summary>
+        /// Indicates if the given operation is an expression of an expression body.
+        /// </summary>
+        protected abstract bool IsExpressionOfExpressionBody(IExpressionStatementOperation expressionStatement);
 
         /// <summary>
         /// Method to compute well-known diagnostic property maps for different comnbinations of diagnostic properties.
@@ -297,5 +313,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             Debug.Assert(TryGetUnusedValuePreference(diagnostic, out _));
             return diagnostic.Properties.ContainsKey(IsRemovableAssignmentKey);
         }
+
+        /// <summary>
+        /// Returns true for symbols whose name starts with an underscore and
+        /// are optionally followed by an integer, such as '_', '_1', '_2', etc.
+        /// These are treated as special discard symbol names.
+        /// </summary>
+        private static bool IsSymbolWithSpecialDiscardName(ISymbol symbol)
+            => symbol.Name.StartsWith("_") &&
+               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name.Substring(1), out _));
     }
 }

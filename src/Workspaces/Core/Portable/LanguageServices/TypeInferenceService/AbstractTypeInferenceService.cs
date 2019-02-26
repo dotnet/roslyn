@@ -1,15 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
 {
-    internal abstract partial class AbstractTypeInferenceService<TExpressionSyntax> : ITypeInferenceService
-        where TExpressionSyntax : SyntaxNode
+    internal abstract partial class AbstractTypeInferenceService : ITypeInferenceService
     {
         protected abstract AbstractTypeInferrer CreateTypeInferrer(SemanticModel semanticModel, CancellationToken cancellationToken);
 
@@ -95,7 +92,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
             string nameOpt, CancellationToken cancellationToken)
         {
             var result = CreateTypeInferrer(semanticModel, cancellationToken)
-                .InferTypes(expression as TExpressionSyntax)
+                .InferTypes(expression)
                 .Select(info => info.InferredType)
                 .ToImmutableArray();
 
@@ -114,7 +111,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
             SemanticModel semanticModel, SyntaxNode expression,
             string nameOpt, CancellationToken cancellationToken)
         {
-            var result = CreateTypeInferrer(semanticModel, cancellationToken).InferTypes(expression as TExpressionSyntax);
+            var result = CreateTypeInferrer(semanticModel, cancellationToken).InferTypes(expression);
             return InferTypeBasedOnNameIfEmpty(semanticModel, result, nameOpt);
         }
     }

@@ -1853,6 +1853,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Mark completion if we successfully executed all actions and only if we are analyzing a span containing the entire syntax node.
             if (success && analysisStateOpt != null && !declarationAnalysisData.IsPartialAnalysis)
             {
+                // Ensure that we do not mark declaration complete/clear state if cancellation was requested.
+                // Other thread(s) might still be executing analysis, and clearing state could lead to corrupt execution
+                // or unknown exceptions.
+                cancellationToken.ThrowIfCancellationRequested();
+
                 foreach (var analyzer in analysisScope.Analyzers)
                 {
                     analysisStateOpt.MarkDeclarationComplete(symbol, declarationIndex, analyzer);
@@ -2146,7 +2151,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // These are newly added root operation nodes for C# method and constructor bodies.
                     // However, to avoid a breaking change for existing operation block analyzers,
                     // we have decided to retain the current behavior of making operation block callbacks with the contained
-                    // method body and/or constructor initialer operation nodes.
+                    // method body and/or constructor initializer operation nodes.
                     // Hence we detect here if the operation block is parented by IMethodBodyOperation or IConstructorBodyOperation and
                     // add them to 'operationsToAnalyze' so that analyzers that explicitly register for these operation kinds
                     // can get callbacks for these nodes.

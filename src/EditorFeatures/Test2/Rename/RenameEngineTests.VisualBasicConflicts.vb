@@ -3129,6 +3129,26 @@ End Class
                     result.AssertLabeledSpansAre("current", type:=RelatedLocationType.NoConflict)
                 End Using
             End Sub
+
+            <Fact>
+            <Trait(Traits.Feature, Traits.Features.Rename)>
+            <WorkItem(32086, "https://github.com/dotnet/roslyn/issues/32086")>
+            Public Sub InvalidControlVariableInForLoopDoNotCrash()
+                Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true">
+                            <Document><![CDATA[
+Module Program
+    Sub Main()
+        Dim [|$$val|] As Integer = 10
+        For (Int() i = 0; i < val; i++)
+    End Sub
+End Module
+                            ]]></Document>
+                        </Project>
+                    </Workspace>, renameTo:="v")
+                End Using
+            End Sub
         End Class
     End Class
 End Namespace

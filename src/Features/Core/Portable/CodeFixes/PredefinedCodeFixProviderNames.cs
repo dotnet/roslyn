@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string FixFormatting = nameof(FixFormatting);
         public const string FixIncorrectFunctionReturnType = nameof(FixIncorrectFunctionReturnType);
         public const string FixIncorrectExitContinue = nameof(FixIncorrectExitContinue);
+        public const string FixReturnType = nameof(FixReturnType);
         public const string GenerateConstructor = nameof(GenerateConstructor);
         public const string GenerateEndConstruct = nameof(GenerateEndConstruct);
         public const string GenerateEnumMember = nameof(GenerateEnumMember);
@@ -64,5 +65,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseObjectInitializer = nameof(UseObjectInitializer);
         public const string UseThrowExpression = nameof(UseThrowExpression);
         public const string PreferFrameworkType = nameof(PreferFrameworkType);
+        public const string MakeStructFieldsWritable = nameof(MakeStructFieldsWritable);
     }
 }

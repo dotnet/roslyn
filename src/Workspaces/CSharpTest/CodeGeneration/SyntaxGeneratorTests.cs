@@ -617,6 +617,13 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                     Generator.SwitchSection(Generator.IdentifierName("y"),
                         new[] { Generator.ExitSwitchStatement() })),
                 "switch (x)\r\n{\r\n    case y:\r\n        break;\r\n}");
+
+            VerifySyntax<SwitchStatementSyntax>(
+                Generator.SwitchStatement(Generator.TupleExpression(new[] { Generator.IdentifierName("x1"), Generator.IdentifierName("x2") }),
+                    Generator.SwitchSection(Generator.IdentifierName("y"),
+                        new[] { Generator.IdentifierName("z") })),
+                "switch (x1, x2)\r\n{\r\n    case y:\r\n        z;\r\n}");
+
         }
 
         [Fact]

@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                               Location.None,
                                                               diagnosticInfo.Category,
                                                               options.WarningLevel,
-                                                              ((CSharpCompilationOptions)options).Nullable,
+                                                              ((CSharpCompilationOptions)options).NullableContextOptions,
                                                               options.GeneralDiagnosticOption,
                                                               options.SpecificDiagnosticOptions,
                                                               out hasPragmaSuppression);

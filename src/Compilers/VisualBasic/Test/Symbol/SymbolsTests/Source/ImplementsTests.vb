@@ -2556,8 +2556,8 @@ End Class
             Dim fooOfIntString = fooOfIntY.Construct(comp.GetSpecialType(SpecialType.System_String))
 
             Dim iFooOfIntIntListOfStringMethods = iFooOfIntIntListOfString.GetMembers("SayItWithStyle").AsEnumerable().Cast(Of MethodSymbol)()
-            Dim ifooOfIntIntStringSay1 = (From m In iFooOfIntIntListOfStringMethods Where m.Parameters(0).Type = comp.GetSpecialType(SpecialType.System_Int32)).First()
-            Dim ifooOfIntIntStringSay2 = (From m In iFooOfIntIntListOfStringMethods Where m.Parameters(0).Type <> comp.GetSpecialType(SpecialType.System_Int32)).First()
+            Dim ifooOfIntIntStringSay1 = (From m In iFooOfIntIntListOfStringMethods Where TypeSymbol.Equals(m.Parameters(0).Type, comp.GetSpecialType(SpecialType.System_Int32), TypeCompareKind.ConsiderEverything)).First()
+            Dim ifooOfIntIntStringSay2 = (From m In iFooOfIntIntListOfStringMethods Where Not TypeSymbol.Equals(m.Parameters(0).Type, comp.GetSpecialType(SpecialType.System_Int32), TypeCompareKind.ConsiderEverything)).First()
 
             Dim fooOfIntStringM1 = DirectCast(fooOfIntString.GetMembers("M1").First(), MethodSymbol)
             Dim fooOfIntStringM2 = DirectCast(fooOfIntString.GetMembers("M2").First(), MethodSymbol)

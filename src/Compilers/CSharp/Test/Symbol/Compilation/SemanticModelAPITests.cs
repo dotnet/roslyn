@@ -121,7 +121,7 @@ class C
         }
 
         [Fact]
-        public void LocalSymbolsAreDifferentArossSemanticModelsFromDifferentCompilations()
+        public void LocalSymbolsAreDifferentAcrossSemanticModelsFromDifferentCompilations()
         {
             var text = @"public class C { public void M() { int x = 10; } }";
             var tree = Parse(text);

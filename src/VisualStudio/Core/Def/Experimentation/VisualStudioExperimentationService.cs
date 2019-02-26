@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Experimentation
 {
+    [Export(typeof(VisualStudioExperimentationService))]
     [ExportWorkspaceService(typeof(IExperimentationService), ServiceLayer.Host), Shared]
     internal class VisualStudioExperimentationService : ForegroundThreadAffinitizedObject, IExperimentationService
     {
