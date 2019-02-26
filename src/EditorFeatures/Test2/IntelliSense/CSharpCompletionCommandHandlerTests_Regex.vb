@@ -59,6 +59,10 @@ class c
             End Using
         End Function
 
+        ''' <summary>
+        ''' </summary>
+        ''' <param name="completionImplementation"></param>
+        ''' <returns></returns>
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCaretPlacement(completionImplementation As CompletionImplementation) As Task
@@ -82,6 +86,7 @@ class c
                 state.SendDownKey()
                 state.SendDownKey()
                 state.SendDownKey()
+                Await state.AssertSelectedCompletionItem("[^  firstCharacter-lastCharacter  ]")
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("new Regex(@""[^-]"")", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
