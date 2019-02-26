@@ -172,11 +172,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                        Function(i) i.DisplayText = v))
         End Function
 
-        Public Overrides Function CompletionItemsContainsAny(displayText As String, displayTextSuffix As String) As Boolean
-            AssertNoAsynchronousOperationsRunning()
-            Return CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = displayText AndAlso i.DisplayTextSuffix = displayTextSuffix)
-        End Function
-
         Public Overrides Sub AssertItemsInOrder(expectedOrder As String())
             AssertNoAsynchronousOperationsRunning()
             Dim items = CurrentCompletionPresenterSession.CompletionItems
