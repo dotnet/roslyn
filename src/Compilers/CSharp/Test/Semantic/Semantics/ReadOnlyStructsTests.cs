@@ -514,5 +514,52 @@ public readonly delegate int Del();
                 // public readonly delegate int Del();
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Del").WithArguments("readonly").WithLocation(2, 30));
         }
+
+        [Fact]
+        public void ReadOnlyIndexer()
+        {
+            var csharp = @"
+public struct S1
+{
+    public readonly int this[int i]
+    {
+        get => 42;
+        set {}
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyExpressionIndexer()
+        {
+            var csharp = @"
+public struct S1
+{
+    public readonly int this[int i] => 42;
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyGetExpressionIndexer()
+        {
+            var csharp = @"
+public struct S1
+{
+    public int this[int i]
+    {
+        readonly get => 42;
+        readonly set {}
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
     }
 }
