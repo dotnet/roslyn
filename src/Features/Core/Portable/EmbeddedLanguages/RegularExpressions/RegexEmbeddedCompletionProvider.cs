@@ -132,10 +132,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         private void ProvideCompletions(EmbeddedCompletionContext context)
         {
-            var position = context.Position;
-
             var tree = context.Tree;
-            var stringToken = context.StringToken;
 
             // First, act as if the user just inserted the previous character.  This will cause us
             // to complete down to the set of relevant items based on that character. If we get
@@ -162,13 +159,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             // items we can to help them out.
             var inCharacterClass = DetermineIfInCharacterClass(tree, context.Position);
 
-            ProvideEscapeCompletions(context, inCharacterClass, parentOpt: null);
+            ProvideBackslashCompletions(context, inCharacterClass, parentOpt: null);
 
             if (!inCharacterClass)
             {
                 ProvideTopLevelCompletions(context);
-                ProvideCharacterClassCompletions(context, parentOpt: null);
-                ProvideGroupingCompletions(context, parentOpt: null);
+                ProviderOpenBracketCompletions(context, parentOpt: null);
+                ProvideOpenParentCompletions(context, parentOpt: null);
             }
         }
 
@@ -206,6 +203,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             context.AddIfMissing("#", Regex_end_of_line_comment_short, Regex_end_of_line_comment_long, parentOpt: null);
         }
 
+        /// <summary>
+        /// Produces completions using the previous character to determine which set of
+        /// regex items to show.
+        /// </summary>
         private void ProvideCompletionsAfterInsertion(EmbeddedCompletionContext context)
         {
             var tree = context.Tree;
@@ -213,6 +214,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             var previousVirtualCharOpt = tree.Text.FirstOrNullable(vc => vc.Span.Contains(position - 1));
             if (previousVirtualCharOpt == null)
             {
+                // We didn't have a previous character.  Can't determine the set of 
+                // regex items to show.
                 return;
             }
 
@@ -224,39 +227,50 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             }
 
             var (parent, token) = result.Value;
+
+            // There are two major cases we need to consider in regex completion.  Specifically
+            // if we're in a character class (i.e. `[...]`) or not. In a character class, most
+            // constructs are not special (i.e. a `(` is just a paren, and not the start of a
+            // grouping construct).
+            //
+            // So first figure out if we're in a character class.  And then decide what sort of
+            // completion we want depending on the previous character.
             var inCharacterClass = IsInCharacterClass(tree.Root, previousVirtualChar, inCharacterClass: false);
 
+            // If the previous character was a `\` then show the list of acceptable escape
+            // characters for the current location (in a character class or not).
             if (token.Kind == RegexKind.BackslashToken)
             {
-                ProvideEscapeCompletions(context, inCharacterClass, parent);
+                ProvideBackslashCompletions(context, inCharacterClass, parent);
                 return;
             }
 
             // see if we have ```\p{```.  If so, offer property categories
             if (previousVirtualChar.Char == '{')
             {
-                ProvideCompletionsIfInUnicodeCategory(context, tree, previousVirtualChar);
+                ProvideOpenBraceCompletions(context, tree, previousVirtualChar);
                 return;
             }
 
             if (inCharacterClass)
             {
-                // Nothing more to offer if we're in a character class.
+                // Nothing more to offer if we're in a character class.  i.e. the only
+                // things we complete in character class are escapes and unicode escapes.
                 return;
             }
 
             switch (token.Kind)
             {
                 case RegexKind.OpenBracketToken:
-                    ProvideCharacterClassCompletions(context, parent);
+                    ProviderOpenBracketCompletions(context, parent);
                     return;
                 case RegexKind.OpenParenToken:
-                    ProvideGroupingCompletions(context, parent);
+                    ProvideOpenParentCompletions(context, parent);
                     return;
             }
         }
 
-        private void ProvideCompletionsIfInUnicodeCategory(
+        private void ProvideOpenBraceCompletions(
             EmbeddedCompletionContext context, RegexTree tree, VirtualChar previousVirtualChar)
         {
             var index = tree.Text.IndexOf(previousVirtualChar);
@@ -279,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             }
         }
 
-        private void ProvideGroupingCompletions(EmbeddedCompletionContext context, RegexNode parentOpt)
+        private void ProvideOpenParentCompletions(EmbeddedCompletionContext context, RegexNode parentOpt)
         {
             if (parentOpt != null && !(parentOpt is RegexGroupingNode))
             {
@@ -304,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             context.AddIfMissing($"(?imnsx-imnsx:  {Regex_subexpression}  )", Regex_group_options_short, Regex_group_options_long, parentOpt, positionOffset: "(?".Length, insertionText: "(?:)");
         }
 
-        private void ProvideCharacterClassCompletions(EmbeddedCompletionContext context, RegexNode parentOpt)
+        private void ProviderOpenBracketCompletions(EmbeddedCompletionContext context, RegexNode parentOpt)
         {
             context.AddIfMissing($"[  {Regex_character_group}  ]", Regex_positive_character_group_short, Regex_positive_character_group_long, parentOpt, positionOffset: "[".Length, insertionText: "[]");
             context.AddIfMissing($"[  firstCharacter-lastCharacter  ]", Regex_positive_character_range_short, Regex_positive_character_range_long, parentOpt, positionOffset: "[".Length, insertionText: "[-]");
@@ -340,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             }
         }
 
-        private void ProvideEscapeCompletions(
+        private void ProvideBackslashCompletions(
             EmbeddedCompletionContext context, bool inCharacterClass, RegexNode parentOpt)
         {
             if (parentOpt != null && !(parentOpt is RegexEscapeNode))
