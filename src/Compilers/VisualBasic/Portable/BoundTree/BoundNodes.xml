@@ -426,7 +426,7 @@
       <Field Name="ConstantValueOpt" PropertyOverrides="true" Type="ConstantValue" Null="allow"/>
     </Node>
 
-    <!-- NOTE: The first argument of IF(...) should be either of reference or nullable type. -->
+    <!-- NOTE: The first argument of IF(...) should not be a non-nullable value type. -->
     <Node Name="BoundBinaryConditionalExpression" Base="BoundExpression" HasValidate="true">
       <!-- Non-null type is required for this node kind -->
       <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>

@@ -303,8 +303,8 @@ namespace Microsoft.CodeAnalysis.Rename
                     if (location.IsInSource)
                     {
                         results.Add(new RenameLocation(
-                            location, 
-                            solution.GetDocument(location.SourceTree).Id, 
+                            location,
+                            solution.GetDocument(location.SourceTree).Id,
                             isRenamableAccessor: isRenamableAccessor));
                     }
                 }
@@ -327,7 +327,8 @@ namespace Microsoft.CodeAnalysis.Rename
                                 if (location.IsInSource)
                                 {
                                     var token = location.FindToken(cancellationToken);
-                                    if (!syntaxFacts.IsKeyword(token) && token.ValueText == referencedSymbol.Name)
+                                    if (!syntaxFacts.IsReservedOrContextualKeyword(token) &&
+                                        token.ValueText == referencedSymbol.Name)
                                     {
                                         results.Add(new RenameLocation(location, solution.GetDocument(location.SourceTree).Id));
                                     }

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly GenericParameterAttributes _flags;
         private ThreeState _lazyHasIsUnmanagedConstraint;
         private TypeParameterBounds _lazyBounds = TypeParameterBounds.Unset;
-        private ImmutableArray<TypeSymbol> _lazyDeclaredConstraintTypes;
+        private ImmutableArray<TypeSymbolWithAnnotations> _lazyDeclaredConstraintTypes;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
         internal PETypeParameterSymbol(
@@ -137,11 +137,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private ImmutableArray<TypeSymbol> GetDeclaredConstraintTypes()
+        private ImmutableArray<TypeSymbolWithAnnotations> GetDeclaredConstraintTypes()
         {
             if (_lazyDeclaredConstraintTypes.IsDefault)
             {
-                ImmutableArray<TypeSymbol> declaredConstraintTypes;
+                ImmutableArray<TypeSymbolWithAnnotations> declaredConstraintTypes;
 
                 PEMethodSymbol containingMethod = null;
                 PENamedTypeSymbol containingType;
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (constraints.Count > 0)
                 {
-                    var symbolsBuilder = ArrayBuilder<TypeSymbol>.GetInstance();
+                    var symbolsBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
                     MetadataDecoder tokenDecoder;
 
                     if ((object)containingMethod != null)
@@ -206,22 +206,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             }
                         }
 
-                        // Drop 'System.Object' constraint type.
-                        if (typeSymbol.SpecialType == SpecialType.System_Object)
+                        var type = TypeSymbolWithAnnotations.Create(typeSymbol);
+                        type = NullableTypeDecoder.TransformType(type, constraintHandle, moduleSymbol);
+
+                        // Drop 'System.Object?' constraint type.
+                        if (type.SpecialType == SpecialType.System_Object && type.NullableAnnotation.IsAnyNullable())
                         {
                             continue;
                         }
 
-                        typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, constraintHandle, moduleSymbol);
+                        type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, constraintHandle, moduleSymbol);
 
-                        symbolsBuilder.Add(typeSymbol);
+                        symbolsBuilder.Add(type);
                     }
 
                     declaredConstraintTypes = symbolsBuilder.ToImmutableAndFree();
                 }
                 else
                 {
-                    declaredConstraintTypes = ImmutableArray<TypeSymbol>.Empty;
+                    declaredConstraintTypes = ImmutableArray<TypeSymbolWithAnnotations>.Empty;
                 }
 
                 // - presence of unmanaged pattern has to be matched with `valuetype`
@@ -273,6 +276,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal override bool? ReferenceTypeConstraintIsNullable
+        {
+            get
+            {
+                // https://github.com/dotnet/roslyn/issues/29821 Support external annotations.
+                if (!HasReferenceTypeConstraint)
+                {
+                    return false;
+                }
+
+                if (((PEModuleSymbol)this.ContainingModule).Module.HasNullableAttribute(_handle, out byte transformFlag, out _))
+                {
+                    switch ((NullableAnnotation)transformFlag)
+                    {
+                        case NullableAnnotation.Annotated:
+                            return true;
+                        case NullableAnnotation.NotAnnotated:
+                            return false;
+                    }
+                }
+
+                return null;
+            }
+        }
+
         public override bool HasValueTypeConstraint
         {
             get
@@ -298,38 +326,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override void EnsureAllConstraintsAreResolved()
+        internal override void EnsureAllConstraintsAreResolved(bool early)
         {
-            if (ReferenceEquals(_lazyBounds, TypeParameterBounds.Unset))
+            if (!_lazyBounds.IsSet(early))
             {
                 var typeParameters = (_containingSymbol.Kind == SymbolKind.Method) ?
                     ((PEMethodSymbol)_containingSymbol).TypeParameters :
                     ((PENamedTypeSymbol)_containingSymbol).TypeParameters;
-                EnsureAllConstraintsAreResolved(typeParameters);
+                EnsureAllConstraintsAreResolved(typeParameters, early);
             }
         }
 
-        internal override ImmutableArray<TypeSymbol> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
+        internal override ImmutableArray<TypeSymbolWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool early)
         {
-            var bounds = this.GetBounds(inProgress);
-            return (bounds != null) ? bounds.ConstraintTypes : ImmutableArray<TypeSymbol>.Empty;
+            var bounds = this.GetBounds(inProgress, early);
+            return (bounds != null) ? bounds.ConstraintTypes : ImmutableArray<TypeSymbolWithAnnotations>.Empty;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
         {
-            var bounds = this.GetBounds(inProgress);
+            var bounds = this.GetBounds(inProgress, early: false);
             return (bounds != null) ? bounds.Interfaces : ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
         internal override NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress)
         {
-            var bounds = this.GetBounds(inProgress);
+            var bounds = this.GetBounds(inProgress, early: false);
             return (bounds != null) ? bounds.EffectiveBaseClass : this.GetDefaultBaseType();
         }
 
         internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
         {
-            var bounds = this.GetBounds(inProgress);
+            var bounds = this.GetBounds(inProgress, early: false);
             return (bounds != null) ? bounds.DeducedBaseType : this.GetDefaultBaseType();
         }
 
@@ -351,16 +379,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return _lazyCustomAttributes;
         }
 
-        private TypeParameterBounds GetBounds(ConsList<TypeParameterSymbol> inProgress)
+        private TypeParameterBounds GetBounds(ConsList<TypeParameterSymbol> inProgress, bool early)
         {
-            Debug.Assert(!inProgress.ContainsReference(this));
-            Debug.Assert(!inProgress.Any() || ReferenceEquals(inProgress.Head.ContainingSymbol, this.ContainingSymbol));
+            // https://github.com/dotnet/roslyn/issues/30081: Re-enable asserts.
+            //Debug.Assert(!inProgress.ContainsReference(this));
+            //Debug.Assert(!inProgress.Any() || ReferenceEquals(inProgress.Head.ContainingSymbol, this.ContainingSymbol));
 
-            if (ReferenceEquals(_lazyBounds, TypeParameterBounds.Unset))
+            var currentBounds = _lazyBounds;
+            if (currentBounds == TypeParameterBounds.Unset)
             {
                 var constraintTypes = GetDeclaredConstraintTypes();
                 Debug.Assert(!constraintTypes.IsDefault);
+                var bounds = new TypeParameterBounds(constraintTypes);
+                Interlocked.CompareExchange(ref _lazyBounds, bounds, currentBounds);
+                currentBounds = _lazyBounds;
+            }
 
+            if (!currentBounds.IsSet(early))
+            {
+                var constraintTypes = currentBounds.ConstraintTypes;
                 var diagnostics = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
                 ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
                 bool inherited = (_containingSymbol.Kind == SymbolKind.Method) && ((MethodSymbol)_containingSymbol).IsOverride;
@@ -391,16 +428,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 diagnostics.Free();
 
                 Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, errorInfo, CSDiagnosticInfo.EmptyErrorInfo);
-                Interlocked.CompareExchange(ref _lazyBounds, bounds, TypeParameterBounds.Unset);
+                Interlocked.CompareExchange(ref _lazyBounds, bounds, currentBounds);
             }
 
-            Debug.Assert(!ReferenceEquals(_lazyConstraintsUseSiteErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
             return _lazyBounds;
         }
 
         internal override DiagnosticInfo GetConstraintsUseSiteErrorInfo()
         {
-            EnsureAllConstraintsAreResolved();
+            EnsureAllConstraintsAreResolved(early: false);
             Debug.Assert(!ReferenceEquals(_lazyConstraintsUseSiteErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
             return _lazyConstraintsUseSiteErrorInfo;
         }

@@ -30,11 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             var parsedStatement = SyntaxFactory.ParseStatement(statement);
             var token = parsedStatement.DescendantTokens().ToArray()[3];
             Assert.True(token.Kind() == SyntaxKind.StringLiteralToken);
-            
+
             return token;
         }
 
-        private void Test(string stringText, string expected, RegexOptions options, 
+        private void Test(string stringText, string expected, RegexOptions options,
             bool runSubTreeTests = true, [CallerMemberName]string name = "",
             bool allowIndexOutOfRange = false,
             bool allowNullReference = false,
@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 
         private void TryParseSubTrees(
             string stringText, RegexOptions options,
-            bool allowIndexOutOfRange ,
-            bool allowNullReference ,
-            bool allowOutOfMemory )
+            bool allowIndexOutOfRange,
+            bool allowNullReference,
+            bool allowOutOfMemory)
         {
             // Trim the input from the right and make sure tree invariants hold
             var current = stringText;
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     allowNullReference,
                     allowOutOfMemory);
             }
-            
+
             for (int start = stringText[0] == '@' ? 2 : 1; start < stringText.Length - 1; start++)
             {
                 TryParseTree(
@@ -293,12 +293,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         {
             switch (trivia.Kind)
             {
-            case RegexKind.CommentTrivia:
-            case RegexKind.WhitespaceTrivia:
-                break;
-            default:
-                Assert.False(true, "Incorrect trivia kind");
-                return;
+                case RegexKind.CommentTrivia:
+                case RegexKind.WhitespaceTrivia:
+                    break;
+                default:
+                    Assert.False(true, "Incorrect trivia kind");
+                    return;
             }
 
             CheckCharacters(trivia.VirtualChars, ref position, allChars);

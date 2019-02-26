@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsWorkerAsync(
+        protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
             var (_, actions, actionToInvoke) = await GetDiagnosticAndFixesAsync(workspace, parameters);
@@ -193,20 +193,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     CancellationToken.None);
 
                 await fixer.RegisterCodeFixesAsync(context);
-                if (fixes.Count > 0)
-                {
-                    break;
-                }
             }
 
             var actions = fixes.SelectAsArray(f => f.Action);
-            if (actions.Length == 1)
-            {
-                if (actions[0] is TopLevelSuppressionCodeAction suppressionAction)
-                {
-                    actions = suppressionAction.NestedCodeActions;
-                }
-            }
+
+            actions = actions.SelectMany(a => a is TopLevelSuppressionCodeAction
+                ? a.NestedCodeActions
+                : ImmutableArray.Create(a)).ToImmutableArray();
 
             actions = MassageActions(actions);
 
@@ -409,7 +402,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 {
                     oldSolutionAndNewSolution = await TestOperationsAsync(
                         testState.Workspace, expected, operations,
-                        conflictSpans: ImmutableArray<TextSpan>.Empty, 
+                        conflictSpans: ImmutableArray<TextSpan>.Empty,
                         renameSpans: ImmutableArray<TextSpan>.Empty,
                         warningSpans: ImmutableArray<TextSpan>.Empty,
                         navigationSpans: ImmutableArray<TextSpan>.Empty,
@@ -433,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     await TestOperationsAsync(testState.Workspace, expectedTextWithUsings, operations,
                         conflictSpans: ImmutableArray<TextSpan>.Empty,
                         renameSpans: ImmutableArray<TextSpan>.Empty,
-                        warningSpans: ImmutableArray<TextSpan>.Empty, 
+                        warningSpans: ImmutableArray<TextSpan>.Empty,
                         navigationSpans: ImmutableArray<TextSpan>.Empty,
                         expectedChangedDocumentId: testState.InvocationDocument.Id);
                 }

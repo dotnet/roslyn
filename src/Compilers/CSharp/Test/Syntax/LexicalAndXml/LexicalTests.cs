@@ -622,6 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestPunctuation(SyntaxKind.MinusEqualsToken);
             TestPunctuation(SyntaxKind.CaretEqualsToken);
             TestPunctuation(SyntaxKind.PercentEqualsToken);
+            TestPunctuation(SyntaxKind.QuestionQuestionEqualsToken);
         }
 
         private void TestPunctuation(SyntaxKind kind)
@@ -3521,7 +3522,7 @@ class C
             Assert.True(trivia4.Kind() == SyntaxKind.ConflictMarkerTrivia);
             Assert.Equal(trivia4.Span.Start, 33);
             Assert.Equal(trivia4.Span.Length, 24);
-            
+
             Assert.True(trivia4.ContainsDiagnostics);
             errors = trivia4.Errors();
             Assert.Equal(1, errors.Length);

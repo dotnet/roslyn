@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
             {
                 var classDecl = (ClassDeclarationSyntax)context.Node;
                 var location = _reportDiagnosticsWithoutLocation ? Location.None : classDecl.Identifier.GetLocation();
-                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Decsciptor, location));
+                context.ReportDiagnostic(Diagnostic.Create(Decsciptor, location));
             }
         }
 

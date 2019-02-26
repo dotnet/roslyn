@@ -389,7 +389,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function AsMember(newOwner As NamedTypeSymbol) As FieldSymbol
             Debug.Assert(Me Is Me.OriginalDefinition)
             Debug.Assert(newOwner.OriginalDefinition Is Me.ContainingSymbol.OriginalDefinition)
-            Return If(newOwner = Me.ContainingSymbol, Me, DirectCast(DirectCast(newOwner, SubstitutedNamedType).GetMemberForDefinition(Me), FieldSymbol))
+            Return If(TypeSymbol.Equals(newOwner, Me.ContainingType, TypeCompareKind.ConsiderEverything),
+                Me,
+                DirectCast(DirectCast(newOwner, SubstitutedNamedType).GetMemberForDefinition(Me), FieldSymbol))
         End Function
 
 #Region "IFieldSymbol"
@@ -407,6 +409,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private ReadOnly Property IFieldSymbol_IsVolatile As Boolean Implements IFieldSymbol.IsVolatile
+            Get
+                Return False
+            End Get
+        End Property
+
+        Private ReadOnly Property IFieldSymbol_IsFixedSizeBuffer As Boolean Implements IFieldSymbol.IsFixedSizeBuffer
             Get
                 Return False
             End Get

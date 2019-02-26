@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class PatternMatchingTestBase : CSharpTestBase
     {
         #region helpers
-        protected static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
-
         protected IEnumerable<SingleVariableDesignationSyntax> GetPatternDeclarations(SyntaxTree tree, string v)
         {
             return GetPatternDeclarations(tree).Where(d => d.Identifier.ValueText == v);
@@ -30,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected IEnumerable<SingleVariableDesignationSyntax> GetPatternDeclarations(SyntaxTree tree)
         {
-            return tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Parent.Kind() == SyntaxKind.DeclarationPattern);
+            return tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Parent.Kind() == SyntaxKind.DeclarationPattern || p.Parent.Kind() == SyntaxKind.VarPattern);
         }
 
         protected static IEnumerable<DiscardDesignationSyntax> GetDiscardDesignations(SyntaxTree tree)
@@ -48,17 +46,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == name);
         }
 
-        protected static void VerifyModelForDeclarationPattern(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
+        protected static void VerifyModelForDeclarationOrVarSimplePattern(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
         {
-            VerifyModelForDeclarationPattern(model, decl, false, references);
+            VerifyModelForDeclarationOrVarSimplePattern(model, decl, false, references);
         }
 
-        protected static void VerifyModelForDeclarationPatternWithoutDataFlow(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
+        protected static void VerifyModelForDeclarationOrVarSimplePatternWithoutDataFlow(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
         {
-            VerifyModelForDeclarationPattern(model, decl, false, references);
+            VerifyModelForDeclarationOrVarSimplePattern(model, decl, false, references);
         }
 
-        protected static void VerifyModelForDeclarationPattern(
+        protected static void VerifyModelForDeclarationOrVarSimplePattern(
             SemanticModel model,
             SingleVariableDesignationSyntax designation,
             bool isShadowed,
@@ -82,22 +80,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.True(model.LookupNames(designation.SpanStart).Contains(designation.Identifier.ValueText));
 
-            var decl = (DeclarationPatternSyntax)designation.Parent;
-            Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(decl.Type));
-            Assert.True(SyntaxFacts.IsInTypeOnlyContext(decl.Type));
-
-            var local = ((SourceLocalSymbol)symbol);
-            var type = local.Type;
-            if (type.IsErrorType())
+            switch (designation.Parent)
             {
-                Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
-            }
-            else
-            {
-                Assert.Equal(type, model.GetSymbolInfo(decl.Type).Symbol);
-            }
+                case DeclarationPatternSyntax decl:
+                    {
+                        var typeSyntax = decl.Type;
+                        Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
+                        Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
 
-            AssertTypeInfo(model, decl.Type, type);
+                        var local = ((SourceLocalSymbol)symbol);
+                        var type = local.Type.TypeSymbol;
+                        if (type.IsErrorType())
+                        {
+                            Assert.Null(model.GetSymbolInfo(typeSyntax).Symbol);
+                        }
+                        else
+                        {
+                            Assert.Equal(type, model.GetSymbolInfo(typeSyntax).Symbol);
+                        }
+
+                        AssertTypeInfo(model, typeSyntax, type);
+                        break;
+                    }
+            }
 
             foreach (var reference in references)
             {
@@ -116,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(model.GetConversion(typeSyntax).IsIdentity);
         }
 
-        protected static void VerifyModelForDeclarationPatternDuplicateInSameScope(SemanticModel model, SingleVariableDesignationSyntax designation)
+        protected static void VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(SemanticModel model, SingleVariableDesignationSyntax designation)
         {
             var symbol = model.GetDeclaredSymbol(designation);
             Assert.Equal(designation.Identifier.ValueText, symbol.Name);
@@ -126,14 +131,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(symbol, model.LookupSymbols(designation.SpanStart, name: designation.Identifier.ValueText).Single());
             Assert.True(model.LookupNames(designation.SpanStart).Contains(designation.Identifier.ValueText));
 
-            var type = ((LocalSymbol)symbol).Type;
-            var decl = (DeclarationPatternSyntax)designation.Parent;
-            if (!decl.Type.IsVar || !type.IsErrorType())
+            var type = ((LocalSymbol)symbol).Type.TypeSymbol;
+            switch (designation.Parent)
             {
-                Assert.Equal(type, model.GetSymbolInfo(decl.Type).Symbol);
+                case DeclarationPatternSyntax decl:
+                    if (!decl.Type.IsVar || !type.IsErrorType())
+                    {
+                        Assert.Equal(type, model.GetSymbolInfo(decl.Type).Symbol);
+                    }
+                    AssertTypeInfo(model, decl.Type, type);
+                    break;
+                case var parent:
+                    Assert.True(parent is VarPatternSyntax);
+                    break;
             }
-
-            AssertTypeInfo(model, decl.Type, type);
         }
 
         protected static void VerifyNotAPatternField(SemanticModel model, IdentifierNameSyntax reference)
@@ -210,23 +221,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Contains(designation.Identifier.ValueText, names);
 
-            DeclarationPatternSyntax decl = (DeclarationPatternSyntax)designation.Parent;
             var local = (FieldSymbol)symbol;
-            var typeSyntax = decl.Type;
-
-            Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
-            Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
-
-            if (typeSyntax.IsVar && local.Type.IsErrorType())
+            switch (designation.Parent)
             {
-                Assert.Null(model.GetSymbolInfo(typeSyntax).Symbol);
-            }
-            else
-            {
-                Assert.Equal(local.Type, model.GetSymbolInfo(typeSyntax).Symbol);
-            }
+                case DeclarationPatternSyntax decl:
+                    var typeSyntax = decl.Type;
 
-            AssertTypeInfo(model, decl.Type, local.Type);
+                    Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
+
+                    var type = local.Type.TypeSymbol;
+                    if (typeSyntax.IsVar && type.IsErrorType())
+                    {
+                        Assert.Null(model.GetSymbolInfo(typeSyntax).Symbol);
+                    }
+                    else
+                    {
+                        Assert.Equal(type, model.GetSymbolInfo(typeSyntax).Symbol);
+                    }
+
+                    AssertTypeInfo(model, decl.Type, type);
+                    break;
+                case var parent:
+                    Assert.True(parent is VarPatternSyntax);
+                    break;
+            }
 
             var declarator = designation.Ancestors().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
             var inFieldDeclaratorArgumentlist = declarator != null && declarator.Parent.Parent.Kind() != SyntaxKind.LocalDeclarationStatement &&
@@ -252,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     Assert.Same(symbol, referenceInfo.Symbol);
                     Assert.Same(symbol, symbols.Single());
-                    Assert.Equal(local.Type, model.GetTypeInfo(reference).Type);
+                    Assert.Equal(local.Type.TypeSymbol, model.GetTypeInfo(reference).Type);
                 }
 
                 Assert.True(model.LookupNames(reference.SpanStart).Contains(designation.Identifier.ValueText));
@@ -308,30 +327,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(model.LookupSymbols(designation.SpanStart, name: identifierText).Any());
 
             Assert.False(model.LookupNames(designation.SpanStart).Contains(identifierText));
-            var decl = (DeclarationPatternSyntax)designation.Parent;
-            Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
-
             Assert.Null(model.GetSymbolInfo(designation).Symbol);
             Assert.Null(model.GetTypeInfo(designation).Type);
             Assert.Null(model.GetDeclaredSymbol(designation));
 
             var symbol = (Symbol)model.GetDeclaredSymbol(designation);
 
-            TypeInfo typeInfo = model.GetTypeInfo(decl.Type);
-
-            if ((object)symbol != null)
+            if (designation.Parent is DeclarationPatternSyntax decl)
             {
-                Assert.Equal(symbol.GetTypeOrReturnType(), typeInfo.Type);
-                Assert.Equal(symbol.GetTypeOrReturnType(), typeInfo.ConvertedType);
-            }
-            else
-            {
-                Assert.Equal(SymbolKind.ErrorType, typeInfo.Type.Kind);
-                Assert.Equal(SymbolKind.ErrorType, typeInfo.ConvertedType.Kind);
-            }
+                Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
 
-            Assert.Equal(typeInfo, ((CSharpSemanticModel)model).GetTypeInfo(decl.Type));
-            Assert.True(model.GetConversion(decl.Type).IsIdentity);
+                TypeInfo typeInfo = model.GetTypeInfo(decl.Type);
+
+                if ((object)symbol != null)
+                {
+                    var type = symbol.GetTypeOrReturnType().TypeSymbol;
+                    Assert.Equal(type, typeInfo.Type);
+                    Assert.Equal(type, typeInfo.ConvertedType);
+                }
+                else
+                {
+                    Assert.Equal(SymbolKind.ErrorType, typeInfo.Type.Kind);
+                    Assert.Equal(SymbolKind.ErrorType, typeInfo.ConvertedType.Kind);
+                }
+
+                Assert.Equal(typeInfo, ((CSharpSemanticModel)model).GetTypeInfo(decl.Type));
+                Assert.True(model.GetConversion(decl.Type).IsIdentity);
+            }
+            else if (designation.Parent is VarPatternSyntax varp)
+            {
+                // Do we want to add any tests for the var pattern?
+            }
 
             VerifyModelNotSupported(model, references);
         }
@@ -351,6 +377,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             Assert.Empty(tree.GetRoot().DescendantNodes().OfType<GlobalStatementSyntax>());
         }
+
+        protected CSharpCompilation CreatePatternCompilation(string source, CSharpCompilationOptions options = null)
+        {
+            return CreateCompilation(new[] { source, _iTupleSource }, options: options ?? TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+        }
+
+        private const string _iTupleSource = @"
+namespace System.Runtime.CompilerServices
+{
+    public interface ITuple
+    {
+        int Length { get; }
+        object this[int index] { get; }
+    }
+}
+";
 
         #endregion helpers
     }

@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class WorkspacesResources {
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.WorkspacesResources", typeof(WorkspacesResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.WorkspacesResources", typeof(WorkspacesResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -531,6 +530,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Changing document &apos;{0}&apos; is not supported..
+        /// </summary>
+        internal static string Changing_document_0_is_not_supported {
+            get {
+                return ResourceManager.GetString("Changing_document_0_is_not_supported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Changing document properties is not supported.
         /// </summary>
         internal static string Changing_document_property_is_not_supported {
@@ -576,6 +584,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to Comments not allowed.
         /// </summary>
         internal static string Comments_not_allowed {
@@ -590,6 +599,13 @@ namespace Microsoft.CodeAnalysis {
         internal static string Constructors_not_allowed {
             get {
                 return ResourceManager.GetString("Constructors_not_allowed", resourceCulture);
+=======
+        ///   Looks up a localized string similar to Core EditorConfig Options.
+        /// </summary>
+        internal static string Core_EditorConfig_Options {
+            get {
+                return ResourceManager.GetString("Core_EditorConfig_Options", resourceCulture);
+>>>>>>> upstream/master
             }
         }
         
@@ -603,11 +619,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to C# files.
+        /// </summary>
+        internal static string CSharp_files {
+            get {
+                return ResourceManager.GetString("CSharp_files", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cycle detected in extensions.
         /// </summary>
         internal static string Cycle_detected_in_extensions {
             get {
                 return ResourceManager.GetString("Cycle_detected_in_extensions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DateTimeKind must be Utc.
+        /// </summary>
+        internal static string DateTimeKind_must_be_Utc {
+            get {
+                return ResourceManager.GetString("DateTimeKind_must_be_Utc", resourceCulture);
             }
         }
         
@@ -689,6 +723,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Documentation_comment_id_must_start_with_E_F_M_N_P_or_T {
             get {
                 return ResourceManager.GetString("Documentation_comment_id_must_start_with_E_F_M_N_P_or_T", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .NET Coding Conventions.
+        /// </summary>
+        internal static string dot_NET_Coding_Conventions {
+            get {
+                return ResourceManager.GetString("dot_NET_Coding_Conventions", resourceCulture);
             }
         }
         
@@ -810,11 +853,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expression-level preferences.
+        /// </summary>
+        internal static string Expression_level_preferences {
+            get {
+                return ResourceManager.GetString("Expression_level_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failure.
         /// </summary>
         internal static string Failure {
             get {
                 return ResourceManager.GetString("Failure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Field preferences.
+        /// </summary>
+        internal static string Field_preferences {
+            get {
+                return ResourceManager.GetString("Field_preferences", resourceCulture);
             }
         }
         
@@ -905,6 +966,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Incomplete_character_escape {
             get {
                 return ResourceManager.GetString("Incomplete_character_escape", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indentation and spacing.
+        /// </summary>
+        internal static string Indentation_and_spacing {
+            get {
+                return ResourceManager.GetString("Indentation_and_spacing", resourceCulture);
             }
         }
         
@@ -1062,6 +1132,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Language keywords vs BCL types preferences.
+        /// </summary>
+        internal static string Language_keywords_vs_BCL_types_preferences {
+            get {
+                return ResourceManager.GetString("Language_keywords_vs_BCL_types_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Location must be null or from source..
         /// </summary>
         internal static string Location_must_be_null_or_from_source {
@@ -1179,6 +1258,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Modifier preferences.
+        /// </summary>
+        internal static string Modifier_preferences {
+            get {
+                return ResourceManager.GetString("Modifier_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Name can be simplified..
         /// </summary>
         internal static string Name_can_be_simplified {
@@ -1211,6 +1299,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Nested_quantifier_0 {
             get {
                 return ResourceManager.GetString("Nested_quantifier_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New line preferences.
+        /// </summary>
+        internal static string New_line_preferences {
+            get {
+                return ResourceManager.GetString("New_line_preferences", resourceCulture);
             }
         }
         
@@ -1296,6 +1393,33 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Organize usings.
+        /// </summary>
+        internal static string Organize_usings {
+            get {
+                return ResourceManager.GetString("Organize_usings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter preferences.
+        /// </summary>
+        internal static string Parameter_preferences {
+            get {
+                return ResourceManager.GetString("Parameter_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parentheses preferences.
+        /// </summary>
+        internal static string Parentheses_preferences {
+            get {
+                return ResourceManager.GetString("Parentheses_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pascal Case.
         /// </summary>
         internal static string Pascal_Case {
@@ -1310,6 +1434,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Populate_switch {
             get {
                 return ResourceManager.GetString("Populate_switch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefix &apos;{0}&apos; does not match expected prefix &apos;{1}&apos;.
+        /// </summary>
+        internal static string Prefix_0_does_not_match_expected_prefix_1 {
+            get {
+                return ResourceManager.GetString("Prefix_0_does_not_match_expected_prefix_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefix &apos;{0}&apos; is not expected.
+        /// </summary>
+        internal static string Prefix_0_is_not_expected {
+            get {
+                return ResourceManager.GetString("Prefix_0_is_not_expected", resourceCulture);
             }
         }
         
@@ -1445,6 +1587,16 @@ namespace Microsoft.CodeAnalysis {
         internal static string Regex_issue_0 {
             get {
                 return ResourceManager.GetString("Regex_issue_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove the line below if you want to inherit .editorconfig settings from higher directories.
+        /// </summary>
+        internal static string Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories {
+            get {
+                return ResourceManager.GetString("Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_highe" +
+                        "r_directories", resourceCulture);
             }
         }
         
@@ -1819,6 +1971,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to this. and Me. preferences.
+        /// </summary>
+        internal static string this_dot_and_Me_dot_preferences {
+            get {
+                return ResourceManager.GetString("this_dot_and_Me_dot_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This submission already references another submission project..
         /// </summary>
         internal static string This_submission_already_references_another_submission_project {
@@ -1860,6 +2021,69 @@ namespace Microsoft.CodeAnalysis {
         internal static string Trailing_comma_not_allowed {
             get {
                 return ResourceManager.GetString("Trailing_comma_not_allowed", resourceCulture);
+            }
+        }
+
+        ///   Looks up a localized string similar to Base Type.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_BaseType {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_BaseType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Construct.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_Construct {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Construct", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Declare.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_Declare {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Declare", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Import.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_Import {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Import", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Qualify.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_Qualify {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Qualify", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type Argument.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_TypeArgument {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_TypeArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type Constraint.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_TypeConstraint {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_TypeConstraint", resourceCulture);
+>>>>>>> upstream/master
             }
         }
         
@@ -2008,11 +2232,56 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Name.
+        /// </summary>
+        internal static string ValueUsageInfo_Name {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Read.
+        /// </summary>
+        internal static string ValueUsageInfo_Read {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_Read", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reference.
+        /// </summary>
+        internal static string ValueUsageInfo_Reference {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_Reference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Write.
+        /// </summary>
+        internal static string ValueUsageInfo_Write {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_Write", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Variables captured:.
         /// </summary>
         internal static string Variables_captured_colon {
             get {
                 return ResourceManager.GetString("Variables_captured_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Visual Basic files.
+        /// </summary>
+        internal static string Visual_Basic_files {
+            get {
+                return ResourceManager.GetString("Visual_Basic_files", resourceCulture);
             }
         }
         

@@ -232,6 +232,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 expression.IsParentKind(SyntaxKind.QualifiedName) && ((QualifiedNameSyntax)expression.Parent).Left == expression;
         }
 
+        public static bool IsLeftSideOfExplicitInterfaceSpecifier(this NameSyntax name)
+            => name.IsParentKind(SyntaxKind.ExplicitInterfaceSpecifier);
+
         public static bool IsExpressionOfInvocation(this ExpressionSyntax expression)
         {
             return
@@ -322,13 +325,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            // TODO(cyrusn): Add more cases.
+            if (expression.IsParentKind(SyntaxKind.ConstantPattern))
+            {
+                return true;
+            }
+
+            // note: the above list is not intended to be exhaustive.  If more cases
+            // are discovered that should be considered 'constant' contexts in the 
+            // language, then this should be updated accordingly.
             return false;
         }
 
         public static bool IsInOutContext(this ExpressionSyntax expression)
         {
-            var argument = expression.Parent as ArgumentSyntax;
+            var argument = expression?.Parent as ArgumentSyntax;
             return
                 argument != null &&
                 argument.Expression == expression &&
@@ -566,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            if (!(expression is ObjectCreationExpressionSyntax) && 
+            if (!(expression is ObjectCreationExpressionSyntax) &&
                 !(expression is AnonymousObjectCreationExpressionSyntax) &&
                 !expression.IsLeftSideOfAssignExpression())
             {
@@ -2780,6 +2790,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 default:
                     return OperatorPrecedence.None;
+            }
+        }
+
+        public static bool TryConvertToStatement(
+            this ExpressionSyntax expression,
+            SyntaxToken? semicolonTokenOpt,
+            bool createReturnStatementForExpression,
+            out StatementSyntax statement)
+        {
+            // It's tricky to convert an arrow expression with directives over to a block.
+            // We'd need to find and remove the directives *after* the arrow expression and
+            // move them accordingly.  So, for now, we just disallow this.
+            if (expression.GetLeadingTrivia().Any(t => t.IsDirective))
+            {
+                statement = null;
+                return false;
+            }
+
+            var semicolonToken = semicolonTokenOpt ?? SyntaxFactory.Token(SyntaxKind.SemicolonToken);
+
+            statement = ConvertToStatement(expression, semicolonToken, createReturnStatementForExpression);
+            return true;
+        }
+
+        private static StatementSyntax ConvertToStatement(ExpressionSyntax expression, SyntaxToken semicolonToken, bool createReturnStatementForExpression)
+        {
+            if (expression.IsKind(SyntaxKind.ThrowExpression))
+            {
+                var throwExpression = (ThrowExpressionSyntax)expression;
+                return SyntaxFactory.ThrowStatement(throwExpression.ThrowKeyword, throwExpression.Expression, semicolonToken);
+            }
+            else if (createReturnStatementForExpression)
+            {
+                if (expression.GetLeadingTrivia().Any(t => t.IsSingleOrMultiLineComment()))
+                {
+                    return SyntaxFactory.ReturnStatement(expression.WithLeadingTrivia(SyntaxFactory.ElasticSpace))
+                                        .WithSemicolonToken(semicolonToken)
+                                        .WithLeadingTrivia(expression.GetLeadingTrivia())
+                                        .WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker);
+                }
+                else
+                {
+                    return SyntaxFactory.ReturnStatement(expression)
+                                        .WithSemicolonToken(semicolonToken);
+                }
+            }
+            else
+            {
+                return SyntaxFactory.ExpressionStatement(expression)
+                                    .WithSemicolonToken(semicolonToken);
             }
         }
     }

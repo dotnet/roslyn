@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             }
         }
 
-        private async Task<ISymbolSearchUpdateEngine> GetEngine(CancellationToken cancellationToken)
+        private async Task<ISymbolSearchUpdateEngine> GetEngineAsync(CancellationToken cancellationToken)
         {
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -106,14 +106,14 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         private async Task UpdateSourceInBackgroundAsync(string sourceName)
         {
-            var engine = await GetEngine(_cancellationTokenSource.Token).ConfigureAwait(false);
+            var engine = await GetEngineAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
             await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory).ConfigureAwait(false);
         }
 
         public async Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity, CancellationToken cancellationToken)
         {
-            var engine = await GetEngine(cancellationToken).ConfigureAwait(false);
+            var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);
             var allPackagesWithType = await engine.FindPackagesWithTypeAsync(
                 source, name, arity, cancellationToken).ConfigureAwait(false);
 
@@ -123,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         public async Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
             string source, string assemblyName, CancellationToken cancellationToken)
         {
-            var engine = await GetEngine(cancellationToken).ConfigureAwait(false);
+            var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);
             var allPackagesWithAssembly = await engine.FindPackagesWithAssemblyAsync(
                 source, assemblyName, cancellationToken).ConfigureAwait(false);
 
@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
             var result = ArrayBuilder<TPackageResult>.GetInstance();
 
-            // We always returm types from packages that we've use elsewhere in the project.
+            // We always return types from packages that we've use elsewhere in the project.
             result.AddRange(packagesUsedInOtherProjects);
 
             // For all other hits include as long as the popularity is high enough.  
@@ -175,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         public async Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity, CancellationToken cancellationToken)
         {
-            var engine = await GetEngine(cancellationToken).ConfigureAwait(false);
+            var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);
             return await engine.FindReferenceAssembliesWithTypeAsync(
                 name, arity, cancellationToken).ConfigureAwait(false);
         }

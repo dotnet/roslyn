@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
     internal abstract class HostAnalysisScope
     {
-        private readonly Dictionary<DiagnosticAnalyzer, AnalyzerActions> _analyzerActions = new Dictionary<DiagnosticAnalyzer, AnalyzerActions>();
+        private readonly ConcurrentDictionary<DiagnosticAnalyzer, AnalyzerActions> _analyzerActions = new ConcurrentDictionary<DiagnosticAnalyzer, AnalyzerActions>();
 
         public virtual AnalyzerActions GetAnalyzerActions(DiagnosticAnalyzer analyzer)
         {
@@ -515,8 +515,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (symbolKinds.Contains(SymbolKind.Parameter))
             {
                 RegisterSymbolAction(
-                    analyzer, 
-                    context => 
+                    analyzer,
+                    context =>
                     {
                         ImmutableArray<IParameterSymbol> parameters;
 
@@ -550,9 +550,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                     context.CancellationToken));
                             }
                         }
-                    }, 
+                    },
                     ImmutableArray.Create(SymbolKind.Method, SymbolKind.Property, SymbolKind.NamedType));
-            }   
+            }
         }
 
         public void RegisterSymbolStartAction(DiagnosticAnalyzer analyzer, Action<SymbolStartAnalysisContext> action, SymbolKind symbolKind)
@@ -617,14 +617,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         protected AnalyzerActions GetOrCreateAnalyzerActions(DiagnosticAnalyzer analyzer)
         {
-            AnalyzerActions actions;
-            if (!_analyzerActions.TryGetValue(analyzer, out actions))
-            {
-                actions = new AnalyzerActions();
-                _analyzerActions[analyzer] = actions;
-            }
-
-            return actions;
+            return _analyzerActions.GetOrAdd(analyzer, _ => new AnalyzerActions());
         }
     }
 

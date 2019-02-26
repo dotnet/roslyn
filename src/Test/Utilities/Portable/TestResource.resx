@@ -183,6 +183,30 @@ namespace My
         static A() 
         {
             int x = default;
+            string y = null!;
+        }
+
+        void Patterns(object o, object p)
+        {
+            var b = o is string s;
+            var c = o switch { "a" => 1, "b" => 2, _ => 3 };
+            switch (o, p)
+            {
+                case (2, 1): break;
+                case (2, 2) q: break;
+                case X(2, 3): break;
+                case X(2, 4) q: break;
+                case X { A: 2, B: 5 }: break;
+                case X { A: 2, B: 6 } q: break;
+                case X(2, 1) { A: 2, B: 7 }: break;
+                case X(2, 4) { A: 2, B: 8 } q: break;
+                case { A: 3, B: 9 }: break;
+                case { A: 3, B: 10 } q: break;
+                case X q: break;
+                case var (x, y) when x == y: break;
+                case var (x, (y, z)) when x == y: break;
+                case _: break;
+            }
         }
 
         [method: Obsolete]
@@ -212,6 +236,8 @@ namespace My
             var local3 = 0, local4 = 1;
             local3 = local4 = 1;
             var local5 = null as Action ?? null;
+            local5 ??= null;
+            local5 = (local5 ??= null);
             var local6 = local5 is Action;
 
             var u = 1u;
@@ -326,11 +352,16 @@ namespace My
                     break;
                 case int i:
                     break;
+                // case Type (int x, 3) { A: _, B: 7 } identifier:
+                //     break;
+                // case var (x, y, (z, w)):
+                //     break;
                 default:
                     {
                         return;
                     }
             }
+            var z7 = 1 switch { 1 => 1 };
             while (i &lt; 10)
             {
                 ++i;
@@ -809,6 +840,8 @@ namespace Comments.XmlComments.UndocumentedKeywords
             i &lt;&lt;= i;/*&lt;&lt;=*/
             i &gt;&gt;= i;/*&gt;&gt;=*/
             object s = x =&gt; x + 1;/*=&gt;*/
+            var index = ^1;
+            var range = 1..2;
             Point point;
             unsafe
             {

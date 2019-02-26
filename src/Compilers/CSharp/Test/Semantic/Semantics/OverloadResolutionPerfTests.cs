@@ -185,5 +185,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ToArray();
             comp.VerifyDiagnostics(diagnostics);
         }
+
+        [Fact, WorkItem(29360, "https://github.com/dotnet/roslyn/pull/29360")]
+        public void RaceConditionOnImproperlyCapturedAnalyzedArguments()
+        {
+            const int n = 6;
+            var builder = new StringBuilder();
+            builder.AppendLine("using System;");
+
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine($"public class C{i}");
+                builder.AppendLine("{");
+
+                for (int j = 0; j < n; j++)
+                {
+                    builder.AppendLine($"    public string M{j}()");
+                    builder.AppendLine("    {");
+
+                    for (int k = 0; k < n; k++)
+                    {
+                        for (int l = 0; l < n; l++)
+                        {
+                            builder.AppendLine($"        Class.Method((C{k} x{k}) => x{k}.M{l});");
+                        }
+                    }
+
+                    builder.AppendLine("        return null;");
+                    builder.AppendLine("    }");
+                }
+
+                builder.AppendLine("}");
+            }
+
+            builder.AppendLine(@"
+public static class Class
+{
+    public static void Method<TClass>(Func<TClass, Func<string>> method) { }
+    public static void Method<TClass>(Func<TClass, Func<string, string>> method) { }
+}
+");
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
     }
 }

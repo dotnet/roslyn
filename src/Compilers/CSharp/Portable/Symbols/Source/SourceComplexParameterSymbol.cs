@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SourceComplexParameterSymbol(
             Symbol owner,
             int ordinal,
-            TypeSymbol parameterType,
+            TypeSymbolWithAnnotations parameterType,
             RefKind refKind,
             string name,
             ImmutableArray<Location> locations,
@@ -127,6 +127,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                   && !HasCallerFilePathAttribute
                                                   && HasCallerMemberNameAttribute;
 
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
+        {
+            get
+            {
+                FlowAnalysisAnnotations? annotations = TryGetExtraAttributeAnnotations();
+                if (annotations.HasValue)
+                {
+                    // https://github.com/dotnet/roslyn/issues/30078: Make sure this is covered by test
+                    return annotations.Value;
+                }
+
+                ParameterWellKnownAttributeData attributeData = GetDecodedWellKnownAttributeData();
+                bool hasEnsuresNotNull = attributeData?.HasEnsuresNotNullAttribute == true;
+
+                return FlowAnalysisAnnotationsFacts.Create(
+                    notNullWhenTrue: hasEnsuresNotNull || attributeData?.HasNotNullWhenTrueAttribute == true,
+                    notNullWhenFalse: hasEnsuresNotNull || attributeData?.HasNotNullWhenFalseAttribute == true,
+                    assertsTrue: attributeData?.HasAssertsTrueAttribute == true,
+                    assertsFalse: attributeData?.HasAssertsFalseAttribute == true);
+            }
+        }
+
         private ConstantValue DefaultSyntaxValue
         {
             get
@@ -203,19 +225,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // The default literal conversion is an exception: (double)default would give the wrong value for M(double? x = default).
 
             if (convertedExpression.ConstantValue == null && convertedExpression.Kind == BoundKind.Conversion &&
-                !(valueBeforeConversion.Kind == BoundKind.DefaultExpression && valueBeforeConversion.Type == null))
+                !(valueBeforeConversion.Kind == BoundKind.DefaultExpression && (object)valueBeforeConversion.Type == null))
             {
-                if (parameterType.IsNullableType())
+                if (parameterType.TypeSymbol.IsNullableType())
                 {
-                    convertedExpression = binder.GenerateConversionForAssignment(parameterType.GetNullableUnderlyingType(),
+                    convertedExpression = binder.GenerateConversionForAssignment(parameterType.TypeSymbol.GetNullableUnderlyingType(),
                         valueBeforeConversion, diagnostics, isDefaultParameter: true);
                 }
+            }
+
+            if (parameterType.IsReferenceType &&
+                parameterType.NullableAnnotation.IsAnyNotNullable() &&
+                convertedExpression.ConstantValue?.IsNull == true &&
+                !suppressNullableWarning(convertedExpression) &&
+                DeclaringCompilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
+            {
+                diagnostics.Add(ErrorCode.WRN_NullAsNonNullable, parameterSyntax.Default.Value.Location);
             }
 
             // represent default(struct) by a Null constant:
             var value = convertedExpression.ConstantValue ?? ConstantValue.Null;
             VerifyParamDefaultValueMatchesAttributeIfAny(value, defaultSyntax.Value, diagnostics);
             return value;
+
+            bool suppressNullableWarning(BoundExpression expr)
+            {
+                while (true)
+                {
+                    if (expr.IsSuppressed)
+                    {
+                        return true;
+                    }
+
+                    switch (expr.Kind)
+                    {
+                        case BoundKind.Conversion:
+                            expr = ((BoundConversion)expr).Operand;
+                            break;
+                        default:
+                            return false;
+                    }
+                }
+            }
         }
 
         public override string MetadataName
@@ -334,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        internal CommonParameterWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        internal ParameterWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -342,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 attributesBag = this.GetAttributesBag();
             }
 
-            return (CommonParameterWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            return (ParameterWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
         /// <summary>
@@ -521,23 +572,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.InAttribute))
             {
-                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasInAttribute = true;
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasInAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.OutAttribute))
             {
-                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasOutAttribute = true;
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasOutAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.MarshalAsAttribute))
             {
-                MarshalAsAttributeDecoder<CommonParameterWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.Parameter, MessageProvider.Instance);
+                MarshalAsAttributeDecoder<ParameterWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.Parameter, MessageProvider.Instance);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.IDispatchConstantAttribute))
             {
-                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasIDispatchConstantAttribute = true;
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasIDispatchConstantAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.IUnknownConstantAttribute))
             {
-                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasIUnknownConstantAttribute = true;
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasIUnknownConstantAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.CallerLineNumberAttribute))
             {
@@ -575,8 +626,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
+            {
+                // NullableAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullWhenTrueAttribute))
+            {
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasNotNullWhenTrueAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullWhenFalseAttribute))
+            {
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasNotNullWhenFalseAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.EnsuresNotNullAttribute))
+            {
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasEnsuresNotNullAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.AssertsTrueAttribute))
+            {
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasAssertsTrueAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.AssertsFalseAttribute))
+            {
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasAssertsFalseAttribute = true;
+            }
         }
-
 
         private void DecodeDefaultParameterValueAttribute(AttributeDescription description, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
@@ -695,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ConstantValue.Bad;
                 }
             }
-            else if (!compilation.Conversions.ClassifyConversionFromType((TypeSymbol)arg.Type, this.Type, ref useSiteDiagnostics).Kind.IsImplicitConversion())
+            else if (!compilation.Conversions.ClassifyConversionFromType((TypeSymbol)arg.Type, this.Type.TypeSymbol, ref useSiteDiagnostics).Kind.IsImplicitConversion())
             {
                 // error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
                 if (diagnose)
@@ -757,11 +832,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //         member that is used in contexts that do not allow optional arguments
                 diagnostics.Add(ErrorCode.WRN_CallerLineNumberParamForUnconsumedLocation, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
-            else if (!compilation.Conversions.HasCallerLineNumberConversion(Type, ref useSiteDiagnostics))
+            else if (!compilation.Conversions.HasCallerLineNumberConversion(Type.TypeSymbol, ref useSiteDiagnostics))
             {
                 // CS4017: CallerLineNumberAttribute cannot be applied because there are no standard conversions from type '{0}' to type '{1}'
                 TypeSymbol intType = compilation.GetSpecialType(SpecialType.System_Int32);
-                diagnostics.Add(ErrorCode.ERR_NoConversionForCallerLineNumberParam, node.Name.Location, intType, Type);
+                diagnostics.Add(ErrorCode.ERR_NoConversionForCallerLineNumberParam, node.Name.Location, intType, Type.TypeSymbol);
             }
             else if (!HasExplicitDefaultValue && !ContainingSymbol.IsPartialImplementation()) // attribute applied to parameter without default
             {
@@ -785,11 +860,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //         member that is used in contexts that do not allow optional arguments
                 diagnostics.Add(ErrorCode.WRN_CallerFilePathParamForUnconsumedLocation, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
-            else if (!compilation.Conversions.HasCallerInfoStringConversion(Type, ref useSiteDiagnostics))
+            else if (!compilation.Conversions.HasCallerInfoStringConversion(Type.TypeSymbol, ref useSiteDiagnostics))
             {
                 // CS4018: CallerFilePathAttribute cannot be applied because there are no standard conversions from type '{0}' to type '{1}'
                 TypeSymbol stringType = compilation.GetSpecialType(SpecialType.System_String);
-                diagnostics.Add(ErrorCode.ERR_NoConversionForCallerFilePathParam, node.Name.Location, stringType, Type);
+                diagnostics.Add(ErrorCode.ERR_NoConversionForCallerFilePathParam, node.Name.Location, stringType, Type.TypeSymbol);
             }
             else if (!HasExplicitDefaultValue && !ContainingSymbol.IsPartialImplementation()) // attribute applied to parameter without default
             {
@@ -818,11 +893,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //         member that is used in contexts that do not allow optional arguments
                 diagnostics.Add(ErrorCode.WRN_CallerMemberNameParamForUnconsumedLocation, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
-            else if (!compilation.Conversions.HasCallerInfoStringConversion(Type, ref useSiteDiagnostics))
+            else if (!compilation.Conversions.HasCallerInfoStringConversion(Type.TypeSymbol, ref useSiteDiagnostics))
             {
                 // CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type '{0}' to type '{1}'
                 TypeSymbol stringType = compilation.GetSpecialType(SpecialType.System_String);
-                diagnostics.Add(ErrorCode.ERR_NoConversionForCallerMemberNameParam, node.Name.Location, stringType, Type);
+                diagnostics.Add(ErrorCode.ERR_NoConversionForCallerMemberNameParam, node.Name.Location, stringType, Type.TypeSymbol);
             }
             else if (!HasExplicitDefaultValue && !ContainingSymbol.IsPartialImplementation()) // attribute applied to parameter without default
             {
@@ -854,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(_lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
             Debug.Assert(symbolPart == AttributeLocation.None);
 
-            var data = (CommonParameterWellKnownAttributeData)decodedData;
+            var data = (ParameterWellKnownAttributeData)decodedData;
             if (data != null)
             {
                 switch (RefKind)
@@ -961,8 +1036,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsExtensionMethodThis => (_parameterSyntaxKind & ParameterSyntaxKind.ExtensionThisParameter) != 0;
 
-        public override ImmutableArray<CustomModifier> CustomModifiers => ImmutableArray<CustomModifier>.Empty;
-
         public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
@@ -974,17 +1047,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
-    internal sealed class SourceComplexParameterSymbolWithCustomModifiers : SourceComplexParameterSymbol
+    internal sealed class SourceComplexParameterSymbolWithCustomModifiersPrecedingByRef : SourceComplexParameterSymbol
     {
-        private readonly ImmutableArray<CustomModifier> _customModifiers;
         private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
 
-        internal SourceComplexParameterSymbolWithCustomModifiers(
+        internal SourceComplexParameterSymbolWithCustomModifiersPrecedingByRef(
             Symbol owner,
             int ordinal,
-            TypeSymbol parameterType,
+            TypeSymbolWithAnnotations parameterType,
             RefKind refKind,
-            ImmutableArray<CustomModifier> customModifiers,
             ImmutableArray<CustomModifier> refCustomModifiers,
             string name,
             ImmutableArray<Location> locations,
@@ -994,15 +1065,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExtensionMethodThis)
             : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, defaultSyntaxValue, isParams, isExtensionMethodThis)
         {
-            Debug.Assert(!customModifiers.IsEmpty || !refCustomModifiers.IsEmpty);
+            Debug.Assert(!refCustomModifiers.IsEmpty);
 
-            _customModifiers = customModifiers;
             _refCustomModifiers = refCustomModifiers;
 
             Debug.Assert(refKind != RefKind.None || _refCustomModifiers.IsEmpty);
         }
-
-        public override ImmutableArray<CustomModifier> CustomModifiers => _customModifiers;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => _refCustomModifiers;
     }

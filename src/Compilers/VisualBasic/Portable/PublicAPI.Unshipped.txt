@@ -1,3 +1,4 @@
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic16 = 1600 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.Syntax.AsClauseSyntax.WithAsKeyword(asKeyword As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.AsClauseSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax.WithCloseParenToken(closeParenToken As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax.WithCommaToken(commaToken As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CastExpressionSyntax

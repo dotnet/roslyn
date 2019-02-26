@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.PreferFrameworkType
 {
     internal abstract class PreferFrameworkTypeDiagnosticAnalyzerBase<TSyntaxKind, TExpressionSyntax, TPredefinedTypeSyntax> :
-        AbstractCodeStyleDiagnosticAnalyzer
+        AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TPredefinedTypeSyntax : TExpressionSyntax
@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
         {
         }
 
-        private static PerLanguageOption<CodeStyleOption<bool>> GetOptionForDeclarationContext 
+        private static PerLanguageOption<CodeStyleOption<bool>> GetOptionForDeclarationContext
             => CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration;
 
-        private static PerLanguageOption<CodeStyleOption<bool>> GetOptionForMemberAccessContext 
+        private static PerLanguageOption<CodeStyleOption<bool>> GetOptionForMemberAccessContext
             => CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
 
         public override bool OpenFileOnly(Workspace workspace)
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
                      preferTypeKeywordInMemberAccessOption == NotificationOption.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption.Error);
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() 
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected abstract string GetLanguageName();
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
                     out var diagnosticSeverity))
             {
                 context.ReportDiagnostic(DiagnosticHelper.Create(
-                    Descriptor, predefinedTypeNode.GetLocation(), 
+                    Descriptor, predefinedTypeNode.GetLocation(),
                     diagnosticSeverity, additionalLocations: null,
                     PreferFrameworkTypeConstants.Properties));
             }
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
             return OptionSettingPrefersFrameworkType(optionValue, severity);
         }
 
-        private bool IsStylePreferred(OptionSet optionSet, string language) 
+        private bool IsStylePreferred(OptionSet optionSet, string language)
             => IsFrameworkTypePreferred(optionSet, GetOptionForDeclarationContext, language) ||
                IsFrameworkTypePreferred(optionSet, GetOptionForMemberAccessContext, language);
 

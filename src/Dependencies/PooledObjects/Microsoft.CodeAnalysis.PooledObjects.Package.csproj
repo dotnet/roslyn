@@ -18,5 +18,5 @@
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
   </ItemGroup>
-  <Import Project="$(RepoRoot)build\Targets\SourcePackage.targets" />
+  <Import Project="$(RepositoryEngineeringDir)targets\SourcePackage.targets" />
 </Project>

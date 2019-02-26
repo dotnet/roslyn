@@ -2,20 +2,40 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.RemoveUnusedMembers;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestHelpers;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers
 {
     public class RemoveUnusedMembersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpRemoveUnusedMembersDiagnosticAnalyzer(forceEnableRules: true),
-            new CSharpRemoveUnusedMembersCodeFixProvider());
+            => (new CSharpRemoveUnusedMembersDiagnosticAnalyzer(), new CSharpRemoveUnusedMembersCodeFixProvider());
+
+        // Ensure that we explicitly test missing IDE0052, which has no corresponding code fix (non-fixable diagnostic).
+        private Task TestDiagnosticMissingAsync(string initialMarkup)
+            => TestDiagnosticMissingAsync(initialMarkup, new TestParameters(retainNonFixableDiagnostics: true));
+
+        [Fact, WorkItem(31582, "https://github.com/dotnet/roslyn/issues/31582")]
+        public async Task FieldReadViaSuppression()
+        {
+            await TestDiagnosticMissingAsync(@"
+#nullable enable
+class MyClass
+{
+    string? [|_field|] = null;
+    void M()
+    {
+        _field!.ToString();
+    }
+}", new TestParameters(retainNonFixableDiagnostics: true, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
+        }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         [InlineData("public")]
@@ -25,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers
         [InlineData("private protected")]
         public async Task NonPrivateField(string accessibility)
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 $@"class MyClass
 {{
     {accessibility} int [|_goo|];
@@ -38,9 +58,40 @@ $@"class MyClass
         [InlineData("protected")]
         [InlineData("protected internal")]
         [InlineData("private protected")]
+        public async Task NonPrivateFieldWithConstantInitializer(string accessibility)
+        {
+            await TestDiagnosticMissingAsync(
+$@"class MyClass
+{{
+    {accessibility} int [|_goo|] = 0;
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [InlineData("public")]
+        [InlineData("internal")]
+        [InlineData("protected")]
+        [InlineData("protected internal")]
+        [InlineData("private protected")]
+        public async Task NonPrivateFieldWithNonConstantInitializer(string accessibility)
+        {
+            await TestDiagnosticMissingAsync(
+$@"class MyClass
+{{
+    {accessibility} int [|_goo|] = _goo2;
+    private static readonly int _goo2 = 0;
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [InlineData("public")]
+        [InlineData("internal")]
+        [InlineData("protected")]
+        [InlineData("protected internal")]
+        [InlineData("private protected")]
         public async Task NonPrivateMethod(string accessibility)
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 $@"class MyClass
 {{
     {accessibility} void [|M|]() {{ }}
@@ -55,7 +106,7 @@ $@"class MyClass
         [InlineData("private protected")]
         public async Task NonPrivateProperty(string accessibility)
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 $@"class MyClass
 {{
     {accessibility} int [|P|] {{ get; }}
@@ -70,7 +121,7 @@ $@"class MyClass
         [InlineData("private protected")]
         public async Task NonPrivateIndexer(string accessibility)
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 $@"class MyClass
 {{
     {accessibility} int [|this|] {{ get {{ return 0; }} set {{ }} }}
@@ -85,7 +136,7 @@ $@"class MyClass
         [InlineData("private protected")]
         public async Task NonPrivateEvent(string accessibility)
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 $@"using System;
 
 class MyClass
@@ -117,6 +168,76 @@ class MyClass
 }",
 @"class MyClass
 {
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task GenericMethodIsUnused()
+        {
+            await TestInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int [|M|]<T>() => 0;
+}",
+@"class MyClass
+{
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task MethodInGenericTypeIsUnused()
+        {
+            await TestInRegularAndScriptAsync(
+@"class MyClass<T>
+{
+    private int [|M|]() => 0;
+}",
+@"class MyClass<T>
+{
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task InstanceConstructorIsUnused_NoArguments()
+        {
+            // We only flag constructors with arguments.
+            await TestDiagnosticMissingAsync(
+@"class MyClass
+{
+    private [|MyClass()|] { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task InstanceConstructorIsUnused_WithArguments()
+        {
+            await TestInRegularAndScriptAsync(
+@"class MyClass
+{
+    private [|MyClass(int i)|] { }
+}",
+@"class MyClass
+{
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task StaticConstructorIsNotFlagged()
+        {
+            await TestDiagnosticMissingAsync(
+@"class MyClass
+{
+    static [|MyClass()|] { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task DestructorIsNotFlagged()
+        {
+            await TestDiagnosticMissingAsync(
+@"class MyClass
+{
+    ~[|MyClass()|] { }
 }");
         }
 
@@ -162,7 +283,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task EntryPointMethodNotFlagged()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private static void [|Main|]() { }
@@ -172,7 +293,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task EntryPointMethodNotFlagged_02()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"using System.Threading.Tasks;
 
 class MyClass
@@ -184,7 +305,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task EntryPointMethodNotFlagged_03()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"using System.Threading.Tasks;
 
 class MyClass
@@ -196,12 +317,25 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task EntryPointMethodNotFlagged_04()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"using System.Threading.Tasks;
 
 class MyClass
 {
     private static Task [|Main|]() => Task.CompletedTask;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(31572, "https://github.com/dotnet/roslyn/issues/31572")]
+        public async Task EntryPointMethodNotFlagged_05()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System.Threading.Tasks;
+
+class MyClass
+{
+    private static int [|Main|]() => 0;
 }");
         }
 
@@ -312,7 +446,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MethodIsUnused_Extern()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"using System.Runtime.InteropServices;
 
 class C
@@ -325,17 +459,17 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MethodIsUnused_Abstract()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class C
 {
-    private abstract void [|M|]();
+    protected abstract void [|M|]();
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MethodIsUnused_InterfaceMethod()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"interface I
 {
     void [|M|]();
@@ -345,7 +479,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MethodIsUnused_ExplicitInterfaceImplementation()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"interface I
 {
     void M();
@@ -354,6 +488,67 @@ class C
 class C : I
 {
     void I.[|M|]() { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task PropertyIsUnused_ExplicitInterfaceImplementation()
+        {
+            await TestDiagnosticMissingAsync(
+@"interface I
+{
+    int P { get; set; }
+}
+
+class C : I
+{
+    int I.[|P|] { get { return 0; } set { } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(30965, "https://github.com/dotnet/roslyn/issues/30965")]
+        public async Task EventIsUnused_ExplicitInterfaceImplementation()
+        {
+            await TestDiagnosticMissingAsync(
+@"interface I
+{
+    event System.Action E;
+}
+
+class C : I
+{
+    event System.Action [|I.E|]
+    {
+        add { }
+        remove { }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(30894, "https://github.com/dotnet/roslyn/issues/30894")]
+        public async Task WriteOnlyProperty_NotWritten()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int [|P|] { set { } }
+}",
+@"class C
+{
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(30894, "https://github.com/dotnet/roslyn/issues/30894")]
+        public async Task WriteOnlyProperty_Written()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    int [|P|] { set { } }
+    void M(int i) => P = i;
 }");
         }
 
@@ -373,7 +568,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_ExpressionBody()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -384,7 +579,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_BlockBody()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -395,7 +590,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_ExpressionLambda()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -409,7 +604,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_BlockLambda()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -423,7 +618,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_Delegate()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -437,7 +632,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_ExpressionBodyLocalFunction()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -452,7 +647,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_BlockBodyLocalFunction()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -467,7 +662,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_Accessor()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -484,7 +679,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_Deconstruction()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -498,7 +693,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_DifferentInstance()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -509,7 +704,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_ObjectInitializer()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"
 class C
 {
@@ -525,7 +720,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_ThisInstance()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -536,7 +731,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_Attribute()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private const string [|_goo|] = """";
@@ -549,7 +744,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MethodIsInvoked()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|M1|] => 0
@@ -560,7 +755,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MethodIsAddressTaken()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|M1|] => 0
@@ -572,9 +767,86 @@ class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task GenericMethodIsInvoked_ExplicitTypeArguments()
+        {
+            await TestDiagnosticMissingAsync(
+@"class MyClass
+{
+    private int [|M1|]<T>() => 0;
+    private int M2() => M1<int>();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task GenericMethodIsInvoked_ImplicitTypeArguments()
+        {
+            await TestDiagnosticMissingAsync(
+@"class MyClass
+{
+    private T [|M1|]<T>(T t) => t;
+    private int M2() => M1(0);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task MethodInGenericTypeIsInvoked_NoTypeArguments()
+        {
+            await TestDiagnosticMissingAsync(
+@"class MyClass<T>
+{
+    private int [|M1|]() => 0;
+    private int M2() => M1();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task MethodInGenericTypeIsInvoked_NonConstructedType()
+        {
+            await TestDiagnosticMissingAsync(
+@"class MyClass<T>
+{
+    private int [|M1|]() => 0;
+    private int M2(MyClass<T> m) => m.M1();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task MethodInGenericTypeIsInvoked_ConstructedType()
+        {
+            await TestDiagnosticMissingAsync(
+@"class MyClass<T>
+{
+    private int [|M1|]() => 0;
+    private int M2(MyClass<int> m) => m.M1();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task InstanceConstructorIsUsed_NoArguments()
+        {
+            await TestDiagnosticMissingAsync(
+@"class MyClass
+{
+    private [|MyClass()|] { }
+    public static readonly MyClass Instance = new MyClass();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task InstanceConstructorIsUsed_WithArguments()
+        {
+            await TestDiagnosticMissingAsync(
+@"class MyClass
+{
+    private [|MyClass(int i)|] { }
+    public static readonly MyClass Instance = new MyClass(0);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task PropertyIsRead()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|P|] => 0;
@@ -585,7 +857,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsRead()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|this|][int x] { get { return 0; } set { } }
@@ -596,7 +868,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task EventIsRead()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"using System;
 
 class MyClass
@@ -609,7 +881,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task EventIsSubscribed()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"using System;
 
 class MyClass
@@ -629,7 +901,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task EventIsRaised()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"using System;
 
 class MyClass
@@ -644,15 +916,76 @@ class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(32488, "https://github.com/dotnet/roslyn/issues/32488")]
         public async Task FieldInNameOf()
         {
-            await TestDiagnosticsAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
     private string _goo2 = nameof(_goo);
-}",
-    expected: Diagnostic("IDE0052"));
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")]
+        public async Task MethodInNameOf()
+        {
+            await TestDiagnosticMissingAsync(
+@"class MyClass
+{
+    private void [|M|]() { }
+    private string _goo = nameof(M);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")]
+        public async Task PropertyInNameOf()
+        {
+            await TestDiagnosticMissingAsync(
+@"class MyClass
+{
+    private int [|P|] { get; }
+    private string _goo = nameof(P);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(32522, "https://github.com/dotnet/roslyn/issues/32522")]
+        public async Task TestDynamicInvocation()
+        {
+            await TestDiagnosticMissingAsync(
+@"class MyClass
+{
+    private void [|M|](dynamic d) { }
+    public void M2(dynamic d) => M(d);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(32522, "https://github.com/dotnet/roslyn/issues/32522")]
+        public async Task TestDynamicObjectCreation()
+        {
+            await TestDiagnosticMissingAsync(
+@"class MyClass
+{
+    private [|MyClass|](int i) { }
+    public static MyClass Create(dynamic d) => new MyClass(d);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(32522, "https://github.com/dotnet/roslyn/issues/32522")]
+        public async Task TestDynamicIndexerAccess()
+        {
+            await TestDiagnosticMissingAsync(
+@"class MyClass
+{
+    private int[] _list;
+    private int [|this|][int index] => _list[index];
+    public int M2(dynamic d) => this[d];
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -750,7 +1083,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task EventIsOnlyWritten()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private event System.EventHandler [|e|] { add { } remove { } }
@@ -822,7 +1155,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsReadAndWritten()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -837,7 +1170,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task PropertyIsReadAndWritten()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|P|] { get; set; }
@@ -852,7 +1185,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsReadAndWritten()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|this|][int x] { get { return 0; } set { } }
@@ -867,7 +1200,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsReadAndWritten_InProperty()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -880,9 +1213,10 @@ class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(30397, "https://github.com/dotnet/roslyn/issues/30397")]
         public async Task FieldIsIncrementedAndValueUsed()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -891,9 +1225,10 @@ class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(30397, "https://github.com/dotnet/roslyn/issues/30397")]
         public async Task FieldIsIncrementedAndValueUsed_02()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -928,7 +1263,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task PropertyIsIncrementedAndValueUsed()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|P|] { get; set; }
@@ -951,7 +1286,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsIncrementedAndValueUsed()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|this|][int x] { get { return 0; } set { } }
@@ -974,7 +1309,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsTargetOfCompoundAssignmentAndValueUsed()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -985,7 +1320,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsTargetOfCompoundAssignmentAndValueUsed_02()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -1020,7 +1355,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task PropertyIsTargetOfCompoundAssignmentAndValueUsed()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|P|] { get; set; }
@@ -1043,7 +1378,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsTargetOfCompoundAssignmentAndValueUsed()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|this|][int x] { get { return 0; } set { } }
@@ -1091,7 +1426,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsArg()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -1103,7 +1438,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsInArg()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -1115,7 +1450,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRefArg()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -1140,7 +1475,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MethodIsArg()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|M|]() => 0;
@@ -1152,7 +1487,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task PropertyIsArg()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|P|] => 0;
@@ -1164,7 +1499,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsArg()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|this|][int x] { get { return 0; } set { } }
@@ -1176,7 +1511,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task EventIsArg()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"using System;
 
 class MyClass
@@ -1234,7 +1569,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MultipleFields_SomeUnused_02()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|] = 0, _bar = 0;
@@ -1245,7 +1580,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_InNestedType()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -1260,7 +1595,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task MethodIsInvoked_InNestedType()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|M1|]() => 0;
@@ -1294,7 +1629,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldOfNestedTypeIsRead()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     class NestedType
@@ -1322,7 +1657,7 @@ class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_PartialClass()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"partial class MyClass
 {
     private int [|_goo|];
@@ -1336,7 +1671,7 @@ partial class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_PartialClass_DifferentFile()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -1379,7 +1714,7 @@ partial class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_InParens()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class MyClass
 {
     private int [|_goo|];
@@ -1414,7 +1749,7 @@ partial class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsRead_InDeconstruction_InParens()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class C
 {
     private int [|i|];
@@ -1455,7 +1790,7 @@ partial class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsGeneratedCode()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class C
 {
     [System.CodeDom.Compiler.GeneratedCodeAttribute("""", """")]
@@ -1470,7 +1805,7 @@ partial class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldUsedInGeneratedCode()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class C
 {
     private int [|i|];
@@ -1483,7 +1818,7 @@ partial class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsUnusedInType_SyntaxError()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class C
 {
     private int [|i|];
@@ -1495,7 +1830,7 @@ partial class MyClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsUnusedInType_SemanticError()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestDiagnosticMissingAsync(
 @"class C
 {
     private int [|i|];
@@ -1527,6 +1862,245 @@ class C2
 {
     // 'ii' is undefined.
     public int M() => ii;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task StructLayoutAttribute_ExplicitLayout()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System.Runtime.InteropServices;
+
+[StructLayoutAttribute(LayoutKind.Explicit)]
+class C
+{
+    [FieldOffset(0)]
+    private int [|i|];
+
+    [FieldOffset(4)]
+    private int i2;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task StructLayoutAttribute_SequentialLayout()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System.Runtime.InteropServices;
+
+[StructLayoutAttribute(LayoutKind.Sequential)]
+struct S
+{
+    private int [|i|];
+    private int i2;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task DebuggerDisplayAttribute_OnType_ReferencesField()
+        {
+            await TestDiagnosticMissingAsync(
+@"[System.Diagnostics.DebuggerDisplayAttribute(""{s}"")]
+class C
+{
+    private string [|s|];
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task DebuggerDisplayAttribute_OnType_ReferencesMethod()
+        {
+            await TestDiagnosticMissingAsync(
+@"[System.Diagnostics.DebuggerDisplayAttribute(""{GetString()}"")]
+class C
+{
+    private string [|GetString|]() => """";
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task DebuggerDisplayAttribute_OnType_ReferencesProperty()
+        {
+            await TestDiagnosticMissingAsync(
+@"[System.Diagnostics.DebuggerDisplayAttribute(""{MyString}"")]
+class C
+{
+    private string [|MyString|] => """";
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task DebuggerDisplayAttribute_OnField_ReferencesField()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    private string [|s|];
+
+    [System.Diagnostics.DebuggerDisplayAttribute(""{s}"")]
+    public int M;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task DebuggerDisplayAttribute_OnProperty_ReferencesMethod()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    private string [|GetString|]() => """";
+
+    [System.Diagnostics.DebuggerDisplayAttribute(""{GetString()}"")]
+    public int M => 0;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task DebuggerDisplayAttribute_OnProperty_ReferencesProperty()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    private string [|MyString|] { get { return """"; } }
+
+    [System.Diagnostics.DebuggerDisplayAttribute(""{MyString}"")]
+    public int M { get { return 0; } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task DebuggerDisplayAttribute_OnNestedTypeMember_ReferencesField()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    private static string [|s|];
+
+    class Nested
+    {
+        [System.Diagnostics.DebuggerDisplayAttribute(""{C.s}"")]
+        public int M;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(30886, "https://github.com/dotnet/roslyn/issues/30886")]
+        public async Task SerializableConstructor_TypeImplementsISerializable()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System.Runtime.Serialization;
+
+class C : ISerializable
+{
+    public C()
+    {
+    }
+
+    private [|C|](SerializationInfo info, StreamingContext context)
+    {
+    }
+
+    public void GetObjectData(SerializationInfo info, StreamingContext context)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(30886, "https://github.com/dotnet/roslyn/issues/30886")]
+        public async Task SerializableConstructor_BaseTypeImplementsISerializable()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+using System.Runtime.Serialization;
+
+class C : Exception 
+{
+    public C()
+    {
+    }
+
+    private [|C|](SerializationInfo info, StreamingContext context)
+        : base(info, context)
+    {
+    }
+
+    public void GetObjectData(SerializationInfo info, StreamingContext context)
+    {
+    }
+}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [InlineData(@"[System.Runtime.Serialization.OnDeserializingAttribute]")]
+        [InlineData(@"[System.Runtime.Serialization.OnDeserializedAttribute]")]
+        [InlineData(@"[System.Runtime.Serialization.OnSerializingAttribute]")]
+        [InlineData(@"[System.Runtime.Serialization.OnSerializedAttribute]")]
+        [InlineData(@"[System.Runtime.InteropServices.ComRegisterFunctionAttribute]")]
+        [InlineData(@"[System.Runtime.InteropServices.ComUnregisterFunctionAttribute]")]
+        public async Task MethodsWithSpecialAttributes(string attribute)
+        {
+            await TestDiagnosticMissingAsync(
+$@"class C
+{{
+    {attribute}
+    private void [|M|]()
+    {{
+    }}
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [InlineData("ShouldSerialize")]
+        [InlineData("Reset")]
+        [WorkItem(30887, "https://github.com/dotnet/roslyn/issues/30887")]
+        public async Task ShouldSerializeOrResetPropertyMethod(string prefix)
+        {
+            await TestDiagnosticMissingAsync(
+$@"class C
+{{
+    private bool [|{prefix}Data|]()
+    {{
+        return true;
+    }}
+
+    public int Data {{ get; private set; }}
+}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(30377, "https://github.com/dotnet/roslyn/issues/30377")]
+        public async Task EventHandlerMethod()
+        {
+            await TestDiagnosticMissingAsync(
+$@"using System;
+
+class C
+{{
+    private void [|M|](object o, EventArgs args)
+    {{
+    }}
+}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(32727, "https://github.com/dotnet/roslyn/issues/32727")]
+        public async Task NestedStructLayoutTypeWithReference()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System.Runtime.InteropServices;
+
+class Program
+{
+    private const int [|MAX_PATH|] = 260;
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct ProcessEntry32
+    {
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = MAX_PATH)]
+        public string szExeFile;
+    }
 }");
         }
 
@@ -1687,6 +2261,58 @@ static class MyClass3
         </Document>
     </Project>
 </Workspace>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(32702, "https://github.com/dotnet/roslyn/issues/32702")]
+        public async Task UsedExtensionMethod_ReferencedFromPartialMethod()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+static partial class B
+{
+    static partial void PartialMethod();
+}
+        </Document>
+        <Document>
+static partial class B
+{
+    static partial void PartialMethod()
+    {
+        UsedMethod();
+    }
+
+    private static void [|UsedMethod|]() { }
+}
+        </Document>
+    </Project>
+</Workspace>");
+        }
+
+        [Fact, WorkItem(32842, "https://github.com/dotnet/roslyn/issues/32842")]
+        public async Task FieldIsRead_NullCoalesceAssignment()
+        {
+            await TestDiagnosticMissingAsync(@"
+public class MyClass
+{
+    private MyClass [|_field|];
+    public MyClass Property => _field ??= new MyClass();
+}", new TestParameters(retainNonFixableDiagnostics: true, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
+        }
+
+        [Fact, WorkItem(32842, "https://github.com/dotnet/roslyn/issues/32842")]
+        public async Task FieldIsNotRead_NullCoalesceAssignment()
+        {
+            await TestDiagnosticsAsync(@"
+public class MyClass
+{
+    private MyClass [|_field|];
+    public void M() => _field ??= new MyClass();
+}", new TestParameters(retainNonFixableDiagnostics: true, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)),
+    expected: Diagnostic("IDE0052"));
         }
     }
 }

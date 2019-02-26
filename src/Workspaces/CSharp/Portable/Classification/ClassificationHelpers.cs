@@ -25,12 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         /// <returns>The correct syntactic classification for the token.</returns>
         public static string GetClassification(SyntaxToken token)
         {
-            if (token.IsKind(SyntaxKind.DiscardDesignation, SyntaxKind.UnderscoreToken))
+            if (IsControlKeyword(token))
             {
-                return ClassificationTypeNames.Identifier;
+                return ClassificationTypeNames.ControlKeyword;
             }
-            if (SyntaxFacts.IsKeywordKind(token.Kind()))
+            else if (SyntaxFacts.IsKeywordKind(token.Kind()) || token.IsKind(SyntaxKind.DiscardDesignation))
             {
+                // When classifying `_`, IsKeywordKind handles UnderscoreToken, but need to additional check for DiscardDesignation
                 return ClassificationTypeNames.Keyword;
             }
             else if (SyntaxFacts.IsPunctuation(token.Kind()))
@@ -53,6 +54,86 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
 
             return null;
+        }
+
+        private static bool IsControlKeyword(SyntaxToken token)
+        {
+            if (token.Parent is null || !IsControlKeywordKind(token.Kind()))
+            {
+                return false;
+            }
+
+            return IsControlStatementKind(token.Parent.Kind());
+        }
+
+        private static bool IsControlKeywordKind(SyntaxKind kind)
+        {
+            switch (kind)
+            {
+                case SyntaxKind.IfKeyword:
+                case SyntaxKind.ElseKeyword:
+                case SyntaxKind.WhileKeyword:
+                case SyntaxKind.ForKeyword:
+                case SyntaxKind.ForEachKeyword:
+                case SyntaxKind.DoKeyword:
+                case SyntaxKind.SwitchKeyword:
+                case SyntaxKind.CaseKeyword:
+                case SyntaxKind.TryKeyword:
+                case SyntaxKind.CatchKeyword:
+                case SyntaxKind.FinallyKeyword:
+                case SyntaxKind.GotoKeyword:
+                case SyntaxKind.BreakKeyword:
+                case SyntaxKind.ContinueKeyword:
+                case SyntaxKind.ReturnKeyword:
+                case SyntaxKind.ThrowKeyword:
+                case SyntaxKind.YieldKeyword:
+                case SyntaxKind.DefaultKeyword: // Include DefaultKeyword as it can be part of a DefaultSwitchLabel
+                case SyntaxKind.InKeyword: // Include InKeyword as it can be part of an ForEachStatement
+                case SyntaxKind.WhenKeyword: // Include WhenKeyword as it can be part of a CatchFilterClause or a pattern WhenClause
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private static bool IsControlStatementKind(SyntaxKind kind)
+        {
+            switch (kind)
+            {
+                // Jump Statements
+                case SyntaxKind.GotoStatement:
+                case SyntaxKind.GotoCaseStatement:
+                case SyntaxKind.GotoDefaultStatement:
+                case SyntaxKind.BreakStatement:
+                case SyntaxKind.ContinueStatement:
+                case SyntaxKind.ReturnStatement:
+                case SyntaxKind.YieldReturnStatement:
+                case SyntaxKind.YieldBreakStatement:
+                case SyntaxKind.ThrowStatement:
+                case SyntaxKind.WhileStatement:
+                case SyntaxKind.DoStatement:
+                case SyntaxKind.ForStatement:
+                case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachVariableStatement:
+                // Checked Statements
+                case SyntaxKind.IfStatement:
+                case SyntaxKind.ElseClause:
+                case SyntaxKind.SwitchStatement:
+                case SyntaxKind.SwitchSection:
+                case SyntaxKind.CaseSwitchLabel:
+                case SyntaxKind.CasePatternSwitchLabel:
+                case SyntaxKind.DefaultSwitchLabel:
+                case SyntaxKind.TryStatement:
+                case SyntaxKind.CatchClause:
+                case SyntaxKind.CatchFilterClause:
+                case SyntaxKind.FinallyClause:
+                case SyntaxKind.SwitchExpression:
+                case SyntaxKind.ThrowExpression:
+                case SyntaxKind.WhenClause:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         private static bool IsStringToken(SyntaxToken token)
@@ -107,7 +188,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private static string GetClassificationForIdentifier(SyntaxToken token)
         {
-
             if (token.Parent is BaseTypeDeclarationSyntax typeDeclaration && typeDeclaration.Identifier == token)
             {
                 return GetClassificationForTypeDeclarationIdentifier(token);
@@ -123,6 +203,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             else if (token.Parent is MethodDeclarationSyntax methodDeclaration && methodDeclaration.Identifier == token)
             {
                 return IsExtensionMethod(methodDeclaration) ? ClassificationTypeNames.ExtensionMethodName : ClassificationTypeNames.MethodName;
+            }
+            else if (token.Parent is ConstructorDeclarationSyntax constructorDeclaration && constructorDeclaration.Identifier == token)
+            {
+                return constructorDeclaration.IsParentKind(SyntaxKind.ClassDeclaration)
+                    ? ClassificationTypeNames.ClassName
+                    : ClassificationTypeNames.StructName;
+            }
+            else if (token.Parent is DestructorDeclarationSyntax destructorDeclaration && destructorDeclaration.Identifier == token)
+            {
+                return destructorDeclaration.IsParentKind(SyntaxKind.ClassDeclaration)
+                    ? ClassificationTypeNames.ClassName
+                    : ClassificationTypeNames.StructName;
+            }
+            else if (token.Parent is LocalFunctionStatementSyntax localFunctionStatement && localFunctionStatement.Identifier == token)
+            {
+                return ClassificationTypeNames.MethodName;
             }
             else if (token.Parent is PropertyDeclarationSyntax propertyDeclaration && propertyDeclaration.Identifier == token)
             {
@@ -146,6 +242,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 }
                 return ClassificationTypeNames.LocalName;
             }
+            else if (token.Parent is SingleVariableDesignationSyntax singleVariableDesignation && singleVariableDesignation.Identifier == token)
+            {
+                var parent = singleVariableDesignation.Parent;
+
+                // Handle nested Tuple deconstruction
+                while (parent.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
+                {
+                    parent = parent.Parent;
+                }
+
+                // Checking for DeclarationExpression covers the following cases:
+                // - Out parameters used within a field initializer or within a method. `int.TryParse("1", out var x)`
+                // - Tuple deconstruction. `var (x, _) = (1, 2);`
+                //
+                // Checking for DeclarationPattern covers the following cases:
+                // - Is patterns. `if (foo is Action action)`
+                // - Switch patterns. `case int x when x > 0:`
+                if (parent.IsKind(SyntaxKind.DeclarationExpression) ||
+                    parent.IsKind(SyntaxKind.DeclarationPattern))
+                {
+                    return ClassificationTypeNames.LocalName;
+                }
+
+                return ClassificationTypeNames.Identifier;
+            }
             else if (token.Parent is ParameterSyntax parameterSyntax && parameterSyntax.Identifier == token)
             {
                 return ClassificationTypeNames.ParameterName;
@@ -162,10 +283,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return ClassificationTypeNames.Keyword;
             }
+            else if (token.Parent is IdentifierNameSyntax identifierNameSyntax && IsNamespaceName(identifierNameSyntax))
+            {
+                return ClassificationTypeNames.NamespaceName;
+            }
+            else if (token.Parent is ExternAliasDirectiveSyntax externAliasDirectiveSyntax && externAliasDirectiveSyntax.Identifier == token)
+            {
+                return ClassificationTypeNames.NamespaceName;
+            }
+            else if (token.Parent is LabeledStatementSyntax labledStatementSyntax && labledStatementSyntax.Identifier == token)
+            {
+                return ClassificationTypeNames.LabelName;
+            }
             else
             {
                 return ClassificationTypeNames.Identifier;
             }
+        }
+
+        private static bool IsNamespaceName(IdentifierNameSyntax identifierSyntax)
+        {
+            var parent = identifierSyntax.Parent;
+
+            while (parent is QualifiedNameSyntax)
+            {
+                parent = parent.Parent;
+            }
+
+            return parent is NamespaceDeclarationSyntax;
+        }
+
+        public static bool IsStaticallyDeclared(SyntaxToken token)
+        {
+            var parentNode = token.Parent;
+
+            if (parentNode.IsKind(SyntaxKind.EnumMemberDeclaration))
+            {
+                // EnumMembers are not classified as static since there is no
+                // instance equivalent of the concept and they have their own
+                // classification type.
+                return false;
+            }
+            else if (parentNode.IsKind(SyntaxKind.VariableDeclarator))
+            {
+                // The parent of a VariableDeclarator is a VariableDeclarationSyntax node.
+                // It's parent will be the declaration syntax node.
+                parentNode = parentNode.Parent.Parent;
+
+                // Check if this is a field constant declaration 
+                if (parentNode.GetModifiers().Any(SyntaxKind.ConstKeyword))
+                {
+                    return true;
+                }
+            }
+
+            return parentNode.GetModifiers().Any(SyntaxKind.StaticKeyword);
         }
 
         private static bool IsExtensionMethod(MethodDeclarationSyntax methodDeclaration)

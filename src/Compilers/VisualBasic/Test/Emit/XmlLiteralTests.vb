@@ -3440,8 +3440,8 @@ Module M
                             </x>
     Sub Main()
         For Each y In F.<y>
-            Console.Write("{0}" & vbLf, y.ToString().Replace(vbCrLf, vbLf))
-            Console.Write("[{0}]" & vbLf, y.Value)
+            Console.Write("{0}" & Environment.NewLine, y.ToString())
+            Console.Write("[{0}]" & Environment.NewLine, y.Value.Replace(vbLf, Environment.NewLine))
         Next
     End Sub
 End Module
@@ -3471,7 +3471,7 @@ End Module
 [
                                     begin  nested  end
                                 ]
-]]>.Value.Replace(vbCrLf, vbLf))
+]]>)
         End Sub
 
         ''' <summary>
@@ -4516,7 +4516,7 @@ content
         End Sub
 
         <WorkItem(814052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/814052")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub XmlnsNamespaceTooLong()
             Dim identifier = New String("a"c, MetadataWriter.PdbLengthLimit)
             XmlnsNamespaceTooLongCore(identifier.Substring(6), tooLong:=False)

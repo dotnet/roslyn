@@ -103,6 +103,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SymbolKind.NamedType
                     Return CheckNamedTypeAccessibility(DirectCast(symbol, NamedTypeSymbol), within, basesBeingResolved, useSiteDiagnostics)
 
+                Case SymbolKind.Alias
+                    Return CheckSymbolAccessibilityCore((DirectCast(symbol, AliasSymbol)).Target, within, Nothing, basesBeingResolved, useSiteDiagnostics)
+
                 Case SymbolKind.ErrorType
                     ' Always assume that error types are accessible.
                     Return AccessCheckResult.Accessible

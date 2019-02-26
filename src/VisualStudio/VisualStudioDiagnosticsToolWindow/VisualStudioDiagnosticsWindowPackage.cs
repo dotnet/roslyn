@@ -5,8 +5,12 @@ using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
@@ -48,6 +52,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
     public sealed class VisualStudioDiagnosticsWindowPackage : AsyncPackage
     {
         private ForceLowMemoryMode _forceLowMemoryMode;
+        private IThreadingContext _threadingContext;
 
         /// <summary>
         /// This function is called when the user clicks the menu item that shows the 
@@ -56,18 +61,12 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
         /// </summary>
         private void ShowToolWindow(object sender, EventArgs e)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            _threadingContext.ThrowIfNotOnUIThread();
 
-            // Get the instance number 0 of this tool window. This window is single instance so this instance
-            // is actually the only one.
-            // The last flag is set to true so that if the tool window does not exists it will be created.
-            ToolWindowPane window = this.FindToolWindow(typeof(DiagnosticsWindow), 0, true);
-            if ((null == window) || (null == window.Frame))
+            JoinableTaskFactory.RunAsync(async () =>
             {
-                throw new NotSupportedException(Resources.CanNotCreateWindow);
-            }
-            IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
-            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
+                await ShowToolWindowAsync(typeof(DiagnosticsWindow), id: 0, create: true, this.DisposalToken).ConfigureAwait(true);
+            });
         }
 
         /////////////////////////////////////////////////////////////////////////////
@@ -86,9 +85,13 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
 
             var componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
             var menuCommandService = (IMenuCommandService)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
+
             cancellationToken.ThrowIfCancellationRequested();
+
             Assumes.Present(componentModel);
             Assumes.Present(menuCommandService);
+
+            _threadingContext = componentModel.GetService<IThreadingContext>();
 
             var workspace = componentModel.GetService<VisualStudioWorkspace>();
             _forceLowMemoryMode = new ForceLowMemoryMode(workspace.Services.GetService<IOptionService>());
@@ -101,7 +104,34 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
                 MenuCommand menuToolWin = new MenuCommand(ShowToolWindow, toolwndCommandID);
                 mcs.AddCommand(menuToolWin);
             }
+
+            // set logger at start up
+            var optionService = componentModel.GetService<IGlobalOptionService>();
+            var remoteService = workspace.Services.GetService<IRemoteHostClientService>();
+
+            PerformanceLoggersPage.SetLoggers(optionService, _threadingContext, remoteService);
         }
         #endregion
+
+        public override IVsAsyncToolWindowFactory GetAsyncToolWindowFactory(Guid toolWindowType)
+        {
+            // Return this for everything, as all our windows are now async
+            return this;
+        }
+
+        protected override string GetToolWindowTitle(Type toolWindowType, int id)
+        {
+            if (toolWindowType == typeof(DiagnosticsWindow))
+            {
+                return Resources.ToolWindowTitle;
+            }
+
+            return null;
+        }
+
+        protected override Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(new object());
+        }
     }
 }

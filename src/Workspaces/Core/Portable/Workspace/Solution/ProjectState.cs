@@ -269,6 +269,9 @@ namespace Microsoft.CodeAnalysis
         public string OutputRefFilePath => this.ProjectInfo.OutputRefFilePath;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        public string DefaultNamespace => this.ProjectInfo.DefaultNamespace;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public HostLanguageServices LanguageServices => _languageServices;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
@@ -424,6 +427,16 @@ namespace Microsoft.CodeAnalysis
             return this.With(projectInfo: this.ProjectInfo.WithOutputRefFilePath(outputRefFilePath).WithVersion(this.Version.GetNewerVersion()));
         }
 
+        public ProjectState UpdateDefaultNamespace(string defaultNamespace)
+        {
+            if (defaultNamespace == this.DefaultNamespace)
+            {
+                return this;
+            }
+
+            return this.With(projectInfo: this.ProjectInfo.WithDefaultNamespace(defaultNamespace).WithVersion(this.Version.GetNewerVersion()));
+        }
+
         public ProjectState UpdateCompilationOptions(CompilationOptions options)
         {
             if (options == this.CompilationOptions)
@@ -469,14 +482,6 @@ namespace Microsoft.CodeAnalysis
         public static bool IsSameLanguage(ProjectState project1, ProjectState project2)
         {
             return project1.LanguageServices == project2.LanguageServices;
-        }
-
-        public ProjectState AddProjectReference(ProjectReference projectReference)
-        {
-            Debug.Assert(!this.ProjectReferences.Contains(projectReference));
-
-            return this.With(
-                projectInfo: this.ProjectInfo.WithProjectReferences(this.ProjectReferences.ToImmutableArray().Add(projectReference)).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public ProjectState RemoveProjectReference(ProjectReference projectReference)
@@ -664,6 +669,45 @@ namespace Microsoft.CodeAnalysis
                 additionalDocumentStates: newDocumentStates,
                 latestDocumentVersion: dependentDocumentVersion,
                 latestDocumentTopLevelChangeVersion: dependentSemanticVersion);
+        }
+
+        public ProjectState UpdateDocumentsOrder(ImmutableList<DocumentId> documentIds)
+        {
+            if (documentIds.IsEmpty)
+            {
+                throw new ArgumentOutOfRangeException("The specified documents are empty.", nameof(documentIds));
+            }
+
+            if (documentIds.Count != _documentIds.Count)
+            {
+                throw new ArgumentException($"The specified documents do not equal the project document count.", nameof(documentIds));
+            }
+
+            var hasOrderChanged = false;
+
+            for (var i = 0; i < documentIds.Count; ++i)
+            {
+                var documentId = documentIds[i];
+
+                if (!ContainsDocument(documentId))
+                {
+                    throw new InvalidOperationException($"The document '{documentId}' does not exist in the project.");
+                }
+
+                if (DocumentIds[i] != documentId)
+                {
+                    hasOrderChanged = true;
+                }
+            }
+
+            if (!hasOrderChanged)
+            {
+                return this;
+            }
+
+            return this.With(
+                projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
+                documentIds: documentIds);
         }
 
         private void GetLatestDependentVersions(

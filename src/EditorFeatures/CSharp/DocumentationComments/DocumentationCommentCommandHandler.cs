@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
         public DocumentationCommentCommandHandler(
             IWaitIndicator waitIndicator,
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService) 
+            IEditorOperationsFactoryService editorOperationsFactoryService)
             : base(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService)
         {
         }

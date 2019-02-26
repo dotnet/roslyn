@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // before doing ToString, check if 
             // all nodes contributing to ToString are recursively the same
             // NOTE: leading and trailing trivia do not contribute to ToString
-            if (!name.HasLeadingTrivia && 
+            if (!name.HasLeadingTrivia &&
                 !endName.HasTrailingTrivia &&
                 name.IsEquivalentTo(endName))
             {

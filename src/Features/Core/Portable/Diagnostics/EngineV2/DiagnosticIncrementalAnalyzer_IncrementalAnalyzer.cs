@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -98,13 +99,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return;
                 }
 
+                var compilation = await GetCompilationAsync(analyzerDriverOpt).ConfigureAwait(false);
+
                 // no cancellation after this point.
                 // any analyzer that doesn't have result will be treated as returned empty set
                 // which means we will remove those from error list
                 foreach (var stateSet in stateSets)
                 {
                     var state = stateSet.GetProjectState(project.Id);
+
                     await state.SaveAsync(project, result.GetResult(stateSet.Analyzer)).ConfigureAwait(false);
+                    stateSet.ComputeCompilationEndAnalyzer(project, compilation);
                 }
 
                 RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.OldResult, result.Result);
@@ -112,6 +117,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+
+            async Task<Compilation> GetCompilationAsync(CompilationWithAnalyzers analyzerDriverOpt)
+            {
+                // we might not have analyzerDriver even if project supports compilation if we are called with
+                // no analyzers. 
+                return analyzerDriverOpt?.Compilation ??
+                    (project.SupportsCompilation ? await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false) : null);
             }
         }
 
@@ -227,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             // change it to check active file (or visible files), not open files if active file tracking is enabled.
             // otherwise, use open file.
-            return document.IsOpen();
+            return document.IsOpen() && document.SupportsDiagnostics();
         }
 
         private IEnumerable<StateSet> GetStateSetsForFullSolutionAnalysis(IEnumerable<StateSet> stateSets, Project project)

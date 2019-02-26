@@ -65,20 +65,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         internal async Task TestAsync(string content, Func<TestWorkspace, Task> body, bool outOfProcess)
         {
             await TestAsync(content, body, outOfProcess, null);
-            await TestAsync(content, body, outOfProcess, w => new FirstDocIsActiveDocumentTrackingService(w));
             await TestAsync(content, body, outOfProcess, w => new FirstDocIsVisibleDocumentTrackingService(w));
             await TestAsync(content, body, outOfProcess, w => new FirstDocIsActiveAndVisibleDocumentTrackingService(w));
         }
 
         internal async Task TestAsync(
-            string content, Func<TestWorkspace, Task> body, bool outOfProcess, 
+            string content, Func<TestWorkspace, Task> body, bool outOfProcess,
             Func<TestWorkspace, IDocumentTrackingService> createTrackingService)
         {
             using (var workspace = SetupWorkspace(
                 content, TestExportProvider.ExportProviderWithCSharpAndVisualBasic, createTrackingService))
             {
                 workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)
-                                                     .WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess)
                                                      .WithChangedOption(RemoteFeatureOptions.NavigateToEnabled, outOfProcess);
 
                 await body(workspace);
@@ -86,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         }
 
         private protected TestWorkspace SetupWorkspace(
-            XElement workspaceElement, ExportProvider exportProvider, 
+            XElement workspaceElement, ExportProvider exportProvider,
             Func<TestWorkspace, IDocumentTrackingService> createTrackingService)
         {
             var workspace = TestWorkspace.Create(workspaceElement, exportProvider: exportProvider);
@@ -96,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         }
 
         private protected TestWorkspace SetupWorkspace(
-            string content, ExportProvider exportProvider, 
+            string content, ExportProvider exportProvider,
             Func<TestWorkspace, IDocumentTrackingService> createTrackingService)
         {
             var workspace = CreateWorkspace(content, exportProvider);
@@ -138,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         }
 
         internal void VerifyNavigateToResultItem(
-            NavigateToItem result, string name, string displayMarkup, 
+            NavigateToItem result, string name, string displayMarkup,
             PatternMatchKind matchKind, string navigateToItemKind,
             Glyph glyph, string additionalInfo = null)
         {
@@ -201,24 +199,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
     }
 
 #pragma warning disable CS0067
-    public class FirstDocIsActiveDocumentTrackingService : IDocumentTrackingService
-    {
-        private readonly Workspace _workspace;
-
-        public FirstDocIsActiveDocumentTrackingService(Workspace workspace)
-        {
-            _workspace = workspace;
-        }
-
-        public event EventHandler<DocumentId> ActiveDocumentChanged;
-        public event EventHandler<EventArgs> NonRoslynBufferTextChanged;
-
-        public DocumentId GetActiveDocument()
-            => _workspace.CurrentSolution.Projects.First().DocumentIds.First();
-
-        public ImmutableArray<DocumentId> GetVisibleDocuments()
-            => ImmutableArray<DocumentId>.Empty;
-    }
 
     public class FirstDocIsVisibleDocumentTrackingService : IDocumentTrackingService
     {
@@ -232,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         public event EventHandler<DocumentId> ActiveDocumentChanged;
         public event EventHandler<EventArgs> NonRoslynBufferTextChanged;
 
-        public DocumentId GetActiveDocument()
+        public DocumentId TryGetActiveDocument()
             => null;
 
         public ImmutableArray<DocumentId> GetVisibleDocuments()
@@ -251,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         public event EventHandler<DocumentId> ActiveDocumentChanged;
         public event EventHandler<EventArgs> NonRoslynBufferTextChanged;
 
-        public DocumentId GetActiveDocument()
+        public DocumentId TryGetActiveDocument()
             => _workspace.CurrentSolution.Projects.First().DocumentIds.First();
 
         public ImmutableArray<DocumentId> GetVisibleDocuments()

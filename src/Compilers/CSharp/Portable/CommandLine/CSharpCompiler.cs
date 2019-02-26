@@ -52,8 +52,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Parallel.For(0, sourceFiles.Length, UICultureUtilities.WithCurrentUICulture<int>(i =>
                 {
-                    //NOTE: order of trees is important!!
-                    trees[i] = ParseFile(parseOptions, scriptParseOptions, ref hadErrors, sourceFiles[i], diagnosticBag, out normalizedFilePaths[i]);
+                    try
+                    {
+                        //NOTE: order of trees is important!!
+                        trees[i] = ParseFile(parseOptions, scriptParseOptions, ref hadErrors, sourceFiles[i], diagnosticBag, out normalizedFilePaths[i]);
+                    }
+                    catch (Exception e) when (FatalError.Report(e))
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
                 }));
             }
             else
@@ -137,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var loggingFileSystem = new LoggingStrongNameFileSystem(touchedFilesLogger);
+            var loggingFileSystem = new LoggingStrongNameFileSystem(touchedFilesLogger, _tempDirectory);
 
             return CSharpCompilation.Create(
                 Arguments.CompilationName,
@@ -147,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     WithMetadataReferenceResolver(referenceDirectiveResolver).
                     WithAssemblyIdentityComparer(assemblyIdentityComparer).
                     WithXmlReferenceResolver(xmlFileResolver).
-                    WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem, _tempDirectory)).
+                    WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem)).
                     WithSourceReferenceResolver(sourceFileResolver));
         }
 
@@ -279,6 +286,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (v == latestVersion)
                 {
                     consoleOutput.WriteLine($"{v.ToDisplayString()} (latest)");
+                }
+                else if (v == LanguageVersion.CSharp8)
+                {
+                    // https://github.com/dotnet/roslyn/issues/29819 This should be removed once we are ready to move C# 8.0 out of beta
+                    consoleOutput.WriteLine($"{v.ToDisplayString()} *beta*");
                 }
                 else
                 {

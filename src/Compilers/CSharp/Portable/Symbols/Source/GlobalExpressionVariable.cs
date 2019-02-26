@@ -14,8 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal class GlobalExpressionVariable : SourceMemberFieldSymbol
     {
-        private TypeSymbol _lazyType;
-        private SyntaxReference _typeSyntax;
+        private TypeSymbolWithAnnotations.Builder _lazyType;
+
+        /// <summary>
+        /// The type syntax, if any, from source. Optional for patterns that can omit an explicit type.
+        /// </summary>
+        private SyntaxReference _typeSyntaxOpt;
 
         internal GlobalExpressionVariable(
             SourceMemberContainerTypeSymbol containingType,
@@ -27,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingType, modifiers, name, syntax, location)
         {
             Debug.Assert(DeclaredAccessibility == Accessibility.Private);
-            _typeSyntax = typeSyntax.GetReference();
+            _typeSyntaxOpt = typeSyntax?.GetReference();
         }
 
         internal static GlobalExpressionVariable Create(
@@ -43,14 +47,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator || nodeToBind is ExpressionSyntax);
 
             var syntaxReference = syntax.GetReference();
-            return typeSyntax.IsVar
+            return (typeSyntax == null || typeSyntax.IsVar)
                 ? new InferrableGlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, location, containingFieldOpt, nodeToBind)
                 : new GlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, location);
         }
 
 
         protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList => default(SyntaxList<AttributeListSyntax>);
-        protected override TypeSyntax TypeSyntax => (TypeSyntax)_typeSyntax.GetSyntax();
+        protected override TypeSyntax TypeSyntax => (TypeSyntax)_typeSyntaxOpt?.GetSyntax();
         protected override SyntaxTokenList ModifiersTokenList => default(SyntaxTokenList);
         public override bool HasInitializer => false;
         protected override ConstantValue MakeConstantValue(
@@ -58,13 +62,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool earlyDecodingWellKnownAttributes,
             DiagnosticBag diagnostics) => null;
 
-        internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             Debug.Assert(fieldsBeingBound != null);
 
-            if ((object)_lazyType != null)
+            if (!_lazyType.IsNull)
             {
-                return _lazyType;
+                return _lazyType.ToType();
             }
 
             var typeSyntax = TypeSyntax;
@@ -72,66 +76,75 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = this.DeclaringCompilation;
 
             var diagnostics = DiagnosticBag.GetInstance();
-            TypeSymbol type;
+            TypeSymbolWithAnnotations type;
+            bool isVar;
 
             var binderFactory = compilation.GetBinderFactory(SyntaxTree);
-            var binder = binderFactory.GetBinder(typeSyntax);
+            var binder = binderFactory.GetBinder(typeSyntax ?? SyntaxNode);
 
-            bool isVar;
-            type = binder.BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar);
+            if (typeSyntax != null)
+            {
+                type = binder.BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar);
+            }
+            else
+            {
+                // Recursive patterns may omit the type syntax
+                isVar = true;
+                type = default;
+            }
 
-            Debug.Assert((object)type != null || isVar);
+            Debug.Assert(!type.IsNull || isVar);
 
             if (isVar && !fieldsBeingBound.ContainsReference(this))
             {
                 InferFieldType(fieldsBeingBound, binder);
-                Debug.Assert((object)_lazyType != null);
+                Debug.Assert(!_lazyType.IsNull);
             }
             else
             {
                 if (isVar)
                 {
                     diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, this.ErrorLocation, this);
-                    type = binder.CreateErrorType("var");
+                    type = TypeSymbolWithAnnotations.Create(binder.CreateErrorType("var"));
                 }
 
                 SetType(compilation, diagnostics, type);
             }
 
             diagnostics.Free();
-            return _lazyType;
+            return _lazyType.ToType();
         }
 
         /// <summary>
         /// Can add some diagnostics into <paramref name="diagnostics"/>. 
         /// Returns the type that it actually locks onto (it's possible that it had already locked onto ErrorType).
         /// </summary>
-        private TypeSymbol SetType(CSharpCompilation compilation, DiagnosticBag diagnostics, TypeSymbol type)
+        private TypeSymbolWithAnnotations SetType(CSharpCompilation compilation, DiagnosticBag diagnostics, TypeSymbolWithAnnotations type)
         {
-            TypeSymbol originalType = _lazyType;
+            var originalType = _lazyType.DefaultType;
 
             // In the event that we race to set the type of a field, we should
             // always deduce the same type, unless the cached type is an error.
 
             Debug.Assert((object)originalType == null ||
                 originalType.IsErrorType() ||
-                originalType == type);
+                TypeSymbol.Equals(originalType, type.TypeSymbol, TypeCompareKind.ConsiderEverything2));
 
-            if ((object)Interlocked.CompareExchange(ref _lazyType, type, null) == null)
+            if (_lazyType.InterlockedInitialize(type))
             {
-                TypeChecks(type, diagnostics);
+                TypeChecks(type.TypeSymbol, diagnostics);
 
                 compilation.DeclarationDiagnostics.AddRange(diagnostics);
                 state.NotePartComplete(CompletionPart.Type);
             }
-            return _lazyType;
+            return _lazyType.ToType();
         }
 
         /// <summary>
         /// Can add some diagnostics into <paramref name="diagnostics"/>.
         /// Returns the type that it actually locks onto (it's possible that it had already locked onto ErrorType).
         /// </summary>
-        internal TypeSymbol SetType(TypeSymbol type, DiagnosticBag diagnostics)
+        internal TypeSymbolWithAnnotations SetType(TypeSymbolWithAnnotations type, DiagnosticBag diagnostics)
         {
             return SetType(DeclaringCompilation, diagnostics, type);
         }

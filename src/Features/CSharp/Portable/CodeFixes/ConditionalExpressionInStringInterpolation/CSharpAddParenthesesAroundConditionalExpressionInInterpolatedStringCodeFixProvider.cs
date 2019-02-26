@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConditionalExpressionInStringI
         public override FixAllProvider GetFixAllProvider() => null;
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS8361);
-        
+
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);

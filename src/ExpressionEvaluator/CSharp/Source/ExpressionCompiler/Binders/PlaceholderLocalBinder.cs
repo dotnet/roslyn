@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             LookupResult result,
             string name,
             int arity,
-            ConsList<Symbol> basesBeingResolved,
+            ConsList<TypeSymbol> basesBeingResolved,
             LookupOptions options,
             Binder originalBinder,
             bool diagnose,

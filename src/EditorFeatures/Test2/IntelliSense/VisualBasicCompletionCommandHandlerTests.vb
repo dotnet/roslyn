@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Snippets
+Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 Imports Microsoft.VisualStudio.Text
@@ -212,15 +213,16 @@ End Class
         End Function
 
         <WorkItem(543497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543497")>
-        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestEnterOnSoftSelection1(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestEnterOnSoftSelection1() As Task
+            ' Code must be left-aligned because of https://github.com/dotnet/roslyn/issues/27988
+            Using state = TestState.CreateVisualBasicTestState(
                               <document>
-                                Class Program
-                                    Shared Sub Main(args As String())
-                                        Program.$$
-                                    End Sub
-                                End Class
+Class Program
+    Shared Sub Main(args As String())
+        Program.$$
+    End Sub
+End Class
                               </document>)
 
                 state.SendInvokeCompletionList()
@@ -476,18 +478,16 @@ End Class
             End Using
         End Function
 
-
-
-        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestNavigateOutOfItemChangeSpan(completionImplementation As CompletionImplementation) As Task
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNavigateOutOfItemChangeSpan() As Task
             ' Code must be left-aligned because of https://github.com/dotnet/roslyn/issues/27988
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+            Using state = TestState.CreateVisualBasicTestState(
                               <document>
-                                Class Program
-                                    Shared Sub Main(args As String())
-                                        Program$$
-                                    End Sub
-                                End Class
+Class Program
+    Shared Sub Main(args As String())
+        Program$$
+    End Sub
+End Class
                               </document>)
 
                 Await state.AssertNoCompletionSession()
@@ -654,15 +654,15 @@ End Module]]></Document>)
                 state.SendTypeChars(" ")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="List(Of Integer)", isHardSelected:=True)
-                Assert.True(state.CompletionItemsContainsAll(displayText:={"LinkedList(Of " & ChrW(&H2026) & ")", "List(Of " & ChrW(&H2026) & ")", "System"}))
+                Assert.True(state.CompletionItemsContainsAll(displayText:={"LinkedList", "List", "System"}))
                 state.SendTypeChars("Li")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="List(Of Integer)", isHardSelected:=True)
-                Assert.True(state.CompletionItemsContainsAll(displayText:={"LinkedList(Of " & ChrW(&H2026) & ")", "List(Of " & ChrW(&H2026) & ")"}))
+                Assert.True(state.CompletionItemsContainsAll(displayText:={"LinkedList", "List"}))
                 Assert.False(state.CompletionItemsContainsAny(displayText:={"System"}))
                 state.SendTypeChars("n")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="LinkedList(Of " & ChrW(&H2026) & ")", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="LinkedList", displayTextSuffix:="(Of " & ChrW(&H2026) & ")", isHardSelected:=True)
                 state.SendBackspace()
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="List(Of Integer)", isHardSelected:=True)
@@ -1022,15 +1022,15 @@ End Class
 
                 state.SendTypeChars("s")
                 Await state.AssertCompletionSession()
-                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "string:="))
+                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "string" AndAlso i.DisplayTextSuffix = ":="))
                 state.SendTypeChars("t")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "string:="))
+                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "string" AndAlso i.DisplayTextSuffix = ":="))
             End Using
         End Function
 
         <WorkItem(544299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544299")>
-        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/29840"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExclusiveNamedParameterCompletion(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                               <Document>
@@ -1050,12 +1050,12 @@ End Class
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionSession()
                 Assert.Equal(1, state.GetCompletionItems().Count)
-                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "str:="))
+                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "str" AndAlso i.DisplayTextSuffix = ":="))
             End Using
         End Function
 
         <WorkItem(544299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544299")>
-        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/29840"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExclusiveNamedParameterCompletion2(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                               <Document>
@@ -1079,10 +1079,10 @@ End Class
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionSession()
                 Assert.Equal(3, state.GetCompletionItems().Count)
-                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "b:="))
-                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "num:="))
-                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "str:="))
-                Assert.False(state.GetCompletionItems().Any(Function(i) i.DisplayText = "dbl:="))
+                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "b" AndAlso i.DisplayTextSuffix = ":="))
+                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "num" AndAlso i.DisplayTextSuffix = ":="))
+                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "str" AndAlso i.DisplayTextSuffix = ":="))
+                Assert.False(state.GetCompletionItems().Any(Function(i) i.DisplayText = "dbl" AndAlso i.DisplayTextSuffix = ":="))
             End Using
         End Function
 
@@ -1152,7 +1152,7 @@ End Module
                 Await state.AssertSelectedCompletionItem("args", isHardSelected:=True)
                 state.SendDownKey()
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem("args:=", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem("args", displayTextSuffix:=":=", isHardSelected:=True)
             End Using
         End Function
 
@@ -1814,7 +1814,7 @@ End Module</Document>)
         Public Async Function CommitOnEnter(completionImplementation As CompletionImplementation) As Task
             Dim expected = <Document>Module M
     Sub Main()
-        Main
+        Main()
 
     End Sub
 End Module</Document>.Value.Replace(vbLf, vbCrLf)
@@ -2149,8 +2149,9 @@ End Class
             ]]></Document>)
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
+                ' Should only have one item called 'Double' and it should have a keyword glyph
                 Dim doubleItem = state.GetCompletionItems().Single(Function(c) c.DisplayText = "Double")
-                Assert.True(doubleItem.Tags.Contains(CompletionTags.Keyword))
+                Assert.True(doubleItem.Tags.Contains(WellKnownTags.Keyword))
             End Using
         End Function
 
@@ -2171,8 +2172,8 @@ End Class
                 ' We should have gotten the item corresponding to [Double] and the item for the Double keyword
                 Dim doubleItems = state.GetCompletionItems().Where(Function(c) c.DisplayText = "Double")
                 Assert.Equal(2, doubleItems.Count())
-                Assert.True(doubleItems.Any(Function(c) c.Tags.Contains(CompletionTags.Keyword)))
-                Assert.True(doubleItems.Any(Function(c) c.Tags.Contains(CompletionTags.Class) AndAlso c.Tags.Contains(CompletionTags.Internal)))
+                Assert.True(doubleItems.Any(Function(c) c.Tags.Contains(WellKnownTags.Keyword)))
+                Assert.True(doubleItems.Any(Function(c) c.Tags.Contains(WellKnownTags.Class) AndAlso c.Tags.Contains(WellKnownTags.Internal)))
             End Using
         End Function
 
@@ -2552,7 +2553,7 @@ End Class
                  </Workspace>)
 
                 state.SendTypeChars("b")
-                Await state.AssertSelectedCompletionItem(displayText:="bar:=", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="bar", displayTextSuffix:=":=", isHardSelected:=True)
                 state.SendTypeChars("e")
                 Await state.AssertNoCompletionSession()
             End Using
@@ -2577,7 +2578,7 @@ End Class
                  </Workspace>)
 
                 state.SendTypeChars("bar")
-                Await state.AssertSelectedCompletionItem(displayText:="bar:=", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="bar", displayTextSuffix:=":=", isHardSelected:=True)
                 state.SendBackspace()
                 state.SendBackspace()
                 state.SendTypeChars("et")
@@ -2940,6 +2941,26 @@ End Class
                 state.SendTypeChars(".")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Contains("x.Add", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(28767, "https://github.com/dotnet/roslyn/issues/28767")>
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionDoesNotRemoveBracketsOnEnum(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+                       <Document>
+                          Class C
+                             Sub S
+                                 [$$] 
+                             End Sub
+                         End Class
+                       </Document>)
+
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("Enu")
+                Await state.AssertSelectedCompletionItem(displayText:="Enum", isHardSelected:=True)
+                state.SendTab()
+                Assert.Contains("[Enum]", state.GetDocumentText(), StringComparison.Ordinal)
             End Using
         End Function
 

@@ -1109,8 +1109,8 @@ class Test
 
             var comp = CompileAndVerify(source, expectedOutput: @"2545571191011111114151617");
         }
-        [Fact]
 
+        [ConditionalFact(typeof(ClrOnly), Reason = "Test of execution of explicitly ambiguous IL")]
         private void TestAmbiguousOverridesWarningCase()
         {
             // Tests:
@@ -3435,7 +3435,7 @@ namespace Metadata
         }
 
         [WorkItem(540516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540516")]
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/12422")]
         public void TestCallMethodsWithLeastCustomModifiers()
         {
             var text = @"using Metadata;

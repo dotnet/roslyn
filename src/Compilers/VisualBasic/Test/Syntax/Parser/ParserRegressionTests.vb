@@ -746,7 +746,7 @@ End Select
         VisualBasicSyntaxTree.ParseText(text)
     End Sub
 
-    <Fact, WorkItem(658140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658140")>
+    <ConditionalFact(GetType(ClrOnly), Reason:="https://github.com/dotnet/roslyn/issues/30926"), WorkItem(658140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658140")>
     <WorkItem(103047, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems?_a=edit&id=103047")>
     Public Sub ParseFileOnBinaryFile()
         ' This is doing the same thing as ParseFile, but using a MemoryStream

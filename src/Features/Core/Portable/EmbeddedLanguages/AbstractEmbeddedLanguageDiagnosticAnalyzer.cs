@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 {
     internal abstract class AbstractEmbeddedLanguageDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        private readonly ImmutableArray<AbstractCodeStyleDiagnosticAnalyzer> _analyzers;
+        private readonly ImmutableArray<AbstractBuiltInCodeStyleDiagnosticAnalyzer> _analyzers;
         private readonly DiagnosticAnalyzerCategory _category;
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         {
             var supportedDiagnostics = ArrayBuilder<DiagnosticDescriptor>.GetInstance();
 
-            var analyzers = ArrayBuilder<AbstractCodeStyleDiagnosticAnalyzer>.GetInstance();
+            var analyzers = ArrayBuilder<AbstractBuiltInCodeStyleDiagnosticAnalyzer>.GetInstance();
 
             var analyzerCategory = default(DiagnosticAnalyzerCategory?);
 
@@ -34,12 +34,18 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
                     analyzers.Add(analyzer);
                     supportedDiagnostics.AddRange(analyzer.SupportedDiagnostics);
 
+<<<<<<< HEAD
                     analyzerCategory = analyzerCategory ?? analyzer.GetAnalyzerCategory();
 
                     if (analyzerCategory != analyzer.GetAnalyzerCategory())
                     {
                         throw new InvalidOperationException("All embedded analyzers must have the same analyzer category.");
                     }
+=======
+                    category = category ?? analyzer.GetAnalyzerCategory();
+                    Debug.Assert(category == analyzer.GetAnalyzerCategory(),
+                        "All embedded analyzers must have the same analyzer category.");
+>>>>>>> upstream/master
                 }
             }
 

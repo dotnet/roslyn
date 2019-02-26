@@ -2,14 +2,59 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../ServicesVSResources.resx">
     <body>
+      <trans-unit id="Add_to_current_file">
+        <source>Add to _current file</source>
+	<target state="new">Add to _current file</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below">
+        <source>Additional changes are needed to complete the refactoring. Review changes below.</source>
+	<target state="new">Additional changes are needed to complete the refactoring. Review changes below.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="All_methods">
+        <source>All methods</source>
+        <target state="translated">Tüm yöntemleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_colon">
+        <source>Allow:</source>
+	<target state="new">Allow:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
-        <target state="new">Always for clarity</target>
+        <target state="translated">Açıklık sağlamak için her zaman</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_0_keymapping_scheme">
         <source>Apply '{0}' keymapping scheme</source>
-        <target state="new">Apply '{0}' keymapping scheme</target>
+        <target state="translated">'{0}' tuş eşlemesi düzenini uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
+        <source>Avoid expression statements that implicitly ignore value</source>
+        <target state="translated">Örtülü olarak değeri göz ardı ifade ifadeler önlemek</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_parameters">
+        <source>Avoid unused parameters</source>
+        <target state="translated">Kullanılmayan parametreler önlemek</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_value_assignments">
+        <source>Avoid unused value assignments</source>
+        <target state="translated">Kullanılmayan değer atamaları önlemek</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Back">
+        <source>Back</source>
+	<target state="new">Back</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Calculating_dependents">
+        <source>Calculating dependents...</source>
+	<target state="new">Calculating dependents...</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_JSON_strings">
@@ -19,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
-        <target state="new">Colorize regular expressions</target>
+        <target state="translated">Normal ifadeler renklendirme</target>
         <note />
       </trans-unit>
       <trans-unit id="Detect_and_offer_editor_features_for_likely_JSON_strings">
@@ -32,19 +77,29 @@
         <target state="translated">Öğe geçerli değil.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Field_preferences_colon">
-        <source>Field preferences:</source>
-        <target state="new">Field preferences:</target>
+      <trans-unit id="Finish">
+        <source>Finish</source>
+	<target state="new">Finish</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_dot_editorconfig_file_from_settings">
+        <source>Generate .editorconfig file from settings</source>
+        <target state="translated">.Editorconfig dosyası ayarları oluşturmak</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
-        <target state="new">Highlight related components under cursor</target>
+        <target state="translated">İmleç altında ilişkili bileşenleri vurgulamak</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
-        <target state="new">In other operators</target>
+        <target state="translated">Diğer işleçlerde</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interface_cannot_have_field">
+        <source>Interface cannot have field.</source>
+	<target state="new">Interface cannot have field.</target>
         <note />
       </trans-unit>
       <trans-unit id="JSON_strings">
@@ -54,27 +109,97 @@
       </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
         <source>Keep all parentheses in:</source>
-        <target state="new">Keep all parentheses in:</target>
+        <target state="translated">Şunun içindeki tüm parantezleri tut:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Kind">
+        <source>Kind</source>
+        <target state="translated">Tür</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_0_abstract">
+        <source>Make '{0}' abstract</source>
+	<target state="new">Make '{0}' abstract</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_abstract">
+        <source>Make abstract</source>
+	<target state="new">Make abstract</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Members">
+        <source>Members</source>
+	<target state="new">Members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifier_preferences_colon">
+        <source>Modifier preferences:</source>
+        <target state="new">Modifier preferences:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace_0">
+        <source>Namespace: '{0}'</source>
+	<target state="new">Namespace: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
-        <target state="new">Never if unnecessary</target>
+        <target state="translated">Gereksizse hiçbir zaman</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Non_public_methods">
+        <source>Non-public methods</source>
+        <target state="translated">Ortak olmayan yöntemleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_preferences_colon">
+        <source>Parameter preferences:</source>
+        <target state="translated">Parametre tercihler:</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_preferences_colon">
         <source>Parentheses preferences:</source>
-        <target state="new">Parentheses preferences:</target>
+        <target state="translated">Parantez tercihleri:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_readonly">
-        <source>Prefer readonly</source>
-        <target state="new">Prefer readonly</target>
+      <trans-unit id="Prefer_compound_assignments">
+        <source>Prefer compound assignments</source>
+        <target state="translated">Bileşik atamaları tercih</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_index_operator">
+        <source>Prefer index operator</source>
+        <target state="translated">Dizin işleç tercih</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_range_operator">
+        <source>Prefer range operator</source>
+        <target state="translated">Aralık işleci tercih</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly_fields">
+        <source>Prefer readonly fields</source>
+        <target state="new">Prefer readonly fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simple_using_statement">
+        <source>Prefer simple 'using' statement</source>
+        <target state="new">Prefer simple 'using' statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_static_local_functions">
+        <source>Prefer static local functions</source>
+        <target state="new">Prefer static local functions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_Members_Up">
+        <source>Pull Members Up</source>
+	<target state="new">Pull Members Up</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
         <source>Regular Expressions</source>
-        <target state="new">Regular Expressions</target>
+        <target state="translated">Normal ifadeler</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
@@ -84,17 +209,97 @@
       </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
         <source>Report invalid regular expressions</source>
-        <target state="new">Report invalid regular expressions</target>
+        <target state="translated">Rapor geçersiz düzenli ifadeler</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_Visual_Studio_default_keymapping">
         <source>Reset Visual Studio default keymapping</source>
-        <target state="new">Reset Visual Studio default keymapping</target>
+        <target state="translated">Visual Studio varsayılan tuş eşlemesine sıfırla</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Review_Changes">
+        <source>Review Changes</source>
+	<target state="new">Review Changes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Save_dot_editorconfig_file">
+        <source>Save .editorconfig file</source>
+        <target state="translated">.Editorconfig dosyayı kaydedin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_destination">
+        <source>Select destination</source>
+	<target state="new">Select destination</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_Dependents">
+        <source>_Select Dependents</source>
+	<target state="new">_Select Dependents</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_Public">
+        <source>_Select Public</source>
+	<target state="new">_Select Public</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_destination_and_members_to_pull_up">
+        <source>Select destination and members to pull up.</source>
+	<target state="new">Select destination and members to pull up.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_destination_colon">
+        <source>Select destination:</source>
+	<target state="new">Select destination:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_member">
+        <source>Select member</source>
+	<target state="new">Select member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_members_colon">
+        <source>Select members:</source>
+	<target state="new">Select members:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
+        <source>Unused value is explicitly assigned to an unused local</source>
+        <target state="translated">Kullanılmayan değeri açıkça için kullanılmayan bir yerel atanır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_value_is_explicitly_assigned_to_discard">
+        <source>Unused value is explicitly assigned to discard</source>
+        <target state="translated">Kullanılmayan değeri açıkça atmak için atanır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambdas">
+        <source>Use expression body for lambdas</source>
+        <target state="translated">İfade vücut lambda için kullanın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_local_functions">
+        <source>Use expression body for local functions</source>
+	<target state="new">Use expression body for local functions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_assigned_here_is_never_used">
+        <source>Value assigned here is never used</source>
+        <target state="translated">Burada atanmış değere asla kullanılmaz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
+        <source>Value returned by invocation is implicitly ignored</source>
+        <target state="translated">Çağrı tarafından döndürülen değeri örtülü olarak göz ardı edilir</target>
         <note />
       </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
         <source>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</source>
-        <target state="new">We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</target>
+        <target state="translated">'{0}' öğesini askıya aldığınızı fark ettik. Gezintiye ve yeniden düzenlemeye devam etmek için tuş eşlemelerini sıfırlayın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
+        <source>This workspace does not support updating Visual Basic compilation options.</source>
+        <target state="new">This workspace does not support updating Visual Basic compilation options.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
@@ -209,7 +414,7 @@
       </trans-unit>
       <trans-unit id="End_position_must_be_start_position">
         <source>End position must be &gt;= start position</source>
-        <target state="translated">Bitiş konumu, başlangıç konumuna eşit veya bundan sonra olmalıdır</target>
+        <target state="translated">Bitiş pozisyonu-meli var olmak &gt; = başlangıç konumu</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_a_valid_value">
@@ -217,9 +422,24 @@
         <target state="translated">Geçerli bir değer değil</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_abstract">
+        <source>'{0}' will be changed to abstract.</source>
+	<target state="new">'{0}' will be changed to abstract.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_non_static">
+        <source>'{0}' will be changed to non-static.</source>
+	<target state="new">'{0}' will be changed to non-static.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_public">
+        <source>'{0}' will be changed to public.</source>
+	<target state="new">'{0}' will be changed to public.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="given_workspace_doesn_t_support_undo">
         <source>given workspace doesn't support undo</source>
-        <target state="translated">sağlanan çalışma alanı, geri almayı desteklemiyor</target>
+        <target state="translated">Verilen Çalışma Alanı, Geri Alma'yı desteklemez</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_a_reference_to_0">
@@ -239,7 +459,7 @@
       </trans-unit>
       <trans-unit id="Can_t_rename_other_elements">
         <source>Can't rename 'other' elements</source>
-        <target state="translated">other' öğeleri yeniden adlandırılamıyor</target>
+        <target state="translated">'other' öğeleri yeniden adlandırılamıyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_rename_type">
@@ -284,7 +504,7 @@
       </trans-unit>
       <trans-unit id="Assembly">
         <source>Assembly </source>
-        <target state="translated">Bütünleştirilmiş Kod </target>
+        <target state="translated">derleme</target>
         <note />
       </trans-unit>
       <trans-unit id="Exceptions_colon">
@@ -304,7 +524,7 @@
       </trans-unit>
       <trans-unit id="Project">
         <source>Project </source>
-        <target state="translated">Proje </target>
+        <target state="translated">PROJE</target>
         <note />
       </trans-unit>
       <trans-unit id="Remarks_colon">
@@ -516,7 +736,7 @@ Bu dosyanın ait olabileceği diğer projeleri görüntülemek ve bunlara geçi�
       </trans-unit>
       <trans-unit id="Parameter">
         <source>Parameter</source>
-        <target state="translated">Parametre</target>
+        <target state="translated">parametre</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameters_colon2">
@@ -586,7 +806,7 @@ Bu dosyanın ait olabileceği diğer projeleri görüntülemek ve bunlara geçi�
       </trans-unit>
       <trans-unit id="Unknown1">
         <source>&lt;Unknown&gt;</source>
-        <target state="translated">&lt;Bilinmiyor&gt;</target>
+        <target state="translated">&lt; bilinmeyen &gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzer_reference_to_0_in_project_1">
@@ -766,7 +986,7 @@ Bu dosyanın ait olabileceği diğer projeleri görüntülemek ve bunlara geçi�
       </trans-unit>
       <trans-unit id="Unknown2">
         <source>&lt;Unknown&gt;</source>
-        <target state="translated">&lt;Bilinmiyor&gt;</target>
+        <target state="translated">&lt; bilinmeyen &gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="No">
@@ -1065,12 +1285,12 @@ Ek bilgiler: {1}</target>
       </trans-unit>
       <trans-unit id="Unknown_parameters">
         <source>&lt;Unknown Parameters&gt;</source>
-        <target state="translated">&lt;Bilinmeyen Parametreler&gt;</target>
+        <target state="translated">&lt; bilinmeyen parametreler &gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="End_of_inner_exception_stack">
         <source>--- End of inner exception stack trace ---</source>
-        <target state="translated">--- İç özel durum yığın izlemesi sonu ---</target>
+        <target state="translated">--- İç özel durum yığın izlemesinin sonu ---</target>
         <note />
       </trans-unit>
       <trans-unit id="For_locals_parameters_and_members">
@@ -1438,11 +1658,6 @@ Ek bilgiler: {1}</target>
         <target state="translated">Tam çözüm _analizini etkinleştir</target>
         <note />
       </trans-unit>
-      <trans-unit id="Perform_editor_feature_analysis_in_external_process">
-        <source>Perform editor _feature analysis in external process (experimental)</source>
-        <target state="translated">Dış işlemde düzenleyici ö_zellik analizi gerçekleştir (deneysel)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fade_out_unreachable_code">
         <source>Fade out unreachable code</source>
         <target state="translated">Erişilemeyen kodu soluklaştır</target>
@@ -1573,29 +1788,29 @@ Aşağıdakilerin tümünü onaylıyorum:</target>
         <target state="translated">Değişiklikler uygulanamıyor - beklenmeyen hata: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyzing_0">
+        <source>Analyzing '{0}'</source>
+        <target state="translated">'{0}' Analiz Ediliyor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Manage_naming_styles">
         <source>Manage naming styles</source>
         <target state="translated">Adlandırma stillerini yönetme</target>
         <note />
       </trans-unit>
-      <trans-unit id="Analyzing_0">
-        <source>Analyzing '{0}'</source>
-        <target state="new">Analyzing '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Live_code_analysis">
         <source>Live code analysis</source>
-        <target state="new">Live code analysis</target>
+        <target state="translated">Canlı Kod Analizi</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
         <source>Prefer conditional expression over 'if' with assignments</source>
-        <target state="new">Prefer conditional expression over 'if' with assignments</target>
+        <target state="translated">Atamalarda 'if' yerine koşullu deyim tercih et</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
         <source>Prefer conditional expression over 'if' with returns</source>
-        <target state="new">Prefer conditional expression over 'if' with returns</target>
+        <target state="translated">Dönüşlerde 'if' yerine koşullu deyim tercih et</target>
         <note />
       </trans-unit>
     </body>

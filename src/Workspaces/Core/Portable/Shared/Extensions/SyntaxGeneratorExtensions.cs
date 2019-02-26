@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             var fields = factory.CreateFieldsForParameters(parameters, parameterToNewFieldMap);
             var statements = factory.CreateAssignmentStatements(
-                compilation, parameters, parameterToExistingFieldMap, parameterToNewFieldMap, 
+                compilation, parameters, parameterToExistingFieldMap, parameterToNewFieldMap,
                 addNullChecks, preferThrowExpression).SelectAsArray(
                     s => s.WithAdditionalAnnotations(Simplifier.Annotation));
 
@@ -88,35 +88,33 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 typeName: typeName,
                 parameters: parameters,
                 statements: statements,
-                thisConstructorArguments: GetThisConstructorArguments(containingTypeOpt, parameterToExistingFieldMap));
+                thisConstructorArguments: ShouldGenerateThisConstructorCall(containingTypeOpt, parameterToExistingFieldMap)
+                    ? ImmutableArray<SyntaxNode>.Empty
+                    : default);
 
             return (ImmutableArray<ISymbol>.CastUp(fields), constructor);
         }
 
-        private static ImmutableArray<SyntaxNode> GetThisConstructorArguments(
+        private static bool ShouldGenerateThisConstructorCall(
             INamedTypeSymbol containingTypeOpt,
             IDictionary<string, ISymbol> parameterToExistingFieldMap)
         {
             if (containingTypeOpt != null && containingTypeOpt.TypeKind == TypeKind.Struct)
             {
                 // Special case.  If we're generating a struct constructor, then we'll need
-                // to initialize all fields in the struct, not just the ones we're creating.  To
-                // do that, we call the default constructor.
-                var realFields = containingTypeOpt.GetMembers()
-                                     .OfType<IFieldSymbol>()
-                                     .Where(f => !f.IsStatic);
-                var initializedFields = parameterToExistingFieldMap.Values
-                                            .OfType<IFieldSymbol>()
-                                            .Where(f => !f.IsImplicitlyDeclared && !f.IsStatic);
-                if (initializedFields.Count() < realFields.Count())
-                {
-                    // We have less field assignments than actual fields.  Generate a call to the
-                    // default constructor as well.
-                    return ImmutableArray<SyntaxNode>.Empty;
-                }
+                // to initialize all fields in the struct, not just the ones we're creating.
+                // If there is any field or auto-property not being set by a parameter, we
+                // call the default constructor.
+
+                return containingTypeOpt.GetMembers()
+                    .OfType<IFieldSymbol>()
+                    .Where(field => !field.IsStatic)
+                    .Select(field => field.AssociatedSymbol ?? field)
+                    .Except(parameterToExistingFieldMap.Values)
+                    .Any();
             }
 
-            return default;
+            return false;
         }
 
         public static ImmutableArray<IFieldSymbol> CreateFieldsForParameters(
@@ -133,8 +131,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 if (refKind != RefKind.Out)
                 {
-                    // For non-out parameters, create a field and assign the parameter to it. 
-                    // TODO: I'm not sure that's what we really want for ref parameters. 
+                    // For non-out parameters, create a field and assign the parameter to it.
+                    // TODO: I'm not sure that's what we really want for ref parameters.
                     if (TryGetValue(parameterToNewFieldMap, parameterName, out var fieldName))
                     {
                         result.Add(CodeGenerationSymbolFactory.CreateFieldSymbol(
@@ -226,8 +224,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
                 else
                 {
-                    // For non-out parameters, create a field and assign the parameter to it. 
-                    // TODO: I'm not sure that's what we really want for ref parameters. 
+                    // For non-out parameters, create a field and assign the parameter to it.
+                    // TODO: I'm not sure that's what we really want for ref parameters.
                     if (TryGetValue(parameterToExistingFieldMap, parameterName, out var fieldName) ||
                         TryGetValue(parameterToNewFieldMap, parameterName, out fieldName))
                     {

@@ -184,10 +184,10 @@ namespace BuildBoss
             {
                 // Make sure to check for references that exist only for ordering purposes.  They don't count as 
                 // actual references.
-                var refOutputAssembly = r.Element(Namespace.GetName("ReferenceOutputAssembly"));
-                if (refOutputAssembly != null)
+                var referenceOutputAssemblyValue = r.Element(Namespace.GetName("ReferenceOutputAssembly"))?.Value ?? r.Attribute(XName.Get("ReferenceOutputAssembly"))?.Value;
+                if (referenceOutputAssemblyValue != null)
                 {
-                    if (bool.TryParse(refOutputAssembly.Value.Trim().ToLower(), out var isRealReference) && !isRealReference)
+                    if (bool.TryParse(referenceOutputAssemblyValue.Trim().ToLower(), out var isRealReference) && !isRealReference)
                     {
                         continue;
                     }

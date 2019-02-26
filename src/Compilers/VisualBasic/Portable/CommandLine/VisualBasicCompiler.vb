@@ -94,8 +94,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Parallel.For(0, sourceFiles.Length,
                    UICultureUtilities.WithCurrentUICulture(Of Integer)(
                         Sub(i As Integer)
-                            ' NOTE: order of trees is important!!
-                            trees(i) = ParseFile(consoleOutput, parseOptions, scriptParseOptions, hadErrors, sourceFiles(i), errorLogger)
+                            Try
+                                ' NOTE: order of trees is important!!
+                                trees(i) = ParseFile(consoleOutput, parseOptions, scriptParseOptions, hadErrors, sourceFiles(i), errorLogger)
+                            Catch ex As Exception When FatalError.Report(ex)
+                                Throw ExceptionUtilities.Unreachable
+                            End Try
                         End Sub))
             Else
                 For i = 0 To sourceFiles.Length - 1
@@ -135,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' TODO: support for #load search paths
             Dim sourceFileResolver = New LoggingSourceFileResolver(ImmutableArray(Of String).Empty, Arguments.BaseDirectory, Arguments.PathMap, touchedFilesLogger)
 
-            Dim loggingFileSystem = New LoggingStrongNameFileSystem(touchedFilesLogger)
+            Dim loggingFileSystem = New LoggingStrongNameFileSystem(touchedFilesLogger, _tempDirectory)
 
             Return VisualBasicCompilation.Create(
                  Arguments.CompilationName,
@@ -145,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      WithMetadataReferenceResolver(referenceDirectiveResolver).
                      WithAssemblyIdentityComparer(assemblyIdentityComparer).
                      WithXmlReferenceResolver(xmlFileResolver).
-                     WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem, _tempDirectory)).
+                     WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem)).
                      WithSourceReferenceResolver(sourceFileResolver))
         End Function
 
@@ -211,6 +215,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     consoleOutput.WriteLine($"{v.ToDisplayString()} (default)")
                 ElseIf v = latestVersion Then
                     consoleOutput.WriteLine($"{v.ToDisplayString()} (latest)")
+                ElseIf v = LanguageVersion.VisualBasic16 Then
+                    ' https://github.com/dotnet/roslyn/issues/29819 This should be removed once we are ready to move VB 16 out of beta
+                    consoleOutput.WriteLine($"{v.ToDisplayString()} *beta*")
                 Else
                     consoleOutput.WriteLine(v.ToDisplayString())
                 End If

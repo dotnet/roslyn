@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // map a field to the block (that makes it addressable)
             var field = module.GetFieldForData(data, syntaxNode, diagnostics);
 
-            EmitOpCode(ILOpCode.Ldsflda);       
+            EmitOpCode(ILOpCode.Ldsflda);
             EmitToken(field, syntaxNode, diagnostics);
         }
 

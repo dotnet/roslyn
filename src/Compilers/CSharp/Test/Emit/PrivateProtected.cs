@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#if NET46
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -95,7 +93,7 @@ public class Base
     private protected Base() { Event1?.Invoke(); }
 }";
             var baseCompilation = CreateCompilation(source1, parseOptions: TestOptions.Regular7_2,
-                options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider),
+                options: TestOptions.SigningReleaseDll,
                 assemblyName: "Paul");
             var bb = (INamedTypeSymbol)baseCompilation.GlobalNamespace.GetMember("Base");
             foreach (var member in bb.GetMembers())
@@ -134,7 +132,7 @@ public class Base
             CreateCompilation(source2, parseOptions: TestOptions.Regular7_2,
                 references: new[] { new CSharpCompilationReference(baseCompilation) },
                 assemblyName: "WantsIVTAccessButCantHave",
-                options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider))
+                options: TestOptions.SigningReleaseDll)
             .VerifyDiagnostics(
                 // (5,9): error CS0122: 'Base.Field1' is inaccessible due to its protection level
                 //         Field1 = Constant;
@@ -185,7 +183,7 @@ public class Base
             CreateCompilation(source2, parseOptions: TestOptions.Regular7_2,
                 references: new[] { MetadataReference.CreateFromImage(baseCompilation.EmitToArray()) },
                 assemblyName: "WantsIVTAccessButCantHave",
-                options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider))
+                options: TestOptions.SigningReleaseDll)
             .VerifyDiagnostics(
                 // (5,9): error CS0122: 'Base.Field1' is inaccessible due to its protection level
                 //         Field1 = Constant;
@@ -237,13 +235,13 @@ public class Base
             CreateCompilation(source2, parseOptions: TestOptions.Regular7_2,
                 references: new[] { new CSharpCompilationReference(baseCompilation) },
                 assemblyName: "WantsIVTAccess",
-                options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider))
+                options: TestOptions.SigningReleaseDll)
                 .VerifyDiagnostics(
                 );
             CreateCompilation(source2, parseOptions: TestOptions.Regular7_2,
                 references: new[] { MetadataReference.CreateFromImage(baseCompilation.EmitToArray()) },
                 assemblyName: "WantsIVTAccess",
-                options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider))
+                options: TestOptions.SigningReleaseDll)
                 .VerifyDiagnostics(
                 );
         }
@@ -792,4 +790,3 @@ class Client
         }
     }
 }
-#endif

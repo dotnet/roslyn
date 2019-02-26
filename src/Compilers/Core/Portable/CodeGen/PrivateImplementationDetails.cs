@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // Sort methods.
             _orderedSynthesizedMethods = _synthesizedMethods.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).AsImmutable();
-           
+
             // Sort proxy types.
             _orderedProxyTypes = _proxyTypes.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).AsImmutable();
         }
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             : base(name, containingType, type)
         {
             Debug.Assert(!block.IsDefault);
-            
+
             _block = block;
         }
 

@@ -47,6 +47,14 @@
                 <TextBlock Text="{x:Static local:GridOptionPreviewControl.CodeStylePageHeaderLearnMoreText}"/>
             </Hyperlink>
         </TextBlock>
+        <Button
+            Name="GenerateEditorConfigButton" 
+            Click="Generate_Save_EditorConfig" 
+            Content="{x:Static local:GridOptionPreviewControl.GenerateEditorConfigFileFromSettingsText}"
+            HorizontalAlignment="Left"
+            Margin="0,35,0,0"
+            VerticalAlignment="Center"
+            Padding="5"/>
         <DataGrid
             Grid.Row="1"
             x:Uid="CodeStyleContent"

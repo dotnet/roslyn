@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
     internal abstract partial class CommonCompletionService : CompletionServiceWithProviders
     {
         protected CommonCompletionService(
-            Workspace workspace, 
+            Workspace workspace,
             ImmutableArray<CompletionProvider>? exclusiveProviders)
             : base(workspace, exclusiveProviders)
         {
@@ -33,12 +34,12 @@ namespace Microsoft.CodeAnalysis.Completion
 
         protected static bool IsKeywordItem(CompletionItem item)
         {
-            return item.Tags.Contains(CompletionTags.Keyword);
+            return item.Tags.Contains(WellKnownTags.Keyword);
         }
 
         protected static bool IsSnippetItem(CompletionItem item)
         {
-            return item.Tags.Contains(CompletionTags.Snippet);
+            return item.Tags.Contains(WellKnownTags.Snippet);
         }
     }
 }

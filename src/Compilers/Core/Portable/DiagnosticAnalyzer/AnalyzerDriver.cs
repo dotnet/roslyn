@@ -436,13 +436,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 await ProcessCompilationEventsAsync(analysisScope, analysisStateOpt, usingPrePopulatedEventQueue, cancellationToken).ConfigureAwait(false);
 
-#if DEBUG
                 // If not using pre-populated event queue (batch mode), then verify all symbol end actions were processed.
                 if (!usingPrePopulatedEventQueue)
                 {
                     AnalyzerManager.VerifyAllSymbolEndActionsExecuted();
                 }
-#endif
             }
         }
 
@@ -1138,7 +1136,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var success = true;
             ArrayBuilder<DiagnosticAnalyzer> subsetProcessedAnalyzersBuilderOpt = null;
-            for(int i = 0; i < analysisScope.Analyzers.Length; i++)
+            for (int i = 0; i < analysisScope.Analyzers.Length; i++)
             {
                 var analyzer = analysisScope.Analyzers[i];
                 var analyzerSuccess = true;
@@ -1170,7 +1168,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Debug.Assert(!success);
                 Debug.Assert(subsetProcessedAnalyzersBuilderOpt.Count < analysisScope.Analyzers.Length);
 
-                if(subsetProcessedAnalyzersBuilderOpt.Count > 0)
+                if (subsetProcessedAnalyzersBuilderOpt.Count > 0)
                 {
                     subsetProcessedAnalyzers = subsetProcessedAnalyzersBuilderOpt.ToImmutableAndFree();
                 }
@@ -1855,6 +1853,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Mark completion if we successfully executed all actions and only if we are analyzing a span containing the entire syntax node.
             if (success && analysisStateOpt != null && !declarationAnalysisData.IsPartialAnalysis)
             {
+                // Ensure that we do not mark declaration complete/clear state if cancellation was requested.
+                // Other thread(s) might still be executing analysis, and clearing state could lead to corrupt execution
+                // or unknown exceptions.
+                cancellationToken.ThrowIfCancellationRequested();
+
                 foreach (var analyzer in analysisScope.Analyzers)
                 {
                     analysisStateOpt.MarkDeclarationComplete(symbol, declarationIndex, analyzer);
@@ -2148,7 +2151,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // These are newly added root operation nodes for C# method and constructor bodies.
                     // However, to avoid a breaking change for existing operation block analyzers,
                     // we have decided to retain the current behavior of making operation block callbacks with the contained
-                    // method body and/or constructor initialer operation nodes.
+                    // method body and/or constructor initializer operation nodes.
                     // Hence we detect here if the operation block is parented by IMethodBodyOperation or IConstructorBodyOperation and
                     // add them to 'operationsToAnalyze' so that analyzers that explicitly register for these operation kinds
                     // can get callbacks for these nodes.
@@ -2156,8 +2159,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         switch (operationBlock.Parent.Kind)
                         {
-                            case OperationKind.MethodBodyOperation:
-                            case OperationKind.ConstructorBodyOperation:
+                            case OperationKind.MethodBody:
+                            case OperationKind.ConstructorBody:
                                 operationsToAnalyze.Add(operationBlock.Parent);
                                 break;
 

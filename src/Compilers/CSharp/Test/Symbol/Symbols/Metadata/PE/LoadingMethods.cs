@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.False(localM1_1.IsOverride);
             Assert.False(localM1_1.IsStatic);
             Assert.False(localM1_1.IsExtern);
-            Assert.Equal(0, localM1_1.CustomModifiers.Length);
+            Assert.Equal(0, localM1_1.Type.CustomModifiers.Length);
 
             Assert.Equal("TC8 TC10.M3()", localM3.ToTestDisplayString());
             Assert.False(localM3.ReturnsVoid);

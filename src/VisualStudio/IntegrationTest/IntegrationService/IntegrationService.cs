@@ -68,5 +68,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             return objectUri;
         }
+
+        // Ensure InProcComponents live forever
+        public override object InitializeLifetimeService()
+            => null;
     }
 }

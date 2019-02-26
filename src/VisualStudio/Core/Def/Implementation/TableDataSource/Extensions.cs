@@ -159,14 +159,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return Guid.Empty;
             }
 
-            var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
-            var project = vsWorkspace?.GetHostProject(projectId);
-            if (project == null)
-            {
-                return Guid.Empty;
-            }
-
-            return project.Guid;
+            var vsWorkspace = workspace as VisualStudioWorkspace;
+            return vsWorkspace?.GetProjectGuid(projectId) ?? Guid.Empty;
         }
 
         public static Guid[] GetProjectGuids(this Workspace workspace, ImmutableArray<ProjectId> projectIds)

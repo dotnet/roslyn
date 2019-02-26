@@ -145,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             if (!this.IsForeground())
             {
-                this.InvokeBelowInputPriority(() => OnSourceProviderSourcesChanged(sender, e));
+                this.InvokeBelowInputPriorityAsync(() => OnSourceProviderSourcesChanged(sender, e));
                 return;
             }
 
@@ -371,6 +371,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                         async _ =>
                         {
                             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+                            cancellationToken.ThrowIfCancellationRequested();
+
                             ProcessBatchedChangesOnForeground(cancellationToken);
                         },
                         cancellationToken,
@@ -414,6 +416,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 async () =>
                 {
                     await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     ProcessBatchedChangesOnForeground(cancellationToken);
                 },
                 cancellationToken,
@@ -497,6 +501,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             {
                 // Nuget may throw an ArgumentException when there is something about the project 
                 // they do not like/support.
+            }
+            catch (InvalidOperationException e) when (e.StackTrace.Contains("NuGet.PackageManagement.VisualStudio.NetCorePackageReferenceProject.GetPackageSpecsAsync"))
+            {
+                // NuGet throws an InvalidOperationException if details
+                // for the project fail to load. We don't need to report
+                // these, and can assume that this will work on a future
+                // project change
+                // This should be removed with https://github.com/dotnet/roslyn/issues/33187
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {

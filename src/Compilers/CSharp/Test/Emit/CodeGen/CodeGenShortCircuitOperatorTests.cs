@@ -3831,6 +3831,48 @@ class Program
         }
 
         [Fact]
+        public void ConditionalMemberAccessCoalesceDefault()
+        {
+            var source = @"
+class Program
+{
+    class C1
+    {
+        public int x { get; set; }
+    }
+
+    static void Main()
+    {
+        var c = new C1() { x = 42 };
+        System.Console.WriteLine(Test(c));
+        System.Console.WriteLine(Test(null));
+    }
+
+    static int Test(C1 c)
+    {
+        return c?.x ?? 0;
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"
+42
+0");
+            comp.VerifyIL("Program.Test(Program.C1)", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldc.i4.0
+  IL_0004:  ret
+  IL_0005:  ldarg.0
+  IL_0006:  call       ""int Program.C1.x.get""
+  IL_000b:  ret
+}
+");
+        }
+
+        [Fact]
         public void ConditionalMemberAccessNullCheck001()
         {
             var source = @"
@@ -7310,7 +7352,7 @@ class Program
   IL_002b:  ret
 }");
 
-            comp = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"", parseOptions:TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes);
+            comp = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes);
 
             comp.VerifyIL("Program.Main", @"
 {

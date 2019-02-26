@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
         public RegexEmbeddedLanguage(EmbeddedLanguageInfo info)
         {
-            this.Info = info;
-
+            Info = info;
             Classifier = new RegexSyntaxClassifier(info);
         }
 

@@ -15,6 +15,7 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -34,7 +35,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     {
         private static readonly Guid IWpfTextViewId = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
 
-        private Editor_InProc() { }
+        private readonly SendKeys_InProc _sendKeys;
+
+        private Editor_InProc()
+        {
+            _sendKeys = new SendKeys_InProc(VisualStudio_InProc.Create());
+        }
 
         public static Editor_InProc Create()
             => new Editor_InProc();
@@ -103,7 +109,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => ExecuteOnActiveView(view =>
             {
                 var textSnapshot = view.TextSnapshot;
-                SelectText(oldText);                
+                SelectText(oldText);
                 var replacementSpan = new SnapshotSpan(textSnapshot, view.Selection.Start.Position, view.Selection.End.Position - view.Selection.Start.Position);
                 view.TextBuffer.Replace(replacementSpan, newText);
             });
@@ -121,15 +127,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public int GetLine()
             => ExecuteOnActiveView(view =>
             {
-                view.Caret.Position.BufferPosition.GetLineAndColumn(out int lineNumber, out int columnIndex);
+                view.Caret.Position.BufferPosition.GetLineAndCharacter(out int lineNumber, out int characterIndex);
                 return lineNumber;
             });
 
         public int GetColumn()
             => ExecuteOnActiveView(view =>
             {
-                view.Caret.Position.BufferPosition.GetLineAndColumn(out int lineNumber, out int columnIndex);
-                return columnIndex;
+                view.Caret.Position.BufferPosition.GetLineAndCharacter(out int lineNumber, out int characterIndex);
+                return characterIndex;
             });
 
         public string GetLineTextBeforeCaret()
@@ -367,15 +373,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public void DialogSendKeys(string dialogAutomationName, string keys)
+        public void DialogSendKeys(string dialogAutomationName, object[] keys)
         {
             var dialogAutomationElement = DialogHelpers.GetOpenDialogById((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationName);
 
             dialogAutomationElement.SetFocus();
-            SendKeys.SendWait(keys);
+            _sendKeys.Send(keys);
         }
 
-        public void SendKeysToNavigateTo(string keys)
+        public void SendKeysToNavigateTo(object[] keys)
         {
             var dialogAutomationElement = FindNavigateTo();
             if (dialogAutomationElement == null)
@@ -384,7 +390,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
 
             dialogAutomationElement.SetFocus();
-            SendKeys.SendWait(keys);
+            _sendKeys.Send(keys);
         }
 
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
@@ -665,7 +671,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     iEndLine = line,
                     iEndIndex = column
                 };
-                
+
                 Marshal.ThrowExceptionForHR(languageContextProvider.UpdateLanguageContext(0, textLines, new[] { span }, emptyUserContext));
                 Marshal.ThrowExceptionForHR(emptyUserContext.CountAttributes("keyword", VSConstants.S_FALSE, out var count));
                 for (int i = 0; i < count; i++)
@@ -684,7 +690,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void GoToImplementation()
             => GetDTE().ExecuteCommand("Edit.GoToImplementation");
 
-		/// <summary>
+        /// <summary>
         /// Gets the spans where a particular tag appears in the active text view.
         /// </summary>
         /// <returns>

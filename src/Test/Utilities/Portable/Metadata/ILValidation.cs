@@ -90,7 +90,7 @@ namespace Roslyn.Test.Utilities
                     // RSA parameters start after the public key offset
                     byte[] publicKeyParams = new byte[publicKeyBlob.Length - CryptoBlobParser.s_publicKeyHeaderSize];
                     publicKeyBlob.CopyTo(CryptoBlobParser.s_publicKeyHeaderSize, publicKeyParams, 0, publicKeyParams.Length);
-                    var snKey = publicKeyParams.ToRSAParameters(includePrivateParameters: false);
+                    var snKey = CryptoBlobParser.ToRSAParameters(publicKeyParams.AsSpan(), includePrivateParameters: false);
 
                     using (var rsa = RSA.Create())
                     {
@@ -178,9 +178,9 @@ namespace Roslyn.Test.Utilities
                 + sizeof(short)                                // Subsystem
                 + sizeof(short)                                // DllCharacteristics
                 + 4 * (is32bit ? sizeof(int) : sizeof(long)) + // SizeOfStackReserve, SizeOfStackCommit, SizeOfHeapReserve, SizeOfHeapCommit
-                + sizeof(int) +                                // LoaderFlags
-                + sizeof(int) +                                // NumberOfRvaAndSizes
-                + 4 * sizeof(long);                            // directory entries before Authenticode
+                +sizeof(int) +                                // LoaderFlags
+                +sizeof(int) +                                // NumberOfRvaAndSizes
+                +4 * sizeof(long);                            // directory entries before Authenticode
         }
 
         private static MethodInfo s_peheaderSizeMethod;
@@ -303,8 +303,11 @@ namespace Roslyn.Test.Utilities
         public static Dictionary<int, string> GetSequencePointMarkers(string pdbXml, string source = null)
         {
             string[] lines = source?.Split(new[] { "\r\n" }, StringSplitOptions.None);
-            var doc = new XmlDocument();
-            doc.LoadXml(pdbXml);
+            var doc = new XmlDocument() { XmlResolver = null };
+            using (var reader = new XmlTextReader(new StringReader(pdbXml)) { DtdProcessing = DtdProcessing.Prohibit })
+            {
+                doc.Load(reader);
+            }
             var result = new Dictionary<int, string>();
 
             if (source == null)

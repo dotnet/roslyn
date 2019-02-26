@@ -8,6 +8,19 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class ConstantValue
     {
+        /// <summary>
+        /// The IEEE floating-point spec doesn't specify which bit pattern an implementation
+        /// is required to use when producing NaN values.  Indeed, the spec does recommend
+        /// "diagnostic" information "left to the implementer’s discretion" be placed in the
+        /// undefined bits. It is therefore likely that NaNs produced on different platforms
+        /// will differ even for the same arithmetic such as 0.0 / 0.0.  To ensure that the
+        /// compiler behaves in a deterministic way, we force NaN values to use the
+        /// IEEE "canonical" form with the diagnostic bits set to zero and the sign bit set
+        /// to one.  Conversion of this value to float produces the corresponding
+        /// canonical NaN of the float type (IEEE Std 754-2008 section 6.2.3).
+        /// </summary>
+        private static double _s_IEEE_canonical_NaN = BitConverter.Int64BitsToDouble(unchecked((long)0xFFF8000000000000UL));
+
         private sealed class ConstantValueBad : ConstantValue
         {
             private ConstantValueBad() { }
@@ -721,6 +734,11 @@ namespace Microsoft.CodeAnalysis
             public ConstantValueDouble(double value)
                 : base(ConstantValueTypeDiscriminator.Double)
             {
+                if (double.IsNaN(value))
+                {
+                    value = _s_IEEE_canonical_NaN;
+                }
+
                 _value = value;
             }
 
@@ -753,6 +771,11 @@ namespace Microsoft.CodeAnalysis
             public ConstantValueSingle(double value)
                 : base(ConstantValueTypeDiscriminator.Single)
             {
+                if (double.IsNaN(value))
+                {
+                    value = _s_IEEE_canonical_NaN;
+                }
+
                 _value = value;
             }
 

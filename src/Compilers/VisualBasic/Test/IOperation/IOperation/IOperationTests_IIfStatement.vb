@@ -24,7 +24,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If count >  ... lue = count')
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'count > 0')
+    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'count > 0')
       Left: 
         ILocalReferenceOperation: count (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'count')
       Right: 
@@ -65,7 +65,7 @@ End Module
             Dim expectedOperationTree = <![CDATA[
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If count >  ... End If')
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'count > 0')
+    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'count > 0')
       Left: 
         ILocalReferenceOperation: count (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'count')
       Right: 
@@ -103,7 +103,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If count >  ... ata - count')
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'count > 10')
+    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'count > 10')
       Left: 
         ILocalReferenceOperation: count (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'count')
       Right: 
@@ -116,7 +116,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If count
             Left: 
               ILocalReferenceOperation: data (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'data')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'data + count')
+              IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'data + count')
                 Left: 
                   ILocalReferenceOperation: data (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'data')
                 Right: 
@@ -129,7 +129,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If count
             Left: 
               ILocalReferenceOperation: data (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'data')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'data - count')
+              IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'data - count')
                 Left: 
                   ILocalReferenceOperation: data (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'data')
                 Right: 
@@ -157,7 +157,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If m > 10 T ... rnValue = n')
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm > 10')
+    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'm > 10')
       Left: 
         ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
       Right: 
@@ -166,7 +166,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If m > 1
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If m > 10 T ... rnValue = n')
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If n > 20 T ... rnValue = n')
         Condition: 
-          IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'n > 20')
+          IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'n > 20')
             Left: 
               ILocalReferenceOperation: n (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'n')
             Right: 
@@ -207,7 +207,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If 1 = 1 Th ... End If')
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, Constant: True) (Syntax: '1 = 1')
+    IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.Binary, Type: System.Boolean, Constant: True) (Syntax: '1 = 1')
       Left: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
       Right: 
@@ -283,15 +283,15 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If (m > 
   Condition: 
     IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(m > 10 And n > 20)')
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.And, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm > 10 And n > 20')
+        IBinaryOperation (BinaryOperatorKind.And, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'm > 10 And n > 20')
           Left: 
-            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm > 10')
+            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'm > 10')
               Left: 
                 ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
           Right: 
-            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'n > 20')
+            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'n > 20')
               Left: 
                 ILocalReferenceOperation: n (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'n')
               Right: 
@@ -333,7 +333,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If count >  ... End If')
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'count > 0')
+    IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'count > 0')
       Left: 
         ILocalReferenceOperation: count (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'count')
       Right: 
@@ -355,7 +355,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If count
             Left: 
               ILocalReferenceOperation: returnValue (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'returnValue')
             Right: 
-              IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperator, Type: System.Int32, Constant: -1) (Syntax: '-1')
+              IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.Unary, Type: System.Int32, Constant: -1) (Syntax: '-1')
                 Operand: 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
@@ -390,7 +390,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If (m > 
   Condition: 
     IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(m > 10)')
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm > 10')
+        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'm > 10')
           Left: 
             ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
           Right: 
@@ -401,7 +401,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If (m > 
         Condition: 
           IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(n > 20)')
             Operand: 
-              IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'n > 20')
+              IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'n > 20')
                 Left: 
                   ILocalReferenceOperation: n (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'n')
                 Right: 
@@ -464,7 +464,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If (m > 
   Condition: 
     IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(m > 10)')
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm > 10')
+        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'm > 10')
           Left: 
             ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
           Right: 
@@ -475,7 +475,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If (m > 
         Condition: 
           IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(n > 20)')
             Operand: 
-              IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'n > 20')
+              IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'n > 20')
                 Left: 
                   ILocalReferenceOperation: n (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'n')
                 Right: 
@@ -535,15 +535,15 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If (m >=
   Condition: 
     IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(m >= n AndAlso m >= p)')
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.ConditionalAnd, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm >= n AndAlso m >= p')
+        IBinaryOperation (BinaryOperatorKind.ConditionalAnd, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'm >= n AndAlso m >= p')
           Left: 
-            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm >= n')
+            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'm >= n')
               Left: 
                 ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
               Right: 
                 ILocalReferenceOperation: n (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'n')
           Right: 
-            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm >= p')
+            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'm >= p')
               Left: 
                 ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
               Right: 
@@ -593,7 +593,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If (m > 
   Condition: 
     IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(m > 20)')
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm > 20')
+        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'm > 20')
           Left: 
             ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
           Right: 
@@ -615,7 +615,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If (m > 
       Condition: 
         IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(n > 10)')
           Operand: 
-            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'n > 10')
+            IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'n > 10')
               Left: 
                 ILocalReferenceOperation: n (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'n')
               Right: 
@@ -668,7 +668,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If (m > 
   Condition: 
     IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(m > 20)')
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm > 20')
+        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'm > 20')
           Left: 
             ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
           Right: 
@@ -691,7 +691,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If (m > 
         Condition: 
           IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(n > 10)')
             Operand: 
-              IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'n > 10')
+              IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'n > 10')
                 Left: 
                   ILocalReferenceOperation: n (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'n')
                 Right: 
@@ -750,7 +750,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
   Condition: 
     IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean, IsInvalid) (Syntax: '(m > 20)')
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid) (Syntax: 'm > 20')
+        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean, IsInvalid) (Syntax: 'm > 20')
           Left: 
             ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'm')
           Right: 
@@ -849,7 +849,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If (m = 
   Condition: 
     IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(m = 9)')
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'm = 9')
+        IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'm = 9')
           Left: 
             ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
           Right: 
@@ -938,7 +938,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'ElseIf (
   Condition: 
     IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Boolean) (Syntax: '(n > 10)')
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'n > 10')
+        IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'n > 10')
           Left: 
             ILocalReferenceOperation: n (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'n')
           Right: 
@@ -1032,7 +1032,7 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Else 
         Left: 
           ILocalReferenceOperation: data (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'data')
         Right: 
-          IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'data - count')
+          IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'data - count')
             Left: 
               ILocalReferenceOperation: data (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'data')
             Right: 

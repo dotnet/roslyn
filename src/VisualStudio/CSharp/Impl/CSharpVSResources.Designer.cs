@@ -151,6 +151,33 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to C# Coding Conventions.
+        /// </summary>
+        internal static string CSharp_Coding_Conventions {
+            get {
+                return ResourceManager.GetString("CSharp_Coding_Conventions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to C# Formatting Rules.
+        /// </summary>
+        internal static string CSharp_Formatting_Rules {
+            get {
+                return ResourceManager.GetString("CSharp_Formatting_Rules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Discard.
+        /// </summary>
+        internal static string Discard {
+            get {
+                return ResourceManager.GetString("Discard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Do not prefer &apos;this.&apos;.
         /// </summary>
         internal static string Do_not_prefer_this {
@@ -245,7 +272,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         /// </summary>
         internal static string Generate_Event_Subscription {
             get {
-                return ResourceManager.GetString("Generate Event Subscription", resourceCulture);
+                return ResourceManager.GetString("Generate_Event_Subscription", resourceCulture);
             }
         }
         
@@ -1330,6 +1357,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unused local.
+        /// </summary>
+        internal static string Unused_local {
+            get {
+                return ResourceManager.GetString("Unused_local", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use &apos;var&apos; when generating locals.
         /// </summary>
         internal static string Use_var_when_generating_locals {
@@ -1353,6 +1389,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string var_preferences_colon {
             get {
                 return ResourceManager.GetString("var_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When on multiple lines.
+        /// </summary>
+        internal static string When_on_multiple_lines {
+            get {
+                return ResourceManager.GetString("When_on_multiple_lines", resourceCulture);
             }
         }
         

@@ -36,7 +36,7 @@ class main1
             var comp = CreateCompilation(text);
 
             var actualSymbols = comp.Assembly.GlobalNamespace.GetMembers();
-            var actual = string.Join(", ", actualSymbols.Select(symbol => symbol.Name).OrderBy(name => name));
+            var actual = string.Join(", ", actualSymbols.Where(s => !s.IsImplicitlyDeclared).Select(symbol => symbol.Name).OrderBy(name => name));
             Assert.Equal("main1, Test1", actual);
         }
 
@@ -97,7 +97,7 @@ class C
             Assert.Equal(SymbolKind.Field, associatedField.Kind);
             Assert.Equal(Accessibility.Private, associatedField.DeclaredAccessibility);
             Assert.False(associatedField.IsStatic);
-            Assert.Equal(@event.Type, associatedField.Type);
+            Assert.Equal(@event.Type.TypeSymbol, associatedField.Type.TypeSymbol);
         }
 
         [Fact]
@@ -135,7 +135,7 @@ class C
             Assert.Equal(SymbolKind.Field, associatedField.Kind);
             Assert.Equal(Accessibility.Private, associatedField.DeclaredAccessibility);
             Assert.True(associatedField.IsStatic);
-            Assert.Equal(@event.Type, associatedField.Type);
+            Assert.Equal(@event.Type.TypeSymbol, associatedField.Type.TypeSymbol);
         }
 
         [Fact]
@@ -344,9 +344,9 @@ class A
                 var e2 = type.GetMember<EventSymbol>("E2");
                 var p = type.GetMember<PropertySymbol>("P");
 
-                Assert.Equal("System.Action<dynamic>", e1.Type.ToTestDisplayString());
-                Assert.Equal("System.Action<dynamic>", e2.Type.ToTestDisplayString());
-                Assert.Equal("System.Action<dynamic>", p.Type.ToTestDisplayString());
+                Assert.Equal("System.Action<dynamic>", e1.Type.TypeSymbol.ToTestDisplayString());
+                Assert.Equal("System.Action<dynamic>", e2.Type.TypeSymbol.ToTestDisplayString());
+                Assert.Equal("System.Action<dynamic>", p.Type.TypeSymbol.ToTestDisplayString());
 
                 Assert.Equal(1, e1.AddMethod.ParameterTypes.Length);
                 Assert.Equal("System.Action<dynamic>", e1.AddMethod.ParameterTypes[0].ToTestDisplayString());
@@ -486,7 +486,7 @@ class D
                 Assert.Equal("dynamic", parameterSymbol.Type.ToTestDisplayString());
             };
 
-            var compilationVerifier = CompileAndVerify(source: source, references: new[] { TargetFrameworkUtil.StandardCSharpReference, libAssemblyRef }, 
+            var compilationVerifier = CompileAndVerify(source: source, references: new[] { TargetFrameworkUtil.StandardCSharpReference, libAssemblyRef },
                                                     expectedOutput: "Print method ran.");
         }
 
@@ -573,8 +573,8 @@ Printed: Bob
 Printed: Charlie
 ";
             var compilationVerifier = CompileAndVerify(
-                source: source, 
-                targetFramework: TargetFramework.StandardAndCSharp, 
+                source: source,
+                targetFramework: TargetFramework.StandardAndCSharp,
                 references: new[] { libAssemblyRef },
                 expectedOutput: expectedOutput);
         }
@@ -604,8 +604,8 @@ public class CL2 : CL1
                 var e1 = type.GetMember<EventSymbol>("E1");
                 var e2 = type.GetMember<EventSymbol>("E2");
 
-                Assert.Equal("System.Action<System.Object>", e1.Type.ToTestDisplayString());
-                Assert.Equal("System.Action<System.Object>", e2.Type.ToTestDisplayString());
+                Assert.Equal("System.Action<System.Object>", e1.Type.TypeSymbol.ToTestDisplayString());
+                Assert.Equal("System.Action<System.Object>", e2.Type.TypeSymbol.ToTestDisplayString());
             };
 
             CompileAndVerify(source: source, references: new[] { libAssemblyRef }, symbolValidator: validator);
@@ -636,8 +636,8 @@ public class CL2 : CL1
                 var e1 = type.GetMember<EventSymbol>("E1");
                 var e2 = type.GetMember<EventSymbol>("E2");
 
-                Assert.Equal("System.Action<System.Object>", e1.Type.ToTestDisplayString());
-                Assert.Equal("System.Action<System.Object>", e2.Type.ToTestDisplayString());
+                Assert.Equal("System.Action<System.Object>", e1.Type.TypeSymbol.ToTestDisplayString());
+                Assert.Equal("System.Action<System.Object>", e2.Type.TypeSymbol.ToTestDisplayString());
             };
 
             CompileAndVerify(source: source, references: new[] { libAssemblyRef }, symbolValidator: validator);
@@ -804,13 +804,13 @@ class D
     }
 }
 ";
-            var compVerifier = CompileAndVerify(source, new[] { TargetFrameworkUtil.StandardCSharpReference, CompileIL(ilSource) }, 
+            var compVerifier = CompileAndVerify(source, new[] { TargetFrameworkUtil.StandardCSharpReference, CompileIL(ilSource) },
                                                 expectedOutput: "Event raised");
 
             var comp = compVerifier.Compilation;
             var classSymbol = (PENamedTypeSymbol)comp.GetTypeByMetadataName("C");
             var eventSymbol = (PEEventSymbol)classSymbol.GetMember("E");
-            Assert.Equal("System.Action<System.Object>", eventSymbol.Type.ToTestDisplayString());
+            Assert.Equal("System.Action<System.Object>", eventSymbol.Type.TypeSymbol.ToTestDisplayString());
         }
         #endregion
 
@@ -2136,16 +2136,19 @@ class A
             CreateCompilation("event System.Action System.IFormattable.").VerifyDiagnostics(
                 // (1,40): error CS0071: An explicit interface implementation of an event must use event accessor syntax
                 // event System.Action System.IFormattable.
-                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "."),
-                // (1,21): error CS0540: '<invalid-global-code>.': containing type does not implement interface 'System.IFormattable'
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(1, 40),
+                // (1,41): error CS1001: Identifier expected
                 // event System.Action System.IFormattable.
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "System.IFormattable").WithArguments("<invalid-global-code>.", "System.IFormattable"),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 41),
+                // (1,21): error CS0540: '<invalid-global-code>.': containing type does not implement interface 'IFormattable'
+                // event System.Action System.IFormattable.
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "System.IFormattable").WithArguments("<invalid-global-code>.", "System.IFormattable").WithLocation(1, 21),
                 // (1,41): error CS0539: '<invalid-global-code>.' in explicit interface declaration is not a member of interface
                 // event System.Action System.IFormattable.
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "").WithArguments("<invalid-global-code>."),
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "").WithArguments("<invalid-global-code>.").WithLocation(1, 41),
                 // (1,41): error CS0065: '<invalid-global-code>.': event property must have both add and remove accessors
                 // event System.Action System.IFormattable.
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "").WithArguments("<invalid-global-code>."));
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "").WithArguments("<invalid-global-code>.").WithLocation(1, 41));
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -2212,22 +2215,22 @@ class Derived2 : Base
 
             var @base = global.GetMember<NamedTypeSymbol>("Base");
             var baseEvent = @base.GetMember<EventSymbol>("E");
-            var baseEventType = baseEvent.Type;
+            var baseEventType = baseEvent.Type.TypeSymbol;
             Assert.Equal("System.Action<System.Int32 modopt(System.Int64) []>", baseEventType.ToTestDisplayString()); // Note modopt
 
             var derived1 = global.GetMember<NamedTypeSymbol>("Derived1");
             var event1 = derived1.GetMember<EventSymbol>("E");
-            Assert.Equal(baseEventType, event1.Type);
-            Assert.Equal(baseEventType, event1.AssociatedField.Type);
-            Assert.Equal(baseEventType, event1.AddMethod.ParameterTypes.Single());
-            Assert.Equal(baseEventType, event1.RemoveMethod.ParameterTypes.Single());
+            Assert.Equal(baseEventType, event1.Type.TypeSymbol);
+            Assert.Equal(baseEventType, event1.AssociatedField.Type.TypeSymbol);
+            Assert.Equal(baseEventType, event1.AddMethod.ParameterTypes.Single().TypeSymbol);
+            Assert.Equal(baseEventType, event1.RemoveMethod.ParameterTypes.Single().TypeSymbol);
 
             var derived2 = global.GetMember<NamedTypeSymbol>("Derived2");
             var event2 = derived2.GetMember<EventSymbol>("E");
-            Assert.Equal(baseEventType, event2.Type);
+            Assert.Equal(baseEventType, event2.Type.TypeSymbol);
             Assert.Null(event2.AssociatedField);
-            Assert.Equal(baseEventType, event2.AddMethod.ParameterTypes.Single());
-            Assert.Equal(baseEventType, event2.RemoveMethod.ParameterTypes.Single());
+            Assert.Equal(baseEventType, event2.AddMethod.ParameterTypes.Single().TypeSymbol);
+            Assert.Equal(baseEventType, event2.RemoveMethod.ParameterTypes.Single().TypeSymbol);
         }
 
         [Fact]

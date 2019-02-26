@@ -349,7 +349,7 @@ Class A3
     End Operator
 End Class
     ]]></file>
-</compilation>)
+</compilation>, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
             Dim model As VBSemanticModel = GetSemanticModel(compilation, "a.vb")
             Dim operatorSyntax As OperatorStatementSyntax
             Dim op As MethodSymbol

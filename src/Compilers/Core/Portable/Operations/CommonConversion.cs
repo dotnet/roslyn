@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.Operations
         private enum ConversionKind
         {
             None = 0,
-            Exists =        1 << 0,
-            IsIdentity =    1 << 1,
-            IsNumeric =     1 << 2,
-            IsReference =   1 << 3,
-            IsImplicit =    1 << 4,
+            Exists = 1 << 0,
+            IsIdentity = 1 << 1,
+            IsNumeric = 1 << 2,
+            IsReference = 1 << 3,
+            IsImplicit = 1 << 4,
         }
 
         private readonly ConversionKind _conversionKind;

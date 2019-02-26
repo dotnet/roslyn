@@ -3,8 +3,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System;
 
@@ -12,6 +10,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundExpression
     {
+        /// <summary>
+        /// Bound nodes with fields that aren't declared in BoundNodes.xml should use `SkipShallowClone="true"` and override <see cref="ShallowClone"/>.
+        /// Note that ShallowClone is not fully implemented (it throws for some nodes at the moment).
+        /// </summary>
+        protected abstract BoundExpression ShallowClone();
+
+        internal BoundExpression WithSuppression()
+        {
+            if (this.IsSuppressed)
+            {
+                return this;
+            }
+
+            var result = ShallowClone();
+            result.IsSuppressed = true;
+            return result;
+        }
+
         public virtual ConstantValue ConstantValue
         {
             get
@@ -132,19 +148,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.LocalSymbol; }
         }
 
-        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors)
-            : this(syntax, localSymbol, false, constantValueOpt, type, hasErrors)
-        {
-        }
-
-        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type)
-            : this(syntax, localSymbol, false, constantValueOpt, type)
+        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors = false)
+            : this(syntax, localSymbol, BoundLocalDeclarationKind.None, constantValueOpt, false, type, hasErrors)
         {
         }
 
         public BoundLocal Update(LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type)
         {
-            return this.Update(localSymbol, this.IsDeclaration, constantValueOpt, type);
+            return this.Update(localSymbol, this.DeclarationKind, constantValueOpt, this.IsNullableUnknown, type);
         }
     }
 
@@ -580,14 +591,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return this.MemberSymbol;
             }
-        }
-    }
-
-    internal partial class BoundAwaitExpression : BoundExpression
-    {
-        internal bool IsDynamic
-        {
-            get { return (object)this.GetResult == null; }
         }
     }
 

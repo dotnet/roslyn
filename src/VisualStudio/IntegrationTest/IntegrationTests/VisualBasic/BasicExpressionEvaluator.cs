@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
@@ -13,8 +14,15 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicExpressionEvaluator(VisualStudioInstanceFactory instanceFactory) : base(instanceFactory)
+        public BasicExpressionEvaluator(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
+        }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync();
+
             VisualStudio.SolutionExplorer.CreateSolution(nameof(BasicBuild));
             var testProj = new ProjectUtils.Project("TestProj");
             VisualStudio.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
@@ -56,7 +64,7 @@ Module Module1
 End Module");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
+        [WpfFact]
         public void ValidateLocalsWindow()
         {
             VisualStudio.Debugger.Go(waitForBreakMode: true);
@@ -84,7 +92,7 @@ End Module");
             VisualStudio.LocalsWindow.Verify.CheckEntry("myMulticastDelegate", "System.MulticastDelegate", "Nothing");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
+        [WpfFact]
         public void EvaluatePrimitiveValues()
         {
             VisualStudio.Debugger.Go(waitForBreakMode: true);
@@ -105,14 +113,14 @@ End Module");
             VisualStudio.Debugger.CheckExpression("(Function(val)(val+val))(1)", "Integer", "2");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
+        [WpfFact]
         public void EvaluateInvalidExpressions()
         {
             VisualStudio.Debugger.Go(waitForBreakMode: true);
             VisualStudio.Debugger.CheckExpression("myNonsense", "", "error BC30451: 'myNonsense' is not declared. It may be inaccessible due to its protection level.");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
+        [WpfFact]
         public void StateMachineTypeParameters()
         {
             VisualStudio.Editor.SetText(@"
@@ -137,7 +145,7 @@ End Module
 ");
             VisualStudio.Debugger.Go(waitForBreakMode: true);
             VisualStudio.LocalsWindow.Verify.CheckEntry("Type variables", "", "");
-            VisualStudio.LocalsWindow.Verify.CheckEntry( new string[] { "Type variables", "T" }, "String", "String");
+            VisualStudio.LocalsWindow.Verify.CheckEntry(new string[] { "Type variables", "T" }, "String", "String");
 
             // It is better to use the Immediate Window but DTE does not provide an access to it.
             VisualStudio.Debugger.CheckExpression("GetType(T) = GetType(String)", "Boolean", "True");

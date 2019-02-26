@@ -17,6 +17,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseLocalFunction
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseLocalFunctionDiagnosticAnalyzer(), new CSharpUseLocalFunctionCodeFixProvider());
 
+        private static ParseOptions CSharp72ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
+        private static ParseOptions CSharp8ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestMissingBeforeCSharp7()
         {
@@ -862,7 +865,10 @@ class C
             return fibonacci(v - 1, v - 2);
         }
     }
-}");
+}",
+            // 7.1 is required for default literals, so 7.2 should be sufficient
+            // and is used in other tests
+            parseOptions: CSharp72ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -1364,7 +1370,9 @@ class C
     {
         void lambda(in int p) => throw null;
     }
-}");
+}",
+            // Run with 7.2 to get read-only references
+            parseOptions: CSharp72ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -2002,8 +2010,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestWithDefaultParameter1()
         {
-           await TestInRegularAndScript1Async(
-@"class C
+            await TestInRegularAndScript1Async(
+ @"class C
 {
     delegate string MyDelegate(string arg = ""hello"");
 
@@ -2012,7 +2020,7 @@ class C
         MyDelegate [||]local = (s) => s;
     }
 }",
-@"class C
+ @"class C
 {
     delegate string MyDelegate(string arg = ""hello"");
 
@@ -3101,6 +3109,556 @@ class Enclosing<U> : DelegateEnclosing<U>
         Callee(local);
     }
 }");
+        }
+
+        [WorkItem(26526, "https://github.com/dotnet/roslyn/issues/26526")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestAvailableWithCastIntroducedIfAssignedToVar()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<string> [||]f = () => null;
+
+        var f2 = f;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        string f() => null;
+
+        var f2 = (Func<string>)f;
+    }
+}");
+        }
+
+        [WorkItem(26526, "https://github.com/dotnet/roslyn/issues/26526")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestAvailableWithCastIntroducedForGenericTypeInference1()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, string> [||]f = _ => null;
+
+        Method(f);
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        string f(int _) => null;
+
+        Method((Func<int, string>)f);
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+}");
+        }
+
+        [WorkItem(26526, "https://github.com/dotnet/roslyn/issues/26526")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestAvailableWithCastIntroducedForGenericTypeInference2()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, string> [||]f = _ => null;
+
+        Method(f);
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+
+    void Method(string o)
+    {
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        string f(int _) => null;
+
+        Method((Func<int, string>)f);
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+
+    void Method(string o)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestAvailableWithCastIntroducedForOverloadResolution()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+delegate string CustomDelegate();
+
+class C
+{
+    void M()
+    {
+        Func<string> [||]f = () => null;
+
+        Method(f);
+    }
+
+    void Method(Func<string> o)
+    {
+    }
+
+    void Method(CustomDelegate o)
+    {
+    }
+}",
+@"using System;
+
+delegate string CustomDelegate();
+
+class C
+{
+    void M()
+    {
+        string f() => null;
+
+        Method((Func<string>)f);
+    }
+
+    void Method(Func<string> o)
+    {
+    }
+
+    void Method(CustomDelegate o)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestAvailableWithoutCastIfUnnecessaryForOverloadResolution()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+delegate string CustomDelegate(object arg);
+
+class C
+{
+    void M()
+    {
+        Func<string> [||]f = () => null;
+
+        Method(f);
+    }
+
+    void Method(Func<string> o)
+    {
+    }
+
+    void Method(CustomDelegate o)
+    {
+    }
+}",
+@"using System;
+
+delegate string CustomDelegate(object arg);
+
+class C
+{
+    void M()
+    {
+        string f() => null;
+
+        Method(f);
+    }
+
+    void Method(Func<string> o)
+    {
+    }
+
+    void Method(CustomDelegate o)
+    {
+    }
+}");
+        }
+
+        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestNotAvailableWithInvalidDeclaration()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<string> [||]f = () => null);
+
+        Method(f);
+    }
+
+    void Method(Func<string> o)
+    {
+    }
+}
+
+");
+        }
+
+        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestNotAvailableWithInvalidDeclaration2()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<string> [||]f) = () => null;
+
+        Method(f);
+    }
+
+    void Method(Func<string> o)
+    {
+    }
+}
+
+");
+        }
+
+        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestNotAvailableWithInvalidDeclaration3()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<string>) [||]f = () => null;
+
+        Method(f);
+    }
+
+    void Method(Func<string> o)
+    {
+    }
+}
+
+");
+        }
+
+
+        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithInvalidUnrelatedCode()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, string> [||]f = _ => null;
+
+        Method(f);
+    }
+
+    void Method<T>(Func<T, string> o))
+    {
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        string f(int _) => null;
+
+        Method((Func<int, string>)f);
+    }
+
+    void Method<T>(Func<T, string> o))
+    {
+    }
+}");
+        }
+
+        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithInvalidUnrelatedCode2()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, string> [||]f = _ => null;
+
+        (Method(f);
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        string f(int _) => null;
+
+        (Method((Func<int, string>)f);
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+}");
+        }
+
+        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithObsoleteCode()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, string> [||]f = _ => S();
+
+        Method(f);
+    }
+
+    [System.Obsolete]
+    string S()
+    {
+        return null;
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        string f(int _) => S();
+
+        Method((Func<int, string>)f);
+    }
+
+    [System.Obsolete]
+    string S()
+    {
+        return null;
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+}");
+        }
+
+        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithDeclarationWarning()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+#warning Declaration Warning
+        Func<int, string> [||]f = _ => null;
+
+        Method(f);
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+#warning Declaration Warning
+        string f(int _) => null;
+
+        Method((Func<int, string>)f);
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestMakeStaticIfNoCaptures()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, int> [||]fibonacci = v =>
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        static int fibonacci(int v)
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        }
+    }
+}", parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestDoNotMakeStaticIfCaptures()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, int> [||]fibonacci = v =>
+        {
+            M();
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int fibonacci(int v)
+        {
+            M();
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        }
+    }
+}", parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithAsyncLambdaExpression_MakeStatic()
+        {
+            await TestInRegularAndScriptAsync(
+ @"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        Func<Task> [||]f = async () => await Task.Yield();
+    }
+}",
+ @"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        static async Task f() => await Task.Yield();
+    }
+}", parseOptions: CSharp8ParseOptions);
         }
     }
 }

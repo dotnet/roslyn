@@ -3029,7 +3029,7 @@
     <value>Cannot infer a common type for the second and third operands of the 'If' operator. One must have a widening conversion to the other.</value>
   </data>
   <data name="ERR_IllegalCondTypeInIIF" xml:space="preserve">
-    <value>First operand in a binary 'If' expression must be nullable or a reference type.</value>
+    <value>First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.</value>
   </data>
   <data name="ERR_CantCallIIF" xml:space="preserve">
     <value>'If' operator cannot be used in a 'Call' statement.</value>
@@ -5169,7 +5169,7 @@
                                   (hex).
 -checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file
                                   checksum stored in PDB. Supported values are:
-                                  SHA1 (default) or SHA256.
+                                  SHA1 or SHA256 (default).
 -codepage:&lt;number&gt;                Specifies the codepage to use when opening
                                   source files.
 -delaysign[+|-]                   Delay-sign the assembly using only the public
@@ -5202,6 +5202,7 @@
                                   must be x86, x64, Itanium, arm, arm64
                                   AnyCPU32BitPreferred or anycpu (default).
 -preferreduilang                  Specify the preferred output language name.
+-nosdkpath                        Disable searching the default SDK path for standard library assemblies.
 -sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
@@ -5532,5 +5533,8 @@
   </data>
   <data name="FEATURE_InterpolatedStrings" xml:space="preserve">
     <value>interpolated strings</value>
+  </data>
+  <data name="FEATURE_UnconstrainedTypeParameterInConditional" xml:space="preserve">
+    <value>unconstrained type parameters in binary conditional expressions</value>
   </data>
 </root>

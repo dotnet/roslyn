@@ -29,6 +29,12 @@ namespace RunTests
         public bool Test64 { get; set; }
 
         /// <summary>
+        /// Target framework used to run the tests, e.g. "net472".
+        /// This is currently only used to name the test result files.
+        /// </summary>
+        public string TargetFrameworkMoniker { get; set; }
+
+        /// <summary>
         /// Use the open integration test runner.
         /// </summary>
         public bool TestVsi { get; set; }
@@ -64,6 +70,11 @@ namespace RunTests
         public TimeSpan? Timeout { get; set; }
 
         /// <summary>
+        /// Whether or not to use proc dump to monitor running processes for failures.
+        /// </summary>
+        public bool UseProcDump { get; set; }
+
+        /// <summary>
         /// The directory which contains procdump.exe. 
         /// </summary>
         public string ProcDumpDirectory { get; set; }
@@ -71,9 +82,14 @@ namespace RunTests
         public string XunitPath { get; set; }
 
         /// <summary>
-        /// Directory to hold all of our test logging information.
+        /// Directory to hold all of the xml files created as test results.
         /// </summary>
-        public string LogsDirectory { get; set; }
+        public string TestResultXmlOutputDirectory { get; set; }
+
+        /// <summary>
+        /// Directory to hold dump files and other log files created while running tests.
+        /// </summary>
+        public string LogFilesOutputDirectory { get; set; }
 
         internal static Options Parse(string[] args)
         {
@@ -96,7 +112,7 @@ namespace RunTests
                 return false;
             }
 
-            var opt = new Options { XunitPath = args[0], UseHtml = true, UseCachedResults = true, LogsDirectory = Directory.GetCurrentDirectory() };
+            var opt = new Options { XunitPath = args[0], UseHtml = true, UseCachedResults = true, TestResultXmlOutputDirectory = Path.Combine(Directory.GetCurrentDirectory(), "TestResults") };
             var index = 1;
             var allGood = true;
             while (index < args.Length)
@@ -123,9 +139,19 @@ namespace RunTests
                     opt.UseCachedResults = false;
                     index++;
                 }
-                else if (isOption(current, "-logpath", out string value))
+                else if (isOption(current, "-tfm", out string targetFrameworkMoniker))
                 {
-                    opt.LogsDirectory = value;
+                    opt.TargetFrameworkMoniker = targetFrameworkMoniker;
+                    index++;
+                }
+                else if (isOption(current, "-out", out string value))
+                {
+                    opt.TestResultXmlOutputDirectory = value;
+                    index++;
+                }
+                else if (isOption(current, "-logs", out string logsPath))
+                {
+                    opt.LogFilesOutputDirectory = logsPath;
                     index++;
                 }
                 else if (isOption(current, "-display", out value))
@@ -171,6 +197,11 @@ namespace RunTests
                     opt.ProcDumpDirectory = value;
                     index++;
                 }
+                else if (comparer.Equals(current, "-useprocdump"))
+                {
+                    opt.UseProcDump = false;
+                    index++;
+                }
                 else
                 {
                     break;
@@ -193,6 +224,18 @@ namespace RunTests
             {
                 Console.WriteLine($"The file '{opt.XunitPath}' does not exist.");
                 return null;
+            }
+
+            if (opt.UseProcDump && string.IsNullOrEmpty(opt.ProcDumpDirectory))
+            {
+                Console.WriteLine($"The option 'useprocdump' was specified but 'procdumppath' was not provided");
+                return null;
+            }
+
+            // If we weren't passed both -logs and -out but just -out, use the same value for -logs too.
+            if (opt.LogFilesOutputDirectory == null)
+            {
+                opt.LogFilesOutputDirectory = opt.TestResultXmlOutputDirectory;
             }
 
             opt.Assemblies = args.Skip(index).ToList();

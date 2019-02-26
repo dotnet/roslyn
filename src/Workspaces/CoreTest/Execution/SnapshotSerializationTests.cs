@@ -442,6 +442,55 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public async Task ShadowCopied_Analyzer_Serailization_Desktop_Test()
+        {
+            var hostServices = MefHostServices.Create(
+                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
+
+            using (var tempRoot = new TempRoot())
+            using (var workspace = new AdhocWorkspace(hostServices))
+            {
+                var reference = CreateShadowCopiedAnalyzerReference(tempRoot);
+
+                var serializer = workspace.Services.GetService<ISerializerService>();
+
+                // make sure this doesn't throw
+                var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
+
+                // this will verify serialized analyzer reference return same checksum as the original one
+                var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
+            }
+        }
+
+        [Fact]
+        public void WorkspaceAnalyzer_Serailization_Desktop_Test()
+        {
+            var hostServices = MefHostServices.Create(
+                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
+
+            using (var tempRoot = new TempRoot())
+            using (var workspace = new AdhocWorkspace(hostServices))
+            {
+                var reference = CreateShadowCopiedAnalyzerReference(tempRoot);
+
+                var assetBuilder = new CustomAssetBuilder(workspace);
+                var asset = assetBuilder.Build(reference, CancellationToken.None);
+
+                // verify checksum from custom asset builder uses different checksum than regular one
+                var service = workspace.Services.GetService<IReferenceSerializationService>();
+                var expectedChecksum = Checksum.Create(
+                    WellKnownSynchronizationKind.AnalyzerReference,
+                    service.CreateChecksum(reference, usePathFromAssembly: false, CancellationToken.None));
+                Assert.Equal(expectedChecksum, asset.Checksum);
+
+                // verify usePathFromAssembly return different checksum for same reference
+                var fromFilePath = service.CreateChecksum(reference, usePathFromAssembly: false, CancellationToken.None);
+                var fromAssembly = service.CreateChecksum(reference, usePathFromAssembly: true, CancellationToken.None);
+                Assert.NotEqual(fromFilePath, fromAssembly);
+            }
+        }
+
+        [Fact]
         public async Task SnapshotWithMissingReferencesTest()
         {
             var hostServices = MefHostServices.Create(
@@ -556,6 +605,43 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
                     Assert.Equal(sourceText.ToString(), newText.ToString());
+                }
+            }
+        }
+
+        [Fact]
+        public void TestCompilationOptions_NullableAndImport()
+        {
+            var csharpOptions = CSharp.CSharpCompilation.Create("dummy").Options.WithNullableContextOptions(CSharp.NullableContextOptions.SafeOnly).WithMetadataImportOptions(MetadataImportOptions.All);
+            var vbOptions = VisualBasic.VisualBasicCompilation.Create("dummy").Options.WithMetadataImportOptions(MetadataImportOptions.Internal);
+
+            var hostServices = MefHostServices.Create(MefHostServices.DefaultAssemblies);
+
+            var workspace = new AdhocWorkspace(hostServices);
+            var serializer = workspace.Services.GetService<ISerializerService>();
+
+            VerifyOptions(csharpOptions);
+            VerifyOptions(vbOptions);
+
+            void VerifyOptions(CompilationOptions originalOptions)
+            {
+                using (var stream = SerializableBytes.CreateWritableStream())
+                {
+                    using (var objectWriter = new ObjectWriter(stream))
+                    {
+                        serializer.Serialize(originalOptions, objectWriter, CancellationToken.None);
+                    }
+
+                    stream.Position = 0;
+                    using (var objectReader = ObjectReader.TryGetReader(stream))
+                    {
+                        var recoveredOptions = serializer.Deserialize<CompilationOptions>(originalOptions.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+
+                        var original = serializer.CreateChecksum(originalOptions, CancellationToken.None);
+                        var recovered = serializer.CreateChecksum(recoveredOptions, CancellationToken.None);
+
+                        Assert.Equal(original, recovered);
+                    }
                 }
             }
         }
@@ -734,6 +820,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     return assetFromStorage;
                 }
             }
+        }
+
+        private static AnalyzerFileReference CreateShadowCopiedAnalyzerReference(TempRoot tempRoot)
+        {
+            // use 2 different files as shadow copied content
+            var original = typeof(AdhocWorkspace).Assembly.Location;
+
+            var shadow = tempRoot.CreateFile("shadow", "dll");
+            shadow.CopyContentFrom(typeof(object).Assembly.Location);
+
+            return new AnalyzerFileReference(original, new MockShadowCopyAnalyzerAssemblyLoader(ImmutableDictionary<string, string>.Empty.Add(original, shadow.Path)));
         }
 
         private interface INullLanguageService : ILanguageService { }

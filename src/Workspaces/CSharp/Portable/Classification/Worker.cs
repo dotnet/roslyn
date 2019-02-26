@@ -98,6 +98,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 if (type != null)
                 {
                     AddClassification(span, type);
+
+                    // Additionally classify static symbols
+                    if (token.Kind() == SyntaxKind.IdentifierToken
+                        && ClassificationHelpers.IsStaticallyDeclared(token))
+                    {
+                        AddClassification(span, ClassificationTypeNames.StaticSymbol);
+                    }
                 }
             }
 
@@ -201,6 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.PragmaChecksumDirectiveTrivia:
                 case SyntaxKind.ReferenceDirectiveTrivia:
                 case SyntaxKind.LoadDirectiveTrivia:
+                case SyntaxKind.NullableDirectiveTrivia:
                 case SyntaxKind.BadDirectiveTrivia:
                     ClassifyPreprocessorDirective((DirectiveTriviaSyntax)trivia.GetStructure());
                     return;
@@ -236,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 // for the ======== add a comment for the first line, and then lex all
                 // subsequent lines up until the end of the conflict marker.
                 foreach (var token in SyntaxFactory.ParseTokens(text: trivia.ToFullString(), initialTokenPosition: trivia.SpanStart))
-                { 
+                {
                     ClassifyToken(token);
                 }
             }

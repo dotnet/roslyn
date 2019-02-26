@@ -1687,7 +1687,7 @@ index: 1);
 @"class C
 {
     int Goo { get => 1; set => _i = value; }
-}", 
+}",
 index: 1,
 options: PreferExpressionBodiedAccessors);
         }
@@ -1723,7 +1723,7 @@ options: PreferExpressionBodiedAccessors);
             _i = value;
         }
     }
-}", 
+}",
 index: 1,
 options: PreferExpressionBodiedProperties);
         }
@@ -1920,7 +1920,7 @@ class C : IGoo
         }
 
         private async Task TestWithAllCodeStyleOff(
-            string initialMarkup, string expectedMarkup, 
+            string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions = null, int index = 0)
         {
             await TestAsync(

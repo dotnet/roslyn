@@ -3,6 +3,8 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddConstructorParametersFromMembers;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -265,7 +267,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleWithDifferentNames()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     [|(int a, string b) i;
@@ -275,13 +277,24 @@ index: 1);
     {
         this.i = i;
     }
+}",
+@"class Program
+{
+    [|(int a, string b) i;
+    (string c, int d) s;|]
+
+    public Program((int e, string f) i, (string c, int d) s)
+    {
+        this.i = i;
+        this.s = s;
+    }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
-        public async Task TestTupleOptional()
+        public async Task TestTupleOptionalCSharp7()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class Program
 {
     [|(int, string) i;
@@ -303,11 +316,39 @@ index: 1);
         this.s = s;
     }
 }",
+index: 1, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestTupleOptional()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    [|(int, string) i;
+    (string, int) s;|]
+
+    public Program((int, string) i)
+    {
+        this.i = i;
+    }
+}",
+@"class Program
+{
+    (int, string) i;
+    (string, int) s;
+
+    public Program((int, string) i, (string, int) s = default)
+    {
+        this.i = i;
+        this.s = s;
+    }
+}",
 index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
-        public async Task TestTupleOptionalWithNames()
+        public async Task TestTupleOptionalWithNames_CSharp7()
         {
             await TestInRegularAndScriptAsync(
 @"class Program
@@ -331,13 +372,70 @@ index: 1);
         this.s = s;
     }
 }",
+parseOptions: TestOptions.Regular7,
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestTupleOptionalWithNamesCSharp7()
+        {
+            await TestAsync(
+@"class Program
+{
+    [|(int a, string b) i;
+    (string c, int d) s;|]
+
+    public Program((int a, string b) i)
+    {
+        this.i = i;
+    }
+}",
+@"class Program
+{
+    (int a, string b) i;
+    (string c, int d) s;
+
+    public Program((int a, string b) i, (string c, int d) s = default((string c, int d)))
+    {
+        this.i = i;
+        this.s = s;
+    }
+}",
+index: 1, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestTupleOptionalWithNames()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    [|(int a, string b) i;
+    (string c, int d) s;|]
+
+    public Program((int a, string b) i)
+    {
+        this.i = i;
+    }
+}",
+@"class Program
+{
+    (int a, string b) i;
+    (string c, int d) s;
+
+    public Program((int a, string b) i, (string c, int d) s = default)
+    {
+        this.i = i;
+        this.s = s;
+    }
+}",
 index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleOptionalWithDifferentNames()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"class Program
 {
     [|(int a, string b) i;
@@ -347,7 +445,18 @@ index: 1);
     {
         this.i = i;
     }
-}");
+}",
+@"class Program
+{
+    [|(int a, string b) i;
+    (string c, int d) s;|]
+
+    public Program((int e, string f) i, (string c, int d) s = default)
+    {
+        this.i = i;
+        this.s = s;
+    }
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
@@ -402,6 +511,136 @@ index: 1);
         this.s = s;
     }
 }");
+        }
+
+        [WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestAddParamtersToConstructorBySelectOneMember()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int i;
+    [|(List<byte>, List<long>) s;|]
+    int j;
+
+    public C(int i, int j)
+    {
+        this.i = i;
+        this.j = j;
+    }
+}",
+@"
+class C
+{
+    int i;
+    (List<byte>, List<long>) s;
+    int j;
+
+    public C(int i, int j, (List<byte>, List<long>) s)
+    {
+        this.i = i;
+        this.j = j;
+        this.s = s;
+    }
+}");
+        }
+
+        [WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestParametersAreStillRightIfMembersAreOutOfOrder()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    [|int i;
+    int k;
+    int j;|]
+
+    public C(int i, int j)
+    {
+        this.i = i;
+        this.j = j;
+    }
+}",
+@"
+class C
+{
+    int i;
+    int k;
+    int j;
+
+    public C(int i, int j, int k)
+    {
+        this.i = i;
+        this.j = j;
+        this.k = k;
+    }
+}");
+        }
+
+        [WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestMissingIfFieldsAlreadyExistingInConstructor()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    [|string _barBar;
+    int fooFoo;|]
+    public C(string barBar, int fooFoo)
+    {
+    }
+}"
+            );
+        }
+
+        [WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestMissingIfPropertyAlreadyExistingInConstructor()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    [|string bar;
+    int HelloWorld { get; set; }|]
+    public C(string bar, int helloWorld)
+    {
+    }
+}"
+            );
+
+        }
+
+        [WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestNormalProperty()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    [|int i;
+    int Hello { get; set; }|]
+    public C(int i)
+    {
+    }
+}",
+@"
+class C
+{
+    int i;
+    int Hello { get; set; }
+    public C(int i, int hello)
+    {
+        Hello = hello;
+    }
+}"
+            );
         }
     }
 }

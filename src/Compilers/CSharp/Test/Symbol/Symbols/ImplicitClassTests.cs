@@ -53,7 +53,7 @@ void Goo()
 }
 ", parseOptions: TestOptions.Script);
 
-            var scriptClass = ((NamedTypeSymbol)c.Assembly.GlobalNamespace.GetMembers().Single());
+            var scriptClass = (NamedTypeSymbol)c.Assembly.GlobalNamespace.GetMember("Script");
             Assert.Equal(0, scriptClass.GetAttributes().Length);
             Assert.Equal(0, scriptClass.Interfaces().Length);
             Assert.Null(scriptClass.BaseType());

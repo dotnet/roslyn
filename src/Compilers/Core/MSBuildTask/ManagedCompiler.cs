@@ -26,11 +26,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         internal abstract RequestLanguage Language { get; }
 
-        static ManagedCompiler()
-        {
-            AssemblyResolution.Install();
-        }
-
         public ManagedCompiler()
         {
             TaskResources = ErrorString.ResourceManager;
@@ -612,6 +607,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 case BuildResponse.ResponseType.MismatchedVersion:
                     LogErrorOutput("Roslyn compiler server reports different protocol version than build task.");
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+
+                case BuildResponse.ResponseType.IncorrectHash:
+                    LogErrorOutput("Roslyn compiler server reports different hash version than build task.");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 case BuildResponse.ResponseType.Rejected:

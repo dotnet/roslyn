@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var root = await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var diagnostics = root.GetDiagnostics();
 
-                return _owner._executor.ConvertToLocalDiagnostics(_document, diagnostics, _range);
+                return diagnostics.ConvertToLocalDiagnostics(_document, _range);
             }
 
             private async Task<IEnumerable<DiagnosticData>> GetCompilerSemanticDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var adjustedSpan = AdjustSpan(_document, root, _range);
                 var diagnostics = model.GetDeclarationDiagnostics(adjustedSpan, cancellationToken).Concat(model.GetMethodBodyDiagnostics(adjustedSpan, cancellationToken));
 
-                return _owner._executor.ConvertToLocalDiagnostics(_document, diagnostics, _range);
+                return diagnostics.ConvertToLocalDiagnostics(_document, _range);
             }
 
             private Task<IEnumerable<DiagnosticData>> GetSyntaxDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 List<DiagnosticData> list,
                 CancellationToken cancellationToken)
             {
-                if (!_owner.SupportAnalysisKind(stateSet.Analyzer, stateSet.Language, kind))
+                if (!_owner.Owner.SupportAnalysisKind(stateSet.Analyzer, stateSet.Language, kind))
                 {
                     return true;
                 }
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private bool ShouldInclude(DiagnosticData diagnostic)
             {
-                return diagnostic.DocumentId == _document.Id && _range.IntersectsWith(diagnostic.TextSpan) 
+                return diagnostic.DocumentId == _document.Id && _range.IntersectsWith(diagnostic.TextSpan)
                     && (_includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
                     && (_diagnosticId == null || _diagnosticId == diagnostic.Id);
             }

@@ -10,15 +10,5 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers
     internal class CSharpRemoveUnusedMembersDiagnosticAnalyzer
         : AbstractRemoveUnusedMembersDiagnosticAnalyzer<DocumentationCommentTriviaSyntax, IdentifierNameSyntax>
     {
-        public CSharpRemoveUnusedMembersDiagnosticAnalyzer()
-            : base(forceEnableRules: false)
-        {
-        }
-
-        // For testing purposes only.
-        internal CSharpRemoveUnusedMembersDiagnosticAnalyzer(bool forceEnableRules)
-            : base(forceEnableRules)
-        {
-        }
     }
 }
