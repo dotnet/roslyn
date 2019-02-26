@@ -59,10 +59,6 @@ class c
             End Using
         End Function
 
-        ''' <summary>
-        ''' </summary>
-        ''' <param name="completionImplementation"></param>
-        ''' <returns></returns>
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCaretPlacement(completionImplementation As CompletionImplementation) As Task
@@ -91,6 +87,52 @@ class c
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("new Regex(@""[^-]"")", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
                 Await state.AssertLineTextAroundCaret("        var r = new Regex(@""[^", "-]"");")
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestBackslashBInCharacterClass(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                <Document><![CDATA[
+using System.Text.RegularExpressions;
+class c
+{
+    void goo()
+    {
+        var r = new Regex(@"[$$]");
+    }
+}
+]]></Document>)
+
+                state.SendTypeChars("\b")
+
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("\b", description:=WorkspacesResources.Regex_backspace_character_long)
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestBackslashBOutOfCharacterClass(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                <Document><![CDATA[
+using System.Text.RegularExpressions;
+class c
+{
+    void goo()
+    {
+        var r = new Regex(@"$$");
+    }
+}
+]]></Document>)
+
+                state.SendTypeChars("\b")
+
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("\b", description:=WorkspacesResources.Regex_word_boundary_long)
             End Using
         End Function
 
