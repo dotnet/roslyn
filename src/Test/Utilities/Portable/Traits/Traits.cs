@@ -67,11 +67,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsCorrectExitContinue = "CodeActions.CorrectExitContinue";
             public const string CodeActionsCorrectFunctionReturnType = "CodeActions.CorrectFunctionReturnType";
             public const string CodeActionsCorrectNextControlVariable = "CodeActions.CorrectNextControlVariable";
-<<<<<<< HEAD
-            public const string CodeActionsDetectJsonString = "CodeActions.DetectJsonString";
-=======
             public const string CodeActionsDeclareAsNullable = "CodeActions.DeclareAsNullable";
->>>>>>> upstream/master
+            public const string CodeActionsDetectJsonString = "CodeActions.DetectJsonString";
             public const string CodeActionsGenerateConstructor = "CodeActions.GenerateConstructor";
             public const string CodeActionsGenerateConstructorFromMembers = "CodeActions.GenerateConstructorFromMembers";
             public const string CodeActionsGenerateDefaultConstructors = "CodeActions.GenerateDefaultConstructors";
