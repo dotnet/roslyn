@@ -85,7 +85,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Returns the active path to the rule set file that is being used by this project, or null if there isn't a rule set file.
         /// </summary>
-        public string EffectiveRuleSetFilePath => _ruleSetFile?.Target.Value.FilePath;
+        public string EffectiveRuleSetFilePath
+        {
+            get
+            {
+                // We take a lock when reading this because we might be in the middle of processing a file update on another
+                // thread.
+                lock (_gate)
+                {
+                    return _ruleSetFile?.Target.Value.FilePath;
+                }
+            }
+        }
+
+        private void DisposeOfRuleSetFile_NoLock()
+        {
+            if (_ruleSetFile != null)
+            {
+                _ruleSetFile.Target.Value.UpdatedOnDisk -= RuleSetFile_UpdatedOnDisk;
+                _ruleSetFile.Dispose();
+                _ruleSetFile = null;
+            }
+        }
 
         private void ReparseCommandLine_NoLock()
         {
@@ -101,12 +122,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // We're changing in some way. Be careful: this might mean the path is switching to or from null, so either side so far
                 // could be changed.
-                _ruleSetFile?.Dispose();
-                _ruleSetFile = null;
+                DisposeOfRuleSetFile_NoLock();
 
                 if (effectiveRuleSetPath != null)
                 {
                     _ruleSetFile = _workspaceServices.GetRequiredService<VisualStudioRuleSetManager>().GetOrCreateRuleSet(effectiveRuleSetPath);
+                    _ruleSetFile.Target.Value.UpdatedOnDisk += RuleSetFile_UpdatedOnDisk;
                 }
             }
 
@@ -151,6 +172,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _project.ParseOptions = parseOptions;
         }
 
+        private void RuleSetFile_UpdatedOnDisk(object sender, EventArgs e)
+        {
+            lock (_gate)
+            {
+                // This event might have gotten fired "late" if the file change was already in flight. We can see if this is still our current file;
+                // it won't be if this is disposed or was already changed to a different file. We hard-cast sender to an IRuleSetFile because if it's
+                // something else that means our comparison below is definitely broken.
+                if (_ruleSetFile?.Target.Value != (IRuleSetFile)sender)
+                {
+                    return;
+                }
+
+                // The IRuleSetFile held by _ruleSetFile is now out of date. Our model is we now request a new one which will have up-to-date values.
+                DisposeOfRuleSetFile_NoLock();
+                UpdateProjectOptions_NoLock();
+            }
+        }
+
         /// <summary>
         /// Overridden by derived classes to provide a hook to modify a <see cref="CompilationOptions"/> with any host-provided values that didn't come from
         /// the command line string.
@@ -183,8 +222,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void Dispose()
         {
-            _ruleSetFile?.Dispose();
-            _ruleSetFile = null;
+            lock (_gate)
+            {
+                DisposeOfRuleSetFile_NoLock();
+            }
         }
     }
 }

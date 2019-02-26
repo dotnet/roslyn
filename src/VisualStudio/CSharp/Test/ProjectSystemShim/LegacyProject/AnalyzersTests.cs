@@ -3,8 +3,10 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
@@ -266,6 +268,42 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
                 var ca1014DiagnosticOption = options.SpecificDiagnosticOptions["CS1014"];
                 Assert.Equal(expected: ReportDiagnostic.Suppress, actual: ca1014DiagnosticOption);
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
+        [WorkItem(33505, "https://github.com/dotnet/roslyn/pull/33505")]
+        public void RuleSet_FileChangingOnDiskRefreshes()
+        {
+            string ruleSetSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
+  <IncludeAll Action=""Error"" />
+</RuleSet>
+";
+            using (var ruleSetFile = new DisposableFile())
+            using (var environment = new TestEnvironment())
+            {
+                File.WriteAllText(ruleSetFile.Path, ruleSetSource);
+
+                var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
+                ((IAnalyzerHost)project).SetRuleSetFile(ruleSetFile.Path);
+
+                var options = (CSharpCompilationOptions)environment.GetUpdatedCompilationOptionOfSingleProject();
+
+                // Assert the value exists now
+                Assert.Equal(expected: ReportDiagnostic.Error, actual: options.GeneralDiagnosticOption);
+
+                // Modify the file and raise a mock file change
+                File.WriteAllText(ruleSetFile.Path, ruleSetSource.Replace("Error", "Warning"));
+                environment.RaiseFileChange(ruleSetFile.Path);
+
+                var listenerProvider = environment.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+                var waiter = listenerProvider.GetWaiter(FeatureAttribute.RuleSetEditor);
+                waiter.CreateWaitTask().JoinUsingDispatcher(CancellationToken.None);
+
+                options = (CSharpCompilationOptions)environment.GetUpdatedCompilationOptionOfSingleProject();
+                Assert.Equal(expected: ReportDiagnostic.Warn, actual: options.GeneralDiagnosticOption);
             }
         }
     }

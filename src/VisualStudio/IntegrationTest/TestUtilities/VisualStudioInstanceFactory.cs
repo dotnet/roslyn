@@ -67,7 +67,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 var assemblyDirectory = GetAssemblyDirectory();
                 var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
                 var logDir = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots");
-                var baseFileName = $"{testName}-{eventArgs.Exception.GetType().Name}-{DateTime.Now:HH.mm.ss}";
+                var baseFileName = $"{DateTime.UtcNow:HH.mm.ss}-{testName}-{eventArgs.Exception.GetType().Name}";
+
+                var maxLength = logDir.Length + 1 + baseFileName.Length + ".Watson.log".Length + 1;
+                const int MaxPath = 260;
+                if (maxLength > MaxPath)
+                {
+                    testName = testName.Substring(0, testName.Length - (maxLength - MaxPath));
+                    baseFileName = $"{DateTime.UtcNow:HH.mm.ss}-{testName}-{eventArgs.Exception.GetType().Name}";
+                }
+
                 ScreenshotService.TakeScreenshot(Path.Combine(logDir, $"{baseFileName}.png"));
 
                 var exception = eventArgs.Exception;
@@ -313,6 +322,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 Process.Start(vsExeFile, $"/clearcache {VsLaunchArgs}").WaitForExit();
                 Process.Start(vsExeFile, $"/updateconfiguration {VsLaunchArgs}").WaitForExit();
                 Process.Start(vsExeFile, $"/resetsettings General.vssettings /command \"File.Exit\" {VsLaunchArgs}").WaitForExit();
+
+                // Disable roaming settings to avoid interference from the online user profile
+                Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\" RoamingEnabled string \"1*System.Boolean*False\"").WaitForExit();
 
                 _firstLaunch = false;
             }
