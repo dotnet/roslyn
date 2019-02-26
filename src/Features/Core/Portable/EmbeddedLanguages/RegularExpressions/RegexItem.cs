@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 {
     internal partial class RegexEmbeddedCompletionProvider
     {
-        private struct RegexItem
+        private readonly struct RegexItem
         {
             public readonly string DisplayText;
             public readonly string InlineDescription;
