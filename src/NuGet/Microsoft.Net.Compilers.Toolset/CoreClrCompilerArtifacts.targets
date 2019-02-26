@@ -8,8 +8,6 @@
 
   <Target Name="InitializeCoreClrCompilerArtifacts">
     <ItemGroup>
-      <CoreClrCompilerBuildArtifact Include="$(MSBuildProjectDirectory)\build\**" />
-
       <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\netcoreapp2.1\publish\*.targets" />
       <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\netcoreapp2.1\publish\Microsoft.Build.Tasks.CodeAnalysis.dll" />
       <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\netcoreapp2.1\publish\**\Microsoft.Build.Tasks.CodeAnalysis.resources.dll" />

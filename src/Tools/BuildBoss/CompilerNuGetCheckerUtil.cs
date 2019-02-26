@@ -73,7 +73,7 @@ namespace BuildBoss
                 var allGood = true;
                 allGood &= CheckDesktop(textWriter, filter(isDesktop: true));
                 allGood &= CheckCoreClr(textWriter, filter(isDesktop: false));
-                allGood &= CheckCombined(textWriter, packageAssets.Select(x => x.FileRelativeName));
+                allGood &= CheckCombined(textWriter, packageAssets);
                 return allGood;
 
                 IEnumerable<string> filter(bool isDesktop) => packageAssets.Where(x => x.IsDesktop == isDesktop).Select(x => x.FileRelativeName);
@@ -83,7 +83,6 @@ namespace BuildBoss
                 textWriter.WriteLine($"Error verifying: {ex.Message}");
                 return false;
             }
-
         }
 
         /// <summary>
@@ -116,13 +115,6 @@ namespace BuildBoss
         /// </summary>
         private bool CheckCoreClr(TextWriter textWriter, IEnumerable<string> assetRelativeNames)
         {
-            // The native DLLs ship inside the runtime specific directories but build deploys it at the 
-            // root as well. That copy is unnecessary.
-            assetRelativeNames = FilterRelativeFileNames(
-                assetRelativeNames,
-                "Microsoft.DiaSymReader.Native.amd64.dll",
-                "Microsoft.DiaSymReader.Native.x86.dll").ToList();
-
             return VerifyNuPackage(
                         textWriter,
                         FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.NETCore.Compilers"),
@@ -133,13 +125,23 @@ namespace BuildBoss
         /// <summary>
         /// Verify the contents of our combinde toolset compiler packages are correct.
         /// </summary>
-        private bool CheckCombined(TextWriter textWriter, IEnumerable<string> assetRelativeNames)
+        private bool CheckCombined(TextWriter textWriter, IEnumerable<PackageAsset> packageAssets)
         {
+            var list = new List<string>();
+            foreach (var asset in packageAssets)
+            {
+                var folder = asset.IsDesktop
+                    ? @"net472"
+                    : @"netcoreapp2.1";
+                var fileRelativeName = Path.Combine(folder, asset.FileRelativeName);
+                list.Add(fileRelativeName);
+            }
+
             return VerifyNuPackage(
                     textWriter,
                     FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.Net.Compilers.Toolset"),
-                    @"tools",
-                    assetRelativeNames);
+                    @"tasks",
+                    list);
         }
 
         private bool GetPackageAssets(TextWriter textWriter, List<PackageAsset> packageAssets)
@@ -165,6 +167,14 @@ namespace BuildBoss
                 $@"csc\{Configuration}\netcoreapp2.1\publish",
                 $@"vbc\{Configuration}\netcoreapp2.1\publish",
                 $@"VBCSCompiler\{Configuration}\netcoreapp2.1\publish");
+
+            // The native DLLs ship inside the runtime specific directories but build deploys it at the 
+            // root as well. That copy is unnecessary.
+            coreClrAssets.RemoveAll(asset =>
+                PathComparer.Equals("Microsoft.DiaSymReader.Native.amd64.dll", asset.FileRelativeName) ||
+                PathComparer.Equals("Microsoft.DiaSymReader.Native.x86.dll", asset.FileRelativeName));
+
+            // Move all of the assets into bincore as that is where the non-MSBuild task assets will go
             coreClrAssets = coreClrAssets.Select(x => x.WithFileRelativeName(Path.Combine("bincore", x.FileRelativeName))).ToList();
 
             allGood &= GetPackageAssetsCore(
@@ -189,9 +199,9 @@ namespace BuildBoss
 
             IEnumerable<string> enumerateAssets(string directory, SearchOption searchOption = SearchOption.TopDirectoryOnly)
             {
-                var files = Directory.EnumerateFiles(directory, "*.dll", searchOption);
-                files = files.Concat(Directory.EnumerateFiles(directory, "*.targets", searchOption));
-                return files;
+                return Directory
+                    .EnumerateFiles(directory, "*.*", searchOption)
+                    .Where(IsTrackedAsset);
             }
 
             // This will record all of the assets files in a directory. The name of the assets and the checksum of the contents will 
@@ -269,27 +279,6 @@ namespace BuildBoss
             return allGood;
         }
 
-        private IEnumerable<string> FilterRelativeFileNames(IEnumerable<string> relativeFileNames, params string[] excludeNames)
-        {
-            foreach (var relativeFileName in relativeFileNames)
-            {
-                var keep = true;
-                foreach (var excludeName in excludeNames)
-                {
-                    if (PathComparer.Equals(excludeName, relativeFileName))
-                    {
-                        keep = false;
-                        break;
-                    }
-                }
-
-                if (keep)
-                {
-                    yield return relativeFileName;
-                }
-            }
-        }
-
         private static bool VerifyNuPackage(
             TextWriter textWriter,
             string nupkgFilePath,
@@ -333,8 +322,7 @@ namespace BuildBoss
                             continue;
                         }
 
-                        if ((relativeName.EndsWith(".dll", PathComparison) || relativeName.EndsWith(".targets", PathComparison)) &&
-                            !relativeName.EndsWith(".resources.dll", PathComparison))
+                        if (IsTrackedAsset(relativeName))
                         {
                             yield return relativeName;
                         }
@@ -402,6 +390,21 @@ namespace BuildBoss
             var directory = Path.Combine(ArtifactsDirectory, "VSSetup", Configuration);
             var file = Directory.EnumerateFiles(directory, fileName).SingleOrDefault();
             return file ?? throw new Exception($"Unable to find '{fileName}' in '{directory}'");
+        }
+
+        /// <summary>
+        /// The set of files that we track as assets in the NuPkg file
+        /// </summary>
+        private static bool IsTrackedAsset(string filePath)
+        {
+            if (filePath.EndsWith(".dll", PathComparison))
+            {
+                return !filePath.EndsWith(".resources.dll");
+            }
+
+            return
+                filePath.EndsWith(".targets") ||
+                filePath.EndsWith(".props");
         }
     }
 }

@@ -37,6 +37,7 @@
       <_File Include="@(CoreClrCompilerBinArtifact)" TargetDir="tools\bincore"/>
       <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tools\bincore\runtimes"/>
 
+      <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" TargetDir="build" />
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)\%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)"/>
     </ItemGroup>
   </Target>
