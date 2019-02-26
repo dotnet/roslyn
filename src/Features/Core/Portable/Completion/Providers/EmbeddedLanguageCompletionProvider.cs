@@ -10,6 +10,13 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
+    /// <summary>
+    /// The singular completion provider that will hook into completion and will
+    /// provider all completions across all embedded languages.
+    /// 
+    /// Completions for an individual language are provided by
+    /// <see cref="IEmbeddedLanguageFeatures.CompletionProvider"/>.
+    /// </summary>
     internal class EmbeddedLanguageCompletionProvider : CompletionProvider
     {
         public const string EmbeddedProviderName = "EmbeddedProvider";
