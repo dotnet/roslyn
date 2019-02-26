@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 if (!isEscaped)
                 {
                     // Update abstract value for unescaped ref or out argument (interprocedural analysis case).
-                    if (operation.Parameter.RefKind != RefKind.None &&
+                    if ((operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out) &&
                         AnalysisEntityFactory.TryCreate(operation, out var analysisEntity))
                     {
                         CacheAbstractValue(operation, GetAbstractValue(analysisEntity));

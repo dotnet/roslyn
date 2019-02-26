@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
