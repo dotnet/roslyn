@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="pointedAtType">The type being pointed at.</param>
         internal PointerTypeSymbol(TypeSymbolWithAnnotations pointedAtType)
         {
-            Debug.Assert(!pointedAtType.IsDefault);
+            Debug.Assert(pointedAtType.HasType);
 
             _pointedAtType = pointedAtType;
         }

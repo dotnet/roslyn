@@ -2578,7 +2578,8 @@ class C
                 Diagnostic(ErrorCode.WRN_NullLiteralMayIntroduceNullT, "null").WithArguments("T").WithLocation(7, 29),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         t2[0].ToString(); // warn   // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t2[0]").WithLocation(8, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t2[0]").WithLocation(8, 9)
+                );
         }
 
         [Fact, WorkItem(30941, "https://github.com/dotnet/roslyn/issues/30941")]
@@ -67754,7 +67755,7 @@ class Outer<T, U> where T : Outer<T, U>?, U
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,16): warning CS8624: Conditional access may produce a null value of type 'T'.
+                // (6,16): warning CS8638: Conditional access may produce a null value when 'T' is a non-nullable reference type.
                 //         T z0 = x0?.M1();
                 Diagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, "x0?.M1()").WithArguments("T").WithLocation(6, 16),
                 // (9,9): warning CS8602: Possible dereference of a null reference.
@@ -67786,7 +67787,7 @@ class Outer<T, U> where T : Outer<T, U>? where U : T
 }
 ";
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,16): warning CS8624: Conditional access may produce a null value of type 'T'.
+                // (6,16): warning CS8638: Conditional access may produce a null value when 'T' is a non-nullable reference type.
                 //         T z0 = x0?.M1();
                 Diagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, "x0?.M1()").WithArguments("T").WithLocation(6, 16),
                 // (7,16): warning CS8601: Possible null reference assignment.
@@ -67823,7 +67824,7 @@ class Outer<T, U> where T : Outer<T, U>?, U
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,16): warning CS8624: Conditional access may produce a null value of type 'T'.
+                // (7,16): warning CS8638: Conditional access may produce a null value when 'T' is a non-nullable reference type.
                 //         T z0 = x0?.M1();
                 Diagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, "x0?.M1()").WithArguments("T").WithLocation(7, 16),
                 // (10,9): warning CS8602: Possible dereference of a null reference.
@@ -67856,7 +67857,7 @@ class Outer<T, U> where T : Outer<T, U>?, U
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,16): warning CS8624: Conditional access may produce null value of type 'T'.
+                // (6,16): warning CS8638: Conditional access may produce a null value when 'T' is a non-nullable reference type.
                 //         T z0 = x0?.M1();
                 Diagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, "x0?.M1()").WithArguments("T").WithLocation(6, 16),
                 // (9,9): warning CS8602: Possible dereference of a null reference.
@@ -67888,7 +67889,7 @@ class Outer<T, U> where T : Outer<T, U>?, U
 }
 ";
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,16): warning CS8624: Conditional access may produce a null value of type 'T'.
+                // (6,16): warning CS8638: Conditional access may produce a null value when 'T' is a non-nullable reference type.
                 //         T z0 = x0?.M1();
                 Diagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, "x0?.M1()").WithArguments("T").WithLocation(6, 16),
                 // (9,9): warning CS8602: Possible dereference of a null reference.
@@ -68028,7 +68029,7 @@ class Outer<T, U> where T : Outer<T, U>?, U where U : class?
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,16): warning CS8624: Conditional access may produce a null value of type 'U'.
+                // (6,16): warning CS8638: Conditional access may produce a null value when 'U' is a non-nullable reference type.
                 //         U z0 = x0?.M1();
                 Diagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, "x0?.M1()").WithArguments("U").WithLocation(6, 16),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -68056,7 +68057,7 @@ class Outer<T, U> where T : Outer<T, U>?, U where U : class?
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,16): warning CS8624: Conditional access may produce a null value of type 'U'.
+                // (7,16): warning CS8638: Conditional access may produce a null value when 'U' is a non-nullable reference type.
                 //         U z0 = x0?.M1();
                 Diagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, "x0?.M1()").WithArguments("U").WithLocation(7, 16),
                 // (9,9): warning CS8602: Possible dereference of a null reference.
@@ -68083,7 +68084,7 @@ class Outer<T, U> where T : U where U : Outer<T, U>?
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,16): warning CS8624: Conditional access may produce a null value of type 'T'.
+                // (6,16): warning CS8638: Conditional access may produce a null value when 'T' is a non-nullable reference type.
                 //         U z0 = x0?.M1();
                 Diagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, "x0?.M1()").WithArguments("T").WithLocation(6, 16),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -68109,7 +68110,7 @@ class Outer<T, U> where T : U where U : Outer<T, U>?
 }
 ";
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,16): warning CS8624: Conditional access may produce a null value of type 'T'.
+                // (6,16): warning CS8638: Conditional access may produce a null value when 'T' is a non-nullable reference type.
                 //         T z0 = x0?.M1();
                 Diagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, "x0?.M1()").WithArguments("T").WithLocation(6, 16),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -68137,7 +68138,7 @@ class Outer<T, U> where T : U where U : Outer<T, U>?
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,16): warning CS8624: Conditional access may produce a null value of type 'T'.
+                // (7,16): warning CS8638: Conditional access may produce a null value when 'T' is a non-nullable reference type.
                 //         U z0 = x0?.M1();
                 Diagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, "x0?.M1()").WithArguments("T").WithLocation(7, 16),
                 // (9,9): warning CS8602: Possible dereference of a null reference.
@@ -68165,7 +68166,7 @@ class Outer<T, U> where T : U where U : Outer<T, U>?
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,16): warning CS8624: Conditional access may produce a null value of type 'T'.
+                // (7,16): warning CS8638: Conditional access may produce a null value when 'T' is a non-nullable reference type.
                 //         T z0 = x0?.M1();
                 Diagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, "x0?.M1()").WithArguments("T").WithLocation(7, 16),
                 // (9,9): warning CS8602: Possible dereference of a null reference.
@@ -68192,7 +68193,7 @@ class Outer<T, U> where T : Outer<T, U>? where U : class?
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,16): warning CS8624: Conditional access may produce null value of type 'U'.
+                // (6,16): warning CS8638: Conditional access may produce a null value when 'U' is a non-nullable reference type.
                 //         U z0 = x0?.M1();
                 Diagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, "x0?.M1()").WithArguments("U").WithLocation(6, 16),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -68220,7 +68221,7 @@ class Outer<T, U> where T : Outer<T, U>? where U : class?
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,16): warning CS8624: Conditional access may produce a null value of type 'U'.
+                // (7,16): warning CS8638: Conditional access may produce a null value when 'U' is a non-nullable reference type.
                 //         U z0 = x0?.M1();
                 Diagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, "x0?.M1()").WithArguments("U").WithLocation(7, 16),
                 // (9,9): warning CS8602: Possible dereference of a null reference.
@@ -68388,9 +68389,8 @@ class Outer<T> where T : class?
     }
 }
 ";
-
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,16): warning CS8626: The 'as' operator may produce a null value of type 'T'.
+                // (6,16): warning CS8626: The 'as' operator may produce a null value when 'T' is a non-nullable reference type.
                 //         T y0 = x0 as T;
                 Diagnostic(ErrorCode.WRN_AsOperatorMayReturnNull, "x0 as T").WithArguments("T").WithLocation(6, 16),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -68413,9 +68413,8 @@ class Outer<T> where T : class?
     }
 }
 ";
-
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,16): warning CS8626: The 'as' operator may produce a null value of type 'T'.
+                // (6,16): warning CS8626: The 'as' operator may produce a null value when 'T' is a non-nullable reference type.
                 //         T y0 = x0 as T;
                 Diagnostic(ErrorCode.WRN_AsOperatorMayReturnNull, "x0 as T").WithArguments("T").WithLocation(6, 16),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -68439,9 +68438,8 @@ class Outer<T> where T : class?
     }
 }
 ";
-
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,16): warning CS8626: The 'as' operator may produce a null value of type 'T'.
+                // (7,16): warning CS8626: The 'as' operator may produce a null value when 'T' is a non-nullable reference type.
                 //         T y0 = x0 as T;
                 Diagnostic(ErrorCode.WRN_AsOperatorMayReturnNull, "x0 as T").WithArguments("T").WithLocation(7, 16),
                 // (9,9): warning CS8602: Possible dereference of a null reference.
@@ -68464,9 +68462,8 @@ class Outer<T> where T : class?
     }
 }
 ";
-
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,16): warning CS8626: The 'as' operator may produce a null value of type 'T'.
+                // (6,16): warning CS8626: The 'as' operator may produce a null value when 'T' is a non-nullable reference type.
                 //         T y0 = x0 as T;
                 Diagnostic(ErrorCode.WRN_AsOperatorMayReturnNull, "x0 as T").WithArguments("T").WithLocation(6, 16),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -68489,9 +68486,8 @@ class Outer<T> where T : class?
     }
 }
 ";
-
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,16): warning CS8626: The 'as' operator may produce a null value of type 'T'.
+                // (6,16): warning CS8626: The 'as' operator may produce a null value when 'T' is a non-nullable reference type.
                 //         T y0 = x0 as T;
                 Diagnostic(ErrorCode.WRN_AsOperatorMayReturnNull, "x0 as T").WithArguments("T").WithLocation(6, 16),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -68515,9 +68511,8 @@ class Outer<T> where T : class?
     }
 }
 ";
-
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,16): warning CS8626: The 'as' operator may produce a null value of type 'T'.
+                // (7,16): warning CS8626: The 'as' operator may produce a null value when 'T' is a non-nullable reference type.
                 //         T y0 = x0 as T;
                 Diagnostic(ErrorCode.WRN_AsOperatorMayReturnNull, "x0 as T").WithArguments("T").WithLocation(7, 16),
                 // (9,9): warning CS8602: Possible dereference of a null reference.
@@ -68781,9 +68776,8 @@ class Outer<T> where T : class?
     }
 }
 ";
-
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,16): warning CS8626: The 'as' operator may produce a null value of type 'T'.
+                // (6,16): warning CS8626: The 'as' operator may produce a null value when 'T' is a non-nullable reference type.
                 //         T y0 = x0 as T;
                 Diagnostic(ErrorCode.WRN_AsOperatorMayReturnNull, "x0 as T").WithArguments("T").WithLocation(6, 16),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -68807,9 +68801,8 @@ class Outer<T> where T : class?
     }
 }
 ";
-
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,16): warning CS8626: The 'as' operator may produce a null value of type 'T'.
+                // (7,16): warning CS8626: The 'as' operator may produce a null value when 'T' is a non-nullable reference type.
                 //         T y0 = x0 as T;
                 Diagnostic(ErrorCode.WRN_AsOperatorMayReturnNull, "x0 as T").WithArguments("T").WithLocation(7, 16),
                 // (9,9): warning CS8602: Possible dereference of a null reference.
@@ -68832,9 +68825,8 @@ class Outer<T> where T : class?
     }
 }
 ";
-
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,16): warning CS8626: The 'as' operator may produce a null value of type 'T'.
+                // (6,16): warning CS8626: The 'as' operator may produce a null value when 'T' is a non-nullable reference type.
                 //         T y0 = x0 as T;
                 Diagnostic(ErrorCode.WRN_AsOperatorMayReturnNull, "x0 as T").WithArguments("T").WithLocation(6, 16),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -69003,9 +68995,8 @@ class Outer<T> where T : Outer<T>?
     }
 }
 ";
-
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,16): warning CS8626: The 'as' operator may produce a null value of type 'T'.
+                // (6,16): warning CS8626: The 'as' operator may produce a null value when 'T' is a non-nullable reference type.
                 //         T y0 = x0 as T;
                 Diagnostic(ErrorCode.WRN_AsOperatorMayReturnNull, "x0 as T").WithArguments("T").WithLocation(6, 16),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -69174,9 +69165,8 @@ class Outer<T> where T : class?, I1?
 
 interface I1{}
 ";
-
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,16): warning CS8626: The 'as' operator may produce a null value of type 'T'.
+                // (6,16): warning CS8626: The 'as' operator may produce a null value when 'T' is a non-nullable reference type.
                 //         T y0 = x0 as T;
                 Diagnostic(ErrorCode.WRN_AsOperatorMayReturnNull, "x0 as T").WithArguments("T").WithLocation(6, 16),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -69580,9 +69570,8 @@ class Outer<T, U> where T : class?, U where U : class?
     }
 }
 ";
-
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,16): warning CS8626: The 'as' operator may produce a null value of type 'T'.
+                // (6,16): warning CS8626: The 'as' operator may produce a null value when 'T' is a non-nullable reference type.
                 //         T y0 = x0 as T;
                 Diagnostic(ErrorCode.WRN_AsOperatorMayReturnNull, "x0 as T").WithArguments("T").WithLocation(6, 16),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -69606,9 +69595,8 @@ class Outer<T, U> where T : class?, U where U : class?
     }
 }
 ";
-
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,16): warning CS8626: The 'as' operator may produce a null value of type 'T'.
+                // (7,16): warning CS8626: The 'as' operator may produce a null value when 'T' is a non-nullable reference type.
                 //         T y0 = x0 as T;
                 Diagnostic(ErrorCode.WRN_AsOperatorMayReturnNull, "x0 as T").WithArguments("T").WithLocation(7, 16),
                 // (9,9): warning CS8602: Possible dereference of a null reference.
@@ -69656,9 +69644,8 @@ class Outer<T, U> where T : class?, U
     }
 }
 ";
-
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,16): warning CS8626: The 'as' operator may produce a null value of type 'T'.
+                // (6,16): warning CS8626: The 'as' operator may produce a null value when 'T' is a non-nullable reference type.
                 //         T y0 = x0 as T;
                 Diagnostic(ErrorCode.WRN_AsOperatorMayReturnNull, "x0 as T").WithArguments("T").WithLocation(6, 16),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -69682,9 +69669,8 @@ class Outer<T, U> where T : class?, U
     }
 }
 ";
-
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,16): warning CS8626: The 'as' operator may produce a null value of type 'T'.
+                // (7,16): warning CS8626: The 'as' operator may produce a null value when 'T' is a non-nullable reference type.
                 //         T y0 = x0 as T;
                 Diagnostic(ErrorCode.WRN_AsOperatorMayReturnNull, "x0 as T").WithArguments("T").WithLocation(7, 16),
                 // (9,9): warning CS8602: Possible dereference of a null reference.
@@ -80955,6 +80941,49 @@ class Program
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ConditionalAccess()
+        {
+            var source =
+@"class C
+{
+    void M1(C c, C[] a)
+    {
+        _ = (c?.S).Length;
+        _ = (a?[0]).P;
+    }
+    void M2<T>(T t) where T : I
+    {
+        if (t == null) return;
+        _ = (t?.S).Length;
+        _ = (t?[0]).P;
+    }
+    int P { get => 0; }
+    string S => throw null!;
+}
+interface I
+{
+    string S { get; }
+    C this[int i] { get; }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,14): warning CS8602: Possible dereference of a null reference.
+                //         _ = (c?.S).Length;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c?.S").WithLocation(5, 14),
+                // (6,14): warning CS8602: Possible dereference of a null reference.
+                //         _ = (a?[0]).P;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a?[0]").WithLocation(6, 14),
+                // (11,14): warning CS8602: Possible dereference of a null reference.
+                //         _ = (t?.S).Length;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t?.S").WithLocation(11, 14),
+                // (12,14): warning CS8602: Possible dereference of a null reference.
+                //         _ = (t?[0]).P;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t?[0]").WithLocation(12, 14)
+                );
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/33615")]

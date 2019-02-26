@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override void MethodChecks(DiagnosticBag diagnostics)
         {
-            Debug.Assert(_lazyParameters.IsDefault == _lazyReturnType.IsDefault);
+            Debug.Assert(_lazyParameters.IsDefault != _lazyReturnType.HasType);
 
             // CONSIDER: currently, we're copying the custom modifiers of the event overridden
             // by this method's associated event (by using the associated event's type, which is

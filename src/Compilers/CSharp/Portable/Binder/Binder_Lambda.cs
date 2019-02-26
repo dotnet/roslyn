@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var type in types)
                 {
                     // UNDONE: Where do we report improper use of pointer types?
-                    if (!type.IsDefault && type.IsStatic)
+                    if (type.HasType && type.IsStatic)
                     {
                         Error(diagnostics, ErrorCode.ERR_ParameterIsStaticClass, syntax, type.TypeSymbol);
                     }

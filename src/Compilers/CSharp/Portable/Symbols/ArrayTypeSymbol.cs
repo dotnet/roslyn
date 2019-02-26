@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbolWithAnnotations elementType,
             NamedTypeSymbol array)
         {
-            Debug.Assert(!elementType.IsDefault);
+            Debug.Assert(elementType.HasType);
             Debug.Assert((object)array != null);
 
             _elementType = elementType;

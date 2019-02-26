@@ -5398,16 +5398,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Nullability of reference types in value doesn't match target type.</value>
   </data>
   <data name="WRN_ConditionalAccessMayReturnNull" xml:space="preserve">
-    <value>Conditional access may produce a null value of type '{0}'.</value>
+    <value>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</value>
   </data>
   <data name="WRN_ConditionalAccessMayReturnNull_Title" xml:space="preserve">
-    <value>Conditional access may produce null.</value>
+    <value>Conditional access may produce a null value for a type parameter.</value>
   </data>
   <data name="WRN_AsOperatorMayReturnNull" xml:space="preserve">
-    <value>The 'as' operator may produce a null value of type '{0}'.</value>
+    <value>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</value>
   </data>
   <data name="WRN_AsOperatorMayReturnNull_Title" xml:space="preserve">
-    <value>The 'as' operator may produce null.</value>
+    <value>The 'as' operator may produce a null value for a type parameter.</value>
   </data>
   <data name="WRN_DefaultExpressionMayIntroduceNullT" xml:space="preserve">
     <value>A default expression introduces a null value when '{0}' is a non-nullable reference type.</value>

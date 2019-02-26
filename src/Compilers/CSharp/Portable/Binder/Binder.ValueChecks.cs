@@ -954,7 +954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // change from Dev10 which reports this error for struct types only,
                     // not for type parameters constrained to "struct".
 
-                    Debug.Assert(!propertySymbol.Type.IsDefault);
+                    Debug.Assert(propertySymbol.Type.HasType);
                     Error(diagnostics, ErrorCode.ERR_ReturnNotLValue, expr.Syntax, propertySymbol);
                 }
                 else
@@ -1665,7 +1665,7 @@ moreArguments:
         {
             Debug.Assert((object)field != null);
             Debug.Assert(RequiresAssignableVariable(kind));
-            Debug.Assert(!field.Type.IsDefault);
+            Debug.Assert(field.Type.HasType);
 
             // It's clearer to say that the address can't be taken than to say that the field can't be modified
             // (even though the latter message gives more explanation of why).

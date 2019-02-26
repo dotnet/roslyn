@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableAnnotation result = NullableAnnotation.NotAnnotated;
             foreach (var type in types)
             {
-                Debug.Assert(!type.IsDefault);
+                Debug.Assert(type.HasType);
                 Debug.Assert(type.Equals(types[0], TypeCompareKind.AllIgnoreOptions));
                 // This uses the covariant merging rules.
                 result = result.JoinForFixingLowerBounds(type.AsSpeakable().NullableAnnotation);

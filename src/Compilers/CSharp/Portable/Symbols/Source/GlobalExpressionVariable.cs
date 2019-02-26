@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(fieldsBeingBound != null);
 
-            if (!_lazyType.IsNull)
+            if (!_lazyType.IsDefault)
             {
                 return _lazyType.ToType();
             }
@@ -93,12 +93,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type = default;
             }
 
-            Debug.Assert(!type.IsDefault || isVar);
+            Debug.Assert(type.HasType || isVar);
 
             if (isVar && !fieldsBeingBound.ContainsReference(this))
             {
                 InferFieldType(fieldsBeingBound, binder);
-                Debug.Assert(!_lazyType.IsNull);
+                Debug.Assert(!_lazyType.IsDefault);
             }
             else
             {

@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TupleTypeSymbol WithElementTypes(ImmutableArray<TypeSymbolWithAnnotations> newElementTypes)
         {
             Debug.Assert(_elementTypes.Length == newElementTypes.Length);
-            Debug.Assert(newElementTypes.All(t => !t.IsDefault));
+            Debug.Assert(newElementTypes.All(t => t.HasType));
 
             NamedTypeSymbol firstTupleType;
             NamedTypeSymbol chainedTupleType;

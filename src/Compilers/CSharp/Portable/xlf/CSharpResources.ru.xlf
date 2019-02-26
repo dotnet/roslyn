@@ -1163,13 +1163,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_AsOperatorMayReturnNull">
-        <source>The 'as' operator may produce a null value of type '{0}'.</source>
-        <target state="new">The 'as' operator may produce a null value of type '{0}'.</target>
+        <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
-        <source>The 'as' operator may produce null.</source>
-        <target state="new">The 'as' operator may produce null.</target>
+        <source>The 'as' operator may produce a null value for a type parameter.</source>
+        <target state="new">The 'as' operator may produce a null value for a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
@@ -1183,13 +1183,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConditionalAccessMayReturnNull">
-        <source>Conditional access may produce a null value of type '{0}'.</source>
-        <target state="new">Conditional access may produce a null value of type '{0}'.</target>
+        <source>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">Conditional access may produce a null value when '{0}' is a non-nullable reference type.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
-        <source>Conditional access may produce null.</source>
-        <target state="new">Conditional access may produce null.</target>
+        <source>Conditional access may produce a null value for a type parameter.</source>
+        <target state="new">Conditional access may produce a null value for a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">

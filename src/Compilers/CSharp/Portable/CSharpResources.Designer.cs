@@ -12347,7 +12347,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;as&apos; operator may produce a null value of type &apos;{0}&apos;..
+        ///   Looks up a localized string similar to The &apos;as&apos; operator may produce a null value when &apos;{0}&apos; is a non-nullable reference type..
         /// </summary>
         internal static string WRN_AsOperatorMayReturnNull {
             get {
@@ -12356,7 +12356,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;as&apos; operator may produce null..
+        ///   Looks up a localized string similar to The &apos;as&apos; operator may produce a null value for a type parameter..
         /// </summary>
         internal static string WRN_AsOperatorMayReturnNull_Title {
             get {
@@ -13508,7 +13508,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Conditional access may produce a null value of type &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Conditional access may produce a null value when &apos;{0}&apos; is a non-nullable reference type..
         /// </summary>
         internal static string WRN_ConditionalAccessMayReturnNull {
             get {
@@ -13517,7 +13517,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Conditional access may produce null..
+        ///   Looks up a localized string similar to Conditional access may produce a null value for a type parameter..
         /// </summary>
         internal static string WRN_ConditionalAccessMayReturnNull_Title {
             get {

@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool isConst = false;
                         AliasSymbol alias;
                         var declType = BindVariableType(component.Designation, diagnostics, component.Type, ref isConst, out isVar, out alias);
-                        Debug.Assert(isVar == declType.IsDefault);
+                        Debug.Assert(isVar == !declType.HasType);
                         if (component.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation && !isVar)
                         {
                             // An explicit is not allowed with a parenthesized designation
@@ -819,7 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // might own nested scope.
                 var hasErrors = localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
-                if (!declType.IsDefault)
+                if (declType.HasType)
                 {
                     return new BoundLocal(syntax, localSymbol, BoundLocalDeclarationKind.WithExplicitType, constantValueOpt: null, isNullableUnknown: false, type: declType.TypeSymbol, hasErrors: hasErrors);
                 }
@@ -839,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundThisReference receiver = ThisReference(designation, this.ContainingType, hasErrors: false,
                                             wasCompilerGenerated: true);
 
-            if (!declType.IsDefault)
+            if (declType.HasType)
             {
                 var fieldType = field.GetFieldType(this.FieldsBeingBound);
                 Debug.Assert(TypeSymbol.Equals(declType.TypeSymbol, fieldType.TypeSymbol, TypeCompareKind.ConsiderEverything2));

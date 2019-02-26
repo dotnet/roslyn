@@ -35,49 +35,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// A type and its corresponding flow state resulting from evaluating an rvalue expression.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal struct TypeWithState
+    internal readonly struct TypeWithState
     {
         public TypeSymbol Type { get; }
         public NullableFlowState State { get; }
         public bool HasNullType => Type is null;
         public bool MaybeNull => State == NullableFlowState.MaybeNull;
         public bool NotNull => State == NullableFlowState.NotNull;
-        public bool IsDefault => Type is null;
         public static TypeWithState ForType(TypeSymbol type) => new TypeWithState(type, type?.CanContainNull() == true ? NullableFlowState.MaybeNull : NullableFlowState.NotNull);
         public TypeWithState(TypeSymbol type, NullableFlowState state) => (Type, State) = (type, state);
         public void Deconstruct(out TypeSymbol type, out NullableFlowState state) => (type, state) = (Type, State);
-        public static implicit operator TypeWithState((TypeSymbol type, NullableFlowState state) a) => new TypeWithState(a.type, a.state);
         public string GetDebuggerDisplay() => $"{{Type:{Type?.GetDebuggerDisplay()}, State:{State}{"}"}";
-        public TypeWithState WithTopLevelNonNullability() => new TypeWithState(Type, NullableFlowState.NotNull);
+        public TypeWithState WithNonNullState() => new TypeWithState(Type, NullableFlowState.NotNull);
         public TypeSymbolWithAnnotations ToTypeSymbolWithAnnotations()
         {
-            NullableAnnotation annotation;
-            switch (this.State)
-            {
-                case NullableFlowState.NotNull:
-                    annotation = NullableAnnotation.NotNullable;
-                    break;
-                default: // MaybeNull
-                    annotation = NullableAnnotation.Nullable;
-                    break;
-            }
-
+            NullableAnnotation annotation = (this.State == NullableFlowState.NotNull)
+                ? NullableAnnotation.NotNullable : NullableAnnotation.Nullable;
             return TypeSymbolWithAnnotations.Create(this.Type, annotation);
         }
     }
 
     internal static class NullableAnnotationExtensions
     {
-        public static NullableFlowState ToState(this NullableAnnotation annotation)
-        {
-            return annotation.IsAnyNullable() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
-        }
-
-        public static NullableAnnotation ToAnnotation(this NullableFlowState state)
-        {
-            return state == NullableFlowState.MaybeNull ? NullableAnnotation.Nullable : NullableAnnotation.NotNullable;
-        }
-
         public static bool IsAnyNullable(this NullableAnnotation annotation)
         {
             return annotation == NullableAnnotation.Annotated || annotation == NullableAnnotation.Nullable;
@@ -86,16 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsAnyNotNullable(this NullableAnnotation annotation)
         {
             return annotation == NullableAnnotation.NotAnnotated || annotation == NullableAnnotation.NotNullable;
-        }
-
-        public static bool MaybeNull(this NullableFlowState state)
-        {
-            return state == NullableFlowState.MaybeNull;
-        }
-
-        public static bool IsNotNull(this NullableFlowState state)
-        {
-            return state == NullableFlowState.NotNull;
         }
 
         public static bool IsSpeakable(this NullableAnnotation annotation)
@@ -295,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// <summary>
             /// True if the fields of the builder are unset.
             /// </summary>
-            internal bool IsNull => _defaultType is null && _nullableAnnotation == 0 && (_extensions == null || _extensions == Extensions.Default);
+            internal bool IsDefault => _defaultType is null && _nullableAnnotation == 0 && (_extensions == null || _extensions == Extensions.Default);
 
             /// <summary>
             /// Set the fields of the builder.
@@ -324,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             internal TypeSymbolWithAnnotations ToType()
             {
-                return IsNull ?
+                return IsDefault ?
                     default :
                     new TypeSymbolWithAnnotations(_defaultType, _nullableAnnotation, _extensions);
             }
@@ -445,28 +414,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return NullableAnnotation;
         }
 
-        internal bool? ValueCanBeNull()
-        {
-            switch (NullableAnnotation)
-            {
-                case NullableAnnotation.Unknown:
-                    return null;
-
-                case NullableAnnotation.Annotated:
-                case NullableAnnotation.Nullable:
-                    return true;
-
-                case NullableAnnotation.NotNullable:
-                    return false;
-
-                case NullableAnnotation.NotAnnotated:
-                    return TypeSymbol.IsPossiblyNullableReferenceTypeTypeParameter();
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(NullableAnnotation);
-            }
-        }
-
         internal bool CanBeAssignedNull
         {
             get
@@ -509,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// True if the fields are unset.
+        /// True if the fields are unset. Appropriate when detecting if a lazily-initialized variable has been initialized.
         /// </summary>
         internal bool IsDefault => _defaultType is null && this.NullableAnnotation == 0 && (_extensions == null || _extensions == Extensions.Default);
 
@@ -625,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public string ToDisplayString(SymbolDisplayFormat format = null)
         {
-            var str = (TypeSymbol is null) ? "<null>" : TypeSymbol.ToDisplayString(format);
+            var str = !HasType ? "<null>" : TypeSymbol.ToDisplayString(format);
             if (format != null)
             {
                 if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
@@ -645,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return str;
         }
 
-        internal string GetDebuggerDisplay() => this.IsDefault ? "null" : ToDisplayString(DebuggerDisplayFormat);
+        internal string GetDebuggerDisplay() => !this.HasType ? "<null>" : ToDisplayString(DebuggerDisplayFormat);
 
         string IFormattable.ToString(string format, IFormatProvider formatProvider)
         {
@@ -659,7 +606,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            if (other.IsDefault || !TypeSymbolEquals(other, comparison))
+            if (!HasType)
+            {
+                return !other.HasType;
+            }
+
+            if (!other.HasType || !TypeSymbolEquals(other, comparison))
             {
                 return false;
             }
@@ -724,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override int GetHashCode(TypeSymbolWithAnnotations obj)
             {
-                if (obj.IsDefault)
+                if (!obj.HasType)
                 {
                     return 0;
                 }
@@ -733,9 +685,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override bool Equals(TypeSymbolWithAnnotations x, TypeSymbolWithAnnotations y)
             {
-                if (x.IsDefault)
+                if (!x.HasType)
                 {
-                    return y.IsDefault;
+                    return !y.HasType;
                 }
                 return x.Equals(y, TypeCompareKind.ConsiderEverything);
             }
@@ -1047,7 +999,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int GetHashCode()
 #pragma warning restore CS0809
         {
-            if (IsDefault)
+            if (!HasType)
             {
                 return 0;
             }
@@ -1395,7 +1347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // even though the type parameter isn't annotated.
             return new TypeWithState(
                 this.TypeSymbol,
-                IsPossiblyNullableTypeTypeParameter() ? NullableFlowState.MaybeNull : this.NullableAnnotation.ToState());
+                IsPossiblyNullableTypeTypeParameter() || this.NullableAnnotation.IsAnyNullable() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull);
         }
     }
 }

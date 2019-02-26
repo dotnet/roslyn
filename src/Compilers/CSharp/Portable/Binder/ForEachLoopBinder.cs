@@ -244,11 +244,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (isVar)
                         {
-                            declType = inferredType.IsDefault ? TypeSymbolWithAnnotations.Create(CreateErrorType("var")) : inferredType;
+                            declType = inferredType.HasType ? inferredType : TypeSymbolWithAnnotations.Create(CreateErrorType("var"));
                         }
                         else
                         {
-                            Debug.Assert(!declType.IsDefault);
+                            Debug.Assert(declType.HasType);
                         }
 
                         iterationVariableType = declType.TypeSymbol;

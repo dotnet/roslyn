@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeArgsForConstraintsCheck = typeArgs;
             for (int i = 0; i < typeArgsForConstraintsCheck.Length; i++)
             {
-                if (typeArgsForConstraintsCheck[i].IsDefault)
+                if (!typeArgsForConstraintsCheck[i].HasType)
                 {
                     firstNullInTypeArgs = i;
                     var builder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     for (; i < typeArgsForConstraintsCheck.Length; i++)
                     {
                         var typeArg = typeArgsForConstraintsCheck[i];
-                        if (typeArg.IsDefault)
+                        if (!typeArg.HasType)
                         {
                             notInferredTypeParameters.Add(typeParams[i]);
                             builder.Add(TypeSymbolWithAnnotations.Create(ErrorTypeSymbol.UnknownResultType));
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 for (int i = firstNullInTypeArgs; i < typeArgsForConstruct.Length; i++)
                 {
                     var typeArgForConstruct = typeArgsForConstruct[i];
-                    builder.Add(!typeArgForConstruct.IsDefault ? typeArgForConstruct : TypeSymbolWithAnnotations.Create(typeParams[i]));
+                    builder.Add(typeArgForConstruct.HasType ? typeArgForConstruct : TypeSymbolWithAnnotations.Create(typeParams[i]));
                 }
 
                 typeArgsForConstruct = builder.ToImmutableAndFree();

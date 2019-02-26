@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // don't let the debugger force inference.
         internal override string GetDebuggerDisplay()
         {
-            return !_type.IsNull
+            return !_type.IsDefault
                 ? base.GetDebuggerDisplay()
                 : $"{this.Kind} <var> ${this.Name}";
         }
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_type.IsNull)
+                if (_type.IsDefault)
                 {
 #if DEBUG
                     concurrentTypeResolutions++;
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // If we got a valid result that was not void then use the inferred type
                 // else create an error type.
-                if (!inferredType.IsDefault &&
+                if (inferredType.HasType &&
                     inferredType.SpecialType != SpecialType.System_Void)
                 {
                     declType = inferredType;
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            Debug.Assert(!declType.IsDefault);
+            Debug.Assert(declType.HasType);
 
             //
             // Note that we drop the diagnostics on the floor! That is because this code is invoked mainly in
@@ -688,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(_deconstruction.Kind());
                 }
 
-                Debug.Assert(!this._type.IsNull);
+                Debug.Assert(!this._type.IsDefault);
                 return _type.ToType();
             }
 
@@ -783,7 +783,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                if (this._type.IsNull)
+                if (this._type.IsDefault)
                 {
                     Debug.Assert(this.DeclarationKind == LocalDeclarationKind.DeclarationExpressionVariable);
                     SetType(TypeSymbolWithAnnotations.Create(_nodeBinder.CreateErrorType("var")));

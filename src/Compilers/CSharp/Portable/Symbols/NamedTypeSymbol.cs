@@ -1005,9 +1005,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasCodeAnalysisEmbeddedAttribute { get; }
 
-        internal static readonly Func<TypeSymbolWithAnnotations, bool> TypeSymbolIsNullFunction = type => type.IsDefault;
+        internal static readonly Func<TypeSymbolWithAnnotations, bool> TypeSymbolIsNullFunction = type => !type.HasType;
 
-        internal static readonly Func<TypeSymbolWithAnnotations, bool> TypeSymbolIsErrorType = type => !type.IsDefault && type.IsErrorType();
+        internal static readonly Func<TypeSymbolWithAnnotations, bool> TypeSymbolIsErrorType = type => type.HasType && type.IsErrorType();
 
         private NamedTypeSymbol ConstructWithoutModifiers(ImmutableArray<TypeSymbol> typeArguments, bool unbound)
         {

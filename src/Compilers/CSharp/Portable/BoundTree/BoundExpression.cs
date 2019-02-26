@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this;
             }
 
+            // There is no scenario where suppression goes away
+            Debug.Assert(suppress || !this.IsSuppressed);
+
             var result = ShallowClone();
             result.IsSuppressed = suppress;
             return result;

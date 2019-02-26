@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// True if the conversion is an explicit conversion.
         /// </summary>
-        internal bool IsExplicitConversion => !ExplicitType.IsDefault;
+        internal bool IsExplicitConversion => ExplicitType.HasType;
 
         /// <summary>
         /// The conversion (from Conversions.ClassifyConversionFromExpression for
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal string GetDebuggerDisplay()
         {
             var str = $"#{_id} {Conversion}";
-            if (!ExplicitType.IsDefault)
+            if (ExplicitType.HasType)
             {
                 str += $" ({ExplicitType})";
             }
