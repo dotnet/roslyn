@@ -46,34 +46,21 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                     : Position;
 
                 var replacementSpan = TextSpan.FromBounds(replacementStart, Position);
-                var item = CreateItem(
-                    StringToken, displayText, suffix, description,
-                    replacementSpan, positionOffset, insertionText);
-
-                AddIfMissing(item);
-            }
-
-            private RegexItem CreateItem(
-                SyntaxToken stringToken, string displayText,
-                string suffix, string description,
-                TextSpan replacementSpan, int? positionOffset, string insertionText)
-            {
-                var replacementStart = replacementSpan.Start;
                 var newPosition = replacementStart + positionOffset;
 
                 insertionText = insertionText ?? displayText;
-                var escapedInsertionText = _provider._language.EscapeText(insertionText, stringToken);
+                var escapedInsertionText = _provider._language.EscapeText(insertionText, StringToken);
 
                 if (escapedInsertionText != insertionText)
                 {
                     newPosition += escapedInsertionText.Length - insertionText.Length;
                 }
 
-                return new RegexItem(
+                AddIfMissing(new RegexItem(
                     displayText, suffix, description,
                     CompletionChange.Create(
                         new TextChange(replacementSpan, escapedInsertionText),
-                        newPosition));
+                        newPosition)));
             }
 
             public void AddIfMissing(RegexItem item)
