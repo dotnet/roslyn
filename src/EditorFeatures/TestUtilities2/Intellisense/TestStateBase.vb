@@ -170,8 +170,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public MustOverride Overloads Function CompletionItemsContainsAny(displayText As String()) As Boolean
 
-        Public MustOverride Overloads Function CompletionItemsContainsAny(displayText As String, displayTextSuffix As String) As Boolean
-
         Public MustOverride Overloads Sub AssertItemsInOrder(expectedOrder As String())
 
         Public MustOverride Overloads Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
