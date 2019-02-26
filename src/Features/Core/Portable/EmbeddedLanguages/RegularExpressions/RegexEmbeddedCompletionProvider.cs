@@ -174,15 +174,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         private bool DetermineIfInCharacterClass(RegexTree tree, int pos)
         {
-            var inCharacterClass = false;
-
             var virtualChar = tree.Text.FirstOrNullable(vc => vc.Span.Contains(pos));
-            if (virtualChar != null)
+            if (virtualChar == null)
             {
-                inCharacterClass = IsInCharacterClass(tree.Root, virtualChar.Value, inCharacterClass: false);
+                return false;
             }
 
-            return inCharacterClass;
+            return IsInCharacterClass(tree.Root, virtualChar.Value, inCharacterClass: false);
         }
 
         private void ProvideTopLevelCompletions(EmbeddedCompletionContext context)
