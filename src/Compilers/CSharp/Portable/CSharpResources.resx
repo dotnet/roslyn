@@ -1503,7 +1503,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Interfaces cannot contain instance fields</value>
   </data>
   <data name="ERR_InterfacesCantContainConstructors" xml:space="preserve">
-    <value>Interfaces cannot contain constructors</value>
+    <value>Interfaces cannot contain instance constructors</value>
   </data>
   <data name="ERR_NonInterfaceInInterfaceList" xml:space="preserve">
     <value>Type '{0}' in interface list is not an interface</value>

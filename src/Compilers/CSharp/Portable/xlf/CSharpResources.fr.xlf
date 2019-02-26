@@ -3497,8 +3497,8 @@ Si une telle classe est utilisée en tant que classe de base et si la classe dé
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConstructors">
-        <source>Interfaces cannot contain constructors</source>
-        <target state="translated">Les interfaces ne peuvent pas contenir de constructeurs</target>
+        <source>Interfaces cannot contain instance constructors</source>
+        <target state="needs-review-translation">Les interfaces ne peuvent pas contenir de constructeurs</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonInterfaceInInterfaceList">

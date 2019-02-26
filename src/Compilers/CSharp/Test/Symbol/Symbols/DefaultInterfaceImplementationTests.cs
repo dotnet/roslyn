@@ -31260,20 +31260,623 @@ public interface I1
 
     static I1() {}
 }
+interface I2
+{
+    I2();
+}
+
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular);
 
-            // From https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-05-17.md:
-            // We allow initializers for static fields, but not an explicit static constructor. Can think about adding later.
             compilation1.VerifyDiagnostics(
-                // (4,5): error CS0526: Interfaces cannot contain constructors
+                // (4,5): error CS0526: Interfaces cannot contain instance constructors
                 //     I1(){}
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConstructors, "I1").WithLocation(4, 5),
-                // (6,12): error CS0526: Interfaces cannot contain constructors
-                //     static I1() {}
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConstructors, "I1").WithLocation(6, 12)
+                // (10,5): error CS0501: 'I2.I2()' must declare a body because it is not marked abstract, extern, or partial
+                //     I2();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "I2").WithArguments("I2.I2()").WithLocation(10, 5),
+                // (10,5): error CS0526: Interfaces cannot contain instance constructors
+                //     I2();
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConstructors, "I2").WithLocation(10, 5)
                 );
+        }
+
+        [Fact]
+        public void Constructors_02()
+        {
+            var source1 =
+@"
+interface I1
+{
+    static I1() {}
+}
+interface I2
+{
+    static I2() => throw null;
+}
+interface I3
+{
+    I3() {}
+}
+interface I4
+{
+    I4() => throw null;
+}
+interface I5
+{
+    I5();
+}
+interface I6
+{
+    extern static I6();
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular7_3);
+
+            compilation1.VerifyDiagnostics(
+                // (4,12): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static I1() {}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1").WithArguments("default interface implementation").WithLocation(4, 12),
+                // (8,12): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static I2() => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I2").WithArguments("default interface implementation").WithLocation(8, 12),
+                // (12,5): error CS0526: Interfaces cannot contain instance constructors
+                //     I3() {}
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConstructors, "I3").WithLocation(12, 5),
+                // (16,5): error CS0526: Interfaces cannot contain instance constructors
+                //     I4() => throw null;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConstructors, "I4").WithLocation(16, 5),
+                // (20,5): error CS0501: 'I5.I5()' must declare a body because it is not marked abstract, extern, or partial
+                //     I5();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "I5").WithArguments("I5.I5()").WithLocation(20, 5),
+                // (20,5): error CS0526: Interfaces cannot contain instance constructors
+                //     I5();
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConstructors, "I5").WithLocation(20, 5),
+                // (24,19): error CS8703: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version 8.0 or greater.
+                //     extern static I6();
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "I6").WithArguments("extern", "7.3", "8.0").WithLocation(24, 19),
+                // (24,19): warning CS0824: Constructor 'I6.I6()' is marked external
+                //     extern static I6();
+                Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "I6").WithArguments("I6.I6()").WithLocation(24, 19)
+                );
+        }
+
+        [Fact]
+        public void Constructors_03()
+        {
+            var source1 =
+@"
+interface I1
+{
+    static I1(int i) {}
+}
+interface I2
+{
+    static void I2() {}
+}
+interface I3
+{
+    void I3() {}
+}
+interface I4
+{
+    public static I4() {}
+}
+interface I5
+{
+    internal static I5() {}
+}
+interface I6
+{
+    private static I6() {}
+}
+interface I7
+{
+    static I7();
+}
+interface I8
+{
+    static I8(){}
+
+    static void M1()
+    {
+        I8();
+    }
+
+    void M2()
+    {
+        I8.I8();
+    }
+}
+interface I9
+{
+    static I9() {} => throw null;
+}
+interface I10
+{
+    abstract static I10();
+}
+interface I11
+{
+    virtual static I11();
+}
+interface I12
+{
+    abstract static I12() {}
+}
+interface I13
+{
+    virtual static I13() => throw null;
+}
+interface I14
+{
+    partial static I14();
+}
+interface I15
+{
+    static partial I15();
+}
+interface I16
+{
+    partial static I16() {}
+}
+interface I17
+{
+    static partial I17() => throw null;
+}
+interface I18
+{
+    extern static I18() {}
+}
+interface I19
+{
+    static extern I19() => throw null;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics(
+                // (4,12): error CS0132: 'I1.I1(int)': a static constructor must be parameterless
+                //     static I1(int i) {}
+                Diagnostic(ErrorCode.ERR_StaticConstParam, "I1").WithArguments("I1.I1(int)").WithLocation(4, 12),
+                // (8,17): error CS0542: 'I2': member names cannot be the same as their enclosing type
+                //     static void I2() {}
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I2").WithArguments("I2").WithLocation(8, 17),
+                // (16,19): error CS0515: 'I4.I4()': access modifiers are not allowed on static constructors
+                //     public static I4() {}
+                Diagnostic(ErrorCode.ERR_StaticConstructorWithAccessModifiers, "I4").WithArguments("I4.I4()").WithLocation(16, 19),
+                // (20,21): error CS0515: 'I5.I5()': access modifiers are not allowed on static constructors
+                //     internal static I5() {}
+                Diagnostic(ErrorCode.ERR_StaticConstructorWithAccessModifiers, "I5").WithArguments("I5.I5()").WithLocation(20, 21),
+                // (24,20): error CS0515: 'I6.I6()': access modifiers are not allowed on static constructors
+                //     private static I6() {}
+                Diagnostic(ErrorCode.ERR_StaticConstructorWithAccessModifiers, "I6").WithArguments("I6.I6()").WithLocation(24, 20),
+                // (28,12): error CS0501: 'I7.I7()' must declare a body because it is not marked abstract, extern, or partial
+                //     static I7();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "I7").WithArguments("I7.I7()").WithLocation(28, 12),
+                // (36,9): error CS1955: Non-invocable member 'I8' cannot be used like a method.
+                //         I8();
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "I8").WithArguments("I8").WithLocation(36, 9),
+                // (41,12): error CS0117: 'I8' does not contain a definition for 'I8'
+                //         I8.I8();
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "I8").WithArguments("I8", "I8").WithLocation(41, 12),
+                // (46,5): error CS8057: Block bodies and expression bodies cannot both be provided.
+                //     static I9() {} => throw null;
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "static I9() {} => throw null;").WithLocation(46, 5),
+                // (50,21): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract static I10();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I10").WithArguments("abstract").WithLocation(50, 21),
+                // (54,20): error CS0106: The modifier 'virtual' is not valid for this item
+                //     virtual static I11();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I11").WithArguments("virtual").WithLocation(54, 20),
+                // (58,21): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract static I12() {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I12").WithArguments("abstract").WithLocation(58, 21),
+                // (62,20): error CS0106: The modifier 'virtual' is not valid for this item
+                //     virtual static I13() => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I13").WithArguments("virtual").WithLocation(62, 20),
+                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                //     partial static I14();
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(66, 5),
+                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                //     partial static I14();
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(66, 5),
+                // (70,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     static partial I15();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(70, 12),
+                // (70,20): error CS0501: 'I15.I15()' must declare a body because it is not marked abstract, extern, or partial
+                //     static partial I15();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "I15").WithArguments("I15.I15()").WithLocation(70, 20),
+                // (70,20): error CS0542: 'I15': member names cannot be the same as their enclosing type
+                //     static partial I15();
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I15").WithArguments("I15").WithLocation(70, 20),
+                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                //     partial static I16() {}
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(74, 5),
+                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                //     partial static I16() {}
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(74, 5),
+                // (78,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     static partial I17() => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(78, 12),
+                // (78,20): error CS0542: 'I17': member names cannot be the same as their enclosing type
+                //     static partial I17() => throw null;
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I17").WithArguments("I17").WithLocation(78, 20),
+                // (82,19): error CS0179: 'I18.I18()' cannot be extern and declare a body
+                //     extern static I18() {}
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "I18").WithArguments("I18.I18()").WithLocation(82, 19),
+                // (86,19): error CS0179: 'I19.I19()' cannot be extern and declare a body
+                //     static extern I19() => throw null;
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "I19").WithArguments("I19.I19()").WithLocation(86, 19)
+                );
+        }
+
+        [Fact]
+        public void Constructors_04()
+        {
+            var source1 =
+@"
+interface I1
+{
+    static I1()
+    {
+        System.Console.WriteLine(""I1"");
+    }
+
+    static void Main() 
+    {
+        System.Console.WriteLine(""Main"");
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics();
+
+            ValidateConstructor(compilation1.SourceModule);
+            Assert.Empty(compilation1.GetTypeByMetadataName("I1").GetMembers("I1"));
+
+            CompileAndVerify(compilation1, symbolValidator: ValidateConstructor, expectedOutput:
+@"I1
+Main
+");
+        }
+
+        private static void ValidateConstructor(ModuleSymbol m)
+        {
+            var i1 = m.GlobalNamespace.GetTypeMember("I1");
+            var cctor = i1.GetMember<MethodSymbol>(".cctor");
+
+            Assert.False(cctor.IsAbstract);
+            Assert.False(cctor.IsVirtual);
+            Assert.False(cctor.IsMetadataVirtual());
+            Assert.False(cctor.IsSealed);
+            Assert.True(cctor.IsStatic);
+            Assert.False(cctor.IsExtern);
+            Assert.False(cctor.IsAsync);
+            Assert.False(cctor.IsOverride);
+            Assert.Equal(Accessibility.Private, cctor.DeclaredAccessibility);
+            Assert.Equal(MethodKind.StaticConstructor, cctor.MethodKind);
+        }
+
+        [Fact]
+        public void Constructors_05()
+        {
+            var source1 =
+@"
+interface I1
+{
+    static string F = ""F"";
+
+    static void Main() 
+    {
+        System.Console.WriteLine(F);
+        System.Console.WriteLine(""Main"");
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics();
+
+            ValidateConstructor(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1, symbolValidator: ValidateConstructor, expectedOutput:
+@"F
+Main
+");
+        }
+
+        [Fact]
+        public void Constructors_06()
+        {
+            var source1 =
+@"
+interface I1
+{
+    static string F = ""F"";
+
+    static I1()
+    {
+        System.Console.WriteLine(F);
+        System.Console.WriteLine(""I1"");
+    }
+
+    static void Main() 
+    {
+        System.Console.WriteLine(""Main"");
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics();
+
+            ValidateConstructor(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1, symbolValidator: ValidateConstructor, expectedOutput:
+@"F
+I1
+Main
+");
+        }
+
+        [Fact]
+        public void Constructors_07()
+        {
+            var source1 =
+@"
+interface I1
+{
+    extern static I1();
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics(
+                // (4,19): warning CS0824: Constructor 'I1.I1()' is marked external
+                //     extern static I1();
+                Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "I1").WithArguments("I1.I1()").WithLocation(4, 19)
+                );
+
+            var i1 = compilation1.SourceModule.GlobalNamespace.GetTypeMember("I1");
+            var cctor = i1.GetMember<MethodSymbol>(".cctor");
+
+            Assert.False(cctor.IsAbstract);
+            Assert.False(cctor.IsVirtual);
+            Assert.False(cctor.IsMetadataVirtual());
+            Assert.False(cctor.IsSealed);
+            Assert.True(cctor.IsStatic);
+            Assert.True(cctor.IsExtern);
+            Assert.False(cctor.IsAsync);
+            Assert.False(cctor.IsOverride);
+            Assert.Equal(Accessibility.Private, cctor.DeclaredAccessibility);
+            Assert.Equal(MethodKind.StaticConstructor, cctor.MethodKind);
+
+            CompileAndVerify(compilation1, symbolValidator: ValidateConstructor, verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void Constructors_08()
+        {
+            var source1 =
+@"
+interface I1
+{
+    void I1();
+}
+
+class Test : I1
+{
+    void I1.I1()
+    {
+        System.Console.WriteLine(""Test.I1"");
+    }
+
+    static void Main() 
+    {
+        I1 x = new Test();
+        x.I1();
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, expectedOutput: "Test.I1");
+        }
+
+        [Fact]
+        public void Constructors_09()
+        {
+            var source1 =
+@"
+interface I1
+{
+    void I1();
+    static I1()
+    {
+        System.Console.WriteLine(""I1..cctor"");
+    }
+    static void M1()
+    {
+        System.Console.WriteLine(""I1.M1"");
+    }
+}
+
+class Test : I1
+{
+    void I1.I1()
+    {
+        System.Console.WriteLine(""Test.I1"");
+    }
+
+    static void Main() 
+    {
+        I1.M1();
+        I1 x = new Test();
+        x.I1();
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, expectedOutput:
+@"I1..cctor
+I1.M1
+Test.I1
+");
+        }
+
+        [Fact]
+        public void Constructors_10()
+        {
+            var source1 =
+@"
+interface I1
+{
+    void I1()
+    {
+        System.Console.WriteLine(""I1.I1"");
+    }
+
+    static I1()
+    {
+        System.Console.WriteLine(""I1..cctor"");
+    }
+    static void M1()
+    {
+        System.Console.WriteLine(""I1.M1"");
+    }
+}
+
+class Test : I1
+{
+    static void Main() 
+    {
+        I1.M1();
+        I1 x = new Test();
+        x.I1();
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I1..cctor
+I1.M1
+I1.I1
+",
+                verify: VerifyOnCoreClr);
+        }
+
+        [Fact]
+        public void Constructors_11()
+        {
+            var source1 =
+@"
+interface I1
+{
+    void I1()
+    {
+        System.Console.WriteLine(""I1.I1"");
+    }
+}
+
+class Test : I1
+{
+    static void Main() 
+    {
+        I1 x = new Test();
+        x.I1();
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null : "I1.I1", verify: VerifyOnCoreClr);
+        }
+
+        /// <summary>
+        /// Make sure runtime handles cycles in static constructors.
+        /// </summary>
+        [Fact]
+        public void Constructors_12()
+        {
+            var source0 =
+@"
+interface I1
+{
+    public static int F1;
+    static I1()
+    {
+        F1 = I2.F2;
+    }
+}
+
+interface I2
+{
+    public static int F2;
+    static I2()
+    {
+        F2 = I1.F1 + 1;
+    }
+}
+";
+            var source1 =
+@"
+class Test
+{
+    static void Main() 
+    {
+        System.Console.WriteLine(I1.F1 + I2.F2);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, expectedOutput: "2");
+
+            var source2 =
+@"
+class Test
+{
+    static void Main() 
+    {
+        System.Console.WriteLine(I2.F2 + I1.F1);
+    }
+}
+";
+            var compilation2 = CreateCompilation(source0 + source2, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation2.VerifyDiagnostics();
+
+            CompileAndVerify(compilation2, expectedOutput: "1");
         }
 
         [Fact]
