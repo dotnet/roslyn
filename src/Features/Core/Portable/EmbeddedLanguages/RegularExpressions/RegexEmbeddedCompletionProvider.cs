@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             // add *and* the user was explicitly invoking completion, then just add the entire set
             // of suggestions to help the user out.
             var count = context.Items.Count;
-            ProvideCompletionsAfterInsertion(context);
+            ProvideCompletionsBasedOffOfPrecedingCharacter(context);
 
             if (count != context.Items.Count)
             {
@@ -157,7 +157,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             // We added no items, but the user explicitly asked for completion.  Add all the
             // items we can to help them out.
-            var inCharacterClass = DetermineIfInCharacterClass(tree, context.Position);
+            var virtualChar = tree.Text.FirstOrNullable(vc => vc.Span.Contains(context.Position));
+            var inCharacterClass = virtualChar != null && IsInCharacterClass(tree.Root, virtualChar.Value, inCharacterClass: false);
 
             ProvideBackslashCompletions(context, inCharacterClass, parentOpt: null);
 
@@ -167,12 +168,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 ProviderOpenBracketCompletions(context, parentOpt: null);
                 ProvideOpenParentCompletions(context, parentOpt: null);
             }
-        }
-
-        private bool DetermineIfInCharacterClass(RegexTree tree, int pos)
-        {
-            var virtualChar = tree.Text.FirstOrNullable(vc => vc.Span.Contains(pos));
-            return virtualChar != null && IsInCharacterClass(tree.Root, virtualChar.Value, inCharacterClass: false);
         }
 
         private void ProvideTopLevelCompletions(EmbeddedCompletionContext context)
@@ -207,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         /// Produces completions using the previous character to determine which set of
         /// regex items to show.
         /// </summary>
-        private void ProvideCompletionsAfterInsertion(EmbeddedCompletionContext context)
+        private void ProvideCompletionsBasedOffOfPrecedingCharacter(EmbeddedCompletionContext context)
         {
             var tree = context.Tree;
             var position = context.Position;
