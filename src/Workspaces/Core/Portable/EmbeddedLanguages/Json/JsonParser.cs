@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             {
                 return new JsonParser(text).ParseTree(options);
             }
-            catch (Exception e) when (StackGuard.IsInsufficientExecutionStackException(e))
+            catch (InsufficientExecutionStackException)
             {
                 return null;
             }

@@ -76,7 +76,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 {
                     switch (ch.Char)
                     {
-                        case ' ': case '\t':
+                        case ' ':
+                        case '\t':
                             break;
 
                         default:

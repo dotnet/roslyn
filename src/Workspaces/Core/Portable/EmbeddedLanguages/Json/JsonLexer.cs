@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             if (Position == Text.Length)
             {
                 return CreateToken(
-                    JsonKind.EndOfFile, leadingTrivia, 
+                    JsonKind.EndOfFile, leadingTrivia,
                     ImmutableArray<VirtualChar>.Empty, ImmutableArray<JsonTrivia>.Empty);
             }
 
@@ -70,14 +70,23 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             // Standard tokens.
             switch (ch)
             {
-                case '{': case '}':
-                case '[': case ']':
-                case '(': case ')':
-                case ',': case ':': 
-                case '\'': case '"':
+                case '{':
+                case '}':
+                case '[':
+                case ']':
+                case '(':
+                case ')':
+                case ',':
+                case ':':
+                case '\'':
+                case '"':
                     return true;
 
-                case ' ': case '\t': case '/': case '\r': case '\n':
+                case ' ':
+                case '\t':
+                case '/':
+                case '\r':
+                case '\n':
                     // trivia cases
                     return true;
             }
@@ -105,7 +114,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 case ',': return ScanSingleCharToken(JsonKind.CommaToken);
                 case ':': return ScanSingleCharToken(JsonKind.ColonToken);
 
-                case '\'': case '"':
+                case '\'':
+                case '"':
                     return ScanString();
 
                 // It would be tempting to try to scan out numbers here.  However, numbers are
@@ -335,7 +345,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             var start = Position;
             Position += 2;
 
-            while (Position < Text.Length && 
+            while (Position < Text.Length &&
                    this.CurrentChar is var ch &&
                    ch != '\r' && ch != '\n')
             {
@@ -403,7 +413,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private JsonTrivia? ScanWhitespace()
         {
             var start = Position;
-            while (Position < Text.Length && 
+            while (Position < Text.Length &&
                    char.IsWhiteSpace(this.CurrentChar))
             {
                 Position++;

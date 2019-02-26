@@ -603,6 +603,7 @@ namespace Microsoft.CodeAnalysis {
             }
         }
 
+        /// <summary>
         ///   Looks up a localized string similar to Core EditorConfig Options.
         /// </summary>
         internal static string Core_EditorConfig_Options {
@@ -2026,6 +2027,7 @@ namespace Microsoft.CodeAnalysis {
             }
         }
 
+        /// <summary>
         ///   Looks up a localized string similar to Base Type.
         /// </summary>
         internal static string TypeOrNamespaceUsageInfo_BaseType {

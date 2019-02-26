@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             ImmutableArray<VirtualChar> virtualChars, ImmutableArray<JsonTrivia> trailingTrivia)
             => CreateToken(kind, leadingTrivia, virtualChars, trailingTrivia, ImmutableArray<EmbeddedDiagnostic>.Empty);
 
-        public static JsonToken CreateToken(JsonKind kind, 
+        public static JsonToken CreateToken(JsonKind kind,
             ImmutableArray<JsonTrivia> leadingTrivia, ImmutableArray<VirtualChar> virtualChars,
             ImmutableArray<JsonTrivia> trailingTrivia, ImmutableArray<EmbeddedDiagnostic> diagnostics)
             => new JsonToken(kind, leadingTrivia, virtualChars, trailingTrivia, diagnostics, value: null);

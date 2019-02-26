@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
 
         public static PerLanguageOption<bool> ReportInvalidJsonPatterns =
             new PerLanguageOption<bool>(
-                nameof(JsonFeatureOptions), 
-                nameof(ReportInvalidJsonPatterns), 
+                nameof(JsonFeatureOptions),
+                nameof(ReportInvalidJsonPatterns),
                 defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ReportInvalidJsonPatterns"));
 

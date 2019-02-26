@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
         public static PerLanguageOption<bool> ReportInvalidRegexPatterns =
             new PerLanguageOption<bool>(
-                nameof(RegexFeatureOptions), 
-                nameof(ReportInvalidRegexPatterns), 
+                nameof(RegexFeatureOptions),
+                nameof(ReportInvalidRegexPatterns),
                 defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ReportInvalidRegexPatterns"));
 
