@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             if (!inCharacterClass)
             {
                 ProvideTopLevelCompletions(context);
-                ProviderOpenBracketCompletions(context, parentOpt: null);
+                ProvideOpenBracketCompletions(context, parentOpt: null);
                 ProvideOpenParentCompletions(context, parentOpt: null);
             }
         }
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             switch (token.Kind)
             {
                 case RegexKind.OpenBracketToken:
-                    ProviderOpenBracketCompletions(context, parent);
+                    ProvideOpenBracketCompletions(context, parent);
                     return;
                 case RegexKind.OpenParenToken:
                     ProvideOpenParentCompletions(context, parent);
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             context.AddIfMissing($"(?imnsx-imnsx:  {Regex_subexpression}  )", Regex_group_options_short, Regex_group_options_long, parentOpt, positionOffset: "(?".Length, insertionText: "(?:)");
         }
 
-        private void ProviderOpenBracketCompletions(EmbeddedCompletionContext context, RegexNode parentOpt)
+        private void ProvideOpenBracketCompletions(EmbeddedCompletionContext context, RegexNode parentOpt)
         {
             context.AddIfMissing($"[  {Regex_character_group}  ]", Regex_positive_character_group_short, Regex_positive_character_group_long, parentOpt, positionOffset: "[".Length, insertionText: "[]");
             context.AddIfMissing($"[  firstCharacter-lastCharacter  ]", Regex_positive_character_range_short, Regex_positive_character_range_long, parentOpt, positionOffset: "[".Length, insertionText: "[-]");
