@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
                 c => FixAsync(context.Document, context.Diagnostics[0], c)),
                 context.Diagnostics);
 
-            return Task.CompletedTask; 
+            return Task.CompletedTask;
         }
 
         public void Fix(SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)

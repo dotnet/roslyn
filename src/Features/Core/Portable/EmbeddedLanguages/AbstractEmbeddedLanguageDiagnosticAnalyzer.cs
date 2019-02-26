@@ -34,18 +34,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
                     analyzers.Add(analyzer);
                     supportedDiagnostics.AddRange(analyzer.SupportedDiagnostics);
 
-<<<<<<< HEAD
                     analyzerCategory = analyzerCategory ?? analyzer.GetAnalyzerCategory();
 
                     if (analyzerCategory != analyzer.GetAnalyzerCategory())
                     {
                         throw new InvalidOperationException("All embedded analyzers must have the same analyzer category.");
                     }
-=======
-                    category = category ?? analyzer.GetAnalyzerCategory();
-                    Debug.Assert(category == analyzer.GetAnalyzerCategory(),
-                        "All embedded analyzers must have the same analyzer category.");
->>>>>>> upstream/master
                 }
             }
 

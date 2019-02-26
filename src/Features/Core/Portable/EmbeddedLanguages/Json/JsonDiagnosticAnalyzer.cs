@@ -11,14 +11,14 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
     /// <summary>
     /// Analyzer that reports diagnostics in strings that we know are JSON text.
     /// </summary>
-    internal class JsonDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class JsonDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public const string DiagnosticId = "JSON001";
 
         private readonly EmbeddedLanguageInfo _info;
 
         public JsonDiagnosticAnalyzer(EmbeddedLanguageInfo info)
-            : base(DiagnosticId, 
+            : base(DiagnosticId,
                    new LocalizableResourceString(nameof(WorkspacesResources.JSON_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
                    new LocalizableResourceString(nameof(WorkspacesResources.JSON_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
         {

@@ -21,16 +21,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         /// <summary>
         /// Optional analyzers that produces diagnostics for an embedded language string.
         /// </summary>
-<<<<<<< HEAD
-        ImmutableArray<AbstractCodeStyleDiagnosticAnalyzer> DiagnosticAnalyzers { get; }
+        ImmutableArray<AbstractBuiltInCodeStyleDiagnosticAnalyzer> DiagnosticAnalyzers { get; }
 
         /// <summary>
         /// An optional fix provider that can fix the diagnostics produced by <see
         /// cref="DiagnosticAnalyzers"/>
         /// </summary>
         SyntaxEditorBasedCodeFixProvider CodeFixProvider { get; }
-=======
-        AbstractBuiltInCodeStyleDiagnosticAnalyzer DiagnosticAnalyzer { get; }
->>>>>>> upstream/master
     }
 }

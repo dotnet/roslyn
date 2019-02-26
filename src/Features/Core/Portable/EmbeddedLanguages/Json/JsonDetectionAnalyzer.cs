@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
     /// Analyzer that helps find strings that are likely to be JSON and which we should offer the
     /// enable language service features for.
     /// </summary>
-    internal class JsonDetectionAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class JsonDetectionAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public const string DiagnosticId = "JSON002";
         public const string StrictKey = nameof(StrictKey);
@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
                             : ImmutableDictionary<string, string>.Empty;
 
                         context.ReportDiagnostic(DiagnosticHelper.Create(
-                            this.Descriptor, 
-                            token.GetLocation(), 
+                            this.Descriptor,
+                            token.GetLocation(),
                             ReportDiagnostic.Info,
                             additionalLocations: null,
                             properties));

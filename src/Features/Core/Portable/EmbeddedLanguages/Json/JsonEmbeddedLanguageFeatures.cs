@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
 {
     internal class JsonEmbeddedLanguageFeatures : JsonEmbeddedLanguage, IEmbeddedLanguageFeatures
     {
-        public ImmutableArray<AbstractCodeStyleDiagnosticAnalyzer> DiagnosticAnalyzers { get; }
+        public ImmutableArray<AbstractBuiltInCodeStyleDiagnosticAnalyzer> DiagnosticAnalyzers { get; }
         public SyntaxEditorBasedCodeFixProvider CodeFixProvider { get; }
 
         // No document-highlights for embedded json currently.
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
             AbstractEmbeddedLanguageFeaturesProvider languagesProvider,
             EmbeddedLanguageInfo info) : base(info)
         {
-            DiagnosticAnalyzers = ImmutableArray.Create<AbstractCodeStyleDiagnosticAnalyzer>(
+            DiagnosticAnalyzers = ImmutableArray.Create<AbstractBuiltInCodeStyleDiagnosticAnalyzer>(
                 new JsonDiagnosticAnalyzer(info),
                 new JsonDetectionAnalyzer(info));
             CodeFixProvider = new JsonEmbeddedCodeFixProvider(languagesProvider, info);
