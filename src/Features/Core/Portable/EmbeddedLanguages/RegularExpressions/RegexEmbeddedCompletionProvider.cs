@@ -158,16 +158,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             // We added no items, but the user explicitly asked for completion.  Add all the
             // items we can to help them out.
             var virtualChar = tree.Text.FirstOrNullable(vc => vc.Span.Contains(context.Position));
-            var inCharacterClass = virtualChar != null && IsInCharacterClass(tree.Root, virtualChar.Value, inCharacterClass: false);
+            var inCharacterClass = virtualChar != null && IsInCharacterClass(tree.Root, virtualChar.Value);
 
             ProvideBackslashCompletions(context, inCharacterClass, parentOpt: null);
-
-            if (!inCharacterClass)
-            {
-                ProvideTopLevelCompletions(context);
-                ProvideOpenBracketCompletions(context, parentOpt: null);
-                ProvideOpenParenCompletions(context, parentOpt: null);
-            }
+            ProvideTopLevelCompletions(context, inCharacterClass);
+            ProvideOpenBracketCompletions(context, inCharacterClass, parentOpt: null);
+            ProvideOpenParenCompletions(context, inCharacterClass, parentOpt: null);
         }
 
         /// <summary>
@@ -202,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             //
             // So first figure out if we're in a character class.  And then decide what sort of
             // completion we want depending on the previous character.
-            var inCharacterClass = IsInCharacterClass(tree.Root, previousVirtualChar, inCharacterClass: false);
+            var inCharacterClass = IsInCharacterClass(tree.Root, previousVirtualChar);
 
             // If the previous character was a `\` then show the list of acceptable escape
             // characters for the current location (in a character class or not).
@@ -219,26 +215,25 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 return;
             }
 
-            if (inCharacterClass)
-            {
-                // Nothing more to offer if we're in a character class.  i.e. the only
-                // things we complete in character class are escapes and unicode escapes.
-                return;
-            }
-
             switch (token.Kind)
             {
                 case RegexKind.OpenBracketToken:
-                    ProvideOpenBracketCompletions(context, parent);
+                    ProvideOpenBracketCompletions(context, inCharacterClass, parent);
                     return;
                 case RegexKind.OpenParenToken:
-                    ProvideOpenParenCompletions(context, parent);
+                    ProvideOpenParenCompletions(context, inCharacterClass, parent);
                     return;
             }
         }
 
-        private void ProvideTopLevelCompletions(EmbeddedCompletionContext context)
+        private void ProvideTopLevelCompletions(EmbeddedCompletionContext context, bool inCharacterClass)
         {
+            if (inCharacterClass)
+            {
+                // If we're in a character class, we have nothing top-level to offer.
+                return;
+            }
+
             context.AddIfMissing("|", Regex_alternation_short, Regex_alternation_long, parentOpt: null);
             context.AddIfMissing("^", Regex_start_of_string_or_line_short, Regex_start_of_string_or_line_long, parentOpt: null);
             context.AddIfMissing("$", Regex_end_of_string_or_line_short, Regex_end_of_string_or_line_long, parentOpt: null);
@@ -318,8 +313,15 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             }
         }
 
-        private void ProvideOpenParenCompletions(EmbeddedCompletionContext context, RegexNode parentOpt)
+        private void ProvideOpenParenCompletions(
+            EmbeddedCompletionContext context, bool inCharacterClass, RegexNode parentOpt)
         {
+            if (inCharacterClass)
+            {
+                // Open paren doesn't complete to anything inside a character class.
+                return;
+            }
+
             if (parentOpt != null && !(parentOpt is RegexGroupingNode))
             {
                 return;
@@ -343,8 +345,15 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             context.AddIfMissing($"(?imnsx-imnsx:  {Regex_subexpression}  )", Regex_group_options_short, Regex_group_options_long, parentOpt, positionOffset: "(?".Length, insertionText: "(?:)");
         }
 
-        private void ProvideOpenBracketCompletions(EmbeddedCompletionContext context, RegexNode parentOpt)
+        private void ProvideOpenBracketCompletions(
+            EmbeddedCompletionContext context, bool inCharacterClass, RegexNode parentOpt)
         {
+            if (inCharacterClass)
+            {
+                // Open bracket doesn't complete to anything inside a character class.
+                return;
+            }
+
             context.AddIfMissing($"[  {Regex_character_group}  ]", Regex_positive_character_group_short, Regex_positive_character_group_long, parentOpt, positionOffset: "[".Length, insertionText: "[]");
             context.AddIfMissing($"[  firstCharacter-lastCharacter  ]", Regex_positive_character_range_short, Regex_positive_character_range_long, parentOpt, positionOffset: "[".Length, insertionText: "[-]");
             context.AddIfMissing($"[^  {Regex_character_group}  ]", Regex_negative_character_group_short, Regex_negative_character_group_long, parentOpt, positionOffset: "[^".Length, insertionText: "[^]");
@@ -456,28 +465,33 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             return null;
         }
 
-        private bool IsInCharacterClass(RegexNode parent, VirtualChar ch, bool inCharacterClass)
+        private bool IsInCharacterClass(RegexNode start, VirtualChar ch)
         {
-            foreach (var child in parent)
-            {
-                if (child.IsNode)
-                {
-                    var result = IsInCharacterClass(child.Node, ch, inCharacterClass || parent is RegexBaseCharacterClassNode);
-                    if (result)
-                    {
-                        return result;
-                    }
-                }
-                else
-                {
-                    if (child.Token.VirtualChars.Contains(ch))
-                    {
-                        return inCharacterClass;
-                    }
-                }
-            }
+            return IsInCharacterClassWorker(start, inCharacterClass: false);
 
-            return false;
+            bool IsInCharacterClassWorker(RegexNode parent, bool inCharacterClass)
+            {
+                foreach (var child in parent)
+                {
+                    if (child.IsNode)
+                    {
+                        var result = IsInCharacterClassWorker(child.Node, inCharacterClass || parent is RegexBaseCharacterClassNode);
+                        if (result)
+                        {
+                            return result;
+                        }
+                    }
+                    else
+                    {
+                        if (child.Token.VirtualChars.Contains(ch))
+                        {
+                            return inCharacterClass;
+                        }
+                    }
+                }
+
+                return false;
+            }
         }
 
         public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
