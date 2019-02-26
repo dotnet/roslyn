@@ -132,8 +132,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         private void ProvideCompletions(EmbeddedCompletionContext context)
         {
-            var tree = context.Tree;
-
             // First, act as if the user just inserted the previous character.  This will cause us
             // to complete down to the set of relevant items based on that character. If we get
             // anything, we're done and can just show the user those items.  If we have no items to
@@ -156,8 +154,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             // We added no items, but the user explicitly asked for completion.  Add all the
             // items we can to help them out.
-            var virtualChar = tree.Text.FirstOrNullable(vc => vc.Span.Contains(context.Position));
-            var inCharacterClass = virtualChar != null && IsInCharacterClass(tree.Root, virtualChar.Value);
+            var virtualChar = context.Tree.Text.FirstOrNullable(vc => vc.Span.Contains(context.Position));
+            var inCharacterClass = virtualChar != null && IsInCharacterClass(context.Tree.Root, virtualChar.Value);
 
             ProvideTopLevelCompletions(context, inCharacterClass);
             ProvideBackslashCompletions(context, inCharacterClass, parentOpt: null);
@@ -171,9 +169,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         /// </summary>
         private void ProvideCompletionsBasedOffOfPrecedingCharacter(EmbeddedCompletionContext context)
         {
-            var tree = context.Tree;
-            var position = context.Position;
-            var previousVirtualCharOpt = tree.Text.FirstOrNullable(vc => vc.Span.Contains(position - 1));
+            var previousVirtualCharOpt = context.Tree.Text.FirstOrNullable(vc => vc.Span.Contains(context.Position - 1));
             if (previousVirtualCharOpt == null)
             {
                 // We didn't have a previous character.  Can't determine the set of 
@@ -182,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             }
 
             var previousVirtualChar = previousVirtualCharOpt.Value;
-            var result = FindToken(tree.Root, previousVirtualChar);
+            var result = FindToken(context.Tree.Root, previousVirtualChar);
             if (result == null)
             {
                 return;
@@ -197,8 +193,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             //
             // So first figure out if we're in a character class.  And then decide what sort of
             // completion we want depending on the previous character.
-            var inCharacterClass = IsInCharacterClass(tree.Root, previousVirtualChar);
-
+            var inCharacterClass = IsInCharacterClass(context.Tree.Root, previousVirtualChar);
             switch (token.Kind)
             {
                 case RegexKind.BackslashToken:
@@ -217,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             // will be handled as a normal character and won't have a token for it.
             if (previousVirtualChar.Char == '{')
             {
-                ProvideOpenBraceCompletions(context, tree, previousVirtualChar);
+                ProvideOpenBraceCompletions(context, context.Tree, previousVirtualChar);
                 return;
             }
         }
