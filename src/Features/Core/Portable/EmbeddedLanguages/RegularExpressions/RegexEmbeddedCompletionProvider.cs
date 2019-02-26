@@ -199,29 +199,26 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             // completion we want depending on the previous character.
             var inCharacterClass = IsInCharacterClass(tree.Root, previousVirtualChar);
 
-            // If the previous character was a `\` then show the list of acceptable escape
-            // characters for the current location (in a character class or not).
-            if (token.Kind == RegexKind.BackslashToken)
-            {
-                ProvideBackslashCompletions(context, inCharacterClass, parent);
-                return;
-            }
-
-            // see if we have ```\p{```.  If so, offer property categories
-            if (previousVirtualChar.Char == '{')
-            {
-                ProvideOpenBraceCompletions(context, tree, previousVirtualChar);
-                return;
-            }
-
             switch (token.Kind)
             {
+                case RegexKind.BackslashToken:
+                    ProvideBackslashCompletions(context, inCharacterClass, parent);
+                    return;
                 case RegexKind.OpenBracketToken:
                     ProvideOpenBracketCompletions(context, inCharacterClass, parent);
                     return;
                 case RegexKind.OpenParenToken:
                     ProvideOpenParenCompletions(context, inCharacterClass, parent);
                     return;
+            }
+
+            // see if we have ```\p{```.  If so, offer property categories. This isn't handled 
+            // in the above switch because when you just have an incomplete `\p{` then the `{` 
+            // will be handled as a normal character and won't have a token for it.
+            if (previousVirtualChar.Char == '{')
+            {
+                ProvideOpenBraceCompletions(context, tree, previousVirtualChar);
+                return;
             }
         }
 
