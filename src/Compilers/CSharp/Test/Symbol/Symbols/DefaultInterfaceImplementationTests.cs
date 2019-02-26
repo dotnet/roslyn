@@ -31099,24 +31099,19 @@ interface I1
                 Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "I1").WithArguments("I1.I1()").WithLocation(4, 19)
                 );
 
-            validate(compilation1.SourceModule);
+            var i1 = compilation1.SourceModule.GlobalNamespace.GetTypeMember("I1");
+            var cctor = i1.GetMember<MethodSymbol>(".cctor");
 
-            void validate(ModuleSymbol m)
-            {
-                var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                var cctor = i1.GetMember<MethodSymbol>(".cctor");
-
-                Assert.False(cctor.IsAbstract);
-                Assert.False(cctor.IsVirtual);
-                Assert.False(cctor.IsMetadataVirtual());
-                Assert.False(cctor.IsSealed);
-                Assert.True(cctor.IsStatic);
-                Assert.True(cctor.IsExtern);
-                Assert.False(cctor.IsAsync);
-                Assert.False(cctor.IsOverride);
-                Assert.Equal(Accessibility.Private, cctor.DeclaredAccessibility);
-                Assert.Equal(MethodKind.StaticConstructor, cctor.MethodKind);
-            }
+            Assert.False(cctor.IsAbstract);
+            Assert.False(cctor.IsVirtual);
+            Assert.False(cctor.IsMetadataVirtual());
+            Assert.False(cctor.IsSealed);
+            Assert.True(cctor.IsStatic);
+            Assert.True(cctor.IsExtern);
+            Assert.False(cctor.IsAsync);
+            Assert.False(cctor.IsOverride);
+            Assert.Equal(Accessibility.Private, cctor.DeclaredAccessibility);
+            Assert.Equal(MethodKind.StaticConstructor, cctor.MethodKind);
 
             CompileAndVerify(compilation1, symbolValidator: ValidateConstructor, verify: Verification.Skipped);
         }
@@ -31273,6 +31268,67 @@ class Test : I1
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null : "I1.I1", verify: VerifyOnCoreClr);
+        }
+
+        /// <summary>
+        /// Make sure runtime handles cycles in static constructors.
+        /// </summary>
+        [Fact]
+        public void Constructors_12()
+        {
+            var source0 =
+@"
+interface I1
+{
+    public static int F1;
+    static I1()
+    {
+        F1 = I2.F2;
+    }
+}
+
+interface I2
+{
+    public static int F2;
+    static I2()
+    {
+        F2 = I1.F1 + 1;
+    }
+}
+";
+            var source1 =
+@"
+class Test
+{
+    static void Main() 
+    {
+        System.Console.WriteLine(I1.F1 + I2.F2);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, expectedOutput: "2");
+
+            var source2 =
+@"
+class Test
+{
+    static void Main() 
+    {
+        System.Console.WriteLine(I2.F2 + I1.F1);
+    }
+}
+";
+            var compilation2 = CreateCompilation(source0 + source2, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular);
+
+            compilation2.VerifyDiagnostics();
+
+            CompileAndVerify(compilation2, expectedOutput: "1");
         }
 
         [Fact]
