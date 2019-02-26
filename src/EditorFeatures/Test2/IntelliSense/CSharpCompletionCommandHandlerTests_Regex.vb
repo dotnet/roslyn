@@ -334,7 +334,10 @@ class c
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertCompletionSession()
+                Dim items = state.GetCompletionItems()
+
+                Assert.False(items.Any(Function(c) c.DisplayText = "*"))
             End Using
         End Function
 
