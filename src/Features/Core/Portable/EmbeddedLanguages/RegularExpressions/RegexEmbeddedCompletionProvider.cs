@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 return;
             }
 
-            var embeddedContext = new EmbeddedCompletionContext(this, context, tree, stringToken);
+            var embeddedContext = new EmbeddedCompletionContext(this._language, context, tree, stringToken);
             ProvideCompletions(embeddedContext);
 
             if (embeddedContext.Items.Count == 0)

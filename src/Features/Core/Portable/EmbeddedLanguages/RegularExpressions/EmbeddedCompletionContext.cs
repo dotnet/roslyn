@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     {
         private struct EmbeddedCompletionContext
         {
-            private readonly RegexEmbeddedCompletionProvider _provider;
+            private readonly RegexEmbeddedLanguageFeatures _language;
             private readonly CompletionContext _context;
             private readonly HashSet<string> _names;
 
@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             public readonly List<RegexItem> Items;
 
             public EmbeddedCompletionContext(
-                RegexEmbeddedCompletionProvider provider,
+                RegexEmbeddedLanguageFeatures language,
                 CompletionContext context,
                 RegexTree tree,
                 SyntaxToken stringToken)
             {
-                _provider = provider;
+                _language = language;
                 _context = context;
                 _names = new HashSet<string>();
                 Tree = tree;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 var newPosition = replacementStart + positionOffset;
 
                 insertionText = insertionText ?? displayText;
-                var escapedInsertionText = _provider._language.EscapeText(insertionText, StringToken);
+                var escapedInsertionText = _language.EscapeText(insertionText, StringToken);
 
                 if (escapedInsertionText != insertionText)
                 {
