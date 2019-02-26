@@ -54,6 +54,7 @@ end class
                 state.SendDownKey()
                 state.SendDownKey()
                 state.SendDownKey()
+                Await state.AssertSelectedCompletionItem("[^  firstCharacter-lastCharacter  ]")
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("New Regex(""[^-]"")", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
