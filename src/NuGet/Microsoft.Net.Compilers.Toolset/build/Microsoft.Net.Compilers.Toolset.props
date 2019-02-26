@@ -1,14 +1,14 @@
 ﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project DefaultTargets="Build">
+<Project>
 
   <PropertyGroup>
-    <_TargetDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core'">netcoreapp2.1</_TargetDirectoryName>   
-    <_TargetDirectoryName Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</_TargetDirectoryName>   
-    <_TasksDirectory>$(MSBuildThisFileDirectory)..\tasks\$(_TargetDirectoryName)\</_TasksDirectory>
-    <RoslynTasksAssembly>$(_TasksDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll</RoslynTasksAssembly> 
+    <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core'">netcoreapp2.1</_RoslynTargetDirectoryName>   
+    <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</_RoslynTargetDirectoryName>   
+    <_RoslynTasksDirectory>$(MSBuildThisFileDirectory)..\tasks\$(_RoslynTargetDirectoryName)\</_RoslynTasksDirectory>
+    <RoslynTasksAssembly>$(_RoslynTasksDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll</RoslynTasksAssembly> 
     <UseSharedCompilation Condition="'$(UseSharedCompilation)' == ''">true</UseSharedCompilation>
-    <CSharpCoreTargetsPath>$(_TasksDirectory)Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
-    <VisualBasicCoreTargetsPath>$(_TasksDirectory)Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
+    <CSharpCoreTargetsPath>$(_RoslynTasksDirectory)Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
+    <VisualBasicCoreTargetsPath>$(_RoslynTasksDirectory)Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
   </PropertyGroup>
 
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc" AssemblyFile="$(RoslynTasksAssembly)" />
