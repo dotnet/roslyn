@@ -166,36 +166,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             {
                 ProvideTopLevelCompletions(context);
                 ProvideOpenBracketCompletions(context, parentOpt: null);
-                ProvideOpenParentCompletions(context, parentOpt: null);
+                ProvideOpenParenCompletions(context, parentOpt: null);
             }
-        }
-
-        private void ProvideTopLevelCompletions(EmbeddedCompletionContext context)
-        {
-            context.AddIfMissing("|", Regex_alternation_short, Regex_alternation_long, parentOpt: null);
-            context.AddIfMissing("^", Regex_start_of_string_or_line_short, Regex_start_of_string_or_line_long, parentOpt: null);
-            context.AddIfMissing("$", Regex_end_of_string_or_line_short, Regex_end_of_string_or_line_long, parentOpt: null);
-            context.AddIfMissing(".", Regex_any_character_group_short, Regex_any_character_group_long, parentOpt: null);
-
-            context.AddIfMissing("*", Regex_match_zero_or_more_times_short, Regex_match_zero_or_more_times_long, parentOpt: null);
-            context.AddIfMissing("*?", Regex_match_zero_or_more_times_lazy_short, Regex_match_zero_or_more_times_lazy_long, parentOpt: null);
-
-            context.AddIfMissing("+", Regex_match_one_or_more_times_short, Regex_match_one_or_more_times_long, parentOpt: null);
-            context.AddIfMissing("+?", Regex_match_one_or_more_times_lazy_short, Regex_match_one_or_more_times_lazy_long, parentOpt: null);
-
-            context.AddIfMissing("?", Regex_match_zero_or_one_time_short, Regex_match_zero_or_one_time_long, parentOpt: null);
-            context.AddIfMissing("??", Regex_match_zero_or_one_time_lazy_short, Regex_match_zero_or_one_time_lazy_long, parentOpt: null);
-
-            context.AddIfMissing("{n}", Regex_match_exactly_n_times_short, Regex_match_exactly_n_times_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{}");
-            context.AddIfMissing("{n}?", Regex_match_exactly_n_times_lazy_short, Regex_match_exactly_n_times_lazy_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{}?");
-
-            context.AddIfMissing("{n,}", Regex_match_at_least_n_times_short, Regex_match_at_least_n_times_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{,}");
-            context.AddIfMissing("{n,}?", Regex_match_at_least_n_times_lazy_short, Regex_match_at_least_n_times_lazy_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{,}?");
-
-            context.AddIfMissing("{m,n}", Regex_match_between_m_and_n_times_short, Regex_match_between_m_and_n_times_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{,}");
-            context.AddIfMissing("{m,n}?", Regex_match_between_m_and_n_times_lazy_short, Regex_match_between_m_and_n_times_lazy_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{,}?");
-
-            context.AddIfMissing("#", Regex_end_of_line_comment_short, Regex_end_of_line_comment_long, parentOpt: null);
         }
 
         /// <summary>
@@ -260,14 +232,45 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                     ProvideOpenBracketCompletions(context, parent);
                     return;
                 case RegexKind.OpenParenToken:
-                    ProvideOpenParentCompletions(context, parent);
+                    ProvideOpenParenCompletions(context, parent);
                     return;
             }
+        }
+
+        private void ProvideTopLevelCompletions(EmbeddedCompletionContext context)
+        {
+            context.AddIfMissing("|", Regex_alternation_short, Regex_alternation_long, parentOpt: null);
+            context.AddIfMissing("^", Regex_start_of_string_or_line_short, Regex_start_of_string_or_line_long, parentOpt: null);
+            context.AddIfMissing("$", Regex_end_of_string_or_line_short, Regex_end_of_string_or_line_long, parentOpt: null);
+            context.AddIfMissing(".", Regex_any_character_group_short, Regex_any_character_group_long, parentOpt: null);
+
+            context.AddIfMissing("*", Regex_match_zero_or_more_times_short, Regex_match_zero_or_more_times_long, parentOpt: null);
+            context.AddIfMissing("*?", Regex_match_zero_or_more_times_lazy_short, Regex_match_zero_or_more_times_lazy_long, parentOpt: null);
+
+            context.AddIfMissing("+", Regex_match_one_or_more_times_short, Regex_match_one_or_more_times_long, parentOpt: null);
+            context.AddIfMissing("+?", Regex_match_one_or_more_times_lazy_short, Regex_match_one_or_more_times_lazy_long, parentOpt: null);
+
+            context.AddIfMissing("?", Regex_match_zero_or_one_time_short, Regex_match_zero_or_one_time_long, parentOpt: null);
+            context.AddIfMissing("??", Regex_match_zero_or_one_time_lazy_short, Regex_match_zero_or_one_time_lazy_long, parentOpt: null);
+
+            context.AddIfMissing("{n}", Regex_match_exactly_n_times_short, Regex_match_exactly_n_times_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{}");
+            context.AddIfMissing("{n}?", Regex_match_exactly_n_times_lazy_short, Regex_match_exactly_n_times_lazy_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{}?");
+
+            context.AddIfMissing("{n,}", Regex_match_at_least_n_times_short, Regex_match_at_least_n_times_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{,}");
+            context.AddIfMissing("{n,}?", Regex_match_at_least_n_times_lazy_short, Regex_match_at_least_n_times_lazy_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{,}?");
+
+            context.AddIfMissing("{m,n}", Regex_match_between_m_and_n_times_short, Regex_match_between_m_and_n_times_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{,}");
+            context.AddIfMissing("{m,n}?", Regex_match_between_m_and_n_times_lazy_short, Regex_match_between_m_and_n_times_lazy_long, parentOpt: null, positionOffset: "{".Length, insertionText: "{,}?");
+
+            context.AddIfMissing("#", Regex_end_of_line_comment_short, Regex_end_of_line_comment_long, parentOpt: null);
         }
 
         private void ProvideOpenBraceCompletions(
             EmbeddedCompletionContext context, RegexTree tree, VirtualChar previousVirtualChar)
         {
+            // we only provide completions after `{` if the user wrote `\p{`.  In that case
+            // we're providing the set of unicode categories that are legal there.
+
             var index = tree.Text.IndexOf(previousVirtualChar);
             if (index >= 2 &&
                 tree.Text[index - 2].Char == '\\' &&
@@ -280,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                     return;
                 }
 
-                var (parent, token) = result.Value;
+                var (parent, _) = result.Value;
                 if (parent is RegexEscapeNode)
                 {
                     ProvideEscapeCategoryCompletions(context);
@@ -288,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             }
         }
 
-        private void ProvideOpenParentCompletions(EmbeddedCompletionContext context, RegexNode parentOpt)
+        private void ProvideOpenParenCompletions(EmbeddedCompletionContext context, RegexNode parentOpt)
         {
             if (parentOpt != null && !(parentOpt is RegexGroupingNode))
             {
