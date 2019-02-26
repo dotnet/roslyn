@@ -5,6 +5,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 {
@@ -43,9 +44,14 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 string displayText, string suffix, string description,
                 RegexNode parentOpt, int? positionOffset = null, string insertionText = null)
             {
+                var replacementStart = parentOpt != null
+                    ? parentOpt.GetSpan().Start
+                    : Position;
+
+                var replacementSpan = TextSpan.FromBounds(replacementStart, Position);
                 var item = _provider.CreateItem(
-                    StringToken, displayText, suffix, description, this,
-                    parentOpt, positionOffset, insertionText);
+                    StringToken, displayText, suffix, description,
+                    replacementSpan, positionOffset, insertionText);
 
                 AddIfMissing(item);
             }

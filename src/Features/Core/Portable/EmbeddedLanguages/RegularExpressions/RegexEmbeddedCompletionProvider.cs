@@ -406,14 +406,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         private RegexItem CreateItem(
             SyntaxToken stringToken, string displayText,
             string suffix, string description,
-            EmbeddedCompletionContext context, RegexNode parentOpt,
-            int? positionOffset, string insertionText)
+            TextSpan replacementSpan, int? positionOffset, string insertionText)
         {
-            var replacementStart = parentOpt != null
-                ? parentOpt.GetSpan().Start
-                : context.Position;
-
-            var replacementSpan = TextSpan.FromBounds(replacementStart, context.Position);
+            var replacementStart = replacementSpan.Start;
             var newPosition = replacementStart + positionOffset;
 
             insertionText = insertionText ?? displayText;
