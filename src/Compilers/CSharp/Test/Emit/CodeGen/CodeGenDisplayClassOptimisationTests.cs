@@ -1,11 +1,22 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenDisplayClassOptimizationTests : CSharpTestBase
     {
+        private static void VerifyTypeIL(CompilationVerifier compilation, string typeName, string expected)
+        {
+            // .Net Core has different assemblies for the same standard library types as .Net Framework, meaning that that the emitted output will be different to the expected if we run them .Net Core
+            // Since we do not expect there to be any meaningful differences between output for .Net Core and .Net Framework, we will skip these tests on .Net Core
+            if (ExecutionConditionUtil.IsDesktop)
+            {
+                compilation.VerifyTypeIL(typeName, expected);
+            }
+        }
+
         [Fact]
         public void ForWithBlockCorrectDisplayClassesAreCreated()
         {
@@ -35,7 +46,7 @@ public static class Program
 two
 one");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -208,7 +219,7 @@ class C
 }";
             var compilation = CompileAndVerify(source);
 
-            compilation.VerifyTypeIL("C", @"
+            VerifyTypeIL(compilation, "C", @"
 .class private auto ansi beforefieldinit C
 	extends [mscorlib]System.Object
 {
@@ -360,7 +371,7 @@ class C
 }";
             var compilation = CompileAndVerify(source);
 
-            compilation.VerifyTypeIL("C", @"
+            VerifyTypeIL(compilation, "C", @"
 .class private auto ansi beforefieldinit C
 	extends [mscorlib]System.Object
 {
@@ -508,7 +519,7 @@ public static class Program
 two
 one");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -727,7 +738,7 @@ public static class Program
 one
 one");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -824,7 +835,7 @@ one");
 		IL_0033: stfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
 		IL_0038: ldc.i4.0
 		IL_0039: ldc.i4.3
-		IL_003a: call class [mscorlib]System.Collections.Generic.IEnumerable`1<int32> [mscorlib]System.Linq.Enumerable::Range(int32, int32)
+		IL_003a: call class [mscorlib]System.Collections.Generic.IEnumerable`1<int32> [System.Core]System.Linq.Enumerable::Range(int32, int32)
 		IL_003f: callvirt instance class [mscorlib]System.Collections.Generic.IEnumerator`1<!0> class [mscorlib]System.Collections.Generic.IEnumerable`1<int32>::GetEnumerator()
 		IL_0044: stloc.2
 		.try
@@ -907,7 +918,7 @@ public static class Program
 one
 one");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -1043,7 +1054,7 @@ one");
 		IL_0033: stfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
 		IL_0038: ldc.i4.0
 		IL_0039: ldc.i4.3
-		IL_003a: call class [mscorlib]System.Collections.Generic.IEnumerable`1<int32> [mscorlib]System.Linq.Enumerable::Range(int32, int32)
+		IL_003a: call class [mscorlib]System.Collections.Generic.IEnumerable`1<int32> [System.Core]System.Linq.Enumerable::Range(int32, int32)
 		IL_003f: callvirt instance class [mscorlib]System.Collections.Generic.IEnumerator`1<!0> class [mscorlib]System.Collections.Generic.IEnumerable`1<int32>::GetEnumerator()
 		IL_0044: stloc.2
 		.try
@@ -1140,7 +1151,7 @@ public class Program
 }";
             var compilation = CompileAndVerify(source);
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -1498,7 +1509,7 @@ public static class Program
             var compilation = CompileAndVerify(source, expectedOutput: "one");
 
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -1607,7 +1618,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: "one");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -1759,7 +1770,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: "one");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -1925,7 +1936,7 @@ public static class Program
             var compilation = CompileAndVerify(source, expectedOutput: @"Program+Disposable
 one");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -2079,7 +2090,7 @@ public static class Program
             var compilation = CompileAndVerify(source, expectedOutput: @"Program+Disposable
 one");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -2286,7 +2297,7 @@ two
 Program+Disposable
 one");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -2486,7 +2497,7 @@ one");
 		IL_0033: stfld class [mscorlib]System.Collections.Generic.List`1<string> Program/'<>c__DisplayClass0_0'::strings
 		IL_0038: ldc.i4.0
 		IL_0039: ldc.i4.1
-		IL_003a: call class [mscorlib]System.Collections.Generic.IEnumerable`1<int32> [mscorlib]System.Linq.Enumerable::Range(int32, int32)
+		IL_003a: call class [mscorlib]System.Collections.Generic.IEnumerable`1<int32> [System.Core]System.Linq.Enumerable::Range(int32, int32)
 		IL_003f: callvirt instance class [mscorlib]System.Collections.Generic.IEnumerator`1<!0> class [mscorlib]System.Collections.Generic.IEnumerable`1<int32>::GetEnumerator()
 		IL_0044: stloc.2
 		.try
@@ -2616,7 +2627,7 @@ public static class Program
 two
 three");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -2818,7 +2829,7 @@ public static class Program
             var compilation = CompileAndVerify(source, expectedOutput: @"two
 one");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -3020,7 +3031,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"one");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -3216,7 +3227,7 @@ public static class Program
     }";
             var compilation = CompileAndVerify(source, expectedOutput: @"one");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -3353,7 +3364,7 @@ public static class Program
     }";
             var compilation = CompileAndVerify(source, expectedOutput: @"one");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -3499,7 +3510,7 @@ public static class Program
 two
 one");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -3708,7 +3719,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"1");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -3798,7 +3809,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -3886,7 +3897,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"1");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -3990,7 +4001,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"1");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -4093,7 +4104,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"1");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -4189,7 +4200,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"1");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -4289,7 +4300,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"1");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -4382,7 +4393,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"1");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -4500,7 +4511,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"1");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -4617,7 +4628,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"1");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -4736,7 +4747,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"1");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -4856,7 +4867,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"1");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -4986,7 +4997,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"1");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -5103,7 +5114,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"1");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -5232,7 +5243,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"1");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -5332,7 +5343,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"1");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -5429,7 +5440,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"1");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -5563,7 +5574,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"4");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -5706,7 +5717,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"2");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -5859,7 +5870,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"3");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -5994,7 +6005,7 @@ public static class Program
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"3");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -6127,7 +6138,7 @@ public class Program
             var compilation = CompileAndVerify(source, expectedOutput: @"1
 1");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi beforefieldinit Program
 	extends [mscorlib]System.Object
 {
@@ -6319,7 +6330,7 @@ public class Program
             var compilation = CompileAndVerify(source, expectedOutput: @"1
 1");
 
-            compilation.VerifyTypeIL("Program", @"
+            VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi beforefieldinit Program
 	extends [mscorlib]System.Object
 {

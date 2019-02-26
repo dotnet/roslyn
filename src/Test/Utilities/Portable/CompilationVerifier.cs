@@ -153,12 +153,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         /// <summary>
-		/// Asserts that the emited IL for a type is the same as the expected IL
+		/// Asserts that the emited IL for a type is the same as the expected IL.
+		/// Many core library types are in different assemblies on .Net Framework, and .Net Core.
+		/// Therefore this test is likely to fail unless you  only run it only only on one of these frameworks,
+		/// or you run it on both, but provide a different expected output string for each.
+		/// See <see cref="ExecutionConditionUtil"/>.
 		/// </summary>
 		/// <param name="typeName">The non-fully-qualified name of the type</param>
 		/// <param name="expected">The expected IL</param>
-		/// <param name="normalize">Normalize the output string to ignore differences between output for .Net Core and .Net Framework</param>
-        public void VerifyTypeIL(string typeName, string expected, bool normalize = true)
+        public void VerifyTypeIL(string typeName, string expected)
         {
             var output = new ICSharpCode.Decompiler.PlainTextOutput();
             using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
@@ -186,23 +189,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     Assert.True(found, "Could not find type named " + typeName);
                 }
             }
-
-            var outputString = output.ToString();
-            if (normalize)
-            {
-                foreach (var (toReplace, replaceWith) in s_platformSpecificNormalizations)
-                {
-                    outputString = outputString.Replace(toReplace, replaceWith);
-                }
-            }
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, outputString, escapeQuotes: false);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, output.ToString(), escapeQuotes: false);
         }
-
-        private static readonly (string toReplace, string replaceWith)[] s_platformSpecificNormalizations =
-        {
-            ("[netstandard]", "[mscorlib]"),
-            ("[System.Core]", "[mscorlib]")
-        };
 
         public void Emit(string expectedOutput, int? expectedReturnCode, string[] args, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, Verification peVerify, SignatureDescription[] expectedSignatures)
         {
