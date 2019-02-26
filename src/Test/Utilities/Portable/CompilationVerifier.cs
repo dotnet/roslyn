@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         /// <summary>
-		/// Asserts that the emited IL for a type is the same as the expected IL.
+		/// Asserts that the emitted IL for a type is the same as the expected IL.
 		/// Many core library types are in different assemblies on .Net Framework, and .Net Core.
 		/// Therefore this test is likely to fail unless you  only run it only only on one of these frameworks,
 		/// or you run it on both, but provide a different expected output string for each.
