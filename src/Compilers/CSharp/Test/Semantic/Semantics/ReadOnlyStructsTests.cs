@@ -440,6 +440,29 @@ public struct S
         }
 
         [Fact]
+        public void ReadOnlyStaticAutoProperty()
+        {
+            var csharp = @"
+public struct S
+{
+    public static readonly int P1 { get; set; }
+    public static int P2 { readonly get; }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (4,37): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public static readonly int P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("readonly").WithLocation(4, 37),
+                // (4,42): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public static readonly int P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("readonly").WithLocation(4, 42),
+                // (5,37): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public static int P2 { readonly get; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("readonly").WithLocation(5, 37));
+        }
+
+        [Fact]
         public void RefReturningReadOnlyMethod()
         {
             // PROTOTYPE: would be good to add some more mutation here
@@ -479,6 +502,25 @@ public struct S
                 // (4,21): error CS0106: The modifier 'readonly' is not valid for this item
                 //     public readonly S(int i) { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("readonly").WithLocation(4, 21));
+        }
+
+        [Fact]
+        public void ReadOnlyDestructor()
+        {
+            var csharp = @"
+public struct S
+{
+    readonly ~S() { }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (4,15): error CS0106: The modifier 'readonly' is not valid for this item
+                //     readonly ~S() { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("readonly").WithLocation(4, 15),
+                // (4,15): error CS0575: Only class types can contain destructors
+                //     readonly ~S() { }
+                Diagnostic(ErrorCode.ERR_OnlyClassesCanContainDestructors, "S").WithArguments("S.~S()").WithLocation(4, 15));
         }
 
         [Fact]
