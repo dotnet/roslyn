@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
                 if (expectedSelectedIndex != -1)
                 {
-                    var parameterConfiguration = testState.GetParameterConfiguration();
+                    var parameterConfiguration = await testState.GetParameterConfigurationAsync();
                     Assert.Equal(expectedSelectedIndex, parameterConfiguration.SelectedIndex);
                 }
             }

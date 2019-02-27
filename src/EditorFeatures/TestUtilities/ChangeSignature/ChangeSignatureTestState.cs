@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.CSharp;
@@ -81,12 +82,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                 CancellationToken.None);
         }
 
-        public ParameterConfiguration GetParameterConfiguration()
+        public async Task<ParameterConfiguration> GetParameterConfigurationAsync()
         {
             WpfTestRunner.RequireWpfFact($"{nameof(AbstractChangeSignatureService.ChangeSignature)} currently needs to run on a WPF Fact because it's factored in a way that tries popping up UI in some cases.");
 
-            var context = ChangeSignatureService.GetContextAsync(InvocationDocument, _testDocument.CursorPosition.Value, restrictToDeclarations: false, CancellationToken.None)
-                .WaitAndGetResult(CancellationToken.None);
+            var context = await ChangeSignatureService.GetContextAsync(InvocationDocument, _testDocument.CursorPosition.Value, restrictToDeclarations: false, CancellationToken.None);
             return context.ParameterConfiguration;
         }
 
