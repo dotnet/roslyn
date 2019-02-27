@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -530,24 +531,35 @@ namespace Microsoft.CodeAnalysis
             this.CheckDocumentIsInCurrentSolution(documentId);
             this.CheckDocumentIsOpen(documentId);
 
-            using (_serializationLock.DisposableWait())
+            // The try/catch here is to find additional telemetry for https://devdiv.visualstudio.com/DevDiv/_queries/query/71ee8553-7220-4b2a-98cf-20edab701fd1/,
+            // where we have one theory that OnDocumentClosed is running but failing somewhere in the middle and thus failing to get to the RaiseDocumentClosedEventAsync() line. 
+            // We are choosing ReportWithoutCrashAndPropagate because this is a public API that has callers outside VS and also non-VisualStudioWorkspace callers inside VS, and
+            // we don't want to be crashing underneath them if they were already handling exceptions or (worse) was using those exceptions for expected code flow.
+            try
             {
-                // forget any open document info
-                ClearOpenDocument(documentId);
+                using (_serializationLock.DisposableWait())
+                {
+                    // forget any open document info
+                    ClearOpenDocument(documentId);
 
-                var oldSolution = this.CurrentSolution;
-                var oldDocument = oldSolution.GetDocument(documentId);
+                    var oldSolution = this.CurrentSolution;
+                    var oldDocument = oldSolution.GetDocument(documentId);
 
-                this.OnDocumentClosing(documentId);
+                    this.OnDocumentClosing(documentId);
 
-                var newSolution = oldSolution.WithDocumentTextLoader(documentId, reloader, PreservationMode.PreserveValue);
-                newSolution = this.SetCurrentSolution(newSolution);
+                    var newSolution = oldSolution.WithDocumentTextLoader(documentId, reloader, PreservationMode.PreserveValue);
+                    newSolution = this.SetCurrentSolution(newSolution);
 
-                var newDoc = newSolution.GetDocument(documentId);
-                this.OnDocumentTextChanged(newDoc);
+                    var newDoc = newSolution.GetDocument(documentId);
+                    this.OnDocumentTextChanged(newDoc);
 
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId); // don't wait for this
-                this.RaiseDocumentClosedEventAsync(newDoc); // don't wait for this
+                    this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId); // don't wait for this
+                    this.RaiseDocumentClosedEventAsync(newDoc); // don't wait for this
+                }
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashAndPropagate(e))
+            {
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
