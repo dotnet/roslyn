@@ -77,9 +77,8 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             /// <summary>
             /// Try to find a constructor in <paramref name="containingType"/> whose parameters is the subset of <paramref name="parameters"/> by comparing name.
             /// If multiple constructors meet the condition, the one with more parameters will be returned.
-            /// It will not consider those constructors as potential candidates if:
-            /// 1. Constructor with empty parameter list.
-            /// 2. Constructor's parameter list contains 'ref' or 'params'
+            /// It will not consider those constructors as potential candidates if the constructor's parameter list 
+            /// contains 'ref' or 'params'
             /// </summary>
             private IMethodSymbol GetDelegatedConstructorBasedOnParameterNames(
                 INamedTypeSymbol containingType,
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 ImmutableArray<string> parametersName)
             {
                 var constructorParams = constructor.Parameters;
-                if (constructorParams.Length <= 0)
+                if (constructorParams.Length == 0)
                 {
                     return !constructor.IsImplicitlyDeclared;
                 }
