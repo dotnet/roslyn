@@ -177,11 +177,6 @@
         <target state="new">Prefer static local functions</target>
         <note />
       </trans-unit>
-      <trans-unit id="Provide_completion_lists">
-        <source>Provide completion lists</source>
-        <target state="new">Provide completion lists</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Pull_Members_Up">
         <source>Pull Members Up</source>
         <target state="new">Pull Members Up</target>
@@ -245,6 +240,11 @@
       <trans-unit id="Select_members_colon">
         <source>Select members:</source>
         <target state="new">Select members:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_list">
+        <source>Show completion list</source>
+        <target state="new">Show completion list</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">

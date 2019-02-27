@@ -2278,15 +2278,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Provide completion lists.
-        /// </summary>
-        internal static string Provide_completion_lists {
-            get {
-                return ResourceManager.GetString("Provide_completion_lists", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Pull Members Up.
         /// </summary>
         internal static string Pull_Members_Up {
@@ -2616,6 +2607,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Severity_colon {
             get {
                 return ResourceManager.GetString("Severity_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show completion list.
+        /// </summary>
+        internal static string Show_completion_list {
+            get {
+                return ResourceManager.GetString("Show_completion_list", resourceCulture);
             }
         }
         
