@@ -2278,6 +2278,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Provide completion lists.
+        /// </summary>
+        internal static string Provide_completion_lists {
+            get {
+                return ResourceManager.GetString("Provide_completion_lists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pull Members Up.
         /// </summary>
         internal static string Pull_Members_Up {
